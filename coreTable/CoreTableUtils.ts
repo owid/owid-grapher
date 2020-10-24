@@ -10,8 +10,8 @@ import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
+    OwidEntityNameColumnDef,
     OwidTableSlugs,
-    StandardOwidColumnDefs,
 } from "./OwidTableConstants"
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
@@ -27,16 +27,42 @@ export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     })
 }
 
-export const autoType = (object: any) => {
-    for (const key in object) {
-        const value = object[key]
-        const number = +value
-        if (!isNaN(number)) object[key] = number
-        else object[key] = value
+// Picks a type for each column from the first row then autotypes all rows after that so all values in
+// a column will have the same type. Only chooses between strings and numbers.
+export const makeAutoTypeFn = () => {
+    const slugToType: any = {}
+    return (object: any) => {
+        for (const columnSlug in object) {
+            const value = object[columnSlug]
+            const type = slugToType[columnSlug]
+            if (type === "string") {
+                object[columnSlug] = value
+                continue
+            }
+
+            const number = parseFloat(value) // The "+" type casting that d3 does for perf converts "" to 0, so use parseFloat.
+            if (type === "number") {
+                object[columnSlug] = !isNaN(number)
+                    ? number
+                    : InvalidCellTypes.NaNButShouldBeNumber
+                continue
+            }
+
+            if (!isNaN(number)) {
+                object[columnSlug] = number
+                slugToType[columnSlug] = "number"
+                continue
+            }
+
+            object[columnSlug] = value
+            slugToType[columnSlug] = "string"
+        }
+        return object
     }
-    return object
 }
 
+// Removes whitespace and non-word characters from column slugs if any exist.
+// The original names are moved to the name property on the column def.
 export const standardizeSlugs = (rows: CoreRow[]) => {
     const colsToRename = Object.keys(rows[0])
         .map((name) => {
@@ -46,7 +72,7 @@ export const standardizeSlugs = (rows: CoreRow[]) => {
             }
         })
         .filter((col) => col.name !== col.slug)
-    if (!colsToRename.length) return rows
+    if (!colsToRename.length) return undefined
 
     rows.forEach((row: CoreRow) => {
         colsToRename.forEach((col) => {
@@ -55,7 +81,7 @@ export const standardizeSlugs = (rows: CoreRow[]) => {
         })
     })
 
-    return rows
+    return { rows, defs: colsToRename }
 }
 
 export const guessColumnDefFromSlugAndRow = (
@@ -78,8 +104,8 @@ export const guessColumnDefFromSlugAndRow = (
             name: "Year",
         }
 
+    if (slug === OwidTableSlugs.entityName) return OwidEntityNameColumnDef
     if (slug === OwidTableSlugs.entityCode) return OwidEntityCodeColumnDef
-
     if (slug === OwidTableSlugs.entityId) return OwidEntityIdColumnDef
 
     if (valueType === "number")

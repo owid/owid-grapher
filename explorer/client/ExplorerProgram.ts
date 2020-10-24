@@ -303,7 +303,7 @@ export class SwitcherRuntime implements ObservableUrl {
 
     static getRequiredChartIds(code: string) {
         return parseDelimited(code)
-            .map((row) => parseInt(row.chartId!))
+            .map((row: any) => parseInt(row.chartId!))
             .filter((id) => !isNaN(id))
     }
 

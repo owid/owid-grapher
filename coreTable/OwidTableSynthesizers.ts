@@ -56,7 +56,7 @@ const SynthesizeOwidTable = (
             .join("\n")
     })
 
-    return OwidTable.fromDelimited(
+    return new OwidTable(
         `${colSlugs.join(",")}\n${rows.join("\n")}`,
         columnDefs
     )

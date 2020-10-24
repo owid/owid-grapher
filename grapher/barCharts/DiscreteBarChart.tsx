@@ -379,7 +379,7 @@ export class DiscreteBarChart
 
         if (!column) return "No column to chart"
 
-        if (!column.table.hasSelection) return `No data selected`
+        if (!this.transformedTable.hasSelection) return `No data selected`
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)

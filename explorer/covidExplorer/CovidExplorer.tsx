@@ -369,7 +369,7 @@ export class CovidExplorer
     private explorerSlug = "Covid"
 
     @computed get tableForSelection() {
-        return this.expandedTable
+        return this.covidTableWithAdditionalColumns
     }
 
     private get countryPicker() {
@@ -549,17 +549,15 @@ export class CovidExplorer
     private metaDataFromGrapherBackend =
         this.props.covidChartAndVariableMeta ?? EMPTY_DUMMY_META
 
-    private inputTable = MegaCsvToCovidExplorerTable(
-        this.props.megaCsv ?? sampleMegaCsv
-    ).loadColumnDefTemplatesFromGrapherBackend(
-        this.metaDataFromGrapherBackend.variables
+    private covidTable = MegaCsvToCovidExplorerTable(
+        this.props.megaCsv ?? sampleMegaCsv,
+        this.metaDataFromGrapherBackend
     )
 
-    private _expandedTable?: CovidExplorerTable
-    // This is the inputTable with the addition of any columns the user has added.
-    @computed private get expandedTable() {
+    private _covidTableWithAdditionalColumns?: CovidExplorerTable
+    @computed private get covidTableWithAdditionalColumns() {
         const params = this.constrainedParams
-        const table = this._expandedTable ?? this.inputTable
+        const table = this._covidTableWithAdditionalColumns ?? this.covidTable
 
         const defs: CoreColumnDef[] = [...CovidAnnotationColumnDefs]
 
@@ -581,8 +579,8 @@ export class CovidExplorer
                 .forEach((def) => defs.push(def))
 
         // Cache the expanded table and add on to that if the user selects new columns, to save from recomputing current columns.
-        this._expandedTable = table.appendColumnsIfNew(defs)
-        return this._expandedTable
+        this._covidTableWithAdditionalColumns = table.appendColumnsIfNew(defs)
+        return this._covidTableWithAdditionalColumns
     }
 
     @computed private get canDoLogScale() {
@@ -598,9 +596,9 @@ export class CovidExplorer
 
     private switchBackToLog = false
 
-    @computed private get filteredTable() {
+    @computed private get covidTableWithAdditionalColumnsAndFilters() {
         const params = this.constrainedParams
-        let table = this.expandedTable
+        let table = this.covidTableWithAdditionalColumns
         const shouldFilterNegatives =
             (params.casesMetric || params.deathsMetric) &&
             !(params.interval === IntervalOptions.total) &&
@@ -659,7 +657,7 @@ export class CovidExplorer
             this
         )
 
-        this.expandedTable.setSelectedEntitiesByCode(
+        this.tableForSelection.setSelectedEntitiesByCode(
             Array.from(this.writeableParams.selectedCountryCodes.values())
         )
         this.updateGrapher()
@@ -708,20 +706,24 @@ export class CovidExplorer
 
     @computed private get yColumn() {
         const slug = this.constrainedParams.yColumnSlug
-        const col = this.expandedTable.get(slug)!
+        const col = this.covidTableWithAdditionalColumns.get(slug)!
         if (!col) debugger
         return col
     }
 
     @computed private get xColumn() {
         return this.constrainedParams.xColumnSlug
-            ? this.expandedTable.get(this.constrainedParams.xColumnSlug!)!
+            ? this.covidTableWithAdditionalColumns.get(
+                  this.constrainedParams.xColumnSlug!
+              )!
             : undefined
     }
 
     @computed private get sizeColumn() {
         return this.constrainedParams.sizeColumn
-            ? this.expandedTable.get(this.constrainedParams.sizeColumn!)!
+            ? this.covidTableWithAdditionalColumns.get(
+                  this.constrainedParams.sizeColumn!
+              )!
             : undefined
     }
 
@@ -855,7 +857,7 @@ export class CovidExplorer
     // todo: cleanup
     @action.bound private updateGrapher() {
         const params = this.constrainedParams
-        const { grapher, filteredTable } = this
+        const { grapher, covidTableWithAdditionalColumnsAndFilters } = this
         grapher.title = this.chartTitle
         grapher.subtitle = this.subtitle
         grapher.note = this.note
@@ -883,7 +885,7 @@ export class CovidExplorer
             }
         }
 
-        grapher.inputTable = filteredTable
+        grapher.inputTable = covidTableWithAdditionalColumnsAndFilters
         grapher.yAxis.min = params.intervalChange ? undefined : 0
         grapher.setDimensionsFromConfigs(this.legacyDimensions)
 
@@ -893,7 +895,7 @@ export class CovidExplorer
             this.colorScales[params.colorStrategy]
         )
 
-        grapher.dataTableColumnSlugsToShow = filteredTable.columnSlugsToShowInDataTable(
+        grapher.dataTableColumnSlugsToShow = covidTableWithAdditionalColumnsAndFilters.columnSlugsToShowInDataTable(
             params
         )
 

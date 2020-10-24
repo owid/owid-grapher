@@ -1,4 +1,3 @@
-import { csvParse } from "d3"
 import {
     formatYear,
     csvEscape,
@@ -18,7 +17,6 @@ import {
     differenceBy,
     uniqBy,
 } from "grapher/utils/Util"
-import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 import {
@@ -42,7 +40,7 @@ import {
     toMarkdownTable,
 } from "./CoreTablePrinters"
 import {
-    autoType,
+    makeAutoTypeFn,
     columnStoreToRows,
     guessColumnDefFromSlugAndRow,
     imemo,
@@ -73,9 +71,7 @@ export class CoreTable<
     ROW_TYPE extends CoreRow = CoreRow,
     COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef
 > {
-    @observable private _columns: Map<ColumnSlug, CoreColumn> = new Map()
-    @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
-
+    private _columns: Map<ColumnSlug, CoreColumn> = new Map()
     protected parent?: this
     private tableDescription: string
     private transformCategory: TransformType
@@ -87,7 +83,7 @@ export class CoreTable<
 
     private inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rowsOrColumnsOrCsv: CoreTableInputOption = [],
+        rowsOrColumnsOrDsv: CoreTableInputOption = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         advancedOptions: AdvancedOptions = {}
     ) {
@@ -104,7 +100,7 @@ export class CoreTable<
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
         this.advancedOptions = advancedOptions
-        this.inputData = rowsOrColumnsOrCsv
+        this.inputData = rowsOrColumnsOrDsv
 
         const autodetectColumns = !parent
 
@@ -112,41 +108,32 @@ export class CoreTable<
         // If this is the first input table, then we do a simple check to generate any missing column defs.
         if (autodetectColumns) this.autodetectAndAddColumnsFromFirstRow()
 
-        // Pass selection strategy down from parent. todo: move selection to Grapher.
-        if (parent) this.copySelectionFrom(parent)
-
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
     getValuesFor(columnSlug: ColumnSlug) {
-        return this.isInputFromRowsOrCsv
+        return this.isInputFromRowsOrDelimited
             ? (this.rows.map((row) => row[columnSlug]) as PrimitiveType[])
             : this.inputAsColumnStore[columnSlug]
     }
 
-    private _rows?: ROW_TYPE[]
-    private get rowsFromColumns() {
-        if (this._rows) return this._rows
+    @imemo private get rowsFromColumns() {
         const columnStore = this.inputAsColumnStore
-        this._rows = range(
+        return range(
             0,
             Object.values(columnStore)[0]?.length ?? 0
         ).map((index) =>
             makeRowFromColumnStore(index, columnStore)
         ) as ROW_TYPE[]
-        return this._rows
     }
 
     // Currently we only do parsing and computeds when the input is rows
-    private _processedRows?: ROW_TYPE[]
-    private get rowsFromRowsProcessed() {
-        if (this._processedRows) return this._processedRows
-
+    @imemo private get rowsFromRowsProcessed() {
         if (!this.slugsToBuild.length) return this.inputAsRows
 
         const { inputAsRows, computedColumns, parsedColumns } = this
 
-        this._processedRows = inputAsRows.map((row, rowIndex) => {
+        return inputAsRows.map((row, rowIndex) => {
             const newRow: any = Object.assign({}, row)
 
             Object.keys(computedColumns).forEach((slug) => {
@@ -157,24 +144,28 @@ export class CoreTable<
             })
             return newRow as ROW_TYPE
         })
-        return this._processedRows
     }
 
-    @imemo private get csvAsRows() {
+    @imemo private get delimitedAsRows() {
         const { inputData, advancedOptions } = this
-        const parsed = csvParse(
+        const parsed = parseDelimited(
             inputData as string,
-            advancedOptions.rowConversionFunction ?? autoType
+            undefined,
+            advancedOptions.rowConversionFunction ?? makeAutoTypeFn()
         ) as any
-        // csvParse adds a columns prop to the result we don't want
+        // dsv_parse adds a columns prop to the result we don't want since we handle our own column defs.
         // https://github.com/d3/d3-dsv#dsv_parse
         delete parsed.columns
-        return parsed
+
+        const renamedRows = standardizeSlugs(parsed) // todo: pass renamed defs back in.
+        return renamedRows ? renamedRows.rows : parsed
     }
 
     @imemo private get inputAsRows() {
-        const { inputData, isFromCsv } = this
-        return (isFromCsv ? this.csvAsRows : inputData) as ROW_TYPE[]
+        const { inputData, isFromDelimited } = this
+        return (isFromDelimited
+            ? this.delimitedAsRows
+            : inputData) as ROW_TYPE[]
     }
 
     private get computedColumns() {
@@ -221,7 +212,7 @@ export class CoreTable<
     }
 
     private get columnsToParse() {
-        if (this.isFromCsv || this.isInputFromColumns) return []
+        if (this.isFromDelimited || this.isInputFromColumns) return []
 
         const firstInputRow = this.inputAsRows[0]
         if (!firstInputRow) return []
@@ -247,7 +238,7 @@ export class CoreTable<
         return this.inputData as CoreColumnStore
     }
 
-    @imemo private get isFromCsv() {
+    @imemo private get isFromDelimited() {
         return typeof this.inputData === "string"
     }
 
@@ -293,7 +284,7 @@ export class CoreTable<
     }
 
     private autodetectAndAddColumnsFromFirstRow() {
-        if (!this.isInputFromRowsOrCsv)
+        if (!this.isInputFromRowsOrDelimited)
             return this.autodetectAndAddColumnsFromFirstRowForColumnStore()
         const rows = this.inputAsRows
         if (!rows[0]) return
@@ -316,10 +307,6 @@ export class CoreTable<
             })
     }
 
-    copySelectionFrom(table: any) {
-        // todo? Do we need a notion of selection outside of OwidTable?
-    }
-
     // Time between when the parent table finished loading and this table started constructing.
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
@@ -330,7 +317,7 @@ export class CoreTable<
     }
 
     @imemo get rows() {
-        return this.isInputFromRowsOrCsv
+        return this.isInputFromRowsOrDelimited
             ? this.rowsFromRowsProcessed
             : this.rowsFromColumns
     }
@@ -602,41 +589,6 @@ export class CoreTable<
             .map((col) => col.slug)
     }
 
-    isSelected(row: ROW_TYPE) {
-        return this.selectedRows.has(row)
-    }
-
-    @action.bound selectRows(rows: ROW_TYPE[]) {
-        rows.forEach((row) => {
-            this.selectedRows.add(row)
-        })
-        return this
-    }
-
-    @action.bound selectAll() {
-        return this.selectRows(this.rows)
-    }
-
-    @action.bound deselectRows(rows: ROW_TYPE[]) {
-        rows.forEach((row) => {
-            this.selectedRows.delete(row)
-        })
-        return this
-    }
-
-    @computed protected get unselectedRows() {
-        return this.rows.filter((row) => !this.selectedRows.has(row))
-    }
-
-    @computed get hasSelection() {
-        return this.selectedRows.size > 0
-    }
-
-    @action.bound clearSelection() {
-        this.selectedRows.clear()
-        return this
-    }
-
     @imemo get columnsAsArray() {
         return Array.from(this._columns.values())
     }
@@ -661,13 +613,13 @@ export class CoreTable<
         return !this.parent
     }
 
-    dump() {
+    dump(rowLimit = 30) {
         // eslint-disable-next-line no-console
         console.table(this.ancestors.map((tb) => tb.explanation))
         // eslint-disable-next-line no-console
         console.table(this.explainColumns)
         // eslint-disable-next-line no-console
-        console.table(this.rows, this.columnSlugs)
+        console.table(this.rows.slice(0, rowLimit), this.columnSlugs)
     }
 
     dumpInputTable() {
@@ -675,21 +627,21 @@ export class CoreTable<
         console.table(this.inputAsTable)
     }
 
-    @imemo private get isInputFromRowsOrCsv() {
-        return Array.isArray(this.inputData) || this.isFromCsv
+    @imemo private get isInputFromRowsOrDelimited() {
+        return Array.isArray(this.inputData) || this.isFromDelimited
     }
 
     @imemo private get isInputFromColumns() {
-        return !this.isInputFromRowsOrCsv
+        return !this.isInputFromRowsOrDelimited
     }
 
     @imemo private get inputAsTable() {
-        return this.isInputFromRowsOrCsv
+        return this.isInputFromRowsOrDelimited
             ? this.inputAsRows
             : columnStoreToRows(this.inputAsColumnStore)
     }
 
-    private get explainColumns() {
+    @imemo private get explainColumns() {
         return this.columnsAsArray.map((col) => {
             const {
                 slug,
@@ -1032,13 +984,6 @@ export class CoreTable<
         )
     }
 
-    filterBySelectedOnly() {
-        return this.filter(
-            (row) => this.isSelected(row),
-            `Keep selected rows only`
-        )
-    }
-
     filterNegativesForLogScale(columnSlug: ColumnSlug) {
         return this.filter(
             (row) => row[columnSlug] > 0,
@@ -1189,9 +1134,5 @@ export class CoreTable<
         return this.leftJoin(rightTable, by)
             .concat(rightTable.leftJoin(this, by))
             .dropDuplicateRows()
-    }
-
-    static fromDelimited(csvOrTsv: string, defs?: CoreColumnDef[]) {
-        return new CoreTable(standardizeSlugs(parseDelimited(csvOrTsv)), defs)
     }
 }

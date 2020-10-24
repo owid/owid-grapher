@@ -140,18 +140,24 @@ export class CovidQueryParams implements CountryPickerManager {
         this.chartType = params.chartType as ChartTypeName
     }
 
-    static fromQueryString(queryString?: string) {
-        // If the user is coming from some link with a query param but with no covid param, show the default view.
-        // Otherwise if they come in from something like a link with a FB tracking id, we wouldn't show the default view.
-        // Not sure if this is worth keeping.
-        const hasAnyCovidParam =
+    static hasAnyCovidParam(queryString: string) {
+        return (
             !!queryString &&
             intersection(
                 Object.keys(new CovidQueryParams("")),
                 Object.keys(strToQueryParams(queryString))
             ).length > 0
+        )
+    }
+
+    static fromQueryString(queryString?: string) {
+        // If the user is coming from some link with a query param but with no covid param, show the default view.
+        // Otherwise if they come in from something like a link with a FB tracking id, we wouldn't show the default view.
+        // Not sure if this is worth keeping.
         return new CovidQueryParams(
-            queryString && hasAnyCovidParam ? queryString : coronaDefaultView
+            queryString && this.hasAnyCovidParam(queryString)
+                ? queryString
+                : coronaDefaultView
         )
     }
 

@@ -57,11 +57,12 @@ export class CovidExplorerTable extends OwidTable {
     // Ideally we would just have 1 set of column specs. Currently however we have some statically coded, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used in the generation of new specs on the fly. Todo: cleanup.
     loadColumnDefTemplatesFromGrapherBackend(
-        defsFromBackend: CovidColumnDefObjectMap
+        defsFromBackend?: CovidColumnDefObjectMap
     ) {
-        this._columnDefTemplates = cloneDeep(
-            makeColumnDefTemplates(defsFromBackend)
-        )
+        if (defsFromBackend)
+            this._columnDefTemplates = cloneDeep(
+                makeColumnDefTemplates(defsFromBackend)
+            )
         return this
     }
 
@@ -180,15 +181,18 @@ export class CovidExplorerTable extends OwidTable {
         )
     }
 
-    appendEveryColumn() {
-        const defs = flatten(
+    makeEveryColumnDef() {
+        return flatten(
             allAvailableQueryStringCombos().map((str) =>
                 this.makeColumnDefsFromParams(
                     new CovidQueryParams(str).toConstrainedParams()
                 )
             )
         )
-        return this.appendColumnsIfNew(defs)
+    }
+
+    appendEveryColumn() {
+        return this.appendColumnsIfNew(this.makeEveryColumnDef())
     }
 
     private paramsForDataTableColumns(params: CovidConstrainedQueryParams) {

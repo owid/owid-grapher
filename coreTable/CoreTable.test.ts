@@ -12,15 +12,13 @@ canada,20`
 
 describe("creating tables", () => {
     it("a table can be made from csv", () => {
-        const table = CoreTable.fromDelimited(sampleCsv)
+        const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
         expect(table.columnNames).toEqual(["country", "population"])
     })
 
     it("tables can be combined", () => {
-        const table = CoreTable.fromDelimited(sampleCsv).concat(
-            CoreTable.fromDelimited(sampleCsv)
-        )
+        const table = new CoreTable(sampleCsv).concat(new CoreTable(sampleCsv))
         expect(table.numRows).toEqual(8)
     })
 
@@ -95,7 +93,7 @@ describe("creating tables", () => {
 
 describe("adding rows", () => {
     it("rows can be added without mutating the parent table", () => {
-        const table = CoreTable.fromDelimited(sampleCsv)
+        const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
 
         let expandedTable = table.appendRows(
@@ -259,7 +257,7 @@ describe("searching", () => {
     })
 
     it("can get the domain across all columns", () => {
-        const table = CoreTable.fromDelimited(
+        const table = new CoreTable(
             `gdp,perCapita
 0,123.1
 12,300
@@ -278,7 +276,7 @@ describe("searching", () => {
 usa,322,in hundreds of millions,2000
 hi,1,in millions,2000
 hi,1,,2001`
-        const table = CoreTable.fromDelimited(csv)
+        const table = new CoreTable(csv)
 
         const annotationsColumn = table.get("notes")
         const entityNameMap = annotationsColumn!.getUniqueValuesGroupedBy(
@@ -292,7 +290,7 @@ hi,1,,2001`
 })
 
 describe("filtering", () => {
-    const rootTable = CoreTable.fromDelimited(sampleCsv)
+    const rootTable = new CoreTable(sampleCsv)
     const filteredTable = rootTable.filter(
         (row) => parseInt(row.population) > 40,
         "Pop filter"
@@ -316,7 +314,7 @@ describe("filtering", () => {
 })
 
 describe("debugging", () => {
-    const table = CoreTable.fromDelimited(sampleCsv).dropColumns(["population"])
+    const table = new CoreTable(sampleCsv).dropColumns(["population"])
 
     it("tables have access to their ancestors", () => {
         expect(table.ancestors.length).toEqual(2)
@@ -325,7 +323,7 @@ describe("debugging", () => {
 
 describe("printing", () => {
     it("uses slugs for headers in toDelimited", () => {
-        const table = CoreTable.fromDelimited(`country,Population in 2020
+        const table = new CoreTable(`country,Population in 2020
 iceland,1`)
         const csv = table.toDelimited()
         expect(csv).toEqual(`country,Population-in-2020
@@ -353,7 +351,7 @@ Canada,2020-01-23,`)
     })
 
     it("can format a value", () => {
-        const table = CoreTable.fromDelimited(
+        const table = new CoreTable(
             `growthRate
 123`,
             [
@@ -370,7 +368,7 @@ Canada,2020-01-23,`)
 
 describe("value operations", () => {
     it("can detect all integers", () => {
-        const table = CoreTable.fromDelimited(`gdp,perCapita
+        const table = new CoreTable(`gdp,perCapita
 123,123.1`)
         expect(table.get("gdp")?.isAllIntegers).toBeTruthy()
         expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()

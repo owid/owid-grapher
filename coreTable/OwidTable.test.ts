@@ -31,7 +31,7 @@ it("can create a new table by adding a column", () => {
     const table = new OwidTable(sampleRows, [
         {
             slug: "populationInMillions",
-            fn: (row) => row.population / 1000000,
+            fn: (row: any) => row.population / 1000000,
         },
     ])
     expect(table.rows[0].populationInMillions).toEqual(300)
@@ -194,7 +194,7 @@ it("prefers a day column when both year and day are in the chart", () => {
     const csv = `entityName,entityCode,entityId,pop,year,day
 usa,usa,1,322,2000,2`
 
-    const table = OwidTable.fromDelimited(csv)
+    const table = new OwidTable(csv)
     expect(table.timeColumn!.slug).toBe("day")
 })
 
@@ -204,7 +204,7 @@ usa,usa,1,322,2000,10
 usa,usa,1,322,2001,
 usa,usa,1,4,2002,`
 
-    const table = OwidTable.fromDelimited(csv)
+    const table = new OwidTable(csv)
     expect(table.getLatestValueForEntity("usa", "coal")).toBe(10)
     expect(table.getLatestValueForEntity("usa", "pop")).toBe(4)
 })
@@ -225,7 +225,7 @@ usa,us,2,23,
 france,fr,3,23,4`
 
 it("can get entities with required columns", () => {
-    const table = OwidTable.fromDelimited(basicTableCsv)
+    const table = new OwidTable(basicTableCsv)
     expect(table.get("pop")?.def.type).toEqual(ColumnTypeNames.Numeric)
     expect(table.get("pop")?.uniqEntityNames.length).toEqual(2)
     expect(table.entitiesWith(["gdp"]).size).toEqual(3)
@@ -233,7 +233,7 @@ it("can get entities with required columns", () => {
 })
 
 it("can export a clean csv", () => {
-    const table = OwidTable.fromDelimited(basicTableCsv)
+    const table = new OwidTable(basicTableCsv)
     expect(table.toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
 france,fr,23,4
 iceland,ice,123,3
@@ -241,7 +241,7 @@ usa,us,23,`)
 })
 
 it("can handle columns with commas", () => {
-    const table = OwidTable.fromDelimited(basicTableCsv)
+    const table = new OwidTable(basicTableCsv)
     table.get("gdp")!.def.name = "Gross, Domestic, Product"
     expect(table.toPrettyCsv())
         .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
@@ -280,7 +280,7 @@ usa,1,usa,-4,1
 usa,1,usa,1,1
 usa,1,usa,-5,1`
 
-        const table = OwidTable.fromDelimited(csv)
+        const table = new OwidTable(csv)
         const timeOptions = table.getTimesUniqSortedAscForColumns(["value"])
         expect(timeOptions).toEqual([-5, -4, 1])
     })
@@ -446,7 +446,7 @@ describe("relative mode", () => {
 
 describe("time domain", () => {
     it("can get the time domain across columns", () => {
-        const table = OwidTable.fromDelimited(
+        const table = new OwidTable(
             `gdp,perCapita,day,entityName,entityId,entityCode
 0,123.1,0,usa,,
 12,300,1,usa,,
@@ -463,7 +463,7 @@ describe("time domain", () => {
     })
 
     it("can get minTime and maxTimes when years are initially unsorted", () => {
-        const table = OwidTable.fromDelimited(
+        const table = new OwidTable(
             `gdp,day,entityName,entityId,entityCode
 0,2000,usa,,
 12,1950,usa,,
@@ -482,7 +482,7 @@ describe("time domain", () => {
 
 describe("tolerance", () => {
     it("can apply tolerance to a column", () => {
-        const table = OwidTable.fromDelimited(
+        const table = new OwidTable(
             `gdp,year,entityName,entityId,entityCode
 ,2000,usa,1,
 0,2001,usa,1,

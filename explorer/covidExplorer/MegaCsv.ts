@@ -18,7 +18,10 @@ export const MegaColumnDefs = Object.keys(MegaColumnMap).map((slug) => {
     } as OwidColumnDef
 })
 
-export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
+export const MegaCsvToCovidExplorerTable = (
+    megaCsv: CsvString,
+    metaDataFromGrapherBackend?: any
+) => {
     const coreTable = new CoreTable<MegaRow>(megaCsv, MegaColumnDefs, {
         tableDescription: "Load from MegaCSV",
         rowConversionFunction: (object) => {
@@ -92,5 +95,7 @@ export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
             parent: tableWithRows as any,
             tableDescription: "Loaded into CovidExplorerTable",
         }
-    ).updateColumnsToHideInDataTable()
+    )
+        .updateColumnsToHideInDataTable()
+        .loadColumnDefTemplatesFromGrapherBackend(metaDataFromGrapherBackend)
 }

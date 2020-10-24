@@ -808,8 +808,11 @@ export function parseIntOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
-export const parseDelimited = (str: string) =>
-    dsvFormat(detectDelimiter(str)).parse(str)
+export const parseDelimited = (
+    str: string,
+    delimiter?: string,
+    parseFn?: any
+) => dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn)
 
 export const detectDelimiter = (str: string) =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
