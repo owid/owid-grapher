@@ -141,7 +141,7 @@ export class CoreTable<
                   this.inputRowsToParsedColumns,
                   this.inputRowsToComputedColumns
               )
-            : this.inputAsColumnStore
+            : Object.assign(this.blankColumnStore, this.inputAsColumnStore)
     }
 
     @imemo private get delimitedAsRows() {
