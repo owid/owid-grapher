@@ -112,11 +112,11 @@ export class CoreTable<
     }
 
     getValuesFor(columnSlug: ColumnSlug) {
-        return this.vectorizedComputedAndParsedColumns[columnSlug]
+        return this.columnStore[columnSlug]
     }
 
     @imemo private get rowsFromColumns() {
-        const columnStore = this.vectorizedComputedAndParsedColumns
+        const { columnStore } = this
         return range(
             0,
             Object.values(columnStore)[0]?.length ?? 0
@@ -133,7 +133,7 @@ export class CoreTable<
         return columnsObject
     }
 
-    @imemo private get vectorizedComputedAndParsedColumns() {
+    @imemo private get columnStore() {
         return this.slugsToBuild.length || this.isInputFromRowsOrDelimited
             ? Object.assign(
                   this.blankColumnStore,
@@ -626,10 +626,22 @@ export class CoreTable<
     }
 
     dump(rowLimit = 30) {
+        this.dumpPipeline()
+        this.dumpColumns()
+        this.dumpRows(rowLimit)
+    }
+
+    dumpPipeline() {
         // eslint-disable-next-line no-console
         console.table(this.ancestors.map((tb) => tb.explanation))
+    }
+
+    dumpColumns() {
         // eslint-disable-next-line no-console
         console.table(this.explainColumns)
+    }
+
+    dumpRows(rowLimit = 30) {
         // eslint-disable-next-line no-console
         console.table(this.rows.slice(0, rowLimit), this.columnSlugs)
     }
@@ -705,7 +717,7 @@ export class CoreTable<
             numColumnsWithInvalidCells,
         } = this
         return {
-            tableDescription,
+            tableDescription: tableDescription.substr(0, 30),
             transformCategory,
             guid,
             numColumns,
