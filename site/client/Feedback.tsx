@@ -50,7 +50,10 @@ class Feedback {
 }
 
 @observer
-export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
+export class FeedbackForm extends React.Component<{
+    onClose?: () => void
+    autofocus?: boolean
+}> {
     feedback: Feedback = new Feedback()
     @observable loading: boolean = false
     @observable done: boolean = false
@@ -98,6 +101,7 @@ export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
 
     renderBody() {
         const { loading, done } = this
+        const autofocus = this.props.autofocus ?? true
         if (done) {
             return (
                 <div className="doneMessage">
@@ -132,7 +136,7 @@ export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
                         <input
                             id="feedback.name"
                             onChange={this.onName}
-                            autoFocus
+                            autoFocus={autofocus}
                             disabled={loading}
                         />
                     </div>

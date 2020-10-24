@@ -6,4 +6,4 @@ export default {
     component: FeedbackForm,
 }
 
-export const Default = () => <FeedbackForm />
+export const Default = () => <FeedbackForm autofocus={false} />
