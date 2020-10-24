@@ -14,8 +14,8 @@ export default {
 
 export const EntitiesAsSeries = () => {
     const table = SynthesizeGDPTable({
-        timeRange: [2000, 2010],
-        entityCount: 5,
+        timeRange: [2009, 2010],
+        entityCount: 10,
     }).selectAll()
 
     const manager: DiscreteBarChartManager = {
