@@ -311,6 +311,14 @@ describe("filtering", () => {
         expect(parsedValues[0]).toEqual("usa")
         expect(parsedValues[1]).toEqual(undefined)
     })
+
+    it("one filter works", () => {
+        const table = new CoreTable(`country,pop
+usa,123
+can,333`)
+        const allFiltered = table.filter((row) => false, "filter all")
+        expect(allFiltered.getValuesFor("pop")).toEqual([])
+    })
 })
 
 describe("debugging", () => {

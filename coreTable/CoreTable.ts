@@ -112,13 +112,11 @@ export class CoreTable<
     }
 
     getValuesFor(columnSlug: ColumnSlug) {
-        return this.isInputFromRowsOrDelimited
-            ? (this.rows.map((row) => row[columnSlug]) as PrimitiveType[])
-            : this.inputAsColumnStore[columnSlug]
+        return this.vectorizedComputedAndParsedColumns[columnSlug]
     }
 
     @imemo private get rowsFromColumns() {
-        const columnStore = this.inputAsColumnStore
+        const columnStore = this.vectorizedComputedAndParsedColumns
         return range(
             0,
             Object.values(columnStore)[0]?.length ?? 0
@@ -127,23 +125,23 @@ export class CoreTable<
         ) as ROW_TYPE[]
     }
 
-    // Currently we only do parsing and computeds when the input is rows
-    @imemo private get rowsFromRowsProcessed() {
-        if (!this.slugsToBuild.length) return this.inputAsRows
-
-        const { inputAsRows, computedColumns, parsedColumns } = this
-
-        return inputAsRows.map((row, rowIndex) => {
-            const newRow: any = Object.assign({}, row)
-
-            Object.keys(computedColumns).forEach((slug) => {
-                newRow[slug] = computedColumns[slug][rowIndex]
-            })
-            Object.keys(parsedColumns).forEach((slug) => {
-                newRow[slug] = parsedColumns[slug][rowIndex]
-            })
-            return newRow as ROW_TYPE
+    private get blankColumnStore() {
+        const columnsObject: CoreColumnStore = {}
+        this.columnSlugs.forEach((slug) => {
+            columnsObject[slug] = []
         })
+        return columnsObject
+    }
+
+    @imemo private get vectorizedComputedAndParsedColumns() {
+        return this.slugsToBuild.length || this.isInputFromRowsOrDelimited
+            ? Object.assign(
+                  this.blankColumnStore,
+                  this.inputRowsToColumns,
+                  this.inputRowsToParsedColumns,
+                  this.inputRowsToComputedColumns
+              )
+            : this.inputAsColumnStore
     }
 
     @imemo private get delimitedAsRows() {
@@ -168,7 +166,17 @@ export class CoreTable<
             : inputData) as ROW_TYPE[]
     }
 
-    private get computedColumns() {
+    private get inputRowsToColumns() {
+        const columnsObject: CoreColumnStore = {}
+        const { inputAsRows, firstInputRow } = this
+        if (!firstInputRow) return columnsObject
+        Object.keys(firstInputRow).forEach((slug) => {
+            columnsObject[slug] = inputAsRows.map((row) => row[slug])
+        })
+        return columnsObject
+    }
+
+    private get inputRowsToComputedColumns() {
         const columnsObject: CoreColumnStore = {}
         this.colsToCompute.forEach((def) => {
             columnsObject[def.slug] =
@@ -179,7 +187,7 @@ export class CoreTable<
         return columnsObject
     }
 
-    private get parsedColumns() {
+    private get inputRowsToParsedColumns() {
         const columnsObject: CoreColumnStore = {}
         this.columnsToParse.forEach((col) => {
             const { slug } = col
@@ -211,10 +219,14 @@ export class CoreTable<
         ]
     }
 
+    private get firstInputRow() {
+        return this.inputAsRows[0]
+    }
+
     private get columnsToParse() {
         if (this.isFromDelimited || this.isInputFromColumns) return []
 
-        const firstInputRow = this.inputAsRows[0]
+        const firstInputRow = this.firstInputRow
         if (!firstInputRow) return []
         const cols = this.columnsAsArray
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
@@ -317,9 +329,9 @@ export class CoreTable<
     }
 
     @imemo get rows() {
-        return this.isInputFromRowsOrDelimited
-            ? this.rowsFromRowsProcessed
-            : this.rowsFromColumns
+        return this.isInputFromColumns || this.slugsToBuild.length
+            ? this.rowsFromColumns
+            : this.inputAsRows
     }
 
     getTimesAtIndices(indices: number[]) {
