@@ -89,6 +89,11 @@ describe("creating tables", () => {
         const firstRow = table.firstRow as any
         expect(firstRow.canada).toEqual(456)
     })
+
+    it("can create a table with columns but no rows", () => {
+        const table = new CoreTable({}, [{ slug: "entityId" }])
+        expect(table.getValuesFor("entityId")).toEqual([])
+    })
 })
 
 describe("adding rows", () => {
