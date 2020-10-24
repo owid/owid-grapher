@@ -249,13 +249,14 @@ export class CovidExplorerTable extends OwidTable {
         )
     }
 
-    filterGroups() {
+    filterRegionsUnlessSelected() {
         // "World" and our previously aggregated groups we sometimes want to filter out.
         return this.filter(
             (row) =>
                 row.entityName === WorldEntityName
-                    ? this.isSelected(row)
-                    : !row.group_members || this.isSelected(row),
+                    ? this.isEntitySelected(WorldEntityName)
+                    : !row.group_members ||
+                      this.isEntitySelected(row.entityName),
             `Filter out regions unless selected`
         )
     }

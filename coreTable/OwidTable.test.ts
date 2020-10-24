@@ -127,7 +127,7 @@ Papua New Guinea,PNG,1983,5.5`
     })
 })
 
-it("can perfrom queries needed by discrete bar", () => {
+it("can perform queries needed by discrete bar", () => {
     const table = SynthesizeGDPTable(
         {
             entityCount: 3,
@@ -141,9 +141,16 @@ it("can perfrom queries needed by discrete bar", () => {
     table.selectAll()
 
     expect(table.numSelectedEntities).toEqual(3)
-    expect(table.getClosestRowForEachSelectedEntity(2003, 0).length).toEqual(3)
-    expect(table.getClosestRowForEachSelectedEntity(2004, 1).length).toEqual(3)
-    expect(table.getClosestRowForEachSelectedEntity(2005, 1).length).toEqual(0)
+    const entityNames = table.selectedEntityNames
+    expect(
+        table.getClosestRowForEachEntity(entityNames, 2003, 0).length
+    ).toEqual(3)
+    expect(
+        table.getClosestRowForEachEntity(entityNames, 2004, 1).length
+    ).toEqual(3)
+    expect(
+        table.getClosestRowForEachEntity(entityNames, 2005, 1).length
+    ).toEqual(0)
 })
 
 it("can parse data to Javascript data structures", () => {

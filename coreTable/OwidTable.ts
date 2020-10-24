@@ -19,6 +19,7 @@ import {
     groupBy,
     sortedUniq,
     isNumber,
+    difference,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import {
@@ -595,139 +596,19 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return new OwidTable(rows, defs)
     }
 
-    // Todo: Below is all the selection code. We should probably move it to Grapher.
-
-    // Remove this
-    constructor(...args: any[]) {
-        super(...args)
-        if (this.parent)
-            this.setSelectedEntities(this.parent.selectedEntityNames)
-    }
-
-    copySelectionFrom(table: OwidTable) {
-        return this.setSelectedEntities(table.selectedEntityNames)
-    }
-
-    filterByPopulation(minPop: number) {
-        return this.filter((row) => {
-            const name = row.entityName
-            const pop = populationMap[name]
-            return !pop || this.isSelected(row) || pop >= minPop
-        }, `Filter out countries with population less than ${minPop}`)
-    }
-
-    filterBySelectedOnly() {
-        return this.filter(
-            (row) => this.isSelected(row),
-            `Keep selected rows only`
-        )
-    }
-
-    @observable.shallow selectedRows = new Set<OwidRow>()
-
-    isSelected(row: OwidRow) {
-        return this.selectedRows.has(row)
-    }
-
-    @action.bound selectRows(rows: OwidRow[]) {
-        rows.forEach((row) => {
-            this.selectedRows.add(row)
-        })
-        return this
-    }
-
-    @action.bound selectAll() {
-        return this.selectRows(this.rows)
-    }
-
-    @action.bound deselectRows(rows: OwidRow[]) {
-        rows.forEach((row) => {
-            this.selectedRows.delete(row)
-        })
-        return this
-    }
-
-    @computed protected get unselectedRows() {
-        return this.rows.filter((row) => !this.selectedRows.has(row))
-    }
-
-    @computed get hasSelection() {
-        return this.selectedRows.size > 0
-    }
-
-    @action.bound clearSelection() {
-        this.selectedRows.clear()
-        return this
-    }
-
-    @computed get unselectedEntityNames() {
-        return this.unselectedRows.map((row) => row.entityName)
-    }
-
-    @computed get selectedEntityNames() {
-        return Array.from(this.selectedEntityNameSet)
-    }
-
-    @computed get numSelectedEntities() {
-        return this.selectedEntityNames.length
-    }
-
-    @computed private get selectedEntityNameSet() {
-        return new Set<EntityName>(
-            Array.from(this.selectedRows.values()).map((row) => row.entityName)
-        )
-    }
-
-    @computed get selectedEntityCodes(): EntityCode[] {
-        const map = this.entityNameToCodeMap
-        return this.selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
-    @computed get selectedEntityCodesOrNames(): (EntityCode | EntityName)[] {
-        const map = this.entityNameToCodeMap
-        return this.selectedEntityNames.map((name) => map.get(name) ?? name)
-    }
-
-    @computed get selectedEntityIds(): EntityId[] {
-        const map = this.entityNameToIdMap
-        return this.selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
-    @action.bound toggleSelection(entityName: EntityName) {
-        return this.isEntitySelected(entityName)
-            ? this.deselectEntity(entityName)
-            : this.selectEntity(entityName)
-    }
-
-    @action.bound selectEntity(entityName: EntityName) {
-        this.selectRows(this.rowsByEntityName.get(entityName) ?? [])
-        return this
-    }
-
-    // Mainly for testing
-    @action.bound selectSample(howMany = 1) {
-        return this.setSelectedEntities(
-            this.availableEntityNames.slice(0, howMany)
-        )
-    }
-
-    @action.bound deselectEntity(entityName: EntityName) {
-        return this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
-    }
-
     // one datum per entityName. use the closest value to target year within tolerance.
     // selected rows only. value from any primary column.
     // getClosestRowForEachSelectedEntity(targetYear, tolerance)
     // Make sure we use the closest value to the target year within tolerance (preferring later)
-    getClosestRowForEachSelectedEntity(targetTime: Time, tolerance: Integer) {
+    getClosestRowForEachEntity(
+        entityNames: EntityName[],
+        targetTime: Time,
+        tolerance: Integer
+    ) {
         const rowMap = this.rowsByEntityName
         const timeSlug = this.timeColumn?.slug
         if (!timeSlug) return []
-        return this.selectedEntityNames
+        return entityNames
             .map((name) => {
                 const rows = rowMap.get(name)
                 if (!rows) return null
@@ -742,20 +623,89 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
-    // Clears and sets selected entities
-    @action.bound setSelectedEntities(entityNames: EntityName[]) {
-        const set = new Set(entityNames)
-        this.clearSelection()
-        return this.selectRows(
-            this.rows.filter((row) => set.has(row.entityName))
+    // Todo: Below is all the selection code. We should probably move it to Grapher or its own class.
+
+    // Remove this
+    constructor(...args: any[]) {
+        super(...args)
+        const parent = this.parent
+        if (parent && parent.selectedEntityNames)
+            this._selectedEntityNames = parent.selectedEntityNames
+    }
+
+    @observable private _selectedEntityNames: EntityName[] = []
+
+    @computed get selectedEntityNames() {
+        return this._selectedEntityNames.slice()
+    }
+
+    filterByPopulation(minPop: number) {
+        return this.filter((row) => {
+            const name = row.entityName
+            const pop = populationMap[name]
+            return (
+                !pop || this.isEntitySelected(row.entityName) || pop >= minPop
+            )
+        }, `Filter out countries with population less than ${minPop}`)
+    }
+
+    filterBySelectedOnly() {
+        return this.filter(
+            (row) => this.isEntitySelected(row.entityName),
+            `Keep selected rows only`
         )
     }
 
+    isEntitySelected(entityName: EntityName) {
+        return this.selectedEntityNameSet.has(entityName)
+    }
+
+    @computed get hasSelection() {
+        return this._selectedEntityNames.length > 0
+    }
+
+    @computed get unselectedEntityNames() {
+        return difference(this.availableEntityNames, this._selectedEntityNames)
+    }
+
+    @computed get numSelectedEntities() {
+        return this._selectedEntityNames.length
+    }
+
+    @computed private get selectedEntityNameSet() {
+        return new Set<EntityName>(this._selectedEntityNames)
+    }
+
+    @computed get selectedEntityCodes(): EntityCode[] {
+        const map = this.entityNameToCodeMap
+        return this._selectedEntityNames
+            .map((name) => map.get(name))
+            .filter(isPresent)
+    }
+
+    @computed get selectedEntityCodesOrNames(): (EntityCode | EntityName)[] {
+        const map = this.entityNameToCodeMap
+        return this._selectedEntityNames.map((name) => map.get(name) ?? name)
+    }
+
+    @computed get selectedEntityIds(): EntityId[] {
+        const map = this.entityNameToIdMap
+        return this._selectedEntityNames
+            .map((name) => map.get(name))
+            .filter(isPresent)
+    }
+
+    // Clears and sets selected entities
+    @action.bound setSelectedEntities(entityNames: EntityName[]) {
+        this.clearSelection()
+        return this.addToSelection(entityNames)
+    }
+
     @action.bound addToSelection(entityNames: EntityName[]) {
-        const set = new Set(entityNames)
-        return this.selectRows(
-            this.rows.filter((row) => set.has(row.entityName))
+        this._selectedEntityNames = this._selectedEntityNames.concat(
+            entityNames
         )
+        return this
     }
 
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
@@ -771,7 +721,36 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }
 
-    isEntitySelected(entityName: EntityName) {
-        return this.selectedEntityNameSet.has(entityName)
+    @action.bound selectAll() {
+        return this.addToSelection(this.unselectedEntityNames)
+    }
+
+    @action.bound clearSelection() {
+        this._selectedEntityNames = []
+        return this
+    }
+
+    @action.bound toggleSelection(entityName: EntityName) {
+        return this.isEntitySelected(entityName)
+            ? this.deselectEntity(entityName)
+            : this.selectEntity(entityName)
+    }
+
+    @action.bound selectEntity(entityName: EntityName) {
+        return this.addToSelection([entityName])
+    }
+
+    // Mainly for testing
+    @action.bound selectSample(howMany = 1) {
+        return this.setSelectedEntities(
+            this.availableEntityNames.slice(0, howMany)
+        )
+    }
+
+    @action.bound deselectEntity(entityName: EntityName) {
+        this._selectedEntityNames = this._selectedEntityNames.filter(
+            (name) => name !== entityName
+        )
+        return this
     }
 }

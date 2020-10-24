@@ -611,7 +611,7 @@ export class CovidExplorer
 
         if (shouldFilterNegatives)
             table = table.filterNegatives(params.yColumnSlug)
-        if (shouldFilterGroups) table = table.filterGroups()
+        if (shouldFilterGroups) table = table.filterRegionsUnlessSelected()
         return table
     }
 
