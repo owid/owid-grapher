@@ -285,9 +285,6 @@ export class DataTable extends React.Component<{
 
         if (value === undefined) return <td key={key} className="dimension" />
 
-        if (value.time === 2013) {
-            debugger
-        }
         const shouldShowClosestTimeNotice =
             value.time !== undefined &&
             !isDeltaColumn(column.key) &&
