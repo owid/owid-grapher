@@ -7,7 +7,7 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -170,7 +170,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed private get inputTable() {
-        return this.manager.table ?? new OwidTable()
+        return this.manager.table ?? BlankOwidTable()
     }
 
     private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {

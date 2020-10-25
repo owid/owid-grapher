@@ -98,14 +98,12 @@ export const calculateCovidRowsForGroup = (
     let total_cases = 0
     let total_deaths = 0
     let maxPopulation = 0
-    const group_members = Array.from(groupMembers).join("")
     // We need to compute cumulatives again because sometimes data will stop for a country.
     newRowsForGroup.forEach((row) => {
         total_cases += row.new_cases
         total_deaths += row.new_deaths
         row.total_cases = total_cases
         row.total_deaths = total_deaths
-        row.group_members = group_members
         if (row.population > maxPopulation) maxPopulation = row.population
 
         // Once we add a country to a group, we assume we will always have data for that country, so even if the

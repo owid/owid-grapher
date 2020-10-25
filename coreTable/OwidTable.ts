@@ -171,8 +171,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     filterByEntityNames(names: EntityName[]) {
         const namesSet = new Set(names)
-        return this.filter(
-            (row) => namesSet.has(row[OwidTableSlugs.entityName]),
+        return this.columnFilter(
+            OwidTableSlugs.entityName,
+            (value) => namesSet.has(value as string),
             `Filter out all entities except '${names}'`
         )
     }
@@ -238,7 +239,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             })
         })
 
-        return this.filter(
+        return this.rowFilter(
             (row) => matchingRows.has(row),
             `Keep a row for each entity for each of the closest times ${targetTimes.join(
                 ", "
@@ -247,14 +248,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     dropRowsWithInvalidValuesForColumn(slug: ColumnSlug) {
-        return this.filter(
-            (row) => isValid(row[slug]),
+        return this.columnFilter(
+            slug,
+            (value) => isValid(value),
             `Drop rows with empty or invalid values in ${slug} column`
         )
     }
 
     dropRowsWithInvalidValuesForAnyColumn(slugs: ColumnSlug[]) {
-        return this.filter(
+        return this.rowFilter(
             (row) => slugs.every((slug) => isValid(row[slug])),
             `Drop rows with empty or invalid values in any column: ${slugs.join(
                 ", "
@@ -263,7 +265,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     dropRowsWithInvalidValuesForAllColumns(slugs: ColumnSlug[]) {
-        return this.filter(
+        return this.rowFilter(
             (row) => slugs.some((slug) => isValid(row[slug])),
             `Drop rows with empty or invalid values in every column: ${slugs.join(
                 ", "
@@ -640,18 +642,21 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByPopulation(minPop: number) {
-        return this.filter((row) => {
-            const name = row.entityName
-            const pop = populationMap[name]
-            return (
-                !pop || this.isEntitySelected(row.entityName) || pop >= minPop
-            )
-        }, `Filter out countries with population less than ${minPop}`)
+        return this.columnFilter(
+            OwidTableSlugs.entityName,
+            (value) => {
+                const name = value as string
+                const pop = populationMap[name]
+                return !pop || this.isEntitySelected(name) || pop >= minPop
+            },
+            `Filter out countries with population less than ${minPop}`
+        )
     }
 
     filterBySelectedOnly() {
-        return this.filter(
-            (row) => this.isEntitySelected(row.entityName),
+        return this.columnFilter(
+            OwidTableSlugs.entityName,
+            (name) => this.isEntitySelected(name as string),
             `Keep selected rows only`
         )
     }
@@ -754,3 +759,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this
     }
 }
+
+// This just assures that even an emtpty OwidTable will have an entityName column. Probably a cleaner way to do this pattern (add a defaultColumns prop??)
+export const BlankOwidTable = () =>
+    new OwidTable(undefined, [{ slug: OwidTableSlugs.entityName }])

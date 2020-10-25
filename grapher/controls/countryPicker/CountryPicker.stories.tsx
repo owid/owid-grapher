@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable } from "coreTable/OwidTable"
 import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
@@ -70,7 +70,7 @@ export default {
 
 export const Empty = () => (
     <CountryPickerHolder>
-        <CountryPicker table={new OwidTable()} />
+        <CountryPicker table={BlankOwidTable()} />
     </CountryPickerHolder>
 )
 

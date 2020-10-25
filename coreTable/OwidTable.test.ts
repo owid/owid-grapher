@@ -4,7 +4,7 @@ import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
@@ -255,6 +255,20 @@ it("can handle columns with commas", () => {
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)
+})
+
+describe("filtering", () => {
+    it("can filter by population", () => {
+        const table = SynthesizeFruitTable({ timeRange: [2000, 2001] })
+        expect(table.filterByPopulation(100).numRows).toEqual(2)
+    })
+
+    it("can filter by population on empty table", () => {
+        const table = BlankOwidTable()
+        expect(
+            table.filterByPopulation(1).filterByPopulation(1e12).numRows
+        ).toEqual(0)
+    })
 })
 
 describe("time filtering", () => {

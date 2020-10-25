@@ -22,7 +22,7 @@ import {
 } from "grapher/utils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 
@@ -115,7 +115,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get manager() {
-        return this.props.manager || { table: new OwidTable() }
+        return this.props.manager || { table: BlankOwidTable() }
     }
 
     @computed private get entityType() {

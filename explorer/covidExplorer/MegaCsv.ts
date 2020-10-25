@@ -50,8 +50,9 @@ export const MegaCsvToCovidExplorerTable = (
             }
             return object
         },
-    }).filter(
-        (row: MegaRow) => row[OwidTableSlugs.entityName] !== "International",
+    }).columnFilter(
+        OwidTableSlugs.entityName,
+        (name) => name !== "International",
         "Drop International rows"
     )
 
@@ -89,7 +90,7 @@ export const MegaCsvToCovidExplorerTable = (
         .appendRows(euRows as any, `Added ${euRows.length} EU rows`)
 
     return new CovidExplorerTable(
-        (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings
+        tableWithRows.columnStore,
         tableWithRows.defs,
         {
             parent: tableWithRows as any,

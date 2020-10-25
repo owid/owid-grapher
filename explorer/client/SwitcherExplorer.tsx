@@ -13,7 +13,7 @@ import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow } from "grapher/utils/Util"
 import {
@@ -150,7 +150,7 @@ export class SwitcherExplorer
             )
 
         grapher.updateFromObject(config)
-        grapher.inputTable = new OwidTable()
+        grapher.inputTable = BlankOwidTable()
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         this.addEntityOptionsToPickerWhenReady()
@@ -177,7 +177,7 @@ export class SwitcherExplorer
         )
     }
 
-    @observable.ref countryPickerTable = new OwidTable()
+    @observable.ref countryPickerTable = BlankOwidTable()
 
     private get panels() {
         return this.explorerProgram.switcherRuntime.choicesWithAvailability.map(

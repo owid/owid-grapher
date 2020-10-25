@@ -68,7 +68,6 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     timeBoundToTimeBoundString,
-    timeFromTimebounds,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
@@ -143,7 +142,7 @@ import {
     EntityName,
     OwidColumnDef,
 } from "coreTable/OwidTableConstants"
-import { OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
@@ -284,7 +283,7 @@ export class Grapher
 
         const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
-        this.inputTable = props.table ?? new OwidTable()
+        this.inputTable = props.table ?? BlankOwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         this.legacyConfigAsAuthored = props || {}

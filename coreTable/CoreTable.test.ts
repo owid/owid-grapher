@@ -117,6 +117,11 @@ describe("adding rows", () => {
         expect(expandedTable.numRows).toEqual(6)
         expect(expandedTable.rows[5].pop).toEqual(321)
     })
+
+    it("can drop rows", () => {
+        const table = new CoreTable(sampleCsv)
+        expect(table.dropRowsAt([0, 1, 3]).numRows).toEqual(1)
+    })
 })
 
 describe("column operations", () => {
@@ -296,7 +301,7 @@ hi,1,,2001`
 
 describe("filtering", () => {
     const rootTable = new CoreTable(sampleCsv)
-    const filteredTable = rootTable.filter(
+    const filteredTable = rootTable.rowFilter(
         (row) => parseInt(row.population) > 40,
         "Pop filter"
     )
@@ -308,7 +313,7 @@ describe("filtering", () => {
     })
 
     it("multiple filters work", () => {
-        const filteredTwiceTable = filteredTable.filter(
+        const filteredTwiceTable = filteredTable.rowFilter(
             (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
         )
@@ -321,7 +326,7 @@ describe("filtering", () => {
         const table = new CoreTable(`country,pop
 usa,123
 can,333`)
-        const allFiltered = table.filter((row) => false, "filter all")
+        const allFiltered = table.rowFilter((row) => false, "filter all")
         expect(allFiltered.getValuesFor("pop")).toEqual([])
     })
 })
