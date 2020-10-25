@@ -231,12 +231,9 @@ export class DataTable extends React.Component<{
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
-                const headerText =
-                    column.targetTimeMode === TargetTimeMode.point
-                        ? dim.coreTableColumn.table.formatTime(
-                              column.targetTime!
-                          )
-                        : columnNameByType[column.key]
+                const headerText = isDeltaColumn(column.key)
+                    ? dim.coreTableColumn.table.formatTime(column.targetTime!)
+                    : columnNameByType[column.key]
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -709,9 +706,7 @@ function ColumnHeader(props: {
         >
             <div
                 className={classnames({
-                    deltaColumn:
-                        subdimensionType === "delta" ||
-                        subdimensionType === "deltaRatio",
+                    deltaColumn: isDeltaColumn(subdimensionType),
                 })}
             >
                 {props.headerText}
@@ -818,4 +813,9 @@ interface DataTableDimension {
 interface DataTableRow {
     entityName: EntityName
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
+}
+
+function isDeltaColumn(columnKey?: ColumnKey) {
+    if (!columnKey) return false
+    return columnKey !== "delta" && columnKey !== "deltaRatio"
 }
