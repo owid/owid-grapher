@@ -450,11 +450,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    getColorForEntityName(entityName: EntityName) {
-        return this.getLatestValueForEntity(
-            entityName,
+    @imemo private get entityNameColorIndex() {
+        return this.valueIndex(
+            OwidTableSlugs.entityName,
             OwidTableSlugs.entityColor
         )
+    }
+
+    getColorForEntityName(entityName: EntityName) {
+        return this.entityNameColorIndex.get(entityName)
     }
 
     @imemo get columnDisplayNameToColorMap() {

@@ -83,7 +83,7 @@ export class CoreTable<
     private timeToLoad = 0
     private initTime = Date.now()
 
-    private inputData: CoreTableInputOption
+    private originalInput: CoreTableInputOption
     private advancedOptions: AdvancedOptions
 
     private inputColumnDefs: COL_DEF_TYPE[]
@@ -97,9 +97,9 @@ export class CoreTable<
             parent,
             tableDescription = "",
             transformCategory = TransformType.Load,
-            filterMask,
         } = advancedOptions
 
+        this.originalInput = rowsOrColumnsOrDsv
         this.tableDescription = tableDescription
         this.transformCategory = transformCategory
         this.parent = parent as this
@@ -107,39 +107,63 @@ export class CoreTable<
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
         this.advancedOptions = advancedOptions
 
-        if (filterMask)
-            rowsOrColumnsOrDsv = applyFilterMask(
-                rowsOrColumnsOrDsv as CoreColumnStore,
-                filterMask
-            )
-
-        this.inputData = rowsOrColumnsOrDsv
-
-        const autodetectColumns = !parent
-
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (autodetectColumns)
+        if (!parent)
             autodetectColumnDefs(
-                this.inputAsRows,
+                this.inputColumnStore,
                 this._columns
             ).forEach((def) => this.setColumn(def as COL_DEF_TYPE))
 
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
-    getValuesFor(columnSlug: ColumnSlug) {
-        return this.columnStore[columnSlug]
+    // If the input is a column store, returns that. If it is DSV, parses that and turns it into a column store.
+    // If it is a Rows[], turns it into a column store.
+    @imemo private get inputColumnStore() {
+        const { originalInput } = this
+
+        if (typeof originalInput === "string")
+            return this.delimitedAsColumnStore
+        else if (Array.isArray(originalInput))
+            return rowsToColumnStore(originalInput)
+        return originalInput
     }
 
-    @imemo private get rowsFromColumns() {
-        const { columnStore } = this
-        return range(
-            0,
-            Object.values(columnStore)[0]?.length ?? 0
-        ).map((index) =>
-            makeRowFromColumnStore(index, columnStore)
-        ) as ROW_TYPE[]
+    @imemo get columnStore() {
+        const {
+            inputColumnStore,
+            inputColumnsToComputedColumns,
+            inputColumnsToParsedColumnStore,
+        } = this
+
+        // Set blank columns
+        let columnStore = Object.assign({}, this.blankColumnStore)
+
+        // Append input columns
+        columnStore = Object.assign(columnStore, inputColumnStore)
+
+        // Overwrite any non-parsed columns with parsed values
+        if (Object.keys(inputColumnsToParsedColumnStore).length)
+            columnStore = Object.assign(
+                columnStore,
+                inputColumnsToParsedColumnStore
+            )
+
+        // Adppend any computed columns
+        if (Object.keys(inputColumnsToComputedColumns).length)
+            columnStore = Object.assign(
+                columnStore,
+                inputColumnsToComputedColumns
+            )
+
+        return this.advancedOptions.filterMask
+            ? applyFilterMask(columnStore, this.advancedOptions.filterMask)
+            : columnStore
+    }
+
+    getValuesFor(columnSlug: ColumnSlug) {
+        return this.columnStore[columnSlug]
     }
 
     private get blankColumnStore() {
@@ -150,55 +174,28 @@ export class CoreTable<
         return columnsObject
     }
 
-    @imemo get columnStore() {
-        if (this.isInputFromColumns) {
-            if (this.slugsToBuild.length)
-                return Object.assign(
-                    this.blankColumnStore,
-                    this.inputAsColumnStore,
-                    this.inputColumnsToComputedColumns
-                )
-            return Object.assign(this.blankColumnStore, this.inputAsColumnStore)
-        } else {
-            return Object.assign(
-                this.blankColumnStore,
-                this.inputRowsAsColumnStore,
-                this.inputRowsToParsedColumnStore,
-                this.inputRowsToComputedColumnStore
-            )
-        }
-    }
-
-    @imemo private get delimitedAsRows() {
-        const { inputData, advancedOptions } = this
+    @imemo private get delimitedAsColumnStore() {
+        const { originalInput, advancedOptions } = this
         const parsed = parseDelimited(
-            inputData as string,
+            originalInput as string,
             undefined,
-            advancedOptions.rowConversionFunction ?? makeAutoTypeFn()
+            advancedOptions.rowConversionFunction ??
+                makeAutoTypeFn(this._numericColumnSlugs)
         ) as any
         // dsv_parse adds a columns prop to the result we don't want since we handle our own column defs.
         // https://github.com/d3/d3-dsv#dsv_parse
         delete parsed.columns
 
         const renamedRows = standardizeSlugs(parsed) // todo: pass renamed defs back in.
-        return renamedRows ? renamedRows.rows : parsed
-    }
-
-    @imemo private get inputAsRows() {
-        const { inputData, isFromDelimited } = this
-        return (isFromDelimited
-            ? this.delimitedAsRows
-            : inputData) as ROW_TYPE[]
-    }
-
-    @imemo private get inputRowsAsColumnStore() {
-        return rowsToColumnStore(this.inputAsRows)
+        return rowsToColumnStore(renamedRows ? renamedRows.rows : parsed)
     }
 
     private get inputColumnsToComputedColumns() {
+        const { colsToCompute } = this
         const columnsObject: CoreColumnStore = {}
-        const rows = this.columnStoreToRows
-        this.colsToCompute.forEach((def) => {
+        if (!colsToCompute.length) return columnsObject
+        const rows = this.inputColumnStoreToRows
+        colsToCompute.forEach((def) => {
             columnsObject[def.slug] =
                 def.values ?? rows.map((row, index) => def.fn!(row, index)) // Todo: make these not operate on rows
         })
@@ -206,25 +203,31 @@ export class CoreTable<
         return columnsObject
     }
 
-    private get inputRowsToComputedColumnStore() {
+    private get inputColumnsToParsedColumnStore() {
+        const { inputColumnStore, colsToParse } = this
         const columnsObject: CoreColumnStore = {}
-        this.colsToCompute.forEach((def) => {
-            columnsObject[def.slug] =
-                def.values ??
-                this.inputAsRows.map((row, index) => def.fn!(row, index))
-        })
-
-        return columnsObject
-    }
-
-    private get inputRowsToParsedColumnStore() {
-        const columnsObject: CoreColumnStore = {}
-        this.columnsToParse.forEach((col) => {
+        if (!colsToParse.length) return columnsObject
+        const missingCols: CoreColumn[] = []
+        let len = 0
+        colsToParse.forEach((col) => {
             const { slug } = col
-            columnsObject[slug] = this.inputAsRows
-                .map((row) => row[slug])
-                .map((val) => col.parse(val))
+            const unparsedVals = inputColumnStore[slug]
+            if (!unparsedVals) {
+                missingCols.push(col)
+                return
+            }
+            columnsObject[slug] = unparsedVals.map((val) => col.parse(val))
+            len = columnsObject[slug].length
         })
+
+        // If column defs were provided but there were no values provided for those columns, create blank columns the same size
+        // as the filled columns.
+        missingCols.forEach(
+            (col) =>
+                (columnsObject[col.slug] = range(0, len).map(() =>
+                    col.parse(undefined)
+                ))
+        )
         return columnsObject
     }
 
@@ -242,42 +245,40 @@ export class CoreTable<
         return cols.filter((def) => def.fn || def.values)
     }
 
-    private get slugsToBuild() {
-        return [
-            ...this.colsToCompute.map((col) => col.slug),
-            ...this.columnsToParse.map((col) => col.slug),
-        ]
-    }
+    private get colsToParse() {
+        if (
+            this.isOriginalInputFromDelimited ||
+            this.isInputFromColumns ||
+            this.parent
+        )
+            return []
 
-    private get columnsToParse() {
-        if (this.isFromDelimited || this.isInputFromColumns) return []
-
-        const firstInputRow = this.inputAsRows[0]
+        const firstInputRow = makeRowFromColumnStore(0, this.inputColumnStore)
         if (!firstInputRow) return []
-        const cols = this.columnsAsArray
+        const allCols = this.columnsAsArray
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of computed columns.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
-        if (this.isRoot)
-            return differenceBy(
-                cols,
+        if (this.isRoot) {
+            const colsExceptForComputeds = differenceBy(
+                allCols,
                 this.newProvidedColumnDefsToCompute,
                 (item) => item.slug
             )
+            return colsExceptForComputeds
+        }
 
-        return cols.filter((col) => col.needsParsing(firstInputRow[col.slug]))
+        return allCols.filter((col) =>
+            col.needsParsing(firstInputRow[col.slug])
+        )
     }
 
     @imemo private get numColsToCompute() {
         return this.colsToCompute.length
     }
 
-    private get inputAsColumnStore() {
-        return this.inputData as CoreColumnStore
-    }
-
-    @imemo private get isFromDelimited() {
-        return typeof this.inputData === "string"
+    @imemo private get isOriginalInputFromDelimited() {
+        return typeof this.originalInput === "string"
     }
 
     toOneDimensionalArray() {
@@ -317,9 +318,7 @@ export class CoreTable<
     }
 
     @imemo get rows() {
-        return this.isInputFromColumns || this.slugsToBuild.length
-            ? this.rowsFromColumns
-            : this.inputAsRows
+        return Array.from(this)
     }
 
     *[Symbol.iterator]() {
@@ -613,13 +612,21 @@ export class CoreTable<
     }
 
     @imemo get numericColumnSlugs() {
-        return this.columnsAsArray
+        return this._numericColumnSlugs
+    }
+
+    private get _numericColumnSlugs() {
+        return this._columnsAsArray
             .filter((col) => col instanceof ColumnTypeMap.Numeric)
             .map((col) => col.slug)
     }
 
-    @imemo get columnsAsArray() {
+    private get _columnsAsArray() {
         return Array.from(this._columns.values())
+    }
+
+    @imemo get columnsAsArray() {
+        return this._columnsAsArray
     }
 
     getColumns(slugs: ColumnSlug[]) {
@@ -669,21 +676,24 @@ export class CoreTable<
     }
 
     @imemo private get isInputFromRowsOrDelimited() {
-        return Array.isArray(this.inputData) || this.isFromDelimited
+        return (
+            Array.isArray(this.originalInput) ||
+            this.isOriginalInputFromDelimited
+        )
     }
 
     @imemo private get isInputFromColumns() {
         return !this.isInputFromRowsOrDelimited
     }
 
-    @imemo private get columnStoreToRows() {
-        return columnStoreToRows(this.inputAsColumnStore)
+    @imemo private get inputColumnStoreToRows() {
+        return columnStoreToRows(this.inputColumnStore)
     }
 
     @imemo private get inputAsTable() {
         return this.isInputFromRowsOrDelimited
-            ? this.inputAsRows
-            : this.columnStoreToRows
+            ? this.originalInput
+            : this.inputColumnStoreToRows
     }
 
     @imemo private get explainColumns() {
@@ -715,7 +725,7 @@ export class CoreTable<
     }
 
     @imemo private get numColsToParse() {
-        return this.columnsToParse.length
+        return this.colsToParse.length
     }
 
     private static guids = 0
