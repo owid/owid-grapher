@@ -200,11 +200,13 @@ export class DataTable extends React.Component<{
             const actualColumn = dim.coreTableColumn
             const unit =
                 actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const columnName =
+                actualColumn.displayName !== ""
+                    ? actualColumn.displayName
+                    : actualColumn.name
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">
-                        {upperFirst(actualColumn.displayName)}
-                    </span>
+                    <span className="name">{upperFirst(columnName)}</span>
                     <span className="unit">{unit}</span>
                 </React.Fragment>
             )
