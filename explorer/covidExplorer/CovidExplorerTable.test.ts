@@ -10,6 +10,7 @@ import { sampleMegaCsv } from "./CovidExplorerUtils"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 import { flatten } from "grapher/utils/Util"
 import { InvalidCell } from "coreTable/InvalidCells"
+import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 const table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
 
@@ -160,20 +161,21 @@ describe("builds aligned tests column", () => {
 
 it("can filter rows without continent", () => {
     let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
-    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
+    expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 
     table = table.filterRegionsUnlessSelected()
-    expect(table.availableEntityNameSet.has("World")).toBeFalsy()
+    expect(table.availableEntityNameSet.has(WorldEntityName)).toBeFalsy()
+    expect(table.availableEntityNameSet.has("Aruba")).toBeTruthy()
 
-    table.mainTable.selectEntity("World")
+    table.mainTable.selectEntity(WorldEntityName)
     table = table.mainTable.filterRegionsUnlessSelected()
-    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
+    expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 
-    table.mainTable.deselectEntity("World")
+    table.mainTable.deselectEntity(WorldEntityName)
     table = table.mainTable.filterRegionsUnlessSelected()
-    expect(table.availableEntityNameSet.has("World")).toBeFalsy()
+    expect(table.availableEntityNameSet.has(WorldEntityName)).toBeFalsy()
 
-    table.mainTable.setSelectedEntities(["World"])
+    table.mainTable.setSelectedEntities([WorldEntityName])
     table = table.mainTable.filterRegionsUnlessSelected()
-    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
+    expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 })

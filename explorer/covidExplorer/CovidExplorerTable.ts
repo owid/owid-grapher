@@ -243,14 +243,6 @@ export class CovidExplorerTable extends OwidTable {
         })
     }
 
-    filterNegatives(slug: ColumnSlug) {
-        return this.columnFilter(
-            slug,
-            (value) => value >= 0,
-            `Filter negative values for ${slug}`
-        )
-    }
-
     filterRegionsUnlessSelected() {
         const groupNames = new Set(
             Object.keys(ContinentColors).concat(
@@ -264,9 +256,7 @@ export class CovidExplorerTable extends OwidTable {
             OwidTableSlugs.entityName,
             (value) => {
                 const name = value as string
-                return groupNames.has(name)
-                    ? this.isEntitySelected(name)
-                    : false
+                return groupNames.has(name) ? this.isEntitySelected(name) : true
             },
             `Filter out regions unless selected`
         )

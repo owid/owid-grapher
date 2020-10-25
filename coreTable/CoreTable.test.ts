@@ -329,6 +329,19 @@ can,333`)
         const allFiltered = table.rowFilter((row) => false, "filter all")
         expect(allFiltered.getValuesFor("pop")).toEqual([])
     })
+
+    it("can filter negatives", () => {
+        const table = new CoreTable(`country,pop
+fra,0
+usa,-2
+can,333
+ger,0.1`)
+        expect(table.filterNegatives("pop").getValuesFor("pop")).toEqual([
+            0,
+            333,
+            0.1,
+        ])
+    })
 })
 
 describe("debugging", () => {
