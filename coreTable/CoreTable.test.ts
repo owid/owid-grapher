@@ -17,6 +17,11 @@ describe("creating tables", () => {
         expect(table.columnNames).toEqual(["country", "population"])
     })
 
+    it("when parsing object literals as rows, if a later row has more properties than the first row they will be ignored", () => {
+        const table = new CoreTable([{ name: "test" }, { score: 123 }])
+        expect(table.columnNames).toEqual(["name"])
+    })
+
     it("tables can be combined", () => {
         const table = new CoreTable(sampleCsv).concat(new CoreTable(sampleCsv))
         expect(table.numRows).toEqual(8)
@@ -46,6 +51,19 @@ describe("creating tables", () => {
         ]
         const table = new CoreTable(rows)
         expect(table.get("gdp")?.numValues).toEqual(1)
+    })
+
+    it("it parses values to correct provided type even if first row is missing value", () => {
+        const rows = `gdp,country
+,usa
+123,can`
+        const table = new CoreTable(rows, [
+            {
+                slug: "gdp",
+                type: ColumnTypeNames.Numeric,
+            },
+        ])
+        expect(table.get("gdp")?.maxValue).toEqual(123)
     })
 
     it("can load a table from an array of arrays", () => {
@@ -91,8 +109,17 @@ describe("creating tables", () => {
     })
 
     it("can create a table with columns but no rows", () => {
-        const table = new CoreTable({}, [{ slug: "entityId" }])
-        expect(table.getValuesFor("entityId")).toEqual([])
+        expect(
+            new CoreTable({}, [{ slug: "entityId" }]).getValuesFor("entityId")
+        ).toEqual([])
+    })
+
+    it("can create a table with an empty column", () => {
+        const table = new CoreTable(
+            [{ color: "blue" }],
+            [{ slug: "name", type: ColumnTypeNames.String }]
+        )
+        expect(table.numRows).toEqual(1)
     })
 })
 
@@ -322,7 +349,7 @@ describe("filtering", () => {
         expect(parsedValues[1]).toEqual(undefined)
     })
 
-    it("one filter works", () => {
+    it("filter all works", () => {
         const table = new CoreTable(`country,pop
 usa,123
 can,333`)

@@ -140,10 +140,8 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
             if (annotationsColumnSlug)
                 row[annotationsColumnSlug] = annotationMap.get(entityName)
 
-            if (colorColumnSlug) {
-                const color = entityColorMap.get(entityId)
-                if (color) row[colorColumnSlug] = color
-            }
+            if (colorColumnSlug)
+                row[colorColumnSlug] = entityColorMap.get(entityId)
             return row
         })
         rows = rows.concat(newRows)

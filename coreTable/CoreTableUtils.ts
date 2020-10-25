@@ -29,8 +29,11 @@ export const columnStoreToRows = (columnStore: CoreColumnStore) => {
 
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
-export const makeAutoTypeFn = () => {
+export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
     const slugToType: any = {}
+    numericSlugs?.forEach((slug) => {
+        slugToType[slug] = "number"
+    })
     return (object: any) => {
         for (const columnSlug in object) {
             const value = object[columnSlug]
@@ -42,20 +45,20 @@ export const makeAutoTypeFn = () => {
 
             const number = parseFloat(value) // The "+" type casting that d3 does for perf converts "" to 0, so use parseFloat.
             if (type === "number") {
-                object[columnSlug] = !isNaN(number)
-                    ? number
-                    : InvalidCellTypes.NaNButShouldBeNumber
+                object[columnSlug] = isNaN(number)
+                    ? InvalidCellTypes.NaNButShouldBeNumber
+                    : number
                 continue
             }
 
-            if (!isNaN(number)) {
-                object[columnSlug] = number
-                slugToType[columnSlug] = "number"
+            if (isNaN(number)) {
+                object[columnSlug] = value
+                slugToType[columnSlug] = "string"
                 continue
             }
 
-            object[columnSlug] = value
-            slugToType[columnSlug] = "string"
+            object[columnSlug] = number
+            slugToType[columnSlug] = "number"
         }
         return object
     }
@@ -276,6 +279,28 @@ export const rowsToColumnStore = (rows: CoreRow[]) => {
     return columnsObject
 }
 
+const guessColumnDefsFromRows = (
+    rows: CoreRow[],
+    definedSlugs: Map<ColumnSlug, any>
+) => {
+    if (!rows[0]) return []
+    return Object.keys(rows[0])
+        .filter((slug) => !definedSlugs.has(slug))
+        .map((slug) => {
+            const firstRowWithValue = rows.find(
+                (row) =>
+                    row[slug] !== undefined &&
+                    row[slug] !== null &&
+                    row[slug] !== ""
+            )
+            const firstValue = firstRowWithValue
+                ? firstRowWithValue[slug]
+                : undefined
+
+            return guessColumnDefFromSlugAndRow(slug, firstValue)
+        })
+}
+
 export const autodetectColumnDefs = (
     rowsOrColumnStore: CoreColumnStore | CoreRow[],
     definedSlugs: Map<ColumnSlug, any>
@@ -293,21 +318,7 @@ export const autodetectColumnDefs = (
                 )
             })
     }
-    const rows = rowsOrColumnStore as CoreRow[]
-    if (!rows[0]) return []
-
-    return Object.keys(rows[0])
-        .filter((slug) => !definedSlugs.has(slug))
-        .map((slug) => {
-            const firstRowWithValue = rows.find(
-                (row) => row[slug] !== undefined && row[slug] !== null
-            )
-            const firstValue = firstRowWithValue
-                ? firstRowWithValue[slug]
-                : undefined
-
-            return guessColumnDefFromSlugAndRow(slug, firstValue)
-        })
+    return guessColumnDefsFromRows(rowsOrColumnStore, definedSlugs)
 }
 
 export const applyFilterMask = (
