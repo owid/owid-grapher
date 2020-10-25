@@ -232,8 +232,8 @@ export class DataTable extends React.Component<{
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
                 const headerText = isDeltaColumn(column.key)
-                    ? dim.coreTableColumn.table.formatTime(column.targetTime!)
-                    : columnNameByType[column.key]
+                    ? columnNameByType[column.key]
+                    : dim.coreTableColumn.table.formatTime(column.targetTime!)
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -285,9 +285,12 @@ export class DataTable extends React.Component<{
 
         if (value === undefined) return <td key={key} className="dimension" />
 
+        if (value.time === 2013) {
+            debugger
+        }
         const shouldShowClosestTimeNotice =
             value.time !== undefined &&
-            column.targetTimeMode === TargetTimeMode.point &&
+            !isDeltaColumn(column.key) &&
             column.targetTime !== undefined &&
             column.targetTime !== value.time
 
@@ -308,13 +311,6 @@ export class DataTable extends React.Component<{
                         actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
                 {value.displayValue}
-                {value.time !== undefined &&
-                    column.targetTimeMode === TargetTimeMode.range && (
-                        <span className="range-time">
-                            {" "}
-                            in {actualColumn.table.formatTime(value.time!)}
-                        </span>
-                    )}
             </td>
         )
     }
@@ -816,6 +812,5 @@ interface DataTableRow {
 }
 
 function isDeltaColumn(columnKey?: ColumnKey) {
-    if (!columnKey) return false
-    return columnKey !== "delta" && columnKey !== "deltaRatio"
+    return columnKey === "delta" || columnKey === "deltaRatio"
 }
