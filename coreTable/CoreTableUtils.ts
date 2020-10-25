@@ -239,3 +239,86 @@ export const imemo = (
         return this[propName]
     }
 }
+
+export const appendRowsToColumnStore = (
+    columnStore: CoreColumnStore,
+    rows: CoreRow[]
+) => {
+    const slugs = Object.keys(columnStore)
+    const newColumnStore = columnStore
+    slugs.forEach((slug) => {
+        newColumnStore[slug] = columnStore[slug].concat(
+            rows.map((row) => row[slug])
+        )
+    })
+    return newColumnStore
+}
+
+export const concatColumnStores = (
+    target: CoreColumnStore,
+    source: CoreColumnStore
+) => {
+    const slugs = Object.keys(target)
+    const newColumnStore: CoreColumnStore = {}
+    slugs.forEach((slug) => {
+        newColumnStore[slug] = target[slug].concat(source[slug])
+    })
+    return newColumnStore
+}
+
+export const rowsToColumnStore = (rows: CoreRow[]) => {
+    const columnsObject: CoreColumnStore = {}
+    if (!rows.length) return columnsObject
+
+    Object.keys(rows[0]).forEach((slug) => {
+        columnsObject[slug] = rows.map((row) => row[slug])
+    })
+    return columnsObject
+}
+
+export const autodetectColumnDefs = (
+    rowsOrColumnStore: CoreColumnStore | CoreRow[],
+    definedSlugs: Map<ColumnSlug, any>
+) => {
+    if (!Array.isArray(rowsOrColumnStore)) {
+        const columnStore = rowsOrColumnStore as CoreColumnStore
+        return Object.keys(columnStore)
+            .filter((slug) => !definedSlugs.has(slug))
+            .map((slug) => {
+                return guessColumnDefFromSlugAndRow(
+                    slug,
+                    columnStore[slug].find(
+                        (val) => val !== undefined && val !== null
+                    )
+                )
+            })
+    }
+    const rows = rowsOrColumnStore as CoreRow[]
+    if (!rows[0]) return []
+
+    return Object.keys(rows[0])
+        .filter((slug) => !definedSlugs.has(slug))
+        .map((slug) => {
+            const firstRowWithValue = rows.find(
+                (row) => row[slug] !== undefined && row[slug] !== null
+            )
+            const firstValue = firstRowWithValue
+                ? firstRowWithValue[slug]
+                : undefined
+
+            return guessColumnDefFromSlugAndRow(slug, firstValue)
+        })
+}
+
+export const applyFilterMask = (
+    columnStore: CoreColumnStore,
+    filterMask: boolean[]
+) => {
+    const columnsObject: CoreColumnStore = {}
+    Object.keys(columnStore).forEach((slug) => {
+        columnsObject[slug] = columnStore[slug].filter(
+            (slug, index) => filterMask[index]
+        )
+    })
+    return columnsObject
+}

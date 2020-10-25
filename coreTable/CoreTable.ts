@@ -4,7 +4,6 @@ import {
     parseDelimited,
     min,
     max,
-    last,
     orderBy,
     getDropIndexes,
     Grid,
@@ -42,11 +41,14 @@ import {
 import {
     makeAutoTypeFn,
     columnStoreToRows,
-    guessColumnDefFromSlugAndRow,
     imemo,
     makeKeyFn,
     makeRowFromColumnStore,
     standardizeSlugs,
+    concatColumnStores,
+    rowsToColumnStore,
+    autodetectColumnDefs,
+    applyFilterMask,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -58,11 +60,14 @@ const TransformsRequiringCompute = new Set([
     TransformType.UpdateRows,
 ])
 
+type FilterMask = boolean[] // todo: change into bit array
+
 interface AdvancedOptions {
     tableDescription?: string
     transformCategory?: TransformType
     parent?: CoreTable
     rowConversionFunction?: (row: any) => CoreRow
+    filterMask?: FilterMask
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -92,6 +97,7 @@ export class CoreTable<
             parent,
             tableDescription = "",
             transformCategory = TransformType.Load,
+            filterMask,
         } = advancedOptions
 
         this.tableDescription = tableDescription
@@ -100,13 +106,24 @@ export class CoreTable<
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
         this.advancedOptions = advancedOptions
+
+        if (filterMask)
+            rowsOrColumnsOrDsv = applyFilterMask(
+                rowsOrColumnsOrDsv as CoreColumnStore,
+                filterMask
+            )
+
         this.inputData = rowsOrColumnsOrDsv
 
         const autodetectColumns = !parent
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (autodetectColumns) this.autodetectAndAddColumnsFromFirstRow()
+        if (autodetectColumns)
+            autodetectColumnDefs(
+                this.inputAsRows,
+                this._columns
+            ).forEach((def) => this.setColumn(def as COL_DEF_TYPE))
 
         this.timeToLoad = Date.now() - start // Perf aid
     }
@@ -133,15 +150,23 @@ export class CoreTable<
         return columnsObject
     }
 
-    @imemo private get columnStore() {
-        return this.slugsToBuild.length || this.isInputFromRowsOrDelimited
-            ? Object.assign(
-                  this.blankColumnStore,
-                  this.inputRowsToColumns,
-                  this.inputRowsToParsedColumns,
-                  this.inputRowsToComputedColumns
-              )
-            : Object.assign(this.blankColumnStore, this.inputAsColumnStore)
+    @imemo get columnStore() {
+        if (this.isInputFromColumns) {
+            if (this.slugsToBuild.length)
+                return Object.assign(
+                    this.blankColumnStore,
+                    this.inputAsColumnStore,
+                    this.inputColumnsToComputedColumns
+                )
+            return Object.assign(this.blankColumnStore, this.inputAsColumnStore)
+        } else {
+            return Object.assign(
+                this.blankColumnStore,
+                this.inputRowsAsColumnStore,
+                this.inputRowsToParsedColumnStore,
+                this.inputRowsToComputedColumnStore
+            )
+        }
     }
 
     @imemo private get delimitedAsRows() {
@@ -166,17 +191,22 @@ export class CoreTable<
             : inputData) as ROW_TYPE[]
     }
 
-    private get inputRowsToColumns() {
+    @imemo private get inputRowsAsColumnStore() {
+        return rowsToColumnStore(this.inputAsRows)
+    }
+
+    private get inputColumnsToComputedColumns() {
         const columnsObject: CoreColumnStore = {}
-        const { inputAsRows, firstInputRow } = this
-        if (!firstInputRow) return columnsObject
-        Object.keys(firstInputRow).forEach((slug) => {
-            columnsObject[slug] = inputAsRows.map((row) => row[slug])
+        const rows = this.columnStoreToRows
+        this.colsToCompute.forEach((def) => {
+            columnsObject[def.slug] =
+                def.values ?? rows.map((row, index) => def.fn!(row, index)) // Todo: make these not operate on rows
         })
+
         return columnsObject
     }
 
-    private get inputRowsToComputedColumns() {
+    private get inputRowsToComputedColumnStore() {
         const columnsObject: CoreColumnStore = {}
         this.colsToCompute.forEach((def) => {
             columnsObject[def.slug] =
@@ -187,7 +217,7 @@ export class CoreTable<
         return columnsObject
     }
 
-    private get inputRowsToParsedColumns() {
+    private get inputRowsToParsedColumnStore() {
         const columnsObject: CoreColumnStore = {}
         this.columnsToParse.forEach((col) => {
             const { slug } = col
@@ -219,14 +249,10 @@ export class CoreTable<
         ]
     }
 
-    private get firstInputRow() {
-        return this.inputAsRows[0]
-    }
-
     private get columnsToParse() {
         if (this.isFromDelimited || this.isInputFromColumns) return []
 
-        const firstInputRow = this.firstInputRow
+        const firstInputRow = this.inputAsRows[0]
         if (!firstInputRow) return []
         const cols = this.columnsAsArray
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
@@ -265,58 +291,20 @@ export class CoreTable<
     }
 
     protected transform(
-        rows: ROW_TYPE[],
+        rowsOrColumnStore: ROW_TYPE[] | CoreColumnStore,
         defs: COL_DEF_TYPE[],
-        description: string,
-        transformType: TransformType
+        tableDescription: string,
+        transformCategory: TransformType,
+        filterMask?: FilterMask
     ): this {
         // The combo of the "this" return type and then casting this to any allows subclasses to create transforms of the
         // same type. The "any" typing is very brief (the returned type will have the same type as the instance being transformed).
-        return new (this.constructor as any)(rows, defs, {
+        return new (this.constructor as any)(rowsOrColumnStore, defs, {
             parent: this,
-            tableDescription: description,
-            transformCategory: transformType,
-        })
-    }
-
-    private autodetectAndAddColumnsFromFirstRowForColumnStore() {
-        const columnStore = this.inputAsColumnStore
-        Object.keys(columnStore)
-            .filter((slug) => !this.has(slug))
-            .forEach((slug) => {
-                this.setColumn(
-                    guessColumnDefFromSlugAndRow(
-                        slug,
-                        columnStore[slug].find(
-                            (val) => val !== undefined && val !== null
-                        )
-                    ) as COL_DEF_TYPE
-                )
-            })
-    }
-
-    private autodetectAndAddColumnsFromFirstRow() {
-        if (!this.isInputFromRowsOrDelimited)
-            return this.autodetectAndAddColumnsFromFirstRowForColumnStore()
-        const rows = this.inputAsRows
-        if (!rows[0]) return
-
-        Object.keys(rows[0])
-            .filter((slug) => !this.has(slug))
-            .forEach((slug) => {
-                const firstRowWithValue = rows.find(
-                    (row) => row[slug] !== undefined && row[slug] !== null
-                )
-                const firstValue = firstRowWithValue
-                    ? firstRowWithValue[slug]
-                    : undefined
-                this.setColumn(
-                    guessColumnDefFromSlugAndRow(
-                        slug,
-                        firstValue
-                    ) as COL_DEF_TYPE
-                )
-            })
+            tableDescription,
+            transformCategory,
+            filterMask,
+        } as AdvancedOptions)
     }
 
     // Time between when the parent table finished loading and this table started constructing.
@@ -334,6 +322,13 @@ export class CoreTable<
             : this.inputAsRows
     }
 
+    *[Symbol.iterator]() {
+        const { columnStore, numRows } = this
+        for (let index = 0; index < numRows; index++) {
+            yield makeRowFromColumnStore(index, columnStore)
+        }
+    }
+
     getTimesAtIndices(indices: number[]) {
         return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
     }
@@ -344,15 +339,23 @@ export class CoreTable<
     }
 
     @imemo get firstRow() {
-        return this.rows[0]
+        return makeRowFromColumnStore(0, this.columnStore)
     }
 
     @imemo get lastRow() {
-        return last(this.rows)
+        return makeRowFromColumnStore(this.numRows - 1, this.columnStore)
     }
 
     @imemo get numRows() {
-        return this.rows.length
+        return this.firstColumnValues.length
+    }
+
+    @imemo private get firstColumnValues() {
+        return this.firstSlug ? this.getValuesFor(this.firstSlug) : []
+    }
+
+    @imemo private get firstSlug() {
+        return this.columnSlugs[0]
     }
 
     @imemo get numColumns() {
@@ -481,7 +484,7 @@ export class CoreTable<
     }
 
     grep(searchStringOrRegex: string | RegExp) {
-        return this.filter((row) => {
+        return this.rowFilter((row) => {
             const line = Object.values(row).join(" ")
             return typeof searchStringOrRegex === "string"
                 ? line.includes(searchStringOrRegex)
@@ -533,8 +536,8 @@ export class CoreTable<
         )
     }
 
-    // todo: speed up
-    filter(
+    // Warning: this will be slow
+    rowFilter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
     ) {
@@ -543,6 +546,20 @@ export class CoreTable<
             this.defs,
             opName,
             TransformType.FilterRows
+        )
+    }
+
+    columnFilter(
+        columnSlug: ColumnSlug,
+        predicate: (value: PrimitiveType) => boolean,
+        opName: string
+    ) {
+        return this.transform(
+            this.columnStore,
+            this.defs,
+            opName,
+            TransformType.FilterRows,
+            this.getValuesFor(columnSlug).map(predicate)
         )
     }
 
@@ -659,10 +676,14 @@ export class CoreTable<
         return !this.isInputFromRowsOrDelimited
     }
 
+    @imemo private get columnStoreToRows() {
+        return columnStoreToRows(this.inputAsColumnStore)
+    }
+
     @imemo private get inputAsTable() {
         return this.isInputFromRowsOrDelimited
             ? this.inputAsRows
-            : columnStoreToRows(this.inputAsColumnStore)
+            : this.columnStoreToRows
     }
 
     @imemo private get explainColumns() {
@@ -708,8 +729,8 @@ export class CoreTable<
             guid,
             numColumns,
             numRows,
-            timeToLoad,
             betweenTime,
+            timeToLoad,
             numColsToParse,
             numColsToCompute,
             numValidCells,
@@ -722,8 +743,8 @@ export class CoreTable<
             guid,
             numColumns,
             numRows,
-            timeToLoad,
             betweenTime,
+            timeToLoad,
             numColsToParse,
             numColsToCompute,
             numValidCells,
@@ -802,11 +823,9 @@ export class CoreTable<
     }
 
     appendRows(rows: ROW_TYPE[], opDescription: string) {
-        return this.transform(
-            [...this.rows, ...rows],
-            this.defs,
-            opDescription,
-            TransformType.AppendRows
+        return this.concat(
+            new (this.constructor as any)(rows, this.defs),
+            opDescription
         )
     }
 
@@ -822,7 +841,7 @@ export class CoreTable<
 
     updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE) {
         return this.transform(
-            this.rows,
+            this.columnStore,
             this.defs.map(fn),
             `Updated column defs`,
             TransformType.UpdateColumnDefs
@@ -917,11 +936,17 @@ export class CoreTable<
         )
     }
 
-    dropRowsAt(indices: number[]) {
+    dropRowsAt(indices: number[], message?: string) {
         const set = new Set(indices)
-        return this.filter(
-            (row, index) => !set.has(index),
-            `Dropping ${indices.length} rows`
+        const filterMask = range(0, this.numRows).map(
+            (index) => !set.has(index)
+        )
+        return this.transform(
+            this.columnStore,
+            this.defs,
+            message ?? `Dropping ${indices.length} rows`,
+            TransformType.FilterRows,
+            filterMask
         )
     }
 
@@ -929,8 +954,8 @@ export class CoreTable<
     dropRandomRows(howMany = 1, seed = Date.now()) {
         if (!howMany) return this // todo: clone?
         const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
-        return this.filter(
-            (row, index) => !indexesToDrop.has(index),
+        return this.dropRowsAt(
+            Array.from(indexesToDrop.values()),
             `Dropping a random ${howMany} rows`
         )
     }
@@ -1001,23 +1026,29 @@ export class CoreTable<
         )
     }
 
-    isGreaterThan(columnSlug: ColumnSlug, value: PrimitiveType) {
-        return this.filter(
-            (row) => row[columnSlug] > value,
-            `Filter where ${columnSlug} > ${value}`
+    isGreaterThan(
+        columnSlug: ColumnSlug,
+        value: PrimitiveType,
+        opName?: string
+    ) {
+        return this.columnFilter(
+            columnSlug,
+            (colValue) => colValue > value,
+            opName ?? `Filter where ${columnSlug} > ${value}`
         )
     }
 
     filterNegativesForLogScale(columnSlug: ColumnSlug) {
-        return this.filter(
-            (row) => row[columnSlug] > 0,
+        return this.isGreaterThan(
+            columnSlug,
+            0,
             `Remove rows if ${columnSlug} is <= 0 for log scale`
         )
     }
 
     appendColumns(defs: COL_DEF_TYPE[]) {
         return this.transform(
-            this.rows,
+            this.columnStore,
             this.defs.concat(defs),
             `Appended columns ${defs
                 .map((def) => `'${def.slug}'`)
@@ -1121,12 +1152,12 @@ export class CoreTable<
         return defsToAdd
     }
 
-    concat(table: CoreTable) {
+    concat(table: CoreTable, message = `Combined table`) {
         const defs = [...this.defs, ...table.defs] as COL_DEF_TYPE[]
         return this.transform(
-            this.rows.concat(table.rows as ROW_TYPE[]),
+            concatColumnStores(this.columnStore, table.columnStore),
             uniqBy(defs, (def) => def.slug),
-            `Combined table`,
+            message,
             TransformType.Concat
         )
     }

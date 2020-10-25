@@ -28,6 +28,7 @@ import {
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
 import { InvalidCell } from "coreTable/InvalidCells"
+import { ContinentColors } from "grapher/color/ColorConstants"
 
 class NotApplicableCell extends InvalidCell {}
 class TestRateExclusionList extends InvalidCell {}
@@ -243,20 +244,30 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     filterNegatives(slug: ColumnSlug) {
-        return this.filter(
-            (row) => !(row[slug] < 0),
+        return this.columnFilter(
+            slug,
+            (value) => value >= 0,
             `Filter negative values for ${slug}`
         )
     }
 
     filterRegionsUnlessSelected() {
+        const groupNames = new Set(
+            Object.keys(ContinentColors).concat(
+                "European Union",
+                WorldEntityName
+            )
+        )
+
         // "World" and our previously aggregated groups we sometimes want to filter out.
-        return this.filter(
-            (row) =>
-                row.entityName === WorldEntityName
-                    ? this.isEntitySelected(WorldEntityName)
-                    : !row.group_members ||
-                      this.isEntitySelected(row.entityName),
+        return this.columnFilter(
+            OwidTableSlugs.entityName,
+            (value) => {
+                const name = value as string
+                return groupNames.has(name)
+                    ? this.isEntitySelected(name)
+                    : false
+            },
             `Filter out regions unless selected`
         )
     }

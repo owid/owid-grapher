@@ -240,7 +240,6 @@ export enum MegaSlugs {
 // We parse MegaRows and turn them into CovidRows immediately.
 export interface CovidRow
     extends Omit<MegaRow, MegaSlugs.location | MegaSlugs.iso_code> {
-    group_members?: string
     entityName: string
     entityCode: string
     entityId: number

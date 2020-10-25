@@ -66,11 +66,16 @@ const main = () => {
     new CoreTable(str)
     timer.tick("csv to core table")
 
+    let table = MegaCsvToCovidExplorerTable(str)
     MegaCsvToCovidExplorerTable(str)
     timer.tick("csv to covid explorer table")
+    table.dumpPipeline()
+    timer.tick("dumped pipelin")
 
-    MegaCsvToCovidExplorerTable(str).appendEveryColumn()
+    table = MegaCsvToCovidExplorerTable(str).appendEveryColumn()
     timer.tick("csv to covid explorer table with every possible column")
+    table.dumpPipeline()
+    timer.tick("dumped pipelin")
 }
 
 main()
