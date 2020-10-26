@@ -21,12 +21,10 @@ import {
     first,
 } from "grapher/utils/Util"
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
-import { Analytics } from "grapher/core/Analytics"
 import { SortIcon } from "grapher/controls/SortIcon"
-import { Color, ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
+import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import { ColumnTypeMap } from "coreTable/CoreTableColumns"
-import { OwidTable } from "coreTable/OwidTable"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { CountryPickerManager } from "./CountryPickerConstants"
 
@@ -51,19 +49,11 @@ const mod = (n: number, m: number) => ((n % m) + m) % m
 
 @observer
 export class CountryPicker extends React.Component<{
-    table: OwidTable
-    entityColorMap?: {
-        [entityName: string]: Color | undefined
-    }
     manager?: CountryPickerManager
     isDropdownMenu?: boolean
-    requiredColumnSlugs?: ColumnSlug[] // If this param is provided, and an entity does not have a value for 1+, it will show as unavailable.
-    pickerColumnSlugs?: ColumnSlug[] // These are the columns that can be used for sorting entities.
-    analytics?: Analytics
-    analyticsNamespace?: string
 }> {
     @computed private get analyticsNamespace() {
-        return this.props.analyticsNamespace ?? ""
+        return this.manager.analyticsNamespace ?? ""
     }
 
     @observable private searchInput?: string
@@ -93,7 +83,7 @@ export class CountryPicker extends React.Component<{
         this.table.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
-        this.props.analytics?.logCountrySelectorEvent(
+        this.manager.analytics?.logCountrySelectorEvent(
             this.analyticsNamespace,
             checked ? "select" : "deselect",
             name
@@ -115,8 +105,8 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get availablePickerColumns() {
-        if (!this.props.pickerColumnSlugs) return []
-        const slugsToShow = new Set(this.props.pickerColumnSlugs)
+        if (!this.manager.pickerColumnSlugs) return []
+        const slugsToShow = new Set(this.manager.pickerColumnSlugs)
         return this.table.columnsAsArray.filter((col) =>
             slugsToShow.has(col.slug)
         )
@@ -141,9 +131,9 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get availableEntitiesForCurrentView() {
-        if (!this.props.requiredColumnSlugs?.length)
+        if (!this.manager.requiredColumnSlugs?.length)
             return this.table.availableEntityNameSet
-        return this.table.entitiesWith(this.props.requiredColumnSlugs)
+        return this.table.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
     @computed
@@ -171,7 +161,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get table() {
-        return this.props.table
+        return this.manager.countryPickerTable
     }
 
     @bind private isSelected(option: EntityOptionWithMetricValue) {
@@ -253,7 +243,7 @@ export class CountryPicker extends React.Component<{
                 const name = this.focusedOption
                 this.selectEntity(name)
                 this.clearSearchInput()
-                this.props.analytics?.logCountrySelectorEvent(
+                this.manager.analytics?.logCountrySelectorEvent(
                     this.analyticsNamespace,
                     "enter",
                     name
@@ -384,7 +374,7 @@ export class CountryPicker extends React.Component<{
         this.manager.countryPickerSort = this.isActivePickerColumnTypeNumeric
             ? SortOrder.desc
             : SortOrder.asc
-        this.props.analytics?.logCountrySelectorEvent(
+        this.manager.analytics?.logCountrySelectorEvent(
             this.analyticsNamespace,
             "sortBy",
             columnSlug
@@ -397,7 +387,7 @@ export class CountryPicker extends React.Component<{
 
     private get pickerMenu() {
         if (this.isDropdownMenu) return null
-        if (!this.props.pickerColumnSlugs) return null
+        if (!this.manager.pickerColumnSlugs) return null
         return (
             <div className="MetricSettings">
                 <span className="mainLabel">Sort by</span>
@@ -423,7 +413,7 @@ export class CountryPicker extends React.Component<{
                     onClick={() => {
                         const sortOrder = toggleSort(this.sortOrder)
                         this.manager.countryPickerSort = sortOrder
-                        this.props.analytics?.logCountrySelectorEvent(
+                        this.manager.analytics?.logCountrySelectorEvent(
                             this.analyticsNamespace,
                             "sortOrder",
                             sortOrder
@@ -447,7 +437,7 @@ export class CountryPicker extends React.Component<{
         const entities = this.searchResults
         const selectedEntityNames = this.table.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
-        const colorMap = this.props.entityColorMap || {}
+        const colorMap = this.manager.entityColorMap || {}
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 

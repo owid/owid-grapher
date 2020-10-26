@@ -9,7 +9,7 @@ import {
 import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
-import { observable } from "mobx"
+import { computed, observable } from "mobx"
 
 class CountryPickerHolder extends React.Component {
     render() {
@@ -42,22 +42,24 @@ class SomeThingWithACountryPicker
         selection?: EntityName[]
     }>
     implements CountryPickerManager {
-    table = SynthesizeGDPTable({ entityCount: 30 }, 1).setSelectedEntities(
-        this.props.selection ?? []
-    )
+    countryPickerTable = SynthesizeGDPTable(
+        { entityCount: 30 },
+        1
+    ).setSelectedEntities(this.props.selection ?? [])
 
     @observable countryPickerMetric?: ColumnSlug
     @observable countryPickerSort?: SortOrder
 
+    @computed get pickerColumnSlugs() {
+        return this.props.pickerSlugs
+    }
+
+    requiredColumnSlugs = defaultSlugs
+
     render() {
         return (
             <CountryPickerHolder>
-                <CountryPicker
-                    table={this.table}
-                    requiredColumnSlugs={defaultSlugs}
-                    pickerColumnSlugs={this.props.pickerSlugs}
-                    manager={this}
-                />
+                <CountryPicker manager={this} />
             </CountryPickerHolder>
         )
     }
@@ -70,7 +72,7 @@ export default {
 
 export const Empty = () => (
     <CountryPickerHolder>
-        <CountryPicker table={BlankOwidTable()} />
+        <CountryPicker manager={{ countryPickerTable: BlankOwidTable() }} />
     </CountryPickerHolder>
 )
 
