@@ -63,6 +63,7 @@ import {
     fetchRequiredData,
     perCapitaDivisorByMetric,
     sampleMegaCsv,
+    memoizedFetchedMegaRows,
 } from "./CovidExplorerUtils"
 import { ExplorerShell } from "explorer/client/ExplorerShell"
 import {
@@ -84,6 +85,8 @@ import { ContinentColors } from "grapher/color/ColorConstants"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
+import { Timer } from "coreTable/CoreTableUtils"
+import { CoreTable } from "coreTable/CoreTable"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -902,4 +905,24 @@ export class CovidExplorer
         grapher.id = this.sourceChartId
         grapher.baseQueryString = queryParamsToStr(this.params)
     }
+}
+
+export const PerfTest = async () => {
+    const timer = new Timer()
+    timer.tick("start")
+    const megaCsv = await memoizedFetchedMegaRows()
+    timer.tick("file get")
+    // new CoreTable(megaCsv)
+    // timer.tick("csv to core table")
+
+    // let table = MegaCsvToCovidExplorerTable(megaCsv)
+    // MegaCsvToCovidExplorerTable(megaCsv)
+    // timer.tick("csv to covid explorer table")
+    // table.dumpPipeline()
+    // timer.tick("dumped pipelin")
+
+    const table = MegaCsvToCovidExplorerTable(megaCsv).appendEveryColumn()
+    timer.tick("csv to covid explorer table with every possible column")
+    // table.dumpPipeline()
+    // timer.tick("dumped pipelin")
 }

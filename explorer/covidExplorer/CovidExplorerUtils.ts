@@ -239,7 +239,7 @@ const fetchMegaCsv = async () => {
     return csv
 }
 
-const memoizedFetchedMegaRows = memoize(fetchMegaCsv)
+export const memoizedFetchedMegaRows = memoize(fetchMegaCsv)
 
 const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))

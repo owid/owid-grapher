@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
+import { CovidExplorer, PerfTest } from "explorer/covidExplorer/CovidExplorer"
 
 export default {
     title: "CovidExplorer",
@@ -8,6 +8,12 @@ export default {
 
 export const SingleExplorerWithKeyboardShortcuts = () => (
     <CovidExplorer enableKeyboardShortcuts={true} />
+)
+
+export const Perf = () => (
+    <div>
+        <button onClick={PerfTest}>Perf</button>
+    </div>
 )
 
 export const MultipleExplorersOnOnePage = () => (

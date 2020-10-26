@@ -48,7 +48,6 @@ import {
     concatColumnStores,
     rowsToColumnStore,
     autodetectColumnDefs,
-    applyFilterMask,
     reverseColumnStore,
     renameColumnStore,
     replaceNonPositives,
@@ -64,8 +63,6 @@ const TransformsRequiringCompute = new Set([
     TransformType.AppendColumns,
     TransformType.UpdateRows,
 ])
-
-type FilterMask = boolean[] // todo: change into bit array
 
 interface AdvancedOptions {
     tableDescription?: string
@@ -163,7 +160,7 @@ export class CoreTable<
             )
 
         return this.advancedOptions.filterMask
-            ? applyFilterMask(columnStore, this.advancedOptions.filterMask)
+            ? this.advancedOptions.filterMask.apply(columnStore)
             : columnStore
     }
 
@@ -500,7 +497,7 @@ export class CoreTable<
             this.defs,
             `Inversing previous filter`,
             TransformType.InverseFilterRows,
-            filterMask.map((item) => !item)
+            filterMask.inverse()
         )
     }
 
@@ -542,7 +539,7 @@ export class CoreTable<
             this.defs,
             opName,
             TransformType.FilterRows,
-            this.rows.map(predicate) // Warning: this will be slow
+            new FilterMask(this.numRows, this.rows.map(predicate)) // Warning: this will be slow
         )
     }
 
@@ -556,7 +553,10 @@ export class CoreTable<
             this.defs,
             opName,
             TransformType.FilterRows,
-            this.getValuesFor(columnSlug).map(predicate)
+            new FilterMask(
+                this.numRows,
+                this.getValuesFor(columnSlug).map(predicate)
+            )
         )
     }
 
@@ -859,7 +859,10 @@ export class CoreTable<
             this.defs,
             `Kept ${howMany} rows starting at ${offset}`,
             TransformType.FilterRows,
-            this.indices.map((index) => index >= start && index < end)
+            new FilterMask(
+                this.numRows,
+                this.indices.map((index) => index >= start && index < end)
+            )
         )
     }
 
@@ -954,16 +957,12 @@ export class CoreTable<
     }
 
     dropRowsAt(indices: number[], message?: string) {
-        const set = new Set(indices)
-        const filterMask = range(0, this.numRows).map(
-            (index) => !set.has(index)
-        )
         return this.transform(
             this.columnStore,
             this.defs,
             message ?? `Dropping ${indices.length} rows`,
             TransformType.FilterRows,
-            filterMask
+            new FilterMask(this.numRows, indices, false)
         )
     }
 
@@ -1195,7 +1194,76 @@ export class CoreTable<
             .dropDuplicateRows()
     }
 
-    groupBy(by: ColumnSlug[]) {
-        // todo
+    indexBy(slug: ColumnSlug) {
+        const map = new Map<CoreValueType, number[]>()
+        this.getValuesFor(slug).map((value, index) => {
+            if (!map.has(value)) map.set(value, [])
+            map.get(value)!.push(index)
+        })
+        return map
+    }
+
+    groupBy(by: ColumnSlug) {
+        const index = this.indexBy(by)
+        return Array.from(index.keys()).map((groupName) =>
+            this.transform(
+                this.columnStore,
+                this.defs,
+                `Rows for group ${groupName}`,
+                TransformType.FilterRows,
+                new FilterMask(this.numRows, index.get(groupName)!)
+            )
+        )
+    }
+
+    reduce(reductionMap: ReductionMap) {
+        const lastRow = { ...this.lastRow }
+        Object.keys(reductionMap).forEach((slug) => {
+            lastRow[slug] = this.get(slug)![reductionMap[slug]]
+        })
+        return this.transform(
+            rowsToColumnStore([lastRow]),
+            this.defs,
+            `Reduced table`,
+            TransformType.Reduce
+        )
+    }
+}
+
+interface ReductionMap {
+    [columnSlug: string]: ReductionTypes
+}
+
+type ReductionTypes = keyof CoreColumn
+
+class FilterMask {
+    private mask: boolean[]
+    private numRows: number
+    constructor(
+        numRows: number,
+        input: boolean[] | number[],
+        keepThese = true
+    ) {
+        this.numRows = numRows
+        if (typeof input[0] === "number") {
+            const set = new Set(input as number[])
+            this.mask = range(0, numRows).map((index) =>
+                set.has(index) ? keepThese : !keepThese
+            )
+        } else this.mask = input as boolean[]
+    }
+
+    inverse() {
+        return new FilterMask(this.numRows, this.mask.reverse())
+    }
+
+    apply(columnStore: CoreColumnStore) {
+        const columnsObject: CoreColumnStore = {}
+        Object.keys(columnStore).forEach((slug) => {
+            columnsObject[slug] = columnStore[slug].filter(
+                (slug, index) => this.mask[index]
+            )
+        })
+        return columnsObject
     }
 }
