@@ -200,11 +200,13 @@ export class DataTable extends React.Component<{
             const actualColumn = dim.coreTableColumn
             const unit =
                 actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const columnName =
+                actualColumn.displayName !== ""
+                    ? actualColumn.displayName
+                    : actualColumn.name
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">
-                        {upperFirst(actualColumn.displayName)}
-                    </span>
+                    <span className="name">{upperFirst(columnName)}</span>
                     <span className="unit">{unit}</span>
                 </React.Fragment>
             )
@@ -231,12 +233,9 @@ export class DataTable extends React.Component<{
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
-                const headerText =
-                    column.targetTimeMode === TargetTimeMode.point
-                        ? dim.coreTableColumn.table.formatTime(
-                              column.targetTime!
-                          )
-                        : columnNameByType[column.key]
+                const headerText = isDeltaColumn(column.key)
+                    ? columnNameByType[column.key]
+                    : dim.coreTableColumn.table.formatTime(column.targetTime!)
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -290,7 +289,7 @@ export class DataTable extends React.Component<{
 
         const shouldShowClosestTimeNotice =
             value.time !== undefined &&
-            column.targetTimeMode === TargetTimeMode.point &&
+            !isDeltaColumn(column.key) &&
             column.targetTime !== undefined &&
             column.targetTime !== value.time
 
@@ -311,13 +310,6 @@ export class DataTable extends React.Component<{
                         actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
                 {value.displayValue}
-                {value.time !== undefined &&
-                    column.targetTimeMode === TargetTimeMode.range && (
-                        <span className="range-time">
-                            {" "}
-                            in {actualColumn.table.formatTime(value.time!)}
-                        </span>
-                    )}
             </td>
         )
     }
@@ -709,9 +701,7 @@ function ColumnHeader(props: {
         >
             <div
                 className={classnames({
-                    deltaColumn:
-                        subdimensionType === "delta" ||
-                        subdimensionType === "deltaRatio",
+                    deltaColumn: isDeltaColumn(subdimensionType),
                 })}
             >
                 {props.headerText}
@@ -818,4 +808,8 @@ interface DataTableDimension {
 interface DataTableRow {
     entityName: EntityName
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
+}
+
+function isDeltaColumn(columnKey?: ColumnKey) {
+    return columnKey === "delta" || columnKey === "deltaRatio"
 }
