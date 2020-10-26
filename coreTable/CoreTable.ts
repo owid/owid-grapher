@@ -164,7 +164,12 @@ export class CoreTable<
             : columnStore
     }
 
-    getValuesFor(columnSlug: ColumnSlug) {
+    getValuesFor(columnSlug: ColumnSlug): CoreValueType[] {
+        if (!this.columnStore[columnSlug])
+            throw new Error(
+                `getValuesFor() was called with a columnSlug that doesn't exist on the table: ${columnSlug}`
+            )
+
         return this.columnStore[columnSlug]
     }
 
