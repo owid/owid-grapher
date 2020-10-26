@@ -3,6 +3,7 @@
 import { rowsFromGrid } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import { ColumnTypeNames } from "./CoreTableConstants"
+import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population
 iceland,1
@@ -471,26 +472,6 @@ describe("joins", () => {
         population: [55, 66, 77],
     })
 
-    const expectedLeftJoin = `country time color population
-usa 2000 red 55
-can 2001 green 66
-fra 2002 red `
-
-    const expectedRightJoin = `country time population color
-usa 2000 55 red
-can 2001 66 green
-turk 2002 77 `
-
-    const expectedInner = `country time color population
-usa 2000 red 55
-can 2001 green 66`
-
-    const expectedFull = `country time color population
-usa 2000 red 55
-can 2001 green 66
-fra 2002 red 
-turk 2002  77`
-
     it("can create indices", () => {
         const index = leftTable.rowIndex(["color"])
         expect(index.size).toEqual(2)
@@ -500,37 +481,54 @@ turk 2002  77`
 
     describe("outer joins", () => {
         it("can left join on all intersecting columns", () => {
-            expect(leftTable.leftJoin(rightTable).toDelimited(" ")).toEqual(
-                expectedLeftJoin
-            )
+            expect(leftTable.leftJoin(rightTable).toMatrix()).toEqual([
+                ["country", "time", "color", "population"],
+                ["usa", 2000, "red", 55],
+                ["can", 2001, "green", 66],
+                ["fra", 2002, "red", InvalidCellTypes.NoMatchingValueAfterJoin],
+            ])
         })
 
         it("can left join on one column", () => {
-            expect(
-                leftTable.leftJoin(rightTable, ["time"]).toDelimited(" ")
-            ).toEqual(expectedLeftJoin + "77")
+            expect(leftTable.leftJoin(rightTable, ["time"]).toMatrix()).toEqual(
+                [
+                    ["country", "time", "color", "population"],
+                    ["usa", 2000, "red", 55],
+                    ["can", 2001, "green", 66],
+                    ["fra", 2002, "red", 77],
+                ]
+            )
         })
 
         it("can do a right join", () => {
-            expect(leftTable.rightJoin(rightTable).toDelimited(" ")).toEqual(
-                expectedRightJoin
-            )
+            expect(leftTable.rightJoin(rightTable).toMatrix()).toEqual([
+                ["country", "time", "population", "color"],
+                ["usa", 2000, 55, "red"],
+                ["can", 2001, 66, "green"],
+                ["turk", 2002, 77, InvalidCellTypes.NoMatchingValueAfterJoin],
+            ])
         })
     })
 
     describe("inner joins", () => {
         it("can do a left inner join", () => {
-            expect(leftTable.innerJoin(rightTable).toDelimited(" ")).toEqual(
-                expectedInner
-            )
+            expect(leftTable.innerJoin(rightTable).toMatrix()).toEqual([
+                ["country", "time", "color", "population"],
+                ["usa", 2000, "red", 55],
+                ["can", 2001, "green", 66],
+            ])
         })
     })
 
     describe("full join", () => {
         it("can do a full join", () => {
-            expect(leftTable.fullJoin(rightTable).toDelimited(" ")).toEqual(
-                expectedFull
-            )
+            expect(leftTable.fullJoin(rightTable).toMatrix()).toEqual([
+                ["country", "time", "color", "population"],
+                ["usa", 2000, "red", 55],
+                ["can", 2001, "green", 66],
+                ["fra", 2002, "red", InvalidCellTypes.NoMatchingValueAfterJoin],
+                ["turk", 2002, InvalidCellTypes.NoMatchingValueAfterJoin, 77],
+            ])
         })
     })
 })
