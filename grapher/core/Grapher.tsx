@@ -702,7 +702,6 @@ export class Grapher
     set endHandleTimeBound(newValue: TimeBound) {
         if (
             this.isOnMapTab ||
-            this.isOnTableTab ||
             this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar
         )
             this.timelineHandleTimeBounds = [newValue, newValue]
