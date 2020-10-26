@@ -75,7 +75,11 @@ export const MegaCsvToCovidExplorerTable = (
     )
 
     const euRows = calculateCovidRowsForGroup(
-        coreTable.rows.filter((row) => euCountries.has(row.entityName)) as any,
+        coreTable.columnFilter(
+            OwidTableSlugs.entityName,
+            (name) => euCountries.has(name as string),
+            "Get EU countries"
+        ).rows,
         "European Union"
     )
 

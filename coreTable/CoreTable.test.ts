@@ -267,7 +267,7 @@ describe("searching", () => {
         ).toEqual(0)
     })
 
-    it("can just do simple grep like searching to find rows", () => {
+    it("can do grep like searching to find rows", () => {
         expect(table.grep("Germany").numRows).toEqual(2)
         expect(table.grep("USA").numRows).toEqual(1)
         expect(table.grep("USA").numRows).toEqual(1)
