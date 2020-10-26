@@ -90,15 +90,15 @@ export const MapFirst = () => {
     return <Grapher {...model} />
 }
 
-// Reenable after map transform fix
-// export const BlankGrapher = () => {
-//     const model = {
-//         type: ChartTypeName.WorldMap,
-//         table: BlankOwidTable(),
-//         hasMapTab: true,
-//     }
-//     return <Grapher {...model} />
-// }
+export const BlankGrapher = () => {
+    const model = {
+        type: ChartTypeName.WorldMap,
+        tab: GrapherTabOption.map,
+        table: BlankOwidTable(),
+        hasMapTab: true,
+    }
+    return <Grapher {...model} />
+}
 
 export const NoMap = () => {
     const model = {

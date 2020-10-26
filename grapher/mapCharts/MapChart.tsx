@@ -89,6 +89,9 @@ export class MapChart
         const entityNamesToSelect = table.availableEntityNames.filter(
             isOnTheMap
         )
+
+        if (!table.get(this.mapColumnSlug)) return table
+
         return table
             .filterByEntityNames(entityNamesToSelect)
             .dropRowsWithInvalidValuesForColumn(this.mapColumnSlug)
