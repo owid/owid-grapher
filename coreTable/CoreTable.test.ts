@@ -492,10 +492,10 @@ fra 2002 red
 turk 2002  77`
 
     it("can create indices", () => {
-        const { index } = leftTable.rowIndex(["color"])
+        const index = leftTable.rowIndex(["color"])
         expect(index.size).toEqual(2)
         const index2 = leftTable.rowIndex(["color", "country"])
-        expect(index2.index.get("red usa")?.length).toEqual(1)
+        expect(index2.get("red usa")?.length).toEqual(1)
     })
 
     describe("outer joins", () => {

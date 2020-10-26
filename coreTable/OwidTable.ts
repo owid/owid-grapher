@@ -51,7 +51,11 @@ import {
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
 } from "./OwidTableUtil"
-import { imemo, interpolateRowValuesWithTolerance } from "./CoreTableUtils"
+import {
+    imemo,
+    interpolateRowValuesWithTolerance,
+    replaceDef,
+} from "./CoreTableUtils"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -68,7 +72,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo get availableEntityNameSet() {
-        return new Set(this.rows.map((row) => row.entityName))
+        return new Set(
+            this.getValuesFor(OwidTableSlugs.entityName) as EntityName[]
+        )
     }
 
     // todo: can we remove at some point?
@@ -132,12 +138,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.get(OwidTableSlugs.day)
     }
 
-    @imemo get rowsByEntityName() {
-        return this.rowIndex([OwidTableSlugs.entityName]).index
-    }
-
-    @imemo get rowsByTime() {
-        return this.rowTypedIndex<Time>(this.timeColumn!.slug)
+    @imemo get rowIndicesByEntityName() {
+        return this.rowIndex([OwidTableSlugs.entityName])
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
@@ -222,25 +224,29 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
-        const timeSlug = this.timeColumn!.slug
-        const entityNameToRows = this.rowsByEntityName
-        const matchingRows = new Set<OwidRow>()
+        const timeColumn = this.timeColumn!
+        const timeValues = timeColumn.allValues
+        const entityNameToIndices = this.rowIndicesByEntityName
+        const matchingIndices = new Set<number>()
         this.availableEntityNames.forEach((entityName) => {
-            const rows = entityNameToRows.get(entityName) || []
-            const allTimes = rows.map((row) => row[timeSlug]) as number[]
+            const indices = entityNameToIndices.get(entityName) || []
+            const allTimes = indices.map(
+                (index) => timeValues[index]
+            ) as number[]
 
             targetTimes.forEach((targetTime) => {
-                const rowIndex = findClosestTimeIndex(
+                const index = findClosestTimeIndex(
                     allTimes,
                     targetTime,
                     tolerance
                 )
-                if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+                if (index !== undefined) matchingIndices.add(indices[index])
             })
         })
 
-        return this.rowFilter(
-            (row) => matchingRows.has(row),
+        return this.columnFilter(
+            OwidTableSlugs.entityName,
+            (row, index) => matchingIndices.has(index),
             `Keep a row for each entity for each of the closest times ${targetTimes.join(
                 ", "
             )} with tolerance ${tolerance}`
@@ -273,30 +279,36 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    private sumsByTime(columnSlug: ColumnSlug) {
+        const timeValues = this.timeColumn!.parsedValues
+        const values = this.get(columnSlug)!.parsedValues
+        const map = new Map<number, number>()
+        timeValues.forEach((time, index) => {
+            if (!map.has(time)) map.set(time, 0)
+            map.set(time, map.get(time) + values[index])
+        })
+        return map
+    }
+
     // todo: this needs tests (and/or drop in favor of someone else's package)
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
-        const newDefs = this.defs.map((def) => {
-            if (columnSlug === def.slug)
-                return { ...def, type: ColumnTypeNames.Percentage }
-            return def
-        })
-        const rowsForYear = this.rowsByTime
-        const timeColumnSlug = this.timeColumn!.slug
+        const timeColumn = this.timeColumn!
+        const col = this.get(columnSlug)!
+        const timeTotals = this.sumsByTime(columnSlug)
+        const timeValues = timeColumn.parsedValues
+        const newDef = {
+            ...col.def,
+            type: ColumnTypeNames.Percentage,
+            values: col.parsedValues.map(
+                (val, index) =>
+                    (100 * (val as number)) / timeTotals.get(timeValues[index])!
+            ),
+        }
+
         return new OwidTable(
-            this.rows.map((row) => {
-                const newRow = {
-                    ...row,
-                }
-                const total = sum(
-                    rowsForYear
-                        .get(row[timeColumnSlug])!
-                        .map((row) => row[columnSlug])
-                )
-                newRow[columnSlug] = (100 * row[columnSlug]) / total
-                return newRow
-            }),
-            newDefs,
+            this.columnStore,
+            replaceDef(this.defs, [newDef]),
             {
                 parent: this,
                 tableDescription: `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
@@ -472,12 +484,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // This assumes the table is sorted where the times for entity names go in asc order.
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
-        const rows = this.rowsByEntityName.get(entityName) || []
-        const hit = rows
-            .slice()
-            .reverse()
-            .find((row) => !(row[columnSlug] instanceof InvalidCell))
-        return hit ? hit[columnSlug] : undefined
+        const indices = this.rowIndicesByEntityName.get(entityName)!
+        const values = this.get(columnSlug)!.allValues
+        const descending = indices.slice().reverse()
+        const index = descending.find(
+            (index) => !(values[index] instanceof InvalidCell)
+        )
+        return index !== undefined ? values[index] : undefined
     }
 
     entitiesWith(columnSlugs: ColumnSlug[]): Set<EntityName> {
@@ -606,25 +619,26 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // selected rows only. value from any primary column.
     // getClosestRowForEachSelectedEntity(targetYear, tolerance)
     // Make sure we use the closest value to the target year within tolerance (preferring later)
-    getClosestRowForEachEntity(
+    getClosestIndexForEachEntity(
         entityNames: EntityName[],
         targetTime: Time,
         tolerance: Integer
     ) {
-        const rowMap = this.rowsByEntityName
-        const timeSlug = this.timeColumn?.slug
-        if (!timeSlug) return []
+        const indexMap = this.rowIndicesByEntityName
+        const timeColumn = this.timeColumn
+        if (!timeColumn) return []
+        const timeValues = timeColumn.allValues
         return entityNames
             .map((name) => {
-                const rows = rowMap.get(name)
-                if (!rows) return null
+                const rowIndices = indexMap.get(name)
+                if (!rowIndices) return null
 
                 const rowIndex = findClosestTimeIndex(
-                    rows.map((row) => row[timeSlug]) as number[],
+                    rowIndices.map((index) => timeValues[index]) as number[],
                     targetTime,
                     tolerance
                 )
-                return rowIndex ? rows[rowIndex] : null
+                return rowIndex ? rowIndices[rowIndex] : null
             })
             .filter(isPresent)
     }

@@ -1,3 +1,4 @@
+import { InvalidCell } from "./InvalidCells"
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
 
 export type Integer = number
@@ -43,7 +44,7 @@ export interface CoreColumnDef {
     unit?: string
     shortUnit?: string
     fn?: ColumnFn
-    values?: PrimitiveType[] // Similar to Fn, but the already computed values.
+    values?: CoreValueType[] // Similar to Fn, but the already computed values.
     type?: ColumnTypeNames
     generator?: () => number // A function for generating synthetic data for testing
     growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
@@ -99,6 +100,8 @@ export enum JsTypes {
 
 export type CsvString = string
 
+export type CoreValueType = PrimitiveType | InvalidCell
+
 /**
  * An Object Literal of Column Slugs and Primitives of the same type:
  * {
@@ -106,7 +109,9 @@ export type CsvString = string
  *  year: [2000, 2001]
  * }
  */
-export type CoreColumnStore = { [columnSlug: string]: PrimitiveType[] }
+export type CoreColumnStore = {
+    [columnSlug: string]: CoreValueType[]
+}
 
 export type CoreTableInputOption = CoreRow[] | CoreColumnStore | CsvString
 

@@ -218,8 +218,11 @@ export function interpolateRowValuesWithTolerance<
 }
 
 // A dumb function for making a function that makes a key for a row given certain columns.
-export const makeKeyFn = (columnSlugs: ColumnSlug[]) => (row: CoreRow) =>
-    columnSlugs.map((slug) => row[slug]).join(" ")
+export const makeKeyFn = (
+    columnStore: CoreColumnStore,
+    columnSlugs: ColumnSlug[]
+) => (rowIndex: number) =>
+    columnSlugs.map((slug) => columnStore[slug][rowIndex].toString()).join(" ")
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
 export const imemo = (
@@ -333,3 +336,10 @@ export const applyFilterMask = (
     })
     return columnsObject
 }
+
+// Convenience method when you are replacing columns
+export const replaceDef = (defs: CoreColumnDef[], newDefs: CoreColumnDef[]) =>
+    defs.map((def) => {
+        const newDef = newDefs.find((newDef) => newDef.slug === def.slug)
+        return newDef ?? def
+    })
