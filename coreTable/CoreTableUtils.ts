@@ -265,14 +265,15 @@ export const appendRowsToColumnStore = (
     return newColumnStore
 }
 
-export const concatColumnStores = (
-    target: CoreColumnStore,
-    source: CoreColumnStore
-) => {
-    const slugs = Object.keys(target)
+export const concatColumnStores = (stores: CoreColumnStore[]) => {
     const newColumnStore: CoreColumnStore = {}
+    const firstStore = stores[0]
+    const restStores = stores.slice(1)
+    const slugs = Object.keys(firstStore)
     slugs.forEach((slug) => {
-        newColumnStore[slug] = target[slug].concat(source[slug])
+        newColumnStore[slug] = firstStore[slug].concat(
+            ...restStores.map((store) => store[slug])
+        )
     })
     return newColumnStore
 }

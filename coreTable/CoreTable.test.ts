@@ -24,7 +24,9 @@ describe("creating tables", () => {
     })
 
     it("tables can be combined", () => {
-        const table = new CoreTable(sampleCsv).concat(new CoreTable(sampleCsv))
+        const table = new CoreTable(sampleCsv).concat([
+            new CoreTable(sampleCsv),
+        ])
         expect(table.numRows).toEqual(8)
     })
 
@@ -136,14 +138,16 @@ describe("adding rows", () => {
         expect(expandedTable.numRows).toBe(5)
         expect(table.numRows).toEqual(4)
 
-        expandedTable = expandedTable
-            .renameColumns({ population: "pop" })
-            .appendRows(
-                [{ country: "USA", pop: 321 }],
-                "Added a row after column renaming"
-            )
-        expect(expandedTable.numRows).toEqual(6)
-        expect(expandedTable.rows[5].pop).toEqual(321)
+        it.only("can append rows", () => {
+            expandedTable = expandedTable
+                .renameColumns({ population: "pop" })
+                .appendRows(
+                    [{ country: "USA", pop: 321 }],
+                    "Added a row after column renaming"
+                )
+            expect(expandedTable.numRows).toEqual(6)
+            expect(expandedTable.rows[5].pop).toEqual(321)
+        })
     })
 
     it("can drop rows", () => {
