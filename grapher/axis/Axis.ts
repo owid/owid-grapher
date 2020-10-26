@@ -280,13 +280,17 @@ abstract class AbstractAxis {
         )
     }
 
-    formatTick(tick: number, isFirstOrLastTick?: boolean) {
-        const tickFormattingOptions = this.getTickFormattingOptions()
+    formatTick(
+        tick: number,
+        formattingOptionsOverride?: TickFormattingOptions
+    ) {
+        const tickFormattingOptions: TickFormattingOptions = {
+            ...this.getTickFormattingOptions(),
+            ...formattingOptionsOverride,
+        }
         return (
-            this.formatColumn?.formatForTick(tick, {
-                ...tickFormattingOptions,
-                isFirstOrLastTick,
-            }) ?? tick.toString()
+            this.formatColumn?.formatForTick(tick, tickFormattingOptions) ??
+            tick.toString()
         )
     }
 
@@ -294,7 +298,9 @@ abstract class AbstractAxis {
     @computed private get tickPlacements() {
         return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
             const bounds = Bounds.forText(
-                this.formatTick(tick.value, !!tick.isFirstOrLastTick),
+                this.formatTick(tick.value, {
+                    isFirstOrLastTick: tick.isFirstOrLastTick,
+                }),
                 {
                     fontSize: this.tickFontSize,
                 }

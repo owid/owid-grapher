@@ -238,10 +238,9 @@ export class HorizontalAxisComponent
                     )}
                 {tickMarks}
                 {ticks.map((tick, i) => {
-                    const label = axis.formatTick(
-                        tick,
-                        i === 0 || i === ticks.length - 1
-                    )
+                    const label = axis.formatTick(tick, {
+                        isFirstOrLastTick: i === 0 || i === ticks.length - 1,
+                    })
                     const rawXPosition = axis.place(tick)
                     // Ensure the first label does not exceed the chart viewing area
                     const xPosition =

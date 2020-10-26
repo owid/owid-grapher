@@ -402,8 +402,8 @@ export class LineChart
                                         {!value
                                             ? "No data"
                                             : dualAxis.verticalAxis.formatTick(
-                                                  value.y
-                                                  //  ,{ noTrailingZeroes: false } // todo: add back?
+                                                  value.y,
+                                                  { noTrailingZeroes: false }
                                               )}
                                     </td>
                                 </tr>
