@@ -10,6 +10,7 @@ import {
     FacetStrategy,
     GrapherTabOption,
 } from "./GrapherConstants"
+import { BlankOwidTable } from "coreTable/OwidTable"
 
 export default {
     title: "Grapher",
@@ -88,6 +89,16 @@ export const MapFirst = () => {
     }
     return <Grapher {...model} />
 }
+
+// Reenable after map transform fix
+// export const BlankGrapher = () => {
+//     const model = {
+//         type: ChartTypeName.WorldMap,
+//         table: BlankOwidTable(),
+//         hasMapTab: true,
+//     }
+//     return <Grapher {...model} />
+// }
 
 export const NoMap = () => {
     const model = {
