@@ -69,6 +69,7 @@ describe(legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc, () => {
             legacyVariableConfig
         )
 
-        expect(Object.keys(table.rows[0]).includes("3")).toBeFalsy()
+        expect(Object.keys(table.rows[0]).includes("3")).toBeTruthy()
+        expect(table.rows[0]["3"]).toBeUndefined()
     })
 })
