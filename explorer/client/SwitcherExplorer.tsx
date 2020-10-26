@@ -22,6 +22,7 @@ import {
 } from "grapher/slideshowController/SlideShowController"
 import { OwidRow } from "coreTable/OwidTableConstants"
 import { ExplorerContainerId } from "./ExplorerConstants"
+import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -34,7 +35,7 @@ export interface SwitcherExplorerProps {
 @observer
 export class SwitcherExplorer
     extends React.Component<SwitcherExplorerProps>
-    implements ObservableUrl, SlideShowManager {
+    implements ObservableUrl, SlideShowManager, CountryPickerManager {
     static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
@@ -233,7 +234,7 @@ export class SwitcherExplorer
                 headerElement={this.header}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerProgram.slug}
-                countryPickerTable={this.countryPickerTable}
+                countryPickerManager={this}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
                 enableKeyboardShortcuts={!this.isEmbed}

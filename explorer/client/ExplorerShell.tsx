@@ -9,15 +9,14 @@ import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
-import { OwidTable } from "coreTable/OwidTable"
+import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 
 interface ExplorerShellProps {
     explorerSlug: string
     controlPanels: JSX.Element[]
     headerElement: JSX.Element
     hideControls?: boolean
-    countryPickerTable?: OwidTable
-    countryPickerElement?: JSX.Element
+    countryPickerManager?: CountryPickerManager
     isEmbed: boolean
     enableKeyboardShortcuts?: boolean
 }
@@ -78,21 +77,6 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
         ) : undefined
     }
 
-    @computed private get countryPickerTable() {
-        return this.props.countryPickerTable
-    }
-
-    private get countryPicker() {
-        return (
-            <CountryPicker
-                key="countryPicker"
-                analyticsNamespace={this.props.explorerSlug}
-                table={this.countryPickerTable!}
-                isDropdownMenu={this.isMobile}
-            ></CountryPicker>
-        )
-    }
-
     private get controlBar() {
         return (
             <ExplorerControlBar
@@ -124,9 +108,17 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
 
     @observable.ref grapherRef: React.RefObject<Grapher> = React.createRef()
 
+    private renderCountryPicker() {
+        return (
+            <CountryPicker
+                key="countryPicker"
+                manager={this.props.countryPickerManager}
+                isDropdownMenu={this.isMobile}
+            />
+        )
+    }
+
     render() {
-        const countryPicker =
-            this.props.countryPickerElement ?? this.countryPicker
         return (
             <>
                 <div
@@ -143,7 +135,7 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
                         </div>
                     )}
                     {this.showExplorerControls && this.controlBar}
-                    {this.showExplorerControls && countryPicker}
+                    {this.showExplorerControls && this.renderCountryPicker()}
                     {this.showExplorerControls &&
                         this.customizeChartMobileButton}
                     <div

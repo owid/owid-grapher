@@ -9,6 +9,7 @@ import {
     IReactionDisposer,
     Lambda,
     reaction,
+    autorun,
 } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -24,7 +25,6 @@ import {
 } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import { allAvailableQueryStringCombos, CovidQueryParams } from "./CovidParams"
-import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -86,7 +86,7 @@ import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { Timer } from "coreTable/CoreTableUtils"
-import { CoreTable } from "coreTable/CoreTable"
+import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -118,7 +118,7 @@ interface CovidExplorerProps {
 @observer
 export class CovidExplorer
     extends React.Component<CovidExplorerProps>
-    implements ObservableUrl, SlideShowManager {
+    implements ObservableUrl, SlideShowManager, CountryPickerManager {
     static async createCovidExplorerAndRenderToDom(props: BootstrapProps) {
         const { megaCsv, updated, covidMeta } = await fetchRequiredData()
         return ReactDOM.render(
@@ -156,10 +156,6 @@ export class CovidExplorer
     private writeableParams = CovidQueryParams.fromQueryString(
         this.props.queryStr
     )
-
-    @observable private chartContainerRef: React.RefObject<
-        HTMLDivElement
-    > = React.createRef()
 
     private get metricPanel() {
         const options: ExplorerControlOption[] = [
@@ -375,19 +371,32 @@ export class CovidExplorer
         return this.covidTableWithAdditionalColumns
     }
 
-    private get countryPicker() {
-        return (
-            <CountryPicker
-                analyticsNamespace={this.explorerSlug}
-                analytics={this.grapher.analytics}
-                table={this.tableForSelection}
-                pickerColumnSlugs={CovidCountryPickerSlugs}
-                isDropdownMenu={false}
-                entityColorMap={this.countryNameToColorMap}
-                manager={this.writeableParams}
-                requiredColumnSlugs={this.activeColumnSlugs}
-            />
-        )
+    analyticsNamespace = this.explorerSlug
+
+    @computed get entityColorMap() {
+        return this.countryNameToColorMap
+    }
+
+    @computed get countryPickerTable() {
+        return this.tableForSelection
+    }
+
+    @computed get analytics() {
+        return this.grapher.analytics
+    }
+
+    pickerColumnSlugs = CovidCountryPickerSlugs
+
+    @computed get requiredColumnSlugs() {
+        return this.activeColumnSlugs
+    }
+
+    @computed get countryPickerMetric() {
+        return this.writeableParams.countryPickerMetric
+    }
+
+    @computed get countryPickerSort() {
+        return this.writeableParams.countryPickerSort
     }
 
     @computed private get activeColumnSlugs(): ColumnSlug[] {
@@ -409,7 +418,7 @@ export class CovidExplorer
                 headerElement={this.header}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerSlug}
-                countryPickerElement={this.countryPicker}
+                countryPickerManager={this}
                 hideControls={this.writeableParams.hideControls}
                 isEmbed={!!this.props.isEmbed}
                 ref={this.explorerRef}
@@ -666,6 +675,16 @@ export class CovidExplorer
         this.updateGrapher()
         this.observeGlobalEntitySelection()
         exposeInstanceOnWindow(this, "covidExplorer")
+
+        autorun(() => {
+            this.updateSelection(this.countryPickerTable.selectedEntityNames)
+        })
+    }
+
+    @action.bound private updateSelection(entityNames: string[]) {
+        if (!this.countryPickerTable.numRows) return
+        if (this.grapher)
+            this.grapher.inputTable.setSelectedEntities(entityNames)
     }
 
     private observeGlobalEntitySelection() {
