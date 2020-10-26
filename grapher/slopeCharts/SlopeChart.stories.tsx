@@ -4,6 +4,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
+import { BlankOwidTable } from "coreTable/OwidTable"
 
 export default {
     title: "SlopeChart",
@@ -28,6 +29,18 @@ export const WithColorColumn = () => {
                     table,
                     colorColumnSlug: SampleColumnSlugs.Population,
                     yColumnSlug: SampleColumnSlugs.GDP,
+                }}
+            />
+        </svg>
+    )
+}
+
+export const BlankSlopeChart = () => {
+    return (
+        <svg width={600} height={600}>
+            <SlopeChart
+                manager={{
+                    table: BlankOwidTable(),
                 }}
             />
         </svg>
