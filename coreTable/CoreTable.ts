@@ -564,7 +564,7 @@ export class CoreTable<
         return this.transform(
             orderBy(this.rows, slugs, orders),
             this.defs,
-            `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
+            `Sort by ${slugs.join(",")} ${orders?.join(",") ?? ""}`,
             TransformType.SortRows
         )
     }
@@ -846,7 +846,7 @@ export class CoreTable<
 
     appendRows(rows: ROW_TYPE[], opDescription: string) {
         return this.concat(
-            new (this.constructor as any)(rows, this.defs),
+            [new (this.constructor as any)(rows, this.defs) as CoreTable],
             opDescription
         )
     }
@@ -1155,10 +1155,11 @@ export class CoreTable<
         return defsToAdd
     }
 
-    concat(table: CoreTable, message = `Combined table`) {
-        const defs = [...this.defs, ...table.defs] as COL_DEF_TYPE[]
+    concat(tables: CoreTable[], message = `Combined tables`) {
+        const all = [this, ...tables] as CoreTable[]
+        const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
         return this.transform(
-            concatColumnStores(this.columnStore, table.columnStore),
+            concatColumnStores(all.map((table) => table.columnStore)),
             uniqBy(defs, (def) => def.slug),
             message,
             TransformType.Concat
@@ -1190,7 +1191,7 @@ export class CoreTable<
 
     fullJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
         return this.leftJoin(rightTable, by)
-            .concat(rightTable.leftJoin(this, by))
+            .concat([rightTable.leftJoin(this, by)])
             .dropDuplicateRows()
     }
 
@@ -1219,7 +1220,10 @@ export class CoreTable<
     reduce(reductionMap: ReductionMap) {
         const lastRow = { ...this.lastRow }
         Object.keys(reductionMap).forEach((slug) => {
-            lastRow[slug] = this.get(slug)![reductionMap[slug]]
+            const prop = reductionMap[slug]
+            const col = this.get(slug)!
+            if (typeof prop === "string") lastRow[slug] = col[prop]
+            else lastRow[slug] = prop(col)
         })
         return this.transform(
             rowsToColumnStore([lastRow]),
@@ -1231,7 +1235,9 @@ export class CoreTable<
 }
 
 interface ReductionMap {
-    [columnSlug: string]: ReductionTypes
+    [columnSlug: string]:
+        | ReductionTypes
+        | ((column: CoreColumn) => CoreValueType)
 }
 
 type ReductionTypes = keyof CoreColumn

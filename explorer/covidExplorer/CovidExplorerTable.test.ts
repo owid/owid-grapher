@@ -8,7 +8,6 @@ import {
 import { queryParamsToStr } from "utils/client/url"
 import { sampleMegaCsv } from "./CovidExplorerUtils"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
-import { flatten } from "grapher/utils/Util"
 import { InvalidCell } from "coreTable/InvalidCells"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
 
