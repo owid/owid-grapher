@@ -329,19 +329,6 @@ export const autodetectColumnDefs = (
     return guessColumnDefsFromRows(rowsOrColumnStore, definedSlugs)
 }
 
-export const applyFilterMask = (
-    columnStore: CoreColumnStore,
-    filterMask: boolean[]
-) => {
-    const columnsObject: CoreColumnStore = {}
-    Object.keys(columnStore).forEach((slug) => {
-        columnsObject[slug] = columnStore[slug].filter(
-            (slug, index) => filterMask[index]
-        )
-    })
-    return columnsObject
-}
-
 // Convenience method when you are replacing columns
 export const replaceDef = (defs: CoreColumnDef[], newDefs: CoreColumnDef[]) =>
     defs.map((def) => {
@@ -406,4 +393,26 @@ export const replaceRandomCellsInColumnStore = (
         )
     })
     return newStore
+}
+
+export class Timer {
+    constructor() {
+        this._tickTime = Date.now()
+        this._firstTickTime = this._tickTime
+    }
+
+    private _tickTime: number
+    private _firstTickTime: number
+
+    tick(msg?: string) {
+        const elapsed = Date.now() - this._tickTime
+        // eslint-disable-next-line no-console
+        if (msg) console.log(`${elapsed}ms ${msg}`)
+        this._tickTime = Date.now()
+        return elapsed
+    }
+
+    getTotalElapsedTime() {
+        return Date.now() - this._firstTickTime
+    }
 }

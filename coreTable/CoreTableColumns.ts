@@ -34,9 +34,6 @@ interface ColumnSummary {
     numInvalidCells: number
     numUniqs: number
     numValues: number
-}
-
-interface ExtendedColumnSummary extends ColumnSummary {
     median: PrimitiveType
     sum: number
     mean: number
@@ -81,16 +78,32 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.sortedValuesString
     }
 
+    get sum() {
+        return this.summary.sum
+    }
+
+    get median() {
+        return this.summary.median
+    }
+
+    get max() {
+        return this.summary.max
+    }
+
+    get min() {
+        return this.summary.min
+    }
+
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
     @imemo get summary() {
         const { numInvalidCells, numValues, numUniqs } = this
-        const basicSummary: ColumnSummary = {
+        const basicSummary: Partial<ColumnSummary> = {
             numInvalidCells,
             numUniqs,
             numValues,
         }
         if (!numValues) return basicSummary
-        const summary: Partial<ExtendedColumnSummary> = { ...basicSummary }
+        const summary: Partial<ColumnSummary> = { ...basicSummary }
         const arr = this.sortedValues
         const isNumeric = typeof arr[0] === "number"
 

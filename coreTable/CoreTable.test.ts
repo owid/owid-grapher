@@ -532,3 +532,20 @@ describe("joins", () => {
         })
     })
 })
+
+describe("groups", () => {
+    const csv = `continent,year,country,gdp
+asia,2000,china,900
+europe,2001,france,200
+asia,2000,japan,300
+europe,2000,france,600`
+
+    describe("create groups", () => {
+        const table = new CoreTable(csv)
+        const groups = table.groupBy("continent")
+        expect(groups.length).toBe(2)
+        it("can reduce", () => {
+            expect(groups[0].reduce({ gdp: "sum" }).firstRow.gdp).toBe(1200)
+        })
+    })
+})

@@ -8,30 +8,9 @@ import { CoreTable } from "coreTable/CoreTable"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 
 import * as fs from "fs"
+import { Timer } from "coreTable/CoreTableUtils"
 const megaCsvPath = __dirname + "/owid-covid-data.csv"
 const getCsv = () => fs.readFileSync(megaCsvPath, "utf8")
-
-export class Timer {
-    constructor() {
-        this._tickTime = Date.now()
-        this._firstTickTime = this._tickTime
-    }
-
-    private _tickTime: number
-    private _firstTickTime: number
-
-    tick(msg?: string) {
-        const elapsed = Date.now() - this._tickTime
-        // eslint-disable-next-line no-console
-        if (msg) console.log(`${elapsed}ms ${msg}`)
-        this._tickTime = Date.now()
-        return elapsed
-    }
-
-    getTotalElapsedTime() {
-        return Date.now() - this._firstTickTime
-    }
-}
 
 // Use this to get baseline perf with typing
 // https://github.com/d3/d3-dsv/blob/master/src/autoType.js

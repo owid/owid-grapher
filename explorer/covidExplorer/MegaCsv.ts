@@ -56,6 +56,21 @@ export const MegaCsvToCovidExplorerTable = (
         "Drop International rows"
     )
 
+    const tableWithRows = addGroups(coreTable)
+
+    return new CovidExplorerTable(
+        tableWithRows.columnStore,
+        tableWithRows.defs,
+        {
+            parent: tableWithRows as any,
+            tableDescription: "Loaded into CovidExplorerTable",
+        }
+    )
+        .updateColumnsToHideInDataTable()
+        .loadColumnDefTemplatesFromGrapherBackend(metaDataFromGrapherBackend)
+}
+
+const addGroups = (coreTable: CoreTable) => {
     // todo: this can be better expressed as a group + reduce.
     const continentGroups = coreTable.get(MegaSlugs.continent)!.valuesToIndices
     const continentNames = Array.from(continentGroups.keys()).filter(
@@ -86,21 +101,10 @@ export const MegaCsvToCovidExplorerTable = (
     // Drop the last day in aggregates containing Spain & Sweden
     euRows.pop()
 
-    const tableWithRows = coreTable
+    return coreTable
         .appendRows(
             continentRows as any,
             `Added ${continentRows.length} continent rows`
         )
         .appendRows(euRows as any, `Added ${euRows.length} EU rows`)
-
-    return new CovidExplorerTable(
-        tableWithRows.columnStore,
-        tableWithRows.defs,
-        {
-            parent: tableWithRows as any,
-            tableDescription: "Loaded into CovidExplorerTable",
-        }
-    )
-        .updateColumnsToHideInDataTable()
-        .loadColumnDefTemplatesFromGrapherBackend(metaDataFromGrapherBackend)
 }
