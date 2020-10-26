@@ -86,7 +86,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @imemo private get entityCodeToNameMap() {
+    @imemo get entityCodeToNameMap() {
         return this.valueIndex(
             OwidTableSlugs.entityCode,
             OwidTableSlugs.entityName
@@ -421,11 +421,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             ])
             .sortBy([OwidTableSlugs.entityName])
             .toCsvWithColumnNames()
-    }
-
-    getEntityNamesFromCodes(input: (EntityCode | EntityName)[]) {
-        const map = this.entityCodeToNameMap
-        return input.map((item) => map.get(item) || item)
     }
 
     // Pretty print all column sources (currently just used in debugging)

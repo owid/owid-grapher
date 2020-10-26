@@ -592,14 +592,16 @@ export class Grapher
         )
 
         if (this.selectedEntitiesInQueryParam.length) {
-            const entityNames = this.inputTable.getEntityNamesFromCodes(
-                this.selectedEntitiesInQueryParam
-            )
-            const notFoundEntities = entityNames.filter(
-                (name) => !this.inputTable.availableEntityNameSet.has(name)
+            const {
+                notFoundEntities,
+                foundEntities,
+            } = EntityUrlBuilder.scanUrlForEntityNames(
+                this.selectedEntitiesInQueryParam,
+                this.inputTable.entityCodeToNameMap,
+                this.inputTable.availableEntityNameSet
             )
 
-            this.inputTable.setSelectedEntities(entityNames)
+            this.inputTable.setSelectedEntities(foundEntities)
             if (notFoundEntities.length)
                 this.analytics.logEntitiesNotFoundError(notFoundEntities)
         } else this.applyOriginalSelection()

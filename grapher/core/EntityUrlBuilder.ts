@@ -37,4 +37,48 @@ export class EntityUrlBuilder {
             .split(this.v2Delimiter)
             .filter((item) => item)
     }
+
+    // If an entity has the old name-dimension encoding, try removing the dimension part. So USA-1 becomes USA.
+    private static replaceDimensionStr(entity: string) {
+        return entity.replace(/\-\d+$/, "")
+    }
+
+    /**
+     * URLs may contain the selected entities by code or by their full name. In addition, some old urls contain a selection+dimension index combo. This methods
+     * handles those situations.
+     */
+    static scanUrlForEntityNames(
+        selectedEntitiesInQueryParam: string[],
+        codeToNameMap: Map<string, string>,
+        availableEntityNameSet: Set<string>
+    ) {
+        const adjustedEntities = selectedEntitiesInQueryParam.map(
+            (queryInput) => {
+                let name = codeToNameMap.get(queryInput)
+                if (name) return name
+
+                if (availableEntityNameSet.has(queryInput)) return queryInput
+
+                const withoutDimension = this.replaceDimensionStr(queryInput)
+
+                name = codeToNameMap.get(withoutDimension)
+                if (name) return name
+
+                if (availableEntityNameSet.has(withoutDimension))
+                    return withoutDimension
+                return queryInput
+            }
+        )
+
+        const notFoundEntities = adjustedEntities.filter(
+            (name) => !availableEntityNameSet.has(name)
+        )
+        const foundEntities = adjustedEntities.filter((name) =>
+            availableEntityNameSet.has(name)
+        )
+        return {
+            notFoundEntities,
+            foundEntities,
+        }
+    }
 }

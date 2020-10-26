@@ -54,34 +54,57 @@ encodeTests.forEach((testCase) => {
     })
 })
 
-const legacyLinks = [
-    {
-        entities: ["North America", "DOM"],
-        queryString: "North%20America+DOM",
-    },
-    { entities: ["USA", "GB"], queryString: "USA+GB" },
-    { entities: ["YouTube", "Google+"], queryString: "YouTube+Google%2B" },
-]
+describe("legacyLinks", () => {
+    const legacyLinks = [
+        {
+            entities: ["North America", "DOM"],
+            queryString: "North%20America+DOM",
+        },
+        { entities: ["USA", "GB"], queryString: "USA+GB" },
+        { entities: ["YouTube", "Google+"], queryString: "YouTube+Google%2B" },
+    ]
 
-legacyLinks.forEach((testCase) => {
-    it(`correctly decodes legacy url strings`, () => {
-        expect(
-            EntityUrlBuilder.queryParamToEntities(testCase.queryString)
-        ).toEqual(testCase.entities)
+    legacyLinks.forEach((testCase) => {
+        it(`correctly decodes legacy url strings`, () => {
+            expect(
+                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+            ).toEqual(testCase.entities)
+        })
     })
 })
 
-const facebookLinks = [
-    {
-        entities: ["Caribbean small states"],
-        queryString: "Caribbean+small+states~",
-    },
-]
+describe("facebook", () => {
+    const facebookLinks = [
+        {
+            entities: ["Caribbean small states"],
+            queryString: "Caribbean+small+states~",
+        },
+    ]
 
-facebookLinks.forEach((testCase) => {
-    it(`correctly decodes Facebook altered links`, () => {
-        expect(
-            EntityUrlBuilder.queryParamToEntities(testCase.queryString)
-        ).toEqual(testCase.entities)
+    facebookLinks.forEach((testCase) => {
+        it(`correctly decodes Facebook altered links`, () => {
+            expect(
+                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+            ).toEqual(testCase.entities)
+        })
     })
+})
+
+describe("it can handle legacy urls with dimension in selection key", () => {
+    const map = {
+        USA: "United States",
+        GB: "Great Britain",
+        "1980-1989": "The eighties",
+    }
+    const {
+        foundEntities,
+        notFoundEntities,
+    } = EntityUrlBuilder.scanUrlForEntityNames(
+        ["USA", "GB-0", "1980-1989", "NotFound", "Nope-0"],
+        new Map(Object.entries(map)),
+        new Set(Object.values(map))
+    )
+
+    expect(notFoundEntities).toEqual(["NotFound", "Nope-0"])
+    expect(foundEntities).toEqual(Object.values(map))
 })
