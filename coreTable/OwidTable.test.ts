@@ -135,7 +135,7 @@ it("can perform queries needed by discrete bar", () => {
         },
         10
     )
-    expect(table.rowsByEntityName.size).toEqual(3)
+    expect(table.rowIndicesByEntityName.size).toEqual(3)
     expect(table.numSelectedEntities).toEqual(0)
 
     table.selectAll()
@@ -143,13 +143,13 @@ it("can perform queries needed by discrete bar", () => {
     expect(table.numSelectedEntities).toEqual(3)
     const entityNames = table.selectedEntityNames
     expect(
-        table.getClosestRowForEachEntity(entityNames, 2003, 0).length
+        table.getClosestIndexForEachEntity(entityNames, 2003, 0).length
     ).toEqual(3)
     expect(
-        table.getClosestRowForEachEntity(entityNames, 2004, 1).length
+        table.getClosestIndexForEachEntity(entityNames, 2004, 1).length
     ).toEqual(3)
     expect(
-        table.getClosestRowForEachEntity(entityNames, 2005, 1).length
+        table.getClosestIndexForEachEntity(entityNames, 2005, 1).length
     ).toEqual(0)
 })
 

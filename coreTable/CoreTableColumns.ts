@@ -217,7 +217,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         const indexValues = this.table.getValuesAtIndices(
             indexColumnSlug,
             this.validRowIndices
-        )
+        ) as PrimitiveType[]
         indexValues.forEach((indexVal, index) => {
             if (!map.has(indexVal)) map.set(indexVal, new Set())
             map.get(indexVal)!.add(values[index])

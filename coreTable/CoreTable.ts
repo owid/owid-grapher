@@ -31,6 +31,7 @@ import {
     TransformType,
     ValueRange,
     CoreQuery,
+    CoreValueType,
 } from "./CoreTableConstants"
 import {
     AlignedTextTableOptions,
@@ -321,6 +322,10 @@ export class CoreTable<
         return Array.from(this)
     }
 
+    @imemo get indices() {
+        return range(0, this.numRows)
+    }
+
     *[Symbol.iterator]() {
         const { columnStore, numRows } = this
         for (let index = 0; index < numRows; index++) {
@@ -420,35 +425,23 @@ export class CoreTable<
 
     /**
      * Returns a string map (aka index) where the keys are the combined string values of columnSlug[], and the values
-     * are the values are the rows that match.
+     * are the indices for the rows that match.
      *
      * {country: "USA", population: 100}
      *
-     * So `table.rowIndex(["country", "population"]).get("USA 100")` would return [{country: "USA", population: 100}].
+     * So `table.rowIndex(["country", "population"]).get("USA 100")` would return [0].
      *
      */
     rowIndex(columnSlugs: ColumnSlug[]) {
-        const index = new Map<string, ROW_TYPE[]>()
-        // keyFn generates a key for each row. Does not have to be unique.
-        // todo: be smarter for string keys
-        const keyFn = makeKeyFn(columnSlugs)
-        this.rows.forEach((row) => {
-            const key = keyFn(row)
+        const index = new Map<string, number[]>()
+        const keyFn = makeKeyFn(this.columnStore, columnSlugs)
+        this.indices.forEach((rowIndex) => {
+            // todo: be smarter for string keys
+            const key = keyFn(rowIndex)
             if (!index.has(key)) index.set(key, [])
-            index.get(key)!.push(row)
+            index.get(key)!.push(rowIndex)
         })
-        return { index, keyFn }
-    }
-
-    // Same as above, but the index is typed and it only supports ony column.
-    protected rowTypedIndex<T>(columnSlug: ColumnSlug) {
-        const map = new Map<T, ROW_TYPE[]>()
-        this.rows.forEach((row) => {
-            const value = row[columnSlug]
-            if (!map.has(value)) map.set(value, [])
-            map.get(value)!.push(row)
-        })
-        return map
+        return index
     }
 
     /**
@@ -477,7 +470,10 @@ export class CoreTable<
         )
         const map = new Map<PrimitiveType, PrimitiveType>()
         indices.forEach((index) => {
-            map.set(indexValues[index], valueValues[index])
+            map.set(
+                indexValues[index] as PrimitiveType,
+                valueValues[index] as PrimitiveType
+            )
         })
         return map
     }
@@ -550,7 +546,7 @@ export class CoreTable<
 
     columnFilter(
         columnSlug: ColumnSlug,
-        predicate: (value: PrimitiveType) => boolean,
+        predicate: (value: CoreValueType, index: number) => boolean,
         opName: string
     ) {
         return this.transform(
@@ -898,11 +894,11 @@ export class CoreTable<
     }
 
     @imemo get duplicateRowIndices() {
-        const keyFn = makeKeyFn(this.columnSlugs)
+        const keyFn = makeKeyFn(this.columnStore, this.columnSlugs)
         const dupeSet = new Set()
         const dupeIndices: number[] = []
-        this.rows.forEach((row, rowIndex) => {
-            const key = keyFn(row)
+        this.indices.forEach((rowIndex) => {
+            const key = keyFn(rowIndex)
             if (dupeSet.has(key)) dupeIndices.push(rowIndex)
             else dupeSet.add(key)
         })
@@ -1153,13 +1149,17 @@ export class CoreTable<
                 return def
             }) as COL_DEF_TYPE[]
 
-        const { index, keyFn } = sourceTable.rowIndex(by)
+        const rightIndex = sourceTable.rowIndex(by)
+        const sourceColumns = sourceTable.columnStore
+        const keyFn = makeKeyFn(destinationTable.columnStore, by)
 
-        destinationTable.rows.forEach((row) => {
-            const matchingRightRow = index.get(keyFn(row))
+        destinationTable.indices.forEach((rowIndex) => {
+            const matchingRightRowIndex = rightIndex.get(keyFn(rowIndex))
             defsToAdd.forEach((def) => {
-                if (matchingRightRow)
-                    def.values?.push(matchingRightRow[0][def.slug])
+                if (matchingRightRowIndex !== undefined)
+                    def.values?.push(
+                        sourceColumns[def.slug][matchingRightRowIndex[0]]
+                    )
                 // todo: use first or last match?
                 else
                     def.values?.push(
@@ -1207,5 +1207,9 @@ export class CoreTable<
         return this.leftJoin(rightTable, by)
             .concat(rightTable.leftJoin(this, by))
             .dropDuplicateRows()
+    }
+
+    groupBy(by: ColumnSlug[]) {
+        // todo
     }
 }

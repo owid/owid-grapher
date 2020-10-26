@@ -153,8 +153,11 @@ export class CountryPicker extends React.Component<{
         const entityNames = table.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
             const plotValue = col
-                ? table.getLatestValueForEntity(entityName, col.slug)
+                ? (table.getLatestValueForEntity(entityName, col.slug) as
+                      | string
+                      | number)
                 : undefined
+
             const formattedValue =
                 plotValue !== undefined
                     ? col?.formatValue(plotValue)
