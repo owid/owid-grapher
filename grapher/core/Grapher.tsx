@@ -446,8 +446,22 @@ export class Grapher
         return this.inputTable // perform selection at root level
     }
 
-    @computed private get tableAfterPopulationFilter() {
+    // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
+    @computed private get tableAfterAuthorTimelineFilter() {
         const table = this.inputTable
+        if (
+            this.timelineMinTime === undefined &&
+            this.timelineMaxTime === undefined
+        )
+            return table
+        return table.filterByTimeRange(
+            this.timelineMinTime ?? -Infinity,
+            this.timelineMaxTime ?? Infinity
+        )
+    }
+
+    @computed private get tableAfterPopulationFilter() {
+        const table = this.tableAfterAuthorTimelineFilter
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
         return this.minPopulationFilter
@@ -474,7 +488,7 @@ export class Grapher
     }
 
     @computed get table() {
-        return this.inputTable
+        return this.tableAfterAuthorTimelineFilter
     }
 
     @computed

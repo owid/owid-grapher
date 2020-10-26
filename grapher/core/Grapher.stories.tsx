@@ -124,3 +124,12 @@ export const WithKeyboardShortcuts = () => {
     }
     return <Grapher {...model} />
 }
+
+export const WithAuthorTimeFilter = () => {
+    const model: GrapherProgrammaticInterface = {
+        ...basics,
+        timelineMinTime: 1993,
+        timelineMaxTime: 1996,
+    }
+    return <Grapher {...model} />
+}
