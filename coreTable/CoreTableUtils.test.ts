@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { imemo, interpolateRowValuesWithTolerance } from "./CoreTableUtils"
+import {
+    getDropIndexes,
+    imemo,
+    interpolateRowValuesWithTolerance,
+} from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
 describe(interpolateRowValuesWithTolerance, () => {
@@ -89,4 +93,11 @@ describe("immutable memoization", () => {
         forecast2.conditions = "sunny"
         expect(forecast2.forecast).toEqual("sunny")
     })
+})
+
+it("can get indexes of cell values to drop in an array", () => {
+    const drops = getDropIndexes(3, 2, 1)
+    expect(
+        [1, 2, 3].map((value, index) => (drops.has(index) ? undefined : value))
+    ).toEqual([undefined, undefined, 3])
 })

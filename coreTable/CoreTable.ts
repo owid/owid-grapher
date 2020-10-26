@@ -5,7 +5,6 @@ import {
     min,
     max,
     orderBy,
-    getDropIndexes,
     Grid,
     rowsFromGrid,
     range,
@@ -50,6 +49,11 @@ import {
     rowsToColumnStore,
     autodetectColumnDefs,
     applyFilterMask,
+    reverseColumnStore,
+    renameColumnStore,
+    replaceNonPositives,
+    replaceRandomCellsInColumnStore,
+    getDropIndexes,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -319,7 +323,7 @@ export class CoreTable<
     }
 
     @imemo get rows() {
-        return Array.from(this)
+        return columnStoreToRows(this.columnStore)
     }
 
     @imemo get indices() {
@@ -487,18 +491,16 @@ export class CoreTable<
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    @imemo get rowsAsSet() {
-        return new Set(this.rows)
-    }
-
-    @imemo get opposite() {
-        if (this.isRoot) return this
-        const { rowsAsSet } = this
+    get opposite() {
+        const { parent } = this
+        const { filterMask } = this.advancedOptions
+        if (!filterMask || !parent) return this
         return this.transform(
-            this.parent!.rows.filter((row) => !rowsAsSet.has(row)),
+            parent.columnStore,
             this.defs,
             `Inversing previous filter`,
-            TransformType.InverseFilterRows
+            TransformType.InverseFilterRows,
+            filterMask.map((item) => !item)
         )
     }
 
@@ -509,7 +511,7 @@ export class CoreTable<
             (col) => !columnsToDrop.has(col.slug)
         ).map((col) => col.def) as COL_DEF_TYPE[]
         return this.transform(
-            this.rows,
+            this.columnStore,
             defs,
             `Inversing previous column filter`,
             TransformType.InverseFilterColumns
@@ -531,16 +533,16 @@ export class CoreTable<
         )
     }
 
-    // Warning: this will be slow
     rowFilter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
     ) {
         return this.transform(
-            this.rows.filter(predicate),
+            this.columnStore,
             this.defs,
             opName,
-            TransformType.FilterRows
+            TransformType.FilterRows,
+            this.rows.map(predicate) // Warning: this will be slow
         )
     }
 
@@ -571,7 +573,7 @@ export class CoreTable<
         const first = this.getColumns(slugs)
         const rest = this.columnsAsArray.filter((col) => !first.includes(col))
         return this.transform(
-            this.rows,
+            this.columnStore,
             [...first, ...rest].map((col) => col.def as COL_DEF_TYPE),
             `Sorted columns`,
             TransformType.SortColumns
@@ -580,7 +582,7 @@ export class CoreTable<
 
     reverse() {
         return this.transform(
-            this.rows.slice(0).reverse(),
+            reverseColumnStore(this.columnStore),
             this.defs,
             `Reversed row order`,
             TransformType.SortRows
@@ -661,9 +663,17 @@ export class CoreTable<
         console.table(this.explainColumns)
     }
 
+    rowsFrom(start: number, end: number) {
+        if (start >= this.numRows) return []
+        if (end > this.numRows) end = this.numRows
+        return range(start, end).map((index) =>
+            makeRowFromColumnStore(index, this.columnStore)
+        )
+    }
+
     dumpRows(rowLimit = 30) {
         // eslint-disable-next-line no-console
-        console.table(this.rows.slice(0, rowLimit), this.columnSlugs)
+        console.table(this.rowsFrom(0, rowLimit), this.columnSlugs)
     }
 
     dumpInputTable() {
@@ -799,21 +809,27 @@ export class CoreTable<
     }
 
     rowsAt(indices: number[]) {
-        const rows = this.rows
-        return indices.map((index) => rows[index])
+        const { columnStore } = this
+        return indices.map((index) =>
+            makeRowFromColumnStore(index, columnStore)
+        )
     }
 
     findRows(query: CoreQuery) {
+        return this.rowsAt(this.findRowsIndices(query))
+    }
+
+    findRowsIndices(query: CoreQuery) {
         const slugs = Object.keys(query)
-        if (!slugs.length) return this.rows
+        if (!slugs.length) return this.indices
         const arrs = this.getColumns(slugs).map((col) =>
             col.indicesWhere(query[col.slug])
         )
-        return this.rowsAt(intersection(...arrs))
+        return intersection(...arrs)
     }
 
     indexOf(row: ROW_TYPE) {
-        return this.rows.indexOf(row)
+        return this.findRowsIndices(row)[0]
     }
 
     where(query: CoreQuery) {
@@ -836,12 +852,14 @@ export class CoreTable<
     }
 
     limit(howMany: number, offset: number = 0) {
-        const rows = this.rows.slice(offset, howMany + offset)
+        const start = offset
+        const end = offset + howMany
         return this.transform(
-            rows,
+            this.columnStore,
             this.defs,
-            `Kept ${rows.length} rows starting at ${offset}`,
-            TransformType.FilterRows
+            `Kept ${howMany} rows starting at ${offset}`,
+            TransformType.FilterRows,
+            this.indices.map((index) => index >= start && index < end)
         )
     }
 
@@ -873,7 +891,7 @@ export class CoreTable<
             .filter((col) => columnsToKeep.has(col.slug))
             .map((col) => col.def) as COL_DEF_TYPE[]
         return this.transform(
-            this.rows,
+            this.columnStore,
             defs,
             `Kept columns '${slugs}'`,
             TransformType.FilterColumns
@@ -886,7 +904,7 @@ export class CoreTable<
             .filter((col) => !columnsToDrop.has(col.slug))
             .map((col) => col.def) as COL_DEF_TYPE[]
         return this.transform(
-            this.rows,
+            this.columnStore,
             defs,
             message ?? `Dropped columns '${slugs}'`,
             TransformType.FilterColumns
@@ -921,14 +939,7 @@ export class CoreTable<
                 .join(" and ")
 
         return this.transform(
-            this.rows.map((row) => {
-                const newRow: any = { ...row }
-                newSlugs.forEach(
-                    (slug, index) => (newRow[slug] = row[oldSlugs[index]])
-                )
-                oldSlugs.forEach((slug) => delete newRow[slug])
-                return newRow
-            }),
+            renameColumnStore(this.columnStore, columnRenameMap),
             this.defs.map((def) =>
                 oldSlugs.indexOf(def.slug) > -1
                     ? {
@@ -967,24 +978,10 @@ export class CoreTable<
     }
 
     replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []) {
-        let replacedCellCount = 0
-        const newRows = this.rows.map((row) => {
-            const values = columnSlugs.map((slug) => row[slug])
-            if (values.every((value) => value > 0)) return row
-            const newRow: any = { ...row }
-            values.forEach((value, index) => {
-                const slug = columnSlugs[index]
-                if (value <= 0) {
-                    newRow[slug] = InvalidCellTypes.InvalidOnALogScale
-                    replacedCellCount++
-                }
-            })
-            return newRow
-        })
         return this.transform(
-            newRows,
+            replaceNonPositives(this.columnStore, columnSlugs),
             this.defs,
-            `Replaced ${replacedCellCount} negative or zero cells across columns ${columnSlugs.join(
+            `Replaced negative or zero cells across columns ${columnSlugs.join(
                 " and "
             )}`,
             TransformType.UpdateRows
@@ -998,26 +995,15 @@ export class CoreTable<
         replacementGenerator: () => any = () =>
             InvalidCellTypes.DroppedForTesting
     ) {
-        // todo: instead of doing column fns just mutate rows and pass the new rows?
-        const defs = this.columnsAsArray.map((col) => {
-            const { def } = col
-            if (!columnSlugs.includes(col.slug)) return def
-            const indexesToDrop = getDropIndexes(
-                col.parsedValues.length,
-                howMany,
-                seed
-            )
-            return {
-                ...def,
-                fn: (row: ROW_TYPE, index: number) =>
-                    indexesToDrop.has(index)
-                        ? replacementGenerator()
-                        : row[col.slug],
-            }
-        }) as COL_DEF_TYPE[]
         return this.transform(
-            this.rows,
-            defs,
+            replaceRandomCellsInColumnStore(
+                this.columnStore,
+                howMany,
+                columnSlugs,
+                seed,
+                replacementGenerator
+            ),
+            this.defs,
             `Replaced a random ${howMany} cells in ${columnSlugs.join(
                 " and "
             )}`,

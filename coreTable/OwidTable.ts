@@ -109,15 +109,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         ) as Map<string, string>
     }
 
-    @imemo get entityIndex() {
-        const map = new Map<EntityName, OwidRow[]>()
-        this.rows.forEach((row) => {
-            if (!map.has(row.entityName)) map.set(row.entityName, [])
-            map.get(row.entityName)!.push(row)
-        })
-        return map
-    }
-
     @imemo get maxTime() {
         return last(this.allTimes)
     }
@@ -180,17 +171,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
-    // fast time filtering.
+    // Does a stable sort by time. You can refer to this table for fast time filtering.
     @imemo private get sortedByTime() {
         if (!this.timeColumn) return this
-        const timeColumnSlug = this.timeColumn.slug
-        return this.transform(
-            sortBy(this.rows, (row) => row[timeColumnSlug]),
-            this.defs,
-            `Sort rows by time before filtering for speed`,
-            TransformType.SortRows
-        )
+        return this.sortBy([this.timeColumn.slug])
     }
 
     filterByTimeRange(start: TimeBound, end: TimeBound): this {

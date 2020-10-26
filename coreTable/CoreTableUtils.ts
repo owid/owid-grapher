@@ -1,4 +1,9 @@
-import { findIndex, slugifySameCase } from "grapher/utils/Util"
+import {
+    findIndex,
+    range,
+    sampleFrom,
+    slugifySameCase,
+} from "grapher/utils/Util"
 import {
     CoreColumnStore,
     ColumnTypeNames,
@@ -343,3 +348,62 @@ export const replaceDef = (defs: CoreColumnDef[], newDefs: CoreColumnDef[]) =>
         const newDef = newDefs.find((newDef) => newDef.slug === def.slug)
         return newDef ?? def
     })
+
+export const reverseColumnStore = (columnStore: CoreColumnStore) => {
+    const newStore: CoreColumnStore = {}
+    Object.keys(columnStore).forEach((slug) => {
+        newStore[slug] = columnStore[slug].slice().reverse()
+    })
+    return newStore
+}
+
+export const renameColumnStore = (
+    columnStore: CoreColumnStore,
+    columnRenameMap: { [columnSlug: string]: ColumnSlug }
+) => {
+    const newStore: CoreColumnStore = {}
+    Object.keys(columnStore).forEach((slug) => {
+        if (columnRenameMap[slug])
+            newStore[columnRenameMap[slug]] = columnStore[slug]
+        else newStore[slug] = columnStore[slug]
+    })
+    return newStore
+}
+
+export const replaceNonPositives = (
+    columnStore: CoreColumnStore,
+    slugs: ColumnSlug[]
+) => {
+    const newStore: CoreColumnStore = Object.assign({}, columnStore)
+    slugs.forEach((slug) => {
+        newStore[slug] = newStore[slug].map((val) =>
+            val <= 0 ? InvalidCellTypes.InvalidOnALogScale : val
+        )
+    })
+    return newStore
+}
+
+// Returns a Set of random indexes to drop in an array, preserving the order of the array
+export const getDropIndexes = (
+    arrayLength: number,
+    howMany: number,
+    seed = Date.now()
+) => new Set(sampleFrom(range(0, arrayLength), howMany, seed))
+
+export const replaceRandomCellsInColumnStore = (
+    columnStore: CoreColumnStore,
+    howMany = 1,
+    columnSlugs: ColumnSlug[] = [],
+    seed = Date.now(),
+    replacementGenerator: () => any = () => InvalidCellTypes.DroppedForTesting
+) => {
+    const newStore: CoreColumnStore = Object.assign({}, columnStore)
+    columnSlugs.forEach((slug) => {
+        const values = newStore[slug]
+        const indexesToDrop = getDropIndexes(values.length, howMany, seed)
+        newStore[slug] = values.map((value, index) =>
+            indexesToDrop.has(index) ? replacementGenerator() : value
+        )
+    })
+    return newStore
+}
