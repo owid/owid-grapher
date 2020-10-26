@@ -152,10 +152,18 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
         return timePart + " " + row.entityName
     })
 
+    const blankForEverySlug: Record<string, undefined> = {}
+    const slugs = Array.from(columnDefs.keys())
+    slugs.forEach((slug) => (blankForEverySlug[slug] = undefined))
+
     const joinedRows: OwidRow[] = Object.keys(
         rowsGroupedByTimeAndEntityName
     ).map((timeAndEntityName) =>
-        Object.assign({}, ...rowsGroupedByTimeAndEntityName[timeAndEntityName])
+        Object.assign(
+            {},
+            blankForEverySlug,
+            ...rowsGroupedByTimeAndEntityName[timeAndEntityName]
+        )
     )
 
     return {
