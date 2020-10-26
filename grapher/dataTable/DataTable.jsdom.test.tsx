@@ -84,12 +84,12 @@ describe("when you select a range of years", () => {
 
     it("renders start values", () => {
         const cell = view.find("tbody .dimension-start").first()
-        expect(cell.text()).toBe("22.45% in 1950")
+        expect(cell.text()).toBe("22.45%")
     })
 
     it("renders end values", () => {
         const cell = view.find("tbody .dimension-end").first()
-        expect(cell.text()).toBe("21.56% in 2019")
+        expect(cell.text()).toBe("21.56%")
     })
 
     it("renders absolute change values", () => {
