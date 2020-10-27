@@ -1067,3 +1067,11 @@ export function sortNumeric<T>(
 // A predicate for filtering an array of nulls and undefineds that returns the correct type
 export const isPresent = <T>(t: T | undefined | null | void): t is T =>
     t !== undefined && t !== null
+
+export const mapBy = (arr: any[], key: string, value: string) => {
+    const map = new Map()
+    arr.forEach((val) => {
+        map.set(val[key], val[value])
+    })
+    return map
+}
