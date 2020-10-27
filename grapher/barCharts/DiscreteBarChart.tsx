@@ -470,7 +470,6 @@ export class DiscreteBarChart
             : undefined
         if (!colorScheme) return undefined
 
-        // todo: Restore if derived from line chart, use line chart colors
         return colorScheme.getUniqValueColorMap(
             uniq(this.sortedRawSeries.map((series) => series.row.value)),
             manager.invertColorScheme
@@ -490,7 +489,7 @@ export class DiscreteBarChart
                 seriesName,
                 color:
                     color ??
-                    seriesColorMap.get(seriesName) ??
+                    seriesColorMap.get(seriesName) ?? // This provides line chart colors if it was a line chart in a prior life
                     valuesToColorsMap?.get(row.value) ??
                     DEFAULT_BAR_COLOR,
             }

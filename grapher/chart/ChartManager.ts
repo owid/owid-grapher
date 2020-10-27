@@ -55,6 +55,7 @@ export interface ChartManager {
     selection?: SelectionArray | EntityName[]
     selectedColumnSlugs?: ColumnSlug[]
 
+    // If you want to use auto-assigned colors, but then have them preserved across selection and chart changes
     seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options

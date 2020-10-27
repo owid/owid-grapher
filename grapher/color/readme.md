@@ -4,11 +4,11 @@ All of our charts have the notion of a Series with a color(string) property.
 
 Colors can come from 5 places in this order:
 
--   An author defined color for a specific selected entity or column
--   Computed from a `ColorScale` if present
--   A `SeriesColorMap` by series name from a previously computed ColorScheme
--   Computed from a `ColorScheme`
--   A default color for a chart type
+1.  An author defined color for a specific selected entity or column
+2.  Computed from a `ColorScale` if present
+3.  A `SeriesColorMap` by series name from a previously computed ColorScheme
+4.  Computed from a `ColorScheme`
+5.  A default color for a chart type
 
 For ColorSchemes, colors are assigned in selection order for entities or columns.
 
