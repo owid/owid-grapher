@@ -1265,7 +1265,10 @@ class FilterMask {
     }
 
     inverse() {
-        return new FilterMask(this.numRows, this.mask.reverse())
+        return new FilterMask(
+            this.numRows,
+            this.mask.map((bit) => !bit)
+        )
     }
 
     apply(columnStore: CoreColumnStore) {

@@ -45,10 +45,6 @@ export class HighlightToggle extends React.Component<{
         return getQueryParams((this.highlight?.paramStr || "").substring(1))
     }
 
-    @computed get selection() {
-        return
-    }
-
     @action.bound private onHighlightToggle(
         event: React.FormEvent<HTMLInputElement>
     ) {

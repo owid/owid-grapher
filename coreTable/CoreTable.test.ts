@@ -283,6 +283,7 @@ describe("searching", () => {
         expect(
             table.grep("Germany").grep("2001").opposite.rows[0].year
         ).toEqual(2000)
+        expect(table.grep("Germany").opposite.numRows).toEqual(1)
         expect(table.grep(/(1999|2000)/).numRows).toEqual(2)
     })
 
