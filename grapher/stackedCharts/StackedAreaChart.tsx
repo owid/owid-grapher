@@ -347,40 +347,44 @@ export class StackedAreaChart
                             </td>
                             <td></td>
                         </tr>
-                        {series.map((series) => {
-                            const point = series.points[hoveredPointIndex]
-                            const isBlur = this.seriesIsBlur(series)
-                            const textColor = isBlur ? "#ddd" : "#333"
-                            const blockColor = isBlur
-                                ? BLUR_COLOR
-                                : series.color
-                            return (
-                                <tr
-                                    key={series.seriesName}
-                                    style={{ color: textColor }}
-                                >
-                                    <td
-                                        style={{
-                                            paddingRight: "0.8em",
-                                            fontSize: "0.9em",
-                                        }}
+                        {reverse(
+                            series.map((series) => {
+                                const point = series.points[hoveredPointIndex]
+                                const isBlur = this.seriesIsBlur(series)
+                                const textColor = isBlur ? "#ddd" : "#333"
+                                const blockColor = isBlur
+                                    ? BLUR_COLOR
+                                    : series.color
+                                return (
+                                    <tr
+                                        key={series.seriesName}
+                                        style={{ color: textColor }}
                                     >
-                                        <div
+                                        <td
                                             style={{
-                                                ...legendBlockStyle,
-                                                backgroundColor: blockColor,
+                                                paddingRight: "0.8em",
+                                                fontSize: "0.9em",
                                             }}
-                                        />{" "}
-                                        {series.seriesName}
-                                    </td>
-                                    <td style={{ textAlign: "right" }}>
-                                        {point.fake
-                                            ? "No data"
-                                            : yColumn.formatValueLong(point.y)}
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                                        >
+                                            <div
+                                                style={{
+                                                    ...legendBlockStyle,
+                                                    backgroundColor: blockColor,
+                                                }}
+                                            />{" "}
+                                            {series.seriesName}
+                                        </td>
+                                        <td style={{ textAlign: "right" }}>
+                                            {point.fake
+                                                ? "No data"
+                                                : yColumn.formatValueLong(
+                                                      point.y
+                                                  )}
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        )}
                         {/* Total */}
                         {!somePointsMissingForHoveredTime && (
                             <tr>
