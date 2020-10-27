@@ -12,6 +12,7 @@ import { ColumnSlug } from "coreTable/CoreTableConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { EntityName } from "coreTable/OwidTableConstants"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -50,8 +51,8 @@ export interface ChartManager {
     sizeColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
 
-    selectedColumnNamesInOrder?: string[]
-    selectedEntityNamesInOrder?: EntityName[]
+    selection?: SelectionArray | EntityName[]
+    selectedColumnSlugs?: ColumnSlug[]
 
     hidePoints?: boolean // for line options
     lineStrokeWidth?: number

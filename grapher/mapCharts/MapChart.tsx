@@ -58,7 +58,11 @@ import {
 } from "./WorldRegionsToProjection"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { autoDetectYColumnSlugs, makeClipPath } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeClipPath,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -175,17 +179,18 @@ export class MapChart
         return this.transformedTable.availableEntityNameSet.has(entityName)
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
         const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 
-        // Modify the selection at the root Grapher level.
-        const rootInputTable = this.inputTable.rootTable
-
         if (!ev.shiftKey) {
-            rootInputTable.setSelectedEntities([entityName])
+            this.selectionArray.setSelectedEntities([entityName])
             this.manager.currentTab = GrapherTabOption.chart
-        } else rootInputTable.toggleSelection(entityName)
+        } else this.selectionArray.toggleSelection(entityName)
     }
 
     componentWillUnmount() {
@@ -210,7 +215,7 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapConfig, mapColumn, transformedTable, targetTime } = this
+        const { mapConfig, mapColumn, selectionArray, targetTime } = this
         if (!mapColumn) return []
         if (targetTime === undefined) return []
 
@@ -230,7 +235,7 @@ export class MapChart
                         mapColumn.formatValueLong(value),
                     time,
                     value,
-                    isSelected: transformedTable.isEntitySelected(entityName),
+                    isSelected: selectionArray.selectedSet.has(entityName),
                     color,
                     highlightFillColor: color,
                 }

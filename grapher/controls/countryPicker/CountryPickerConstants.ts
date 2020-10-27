@@ -1,6 +1,7 @@
 import { Color, ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { Analytics } from "grapher/core/Analytics"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 export interface CountryPickerManager {
     countryPickerMetric?: ColumnSlug
@@ -9,6 +10,7 @@ export interface CountryPickerManager {
     pickerColumnSlugs?: ColumnSlug[] // These are the columns that can be used for sorting entities.
     analytics?: Analytics
     countryPickerTable: OwidTable
+    selectionArray: SelectionArray
     entityColorMap?: {
         [entityName: string]: Color | undefined
     }

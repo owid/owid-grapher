@@ -20,12 +20,12 @@ import {
     StackMode,
 } from "grapher/core/GrapherConstants"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
-import { OwidTable } from "coreTable/OwidTable"
 import { TimelineController } from "grapher/timeline/TimelineController"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
-    table: OwidTable
+    selectionArray?: SelectionArray
     populateFromQueryParams: (obj: QueryParams) => void
 }
 
@@ -45,15 +45,15 @@ export class HighlightToggle extends React.Component<{
         return getQueryParams((this.highlight?.paramStr || "").substring(1))
     }
 
-    @computed get inputTable() {
-        return this.manager.table // todo: should this be rootTable?
+    @computed get selection() {
+        return
     }
 
     @action.bound private onHighlightToggle(
         event: React.FormEvent<HTMLInputElement>
     ) {
         if (!event.currentTarget.checked) {
-            this.inputTable.clearSelection()
+            this.manager.selectionArray?.clearSelection()
             return
         }
 

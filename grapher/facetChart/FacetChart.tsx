@@ -18,7 +18,10 @@ import {
     PlacedFacetSeries,
 } from "./FacetChartConstants"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 
 @observer
 export class FacetChart
@@ -67,7 +70,7 @@ export class FacetChart
             const row = Math.floor(index / columns)
             const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
             const hideYAxis = false // column > 0 // todo: figure out design issues here
-            const hideLegend = !!(column !== columns - 1) // todo: only show 1?
+            const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
             const hidePoints = true
             const xAxisConfig = undefined
             const yAxisConfig = undefined
@@ -99,8 +102,14 @@ export class FacetChart
         })
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     @computed private get countryFacets(): FacetSeries[] {
-        const table = this.inputTable.filterBySelectedOnly()
+        const table = this.inputTable.filterBySelectedOnly(
+            this.selectionArray.selectedEntityNames
+        )
         const yDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
         const sameYAxis = true
@@ -122,13 +131,13 @@ export class FacetChart
 
         const hideLegend = this.manager.yColumnSlugs?.length === 1
 
-        return this.inputTable.selectedEntityNames.map((seriesName) => {
+        return this.selectionArray.selectedEntityNames.map((seriesName) => {
             return {
                 seriesName,
                 manager: {
-                    table: this.inputTable
-                        .filterByEntityNames([seriesName])
-                        .selectEntity(seriesName),
+                    table: this.inputTable.filterByEntityNames([seriesName]),
+                    selection: [seriesName],
+                    seriesStrategy: SeriesStrategy.column,
                     hideLegend,
                     yAxisConfig,
                     xAxisConfig,
@@ -142,6 +151,7 @@ export class FacetChart
             return {
                 seriesName: col.displayName,
                 manager: {
+                    selection: this.selectionArray,
                     yColumnSlug: col.slug,
                     yColumnSlugs: [col.slug], // In a column facet strategy, only have 1 yColumn per chart.
                     seriesStrategy: SeriesStrategy.entity,

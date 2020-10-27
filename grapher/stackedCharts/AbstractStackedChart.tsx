@@ -8,19 +8,16 @@ import {
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import {
-    exposeInstanceOnWindow,
-    flatten,
-    guid,
-    max,
-    orderBy,
-} from "grapher/utils/Util"
+import { exposeInstanceOnWindow, flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 import { easeLinear, select } from "d3"
 
 export interface AbstactStackedChartProps {
@@ -34,7 +31,9 @@ export class AbstactStackedChart
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable) {
-        table = table.filterBySelectedOnly()
+        table = table.filterBySelectedOnly(
+            this.selectionArray.selectedEntityNames
+        )
 
         if (this.manager.isRelativeMode) {
             table = this.isEntitySeries
@@ -169,8 +168,15 @@ export class AbstactStackedChart
         return axis
     }
 
+    @computed private get yColumnsInOrder() {
+        // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+        return this.transformedTable
+            .getColumns(this.manager.selectedColumnSlugs ?? this.yColumnSlugs)
+            .reverse()
+    }
+
     @computed private get columnsAsSeries() {
-        return this.yColumns.map((col) => {
+        return this.yColumnsInOrder.map((col) => {
             return {
                 isProjection: col.isProjection,
                 seriesName: col.displayName,
@@ -181,13 +187,15 @@ export class AbstactStackedChart
 
     @computed private get entitiesAsSeries() {
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
-        return this.transformedTable.selectedEntityNames.map((seriesName) => {
-            return {
-                isProjection,
-                seriesName,
-                rows: owidRowsByEntityName.get(seriesName) || [],
-            }
-        })
+        return this.selectionArray.selectedEntityNames
+            .map((seriesName) => {
+                return {
+                    isProjection,
+                    seriesName,
+                    rows: owidRowsByEntityName.get(seriesName) || [],
+                }
+            })
+            .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
     @computed protected get rawSeries() {
@@ -212,14 +220,8 @@ export class AbstactStackedChart
         return "#ddd"
     }
 
-    reorderSeries(seriesArr: StackedSeries[]) {
-        const { manager } = this
-        const seriesNames = this.isEntitySeries
-            ? manager.selectedEntityNamesInOrder
-            : manager.selectedColumnNamesInOrder
-        return orderBy(seriesArr, (series: StackedSeries) =>
-            seriesNames?.indexOf(series.seriesName)
-        ).reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+    @computed protected get selectionArray() {
+        return makeSelectionArray(this.manager)
     }
 
     @computed get isEntitySeries() {
@@ -231,7 +233,7 @@ export class AbstactStackedChart
     }
 
     @computed get unstackedSeries() {
-        const seriesArr = this.rawSeries
+        return this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {
                 const { isProjection, seriesName, rows } = series
@@ -248,8 +250,6 @@ export class AbstactStackedChart
                     color: this.getColorForSeries(seriesName),
                 } as StackedSeries
             })
-
-        return this.reorderSeries(seriesArr)
     }
 
     @computed get series() {

@@ -41,12 +41,13 @@ it("can filter points with negative values when using a log scale", () => {
         },
         20,
         1
-    ).selectAll()
+    )
 
     const manager: ScatterPlotManager = {
         table,
         yColumnSlug: SampleColumnSlugs.Fruit,
         xColumnSlug: SampleColumnSlugs.Vegetables,
+        selection: table.availableEntityNames,
         yAxisConfig: {},
         xAxisConfig: {},
     }

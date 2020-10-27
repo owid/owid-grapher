@@ -120,27 +120,27 @@ class VariableEditRow extends React.Component<{
 
         grapher.tab = GrapherTabOption.chart
         grapher.hasMapTab = false
-        const { table } = grapher
-        const { availableEntityNames } = table
+        const { selection } = grapher
+        const { availableEntityNames } = selection
         if (grapher.isScatter || grapher.isSlopeChart) {
-            table.clearSelection()
+            selection.clearSelection()
         } else if (grapher.yColumns.length > 1) {
-            const entity = table.availableEntityNameSet.has(WorldEntityName)
+            const entity = selection.availableEntityNameSet.has(WorldEntityName)
                 ? WorldEntityName
                 : lodash.sample(availableEntityNames)
-            table.selectEntity(entity!)
+            selection.selectEntity(entity!)
             grapher.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
             grapher.addCountryMode = EntitySelectionMode.MultipleEntities
             if (grapher.filledDimensions[0].column.uniqTimesAsc.length === 1) {
                 grapher.type = ChartTypeName.DiscreteBar
-                table.setSelectedEntities(
+                selection.setSelectedEntities(
                     availableEntityNames.length > 15
                         ? lodash.sampleSize(availableEntityNames, 8)
                         : availableEntityNames
                 )
             } else {
-                table.setSelectedEntities(
+                selection.setSelectedEntities(
                     availableEntityNames.length > 10
                         ? lodash.sampleSize(availableEntityNames, 3)
                         : availableEntityNames

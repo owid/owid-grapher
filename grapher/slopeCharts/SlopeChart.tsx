@@ -48,8 +48,12 @@ import {
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
 import { Color } from "coreTable/CoreTableConstants"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 @observer
 export class SlopeChart
@@ -114,7 +118,7 @@ export class SlopeChart
             return
         }
 
-        this.inputTable.toggleSelection(hoverKey)
+        this.selectionArray.toggleSelection(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -125,8 +129,12 @@ export class SlopeChart
         this.hoverColor = undefined
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     @computed private get selectedEntityNames() {
-        return this.inputTable.selectedEntityNames
+        return this.selectionArray.selectedEntityNames
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
@@ -146,11 +154,11 @@ export class SlopeChart
             intersection(seriesNamesToToggle, this.selectedEntityNames)
                 .length === seriesNamesToToggle.length
         if (areAllSeriesActive)
-            this.inputTable.setSelectedEntities(
+            this.selectionArray.setSelectedEntities(
                 without(this.selectedEntityNames, ...seriesNamesToToggle)
             )
         else
-            this.inputTable.setSelectedEntities(
+            this.selectionArray.setSelectedEntities(
                 this.selectedEntityNames.concat(seriesNamesToToggle)
             )
     }

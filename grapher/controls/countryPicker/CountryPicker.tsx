@@ -80,7 +80,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @action.bound private selectEntity(name: EntityName, checked?: boolean) {
-        this.table.toggleSelection(name)
+        this.manager.selectionArray.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logCountrySelectorEvent(
@@ -132,15 +132,15 @@ export class CountryPicker extends React.Component<{
 
     @computed private get availableEntitiesForCurrentView() {
         if (!this.manager.requiredColumnSlugs?.length)
-            return this.table.availableEntityNameSet
+            return this.selectionArray.availableEntityNameSet
         return this.table.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const table = this.table
+        const { table, selectionArray } = this
         const col = this.activePickerMetricColumn
-        const entityNames = table.availableEntityNames.slice().sort()
+        const entityNames = selectionArray.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
             const plotValue = col
                 ? (table.getLatestValueForEntity(entityName, col.slug) as
@@ -164,8 +164,14 @@ export class CountryPicker extends React.Component<{
         return this.manager.countryPickerTable
     }
 
+    @computed get selectionArray() {
+        return this.manager.selectionArray
+    }
+
     @bind private isSelected(option: EntityOptionWithMetricValue) {
-        return this.table.selectedEntityNames.includes(option.entityName)
+        return this.selectionArray.selectedEntityNames.includes(
+            option.entityName
+        )
     }
 
     @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
@@ -435,7 +441,7 @@ export class CountryPicker extends React.Component<{
 
     render() {
         const entities = this.searchResults
-        const selectedEntityNames = this.table.selectedEntityNames
+        const selectedEntityNames = this.selectionArray.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
         const colorMap = this.manager.entityColorMap || {}
 
@@ -526,7 +532,9 @@ export class CountryPicker extends React.Component<{
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note={`${this.analyticsNamespace}-clear-selection`}
-                                    onClick={() => this.table.clearSelection()}
+                                    onClick={() =>
+                                        this.selectionArray.clearSelection()
+                                    }
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection

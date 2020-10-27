@@ -464,7 +464,7 @@ export class StackedAreaChart
                 ? ColorSchemes[this.manager.baseColorScheme]
                 : null) ?? ColorSchemes.stackedAreaDefault
         const seriesCount = this.isEntitySeries
-            ? this.transformedTable.numSelectedEntities
+            ? this.selectionArray.numSelectedEntities
             : this.yColumns.length
         const baseColors = scheme.getColors(seriesCount)
         if (!this.isEntitySeries) baseColors.reverse() // I don't know why

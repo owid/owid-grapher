@@ -75,7 +75,7 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
     @observable.ref dragKey?: EntityName
 
     @action.bound onAddKey(entityName: EntityName) {
-        this.props.grapher.table.selectEntity(entityName)
+        this.props.grapher.selection.selectEntity(entityName)
     }
 
     @action.bound onStartDrag(key: EntityName) {
@@ -92,18 +92,20 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
     @action.bound onMouseEnter(targetKey: EntityName) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
-        const selectedKeys = clone(this.props.grapher.table.selectedEntityNames)
+        const selectedKeys = clone(
+            this.props.grapher.selection.selectedEntityNames
+        )
         const dragIndex = selectedKeys.indexOf(this.dragKey)
         const targetIndex = selectedKeys.indexOf(targetKey)
         selectedKeys.splice(dragIndex, 1)
         selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.grapher.table.setSelectedEntities(selectedKeys)
+        this.props.grapher.selection.setSelectedEntities(selectedKeys)
     }
 
     render() {
         const { grapher } = this.props
-        const { table } = grapher
-        const { unselectedEntityNames, selectedEntityNames } = table
+        const { selection } = grapher
+        const { unselectedEntityNames, selectedEntityNames } = selection
 
         return (
             <Section name="Data to show">

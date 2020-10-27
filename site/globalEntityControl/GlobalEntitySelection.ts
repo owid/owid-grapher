@@ -65,10 +65,10 @@ export function subscribeGrapherToGlobalEntitySelection(
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0)
-                    grapher.table.setSelectedEntitiesByCode(
+                    grapher.selection.setSelectedEntitiesByCode(
                         selectedEntities.map((entity) => entity.code)
                     )
-                else grapher.table.clearSelection()
+                else grapher.selection.clearSelection()
             }
         },
         { fireImmediately: true }

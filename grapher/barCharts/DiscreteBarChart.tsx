@@ -32,7 +32,10 @@ import {
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -49,7 +52,9 @@ export class DiscreteBarChart
     transformTable(table: OwidTable) {
         if (!this.yColumnSlugs.length) return table
 
-        table = table.filterBySelectedOnly()
+        table = table.filterBySelectedOnly(
+            this.selectionArray.selectedEntityNames
+        )
 
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
@@ -194,6 +199,10 @@ export class DiscreteBarChart
             .padLeft(this.legendWidth + this.leftEndLabelWidth)
             .padBottom(this.axis.height)
             .padRight(this.rightEndLabelWidth)
+    }
+
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
     }
 
     // Leave space for extra bar at bottom to show "Add country" button
@@ -379,7 +388,7 @@ export class DiscreteBarChart
 
         if (!column) return "No column to chart"
 
-        if (!this.transformedTable.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection) return `No data selected`
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
@@ -410,7 +419,7 @@ export class DiscreteBarChart
         return (
             this.manager.seriesStrategy ||
             (this.yColumnSlugs.length > 1 &&
-            this.inputTable.numSelectedEntities === 1
+            this.selectionArray.numSelectedEntities === 1
                 ? SeriesStrategy.column
                 : SeriesStrategy.entity)
         )

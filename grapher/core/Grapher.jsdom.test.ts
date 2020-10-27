@@ -19,8 +19,10 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 
 const TestGrapherConfig = () => {
+    const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
-        table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
+        table,
+        selection: table.sampleEntityName(5),
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
@@ -103,7 +105,7 @@ it("can generate a url with country selection even if there is no entity code", 
     }
     const grapher = new Grapher(config)
     expect(grapher.queryStr).toBe("")
-    grapher.inputTable.selectAll()
+    grapher.selection.selectAll()
     expect(grapher.queryStr).toContain("AFG")
 
     const config2 = {
@@ -113,7 +115,7 @@ it("can generate a url with country selection even if there is no entity code", 
     config2.owidDataset.entityKey[15].code = undefined as any
     const grapher2 = new Grapher(config2)
     expect(grapher2.queryStr).toBe("")
-    grapher2.inputTable.selectAll()
+    grapher2.selection.selectAll()
     expect(grapher2.queryStr).toContain("Afghanistan")
 })
 
@@ -182,11 +184,13 @@ it("can serialize scaleType if it changes", () => {
 
 describe("currentTitle", () => {
     it("shows the year of the selected data in the title", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
         const grapher = new Grapher({
-            table: SynthesizeGDPTable(
-                { entityCount: 2, timeRange: [2000, 2010] },
-                1
-            ).selectAll(),
+            table,
+            selectedEntityNames: table.availableEntityNames,
             dimensions: [
                 {
                     slug: SampleColumnSlugs.GDP,
@@ -217,9 +221,11 @@ describe("currentTitle", () => {
 
 describe("authors can use maxTime", () => {
     it("can can create a discretebar chart with correct maxtime", () => {
+        const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
         const grapher = new Grapher({
-            table: SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectAll(),
+            table,
             type: ChartTypeName.DiscreteBar,
+            selectedEntityNames: table.availableEntityNames,
             maxTime: 2005,
         })
         const chart = grapher.chartInstance
@@ -291,13 +297,13 @@ describe("urls", () => {
 
 describe("time domain tests", () => {
     const seed = 1
+    const table = SynthesizeGDPTable(
+        { entityCount: 2, timeRange: [2000, 2010] },
+        seed
+    ).replaceRandomCells(17, [SampleColumnSlugs.GDP], seed)
     const grapher = new Grapher({
-        table: SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            seed
-        )
-            .selectAll()
-            .replaceRandomCells(17, [SampleColumnSlugs.GDP], seed),
+        table,
+        selectedEntityNames: table.availableEntityNames,
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
@@ -583,9 +589,11 @@ describe("time parameter", () => {
 })
 
 it("canChangeEntity reflects all available entities before transforms", () => {
+    const table = SynthesizeGDPTable()
     const grapher = new Grapher({
         addCountryMode: EntitySelectionMode.SingleEntity,
-        table: SynthesizeGDPTable().selectSample(1),
+        table,
+        selectedEntityNames: table.sampleEntityName(1),
     })
     expect(grapher.canChangeEntity).toBe(true)
 })

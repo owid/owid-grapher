@@ -44,7 +44,11 @@ import {
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeClipPath } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeClipPath,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 
 const BLUR_COLOR = "#eee"
 
@@ -225,7 +229,9 @@ export class LineChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        table = table.filterBySelectedOnly()
+        table = table.filterBySelectedOnly(
+            this.selectionArray.selectedEntityNames
+        )
 
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(
@@ -275,6 +281,10 @@ export class LineChart
 
     @computed get maxLegendWidth() {
         return this.bounds.width / 3
+    }
+
+    @computed get selectionArray() {
+        return makeSelectionArray(this.manager)
     }
 
     seriesIsBlurred(series: LineChartSeries) {

@@ -136,12 +136,7 @@ it("can perform queries needed by discrete bar", () => {
         10
     )
     expect(table.rowIndicesByEntityName.size).toEqual(3)
-    expect(table.numSelectedEntities).toEqual(0)
-
-    table.selectAll()
-
-    expect(table.numSelectedEntities).toEqual(3)
-    const entityNames = table.selectedEntityNames
+    const entityNames = table.availableEntityNames
     expect(
         table.getClosestIndexForEachEntity(entityNames, 2003, 0).length
     ).toEqual(3)
@@ -260,13 +255,14 @@ usa,us,23,`)
 describe("filtering", () => {
     it("can filter by population", () => {
         const table = SynthesizeFruitTable({ timeRange: [2000, 2001] })
-        expect(table.filterByPopulation(100).numRows).toEqual(2)
+        expect(table.filterByPopulationExcept(100).numRows).toEqual(2)
     })
 
     it("can filter by population on empty table", () => {
         const table = BlankOwidTable()
         expect(
-            table.filterByPopulation(1).filterByPopulation(1e12).numRows
+            table.filterByPopulationExcept(1).filterByPopulationExcept(1e12)
+                .numRows
         ).toEqual(0)
     })
 })
@@ -333,8 +329,7 @@ usa,1,usa,-5,1`
 
         expect(
             table
-                .selectEntity(table.availableEntityNames[0])
-                .filterBySelectedOnly()
+                .filterBySelectedOnly(table.sampleEntityName(1))
                 .filterByTargetTimes([2010], 20).numRows
         ).toBe(1)
 
@@ -360,8 +355,7 @@ usa,1,usa,-5,1`
 
         expect(
             table
-                .selectEntity(table.availableEntityNames[0])
-                .filterBySelectedOnly()
+                .filterBySelectedOnly(table.sampleEntityName(1))
                 .filterByTargetTimes([2000, 2003], 1).numRows
         ).toBe(2)
 

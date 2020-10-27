@@ -19,9 +19,10 @@ const table = SynthesizeGDPTable(
         timeRange: [1950, 2010],
     },
     seed
-).selectSample(5)
+)
 const entitiesChart: ChartManager = {
     table,
+    selection: table.sampleEntityName(5),
     yColumnSlugs: [SampleColumnSlugs.GDP],
 }
 
@@ -64,8 +65,10 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolation = () => (
     </svg>
 )
 
+const colTable = SynthesizeFruitTable()
 const columnsChart: ChartManager = {
-    table: SynthesizeFruitTable().selectSample(1),
+    table: colTable,
+    selection: colTable.sampleEntityName(1),
 }
 
 export const ColumnsAsSeries = () => (
@@ -80,14 +83,18 @@ export const ColumnsAsSeriesRelative = () => (
     </svg>
 )
 
-export const ColumnsAsSeriesWithMissingCells = () => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            manager={{
-                table: SynthesizeFruitTable()
-                    .selectSample(1)
-                    .replaceRandomCells(200, [SampleColumnSlugs.Fruit]),
-            }}
-        />
-    </svg>
-)
+export const ColumnsAsSeriesWithMissingCells = () => {
+    const table = SynthesizeFruitTable().replaceRandomCells(200, [
+        SampleColumnSlugs.Fruit,
+    ])
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                manager={{
+                    selection: table.sampleEntityName(1),
+                    table,
+                }}
+            />
+        </svg>
+    )
+}

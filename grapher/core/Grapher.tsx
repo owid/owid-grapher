@@ -147,6 +147,7 @@ import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { SelectionArray, SelectionManager } from "./SelectionArray"
 
 declare const window: any
 
@@ -203,6 +204,7 @@ export class Grapher
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
+        SelectionManager,
         DataTableManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
@@ -318,8 +320,8 @@ export class Grapher
             grapherKeysToSerialize
         )
 
-        if (this.tableForSelection.hasSelection)
-            obj.selectedEntityNames = this.tableForSelection.selectedEntityNames
+        if (this.selection.hasSelection)
+            obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -338,11 +340,11 @@ export class Grapher
     }
 
     @action.bound downloadData() {
-        if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
+        if (this.manuallyProvideData) {
+        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
         else if (this.externalDataUrl)
             this.downloadLegacyDataFromUrl(this.externalDataUrl)
-        else if (!this.manuallyProvideData)
-            this.downloadLegacyDataFromOwidVariableIds()
+        else this.downloadLegacyDataFromOwidVariableIds()
     }
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
@@ -465,7 +467,10 @@ export class Grapher
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
         return this.minPopulationFilter
-            ? table.filterByPopulation(this.minPopulationFilter)
+            ? table.filterByPopulationExcept(
+                  this.minPopulationFilter,
+                  this.selection.selectedEntityNames
+              )
             : table
     }
 
@@ -615,7 +620,7 @@ export class Grapher
                 this.inputTable.availableEntityNameSet
             )
 
-            this.inputTable.setSelectedEntities(foundEntities)
+            this.selection.setSelectedEntities(foundEntities)
             if (notFoundEntities.length)
                 this.analytics.logEntitiesNotFoundError(notFoundEntities)
         } else this.applyOriginalSelection()
@@ -623,11 +628,9 @@ export class Grapher
 
     @action.bound private applyOriginalSelection() {
         if (this.selectedEntityNames.length)
-            this.inputTable.setSelectedEntities(this.selectedEntityNames)
+            this.selection.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
-            this.inputTable.setSelectedEntitiesByEntityId(
-                this.selectedEntityIds
-            )
+            this.selection.setSelectedEntitiesByEntityId(this.selectedEntityIds)
     }
 
     @observable private _baseFontSize = BASE_FONT_SIZE
@@ -928,7 +931,7 @@ export class Grapher
 
     @computed get currentTitle() {
         let text = this.displayTitle
-        const selectedEntityNames = this.tableForSelection.selectedEntityNames
+        const selectedEntityNames = this.selection.selectedEntityNames
         const showTitleAnnotation = !this.hideTitleAnnotation
 
         if (
@@ -1466,7 +1469,7 @@ export class Grapher
                 {this.isSelectingData && (
                     <EntitySelectorModal
                         canChangeEntity={this.canChangeEntity}
-                        table={this.inputTable}
+                        selectionArray={this.selection}
                         key="entitySelector"
                         isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
@@ -1490,6 +1493,12 @@ export class Grapher
         this.timelineController.togglePlay()
     }
 
+    selection = new SelectionArray(this)
+
+    @computed get availableEntities() {
+        return this.tableForSelection.availableEntities
+    }
+
     private get keyboardShortcuts(): Command[] {
         const temporaryFacetTestCommands = range(0, 10).map((num) => {
             return { combo: `${num}`, fn: () => this.randomSelection(num) }
@@ -1511,10 +1520,10 @@ export class Grapher
             {
                 combo: "a",
                 fn: () =>
-                    this.inputTable.hasSelection
-                        ? this.inputTable.clearSelection()
-                        : this.inputTable.selectAll(),
-                title: this.inputTable.hasSelection
+                    this.selection.hasSelection
+                        ? this.selection.clearSelection()
+                        : this.selection.selectAll(),
+                title: this.selection.hasSelection
                     ? `Select None`
                     : `Select All`,
                 category: "Selection",
@@ -1611,21 +1620,11 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
-    @computed get selectedEntityNamesInOrder(): EntityName[] {
-        const { selectedData } = this.legacyConfigAsAuthored
-        const map = this.inputTable.entityIdToNameMap
-        return selectedData
-            ? selectedData.map((item) => map.get(item.entityId)!)
-            : []
-    }
-
-    @computed get selectedColumnNamesInOrder(): string[] {
+    @computed get selectedColumnSlugs(): ColumnSlug[] {
         const { selectedData } = this.legacyConfigAsAuthored
         const dimensions = this.filledDimensions
         return selectedData
-            ? selectedData.map(
-                  (item) => dimensions[item.index].column.displayName
-              )
+            ? selectedData.map((item) => dimensions[item.index].columnSlug)
             : []
     }
 
@@ -1635,13 +1634,13 @@ export class Grapher
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
             if (
-                this.tableForSelection.numAvailableEntityNames > 1 &&
+                this.selection.numAvailableEntityNames > 1 &&
                 this.hasMultipleCountriesOnTheMap
             )
                 strategies.push(FacetStrategy.columnWithMap)
         }
 
-        if (this.tableForSelection.numSelectedEntities > 1) {
+        if (this.selection.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.country)
             if (this.hasMultipleCountriesOnTheMap)
                 strategies.push(FacetStrategy.countryWithMap)
@@ -1660,7 +1659,7 @@ export class Grapher
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.tableForSelection.numSelectedEntities > 1
+            this.selection.numSelectedEntities > 1
         )
             return FacetStrategy.country
 
@@ -1668,7 +1667,7 @@ export class Grapher
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities &&
             this.hasMultipleYColumns &&
-            this.tableForSelection.numSelectedEntities > 1
+            this.selection.numSelectedEntities > 1
         )
             return FacetStrategy.column
 
@@ -1678,15 +1677,10 @@ export class Grapher
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         this.hasError = false
-        const currentSelection = this.tableForSelection.selectedEntityNames
-            .length
+        const currentSelection = this.selection.selectedEntityNames.length
         const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
-        this.tableForSelection.setSelectedEntities(
-            sampleFrom(
-                this.tableForSelection.availableEntityNames,
-                newNum,
-                Date.now()
-            )
+        this.selection.setSelectedEntities(
+            sampleFrom(this.selection.availableEntityNames, newNum, Date.now())
         )
     }
 
@@ -1846,7 +1840,7 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
-        this.tableForSelection.clearSelection()
+        this.selection.clearSelection()
         this.applyOriginalSelection()
     }
 
@@ -1956,8 +1950,7 @@ export class Grapher
 
         const originalSelectedEntityIds =
             authoredConfig.selectedData?.map((row) => row.entityId) || []
-        const currentSelectedEntityIds = this.tableForSelection
-            .selectedEntityIds
+        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const diff = difference(
             currentSelectedEntityIds,
@@ -1970,7 +1963,7 @@ export class Grapher
             diff.length
         )
             return EntityUrlBuilder.entitiesToQueryParam(
-                this.tableForSelection.selectedEntityCodesOrNames
+                this.selection.selectedEntityCodesOrNames
             )
 
         return undefined
@@ -2018,7 +2011,7 @@ export class Grapher
     }
 
     @computed get showZoomToggle() {
-        return this.isScatter && this.tableForSelection.hasSelection
+        return this.isScatter && this.selection.hasSelection
     }
 
     @computed get showAbsRelToggle() {
@@ -2073,7 +2066,7 @@ export class Grapher
     // we may still want to show those entities as available in a picker. We also do not want to do things like
     // hide the Add Entity button as the user drags the timeline.
     @computed private get numSelectableEntityNames() {
-        return this.inputTable.numAvailableEntityNames
+        return this.selection.numAvailableEntityNames
     }
 
     @computed get canChangeEntity() {

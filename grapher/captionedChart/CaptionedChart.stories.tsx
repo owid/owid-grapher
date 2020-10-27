@@ -17,11 +17,12 @@ export default {
     component: CaptionedChart,
 }
 
-const table = SynthesizeGDPTable({ entityCount: 5 }).selectAll()
+const table = SynthesizeGDPTable({ entityCount: 5 })
 
 const manager: CaptionedChartManager = {
     tabBounds: DEFAULT_BOUNDS,
     table,
+    selection: table.availableEntityNames,
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
     note: "Here are some footer notes",

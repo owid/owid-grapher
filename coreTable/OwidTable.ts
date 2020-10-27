@@ -19,9 +19,7 @@ import {
     groupBy,
     sortedUniq,
     isNumber,
-    difference,
 } from "grapher/utils/Util"
-import { computed, action, observable } from "mobx"
 import {
     ColumnTypeNames,
     ColumnSlug,
@@ -33,8 +31,6 @@ import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
-    EntityCode,
-    EntityId,
     EntityName,
     OwidColumnDef,
     OwidRow,
@@ -65,10 +61,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @imemo get availableEntityNames() {
         return Array.from(this.availableEntityNameSet)
-    }
-
-    @imemo get numAvailableEntityNames() {
-        return this.availableEntityNames.length
     }
 
     @imemo get availableEntityNameSet() {
@@ -622,138 +614,41 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
-    // Todo: Below is all the selection code. We should probably move it to Grapher or its own class.
-
-    // Remove this
-    constructor(...args: any[]) {
-        super(...args)
-        const parent = this.parent
-        if (parent && parent.selectedEntityNames)
-            this._selectedEntityNames = parent.selectedEntityNames
-    }
-
-    @observable private _selectedEntityNames: EntityName[] = []
-
-    @computed get selectedEntityNames() {
-        return this._selectedEntityNames.slice()
-    }
-
-    filterByPopulation(minPop: number) {
+    filterByPopulationExcept(minPop: number, entityNames: string[] = []) {
+        const set = new Set(entityNames)
         return this.columnFilter(
             OwidTableSlugs.entityName,
             (value) => {
                 const name = value as string
                 const pop = populationMap[name]
-                return !pop || this.isEntitySelected(name) || pop >= minPop
+                return !pop || set.has(name) || pop >= minPop
             },
             `Filter out countries with population less than ${minPop}`
         )
     }
 
-    filterBySelectedOnly() {
+    filterBySelectedOnly(selectedEntityNames: string[]) {
+        const set = new Set(selectedEntityNames)
         return this.columnFilter(
             OwidTableSlugs.entityName,
-            (name) => this.isEntitySelected(name as string),
+            (name) => set.has(name as string),
             `Keep selected rows only`
         )
     }
 
-    isEntitySelected(entityName: EntityName) {
-        return this.selectedEntityNameSet.has(entityName)
+    @imemo get availableEntities() {
+        const { entityNameToCodeMap, entityNameToIdMap } = this
+        return this.availableEntityNames.map((entityName) => {
+            return {
+                entityName,
+                entityId: entityNameToIdMap.get(entityName),
+                entityCode: entityNameToCodeMap.get(entityName),
+            }
+        })
     }
 
-    @computed get hasSelection() {
-        return this._selectedEntityNames.length > 0
-    }
-
-    @computed get unselectedEntityNames() {
-        return difference(this.availableEntityNames, this._selectedEntityNames)
-    }
-
-    @computed get numSelectedEntities() {
-        return this._selectedEntityNames.length
-    }
-
-    @computed private get selectedEntityNameSet() {
-        return new Set<EntityName>(this._selectedEntityNames)
-    }
-
-    @computed get selectedEntityCodes(): EntityCode[] {
-        const map = this.entityNameToCodeMap
-        return this._selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
-    @computed get selectedEntityCodesOrNames(): (EntityCode | EntityName)[] {
-        const map = this.entityNameToCodeMap
-        return this._selectedEntityNames.map((name) => map.get(name) ?? name)
-    }
-
-    @computed get selectedEntityIds(): EntityId[] {
-        const map = this.entityNameToIdMap
-        return this._selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
-    // Clears and sets selected entities
-    @action.bound setSelectedEntities(entityNames: EntityName[]) {
-        this.clearSelection()
-        return this.addToSelection(entityNames)
-    }
-
-    @action.bound addToSelection(entityNames: EntityName[]) {
-        this._selectedEntityNames = this._selectedEntityNames.concat(
-            entityNames
-        )
-        return this
-    }
-
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
-        const map = this.entityCodeToNameMap
-        const codesInData = entityCodes.filter((code) => map.has(code))
-        return this.setSelectedEntities(
-            codesInData.map((code) => map.get(code)!)
-        )
-    }
-
-    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
-        const map = this.entityIdToNameMap
-        return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
-    }
-
-    @action.bound selectAll() {
-        return this.addToSelection(this.unselectedEntityNames)
-    }
-
-    @action.bound clearSelection() {
-        this._selectedEntityNames = []
-        return this
-    }
-
-    @action.bound toggleSelection(entityName: EntityName) {
-        return this.isEntitySelected(entityName)
-            ? this.deselectEntity(entityName)
-            : this.selectEntity(entityName)
-    }
-
-    @action.bound selectEntity(entityName: EntityName) {
-        return this.addToSelection([entityName])
-    }
-
-    // Mainly for testing
-    @action.bound selectSample(howMany = 1) {
-        return this.setSelectedEntities(
-            this.availableEntityNames.slice(0, howMany)
-        )
-    }
-
-    @action.bound deselectEntity(entityName: EntityName) {
-        this._selectedEntityNames = this._selectedEntityNames.filter(
-            (name) => name !== entityName
-        )
-        return this
+    sampleEntityName(howMany = 1) {
+        return this.availableEntityNames.slice(0, howMany)
     }
 }
 
