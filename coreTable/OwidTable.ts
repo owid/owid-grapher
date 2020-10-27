@@ -44,6 +44,7 @@ import {
 } from "./CoreTablePrinters"
 import { TimeBound } from "grapher/utils/TimeBounds"
 import {
+    getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
 } from "./OwidTableUtil"
@@ -496,8 +497,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
+        const maybeTimeColumnSlug =
+            getOriginalTimeColumnSlug(this, columnSlug) ??
+            timeColumnSlugFromColumnDef(columnDef)
         const timeColumn =
-            this.get(timeColumnSlugFromColumnDef(columnDef)) ??
+            this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
         const timeColumnDef = timeColumn.def as OwidColumnDef
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
