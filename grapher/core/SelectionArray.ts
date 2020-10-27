@@ -4,7 +4,7 @@ import {
     EntityName,
     OwidTableSlugs,
 } from "coreTable/OwidTableConstants"
-import { difference, isPresent, mapBy } from "grapher/utils/Util"
+import { difference, isPresent, mapBy, uniq } from "grapher/utils/Util"
 import { action, computed } from "mobx"
 
 interface Entity {

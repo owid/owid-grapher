@@ -1,5 +1,5 @@
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { Time, Color } from "coreTable/CoreTableConstants"
+import { Color, Time } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { NoDataModalManager } from "grapher/noDataModal/NoDataModal"
@@ -13,6 +13,7 @@ import {
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 import { EntityName } from "coreTable/OwidTableConstants"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
@@ -32,9 +33,7 @@ export interface ScatterTooltipProps {
 
 export type SeriesPointMap = Map<SeriesName, Map<Time, SeriesPoint>>
 
-export interface ScatterSeries {
-    color: Color
-    seriesName: SeriesName
+export interface ScatterSeries extends ChartSeries {
     label: string
     size: number
     points: SeriesPoint[]
@@ -47,7 +46,7 @@ export interface SeriesPoint {
     size: number
     entityName?: EntityName
     label: string
-    color?: number | string
+    color?: number | Color
     timeValue: Time
     time: {
         x: number
@@ -58,7 +57,7 @@ export interface SeriesPoint {
 
 export interface ScatterRenderPoint {
     position: PointVector
-    color: string
+    color: Color
     size: number
     fontSize: number
     label: string
@@ -70,10 +69,8 @@ export interface ScatterRenderPoint {
 
 export const ScatterLabelFontFamily = "Arial, sans-serif"
 
-export interface ScatterRenderSeries {
-    seriesName: SeriesName
+export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
-    color: string
     size: number
     points: ScatterRenderPoint[]
     text: string
@@ -91,7 +88,7 @@ export interface ScatterLabel {
     text: string
     fontSize: number
     fontWeight: number
-    color: string
+    color: Color
     bounds: Bounds
     series: ScatterRenderSeries
     isHidden?: boolean

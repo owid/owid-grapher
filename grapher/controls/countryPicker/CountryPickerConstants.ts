@@ -11,8 +11,5 @@ export interface CountryPickerManager {
     analytics?: Analytics
     countryPickerTable: OwidTable
     selectionArray: SelectionArray
-    entityColorMap?: {
-        [entityName: string]: Color | undefined
-    }
     analyticsNamespace?: string
 }

@@ -1,3 +1,4 @@
+import { Color } from "coreTable/CoreTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { SeriesName } from "grapher/core/GrapherConstants"
 
@@ -5,8 +6,9 @@ import { SeriesName } from "grapher/core/GrapherConstants"
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
 // this interface.
 
-interface ChartSeries {
+export interface ChartSeries {
     seriesName: SeriesName
+    color: Color
 }
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable

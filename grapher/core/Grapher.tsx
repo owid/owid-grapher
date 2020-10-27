@@ -46,6 +46,7 @@ import {
     CookieKey,
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
+    SeriesColorMap,
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -158,9 +159,9 @@ const legacyConfigToConfig = (
     if (!legacyConfig.selectedData) return legacyConfig
 
     const newConfig = { ...legacyConfig } as GrapherInterface
-    newConfig.selectedEntityIds = legacyConfig.selectedData.map(
-        (row) => row.entityId
-    )
+    newConfig.selectedEntityIds = uniq(
+        legacyConfig.selectedData.map((row) => row.entityId)
+    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
     return newConfig
 }
 
@@ -718,6 +719,9 @@ export class Grapher
     @computed get endHandleTimeBound(): TimeBound {
         return this.timelineHandleTimeBounds[1]
     }
+
+    // Keeps a running cache of series colors at the Grapher level.
+    seriesColorMap: SeriesColorMap = new Map()
 
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)

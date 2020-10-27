@@ -23,6 +23,8 @@ import {
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 
+const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
+
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
@@ -134,6 +136,7 @@ export class FacetChart
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             return {
                 seriesName,
+                color: facetBackgroundColor,
                 manager: {
                     table: this.inputTable.filterByEntityNames([seriesName]),
                     selection: [seriesName],
@@ -150,6 +153,7 @@ export class FacetChart
         return this.yColumns.map((col) => {
             return {
                 seriesName: col.displayName,
+                color: facetBackgroundColor,
                 manager: {
                     selection: this.selectionArray,
                     yColumnSlug: col.slug,
@@ -164,6 +168,7 @@ export class FacetChart
         return this.yColumns.map((col) => {
             return {
                 chartTypeName: ChartTypeName.WorldMap,
+                color: facetBackgroundColor,
                 seriesName: col.displayName,
                 manager: {
                     yColumnSlug: col.slug,

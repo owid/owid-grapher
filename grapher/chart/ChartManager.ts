@@ -3,6 +3,7 @@ import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
+    SeriesColorMap,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
@@ -53,6 +54,8 @@ export interface ChartManager {
 
     selection?: SelectionArray | EntityName[]
     selectedColumnSlugs?: ColumnSlug[]
+
+    seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options
     lineStrokeWidth?: number

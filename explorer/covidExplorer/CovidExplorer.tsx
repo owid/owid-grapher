@@ -14,8 +14,6 @@ import {
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import {
-    pick,
-    lastOfNonEmptyArray,
     capitalize,
     mergeQueryStr,
     startCase,
@@ -39,7 +37,6 @@ import {
     ColorScaleOptions,
     CovidCountryPickerSlugs,
 } from "./CovidConstants"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes,
@@ -59,7 +56,6 @@ import {
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 import { queryParamsToStr } from "utils/client/url"
 import {
-    getLeastUsedColor,
     fetchRequiredData,
     perCapitaDivisorByMetric,
     sampleMegaCsv,
@@ -76,7 +72,6 @@ import {
     ExplorerContainerId,
 } from "explorer/client/ExplorerConstants"
 import {
-    Color,
     ColumnSlug,
     CoreColumnDef,
     CsvString,
@@ -384,10 +379,6 @@ export class CovidExplorer
 
     analyticsNamespace = this.explorerSlug
 
-    @computed get entityColorMap() {
-        return this.countryNameToColorMap
-    }
-
     @computed get countryPickerTable() {
         return this.tableForSelection
     }
@@ -530,36 +521,6 @@ export class CovidExplorer
         if (params.testsMetric)
             return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on ourworldindata.org/covid-testing."
         return ""
-    }
-
-    private _countryNameToColorMapCache: {
-        [entityName: string]: Color | undefined
-    } = {}
-
-    @computed private get countryNameToColorMap(): {
-        [entityName: string]: Color | undefined
-    } {
-        const names = this.selectionArray.selectedEntityNames
-        // If there isn't a color for every country name, we will need to update the color map
-        if (names.every((name) => name in this._countryNameToColorMapCache))
-            return this._countryNameToColorMapCache
-
-        // Omit any unselected country names from color map
-        const newColorMap = pick(this._countryNameToColorMapCache, names)
-        // Check for name *key* existence, not value.
-        // `undefined` value means we want the color to be automatic, determined by the chart.
-        const namesWithoutColor = names.filter((name) => !(name in newColorMap))
-        // For names that don't have a color, assign one.
-        namesWithoutColor.forEach((name) => {
-            const scheme = ColorSchemes["owid-distinct"]
-            const availableColors = lastOfNonEmptyArray(scheme.colorSets)
-            const usedColors = Object.values(newColorMap).filter(isPresent)
-            newColorMap[name] = getLeastUsedColor(availableColors, usedColors)
-        })
-        // Update the country color map cache
-        this._countryNameToColorMapCache = newColorMap
-
-        return this._countryNameToColorMapCache
     }
 
     private renderControlsThenUpdateGrapher() {

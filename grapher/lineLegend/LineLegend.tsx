@@ -16,8 +16,8 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
 import { EntityName } from "coreTable/OwidTableConstants"
-import { Color } from "coreTable/CoreTableConstants"
-import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -26,10 +26,8 @@ const MARKER_MARGIN = 4
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 
-export interface LineLabelSeries {
-    seriesName: SeriesName
+export interface LineLabelSeries extends ChartSeries {
     label: string
-    color: Color
     yValue: number
     annotation?: string
     yRange?: [number, number]

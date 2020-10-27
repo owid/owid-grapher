@@ -1,12 +1,10 @@
 import { ChartManager } from "grapher/chart/ChartManager"
-import { SeriesName } from "grapher/core/GrapherConstants"
-import { Color, Time } from "coreTable/CoreTableConstants"
+import { Time } from "coreTable/CoreTableConstants"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
-export interface DiscreteBarSeries {
-    seriesName: SeriesName
+export interface DiscreteBarSeries extends ChartSeries {
     value: number
     time: Time
-    color: Color
 }
 
 export interface DiscreteBarChartManager extends ChartManager {

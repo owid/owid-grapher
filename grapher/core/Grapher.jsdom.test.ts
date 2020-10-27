@@ -17,6 +17,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
+import { orderBy } from "grapher/utils/Util"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -247,6 +248,12 @@ describe("line chart to bar chart and bar chart race", () => {
 
     describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
         const grapher = new Grapher(TestGrapherConfig())
+        const lineSeries = grapher.chartInstance.series
+
+        expect(
+            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        ).toEqual(ChartTypeName.LineChart)
+
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
         expect(
@@ -255,6 +262,17 @@ describe("line chart to bar chart and bar chart race", () => {
 
         it("still has a timeline even though its now a bar chart", () => {
             expect(grapher.hasTimeline).toBe(true)
+        })
+
+        it("keeps same series colors when it switches from line chart to bar chart", () => {
+            const barSeries = grapher.chartInstance.series
+            const barColors = orderBy(barSeries, "seriesName").map(
+                (series) => series.color
+            )
+            const linecolors = orderBy(lineSeries, "seriesName").map(
+                (series) => series.color
+            )
+            expect(barColors).toEqual(linecolors)
         })
     })
 

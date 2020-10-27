@@ -1,6 +1,7 @@
 import { CoreColumn } from "coreTable/CoreTableColumns"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { ScaleType, SeriesName } from "grapher/core/GrapherConstants"
+import { ScaleType } from "grapher/core/GrapherConstants"
 import { TextWrap } from "grapher/text/TextWrap"
 import { Bounds } from "grapher/utils/Bounds"
 
@@ -9,23 +10,19 @@ export interface SlopeChartValue {
     y: number
 }
 
-export interface SlopeChartSeries {
-    seriesName: SeriesName
-    color: string
+export interface SlopeChartSeries extends ChartSeries {
     size: number
     values: SlopeChartValue[]
 }
 
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
-export interface SlopeProps {
-    seriesName: SeriesName
+export interface SlopeProps extends ChartSeries {
     isLayerMode: boolean
     x1: number
     y1: number
     x2: number
     y2: number
-    color: string
     size: number
     hasLeftLabel: boolean
     hasRightLabel: boolean

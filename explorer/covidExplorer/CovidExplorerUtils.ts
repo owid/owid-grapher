@@ -266,26 +266,6 @@ export const fetchRequiredData = async () => {
 export const perCapitaDivisorByMetric = (metric: MetricOptions) =>
     metric === MetricOptions.tests ? 1e3 : 1e6
 
-export function getLeastUsedColor(
-    availableColors: string[],
-    usedColors: string[]
-) {
-    // If there are unused colors, return the first available
-    const unusedColors = difference(availableColors, usedColors)
-    if (unusedColors.length > 0) return unusedColors[0]
-
-    // If all colors are used, we want to count the times each color is used, and use the most
-    // unused one.
-    const colorCounts = Object.entries(
-        groupBy(usedColors)
-    ).map(([color, arr]) => [color, arr.length])
-    const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
-        string,
-        number
-    ]
-    return mostUnusedColor[0]
-}
-
 export const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
 1000,ABW,Aruba,North America,2020-03-13,2,2,0,0,18.733,18.733,0.0,0.0,,,,,
 1000,ABW,Aruba,North America,2020-03-20,4,2,0,0,37.465,18.733,0.0,0.0,,,,,

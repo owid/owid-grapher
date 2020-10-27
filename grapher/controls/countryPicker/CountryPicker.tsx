@@ -443,7 +443,6 @@ export class CountryPicker extends React.Component<{
         const entities = this.searchResults
         const selectedEntityNames = this.selectionArray.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
-        const colorMap = this.manager.entityColorMap || {}
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
@@ -511,7 +510,6 @@ export class CountryPicker extends React.Component<{
                                             optionWithMetricValue={option}
                                             highlight={this.highlightLabel}
                                             barScale={this.barScale}
-                                            color={colorMap[option.entityName]}
                                             onChange={this.selectEntity}
                                             onHover={() => this.onHover(index)}
                                             isSelected={this.isSelected(option)}
@@ -557,7 +555,6 @@ interface CountryOptionProps {
     isFocused?: boolean
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>
-    color?: string
     hasDataForActiveMetric: boolean
 }
 

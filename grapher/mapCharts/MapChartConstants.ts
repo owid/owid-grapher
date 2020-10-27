@@ -4,8 +4,9 @@ import { PointVector } from "grapher/utils/PointVector"
 import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
-import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
+import { Color, ColumnSlug, Time } from "coreTable/CoreTableConstants"
 import { SeriesName } from "grapher/core/GrapherConstants"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -19,14 +20,12 @@ export interface MapEntity {
           }
 }
 
-export interface ChoroplethSeries {
-    seriesName: SeriesName
+export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     displayValue: string
     time: number
     isSelected?: boolean
-    color: string
-    highlightFillColor: string
+    highlightFillColor: Color
 }
 
 export interface ChoroplethMapProps {

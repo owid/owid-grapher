@@ -1,18 +1,16 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { SeriesName } from "grapher/core/GrapherConstants"
-import { Color } from "coreTable/CoreTableConstants"
 import { PointVector } from "grapher/utils/PointVector"
 import { TimeBound } from "grapher/utils/TimeBounds"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
 interface LinePoint {
     x: number
     y: number
 }
 
-export interface LineChartSeries {
-    seriesName: SeriesName
-    color: Color
+export interface LineChartSeries extends ChartSeries {
     isProjection?: boolean
     points: LinePoint[]
 }

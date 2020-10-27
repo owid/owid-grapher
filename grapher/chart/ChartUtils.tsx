@@ -1,4 +1,4 @@
-import { Box } from "grapher/core/GrapherConstants"
+import { Box, SeriesStrategy } from "grapher/core/GrapherConstants"
 import { SelectionArray } from "grapher/core/SelectionArray"
 import React from "react"
 import { ChartManager } from "./ChartManager"
@@ -8,6 +8,14 @@ export const autoDetectYColumnSlugs = (manager: ChartManager) => {
         return manager.yColumnSlugs
     if (manager.yColumnSlug) return [manager.yColumnSlug]
     return manager.table.numericColumnSlugs
+}
+
+export const autoDetectSeriesStrategy = (manager: ChartManager) => {
+    if (manager.seriesStrategy) return manager.seriesStrategy
+
+    return autoDetectYColumnSlugs(manager).length > 1
+        ? SeriesStrategy.column
+        : SeriesStrategy.entity
 }
 
 export const makeClipPath = (renderUid: number, box: Box) => {

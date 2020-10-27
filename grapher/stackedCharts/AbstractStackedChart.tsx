@@ -15,6 +15,7 @@ import React from "react"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import {
+    autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
@@ -113,13 +114,8 @@ export class AbstactStackedChart
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    // It seems we have 2 types of StackedAreas. If only 1 column, we stack
-    // the entities, and have one series per entity. If 2+ columns, we stack the columns
-    // and have 1 series per column.
     @computed get seriesStrategy() {
-        return this.manager.seriesStrategy || this.yColumnSlugs.length > 1
-            ? SeriesStrategy.column
-            : SeriesStrategy.entity
+        return autoDetectSeriesStrategy(this.manager)
     }
 
     @computed protected get dualAxis() {

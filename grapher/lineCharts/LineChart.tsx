@@ -32,7 +32,6 @@ import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
-    SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
@@ -45,6 +44,7 @@ import {
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "coreTable/OwidTable"
 import {
+    autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
@@ -613,12 +613,7 @@ export class LineChart
     }
 
     @computed get seriesStrategy() {
-        return (
-            this.manager.seriesStrategy ||
-            (this.yColumns.length > 1
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
-        )
+        return autoDetectSeriesStrategy(this.manager)
     }
 
     @computed get isLogScale() {
@@ -632,7 +627,12 @@ export class LineChart
             )
         )
 
-        this._addColorsToSeries(arrOfSeries)
+        this.colorScheme.assignColors(
+            arrOfSeries,
+            this.manager.invertColorScheme,
+            this.inputTable.entityNameColorIndex,
+            this.manager.seriesColorMap
+        )
         return arrOfSeries
     }
 
@@ -655,21 +655,6 @@ export class LineChart
                         )
                 ),
             }
-        })
-    }
-
-    private _addColorsToSeries(allSeries: LineChartSeries[]) {
-        // Color from lowest to highest
-        const sorted = sortBy(allSeries, (series) => last(series.points)!.y)
-
-        const colors = this.colorScheme.getColors(sorted.length)
-        if (this.manager.invertColorScheme) colors.reverse()
-
-        const table = this.inputTable
-
-        sorted.forEach((series, i) => {
-            series.color =
-                table.getColorForEntityName(series.seriesName) ?? colors[i]
         })
     }
 

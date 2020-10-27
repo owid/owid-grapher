@@ -3,21 +3,8 @@
 import { InvalidCell, InvalidCellTypes } from "coreTable/InvalidCells"
 import {
     computeRollingAverage,
-    getLeastUsedColor,
     insertMissingValuePlaceholders,
 } from "./CovidExplorerUtils"
-
-describe(getLeastUsedColor, () => {
-    it("returns unused color", () => {
-        expect(getLeastUsedColor(["red", "green"], ["red"])).toEqual("green")
-    })
-
-    it("returns least used color", () => {
-        expect(
-            getLeastUsedColor(["red", "green"], ["red", "green", "green"])
-        ).toEqual("red")
-    })
-})
 
 describe(insertMissingValuePlaceholders, () => {
     const testCases = [

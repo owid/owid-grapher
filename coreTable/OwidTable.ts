@@ -433,7 +433,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    @imemo private get entityNameColorIndex() {
+    @imemo get entityNameColorIndex() {
         return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityColor

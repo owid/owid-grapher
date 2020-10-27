@@ -1,4 +1,5 @@
-import { SeriesName } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 
 export interface StackedPoint {
     x: number
@@ -7,9 +8,7 @@ export interface StackedPoint {
     fake?: boolean
 }
 
-export interface StackedSeries {
-    seriesName: SeriesName
+export interface StackedSeries extends ChartSeries {
     points: StackedPoint[]
-    color: string
     isProjection?: boolean
 }

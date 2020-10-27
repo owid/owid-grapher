@@ -1,3 +1,5 @@
+import { Color } from "coreTable/CoreTableConstants"
+
 export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
@@ -44,6 +46,8 @@ export enum SeriesStrategy {
 }
 
 export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
+
+export type SeriesColorMap = Map<SeriesName, Color>
 
 export enum GrapherTabOption {
     chart = "chart",

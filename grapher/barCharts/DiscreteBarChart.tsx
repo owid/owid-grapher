@@ -417,25 +417,11 @@ export class DiscreteBarChart
 
     @computed private get seriesStrategy() {
         return (
-            this.manager.seriesStrategy ||
+            this.manager.seriesStrategy ??
             (this.yColumnSlugs.length > 1 &&
             this.selectionArray.numSelectedEntities === 1
                 ? SeriesStrategy.column
                 : SeriesStrategy.entity)
-        )
-    }
-
-    @computed private get valuesToColorsMap() {
-        const { manager } = this
-        const colorScheme = manager.baseColorScheme
-            ? ColorSchemes[manager.baseColorScheme]
-            : undefined
-        if (!colorScheme) return undefined
-
-        // todo: Restore if derived from line chart, use line chart colors
-        return colorScheme.getUniqValueColorMap(
-            uniq(this.sortedRawSeries.map((series) => series.row.value)),
-            manager.invertColorScheme
         )
     }
 
@@ -477,8 +463,26 @@ export class DiscreteBarChart
         return sortBy(raw, (series) => series.row.value)
     }
 
+    @computed private get valuesToColorsMap() {
+        const { manager } = this
+        const colorScheme = manager.baseColorScheme
+            ? ColorSchemes[manager.baseColorScheme]
+            : undefined
+        if (!colorScheme) return undefined
+
+        // todo: Restore if derived from line chart, use line chart colors
+        return colorScheme.getUniqValueColorMap(
+            uniq(this.sortedRawSeries.map((series) => series.row.value)),
+            manager.invertColorScheme
+        )
+    }
+
+    @computed private get seriesColorMap() {
+        return this.manager.seriesColorMap || new Map()
+    }
+
     @computed get series() {
-        const { valuesToColorsMap } = this
+        const { valuesToColorsMap, seriesColorMap } = this
         return this.sortedRawSeries.reverse().map((rawSeries) => {
             const { row, seriesName, color } = rawSeries
             const series: DiscreteBarSeries = {
@@ -486,6 +490,7 @@ export class DiscreteBarChart
                 seriesName,
                 color:
                     color ??
+                    seriesColorMap.get(seriesName) ??
                     valuesToColorsMap?.get(row.value) ??
                     DEFAULT_BAR_COLOR,
             }

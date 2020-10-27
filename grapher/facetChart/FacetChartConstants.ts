@@ -1,6 +1,6 @@
-import { OwidTable } from "coreTable/OwidTable"
+import { ChartSeries } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { ChartTypeName, SeriesName } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 
 export interface FacetChartProps {
@@ -9,8 +9,7 @@ export interface FacetChartProps {
     manager: ChartManager
 }
 
-export interface FacetSeries {
-    seriesName: SeriesName
+export interface FacetSeries extends ChartSeries {
     manager: Partial<ChartManager>
     chartTypeName?: ChartTypeName
 }
