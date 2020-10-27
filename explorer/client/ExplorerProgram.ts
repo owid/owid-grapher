@@ -1,7 +1,6 @@
 import {
     trimGrid,
     detectDelimiter,
-    uniq,
     parseDelimited,
     isCellEmpty,
     trimObject,
@@ -47,10 +46,10 @@ export enum ProgramKeyword {
 }
 
 export class ExplorerProgram {
-    constructor(slug: string, tsv: string, queryString: string = "") {
+    constructor(slug: string, tsv: string, queryString = "") {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
-        queryString = queryString ? queryString : this.defaultView || ""
+        queryString = (queryString ? queryString : this.defaultView) ?? ""
         this.switcherRuntime = new SwitcherRuntime(
             this.switcherCode || "",
             queryString
@@ -101,7 +100,7 @@ ${ProgramKeyword.switcher}
 
     private setLineValue(key: ProgramKeyword, value: string | undefined) {
         const index = this.getLineIndex(key)
-        const newLine = key + this.cellDelimiter + value
+        const newLine = `${key}${this.cellDelimiter}${value}`
         if (index === -1 && value !== undefined) this.lines.push(newLine)
         else if (value === undefined) this.lines = this.lines.splice(index, 1)
         else this.lines[index] = newLine
@@ -203,6 +202,7 @@ ${ProgramKeyword.switcher}
     }
 
     get defaultView(): string | undefined {
+        // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
         return this.getLineValue(ProgramKeyword.defaultView)
     }
 
