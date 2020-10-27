@@ -199,6 +199,23 @@ testPageRouter.get("/embeds", async (req, res) => {
         tab = "map"
     }
 
+    if (req.query.mixedTimeTypes) {
+        query.andWhere(
+            `
+            (
+                SELECT COUNT(DISTINCT CASE
+                    WHEN variables.display->"$.yearIsDay" IS NULL
+                    THEN "year"
+                    ELSE "day"
+                END) as timeTypeCount
+                FROM variables
+                JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE chart_dimensions.chartId = charts.id
+            ) >= 2
+        `
+        )
+    }
+
     if (req.query.ids) {
         query = query.andWhere(`charts.id IN (${req.query.ids})`)
     }
