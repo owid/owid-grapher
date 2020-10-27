@@ -553,3 +553,29 @@ describe("tolerance", () => {
         )
     })
 })
+
+it("assigns originalTime as 'time' in owidRows", () => {
+    const csv = `gdp,year,entityName,entityId,entityCode
+1000,2019,USA,,
+1001,2020,UK,,`
+    const table = new OwidTable(csv).interpolateColumnWithTolerance("gdp", 1)
+    const owidRows = table.get("gdp")!.owidRows
+    expect(owidRows).toEqual(
+        expect.not.arrayContaining([
+            expect.objectContaining({
+                entityName: "USA",
+                time: 2020,
+                value: 1000,
+            }),
+        ])
+    )
+    expect(owidRows).toEqual(
+        expect.not.arrayContaining([
+            expect.objectContaining({
+                entityName: "UK",
+                time: 2019,
+                value: 1001,
+            }),
+        ])
+    )
+})

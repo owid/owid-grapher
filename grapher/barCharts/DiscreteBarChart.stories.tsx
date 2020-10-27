@@ -31,6 +31,34 @@ export const EntitiesAsSeries = () => {
     )
 }
 
+export const EntitiesAsSeriesWithTolerance = () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2009, 2011],
+        entityCount: 10,
+    })
+        .rowFilter(
+            (row) => row.year === 2010 || Math.random() > 0.5,
+            "Remove 50% of 2009 rows"
+        )
+        .interpolateColumnWithTolerance(SampleColumnSlugs.Population, 1)
+        .filterByTargetTimes([2009])
+
+    const manager: DiscreteBarChartManager = {
+        table,
+        // Pass transformed table to avoid applying tolerance again in transformTable()
+        transformedTable: table,
+        selection: table.availableEntityNames,
+        yColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2009,
+    }
+
+    return (
+        <svg width={600} height={600}>
+            <DiscreteBarChart manager={manager} />
+        </svg>
+    )
+}
+
 export const ColumnsAsSeries = () => {
     const table = SynthesizeFruitTable({ entityCount: 1 })
     const manager: DiscreteBarChartManager = {

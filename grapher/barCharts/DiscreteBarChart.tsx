@@ -396,7 +396,7 @@ export class DiscreteBarChart
             : ""
     }
 
-    private formatValue(series: DiscreteBarSeries) {
+    formatValue(series: DiscreteBarSeries) {
         const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { transformedTable } = this
 

@@ -13,6 +13,7 @@ import {
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
 import { SelectionArray } from "grapher/core/SelectionArray"
+import { OwidTable } from "coreTable/OwidTable"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -89,5 +90,27 @@ describe("barcharts with columns as the series", () => {
         })
 
         expect(chart.series.length).toEqual(1)
+    })
+
+    it("displays interpolated date when value is not from current year", () => {
+        const csv = `gdp,year,entityName,entityCode,entityId
+        1000,2019,USA,,
+        1001,2019,UK,,
+        1002,2020,UK,,`
+
+        const table = new OwidTable(csv)
+            .interpolateColumnWithTolerance("gdp", 1)
+            .filterByTargetTimes([2020])
+        const chart = new DiscreteBarChart({
+            manager: {
+                table,
+                transformedTable: table,
+                seriesStrategy: SeriesStrategy.entity,
+                yColumnSlugs: ["gdp"],
+                endTime: 2020,
+            },
+        })
+        expect(chart.formatValue(chart.series[0])).toEqual("1,002")
+        expect(chart.formatValue(chart.series[1])).toEqual("1,000 (2019)")
     })
 })
