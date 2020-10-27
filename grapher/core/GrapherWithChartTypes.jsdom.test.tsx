@@ -30,8 +30,10 @@ describe("grapher and map charts", () => {
     })
 })
 
+const table = SynthesizeGDPTable({ entityCount: 10 })
 const basicGrapherConfig: GrapherProgrammaticInterface = {
-    table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
+    table,
+    selectedEntityNames: table.sampleEntityName(5),
     dimensions: [
         {
             slug: SampleColumnSlugs.GDP,

@@ -16,10 +16,11 @@ export const EntitiesAsSeries = () => {
     const table = SynthesizeGDPTable({
         timeRange: [2009, 2010],
         entityCount: 10,
-    }).selectAll()
+    })
 
     const manager: DiscreteBarChartManager = {
         table,
+        selection: table.availableEntityNames,
         yColumnSlug: SampleColumnSlugs.Population,
     }
 
@@ -31,9 +32,10 @@ export const EntitiesAsSeries = () => {
 }
 
 export const ColumnsAsSeries = () => {
-    const table = SynthesizeFruitTable({ entityCount: 1 }).selectAll()
+    const table = SynthesizeFruitTable({ entityCount: 1 })
     const manager: DiscreteBarChartManager = {
         table,
+        selection: table.availableEntityNames,
     }
 
     return (

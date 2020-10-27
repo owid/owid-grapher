@@ -7,7 +7,6 @@ import { Spreadsheet } from "./Spreadsheet"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { OwidTable } from "coreTable/OwidTable"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 
@@ -20,9 +19,7 @@ const getRandomTable = () =>
     SynthesizeGDPTable({
         entityCount: 2,
         timeRange: [2020, 2024],
-    })
-        .dropColumns([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
-        .selectAll() as OwidTable
+    }).dropColumns([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
 
 @observer
 class Editor extends React.Component {

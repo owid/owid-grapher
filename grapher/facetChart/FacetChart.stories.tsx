@@ -20,10 +20,12 @@ export default CSF
 const bounds = new Bounds(0, 0, 1000, 500)
 
 export const OneMetricOneCountryPerChart = () => {
+    const table = SynthesizeGDPTable({
+        entityCount: 4,
+    })
     const manager = {
-        table: SynthesizeGDPTable({
-            entityCount: 4,
-        }).selectAll(),
+        table,
+        selection: table.availableEntityNames,
         yColumnSlug: SampleColumnSlugs.GDP,
         xColumnSlug: SampleColumnSlugs.Population,
     }
@@ -40,15 +42,17 @@ export const OneMetricOneCountryPerChart = () => {
 }
 
 export const MultipleMetricsOneCountryPerChart = () => {
+    const table = SynthesizeFruitTable({
+        entityCount: 4,
+    })
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
                 chartTypeName={ChartTypeName.LineChart}
                 manager={{
-                    table: SynthesizeFruitTable({
-                        entityCount: 4,
-                    }).selectAll(),
+                    selection: table.availableEntityNames,
+                    table,
                 }}
             />
         </svg>
@@ -58,7 +62,7 @@ export const MultipleMetricsOneCountryPerChart = () => {
 export const OneChartPerMetric = () => {
     const table = SynthesizeGDPTable({
         entityCount: 2,
-    }).selectAll()
+    })
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
@@ -67,6 +71,7 @@ export const OneChartPerMetric = () => {
                 manager={{
                     facetStrategy: FacetStrategy.column,
                     yColumnSlugs: table.numericColumnSlugs,
+                    selection: table.availableEntityNames,
                     table,
                 }}
             />

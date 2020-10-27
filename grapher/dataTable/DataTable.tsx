@@ -25,6 +25,7 @@ import { Tippy } from "grapher/chart/Tippy"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { makeSelectionArray } from "grapher/chart/ChartUtils"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -445,11 +446,16 @@ export class DataTable extends React.Component<{
         )
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     @computed private get entityNames() {
         let tableForEntities = this.table.rootTable
         if (this.manager.minPopulationFilter)
-            tableForEntities = tableForEntities.filterByPopulation(
-                this.manager.minPopulationFilter
+            tableForEntities = tableForEntities.filterByPopulationExcept(
+                this.manager.minPopulationFilter,
+                this.selectionArray.selectedEntityNames
             )
         return union(
             ...this.columnsToShow.map(

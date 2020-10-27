@@ -12,19 +12,24 @@ import {
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
-
+    const selection = new SelectionArray({
+        availableEntities: table.availableEntities,
+        selectedEntityNames: [],
+    })
     const manager: DiscreteBarChartManager = {
         table,
+        selection,
         yColumnSlug: SampleColumnSlugs.Population,
         endTime: 2000,
     }
     const chart = new DiscreteBarChart({ manager })
 
     expect(chart.failMessage).toBeTruthy()
-    table.selectAll()
+    selection.selectAll()
     expect(chart.failMessage).toEqual("")
 
     const series = chart.series
@@ -33,9 +38,11 @@ it("can create a new bar chart", () => {
 })
 
 describe("barcharts with columns as the series", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     const manager: DiscreteBarChartManager = {
-        table: SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectSample(1),
+        table,
         yColumnSlugs: [SampleColumnSlugs.Population, SampleColumnSlugs.GDP],
+        selection: table.sampleEntityName(1),
     }
     const chart = new DiscreteBarChart({ manager })
 
@@ -48,6 +55,10 @@ describe("barcharts with columns as the series", () => {
     })
 
     it("can filter a series when there are no points (column strategy)", () => {
+        const table = SynthesizeFruitTable({
+            entityCount: 1,
+            timeRange: [2000, 2001],
+        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
         const chart = new DiscreteBarChart({
             manager: {
                 seriesStrategy: SeriesStrategy.column,
@@ -55,12 +66,8 @@ describe("barcharts with columns as the series", () => {
                     SampleColumnSlugs.Fruit,
                     SampleColumnSlugs.Vegetables,
                 ],
-                table: SynthesizeFruitTable({
-                    entityCount: 1,
-                    timeRange: [2000, 2001],
-                })
-                    .selectSample(1)
-                    .replaceRandomCells(1, [SampleColumnSlugs.Fruit]),
+                selection: table.sampleEntityName(1),
+                table,
             },
         })
 
@@ -68,16 +75,16 @@ describe("barcharts with columns as the series", () => {
     })
 
     it("can filter a series when there are no points (entity strategy)", () => {
+        const table = SynthesizeFruitTable({
+            entityCount: 2,
+            timeRange: [2000, 2001],
+        }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
         const chart = new DiscreteBarChart({
             manager: {
                 seriesStrategy: SeriesStrategy.entity,
                 yColumnSlugs: [SampleColumnSlugs.Fruit],
-                table: SynthesizeFruitTable({
-                    entityCount: 2,
-                    timeRange: [2000, 2001],
-                })
-                    .selectSample(2)
-                    .replaceRandomCells(1, [SampleColumnSlugs.Fruit]),
+                selection: table.sampleEntityName(2),
+                table,
             },
         })
 

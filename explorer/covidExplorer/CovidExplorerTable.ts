@@ -243,7 +243,8 @@ export class CovidExplorerTable extends OwidTable {
         })
     }
 
-    filterRegionsUnlessSelected() {
+    filterRegionsExcept(selectedEntityNames: string[]) {
+        const set = new Set(selectedEntityNames)
         const groupNames = new Set(
             Object.keys(ContinentColors).concat(
                 "European Union",
@@ -256,7 +257,7 @@ export class CovidExplorerTable extends OwidTable {
             OwidTableSlugs.entityName,
             (value) => {
                 const name = value as string
-                return groupNames.has(name) ? this.isEntitySelected(name) : true
+                return groupNames.has(name) ? set.has(name) : true
             },
             `Filter out regions unless selected`
         )

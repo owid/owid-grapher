@@ -23,6 +23,7 @@ import {
 import { OwidRow } from "coreTable/OwidTableConstants"
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -35,7 +36,11 @@ export interface SwitcherExplorerProps {
 @observer
 export class SwitcherExplorer
     extends React.Component<SwitcherExplorerProps>
-    implements ObservableUrl, SlideShowManager, CountryPickerManager {
+    implements
+        ObservableUrl,
+        SlideShowManager,
+        CountryPickerManager,
+        SelectionManager {
     static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
@@ -56,11 +61,17 @@ export class SwitcherExplorer
 
     @observable hideControls = false
 
+    selectionArray = new SelectionArray(this)
+    @observable selectedEntityNames = []
+    @computed get availableEntities() {
+        return this.countryPickerTable.availableEntities
+    }
+
     @computed get params(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
         params.country = EntityUrlBuilder.entitiesToQueryParam(
-            this.countryPickerTable.selectedEntityNames
+            this.selectionArray.selectedEntityNames
         )
         return params as QueryParams
     }
@@ -94,8 +105,8 @@ export class SwitcherExplorer
             missingEntities,
             `Added ${missingEntities.length} entity names to Country Picker`
         ) as OwidTable
-        this.countryPickerTable.addToSelection(
-            this.grapher.inputTable.selectedEntityNames
+        this.selectionArray.addToSelection(
+            this.grapher.selection.selectedEntityNames
         )
     }
 
@@ -116,7 +127,7 @@ export class SwitcherExplorer
         )
 
         autorun(() => {
-            this.updateSelection(this.countryPickerTable.selectedEntityNames)
+            this.updateSelection(this.selectionArray.selectedEntityNames)
         })
 
         exposeInstanceOnWindow(this, "switcherExplorer")
@@ -125,7 +136,7 @@ export class SwitcherExplorer
     @action.bound private updateSelection(entityNames: string[]) {
         if (!this.countryPickerTable.numRows) return
         if (this.grapher)
-            this.grapher.inputTable.setSelectedEntities(entityNames)
+            this.grapher.selection.setSelectedEntities(entityNames)
     }
 
     @action.bound private updateGrapher(newGrapherId: number) {

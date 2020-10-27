@@ -87,6 +87,7 @@ import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { Timer } from "coreTable/CoreTableUtils"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -118,7 +119,11 @@ interface CovidExplorerProps {
 @observer
 export class CovidExplorer
     extends React.Component<CovidExplorerProps>
-    implements ObservableUrl, SlideShowManager, CountryPickerManager {
+    implements
+        ObservableUrl,
+        SlideShowManager,
+        CountryPickerManager,
+        SelectionManager {
     static async createCovidExplorerAndRenderToDom(props: BootstrapProps) {
         const { megaCsv, updated, covidMeta } = await fetchRequiredData()
         return ReactDOM.render(
@@ -134,6 +139,12 @@ export class CovidExplorer
             />,
             props.containerNode
         )
+    }
+
+    selectionArray = new SelectionArray(this)
+    @observable selectedEntityNames = []
+    @computed get availableEntities() {
+        return this.countryPickerTable.availableEntities
     }
 
     static async replaceStateAndCreateCovidExplorerAndRenderToDom(
@@ -528,7 +539,7 @@ export class CovidExplorer
     @computed private get countryNameToColorMap(): {
         [entityName: string]: Color | undefined
     } {
-        const names = this.tableForSelection.selectedEntityNames
+        const names = this.selectionArray.selectedEntityNames
         // If there isn't a color for every country name, we will need to update the color map
         if (names.every((name) => name in this._countryNameToColorMapCache))
             return this._countryNameToColorMapCache
@@ -623,7 +634,10 @@ export class CovidExplorer
 
         if (shouldFilterNegatives)
             table = table.filterNegatives(params.yColumnSlug)
-        if (shouldFilterGroups) table = table.filterRegionsUnlessSelected()
+        if (shouldFilterGroups)
+            table = table.filterRegionsExcept(
+                this.selectionArray.selectedEntityNames
+            )
         return table
     }
 
@@ -669,7 +683,7 @@ export class CovidExplorer
             this
         )
 
-        this.tableForSelection.setSelectedEntitiesByCode(
+        this.selectionArray.setSelectedEntitiesByCode(
             Array.from(this.writeableParams.selectedCountryCodes.values())
         )
         this.updateGrapher()
@@ -677,14 +691,14 @@ export class CovidExplorer
         exposeInstanceOnWindow(this, "covidExplorer")
 
         autorun(() => {
-            this.updateSelection(this.countryPickerTable.selectedEntityNames)
+            this.updateSelection(this.selectionArray.selectedEntityNames)
         })
     }
 
     @action.bound private updateSelection(entityNames: string[]) {
         if (!this.countryPickerTable.numRows) return
         if (this.grapher)
-            this.grapher.inputTable.setSelectedEntities(entityNames)
+            this.grapher.selection.setSelectedEntities(entityNames)
     }
 
     private observeGlobalEntitySelection() {

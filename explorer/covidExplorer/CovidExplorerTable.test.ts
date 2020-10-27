@@ -162,19 +162,16 @@ it("can filter rows without continent", () => {
     let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
     expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 
-    table = table.filterRegionsUnlessSelected()
+    table = table.filterRegionsExcept([])
     expect(table.availableEntityNameSet.has(WorldEntityName)).toBeFalsy()
     expect(table.availableEntityNameSet.has("Aruba")).toBeTruthy()
 
-    table.mainTable.selectEntity(WorldEntityName)
-    table = table.mainTable.filterRegionsUnlessSelected()
+    table = table.mainTable.filterRegionsExcept([WorldEntityName])
     expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 
-    table.mainTable.deselectEntity(WorldEntityName)
-    table = table.mainTable.filterRegionsUnlessSelected()
+    table = table.mainTable.filterRegionsExcept([])
     expect(table.availableEntityNameSet.has(WorldEntityName)).toBeFalsy()
 
-    table.mainTable.setSelectedEntities([WorldEntityName])
-    table = table.mainTable.filterRegionsUnlessSelected()
+    table = table.mainTable.filterRegionsExcept([WorldEntityName])
     expect(table.availableEntityNameSet.has(WorldEntityName)).toBeTruthy()
 })

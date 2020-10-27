@@ -5,7 +5,7 @@ import { uniqBy, isTouchDevice, sortBy } from "grapher/utils/Util"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { OwidTable } from "coreTable/OwidTable"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 interface SearchableEntity {
     name: string
@@ -13,7 +13,7 @@ interface SearchableEntity {
 
 @observer
 class EntitySelectorMulti extends React.Component<{
-    table: OwidTable
+    selectionArray: SelectionArray
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -22,7 +22,7 @@ class EntitySelectorMulti extends React.Component<{
     dismissable: boolean = true
 
     @computed get availableEntities() {
-        return this.props.table.availableEntityNames
+        return this.props.selectionArray.availableEntityNames
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
@@ -64,20 +64,20 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.table.selectEntity(this.searchResults[0].name)
+            this.props.selectionArray.selectEntity(this.searchResults[0].name)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
-        this.props.table.clearSelection()
+        this.props.selectionArray.clearSelection()
     }
 
     render() {
-        const { table } = this.props
+        const { selectionArray } = this.props
         const { searchResults, searchInput } = this
 
-        const selectedEntityNames = table.selectedEntityNames
+        const selectedEntityNames = selectionArray.selectedEntityNames
 
         return (
             <div className="entitySelectorOverlay">
@@ -111,11 +111,11 @@ class EntitySelectorMulti extends React.Component<{
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
-                                                    checked={table.isEntitySelected(
+                                                    checked={selectionArray.selectedSet.has(
                                                         result.name
                                                     )}
                                                     onChange={() =>
-                                                        table.toggleSelection(
+                                                        selectionArray.toggleSelection(
                                                             result.name
                                                         )
                                                     }
@@ -137,7 +137,7 @@ class EntitySelectorMulti extends React.Component<{
                                                     type="checkbox"
                                                     checked={true}
                                                     onChange={() =>
-                                                        table.deselectEntity(
+                                                        selectionArray.deselectEntity(
                                                             name
                                                         )
                                                     }
@@ -169,7 +169,7 @@ class EntitySelectorMulti extends React.Component<{
 
 @observer
 class EntitySelectorSingle extends React.Component<{
-    table: OwidTable
+    selectionArray: SelectionArray
     isMobile: boolean
     onDismiss: () => void
 }> {
@@ -180,7 +180,7 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities() {
         const availableItems: { id: string; label: string }[] = []
-        this.props.table.availableEntityNames.forEach((name) => {
+        this.props.selectionArray.availableEntityNames.forEach((name) => {
             availableItems.push({
                 id: name,
                 label: name,
@@ -229,7 +229,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityName: string) {
-        this.props.table.setSelectedEntities([entityName])
+        this.props.selectionArray.setSelectedEntities([entityName])
         this.props.onDismiss()
     }
 
@@ -282,7 +282,7 @@ class EntitySelectorSingle extends React.Component<{
 
 @observer
 export class EntitySelectorModal extends React.Component<{
-    table: OwidTable
+    selectionArray: SelectionArray
     canChangeEntity?: boolean
     isMobile: boolean
     onDismiss: () => void

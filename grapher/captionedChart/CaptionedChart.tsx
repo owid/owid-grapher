@@ -239,6 +239,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return controls
     }
 
+    @computed get selectionArray() {
+        return this.manager.selection
+    }
+
     private renderControlsRow() {
         return this.controls.length ? (
             <div className="controlsRow">

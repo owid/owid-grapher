@@ -19,8 +19,21 @@ export interface SelectionManager {
 }
 
 export class SelectionArray {
-    constructor(manager: SelectionManager) {
-        this.manager = manager
+    constructor(manager?: SelectionManager | EntityName[]) {
+        if (Array.isArray(manager))
+            this.manager = {
+                selectedEntityNames: manager,
+                availableEntities: manager.map((entityName) => {
+                    return {
+                        entityName,
+                    }
+                }),
+            }
+        else
+            this.manager = manager ?? {
+                selectedEntityNames: [],
+                availableEntities: [],
+            }
     }
 
     private manager: SelectionManager
@@ -35,6 +48,10 @@ export class SelectionArray {
 
     @computed get availableEntityNames() {
         return this.availableEntities.map((entity) => entity.entityName)
+    }
+
+    @computed get availableEntityNameSet() {
+        return new Set(this.availableEntityNames)
     }
 
     private mapBy(col: string, val: string) {
@@ -69,7 +86,7 @@ export class SelectionArray {
         return this.selectedEntityNames.length
     }
 
-    @computed private get selectedEntityNameSet() {
+    @computed get selectedSet() {
         return new Set<EntityName>(this.selectedEntityNames)
     }
 
@@ -127,9 +144,13 @@ export class SelectionArray {
     }
 
     @action.bound toggleSelection(entityName: EntityName) {
-        return this.isEntitySelected(entityName)
+        return this.selectedSet.has(entityName)
             ? this.deselectEntity(entityName)
             : this.selectEntity(entityName)
+    }
+
+    @computed get numAvailableEntityNames() {
+        return this.availableEntityNames.length
     }
 
     @action.bound selectEntity(entityName: EntityName) {
@@ -148,9 +169,5 @@ export class SelectionArray {
             (name) => name !== entityName
         )
         return this
-    }
-
-    isEntitySelected(entityName: EntityName) {
-        return this.selectedEntityNameSet.has(entityName)
     }
 }

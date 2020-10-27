@@ -6,8 +6,10 @@ import { ChartManager } from "grapher/chart/ChartManager"
 import { FacetStrategy } from "grapher/core/GrapherConstants"
 
 it("can create a new FacetChart", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     const manager: ChartManager = {
-        table: SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectAll(),
+        table,
+        selection: table.availableEntityNames,
     }
     const chart = new FacetChart({ manager })
     expect(chart.series.length).toEqual(2)

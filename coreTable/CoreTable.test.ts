@@ -127,7 +127,7 @@ describe("creating tables", () => {
 })
 
 describe("adding rows", () => {
-    it("rows can be added without mutating the parent table", () => {
+    describe("rows can be added without mutating the parent table", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
 
@@ -138,7 +138,7 @@ describe("adding rows", () => {
         expect(expandedTable.numRows).toBe(5)
         expect(table.numRows).toEqual(4)
 
-        it.only("can append rows", () => {
+        it("can append rows", () => {
             expandedTable = expandedTable
                 .renameColumns({ population: "pop" })
                 .appendRows(

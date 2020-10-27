@@ -55,7 +55,10 @@ import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 @observer
@@ -133,9 +136,12 @@ export class ScatterPlotChart
         return addCountryMode && addCountryMode !== EntitySelectionMode.Disabled
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     @action.bound private onSelectEntity(entityName: SeriesName) {
-        if (this.canAddCountry)
-            this.transformedTable.toggleSelection(entityName)
+        if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -163,7 +169,7 @@ export class ScatterPlotChart
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { hoverColor, transformedTable } = this
+        const { hoverColor, selectionArray } = this
         if (!this.canAddCountry || hoverColor === undefined) return
 
         const keysToToggle = this.series
@@ -173,11 +179,11 @@ export class ScatterPlotChart
             intersection(keysToToggle, this.selectedEntityNames).length ===
             keysToToggle.length
         if (allKeysActive)
-            transformedTable.setSelectedEntities(
+            selectionArray.setSelectedEntities(
                 without(this.selectedEntityNames, ...keysToToggle)
             )
         else
-            transformedTable.setSelectedEntities(
+            selectionArray.setSelectedEntities(
                 uniq(this.selectedEntityNames.concat(keysToToggle))
             )
     }
@@ -219,7 +225,7 @@ export class ScatterPlotChart
     }
 
     @computed private get selectedEntityNames() {
-        return this.transformedTable.selectedEntityNames
+        return this.selectionArray.selectedEntityNames
     }
 
     @computed get displayStartTime() {
@@ -562,7 +568,7 @@ export class ScatterPlotChart
         filterBackgroundEntities = this.hideBackgroundEntities
     ): Set<SeriesName> {
         const seriesNames = filterBackgroundEntities
-            ? this.transformedTable.selectedEntityNames
+            ? this.selectionArray.selectedEntityNames
             : this.allEntityNamesWithXAndY
 
         if (this.manager.matchingEntitiesOnly && this.colorColumn)
@@ -784,7 +790,7 @@ export class ScatterPlotChart
 
     @computed private get pointsForAxisDomains() {
         if (
-            !this.transformedTable.numSelectedEntities ||
+            !this.selectionArray.numSelectedEntities ||
             !this.manager.zoomToSelection
         )
             return this.currentValues

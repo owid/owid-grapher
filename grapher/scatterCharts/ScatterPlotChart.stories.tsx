@@ -13,8 +13,10 @@ export default {
     component: ScatterPlotChart,
 }
 
+const table = SynthesizeGDPTable({ entityCount: 20 })
 const basicSetup: ScatterPlotManager = {
-    table: SynthesizeGDPTable({ entityCount: 20 }).selectAll(),
+    table,
+    selection: table.availableEntityNames,
     yColumnSlug: SampleColumnSlugs.GDP,
     xColumnSlug: SampleColumnSlugs.Population,
     yAxisConfig: {
@@ -25,11 +27,14 @@ const basicSetup: ScatterPlotManager = {
     },
 }
 
+const table2 = SynthesizeGDPTable({ entityCount: 20 }).filterByTargetTimes(
+    [2000],
+    0
+)
 const oneYear: ScatterPlotManager = {
     ...basicSetup,
-    table: SynthesizeGDPTable({ entityCount: 20 })
-        .selectAll()
-        .filterByTargetTimes([2000], 0),
+    selection: table2.availableEntityNames,
+    table: table2,
 }
 
 const oneYearWithSizeColumn = {
@@ -56,14 +61,17 @@ export const OneYearWithSizeColumn = () => {
 }
 
 export const WithComparisonLinesAndSelection = () => {
+    const table = SynthesizeGDPTable({ entityCount: 20 }).filterByTargetTimes(
+        [2000],
+        0
+    )
     return (
         <svg width={600} height={600}>
             <ScatterPlotChart
                 manager={{
                     ...oneYearWithComparisons,
-                    table: SynthesizeGDPTable({ entityCount: 20 })
-                        .filterByTargetTimes([2000], 0)
-                        .selectSample(5),
+                    table,
+                    selection: table.sampleEntityName(5),
                 }}
             />
         </svg>
@@ -109,7 +117,8 @@ export const LogScales = () => {
 
 export const LogScaleWithNonPositives = () => {
     const manager: ScatterPlotManager = {
-        table: SynthesizeFruitTableWithNonPositives().selectAll(),
+        table: SynthesizeFruitTableWithNonPositives(),
+        selection: table.availableEntityNames,
         yColumnSlug: SampleColumnSlugs.Fruit,
         xColumnSlug: SampleColumnSlugs.Vegetables,
         yAxisConfig: {
@@ -139,14 +148,14 @@ export const MultipleYearsWithConnectedLines = () => {
 }
 
 export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
+    const table = SynthesizeGDPTable({ entityCount: 20 })
     return (
         <svg width={600} height={600}>
             <ScatterPlotChart
                 manager={{
                     ...basicSetup,
-                    table: SynthesizeGDPTable({ entityCount: 20 }).selectSample(
-                        2
-                    ),
+                    table,
+                    selection: table.sampleEntityName(2),
                 }}
             />
         </svg>

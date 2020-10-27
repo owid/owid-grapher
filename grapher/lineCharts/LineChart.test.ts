@@ -11,15 +11,16 @@ import { ScaleType } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
 
 it("can create a new chart", () => {
-    const manager = {
-        table: SynthesizeGDPTable({ timeRange: [2000, 2010] }),
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const manager: ChartManager = {
+        table,
         yColumnSlugs: [SampleColumnSlugs.GDP],
     }
     const chart = new LineChart({ manager })
 
     expect(chart.failMessage).toBeTruthy()
 
-    manager.table.selectAll()
+    manager.selection = table.availableEntityNames
 
     expect(chart.failMessage).toEqual("")
     expect(chart.series.length).toEqual(2)
@@ -35,11 +36,12 @@ it("can filter points with negative values when using a log scale", () => {
         },
         20,
         1
-    ).selectAll()
+    )
 
     const manager: ChartManager = {
         table,
         yColumnSlugs: [SampleColumnSlugs.Fruit],
+        selection: table.availableEntityNames,
     }
     const chart = new LineChart({ manager })
     expect(chart.series.length).toEqual(2)
@@ -58,8 +60,10 @@ it("can filter points with negative values when using a log scale", () => {
 })
 
 it("will combine entity and column name when we set multi country multi column", () => {
+    const table = SynthesizeGDPTable()
     const manager = {
-        table: SynthesizeGDPTable().selectAll(),
+        table,
+        selection: table.availableEntityNames,
     }
     const chart = new LineChart({ manager })
     expect(chart.series[0].seriesName).toContain(" - ")
@@ -71,10 +75,11 @@ it("can add custom colors", () => {
         time: [2000, 2000, 2001, 2001],
         gdp: [100, 200, 200, 300],
         entityColor: ["blue", "red", "blue", "red"],
-    }).selectAll()
+    })
     const manager = {
         yColumnSlugs: ["gdp"],
         table,
+        selection: table.availableEntityNames,
     }
     const chart = new LineChart({ manager })
     expect(chart.series.map((series) => series.color)).toEqual(["blue", "red"])

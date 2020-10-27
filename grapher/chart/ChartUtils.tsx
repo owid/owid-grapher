@@ -1,4 +1,5 @@
 import { Box } from "grapher/core/GrapherConstants"
+import { SelectionArray } from "grapher/core/SelectionArray"
 import React from "react"
 import { ChartManager } from "./ChartManager"
 
@@ -22,3 +23,8 @@ export const makeClipPath = (renderUid: number, box: Box) => {
         ),
     }
 }
+
+export const makeSelectionArray = (manager: ChartManager) =>
+    manager.selection instanceof SelectionArray
+        ? manager.selection
+        : new SelectionArray(manager.selection)

@@ -4,41 +4,55 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
+import { ChartManager } from "grapher/chart/ChartManager"
+import { SelectionArray } from "grapher/core/SelectionArray"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const selection = new SelectionArray()
     const manager = {
-        table: SynthesizeGDPTable({ timeRange: [2000, 2010] }),
+        table,
         yColumnSlugs: [SampleColumnSlugs.Population],
+        selection,
     }
 
     const chart = new StackedBarChart({ manager })
     expect(chart.failMessage).toBeTruthy()
 
-    manager.table.selectSample(1)
+    selection.addToSelection(table.sampleEntityName(1))
     expect(chart.failMessage).toEqual("")
     expect(chart.series[0].points.length).toEqual(10)
 })
 
 describe("stackedbar chart with columns as series", () => {
-    const manager = {
-        table: SynthesizeGDPTable().selectSample(1),
+    const table = SynthesizeGDPTable()
+    const manager: ChartManager = {
+        table,
+        selection: table.sampleEntityName(1),
+        selectedColumnSlugs: [
+            SampleColumnSlugs.GDP,
+            SampleColumnSlugs.Population,
+        ],
         yColumnSlugs: [SampleColumnSlugs.Population, SampleColumnSlugs.GDP],
     }
     const chart = new StackedBarChart({ manager })
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
         expect(chart.series.length).toEqual(2)
-        expect(chart.categoricalValues).toEqual(
-            chart.series.map((series) => series.seriesName)
-        )
-        expect(chart.series[0].seriesName).toEqual(SampleColumnSlugs.GDP)
+        expect(chart.categoricalValues).toEqual([
+            SampleColumnSlugs.GDP,
+            SampleColumnSlugs.Population,
+        ])
+        expect(chart.series[0].seriesName).toEqual(SampleColumnSlugs.Population)
     })
 })
 
 describe("stackedbar chart with entities as series", () => {
-    const manager = {
-        table: SynthesizeGDPTable({ entityCount: 5 }).selectAll(),
+    const table = SynthesizeGDPTable({ entityCount: 5 })
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
         yColumnSlugs: [SampleColumnSlugs.Population],
     }
     const chart = new StackedBarChart({ manager })
@@ -49,10 +63,13 @@ describe("stackedbar chart with entities as series", () => {
     })
 
     it("can handle a missing row", () => {
+        const table = SynthesizeGDPTable({ entityCount: 5 }).dropRandomRows(
+            1,
+            1
+        )
         const manager = {
-            table: SynthesizeGDPTable({ entityCount: 5 })
-                .selectAll()
-                .dropRandomRows(1, 1),
+            table,
+            selection: table.availableEntityNames,
             yColumnSlugs: [SampleColumnSlugs.Population],
         }
         const chart = new StackedBarChart({ manager })

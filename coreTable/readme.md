@@ -35,7 +35,7 @@ Afghanistan       15        AFG 2001 18972552 2001
      Angola       19        AGO 2001 10536418 2001
 ```
 
-Tables are immutable, so all transformations generate a new lightweight table. With Mobx, changes made to a parent table can regenerate the line of child tables.
+Tables are immutable, so all transformations generate a new lightweight table.
 
 ### Columns
 
@@ -72,7 +72,6 @@ The split between CoreTable and OwidTable is also to ensure we minimize the delt
 
 -   Consolidating our transform code and switching from a variable model to a table model is a work-in-progress so currently there is still some legacy code to be removed.
 -   This library should treat Node and the Browser both as first class targets. Even though our primary usage will be in the browser, ensuring a great Node experience will ensure a fast headless testing experience. We may also use this in a headless environment for running the same transform code on bigger datasets.
--   Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
 -   At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).
 -   Similarly for speed we may want to look into integrating/learning from CrossFilter (https://github.com/crossfilter/crossfilter).
 -   Table "Sythensizers" are also included for rapid testing. The word Synthesis is used as in "Program Synthesis".

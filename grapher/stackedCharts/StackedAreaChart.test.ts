@@ -9,6 +9,7 @@ import {
 import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -17,25 +18,27 @@ class MockManager implements ChartManager {
     yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxis = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
+    selection = new SelectionArray()
 }
 
 it("can create a basic chart", () => {
     const manager = new MockManager()
     const chart = new StackedAreaChart({ manager })
     expect(chart.failMessage).toBeTruthy()
-    manager.table.selectAll()
+    manager.selection.addToSelection(manager.table.availableEntityNames)
     expect(chart.failMessage).toEqual("")
 })
 
 describe("column charts", () => {
     it("can show custom colors for a column series", () => {
-        let table = SynthesizeFruitTable().selectSample(1)
+        let table = SynthesizeFruitTable()
         table = table.updateDefs((def) => {
             def.color = def.slug // Slug is not a valid color but good enough for testing
             return def
         })
         const columnsChart: ChartManager = {
             table,
+            selection: table.sampleEntityName(1),
             yColumnSlugs: [
                 SampleColumnSlugs.Fruit,
                 SampleColumnSlugs.Vegetables,
@@ -52,7 +55,6 @@ describe("column charts", () => {
 it("use author axis settings unless relative mode", () => {
     const manager = new MockManager()
     const chart = new StackedAreaChart({ manager })
-    manager.table.selectSample(3)
     expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
     manager.isRelativeMode = true
     expect(chart.verticalAxis.domain).toEqual([0, 100])
@@ -66,14 +68,14 @@ it("shows a failure message if there are columns but no series", () => {
 })
 
 it("can filter a series when there are no points", () => {
+    const table = SynthesizeFruitTable({
+        entityCount: 2,
+        timeRange: [2000, 2003],
+    }).replaceRandomCells(6, [SampleColumnSlugs.Fruit])
     const chart = new StackedAreaChart({
         manager: {
-            table: SynthesizeFruitTable({
-                entityCount: 2,
-                timeRange: [2000, 2003],
-            })
-                .selectSample(1)
-                .replaceRandomCells(6, [SampleColumnSlugs.Fruit]),
+            selection: table.sampleEntityName(1),
+            table,
         },
     })
 

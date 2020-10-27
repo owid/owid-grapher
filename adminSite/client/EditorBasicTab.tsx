@@ -63,23 +63,23 @@ class DimensionSlotView extends React.Component<{
 
     private updateDefaults() {
         const { grapher } = this.props.editor
-        const { table } = grapher
-        const { availableEntityNames, availableEntityNameSet } = table
+        const { selection } = grapher
+        const { availableEntityNames, availableEntityNameSet } = selection
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
             () => grapher.type && grapher.yColumns,
             () => {
                 if (grapher.isScatter || grapher.isSlopeChart) {
-                    table.clearSelection()
+                    selection.clearSelection()
                 } else if (grapher.yColumns.length > 1) {
                     const entity = availableEntityNameSet.has(WorldEntityName)
                         ? WorldEntityName
                         : sample(availableEntityNames)
-                    table.selectEntity(entity!)
+                    selection.selectEntity(entity!)
                     grapher.addCountryMode = EntitySelectionMode.SingleEntity
                 } else {
-                    table.setSelectedEntities(
+                    selection.setSelectedEntities(
                         availableEntityNames.length > 10
                             ? sampleSize(availableEntityNames, 3)
                             : availableEntityNames

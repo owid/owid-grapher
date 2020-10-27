@@ -2,7 +2,7 @@
 
 import { mount } from "enzyme"
 import React from "react"
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
@@ -10,8 +10,10 @@ import {
 import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 const TestGrapherConfig = () => {
+    const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
-        table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
+        table,
+        selectedEntityNames: table.sampleEntityName(5),
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,
@@ -19,7 +21,7 @@ const TestGrapherConfig = () => {
                 variableId: SampleColumnSlugs.GDP as any,
             },
         ],
-    }
+    } as GrapherProgrammaticInterface
 }
 
 test("clicking the sources footer changes tabs", () => {

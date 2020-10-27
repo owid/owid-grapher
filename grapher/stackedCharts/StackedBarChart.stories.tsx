@@ -1,6 +1,7 @@
 import * as React from "react"
 import { StackedBarChart } from "./StackedBarChart"
 import {
+    SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
@@ -11,18 +12,23 @@ export default {
 }
 
 export const ColumnsAsSeries = () => {
-    const table = SynthesizeFruitTable().selectSample(1)
+    const table = SynthesizeFruitTable()
+
     return (
         <svg width={600} height={600}>
-            <StackedBarChart manager={{ table }} />
+            <StackedBarChart
+                manager={{ table, selection: table.sampleEntityName(1) }}
+            />
         </svg>
     )
 }
 
 export const EntitiesAsSeries = () => {
+    const table = SynthesizeGDPTable({ entityCount: 5 })
     const manager = {
-        table: SynthesizeGDPTable({ entityCount: 5 }).selectAll(),
-        yColumnSlugs: ["Population"],
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: [SampleColumnSlugs.Population],
     }
 
     return (
@@ -33,11 +39,11 @@ export const EntitiesAsSeries = () => {
 }
 
 export const EntitiesAsSeriesWithMissingRows = () => {
+    const table = SynthesizeGDPTable({ entityCount: 5 }).dropRandomRows(30)
     const manager = {
-        table: SynthesizeGDPTable({ entityCount: 5 })
-            .selectAll()
-            .dropRandomRows(30),
-        yColumnSlugs: ["Population"],
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: [SampleColumnSlugs.Population],
     }
 
     return (
