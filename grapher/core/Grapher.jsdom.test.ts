@@ -9,6 +9,7 @@ import {
 } from "./GrapherConstants"
 import {
     GrapherInterface,
+    LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
@@ -97,6 +98,16 @@ it("can apply legacy chart dimension settings", () => {
     const col = grapher.yColumns[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
+})
+
+it("can fallback to a ycolumn if a map variableId does not exist", () => {
+    const config = {
+        ...legacyConfig,
+        hasMapTab: true,
+        map: { variableId: 444 },
+    } as GrapherInterface
+    const grapher = new Grapher(config)
+    expect(grapher.mapColumnSlug).toEqual("3512")
 })
 
 it("can generate a url with country selection even if there is no entity code", () => {

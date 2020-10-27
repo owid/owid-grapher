@@ -19,12 +19,18 @@ const rawGraphers = () =>
         JSON.parse(fs.readFileSync(GRAPHER_DUMP_LOCATION, "utf8"))
     ) as GrapherProgrammaticInterface[]
 
+const trimmedGraphers = () =>
+    Object.values(
+        JSON.parse(fs.readFileSync(GRAPHER_TRIMMED_LOCATION, "utf8"))
+    ) as GrapherProgrammaticInterface[]
+
 const eachGrapher = (
     fn: (
         config: Partial<LegacyGrapherInterface & GrapherProgrammaticInterface>
-    ) => any
+    ) => any,
+    graphers = rawGraphers()
 ) => {
-    return rawGraphers()
+    return graphers
         .map((config) => {
             try {
                 return fn(config)
@@ -57,6 +63,31 @@ const dumpGraphers = async () => {
         "utf8"
     )
     db.end()
+}
+
+// If an author changes the map variable then removes that variable, we don't remove it from map config.
+// This identifies those charts, if we want to clean them up later.
+const graphersWithMapVariableIdsButNoMatchingDimension = async () => {
+    const hits: any[] = []
+    eachGrapher((config) => {
+        const mapVariableId = (config as any).map?.variableId
+        if (mapVariableId) {
+            const variableIds =
+                config.dimensions?.map((dim) => dim.variableId) ?? []
+            if (
+                !variableIds.some(
+                    (id) => id.toString() === mapVariableId.toString()
+                )
+            )
+                hits.push({
+                    link: `https://ourworldindata.org/grapher/${config.slug}`,
+                    id: config.id,
+                    mapVariableId,
+                    variableIds,
+                })
+        }
+    }, trimmedGraphers())
+    console.log(JSON.stringify(hits, null, 2), hits.length)
 }
 
 // This spits out a report with the graphers where an entity is selected in one variable but not the other.
@@ -139,6 +170,11 @@ const main = async () => {
     return `Ran ${taskArgs.join(" and ")}`
 }
 
-const tasks = [trimGraphers, dumpGraphers, dumpComplexSelections]
+const tasks = [
+    trimGraphers,
+    dumpGraphers,
+    dumpComplexSelections,
+    graphersWithMapVariableIdsButNoMatchingDimension,
+]
 
 main()

@@ -985,7 +985,14 @@ export class Grapher
     }
 
     @computed get mapColumnSlug() {
-        return (this.map.columnSlug || this.yColumnSlug)!
+        const mapColumnSlug = this.map.columnSlug
+        // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
+        if (
+            !mapColumnSlug ||
+            !this.dimensions.some((dim) => dim.columnSlug === mapColumnSlug)
+        )
+            return this.yColumnSlug!
+        return mapColumnSlug
     }
 
     getColumnForProperty(property: DimensionProperty) {
