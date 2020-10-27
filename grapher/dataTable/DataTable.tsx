@@ -484,14 +484,9 @@ export class DataTable extends React.Component<{
 
     @computed get targetTimes() {
         const { startTime, endTime } = this.manager
-        if (
-            startTime === undefined ||
-            endTime === undefined
-        )
-            return undefined
+        if (startTime === undefined || endTime === undefined) return undefined
 
-        if (startTime !== endTime)
-            return [startTime, endTime]
+        if (startTime !== endTime) return [startTime, endTime]
         return [endTime]
     }
 
