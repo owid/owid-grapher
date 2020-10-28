@@ -5,20 +5,18 @@ interface GlossaryItem {
 
 export const getGlossary = (): GlossaryItem[] => {
     // TODO
-    const glossary = [
+    return [
         { term: "population", slug: "population" },
         { term: "population growth", slug: "population-growth" },
     ]
-
-    return sortGlossary(glossary)
 }
 
 /*
- * Sort the glossary in descending order of term lengths so that longer terms
+ * Sort the glossary * in place *, in descending order of term lengths so that longer terms
  * match and are linked instead of shorter ones, which might be included in
  * them. E.g. favour "population growth" over "population"
  */
-export const sortGlossary = (glossary: GlossaryItem[]) => {
+export const _sortGlossary = (glossary: GlossaryItem[]) => {
     return glossary.sort((a, b) => b.term.length - a.term.length)
 }
 
@@ -27,43 +25,57 @@ export const formatGlossaryTerms = (
     $contents: Cheerio,
     glossary: GlossaryItem[]
 ) => {
+    // no need to deep clone the array as objects are just removed from it,
+    // not mutated.
+    const mutableGlossary = _sortGlossary([...glossary])
+
+    _replaceGlossaryTerms($, $contents, mutableGlossary)
+}
+
+const _replaceGlossaryTerms = (
+    $: CheerioStatic,
+    $contents: Cheerio,
+    glossary: GlossaryItem[]
+) => {
     $contents.each((i, el) => {
         if (el.tagName === "a") return
         if (el.type === "text") {
-            $(el).replaceWith(linkGlossaryTermsInText(el.data, glossary))
+            $(el).replaceWith(_linkGlossaryTermsInText(el.data, glossary))
         } else {
-            formatGlossaryTerms($, $(el).contents(), glossary)
+            _replaceGlossaryTerms($, $(el).contents(), glossary)
         }
     })
 }
 
-const getGlossaryItemSlug = (term: string, glossary: GlossaryItem[]) => {
-    return glossary.find(
-        (el: GlossaryItem) => term.toLowerCase() === el.term.toLowerCase()
-    )?.slug
-}
-
-export const linkGlossaryTermsInText = (
+export const _linkGlossaryTermsInText = (
     srcText: string = "",
     glossary: GlossaryItem[]
 ) => {
     let textWithGlossaryLinks = srcText
 
     const regex = new RegExp(
-        `\\b(${glossary.map((el) => el.term).join("|")})\\b`,
+        `\\b(${glossary.map((item) => item.term).join("|")})\\b`,
         "ig"
     )
 
-    const getGlossaryLink = (match: string) => {
-        return `<a href="/glossary/${getGlossaryItemSlug(
-            match,
-            glossary
-        )}">${match}</a>`
+    const _getGlossaryLink = (match: string) => {
+        const idx = glossary.findIndex(
+            (item) => item.term.toLowerCase() === match.toLowerCase()
+        )
+        if (idx === -1) return match
+
+        const slug = glossary[idx].slug
+        // Remove element in-place so that glossary items are only matched and
+        // linked once per recursive traversal (at the moment, this is set to
+        // once per page section)
+        glossary.splice(idx, 1)
+
+        return `<a href="/glossary/${slug}">${match}</a>`
     }
 
     textWithGlossaryLinks = textWithGlossaryLinks.replace(
         regex,
-        getGlossaryLink
+        _getGlossaryLink
     )
     return textWithGlossaryLinks
 }
