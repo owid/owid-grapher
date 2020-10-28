@@ -2,6 +2,8 @@ interface GlossaryItem {
     term: string
     slug: string
 }
+// Do not replace glossary terms within these tags
+export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
 
 export const getGlossary = (): GlossaryItem[] => {
     // TODO
@@ -38,7 +40,7 @@ const _replaceGlossaryTerms = (
     glossary: GlossaryItem[]
 ) => {
     $contents.each((i, el) => {
-        if (el.tagName === "a") return
+        if (FORBIDDEN_TAGS.includes(el.tagName)) return
         if (el.type === "text") {
             $(el).replaceWith(_linkGlossaryTermsInText(el.data, glossary))
         } else {
