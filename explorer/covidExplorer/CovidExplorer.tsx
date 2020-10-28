@@ -139,7 +139,7 @@ export class CovidExplorer
     selectionArray = new SelectionArray(this)
     @observable selectedEntityNames = []
     @computed get availableEntities() {
-        return this.countryPickerTable.availableEntities
+        return this.covidTable.availableEntities
     }
 
     static async replaceStateAndCreateCovidExplorerAndRenderToDom(
@@ -373,14 +373,10 @@ export class CovidExplorer
 
     private explorerSlug = "Covid"
 
-    @computed get tableForSelection() {
-        return this.covidTableWithAdditionalColumns
-    }
-
     analyticsNamespace = this.explorerSlug
 
     @computed get countryPickerTable() {
-        return this.tableForSelection
+        return this.covidTableWithAdditionalColumns
     }
 
     @computed get analytics() {
@@ -418,6 +414,7 @@ export class CovidExplorer
         return (
             <ExplorerShell
                 headerElement={this.header}
+                selectionArray={this.selectionArray}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerSlug}
                 countryPickerManager={this}
@@ -650,16 +647,6 @@ export class CovidExplorer
         this.updateGrapher()
         this.observeGlobalEntitySelection()
         exposeInstanceOnWindow(this, "covidExplorer")
-
-        autorun(() => {
-            this.updateSelection(this.selectionArray.selectedEntityNames)
-        })
-    }
-
-    @action.bound private updateSelection(entityNames: string[]) {
-        if (!this.countryPickerTable.numRows) return
-        if (this.grapher)
-            this.grapher.selection.setSelectedEntities(entityNames)
     }
 
     private observeGlobalEntitySelection() {

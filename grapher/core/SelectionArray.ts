@@ -122,14 +122,8 @@ export class SelectionArray {
         return this
     }
 
-    @action.bound addAvailableEntityNames(entityNames: EntityName[]) {
-        this.manager.availableEntities.push(
-            ...entityNames.map((entityName) => {
-                return {
-                    entityName,
-                }
-            })
-        )
+    @action.bound addAvailableEntityNames(entities: Entity[]) {
+        this.manager.availableEntities.push(...entities)
         return this
     }
 

@@ -183,6 +183,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
+    selectionArray?: SelectionArray
     getGrapherInstance?: (instance: Grapher) => void
 }
 
@@ -342,7 +343,8 @@ export class Grapher
 
     @action.bound downloadData() {
         if (this.manuallyProvideData) {
-        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
+        } else if (this.owidDataset)
+            this._receiveLegacyDataAndApplySelection(this.owidDataset)
         else if (this.externalDataUrl)
             this.downloadLegacyDataFromUrl(this.externalDataUrl)
         else this.downloadLegacyDataFromOwidVariableIds()
@@ -559,7 +561,7 @@ export class Grapher
 
     @action.bound private async downloadLegacyDataFromUrl(url: string) {
         const json = await fetchJSON(url)
-        this._receiveLegacyData(json)
+        this._receiveLegacyDataAndApplySelection(json)
     }
 
     /**
@@ -590,7 +592,7 @@ export class Grapher
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
-                this._receiveLegacyData(json)
+                this._receiveLegacyDataAndApplySelection(json)
             } else {
                 await this.downloadLegacyDataFromUrl(this.dataUrl)
             }
@@ -600,10 +602,10 @@ export class Grapher
     }
 
     @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey) {
-        this._receiveLegacyData(json)
+        this._receiveLegacyDataAndApplySelection(json)
     }
 
-    @action.bound private _receiveLegacyData(
+    @action.bound private _receiveLegacyDataAndApplySelection(
         json: LegacyVariablesAndEntityKey
     ) {
         this.inputTable = OwidTable.fromLegacy(
@@ -611,23 +613,29 @@ export class Grapher
             this.legacyConfigAsAuthored
         )
 
-        if (this.selectedEntitiesInQueryParam.length) {
-            const {
-                notFoundEntities,
-                foundEntities,
-            } = EntityUrlBuilder.scanUrlForEntityNames(
-                this.selectedEntitiesInQueryParam,
-                this.inputTable.entityCodeToNameMap,
-                this.inputTable.availableEntityNameSet
-            )
-
-            this.selection.setSelectedEntities(foundEntities)
-            if (notFoundEntities.length)
-                this.analytics.logEntitiesNotFoundError(notFoundEntities)
-        } else this.applyOriginalSelection()
+        if (this.props.selectionArray) {
+            // Selection is managed externally, do nothing.
+        } else if (this.selectedEntitiesInQueryParam.length)
+            this._applySelectionFromQueryParams()
+        else this.applyOriginalSelectionAsAuthored()
     }
 
-    @action.bound private applyOriginalSelection() {
+    @action.bound private _applySelectionFromQueryParams() {
+        const {
+            notFoundEntities,
+            foundEntities,
+        } = EntityUrlBuilder.scanUrlForEntityNames(
+            this.selectedEntitiesInQueryParam,
+            this.inputTable.entityCodeToNameMap,
+            this.inputTable.availableEntityNameSet
+        )
+
+        this.selection.setSelectedEntities(foundEntities)
+        if (notFoundEntities.length)
+            this.analytics.logEntitiesNotFoundError(notFoundEntities)
+    }
+
+    @action.bound private applyOriginalSelectionAsAuthored() {
         if (this.selectedEntityNames.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
@@ -1504,7 +1512,7 @@ export class Grapher
         this.timelineController.togglePlay()
     }
 
-    selection = new SelectionArray(this)
+    selection = this.props.selectionArray ?? new SelectionArray(this)
 
     @computed get availableEntities() {
         return this.tableForSelection.availableEntities
@@ -1852,7 +1860,7 @@ export class Grapher
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
         this.selection.clearSelection()
-        this.applyOriginalSelection()
+        this.applyOriginalSelectionAsAuthored()
     }
 
     debounceMode = false

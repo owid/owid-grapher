@@ -10,6 +10,7 @@ import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 interface ExplorerShellProps {
     explorerSlug: string
@@ -19,6 +20,7 @@ interface ExplorerShellProps {
     countryPickerManager?: CountryPickerManager
     isEmbed: boolean
     enableKeyboardShortcuts?: boolean
+    selectionArray: SelectionArray
 }
 
 @observer
@@ -145,6 +147,7 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
                         <Grapher
                             bounds={this.chartBounds}
                             isEmbed={true}
+                            selectionArray={this.props.selectionArray}
                             ref={this.grapherRef}
                             enableKeyboardShortcuts={
                                 this.props.enableKeyboardShortcuts

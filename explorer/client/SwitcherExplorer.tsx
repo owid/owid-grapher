@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun, when } from "mobx"
+import { action, observable, computed, autorun } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
@@ -61,7 +61,9 @@ export class SwitcherExplorer
     @observable hideControls = false
 
     selectionArray = new SelectionArray(this)
-    @observable selectedEntityNames = []
+    @observable selectedEntityNames = EntityUrlBuilder.queryParamToEntities(
+        this.explorerProgram.queryString
+    )
     @observable availableEntities = []
 
     @computed get params(): QueryParams {
@@ -91,14 +93,10 @@ export class SwitcherExplorer
         if (!this.grapher) return
         const { selectionArray } = this
         const currentEntities = selectionArray.availableEntityNameSet
-        const newEntities = this.grapher.selection.availableEntityNames
-        const missingEntities = [...newEntities].filter(
-            (entityName) => !currentEntities.has(entityName)
+        const missingEntities = this.grapher.availableEntities.filter(
+            (entity) => !currentEntities.has(entity.entityName)
         )
         selectionArray.addAvailableEntityNames(missingEntities)
-        selectionArray.addToSelection(
-            this.grapher.selection.selectedEntityNames
-        )
     }
 
     @computed get grapher() {
@@ -110,27 +108,7 @@ export class SwitcherExplorer
         autorun(() =>
             this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
         )
-
-        // Update grapher the first time it appears
-        when(
-            () => !!this.grapher,
-            () => {
-                this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
-            }
-        )
-
-        // Anytime the country picker selection changes, update grapher
-        autorun(() => {
-            this.updateSelection(this.selectionArray.selectedEntityNames)
-        })
-
         exposeInstanceOnWindow(this, "switcherExplorer")
-    }
-
-    @action.bound private updateSelection(entityNames: string[]) {
-        if (!this.selectionArray.numAvailableEntityNames || !this.grapher)
-            return
-        this.grapher.selection.setSelectedEntities(entityNames)
     }
 
     @action.bound private updateGrapher(newGrapherId: number) {
@@ -235,6 +213,7 @@ export class SwitcherExplorer
         return (
             <ExplorerShell
                 headerElement={this.header}
+                selectionArray={this.selectionArray}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerProgram.slug}
                 countryPickerManager={this}
