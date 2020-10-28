@@ -37,6 +37,12 @@ export enum ColumnTypeNames {
     Color = "Color",
 }
 
+export enum InputType {
+    Delimited = "Delimited",
+    RowStore = "RowStore",
+    ColumnStore = "ColumnStore",
+}
+
 export interface CoreColumnDef {
     slug: ColumnSlug
     name?: string
@@ -54,7 +60,9 @@ export interface CoreColumnDef {
 
 export enum TransformType {
     // Table level ops
-    Load = "Load",
+    LoadFromDelimited = "LoadFromDelimited",
+    LoadFromRowStore = "LoadFromRowStore",
+    LoadFromColumnStore = "LoadFromColumnStore",
     Transpose = "Transpose",
     Reload = "Reload",
     Concat = "Concat",

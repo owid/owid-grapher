@@ -31,6 +31,7 @@ import {
     ValueRange,
     CoreQuery,
     CoreValueType,
+    InputType,
 } from "./CoreTableConstants"
 import {
     AlignedTextTableOptions,
@@ -58,7 +59,9 @@ import { InvalidCellTypes } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
 
 const TransformsRequiringCompute = new Set([
-    TransformType.Load,
+    TransformType.LoadFromColumnStore,
+    TransformType.LoadFromDelimited,
+    TransformType.LoadFromRowStore,
     TransformType.AppendRows,
     TransformType.AppendColumns,
     TransformType.UpdateRows,
@@ -81,7 +84,6 @@ export class CoreTable<
     private _columns: Map<ColumnSlug, CoreColumn> = new Map()
     protected parent?: this
     private tableDescription: string
-    private transformCategory: TransformType
     private timeToLoad = 0
     private initTime = Date.now()
 
@@ -95,15 +97,10 @@ export class CoreTable<
         advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
-        const {
-            parent,
-            tableDescription = "",
-            transformCategory = TransformType.Load,
-        } = advancedOptions
+        const { parent, tableDescription = "" } = advancedOptions
 
         this.originalInput = rowsOrColumnsOrDsv
         this.tableDescription = tableDescription
-        this.transformCategory = transformCategory
         this.parent = parent as this
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
@@ -120,16 +117,28 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
+    @imemo get transformCategory() {
+        const { advancedOptions, inputType } = this
+        if (advancedOptions.transformCategory)
+            return advancedOptions.transformCategory
+
+        if (inputType === InputType.Delimited)
+            return TransformType.LoadFromDelimited
+        if (inputType === InputType.RowStore)
+            return TransformType.LoadFromRowStore
+        return TransformType.LoadFromColumnStore
+    }
+
     // If the input is a column store, returns that. If it is DSV, parses that and turns it into a column store.
     // If it is a Rows[], turns it into a column store.
-    @imemo private get inputColumnStore() {
-        const { originalInput } = this
+    @imemo private get inputColumnStore(): CoreColumnStore {
+        const { originalInput, inputType } = this
 
-        if (typeof originalInput === "string")
+        if (inputType === InputType.Delimited)
             return this.delimitedAsColumnStore
-        else if (Array.isArray(originalInput))
-            return rowsToColumnStore(originalInput)
-        return originalInput
+        else if (inputType === InputType.RowStore)
+            return rowsToColumnStore(originalInput as CoreRow[])
+        return originalInput as CoreColumnStore
     }
 
     @imemo get columnStore() {
@@ -253,9 +262,10 @@ export class CoreTable<
     }
 
     private get colsToParse() {
+        const { inputType } = this
         if (
-            this.isOriginalInputFromDelimited ||
-            this.isInputFromColumns ||
+            inputType === InputType.Delimited ||
+            inputType === InputType.ColumnStore ||
             this.parent
         )
             return []
@@ -282,10 +292,6 @@ export class CoreTable<
 
     @imemo private get numColsToCompute() {
         return this.colsToCompute.length
-    }
-
-    @imemo private get isOriginalInputFromDelimited() {
-        return typeof this.originalInput === "string"
     }
 
     toOneDimensionalArray() {
@@ -687,15 +693,13 @@ export class CoreTable<
         console.table(this.inputAsTable)
     }
 
-    @imemo private get isInputFromRowsOrDelimited() {
-        return (
-            Array.isArray(this.originalInput) ||
-            this.isOriginalInputFromDelimited
-        )
-    }
-
-    @imemo private get isInputFromColumns() {
-        return !this.isInputFromRowsOrDelimited
+    @imemo private get inputType() {
+        const { originalInput } = this
+        return Array.isArray(originalInput)
+            ? InputType.RowStore
+            : typeof originalInput === "string"
+            ? InputType.Delimited
+            : InputType.ColumnStore
     }
 
     @imemo private get inputColumnStoreToRows() {
@@ -703,9 +707,9 @@ export class CoreTable<
     }
 
     @imemo private get inputAsTable() {
-        return this.isInputFromRowsOrDelimited
-            ? this.originalInput
-            : this.inputColumnStoreToRows
+        return this.inputType === InputType.ColumnStore
+            ? this.inputColumnStoreToRows
+            : this.originalInput
     }
 
     @imemo private get explainColumns() {

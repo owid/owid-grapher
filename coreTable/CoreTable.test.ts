@@ -2,7 +2,7 @@
 
 import { rowsFromGrid } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
-import { ColumnTypeNames } from "./CoreTableConstants"
+import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
 import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population
@@ -16,6 +16,12 @@ describe("creating tables", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
         expect(table.columnNames).toEqual(["country", "population"])
+    })
+
+    it("you can create an empty table", () => {
+        expect(new CoreTable().transformCategory).toEqual(
+            TransformType.LoadFromRowStore
+        )
     })
 
     it("when parsing object literals as rows, if a later row has more properties than the first row they will be ignored", () => {
