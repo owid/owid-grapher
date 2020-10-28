@@ -149,6 +149,7 @@ import { SlideShowController } from "grapher/slideshowController/SlideShowContro
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SelectionArray, SelectionManager } from "./SelectionArray"
+import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 
 declare const window: any
 
@@ -614,10 +615,15 @@ export class Grapher
     @action.bound private _receiveLegacyDataAndApplySelection(
         json: LegacyVariablesAndEntityKey
     ) {
-        this.inputTable = OwidTable.fromLegacy(
+        const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             this.legacyConfigAsAuthored
         )
+
+        this.inputTable = table
+        // We need to reset the dimensions because some of them may have changed slugs in the legacy
+        // transformation (can happen when columns use targetTime)
+        this.setDimensionsFromConfigs(dimensions)
 
         if (this.props.selectionArray) {
             // Selection is managed externally, do nothing.
@@ -1216,12 +1222,12 @@ export class Grapher
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
     @computed get xOverrideTime() {
-        return this.xDimension && this.xDimension.targetTime
+        return this.xDimension && this.xDimension.targetYear
     }
 
     // todo: this is only relevant for scatter plots. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
-        this.xDimension!.targetTime = value
+        this.xDimension!.targetYear = value
     }
 
     // todo: this is only relevant for scatter plots. move to scatter plot class?

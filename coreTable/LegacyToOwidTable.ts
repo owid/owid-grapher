@@ -12,12 +12,14 @@ import {
     diffDateISOStringInDays,
     isNumber,
     trimObject,
+    uniqBy,
 } from "grapher/utils/Util"
 
 import {
     LegacyVariablesAndEntityKey,
     LegacyEntityMeta,
     LegacyVariableConfig,
+    LegacyChartDimensionInterface,
 } from "./LegacyVariableCode"
 import {
     StandardOwidColumnDefs,
@@ -30,10 +32,10 @@ import { OwidTable } from "./OwidTable"
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`
 
-export const legacyToOwidTable = (
+export const legacyToOwidTableAndDimensions = (
     json: LegacyVariablesAndEntityKey,
-    grapherConfig: Partial<LegacyGrapherInterface> = {}
-): OwidTable => {
+    grapherConfig: Partial<LegacyGrapherInterface>
+): { dimensions: LegacyChartDimensionInterface[]; table: OwidTable } => {
     // Entity meta map
 
     const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
@@ -70,18 +72,20 @@ export const legacyToOwidTable = (
         })
     }
 
-    // Build the joined table of variables
+    // We need to create a column for each unique [variable, targetTime] pair. So there can be
+    // multiple columns for a single variable.
+    const newDimensions = dimensions.map((dimension) => ({
+        ...dimension,
+        slug: dimension.targetYear
+            ? `${dimension.variableId}-${dimension.targetYear}`
+            : `${dimension.variableId}`,
+    }))
+    const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
+    const variableTables = dimensionColumns.map((dimension) => {
+        const variable = json.variables[dimension.variableId]
 
-    let joinedVariablesTable: OwidTable | undefined = undefined
-
-    for (const varId in json.variables) {
         // Copy the base columnDef
         const columnDefs = new Map(baseColumnDefs)
-
-        const variable = json.variables[varId]
-        const dimension = dimensions.find(
-            (dim) => dim.variableId.toString() === varId
-        )
 
         // Time column
         const timeColumnDef = timeColumnDefFromLegacyVariable(variable)
@@ -89,7 +93,12 @@ export const legacyToOwidTable = (
 
         // Value column
         const valueColumnDef = columnDefFromLegacyVariable(variable)
-        const valueColumnColor = columnColorMap.get(varId.toString())
+        const valueColumnColor = columnColorMap.get(
+            dimension.variableId.toString()
+        )
+        // Ensure the column slug is unique by copying it from the dimensions
+        // (there can be two columns of the same variable with different targetTimes)
+        valueColumnDef.slug = dimension.slug
         if (valueColumnColor) {
             valueColumnDef.color = valueColumnColor
         }
@@ -145,22 +154,34 @@ export const legacyToOwidTable = (
 
         // Build the tables
 
-        const variableTable = new OwidTable(
+        let variableTable = new OwidTable(
             columnStore,
             Array.from(columnDefs.values())
         )
 
-        if (joinedVariablesTable) {
-            joinedVariablesTable = joinedVariablesTable.fullJoin(variableTable)
-        } else {
-            joinedVariablesTable = variableTable
+        // If there is a targetTime set on the dimension, we need to perform the join on the
+        // entities columns only, excluding any time columns.
+        // We do this by dropping the column. We interpolate before which adds an originalTime
+        // column which can be used to recover the time.
+        const targetTime = dimension?.targetYear
+        if (targetTime !== undefined) {
+            variableTable = variableTable
+                .interpolateColumnWithTolerance(valueColumnDef.slug)
+                .filterByTargetTimes([targetTime])
+                .dropColumns([timeColumnDef.slug])
         }
-    }
+
+        return variableTable
+    })
+
+    let joinedVariablesTable = variableTables.length
+        ? fullJoinTables(variableTables)
+        : new OwidTable()
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
     for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
-        if (joinedVariablesTable?.columnSlugs.includes(dayOrYearSlug)) {
+        if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
             joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
                 {
@@ -173,8 +194,11 @@ export const legacyToOwidTable = (
         }
     }
 
-    return joinedVariablesTable ?? new OwidTable()
+    return { dimensions: newDimensions, table: joinedVariablesTable }
 }
+
+const fullJoinTables = (tables: OwidTable[]) =>
+    tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
 const columnDefFromLegacyVariable = (
     variable: LegacyVariableConfig

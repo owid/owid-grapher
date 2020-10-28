@@ -1,14 +1,15 @@
 #! /usr/bin/env yarn jest
 
 import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import { ColumnTypeMap } from "./CoreTableColumns"
 import { InvalidCellTypes } from "./InvalidCells"
-import { legacyToOwidTable } from "./LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import { OwidTableSlugs, StandardOwidColumnDefs } from "./OwidTableConstants"
 
-describe(legacyToOwidTable, () => {
-    const legacyVariableConfig = {
+describe(legacyToOwidTableAndDimensions, () => {
+    const legacyVariableConfig: LegacyVariablesAndEntityKey = {
         entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
         variables: {
             "2": {
@@ -20,9 +21,20 @@ describe(legacyToOwidTable, () => {
             },
         },
     }
+    const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+        dimensions: [
+            {
+                variableId: 2,
+                property: DimensionProperty.y,
+            },
+        ],
+    }
 
     it("contains the standard entity columns", () => {
-        const table = legacyToOwidTable(legacyVariableConfig)
+        const { table } = legacyToOwidTableAndDimensions(
+            legacyVariableConfig,
+            legacyGrapherConfig
+        )
         expect(table.columnSlugs).toEqual(
             expect.arrayContaining(
                 StandardOwidColumnDefs.map((def) => def.slug)
@@ -38,22 +50,28 @@ describe(legacyToOwidTable, () => {
 
     describe("conversionFactor", () => {
         it("applies the more specific chart-level conversionFactor", () => {
-            const table = legacyToOwidTable(legacyVariableConfig, {
-                dimensions: [
-                    {
-                        variableId: 2,
-                        display: { conversionFactor: 10 },
-                        property: DimensionProperty.y,
-                    },
-                ],
-            })
+            const { table } = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                {
+                    dimensions: [
+                        {
+                            variableId: 2,
+                            display: { conversionFactor: 10 },
+                            property: DimensionProperty.y,
+                        },
+                    ],
+                }
+            )
 
             // Apply the chart-level conversionFactor (10)
             expect(table.rows[0]["2"]).toEqual(80)
         })
 
         it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
-            const table = legacyToOwidTable(legacyVariableConfig)
+            const { table } = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                legacyGrapherConfig
+            )
 
             // Apply the variable-level conversionFactor (100)
             expect(table.rows[0]["2"]).toEqual(800)
@@ -81,8 +99,23 @@ describe(legacyToOwidTable, () => {
                 },
             },
         }
+        const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+            dimensions: [
+                {
+                    variableId: 2,
+                    property: DimensionProperty.y,
+                },
+                {
+                    variableId: 3,
+                    property: DimensionProperty.y,
+                },
+            ],
+        }
 
-        const table = legacyToOwidTable(legacyVariableConfig)
+        const { table } = legacyToOwidTableAndDimensions(
+            legacyVariableConfig,
+            legacyGrapherConfig
+        )
 
         it("leaves invalid cells when there were no values to join to", () => {
             // Currently joins may just be partial and have many blank values. CoreTable will fill those in with the
@@ -153,8 +186,23 @@ describe(legacyToOwidTable, () => {
                 },
             },
         }
+        const legacyGrapherConfig = {
+            dimensions: [
+                {
+                    variableId: 2,
+                    property: DimensionProperty.y,
+                },
+                {
+                    variableId: 3,
+                    property: DimensionProperty.y,
+                },
+            ],
+        }
 
-        const table = legacyToOwidTable(legacyVariableConfig)
+        const { table } = legacyToOwidTableAndDimensions(
+            legacyVariableConfig,
+            legacyGrapherConfig
+        )
 
         it("shifts values in days array when zeroDay is is not EPOCH_DATE", () => {
             expect(table.get("2")?.uniqTimesAsc).toEqual([-5, 0, 1])
@@ -203,14 +251,29 @@ describe(legacyToOwidTable, () => {
                 },
             },
         }
+        const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+            dimensions: [
+                {
+                    variableId: 2,
+                    property: DimensionProperty.y,
+                },
+                {
+                    variableId: 3,
+                    property: DimensionProperty.y,
+                    targetYear: 2020,
+                },
+            ],
+        }
 
-        const table = legacyToOwidTable(legacyVariableConfig)
+        const { table } = legacyToOwidTableAndDimensions(
+            legacyVariableConfig,
+            legacyGrapherConfig
+        )
 
         it("duplicates 'day' column into 'time'", () => {
             expect(table.columnSlugs).toEqual(
                 expect.arrayContaining([
                     OwidTableSlugs.day,
-                    OwidTableSlugs.year,
                     OwidTableSlugs.time,
                 ])
             )
@@ -224,7 +287,12 @@ describe(legacyToOwidTable, () => {
             ])
         })
 
-        it.todo("handles mixed time type joins")
-        it.todo("handles targetTime joins")
+        it("handles targetTime joins", () => {
+            expect(table.rows.length).toEqual(3)
+            expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
+            const column = table.get("3-2020")!
+            expect(column.allValues).toEqual([20, 20, 20])
+            expect(column.originalTimes).toEqual([2020, 2020, 2020])
+        })
     })
 })

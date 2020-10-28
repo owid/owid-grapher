@@ -9,6 +9,8 @@ import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import { InvalidCellTypes } from "./InvalidCells"
+import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 const sampleRows = [
     {
@@ -49,7 +51,6 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
                     "Prevalence of wasting, weight for height (% of children under 5)",
                 unit: "% of children under 5",
                 description: "Prevalence of...",
-                sourceId: 2174,
                 shortUnit: "%",
                 display: {
                     name: "Some Display Name",
@@ -60,19 +61,31 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
                         "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
                     link:
                         "http://data.worldbank.org/data-catalog/world-development-indicators",
-                },
+                } as any,
             },
         },
         entityKey: {
-            45: { name: "Cape Verde", code: "CPV" },
-            99: { name: "Papua New Guinea", code: "PNG" },
-            204: { name: "Kiribati", code: "KIR" },
+            45: { name: "Cape Verde", code: "CPV", id: 45 },
+            99: { name: "Papua New Guinea", code: "PNG", id: 99 },
+            204: { name: "Kiribati", code: "KIR", id: 204 },
         },
-    } as any
+    }
+}
+
+const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
+    return {
+        dimensions: [
+            {
+                property: DimensionProperty.y,
+                variableId: 3512,
+            },
+        ],
+    }
 }
 
 describe("creating a table from legacy", () => {
     const table = OwidTable.fromLegacy(getLegacyVarSet(), {
+        ...getLegacyGrapherConfig(),
         selectedData: [{ entityId: 45, index: 0, color: "blue" }],
     })
     const name =
@@ -106,11 +119,10 @@ describe("creating a table from legacy", () => {
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
         varSet.variables["3512"].display!.conversionFactor = 100
-        expect(OwidTable.fromLegacy(varSet).get("3512")!.parsedValues).toEqual([
-            550,
-            420,
-            1260,
-        ])
+        expect(
+            OwidTable.fromLegacy(varSet, getLegacyGrapherConfig()).get("3512")!
+                .parsedValues
+        ).toEqual([550, 420, 1260])
     })
 
     it("can apply legacy selection colors", () => {

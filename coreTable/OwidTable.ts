@@ -36,7 +36,10 @@ import {
     OwidRow,
     OwidTableSlugs,
 } from "./OwidTableConstants"
-import { legacyToOwidTable, makeAnnotationsSlug } from "./LegacyToOwidTable"
+import {
+    legacyToOwidTableAndDimensions,
+    makeAnnotationsSlug,
+} from "./LegacyToOwidTable"
 import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 import {
     AlignedTextTableOptions,
@@ -551,7 +554,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         json: LegacyVariablesAndEntityKey,
         grapherConfig: Partial<LegacyGrapherInterface> = {}
     ) {
-        return legacyToOwidTable(json, grapherConfig)
+        const { table } = legacyToOwidTableAndDimensions(json, grapherConfig)
+        return table
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
