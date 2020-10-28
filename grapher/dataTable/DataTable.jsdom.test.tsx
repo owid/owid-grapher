@@ -50,7 +50,7 @@ describe("when you render a table", () => {
         expect(cell.text()).toBe("Afghanistan")
     })
 
-    it.skip("renders the value for each country", () => {
+    it("renders the value for each country", () => {
         const cell = view.find("tbody tr td.dimension").first()
         expect(cell.text()).toBe("21.56%")
     })
@@ -144,9 +144,9 @@ describe("when the table doesn't have data for all rows", () => {
 
     // todo: This test should be reenabled, but the problem is an undefined value somewhere in the "columnsWithValues" function
     // I couldn't quite crack it and think we could reduce the size of the columnsWithValues method
-    // it("renders a tolerance notice when data is not from targetYear", () => {
-    //     expect(view.find(".closest-time-notice-icon").text()).toContain("2000")
-    // })
+    it.skip("renders a tolerance notice when data is not from targetYear", () => {
+        expect(view.find(".closest-time-notice-icon").text()).toContain("2000")
+    })
 })
 
 describe("when you try to hide countries", () => {

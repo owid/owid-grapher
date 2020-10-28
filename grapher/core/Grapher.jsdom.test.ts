@@ -9,7 +9,6 @@ import {
 } from "./GrapherConstants"
 import {
     GrapherInterface,
-    LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
@@ -627,7 +626,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-describe.skip("year parameter", () => {
+describe("year parameter", () => {
     describe("with years", () => {
         const tests: {
             name: string

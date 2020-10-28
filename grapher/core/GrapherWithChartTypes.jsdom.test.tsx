@@ -10,14 +10,18 @@ import { legacyMapGrapher } from "grapher/mapCharts/MapChart.sample"
 import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
 
 describe("grapher and map charts", () => {
-    it.skip("map time tolerance plus query string works with a map chart", () => {
+    describe("map time tolerance plus query string works with a map chart", () => {
         const grapher = new Grapher(legacyMapGrapher)
         expect(grapher.mapColumnSlug).toBe("3512")
         expect(grapher.inputTable.minTime).toBe(2000)
         expect(grapher.inputTable.maxTime).toBe(2010)
-        expect(grapher.startHandleTimeBound).toBe(2000)
-        expect(grapher.endHandleTimeBound).toBe(2000)
         expect(grapher.times).toEqual([2000, 2010])
+
+        // Todo: not actually clear what the desired behavior is here (we have a query string time not actually an available time.)
+        it.skip("sets correct time handles", () => {
+            expect(grapher.startHandleTimeBound).toBe(2000)
+            expect(grapher.endHandleTimeBound).toBe(2000)
+        })
     })
 
     it("can change time and see more points", () => {

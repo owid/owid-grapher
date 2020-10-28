@@ -361,6 +361,12 @@ export class Grapher
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
 
+        const mapTime = obj.map?.time
+        if (mapTime !== undefined) {
+            this.minTime = minTimeBoundFromJSONOrNegativeInfinity(mapTime)
+            this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(mapTime)
+        }
+
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime)
             this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
@@ -1184,7 +1190,7 @@ export class Grapher
         )
     }
 
-    // todo: remove. do this at table filter level
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
     getEntityNamesToShow(filterBackgroundEntities?: boolean): EntityName[] {
         return []
         // let entityNames = filterBackgroundEntities
@@ -1205,6 +1211,7 @@ export class Grapher
         // return entityNames
     }
 
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
@@ -1212,11 +1219,12 @@ export class Grapher
         return this.xDimension && this.xDimension.targetTime
     }
 
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetTime = value
     }
 
-    // todo: move to table
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
     @computed get excludedEntityNames(): EntityName[] {
         const entityIds = this.excludedEntities || []
         const entityNameMap = this.table.entityIdToNameMap
