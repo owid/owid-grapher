@@ -29,7 +29,7 @@ class ChartDimensionDefaults implements LegacyChartDimensionInterface {
     @observable display = new LegacyVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override
-    @observable targetTime?: Time = undefined
+    @observable targetYear?: Time = undefined
 }
 
 // todo: remove when we remove dimensions
@@ -58,7 +58,7 @@ export class ChartDimension
     updateFromObject(obj: LegacyChartDimensionInterface) {
         if (obj.display) updatePersistables(this, { display: obj.display })
 
-        this.targetTime = obj.targetTime
+        this.targetYear = obj.targetYear
         this.variableId = obj.variableId
         this.property = obj.property
         this.slug = obj.slug
@@ -71,7 +71,7 @@ export class ChartDimension
                     property: this.property,
                     variableId: this.variableId,
                     display: this.display,
-                    targetTime: this.targetTime,
+                    targetYear: this.targetYear,
                 },
                 new ChartDimensionDefaults()
             )

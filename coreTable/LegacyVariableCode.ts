@@ -19,7 +19,7 @@ class LegacyVariableTableDisplayConfig {
 
 export interface LegacyChartDimensionInterface {
     property: DimensionProperty
-    targetTime?: Time
+    targetYear?: Time
     display?: LegacyVariableDisplayConfigInterface
     variableId: LegacyVariableId
     slug?: ColumnSlug
