@@ -29,6 +29,7 @@ import {
     CoreQuery,
     CoreValueType,
     InputType,
+    CoreMatrix,
 } from "./CoreTableConstants"
 import {
     AlignedTextTableOptions,
@@ -51,7 +52,6 @@ import {
     replaceNonPositives,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
-    Matrix,
     parseDelimited,
     rowsFromMatrix,
 } from "./CoreTableUtils"
@@ -92,14 +92,14 @@ export class CoreTable<
 
     private inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rowsOrColumnsOrDsv: CoreTableInputOption = [],
+        input: CoreTableInputOption = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
         const { parent, tableDescription = "" } = advancedOptions
 
-        this.originalInput = rowsOrColumnsOrDsv
+        this.originalInput = input
         this.tableDescription = tableDescription
         this.parent = parent as this
         this.inputColumnDefs = inputColumnDefs
@@ -124,6 +124,7 @@ export class CoreTable<
 
         if (inputType === InputType.Delimited)
             return TransformType.LoadFromDelimited
+        if (inputType === InputType.Matrix) return TransformType.LoadFromMatrix
         if (inputType === InputType.RowStore)
             return TransformType.LoadFromRowStore
         return TransformType.LoadFromColumnStore
@@ -136,6 +137,10 @@ export class CoreTable<
 
         if (inputType === InputType.Delimited)
             return this.delimitedAsColumnStore
+        else if (inputType === InputType.Matrix)
+            return rowsToColumnStore(
+                rowsFromMatrix(originalInput as CoreMatrix)
+            )
         else if (inputType === InputType.RowStore)
             return rowsToColumnStore(originalInput as CoreRow[])
         return originalInput as CoreColumnStore
@@ -305,7 +310,7 @@ export class CoreTable<
     }
 
     protected transform(
-        rowsOrColumnStore: ROW_TYPE[] | CoreColumnStore,
+        rowsOrColumnStore: ROW_TYPE[] | CoreColumnStore | CoreMatrix,
         defs: COL_DEF_TYPE[],
         tableDescription: string,
         transformCategory: TransformType,
@@ -695,11 +700,12 @@ export class CoreTable<
 
     @imemo private get inputType() {
         const { originalInput } = this
-        return Array.isArray(originalInput)
-            ? InputType.RowStore
-            : typeof originalInput === "string"
-            ? InputType.Delimited
-            : InputType.ColumnStore
+        if (typeof originalInput === "string") return InputType.Delimited
+        if (Array.isArray(originalInput))
+            return Array.isArray(originalInput[0])
+                ? InputType.Matrix
+                : InputType.RowStore
+        return InputType.ColumnStore
     }
 
     @imemo private get inputColumnStoreToRows() {
@@ -707,8 +713,11 @@ export class CoreTable<
     }
 
     @imemo private get inputAsTable() {
-        return this.inputType === InputType.ColumnStore
+        const { inputType } = this
+        return inputType === InputType.ColumnStore
             ? this.inputColumnStoreToRows
+            : inputType === InputType.Matrix
+            ? rowsFromMatrix(this.originalInput as CoreMatrix)
             : this.originalInput
     }
 
@@ -1066,18 +1075,6 @@ export class CoreTable<
         )
     }
 
-    // Update the table from an array of arrays (method created for loading data from Handsontable)
-    // For now does a dumb overwrite
-    reloadFromGrid(inputTable: Matrix) {
-        const rows = rowsFromMatrix(inputTable)
-        return this.transform(
-            rows,
-            this.defs,
-            `Reloaded ${rows.length} rows`,
-            TransformType.Reload
-        )
-    }
-
     transpose(
         by: ColumnSlug,
         columnTypeNameForNewColumns = ColumnTypeNames.Numeric
@@ -1094,7 +1091,7 @@ export class CoreTable<
             .filter((col) => col.slug !== by)
             .map((col) => [col.slug, ...col.allValues])
         return this.transform(
-            rowsFromMatrix([newColumnSlugs, ...newRowValues]),
+            [newColumnSlugs, ...newRowValues],
             newColumnDefs,
             `Transposed`,
             TransformType.Transpose

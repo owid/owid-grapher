@@ -41,6 +41,7 @@ export enum InputType {
     Delimited = "Delimited",
     RowStore = "RowStore",
     ColumnStore = "ColumnStore",
+    Matrix = "Matrix",
 }
 
 export interface CoreColumnDef {
@@ -63,8 +64,8 @@ export enum TransformType {
     LoadFromDelimited = "LoadFromDelimited",
     LoadFromRowStore = "LoadFromRowStore",
     LoadFromColumnStore = "LoadFromColumnStore",
+    LoadFromMatrix = "LoadFromMatrix",
     Transpose = "Transpose",
-    Reload = "Reload",
     Concat = "Concat",
     Reduce = "Reduce",
 
@@ -122,7 +123,11 @@ export type CoreColumnStore = {
     [columnSlug: string]: CoreValueType[]
 }
 
-export type CoreTableInputOption = CoreRow[] | CoreColumnStore | CsvString
+export type CoreTableInputOption =
+    | CoreRow[]
+    | CoreColumnStore
+    | CsvString
+    | CoreMatrix
 
 // Every row will be checked against each column/value(s) pair.
 export interface CoreQuery {
@@ -132,3 +137,13 @@ export interface CoreQuery {
 // todo: remove index param?
 // todo: improve typings on this
 export type ColumnFn = (row: CoreRow, index?: Integer) => any
+
+/**
+ * This is just an array of arrays where the first array is the header and the rest are rows. An example is:
+ * [["country", "gdp"],
+ * ["usa", 123],
+ * ["can", 456]]
+ * Having this type is just to provide a common unique name for the basic structure used by HandsOnTable
+ * and some other popular JS data libraries.
+ */
+export type CoreMatrix = any[][]

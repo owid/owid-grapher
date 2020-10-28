@@ -90,17 +90,15 @@ describe("creating tables", () => {
             Object.keys(sampleRows[0]),
             Object.values(sampleRows[0]),
         ] as any[][]
-        const table = new CoreTable(rowsFromMatrix(matrix))
+        const table = new CoreTable(matrix)
         expect(table.numRows).toEqual(1)
         expect(table.numColumns).toEqual(6)
         expect(table.toMatrix()).toEqual(matrix)
 
-        const tableTrim = new CoreTable(
-            rowsFromMatrix([
-                ["country", null],
-                ["usa", undefined],
-            ])
-        )
+        const tableTrim = new CoreTable([
+            ["country", null],
+            ["usa", undefined],
+        ])
         expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
     })
 

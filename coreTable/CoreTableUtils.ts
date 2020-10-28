@@ -11,6 +11,7 @@ import {
     CoreColumnDef,
     CoreRow,
     ColumnSlug,
+    CoreMatrix,
 } from "./CoreTableConstants"
 import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import {
@@ -19,14 +20,6 @@ import {
     OwidEntityNameColumnDef,
     OwidTableSlugs,
 } from "./OwidTableConstants"
-
-/**
- * A Matrix here is just an array of arrays, usually where the first array is the header. An example is:
- * [["country", "gdp"],
- * ["usa", 123]]
- * It is the basic structure used by HandsOnTable and some other JS data libraries.
- */
-export type Matrix = any[][]
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     const firstCol = Object.values(columnStore)[0]
@@ -427,7 +420,7 @@ export class Timer {
     }
 }
 
-export const rowsFromMatrix = (matrix: Matrix) => {
+export const rowsFromMatrix = (matrix: CoreMatrix) => {
     const table = trimMatrix(matrix)
     const header = table[0]
     return table.slice(1).map((row) => {
@@ -439,11 +432,12 @@ export const rowsFromMatrix = (matrix: Matrix) => {
     })
 }
 
-const trimEmptyColumns = (matrix: Matrix): Matrix => matrix.map(trimArray)
-export const trimMatrix = (matrix: Matrix): Matrix =>
+const trimEmptyColumns = (matrix: CoreMatrix): CoreMatrix =>
+    matrix.map(trimArray)
+export const trimMatrix = (matrix: CoreMatrix): CoreMatrix =>
     trimEmptyColumns(trimEmptyRows(matrix))
 
-export const matrixToDelimited = (table: Matrix, delimiter = "\t") => {
+export const matrixToDelimited = (table: CoreMatrix, delimiter = "\t") => {
     return table
         .map((row: any) =>
             row
@@ -464,7 +458,7 @@ export const parseDelimited = (
 export const detectDelimiter = (str: string) =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
-export const rowsToMatrix = (rows: any[]): Matrix | undefined =>
+export const rowsToMatrix = (rows: any[]): CoreMatrix | undefined =>
     rows.length
         ? [Object.keys(rows[0]), ...rows.map((row) => Object.values(row))]
         : undefined
@@ -474,19 +468,19 @@ const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
 export const isCellEmpty = (cell: any) =>
     cell === null || cell === undefined || cell === ""
 
-export const trimEmptyRows = (matrix: Matrix): Matrix => {
+export const trimEmptyRows = (matrix: CoreMatrix): CoreMatrix => {
     let trimAt = undefined
-    for (let index = matrix.length - 1; index >= 0; index--) {
-        if (!isRowEmpty(matrix[index])) break
-        trimAt = index
+    for (let rowIndex = matrix.length - 1; rowIndex >= 0; rowIndex--) {
+        if (!isRowEmpty(matrix[rowIndex])) break
+        trimAt = rowIndex
     }
     return trimAt === undefined ? matrix : matrix.slice(0, trimAt)
 }
 
 export const trimArray = (arr: any[]) => {
-    let index: number
-    for (index = arr.length - 1; index >= 0; index--) {
-        if (!isCellEmpty(arr[index])) break
+    let rightIndex: number
+    for (rightIndex = arr.length - 1; rightIndex >= 0; rightIndex--) {
+        if (!isCellEmpty(arr[rightIndex])) break
     }
-    return arr.slice(0, index + 1)
+    return arr.slice(0, rightIndex + 1)
 }

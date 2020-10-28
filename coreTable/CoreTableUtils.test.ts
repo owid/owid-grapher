@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
+import { CoreMatrix } from "./CoreTableConstants"
 import {
     getDropIndexes,
     imemo,
     interpolateRowValuesWithTolerance,
-    Matrix,
     matrixToDelimited,
     parseDelimited,
     rowsToMatrix,
@@ -110,7 +110,7 @@ it("can get indexes of cell values to drop in an array", () => {
 })
 
 describe("matrix methods", () => {
-    it("turns an arraw of objects into arrays", () => {
+    it("turns an array of objects into arrays", () => {
         const str = `gdp,pop
 1,2`
         expect(rowsToMatrix(parseDelimited(str))).toEqual([
@@ -154,7 +154,7 @@ describe(parseDelimited, () => {
 
 describe(trimEmptyRows, () => {
     it("trims rows", () => {
-        const testCases: { input: Matrix; length: number }[] = [
+        const testCases: { input: CoreMatrix; length: number }[] = [
             {
                 input: [["pop"], [123], [null], [""], [undefined]],
                 length: 2,
