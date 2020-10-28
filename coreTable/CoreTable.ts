@@ -470,12 +470,13 @@ export class CoreTable<
 
         const indexValues = indexCol.allValues
         const valueValues = valueCol.allValues
-        const indices = intersection(
-            indexCol.validRowIndices,
-            valueCol.validRowIndices
+        const valueIndices = new Set(valueCol.validRowIndices)
+        const intersection = indexCol.validRowIndices.filter((index) =>
+            valueIndices.has(index)
         )
+
         const map = new Map<PrimitiveType, PrimitiveType>()
-        indices.forEach((index) => {
+        intersection.forEach((index) => {
             map.set(
                 indexValues[index] as PrimitiveType,
                 valueValues[index] as PrimitiveType

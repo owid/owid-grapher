@@ -168,10 +168,8 @@ export class CountryPicker extends React.Component<{
         return this.manager.selectionArray
     }
 
-    @bind private isSelected(option: EntityOptionWithMetricValue) {
-        return this.selectionArray.selectedEntityNames.includes(
-            option.entityName
-        )
+    @computed get selectionSet() {
+        return new Set(this.selectionArray.selectedEntityNames)
     }
 
     @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
@@ -183,7 +181,7 @@ export class CountryPicker extends React.Component<{
 
     @computed private get searchResults(): EntityOptionWithMetricValue[] {
         if (this.searchInput) return this.fuzzy.search(this.searchInput)
-
+        const { selectionSet } = this
         // Show the selected up top and in order.
         const [selected, unselected] = partition(
             sortByUndefinedLast(
@@ -191,7 +189,8 @@ export class CountryPicker extends React.Component<{
                 (option) => option.plotValue,
                 this.sortOrder
             ),
-            this.isSelected
+            (option: EntityOptionWithMetricValue) =>
+                selectionSet.has(option.entityName)
         )
         return [...selected, ...unselected]
     }
@@ -512,7 +511,9 @@ export class CountryPicker extends React.Component<{
                                             barScale={this.barScale}
                                             onChange={this.selectEntity}
                                             onHover={() => this.onHover(index)}
-                                            isSelected={this.isSelected(option)}
+                                            isSelected={this.selectionSet.has(
+                                                option.entityName
+                                            )}
                                             isFocused={
                                                 this.focusIndex === index
                                             }
