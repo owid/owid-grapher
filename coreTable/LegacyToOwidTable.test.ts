@@ -1,14 +1,15 @@
 #! /usr/bin/env yarn jest
 
 import { DimensionProperty } from "grapher/core/GrapherConstants"
-import {
-    legacyToOwidTable,
-    legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc,
-} from "./LegacyToOwidTable"
+import { ColumnTypeMap } from "./CoreTableColumns"
+import { InvalidCellTypes } from "./InvalidCells"
+import { legacyToOwidTable } from "./LegacyToOwidTable"
+import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { OwidTableSlugs, StandardOwidColumnDefs } from "./OwidTableConstants"
 
 describe(legacyToOwidTable, () => {
     const legacyVariableConfig = {
-        entityKey: { "1": { name: "Rail", code: "RAL", id: 1 } },
+        entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
         variables: {
             "2": {
                 id: 2,
@@ -20,56 +21,210 @@ describe(legacyToOwidTable, () => {
         },
     }
 
-    it("applies the more specific chart-level conversionFactor", () => {
-        const table = legacyToOwidTable(legacyVariableConfig, {
-            dimensions: [
-                {
-                    variableId: 2,
-                    display: { conversionFactor: 10 },
-                    property: DimensionProperty.y,
-                },
-            ],
+    it("contains the standard entity columns", () => {
+        const table = legacyToOwidTable(legacyVariableConfig)
+        expect(table.columnSlugs).toEqual(
+            expect.arrayContaining(
+                StandardOwidColumnDefs.map((def) => def.slug)
+            )
+        )
+        expect(table.get(OwidTableSlugs.entityName)?.allValues).toEqual([
+            "World",
+        ])
+        expect(table.get(OwidTableSlugs.entityCode)?.allValues).toEqual([
+            "OWID_WRL",
+        ])
+    })
+
+    describe("conversionFactor", () => {
+        it("applies the more specific chart-level conversionFactor", () => {
+            const table = legacyToOwidTable(legacyVariableConfig, {
+                dimensions: [
+                    {
+                        variableId: 2,
+                        display: { conversionFactor: 10 },
+                        property: DimensionProperty.y,
+                    },
+                ],
+            })
+
+            // Apply the chart-level conversionFactor (10)
+            expect(table.rows[0]["2"]).toEqual(80)
         })
 
-        // Apply the chart-level conversionFactor (10)
-        expect(table.rows[0]["2"]).toEqual(80)
+        it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
+            const table = legacyToOwidTable(legacyVariableConfig)
+
+            // Apply the variable-level conversionFactor (100)
+            expect(table.rows[0]["2"]).toEqual(800)
+        })
     })
 
-    it("applies the more variable-level conversionFactor if a chart-level one is not present", () => {
+    describe("variables with years", () => {
+        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+            entityKey: {
+                "1": { name: "World", code: "OWID_WRL", id: 1 },
+                "2": { name: "High-income", code: null as any, id: 2 },
+            },
+            variables: {
+                "2": {
+                    id: 2,
+                    entities: [1, 1, 1, 2],
+                    values: [8, 9, 10, 11],
+                    years: [2020, 2021, 2022, 2022],
+                },
+                "3": {
+                    id: 3,
+                    entities: [1, 2, 1],
+                    values: [20, 21, 22],
+                    years: [2022, 2022, 2024],
+                },
+            },
+        }
+
         const table = legacyToOwidTable(legacyVariableConfig)
 
-        // Apply the variable-level conversionFactor (100)
-        expect(table.rows[0]["2"]).toEqual(800)
-    })
-})
+        it("leaves invalid cells when there were no values to join to", () => {
+            // Currently joins may just be partial and have many blank values. CoreTable will fill those in with the
+            // appropriate invalid type. It may make sense to change that and normalize keys in this method.
+            const worldRows = table.rows.filter(
+                (row) => row.entityName === "World"
+            )
+            expect(worldRows[0]["3"]).toEqual(
+                InvalidCellTypes.NoMatchingValueAfterJoin
+            )
+            expect(worldRows[3]["2"]).toEqual(
+                InvalidCellTypes.NoMatchingValueAfterJoin
+            )
+        })
 
-describe(legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc, () => {
-    it("generated rows may have different keys initially", () => {
-        // Currently joins may just be partial and have many blank values. CoreTable will fill those in with the
-        // appropriate invalid type. It may make sense to change that and normalize keys in this method.
-        const legacyVariableConfig = {
-            entityKey: { "1": { name: "Rail", code: "RAL", id: 1 } },
+        it("duplicates 'year' column into 'time'", () => {
+            expect(table.columnSlugs).toEqual(
+                expect.arrayContaining([
+                    OwidTableSlugs.year,
+                    OwidTableSlugs.time,
+                ])
+            )
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Year
+            ).toBeTruthy()
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
+            expect(table.get(OwidTableSlugs.time)?.valuesAscending).toEqual([
+                2020,
+                2021,
+                2022,
+                2022,
+                2024,
+            ])
+        })
+
+        it("handles `null` in country codes", () => {
+            const highIncomeRows = table.rows.filter(
+                (row) => row.entityName === "High-income"
+            )
+            expect(table.rows.length).toEqual(5)
+            expect(highIncomeRows.length).toEqual(1)
+        })
+    })
+
+    describe("variables with days", () => {
+        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+            entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
             variables: {
                 "2": {
                     id: 2,
                     entities: [1, 1, 1],
                     values: [8, 9, 10],
-                    years: [2020, 2021, 2022],
+                    years: [-5, 0, 1],
+                    display: {
+                        yearIsDay: true,
+                        zeroDay: "2020-01-21",
+                    },
                 },
                 "3": {
                     id: 3,
-                    entities: [1],
-                    values: [20],
-                    years: [2022],
+                    entities: [1, 1],
+                    values: [20, 21],
+                    years: [-4, -3],
+                    display: {
+                        yearIsDay: true,
+                        zeroDay: "2020-01-19",
+                    },
                 },
             },
         }
 
-        const table = legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc(
-            legacyVariableConfig
-        )
+        const table = legacyToOwidTable(legacyVariableConfig)
 
-        expect(Object.keys(table.rows[0]).includes("3")).toBeTruthy()
-        expect(table.rows[0]["3"]).toBeUndefined()
+        it("shifts values in days array when zeroDay is is not EPOCH_DATE", () => {
+            expect(table.get("2")?.uniqTimesAsc).toEqual([-5, 0, 1])
+            expect(table.get("3")?.uniqTimesAsc).toEqual([-6, -5])
+        })
+
+        it("duplicates 'day' column into 'time'", () => {
+            expect(table.columnSlugs).toEqual(
+                expect.arrayContaining([
+                    OwidTableSlugs.day,
+                    OwidTableSlugs.time,
+                ])
+            )
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
+            ).toBeTruthy()
+            expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
+            expect(table.get(OwidTableSlugs.time)?.valuesAscending).toEqual([
+                -6,
+                -5,
+                0,
+                1,
+            ])
+        })
+    })
+
+    describe("variables with mixed days & years", () => {
+        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+            entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
+            variables: {
+                "2": {
+                    id: 2,
+                    entities: [1, 1, 1],
+                    values: [8, 9, 10],
+                    years: [-5, 0, 1],
+                    display: {
+                        yearIsDay: true,
+                        zeroDay: "2020-01-21",
+                    },
+                },
+                "3": {
+                    id: 3,
+                    entities: [1, 1],
+                    values: [20, 21],
+                    years: [2020, 2021],
+                },
+            },
+        }
+
+        const table = legacyToOwidTable(legacyVariableConfig)
+
+        it("duplicates 'day' column into 'time'", () => {
+            expect(table.columnSlugs).toEqual(
+                expect.arrayContaining([
+                    OwidTableSlugs.day,
+                    OwidTableSlugs.year,
+                    OwidTableSlugs.time,
+                ])
+            )
+            expect(
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
+            ).toBeTruthy()
+            expect(table.get(OwidTableSlugs.time)?.uniqValues).toEqual([
+                -5,
+                0,
+                1,
+            ])
+        })
+
+        it.todo("handles mixed time type joins")
+        it.todo("handles targetTime joins")
     })
 })

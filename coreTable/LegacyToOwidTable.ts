@@ -10,8 +10,7 @@ import {
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
     diffDateISOStringInDays,
-    groupBy,
-    sortBy,
+    isNumber,
     trimObject,
 } from "grapher/utils/Util"
 
@@ -21,23 +20,29 @@ import {
     LegacyVariableConfig,
 } from "./LegacyVariableCode"
 import {
-    OwidRow,
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
     EntityId,
 } from "./OwidTableConstants"
-import { timeColumnSlugFromColumnDef } from "./OwidTableUtil"
+import { OwidTable } from "./OwidTable"
 
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`
 
-export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
+export const legacyToOwidTable = (
     json: LegacyVariablesAndEntityKey,
     grapherConfig: Partial<LegacyGrapherInterface> = {}
-) => {
+): OwidTable => {
+    // Entity meta map
+
+    const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
+
+    // Color maps
+
     const entityColorMap = new Map<EntityId, Color>()
-    const columnColorMap = new Map<string, Color>()
+    const columnColorMap = new Map<ColumnSlug, Color>()
+
     const dimensions = grapherConfig.dimensions || []
 
     grapherConfig.selectedData
@@ -48,139 +53,127 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
             if (varId) columnColorMap.set(varId.toString(), item.color!)
         })
 
-    let rows: OwidRow[] = []
-    const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
-    const columnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
+    // Base column defs, shared by all variable tables
+
+    const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
     StandardOwidColumnDefs.forEach((def) => {
-        columnDefs.set(def.slug, def)
+        baseColumnDefs.set(def.slug, def)
     })
 
     const colorColumnSlug =
         entityColorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
     if (colorColumnSlug) {
-        columnDefs.set(colorColumnSlug, {
+        baseColumnDefs.set(colorColumnSlug, {
             slug: colorColumnSlug,
             type: ColumnTypeNames.Color,
             name: colorColumnSlug,
         })
     }
 
+    // Build the joined table of variables
+
+    let joinedVariablesTable: OwidTable | undefined = undefined
+
     for (const varId in json.variables) {
+        // Copy the base columnDef
+        const columnDefs = new Map(baseColumnDefs)
+
         const variable = json.variables[varId]
+        const dimension = dimensions.find(
+            (dim) => dim.variableId.toString() === varId
+        )
 
-        const entityNames =
-            variable.entities?.map((id) => entityMetaById[id].name) || []
-        const entityCodes =
-            variable.entities?.map((id) => entityMetaById[id].code) || []
+        // Time column
+        const timeColumnDef = timeColumnDefFromLegacyVariable(variable)
+        columnDefs.set(timeColumnDef.slug, timeColumnDef)
 
-        const columnDef = columnDefFromLegacyVariable(variable)
+        // Value column
+        const valueColumnDef = columnDefFromLegacyVariable(variable)
+        const valueColumnColor = columnColorMap.get(varId.toString())
+        if (valueColumnColor) {
+            valueColumnDef.color = valueColumnColor
+        }
+        if (dimension) {
+            valueColumnDef.display = {
+                ...trimObject(valueColumnDef.display),
+                ...trimObject(dimension.display),
+            }
+        }
+        columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
-        const columnColor = columnColorMap.get(varId.toString())
-        if (columnColor) columnDef.color = columnColor
+        // Annotations column
+        const [
+            annotationMap,
+            annotationColumnDef,
+        ] = annotationMapAndDefFromLegacyVariable(variable)
 
-        const columnSlug = columnDef.slug
-        columnDef.isDailyMeasurement
-            ? columnDefs.set(OwidTableSlugs.day, {
-                  slug: OwidTableSlugs.day,
-                  type: ColumnTypeNames.Date,
-                  name: "Date",
-              })
-            : columnDefs.set(OwidTableSlugs.year, {
-                  slug: OwidTableSlugs.year,
-                  type: ColumnTypeNames.Year,
-                  name: "Year",
-              })
-        columnDefs.set(columnSlug, columnDef)
+        // Column values
 
-        // todo: remove. move annotations to their own first class column.
-        let annotationsColumnSlug: string
-        let annotationMap: Map<string, string>
-        if (variable.display?.entityAnnotationsMap) {
-            annotationsColumnSlug = makeAnnotationsSlug(columnSlug)
-            annotationMap = annotationsToMap(
-                variable.display.entityAnnotationsMap
+        const times = timeColumnValuesFromLegacyVariable(variable)
+        const entityIds = variable.entities ?? []
+        const entityNames = entityIds.map((id) => entityMetaById[id].name)
+        const entityCodes = entityIds.map((id) => entityMetaById[id].code)
+
+        // If there is a conversionFactor, apply it.
+        let values = variable.values || []
+        const conversionFactor = valueColumnDef.display?.conversionFactor
+        if (conversionFactor !== undefined) {
+            values = values.map((value) =>
+                isNumber(value) ? value * conversionFactor : value
             )
-            columnDefs.set(annotationsColumnSlug, {
-                slug: annotationsColumnSlug,
-                type: ColumnTypeNames.SeriesAnnotation,
-                name: `${columnDef.name} Annotations`,
-            })
         }
 
-        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
+        const columnStore: { [key: string]: any[] } = {
+            [OwidTableSlugs.entityId]: entityIds,
+            [OwidTableSlugs.entityCode]: entityCodes,
+            [OwidTableSlugs.entityName]: entityNames,
+            [timeColumnDef.slug]: times,
+            [valueColumnDef.slug]: values,
+        }
 
-        // Todo: remove
-        const display = variable.display
-        const yearsNeedTransform =
-            display &&
-            display.yearIsDay &&
-            display.zeroDay !== undefined &&
-            display.zeroDay !== EPOCH_DATE
-        const yearsRaw = variable.years || []
-        const years =
-            yearsNeedTransform && display
-                ? convertLegacyYears(yearsRaw, display.zeroDay!)
-                : yearsRaw
+        if (annotationColumnDef) {
+            columnStore[
+                annotationColumnDef.slug
+            ] = entityNames.map((entityName) => annotationMap!.get(entityName))
+        }
 
-        const values = variable.values || []
-        const entities = variable.entities || []
+        if (colorColumnSlug) {
+            columnStore[colorColumnSlug] = entityIds.map((entityId) =>
+                entityColorMap.get(entityId)
+            )
+        }
 
-        const newRows = values.map((value, index) => {
-            const entityName = entityNames[index]
-            const entityId = entities[index]
-            const time = years[index]
-            const row: OwidRow = {
-                [timeColumnSlug]: time,
-                time,
-                [columnSlug]: value,
-                entityName,
-                entityId,
-                entityCode: entityCodes[index],
-            }
-            if (annotationsColumnSlug)
-                row[annotationsColumnSlug] = annotationMap.get(entityName)
+        // Build the tables
 
-            if (colorColumnSlug)
-                row[colorColumnSlug] = entityColorMap.get(entityId)
-            return row
-        })
-        rows = rows.concat(newRows)
-    }
-    const rowsGroupedByTimeAndEntityName = groupBy(rows, (row) => {
-        const timePart =
-            row.year !== undefined ? `year:${row.year}` : `day:${row.day}`
-        return timePart + " " + row.entityName
-    })
-
-    const blankForEverySlug: Record<string, undefined> = {}
-    const slugs = Array.from(columnDefs.keys())
-    slugs.forEach((slug) => (blankForEverySlug[slug] = undefined))
-
-    const joinedRows: OwidRow[] = Object.keys(
-        rowsGroupedByTimeAndEntityName
-    ).map((timeAndEntityName) =>
-        Object.assign(
-            {},
-            blankForEverySlug,
-            ...rowsGroupedByTimeAndEntityName[timeAndEntityName]
+        const variableTable = new OwidTable(
+            columnStore,
+            Array.from(columnDefs.values())
         )
-    )
 
-    return {
-        rows: sortBy(joinedRows, [OwidTableSlugs.year, OwidTableSlugs.day]),
-        columnDefs,
+        if (joinedVariablesTable) {
+            joinedVariablesTable = joinedVariablesTable.fullJoin(variableTable)
+        } else {
+            joinedVariablesTable = variableTable
+        }
     }
-}
 
-// todo: remove
-const convertLegacyYears = (years: number[], zeroDay: string) => {
-    // Only shift years if the variable zeroDay is different from EPOCH_DATE
-    // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
-    // days since the specified `zeroDay`, which can be different for different variables.
-    // In order to correctly join variables with different `zeroDay`s in a single chart, we
-    // normalize all days to be in reference to a single epoch date.
-    const diff = diffDateISOStringInDays(zeroDay, EPOCH_DATE)
-    return years.map((y) => y + diff)
+    // Inject a common "time" column that is used as the main time column for the table
+    // e.g. for the timeline.
+    for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
+        if (joinedVariablesTable?.columnSlugs.includes(dayOrYearSlug)) {
+            joinedVariablesTable = joinedVariablesTable.duplicateColumn(
+                dayOrYearSlug,
+                {
+                    slug: OwidTableSlugs.time,
+                    name: OwidTableSlugs.time,
+                }
+            )
+            // Do not inject multiple columns, terminate after one is successful
+            break
+        }
+    }
+
+    return joinedVariablesTable ?? new OwidTable()
 }
 
 const columnDefFromLegacyVariable = (
@@ -219,6 +212,65 @@ const columnDefFromLegacyVariable = (
     }
 }
 
+const timeColumnDefFromLegacyVariable = (
+    variable: LegacyVariableConfig
+): OwidColumnDef => {
+    return variable.display?.yearIsDay
+        ? {
+              slug: OwidTableSlugs.day,
+              type: ColumnTypeNames.Date,
+              name: "Date",
+          }
+        : {
+              slug: OwidTableSlugs.year,
+              type: ColumnTypeNames.Year,
+              name: "Year",
+          }
+}
+
+const timeColumnValuesFromLegacyVariable = (
+    variable: LegacyVariableConfig
+): number[] => {
+    const { display, years } = variable
+    const yearsNeedTransform =
+        display &&
+        display.yearIsDay &&
+        display.zeroDay !== undefined &&
+        display.zeroDay !== EPOCH_DATE
+    const yearsRaw = years || []
+    return yearsNeedTransform
+        ? convertLegacyYears(yearsRaw, display!.zeroDay!)
+        : yearsRaw
+}
+
+const convertLegacyYears = (years: number[], zeroDay: string) => {
+    // Only shift years if the variable zeroDay is different from EPOCH_DATE
+    // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
+    // days since the specified `zeroDay`, which can be different for different variables.
+    // In order to correctly join variables with different `zeroDay`s in a single chart, we
+    // normalize all days to be in reference to a single epoch date.
+    const diff = diffDateISOStringInDays(zeroDay, EPOCH_DATE)
+    return years.map((y) => y + diff)
+}
+
+const annotationMapAndDefFromLegacyVariable = (
+    variable: LegacyVariableConfig
+): [Map<string, string>, OwidColumnDef] | [] => {
+    if (variable.display?.entityAnnotationsMap) {
+        const slug = makeAnnotationsSlug(variable.id.toString())
+        const annotationMap = annotationsToMap(
+            variable.display.entityAnnotationsMap
+        )
+        const columnDef = {
+            slug,
+            type: ColumnTypeNames.SeriesAnnotation,
+            name: slug,
+        }
+        return [annotationMap, columnDef]
+    }
+    return []
+}
+
 const annotationsToMap = (annotations: string) => {
     // Todo: let's delete this and switch to traditional columns
     const entityAnnotationsMap = new Map<string, string>()
@@ -228,57 +280,4 @@ const annotationsToMap = (annotations: string) => {
         entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
     })
     return entityAnnotationsMap
-}
-
-// This takes both the Variables and Dimensions data and generates an OwidTable.
-export const legacyToOwidTable = (
-    json: LegacyVariablesAndEntityKey,
-    grapherConfig: Partial<LegacyGrapherInterface> = {}
-) => {
-    const {
-        rows,
-        columnDefs,
-    } = legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc(json, grapherConfig)
-
-    const dimensions = grapherConfig.dimensions || []
-
-    // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
-    const conversionFactors = new Map<string, number>()
-
-    // Dimension-level conversionFactors "override" variable-level conversionFactors, so we need to just choose the correct factor before we can apply it
-
-    Array.from(columnDefs.values())
-        .filter((col) => col.display?.conversionFactor !== undefined)
-        .forEach((col) => {
-            const { slug, display } = col
-            conversionFactors.set(slug, display!.conversionFactor!)
-        })
-
-    dimensions
-        .filter((dim) => dim.display?.conversionFactor !== undefined)
-        .forEach((dimension) => {
-            const { display, variableId } = dimension
-            conversionFactors.set(
-                variableId.toString(),
-                display!.conversionFactor!
-            )
-        })
-
-    conversionFactors.forEach((unitConversionFactor, slug) => {
-        rows.forEach((row) => {
-            const value = row[slug]
-            if (value !== undefined && value !== null)
-                row[slug] = value * unitConversionFactor
-        })
-    })
-
-    dimensions.forEach((dim) => {
-        const def = columnDefs.get(dim.variableId.toString())!
-        def.display = {
-            ...trimObject(def.display),
-            ...trimObject(dim.display),
-        }
-    })
-
-    return { rows, defs: Array.from(columnDefs.values()) }
 }

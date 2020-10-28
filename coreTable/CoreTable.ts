@@ -1084,6 +1084,34 @@ export class CoreTable<
         )
     }
 
+    duplicateColumn(slug: ColumnSlug, overrides: COL_DEF_TYPE) {
+        if (slug === overrides.slug) {
+            throw new Error(
+                `Cannot duplicate column: column slug '${slug}' matches the existing column`
+            )
+        }
+
+        const existingColumn = this.get(slug)
+        if (!existingColumn) {
+            throw new Error(`Cannot duplicate column: '${slug}' does not exist`)
+        }
+
+        return this.transform(
+            {
+                ...this.columnStore,
+                [overrides.slug]: this.columnStore[slug],
+            },
+            this.defs.concat([
+                {
+                    ...existingColumn.def,
+                    ...overrides,
+                },
+            ]),
+            `Duplicated column '${slug}' to column '${overrides.slug}'`,
+            TransformType.AppendColumns
+        )
+    }
+
     transpose(
         by: ColumnSlug,
         columnTypeNameForNewColumns = ColumnTypeNames.Numeric

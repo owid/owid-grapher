@@ -4,6 +4,7 @@ import {
     range,
     sampleFrom,
     slugifySameCase,
+    toString,
 } from "grapher/utils/Util"
 import {
     CoreColumnStore,
@@ -229,7 +230,8 @@ export const makeKeyFn = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[]
 ) => (rowIndex: number) =>
-    columnSlugs.map((slug) => columnStore[slug][rowIndex].toString()).join(" ")
+    // toString() handles `undefined` and `null` values, which can be in the table.
+    columnSlugs.map((slug) => toString(columnStore[slug][rowIndex])).join(" ")
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
 export const imemo = (
