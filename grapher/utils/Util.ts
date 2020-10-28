@@ -15,7 +15,6 @@ import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
 import has from "lodash/has"
 import identity from "lodash/identity"
-import intersection from "lodash/intersection"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 import isNumber from "lodash/isNumber"
@@ -73,7 +72,6 @@ export {
     groupBy,
     has,
     identity,
-    intersection,
     isEmpty,
     isEqual,
     isNumber,
@@ -969,6 +967,17 @@ export function intersectionOfSets<T>(sets: Set<T>[]) {
         }
     })
     return intersection
+}
+
+// ES6 is now significantly faster than lodash's intersection
+export const intersection = (...arrs: any[][]): any[] => {
+    if (arrs.length === 0) return []
+    if (arrs.length === 1) return arrs[0]
+    if (arrs.length === 2) {
+        const set = new Set(arrs[0])
+        return arrs[1].filter((value) => set.has(value))
+    }
+    return intersection(arrs[0], intersection(...arrs.slice(1)))
 }
 
 export function sortByUndefinedLast<T>(

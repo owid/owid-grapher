@@ -28,6 +28,7 @@ import {
     getRandomNumberGenerator,
     findClosestTimeIndex,
     trimArray,
+    intersection,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder } from "coreTable/CoreTableConstants"
@@ -232,13 +233,27 @@ describe(parseDelimited, () => {
     })
 })
 
-describe(intersectionOfSets, () => {
+describe("intersection", () => {
+    const groupA = ["a", "b", "c"]
+    const groupB = ["a", "b", "c", "d"]
+    const groupC = ["a", "c", "d"]
+    const groupD = ["a", "c", "d"]
+    const groupE = [""]
+    it("can compute intersections", () => {
+        expect(intersection(groupA, groupB)).toEqual(["a", "b", "c"])
+        expect(intersection(groupA, groupE)).toEqual([])
+        expect(intersection([], [])).toEqual([])
+        expect(intersection(groupA, groupA)).toEqual(groupA)
+        expect(intersection(groupE, groupE)).toEqual([""])
+        expect(intersection(groupA, groupB, groupC)).toEqual(["a", "c"])
+    })
+
     it("can detect set intersections", () => {
-        const setA = new Set(["a", "b", "c"])
-        const setB = new Set(["a", "b", "c", "d"])
-        const setC = new Set(["a", "c", "d"])
-        const setD = new Set(["a", "c", "d"])
-        const setE = new Set([""])
+        const setA = new Set(groupA)
+        const setB = new Set(groupB)
+        const setC = new Set(groupC)
+        const setD = new Set(groupD)
+        const setE = new Set(groupE)
 
         expect(
             Array.from(intersectionOfSets([setA, setB, setC, setD]).values())
