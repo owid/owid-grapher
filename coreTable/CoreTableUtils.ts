@@ -20,14 +20,13 @@ import {
     OwidTableSlugs,
 } from "./OwidTableConstants"
 
-// A grid is a 2D matrix/array of arrays. The first array is usually a header. It is the basic
-// structure used in HandsonTable
-export type Grid = any[][]
-
-// A JsTable is a type of Grid where the first row is an array of column names.
-declare type HeaderRow = string[]
-declare type ValueRow = any[]
-export type JsTable = [HeaderRow, ...ValueRow]
+/**
+ * A Matrix here is just an array of arrays, usually where the first array is the header. An example is:
+ * [["country", "gdp"],
+ * ["usa", 123]]
+ * It is the basic structure used by HandsOnTable and some other JS data libraries.
+ */
+export type Matrix = any[][]
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     const firstCol = Object.values(columnStore)[0]
@@ -428,8 +427,8 @@ export class Timer {
     }
 }
 
-export const rowsFromGrid = (inputTable: Grid) => {
-    const table = trimGrid(inputTable)
+export const rowsFromMatrix = (matrix: Matrix) => {
+    const table = trimMatrix(matrix)
     const header = table[0]
     return table.slice(1).map((row) => {
         const newRow: any = {}
@@ -440,11 +439,11 @@ export const rowsFromGrid = (inputTable: Grid) => {
     })
 }
 
-const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
-export const trimGrid = (grid: Grid): Grid =>
-    trimEmptyColumns(trimEmptyRows(grid))
+const trimEmptyColumns = (matrix: Matrix): Matrix => matrix.map(trimArray)
+export const trimMatrix = (matrix: Matrix): Matrix =>
+    trimEmptyColumns(trimEmptyRows(matrix))
 
-export const jsTableToDelimited = (table: JsTable, delimiter = "\t") => {
+export const matrixToDelimited = (table: Matrix, delimiter = "\t") => {
     return table
         .map((row: any) =>
             row
@@ -465,12 +464,9 @@ export const parseDelimited = (
 export const detectDelimiter = (str: string) =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
-export const toJsTable = (rows: any[]): JsTable | undefined =>
+export const rowsToMatrix = (rows: any[]): Matrix | undefined =>
     rows.length
-        ? [
-              Object.keys(rows[0]) as HeaderRow,
-              ...rows.map((row) => Object.values(row) as ValueRow),
-          ]
+        ? [Object.keys(rows[0]), ...rows.map((row) => Object.values(row))]
         : undefined
 
 const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
@@ -478,13 +474,13 @@ const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
 export const isCellEmpty = (cell: any) =>
     cell === null || cell === undefined || cell === ""
 
-export const trimEmptyRows = (grid: Grid): Grid => {
+export const trimEmptyRows = (matrix: Matrix): Matrix => {
     let trimAt = undefined
-    for (let index = grid.length - 1; index >= 0; index--) {
-        if (!isRowEmpty(grid[index])) break
+    for (let index = matrix.length - 1; index >= 0; index--) {
+        if (!isRowEmpty(matrix[index])) break
         trimAt = index
     }
-    return trimAt === undefined ? grid : grid.slice(0, trimAt)
+    return trimAt === undefined ? matrix : matrix.slice(0, trimAt)
 }
 
 export const trimArray = (arr: any[]) => {

@@ -17,7 +17,7 @@ import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
-import { Grid } from "coreTable/CoreTableUtils"
+import { Matrix } from "coreTable/CoreTableUtils"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -68,7 +68,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     hotTableComponent = React.createRef<HotTable>()
 
     @action.bound updateConfig() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Grid
+        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Matrix
         if (newVersion) {
             const program = ExplorerProgram.fromArrays(
                 this.program.slug,

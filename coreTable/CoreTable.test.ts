@@ -2,7 +2,7 @@
 
 import { CoreTable } from "./CoreTable"
 import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
-import { rowsFromGrid } from "./CoreTableUtils"
+import { rowsFromMatrix } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population
@@ -90,13 +90,13 @@ describe("creating tables", () => {
             Object.keys(sampleRows[0]),
             Object.values(sampleRows[0]),
         ] as any[][]
-        const table = new CoreTable(rowsFromGrid(matrix))
+        const table = new CoreTable(rowsFromMatrix(matrix))
         expect(table.numRows).toEqual(1)
         expect(table.numColumns).toEqual(6)
         expect(table.toMatrix()).toEqual(matrix)
 
         const tableTrim = new CoreTable(
-            rowsFromGrid([
+            rowsFromMatrix([
                 ["country", null],
                 ["usa", undefined],
             ])

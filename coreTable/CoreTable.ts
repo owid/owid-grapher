@@ -51,9 +51,9 @@ import {
     replaceNonPositives,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
-    Grid,
+    Matrix,
     parseDelimited,
-    rowsFromGrid,
+    rowsFromMatrix,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -1068,8 +1068,8 @@ export class CoreTable<
 
     // Update the table from an array of arrays (method created for loading data from Handsontable)
     // For now does a dumb overwrite
-    reloadFromGrid(inputTable: Grid) {
-        const rows = rowsFromGrid(inputTable)
+    reloadFromGrid(inputTable: Matrix) {
+        const rows = rowsFromMatrix(inputTable)
         return this.transform(
             rows,
             this.defs,
@@ -1094,7 +1094,7 @@ export class CoreTable<
             .filter((col) => col.slug !== by)
             .map((col) => [col.slug, ...col.allValues])
         return this.transform(
-            rowsFromGrid([newColumnSlugs, ...newRowValues]),
+            rowsFromMatrix([newColumnSlugs, ...newRowValues]),
             newColumnDefs,
             `Transposed`,
             TransformType.Transpose

@@ -5,7 +5,7 @@ import { action, computed } from "mobx"
 import { exposeInstanceOnWindow } from "grapher/utils/Util"
 import Handsontable from "handsontable"
 import { OwidTable } from "coreTable/OwidTable"
-import { Grid, rowsFromGrid } from "coreTable/CoreTableUtils"
+import { Matrix, rowsFromMatrix } from "coreTable/CoreTableUtils"
 
 interface SpreadsheetManager {
     table: OwidTable
@@ -18,15 +18,15 @@ export class Spreadsheet extends React.Component<{
     private hotTableComponent = React.createRef<HotTable>()
 
     @action.bound private updateFromHot() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Grid
+        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Matrix
         if (newVersion && this.isChanged(newVersion)) {
-            this.manager.table = new OwidTable(rowsFromGrid(newVersion))
+            this.manager.table = new OwidTable(rowsFromMatrix(newVersion))
         }
     }
 
-    private isChanged(newVersion: Grid) {
+    private isChanged(newVersion: Matrix) {
         return (
-            new OwidTable(rowsFromGrid(newVersion)).toDelimited() !==
+            new OwidTable(rowsFromMatrix(newVersion)).toDelimited() !==
             this._version
         )
     }

@@ -11,7 +11,7 @@ import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { ColumnTypeNames } from "coreTable/CoreTableConstants"
 import {
-    trimGrid,
+    trimMatrix,
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
@@ -135,7 +135,7 @@ ${ProgramKeyword.switcher}
     }
 
     private prettify() {
-        return trimGrid(this.toArrays())
+        return trimMatrix(this.toArrays())
             .map((line) => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
     }

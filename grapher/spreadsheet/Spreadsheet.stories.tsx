@@ -41,6 +41,10 @@ class Editor extends React.Component {
         return this.table.suggestedYColumnSlugs
     }
 
+    @computed get xColumnSlug() {
+        return this.table.timeColumn?.slug
+    }
+
     @observable chartTypeName = ChartTypeName.LineChart
 
     @computed get selection() {

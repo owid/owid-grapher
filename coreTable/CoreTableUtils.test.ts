@@ -4,13 +4,13 @@ import {
     getDropIndexes,
     imemo,
     interpolateRowValuesWithTolerance,
-    JsTable,
-    jsTableToDelimited,
+    Matrix,
+    matrixToDelimited,
     parseDelimited,
-    toJsTable,
+    rowsToMatrix,
     trimArray,
     trimEmptyRows,
-    trimGrid,
+    trimMatrix,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
@@ -109,30 +109,29 @@ it("can get indexes of cell values to drop in an array", () => {
     ).toEqual([undefined, undefined, 3])
 })
 
-describe("jsTables", () => {
+describe("matrix methods", () => {
     it("turns an arraw of objects into arrays", () => {
         const str = `gdp,pop
 1,2`
-        expect(toJsTable(parseDelimited(str))).toEqual([
+        expect(rowsToMatrix(parseDelimited(str))).toEqual([
             ["gdp", "pop"],
             ["1", "2"],
         ])
 
-        expect(toJsTable(parseDelimited(""))).toEqual(undefined)
+        expect(rowsToMatrix(parseDelimited(""))).toEqual(undefined)
 
         expect(
-            jsTableToDelimited(toJsTable(parseDelimited(str))!, ",")
+            matrixToDelimited(rowsToMatrix(parseDelimited(str))!, ",")
         ).toEqual(str)
     })
 
     it("handles extra blank cells", () => {
-        const table = toJsTable(
+        const table = rowsToMatrix(
             parseDelimited(`gdp pop code
 123 345 usa
 `)
         )
-        expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
-            .toEqual(`gdp pop code
+        expect(matrixToDelimited(trimMatrix(table!), " ")).toEqual(`gdp pop code
 123 345 usa`)
     })
 
@@ -155,7 +154,7 @@ describe(parseDelimited, () => {
 
 describe(trimEmptyRows, () => {
     it("trims rows", () => {
-        const testCases: { input: JsTable; length: number }[] = [
+        const testCases: { input: Matrix; length: number }[] = [
             {
                 input: [["pop"], [123], [null], [""], [undefined]],
                 length: 2,
