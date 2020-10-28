@@ -333,7 +333,10 @@ export const autodetectColumnDefs = (
 }
 
 // Convenience method when you are replacing columns
-export const replaceDef = (defs: CoreColumnDef[], newDefs: CoreColumnDef[]) =>
+export const replaceDef = <ColumnDef extends CoreColumnDef>(
+    defs: ColumnDef[],
+    newDefs: ColumnDef[]
+) =>
     defs.map((def) => {
         const newDef = newDefs.find((newDef) => newDef.slug === def.slug)
         return newDef ?? def
