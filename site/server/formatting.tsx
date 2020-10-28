@@ -28,6 +28,7 @@ import {
     countryProfileDefaultCountryPlaceholder,
     countryProfileSpecs,
 } from "site/server/countryProfileProjects"
+import { formatGlossaryTerms, getGlossary } from "./formatGlossary"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -233,7 +234,7 @@ export async function formatWordpressPost(
         $pageSubtitle.remove()
     }
 
-    // Extract page subtitle
+    // Extract page byline
     let byline
     const $byline = $(".wp-block-owid-byline")
     if ($byline.length) {
@@ -509,6 +510,8 @@ export async function formatWordpressPost(
         const $contents = $tempWrapper
             .append($start.clone(), $start.nextUntil($("h2")))
             .contents()
+
+        formatGlossaryTerms($, $contents, getGlossary())
 
         $contents.each((i, el) => {
             const $el = $(el)
