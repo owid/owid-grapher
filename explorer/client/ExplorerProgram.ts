@@ -1,10 +1,4 @@
-import {
-    trimGrid,
-    detectDelimiter,
-    parseDelimited,
-    isCellEmpty,
-    trimObject,
-} from "grapher/utils/Util"
+import { trimObject } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -16,6 +10,12 @@ import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { ColumnTypeNames } from "coreTable/CoreTableConstants"
+import {
+    trimGrid,
+    detectDelimiter,
+    parseDelimited,
+    isCellEmpty,
+} from "coreTable/CoreTableUtils"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"

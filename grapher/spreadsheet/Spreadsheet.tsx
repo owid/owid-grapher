@@ -2,9 +2,10 @@ import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
 import { action, computed } from "mobx"
-import { Grid, rowsFromGrid } from "grapher/utils/Util"
+import { exposeInstanceOnWindow } from "grapher/utils/Util"
 import Handsontable from "handsontable"
 import { OwidTable } from "coreTable/OwidTable"
+import { Grid, rowsFromGrid } from "coreTable/CoreTableUtils"
 
 interface SpreadsheetManager {
     table: OwidTable
@@ -28,6 +29,10 @@ export class Spreadsheet extends React.Component<{
             new OwidTable(rowsFromGrid(newVersion)).toDelimited() !==
             this._version
         )
+    }
+
+    componentDidMount() {
+        exposeInstanceOnWindow(this, "spreadsheet")
     }
 
     @computed private get manager() {

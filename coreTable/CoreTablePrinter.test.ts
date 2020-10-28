@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
-import { parseDelimited } from "grapher/utils/Util"
 import { toAlignedTextTable, toMarkdownTable } from "./CoreTablePrinters"
+import { parseDelimited } from "./CoreTableUtils"
 
 const input = `name,score,color
 bob,12,red

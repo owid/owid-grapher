@@ -12,22 +12,15 @@ import {
     mergeQueryStr,
     next,
     previous,
-    parseDelimited,
-    toJsTable,
     intersectionOfSets,
     roundSigFig,
     getAvailableSlugSync,
-    jsTableToDelimited,
-    trimGrid,
-    trimEmptyRows,
-    JsTable,
     anyToString,
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
     trimObject,
     getRandomNumberGenerator,
     findClosestTimeIndex,
-    trimArray,
     intersection,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
@@ -223,16 +216,6 @@ describe(rollingMap, () => {
     })
 })
 
-describe(parseDelimited, () => {
-    it("detects delimiter and parses delimited", () => {
-        const str = `foo,bar
-1,2`
-        expect(parseDelimited(str)).toEqual(
-            parseDelimited(str.replace(/,/g, "\t"))
-        )
-    })
-})
-
 describe("intersection", () => {
     const groupA = ["a", "b", "c"]
     const groupB = ["a", "b", "c", "d"]
@@ -264,40 +247,6 @@ describe("intersection", () => {
             )
         ).toEqual([])
         expect(intersectionOfSets([]).size).toEqual(new Set().size)
-    })
-})
-
-describe("jsTables", () => {
-    it("turns an arraw of objects into arrays", () => {
-        const str = `gdp,pop
-1,2`
-        expect(toJsTable(parseDelimited(str))).toEqual([
-            ["gdp", "pop"],
-            ["1", "2"],
-        ])
-
-        expect(toJsTable(parseDelimited(""))).toEqual(undefined)
-
-        expect(
-            jsTableToDelimited(toJsTable(parseDelimited(str))!, ",")
-        ).toEqual(str)
-    })
-
-    it("handles extra blank cells", () => {
-        const table = toJsTable(
-            parseDelimited(`gdp pop code
-123 345 usa
-`)
-        )
-        expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
-            .toEqual(`gdp pop code
-123 345 usa`)
-    })
-
-    it("can trim an array", () => {
-        expect(trimArray([1, "2", "", null, undefined])).toEqual([1, "2"])
-        const test = [1, "2", "", null, undefined, 1]
-        expect(trimArray(test)).toEqual(test)
     })
 })
 
@@ -342,35 +291,6 @@ describe(trimObject, () => {
         expect(trimObject({ foo: undefined })).toEqual({})
         expect(trimObject({ foo: {} })).toEqual({})
         expect(trimObject({ foo: undefined, bar: 1 })).toEqual({ bar: 1 })
-    })
-})
-
-describe(trimEmptyRows, () => {
-    it("trims rows", () => {
-        const testCases: { input: JsTable; length: number }[] = [
-            {
-                input: [["pop"], [123], [null], [""], [undefined]],
-                length: 2,
-            },
-            {
-                input: [[]],
-                length: 0,
-            },
-            {
-                input: [
-                    ["pop", "gdp"],
-                    [123, 345],
-                    [undefined, 456],
-                ],
-                length: 3,
-            },
-        ]
-
-        testCases.forEach((testCase) => {
-            expect(trimEmptyRows(testCase.input).length).toEqual(
-                testCase.length
-            )
-        })
     })
 })
 

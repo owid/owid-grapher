@@ -1,8 +1,8 @@
 #! /usr/bin/env yarn jest
 
-import { rowsFromGrid } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
+import { rowsFromGrid } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population

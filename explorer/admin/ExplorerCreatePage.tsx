@@ -9,7 +9,6 @@ import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { Grid } from "grapher/utils/Util"
 import {
     ExplorerProgram,
     ProgramKeyword,
@@ -18,6 +17,7 @@ import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
+import { Grid } from "coreTable/CoreTableUtils"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {

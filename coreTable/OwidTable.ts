@@ -403,6 +403,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // Return slugs that would be good to chart
+    @imemo get suggestedYColumnSlugs() {
+        const skips = new Set<ColumnSlug>([
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.year,
+            OwidTableSlugs.day,
+        ])
+        return this.numericColumnSlugs.filter((slug) => !skips.has(slug))
+    }
+
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv() {
         return this.dropConstantColumns()

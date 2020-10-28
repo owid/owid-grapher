@@ -1,3 +1,4 @@
+import { dsvFormat } from "d3-dsv"
 import {
     findIndex,
     range,
@@ -18,6 +19,15 @@ import {
     OwidEntityNameColumnDef,
     OwidTableSlugs,
 } from "./OwidTableConstants"
+
+// A grid is a 2D matrix/array of arrays. The first array is usually a header. It is the basic
+// structure used in HandsonTable
+export type Grid = any[][]
+
+// A JsTable is a type of Grid where the first row is an array of column names.
+declare type HeaderRow = string[]
+declare type ValueRow = any[]
+export type JsTable = [HeaderRow, ...ValueRow]
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     const firstCol = Object.values(columnStore)[0]
@@ -416,4 +426,71 @@ export class Timer {
     getTotalElapsedTime() {
         return Date.now() - this._firstTickTime
     }
+}
+
+export const rowsFromGrid = (inputTable: Grid) => {
+    const table = trimGrid(inputTable)
+    const header = table[0]
+    return table.slice(1).map((row) => {
+        const newRow: any = {}
+        header.forEach((col, index) => {
+            newRow[col] = row[index]
+        })
+        return newRow
+    })
+}
+
+const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
+export const trimGrid = (grid: Grid): Grid =>
+    trimEmptyColumns(trimEmptyRows(grid))
+
+export const jsTableToDelimited = (table: JsTable, delimiter = "\t") => {
+    return table
+        .map((row: any) =>
+            row
+                .map((cell: any) =>
+                    cell === null || cell === undefined ? "" : cell
+                )
+                .join(delimiter)
+        )
+        .join("\n")
+}
+
+export const parseDelimited = (
+    str: string,
+    delimiter?: string,
+    parseFn?: any
+) => dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn)
+
+export const detectDelimiter = (str: string) =>
+    str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
+
+export const toJsTable = (rows: any[]): JsTable | undefined =>
+    rows.length
+        ? [
+              Object.keys(rows[0]) as HeaderRow,
+              ...rows.map((row) => Object.values(row) as ValueRow),
+          ]
+        : undefined
+
+const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
+
+export const isCellEmpty = (cell: any) =>
+    cell === null || cell === undefined || cell === ""
+
+export const trimEmptyRows = (grid: Grid): Grid => {
+    let trimAt = undefined
+    for (let index = grid.length - 1; index >= 0; index--) {
+        if (!isRowEmpty(grid[index])) break
+        trimAt = index
+    }
+    return trimAt === undefined ? grid : grid.slice(0, trimAt)
+}
+
+export const trimArray = (arr: any[]) => {
+    let index: number
+    for (index = arr.length - 1; index >= 0; index--) {
+        if (!isCellEmpty(arr[index])) break
+    }
+    return arr.slice(0, index + 1)
 }

@@ -1,12 +1,9 @@
 import {
     formatYear,
     csvEscape,
-    parseDelimited,
     min,
     max,
     orderBy,
-    Grid,
-    rowsFromGrid,
     range,
     difference,
     intersection,
@@ -54,6 +51,9 @@ import {
     replaceNonPositives,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
+    Grid,
+    parseDelimited,
+    rowsFromGrid,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
