@@ -78,7 +78,6 @@ export const Empty = () => (
     <CountryPickerHolder>
         <CountryPicker
             manager={{
-                countryPickerTable: BlankOwidTable(),
                 selectionArray: new SelectionArray(),
             }}
         />

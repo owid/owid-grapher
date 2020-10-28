@@ -13,14 +13,13 @@ import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow } from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
-import { OwidRow } from "coreTable/OwidTableConstants"
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
@@ -63,9 +62,7 @@ export class SwitcherExplorer
 
     selectionArray = new SelectionArray(this)
     @observable selectedEntityNames = []
-    @computed get availableEntities() {
-        return this.countryPickerTable.availableEntities
-    }
+    @observable availableEntities = []
 
     @computed get params(): QueryParams {
         const params: any = {}
@@ -92,33 +89,29 @@ export class SwitcherExplorer
 
     @action.bound private addEntityOptionsToPicker() {
         if (!this.grapher) return
-        const currentEntities = this.countryPickerTable.availableEntityNameSet
-        const newEntities = this.grapher.inputTable.availableEntityNameSet
-        const missingEntities = [...newEntities]
-            .filter((entityName) => !currentEntities.has(entityName))
-            .map((entityName) => {
-                return {
-                    entityName,
-                } as OwidRow
-            })
-        this.countryPickerTable = this.countryPickerTable.appendRows(
-            missingEntities,
-            `Added ${missingEntities.length} entity names to Country Picker`
-        ) as OwidTable
-        this.selectionArray.addToSelection(
+        const { selectionArray } = this
+        const currentEntities = selectionArray.availableEntityNameSet
+        const newEntities = this.grapher.selection.availableEntityNames
+        const missingEntities = [...newEntities].filter(
+            (entityName) => !currentEntities.has(entityName)
+        )
+        selectionArray.addAvailableEntityNames(missingEntities)
+        selectionArray.addToSelection(
             this.grapher.selection.selectedEntityNames
         )
     }
 
     @computed get grapher() {
-        return this.explorerRef.current?.grapherRef?.current
+        return this.explorerShellRef.current?.grapherRef?.current
     }
 
     componentDidMount() {
+        // Whenever the chartId changes, update Grapher.
         autorun(() =>
             this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
         )
 
+        // Update grapher the first time it appears
         when(
             () => !!this.grapher,
             () => {
@@ -126,6 +119,7 @@ export class SwitcherExplorer
             }
         )
 
+        // Anytime the country picker selection changes, update grapher
         autorun(() => {
             this.updateSelection(this.selectionArray.selectedEntityNames)
         })
@@ -134,9 +128,9 @@ export class SwitcherExplorer
     }
 
     @action.bound private updateSelection(entityNames: string[]) {
-        if (!this.countryPickerTable.numRows) return
-        if (this.grapher)
-            this.grapher.selection.setSelectedEntities(entityNames)
+        if (!this.selectionArray.numAvailableEntityNames || !this.grapher)
+            return
+        this.grapher.selection.setSelectedEntities(entityNames)
     }
 
     @action.bound private updateGrapher(newGrapherId: number) {
@@ -189,8 +183,6 @@ export class SwitcherExplorer
         )
     }
 
-    @observable.ref countryPickerTable = BlankOwidTable()
-
     private get panels() {
         return this.explorerProgram.switcherRuntime.choicesWithAvailability.map(
             (choice) => (
@@ -235,7 +227,7 @@ export class SwitcherExplorer
         return false
     }
 
-    @observable.ref explorerRef: React.RefObject<
+    @observable.ref explorerShellRef: React.RefObject<
         ExplorerShell
     > = React.createRef()
 
@@ -249,7 +241,7 @@ export class SwitcherExplorer
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
                 enableKeyboardShortcuts={!this.isEmbed}
-                ref={this.explorerRef}
+                ref={this.explorerShellRef}
             />
         )
     }

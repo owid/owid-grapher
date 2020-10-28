@@ -105,7 +105,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get availablePickerColumns() {
-        if (!this.manager.pickerColumnSlugs) return []
+        if (!this.manager.pickerColumnSlugs || !this.table) return []
         const slugsToShow = new Set(this.manager.pickerColumnSlugs)
         return this.table.columnsAsArray.filter((col) =>
             slugsToShow.has(col.slug)
@@ -131,7 +131,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get availableEntitiesForCurrentView() {
-        if (!this.manager.requiredColumnSlugs?.length)
+        if (!this.manager.requiredColumnSlugs?.length || !this.table)
             return this.selectionArray.availableEntityNameSet
         return this.table.entitiesWith(this.manager.requiredColumnSlugs)
     }
@@ -142,11 +142,12 @@ export class CountryPicker extends React.Component<{
         const col = this.activePickerMetricColumn
         const entityNames = selectionArray.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
-            const plotValue = col
-                ? (table.getLatestValueForEntity(entityName, col.slug) as
-                      | string
-                      | number)
-                : undefined
+            const plotValue =
+                col && table
+                    ? (table.getLatestValueForEntity(entityName, col.slug) as
+                          | string
+                          | number)
+                    : undefined
 
             const formattedValue =
                 plotValue !== undefined

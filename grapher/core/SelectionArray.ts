@@ -122,6 +122,17 @@ export class SelectionArray {
         return this
     }
 
+    @action.bound addAvailableEntityNames(entityNames: EntityName[]) {
+        this.manager.availableEntities.push(
+            ...entityNames.map((entityName) => {
+                return {
+                    entityName,
+                }
+            })
+        )
+        return this
+    }
+
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
