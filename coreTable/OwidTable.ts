@@ -551,8 +551,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         json: LegacyVariablesAndEntityKey,
         grapherConfig: Partial<LegacyGrapherInterface> = {}
     ) {
-        const { rows, defs } = legacyToOwidTable(json, grapherConfig)
-        return new OwidTable(rows, defs)
+        return legacyToOwidTable(json, grapherConfig)
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
