@@ -347,8 +347,10 @@ export class StackedAreaChart
                             </td>
                             <td></td>
                         </tr>
-                        {reverse(
-                            series.map((series) => {
+                        {series
+                            .slice()
+                            .reverse()
+                            .map((series) => {
                                 const point = series.points[hoveredPointIndex]
                                 const isBlur = this.seriesIsBlur(series)
                                 const textColor = isBlur ? "#ddd" : "#333"
@@ -383,8 +385,7 @@ export class StackedAreaChart
                                         </td>
                                     </tr>
                                 )
-                            })
-                        )}
+                            })}
                         {/* Total */}
                         {!somePointsMissingForHoveredTime && (
                             <tr>
