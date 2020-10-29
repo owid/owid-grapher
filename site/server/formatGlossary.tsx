@@ -2,55 +2,13 @@ import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { ExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
 import { GlossaryExcerpt } from "site/client/GlossaryExcerpt/GlossaryExcerpt"
+import { GlossaryItem } from "./glossary"
 
-interface GlossaryItem {
-    term: string
-    slug: string
-    excerpt: string
-}
 // Do not replace glossary terms within these tags
 export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
 
-export const getGlossary = (): GlossaryItem[] => {
-    // TODO
-    return [
-        {
-            term: "population",
-            slug: "population",
-            excerpt:
-                " Morbi vel maximus ipsum. Ut vitae condimentum leo. Cras sed libero vitae est hendrerit iaculis sed in felis. Curabitur eleifend neque at justo facilisis maximus.",
-        },
-        {
-            term: "population growth",
-            slug: "population-growth",
-            excerpt:
-                "Donec euismod magna vel nunc convallis cursus. Fusce at ante urna. Phasellus porta nunc lectus, euismod elementum est posuere sit amet. Fusce pretium nec justo id sollicitudin.",
-        },
-    ]
-}
-
-/*
- * Sort the glossary * in place *, in descending order of term lengths so that longer terms
- * match and are linked instead of shorter ones, which might be included in
- * them. E.g. favour "population growth" over "population"
- */
-export const _sortGlossary = (glossary: GlossaryItem[]) => {
-    return glossary.sort((a, b) => b.term.length - a.term.length)
-}
 
 export const formatGlossaryTerms = (
-    $: CheerioStatic,
-    $contents: Cheerio,
-    glossary: GlossaryItem[]
-) => {
-    // no need to deep clone the array as objects are just removed from it,
-    // not mutated.
-    const mutableGlossary = _sortGlossary([...glossary])
-
-    _replaceGlossaryTerms($, $contents, mutableGlossary)
-}
-
-const _replaceGlossaryTerms = (
     $: CheerioStatic,
     $contents: Cheerio,
     glossary: GlossaryItem[]
@@ -60,7 +18,7 @@ const _replaceGlossaryTerms = (
         if (el.type === "text") {
             $(el).replaceWith(_linkGlossaryTermsInText(el.data, glossary))
         } else {
-            _replaceGlossaryTerms($, $(el).contents(), glossary)
+            formatGlossaryTerms($, $(el).contents(), glossary)
         }
     })
 }

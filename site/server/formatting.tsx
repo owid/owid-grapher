@@ -28,7 +28,8 @@ import {
     countryProfileDefaultCountryPlaceholder,
     countryProfileSpecs,
 } from "site/server/countryProfileProjects"
-import { formatGlossaryTerms, getGlossary } from "./formatGlossary"
+import { formatGlossaryTerms } from "./formatGlossary"
+import { getGlossary } from "./glossary"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
