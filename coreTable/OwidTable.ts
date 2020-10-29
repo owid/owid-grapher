@@ -485,57 +485,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    /**
-     * Injects rows to ensure every entity has a row for all uniqTimes in the table.
-     *
-     * For example, if USA has data points for 2000 & 2002, and UK has a data point for 2001,
-     * this transform will inject a row for USA (2001) and two rows for UK (2000 & 2002).
-     *
-     * All injected rows have a blank value.
-     */
-    injectAllTimeRowsForEveryEntity(columnSlug: ColumnSlug) {
-        const column = this.get(columnSlug)
-        const columnDef = column?.def as OwidColumnDef
-        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
-
-        const originalRows = this.sortedByTime.rows
-        const allTimes = sortedUniq(
-            originalRows.map((row) => row[timeColumnSlug])
-        )
-
-        const rows = flatten(
-            Object.values(
-                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
-            ).map((rows) => {
-                const { entityId, entityCode, entityName } = rows[0]
-                const existingTimesSet = new Set(
-                    rows.map((row) => row[timeColumnSlug])
-                )
-                const timesToInject = allTimes.filter(
-                    (time) => !existingTimesSet.has(time)
-                )
-                const rowsToInject = timesToInject.map(
-                    (time) =>
-                        ({
-                            [timeColumnSlug]: time,
-                            entityId,
-                            entityCode,
-                            entityName,
-                        } as OwidRow)
-                )
-                rows = rows.concat(rowsToInject)
-                return sortBy(rows, timeColumnSlug)
-            })
-        )
-
-        return this.transform(
-            rows,
-            this.defs,
-            `Injected rows to ensure every entity has a row for all uniqTimes in the table`,
-            TransformType.AppendRows
-        )
-    }
-
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
         toleranceOverride?: number
@@ -549,8 +498,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
         const timeColumnDef = this.get(timeColumnSlug)?.def as OwidColumnDef
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
-        const originalRows = this.injectAllTimeRowsForEveryEntity(columnSlug)
-            .sortedByTime.rows
+        const originalRows = this.complete([
+            OwidTableSlugs.entityName,
+            timeColumnSlug,
+        ]).sortedByTime.rows
 
         const rows = flatten(
             Object.values(

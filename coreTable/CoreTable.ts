@@ -54,6 +54,7 @@ import {
     getDropIndexes,
     parseDelimited,
     rowsFromMatrix,
+    cartesianProduct,
 } from "./CoreTableUtils"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -1189,6 +1190,17 @@ export class CoreTable<
             uniqBy(defs, (def) => def.slug),
             message,
             TransformType.Concat
+        )
+    }
+
+    complete(columnSlugs: ColumnSlug[]) {
+        const index = this.rowIndex(columnSlugs)
+        const cols = this.getColumns(columnSlugs)
+        const product = cartesianProduct(...cols.map((col) => col.uniqValues))
+        const toAdd = product.filter((row) => !index.has(row.join(" ")))
+        return this.appendRows(
+            rowsFromMatrix([columnSlugs, ...toAdd]),
+            `Append missing combos of ${columnSlugs}`
         )
     }
 

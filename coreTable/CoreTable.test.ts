@@ -116,7 +116,7 @@ describe("creating tables", () => {
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
 
-    it("can tranpose a table", () => {
+    it("can transpose a table", () => {
         let table = new CoreTable([
             { fruit: 123, veggies: 234, entity: "usa" },
             { fruit: 456, veggies: 789, entity: "canada" },
@@ -142,6 +142,17 @@ describe("creating tables", () => {
         )
         expect(table.numRows).toEqual(1)
     })
+})
+
+it("can complete a table", () => {
+    const csv = `country,year
+usa,2000
+usa,2002
+uk,2001`
+    const table = new CoreTable(csv)
+    expect(table.numRows).toEqual(3)
+    const completed = table.complete(["country", "year"])
+    expect(completed.numRows).toEqual(6)
 })
 
 describe("adding rows", () => {
