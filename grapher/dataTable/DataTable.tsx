@@ -452,7 +452,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get entityNames() {
-        let tableForEntities = this.table.rootTable
+        let tableForEntities = this.table
         if (this.manager.minPopulationFilter)
             tableForEntities = tableForEntities.filterByPopulationExcept(
                 this.manager.minPopulationFilter,
