@@ -428,6 +428,35 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
     }
 }
 
+const perCapitaMessages: { [index: number]: string } = {
+    1: "",
+    1e3: " per thousand people",
+    1e6: " per million people",
+}
+
+export function columnDisplayName(params: CovidQueryParams) {
+    let title = ""
+    const interval = params.interval
+
+    const isCumulative = interval === IntervalOptions.total
+    const freq = params.intervalTitle
+    if (params.cfrMetric)
+        title = `Case fatality rate of the ongoing COVID-19 pandemic`
+    else if (params.positiveTestRate)
+        title = `The share of ${
+            isCumulative ? "" : "daily "
+        }COVID-19 tests that are positive`
+    else if (params.testsPerCaseMetric)
+        title = `${
+            isCumulative ? `Cumulative tests` : `Tests`
+        } conducted per confirmed case of COVID-19`
+    else if (params.testsMetric) title = `${freq} COVID-19 tests`
+    else if (params.deathsMetric) title = `${freq} confirmed COVID-19 deaths`
+    else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
+
+    return title + perCapitaMessages[params.perCapitaAdjustment]
+}
+
 export const makeColumnDefFromParams = (
     params: CovidQueryParams,
     defTemplates = makeColumnDefTemplates()
@@ -436,6 +465,7 @@ export const makeColumnDefFromParams = (
     const def = {
         ...defTemplates[metricName], // do not modify the templates
     }
+
     def.slug = buildColumnSlugFromParams(
         metricName,
         perCapitaAdjustment,
@@ -443,16 +473,9 @@ export const makeColumnDefFromParams = (
         smoothing
     )
 
-    const perCapitaMessages: { [index: number]: string } = {
-        1: "",
-        1e3: " per thousand people",
-        1e6: " per million people",
-    }
-
     const display = def.display || {}
-    display.name = `${params.intervalTitle} ${def.name ?? display.name}${
-        perCapitaMessages[perCapitaAdjustment]
-    }`
+    display.name = columnDisplayName(params)
+    display.unit = def.display?.unit ?? ""
     def.display = display
 
     // Show decimal places for rolling average & per capita variables

@@ -7,7 +7,11 @@ import {
     Time,
     Year,
 } from "./CoreTableConstants"
-import { LegacyVariableId, OwidSource } from "./LegacyVariableCode"
+import {
+    LegacyVariableDisplayConfigInterface,
+    LegacyVariableId,
+    OwidSource,
+} from "./LegacyVariableCode"
 
 export enum OwidTableSlugs {
     entityName = "entityName",
@@ -34,6 +38,7 @@ export interface OwidColumnDef extends CoreColumnDef {
     coverage?: string
     datasetId?: string
     datasetName?: string
+    display?: LegacyVariableDisplayConfigInterface
     source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug

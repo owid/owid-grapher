@@ -879,9 +879,10 @@ export class CovidExplorer
             this.colorScales[params.colorStrategy]
         )
 
-        grapher.dataTableColumnSlugsToShow = covidTableWithAdditionalColumnsAndFilters.columnSlugsToShowInDataTable(
-            params
-        )
+        grapher.dataTableColumnSlugsToShow = [this.yColumn.slug]
+        // grapher.dataTableColumnSlugsToShow = covidTableWithAdditionalColumnsAndFilters.columnSlugsToShowInDataTable(
+        //     params
+        // )
 
         grapher.id = this.sourceChartId
         grapher.baseQueryString = queryParamsToStr(this.params)

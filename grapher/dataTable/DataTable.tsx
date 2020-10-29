@@ -205,6 +205,7 @@ export class DataTable extends React.Component<{
                 actualColumn.displayName !== ""
                     ? actualColumn.displayName
                     : actualColumn.name
+
             const dimensionHeaderText = (
                 <React.Fragment>
                     <span className="name">{upperFirst(columnName)}</span>

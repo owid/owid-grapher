@@ -176,6 +176,10 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
+        const multiMetricTable = params.tableMetrics
+            ? params.tableMetrics.length > 0
+            : false
+
         return this.paramsForDataTableColumns(params).map(
             (params) =>
                 makeColumnDefFromParams(params, this.columnDefTemplates).slug
