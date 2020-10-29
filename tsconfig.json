@@ -13,7 +13,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es7", "esnext.asynciterable"],
+        "lib": ["dom", "es2020", "esnext.asynciterable"],
         "baseUrl": ".",
         "plugins": [],
         "keyofStringsOnly": true,
