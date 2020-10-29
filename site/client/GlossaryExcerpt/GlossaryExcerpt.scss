@@ -2,14 +2,11 @@
     display: block;
     margin: $vertical-spacing 0;
     padding: $padding-x-sm;
+    font-weight: normal; // prevent style bleed when link hooks are <strong> (for instance)
     background-color: $primary-color-100;
 
-    span,
     a {
         display: block;
-    }
-
-    a {
         margin-top: $vertical-spacing;
     }
 }
