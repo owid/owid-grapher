@@ -55,7 +55,7 @@ import {
     parseDelimited,
     rowsFromMatrix,
 } from "./CoreTableUtils"
-import { InvalidCellTypes } from "./InvalidCells"
+import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
 
 const TransformsRequiringCompute = new Set([
@@ -300,7 +300,7 @@ export class CoreTable<
     }
 
     toOneDimensionalArray() {
-        return flatten(this.toMatrix().slice(1))
+        return flatten(this.toTypedMatrix().slice(1))
     }
 
     private setColumn(def: COL_DEF_TYPE) {
@@ -656,8 +656,10 @@ export class CoreTable<
         return [min(mins), max(maxes)]
     }
 
-    extract(slugs = this.columnSlugs) {
-        return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
+    private extract(slugs = this.columnSlugs) {
+        return this.rows.map((row) =>
+            slugs.map((slug) => (isValid(row[slug]) ? row[slug] : undefined))
+        )
     }
 
     private get isRoot() {
@@ -848,7 +850,7 @@ export class CoreTable<
     }
 
     indexOf(row: ROW_TYPE) {
-        return this.findRowsIndices(row)[0]
+        return this.findRowsIndices(row)[0] ?? -1
     }
 
     where(query: CoreQuery) {
@@ -922,11 +924,17 @@ export class CoreTable<
 
     dropColumns(slugs: ColumnSlug[], message?: string) {
         const columnsToDrop = new Set(slugs)
+        const newStore = {
+            ...this.columnStore,
+        }
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
             .map((col) => col.def) as COL_DEF_TYPE[]
+        slugs.forEach((slug) => {
+            delete newStore[slug]
+        })
         return this.transform(
-            this.columnStore,
+            newStore,
             defs,
             message ?? `Dropped columns '${slugs}'`,
             TransformType.FilterColumns
@@ -1103,7 +1111,18 @@ export class CoreTable<
     }
 
     toMatrix() {
-        return [this.columnSlugs, ...this.extract()]
+        const slugs = this.columnSlugs
+        const rows = this.rows.map((row) =>
+            slugs.map((slug) => (isValid(row[slug]) ? row[slug] : undefined))
+        )
+        return [this.columnSlugs, ...rows]
+    }
+
+    // Same as toMatrix, but preserves error types
+    toTypedMatrix() {
+        const slugs = this.columnSlugs
+        const rows = this.rows.map((row) => slugs.map((slug) => row[slug]))
+        return [this.columnSlugs, ...rows]
     }
 
     defToObject() {

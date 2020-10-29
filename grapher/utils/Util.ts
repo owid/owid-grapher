@@ -893,7 +893,7 @@ export function intersectionOfSets<T>(sets: Set<T>[]) {
 }
 
 // ES6 is now significantly faster than lodash's intersection
-export const intersection = (...arrs: any[][]): any[] => {
+export const intersection = <T>(...arrs: T[][]): T[] => {
     if (arrs.length === 0) return []
     if (arrs.length === 1) return arrs[0]
     if (arrs.length === 2) {

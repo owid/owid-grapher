@@ -18,24 +18,24 @@ import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
+import { exposeInstanceOnWindow } from "grapher/utils/Util"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @action
-    componentDidMount() {
+    @action componentDidMount() {
         this.context.admin.loadingIndicatorSetting = "off"
         this.fetchExplorerProgramOnLoad()
+        exposeInstanceOnWindow(this, "explorerEditor")
     }
 
-    @action
-    componentWillUnmount() {
+    @action componentWillUnmount() {
         this.context.admin.loadingIndicatorSetting = "default"
     }
 
-    @action.bound async fetchExplorerProgramOnLoad() {
+    @action.bound private async fetchExplorerProgramOnLoad() {
         const response = await readRemoteFile({
             filepath: ExplorerProgram.fullPath(this.props.slug),
         })
@@ -44,12 +44,12 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.setProgram(this.sourceOnDisk)
     }
 
-    @action.bound setProgram(code: string) {
+    @action.bound private setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
         this.fetchChartConfigs(this.program.requiredChartIds)
     }
 
-    @action.bound async fetchChartConfigs(chartIds: number[]) {
+    @action.bound private async fetchChartConfigs(chartIds: number[]) {
         const missing = chartIds.filter((id) => !this.chartConfigs.has(id))
         if (!missing.length) return
         const response = await fetch(
@@ -67,22 +67,21 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     hotTableComponent = React.createRef<HotTable>()
 
-    @action.bound updateConfig() {
+    @action.bound private updateProgramFromHot() {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
-        if (newVersion) {
-            const program = ExplorerProgram.fromArrays(
-                this.program.slug,
-                newVersion
-            )
-            if (this.program.toString() === program.toString()) return
-            this.setProgram(program.toString())
-        }
+        if (!newVersion) return
+
+        const newProgram = ExplorerProgram.fromArrays(
+            this.program.slug,
+            newVersion
+        )
+        if (this.program.toString() === newProgram.toString()) return
+        this.setProgram(newProgram.toString())
     }
 
-    @observable sourceOnDisk: string = ExplorerProgram.defaultExplorerProgram
+    @observable sourceOnDisk = ExplorerProgram.defaultExplorerProgram
 
-    @observable
-    program: ExplorerProgram = new ExplorerProgram(this.props.slug, "")
+    @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
     @action.bound async saveExplorer() {
         const slug = prompt("Slug for this explorer", this.program.slug)
@@ -97,7 +96,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.sourceOnDisk = this.program.toString()
     }
 
-    @computed get isModified(): boolean {
+    @computed get isModified() {
         return this.sourceOnDisk !== this.program.toString()
     }
 
@@ -125,21 +124,21 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         }
 
         const hotSettings: Handsontable.GridSettings = {
-            data,
-            manualColumnResize: [150, 200],
-            wordWrap: false,
+            afterChange: () => this.updateProgramFromHot(),
+            allowInsertColumn: false,
+            allowInsertRow: true,
+            autoColumnSize: true,
+            cells,
             colHeaders: false,
             contextMenu: true,
-            allowInsertRow: true,
-            allowInsertColumn: true,
-            autoColumnSize: true,
-            width: "100%",
-            stretchH: "all",
+            data,
+            manualColumnResize: [150, 200],
             minCols: 8,
             minRows: 20,
             rowHeaders: true,
-            cells,
-            afterChange: () => this.updateConfig(),
+            stretchH: "all",
+            width: "100%",
+            wordWrap: false,
         }
 
         return (
@@ -183,8 +182,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     <div style={{ height: "500px", overflow: "scroll" }}>
                         <SwitcherExplorer
                             chartConfigs={Object.values(this.chartConfigs)}
-                            explorerProgramCode={this.program.toString()}
-                            slug={this.program.slug}
+                            explorerProgram={this.program}
+                            explorerProgramCode={""}
+                            slug={""}
                         />
                     </div>
                     <div>

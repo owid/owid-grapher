@@ -1,7 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "./CoreTable"
-import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
+import {
+    ColumnTypeNames,
+    CoreMatrix,
+    TransformType,
+} from "./CoreTableConstants"
 import { rowsFromMatrix } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
@@ -75,7 +79,7 @@ describe("creating tables", () => {
         expect(table.get("gdp")?.maxValue).toEqual(123)
     })
 
-    it("can load a table from an array of arrays", () => {
+    describe("can load a table from a matrix", () => {
         const sampleRows = [
             {
                 year: 2020,
@@ -89,17 +93,27 @@ describe("creating tables", () => {
         const matrix = [
             Object.keys(sampleRows[0]),
             Object.values(sampleRows[0]),
-        ] as any[][]
+        ]
         const table = new CoreTable(matrix)
         expect(table.numRows).toEqual(1)
         expect(table.numColumns).toEqual(6)
         expect(table.toMatrix()).toEqual(matrix)
+
+        it("can delete columns", () => {
+            const dropped = table.dropColumns(["entityId"])
+            expect(dropped.toMatrix()[0].length).toEqual(5)
+        })
 
         const tableTrim = new CoreTable([
             ["country", null],
             ["usa", undefined],
         ])
         expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
+    })
+
+    it("handles invalid values when going to a matrix", () => {
+        const table = new CoreTable([{ country: "usa", gdp: undefined }])
+        expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
 
     it("can tranpose a table", () => {
@@ -490,7 +504,7 @@ describe("joins", () => {
 
     describe("outer joins", () => {
         it("can left join on all intersecting columns", () => {
-            expect(leftTable.leftJoin(rightTable).toMatrix()).toEqual([
+            expect(leftTable.leftJoin(rightTable).toTypedMatrix()).toEqual([
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],
@@ -499,18 +513,18 @@ describe("joins", () => {
         })
 
         it("can left join on one column", () => {
-            expect(leftTable.leftJoin(rightTable, ["time"]).toMatrix()).toEqual(
-                [
-                    ["country", "time", "color", "population"],
-                    ["usa", 2000, "red", 55],
-                    ["can", 2001, "green", 66],
-                    ["fra", 2002, "red", 77],
-                ]
-            )
+            expect(
+                leftTable.leftJoin(rightTable, ["time"]).toTypedMatrix()
+            ).toEqual([
+                ["country", "time", "color", "population"],
+                ["usa", 2000, "red", 55],
+                ["can", 2001, "green", 66],
+                ["fra", 2002, "red", 77],
+            ])
         })
 
         it("can do a right join", () => {
-            expect(leftTable.rightJoin(rightTable).toMatrix()).toEqual([
+            expect(leftTable.rightJoin(rightTable).toTypedMatrix()).toEqual([
                 ["country", "time", "population", "color"],
                 ["usa", 2000, 55, "red"],
                 ["can", 2001, 66, "green"],
@@ -521,7 +535,7 @@ describe("joins", () => {
 
     describe("inner joins", () => {
         it("can do a left inner join", () => {
-            expect(leftTable.innerJoin(rightTable).toMatrix()).toEqual([
+            expect(leftTable.innerJoin(rightTable).toTypedMatrix()).toEqual([
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],
@@ -531,7 +545,7 @@ describe("joins", () => {
 
     describe("full join", () => {
         it("can do a full join", () => {
-            expect(leftTable.fullJoin(rightTable).toMatrix()).toEqual([
+            expect(leftTable.fullJoin(rightTable).toTypedMatrix()).toEqual([
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],

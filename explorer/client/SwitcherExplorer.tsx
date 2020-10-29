@@ -26,6 +26,7 @@ import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
+    explorerProgram?: ExplorerProgram
     slug: string
     chartConfigs?: GrapherInterface[]
     bindToWindow?: boolean
@@ -52,11 +53,16 @@ export class SwitcherExplorer
 
     private urlBinding?: UrlBinder
 
-    private explorerProgram = new ExplorerProgram(
-        this.props.slug,
-        this.props.explorerProgramCode,
-        this.props.queryString
-    )
+    @computed private get explorerProgram() {
+        return (
+            this.props.explorerProgram ??
+            new ExplorerProgram(
+                this.props.slug,
+                this.props.explorerProgramCode,
+                this.props.queryString
+            )
+        )
+    }
 
     @observable hideControls = false
 

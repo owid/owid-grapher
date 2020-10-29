@@ -38,25 +38,25 @@ export class Spreadsheet extends React.Component<{
 
     private _version: string = ""
     render() {
-        this._version = this.manager.table.toDelimited()
-        const data = this.manager.table.toMatrix()
+        const { table } = this.manager
+        this._version = table.toDelimited()
+        const data = table.toMatrix()
         const hotSettings: Handsontable.GridSettings = {
-            data,
-            manualColumnResize: [150, 200],
-            wordWrap: false,
+            afterChange: () => this.updateFromHot(),
+            allowInsertColumn: true,
+            allowInsertRow: true,
+            autoColumnSize: true,
             colHeaders: false,
             contextMenu: true,
-            allowInsertRow: true,
-            allowInsertColumn: true,
-            autoColumnSize: true,
-            width: "100%",
-            stretchH: "all",
-            minCols: 6,
-            minRows: 10,
+            data,
             height: 250,
-            rowHeights: 23,
+            minSpareRows: 2,
+            minSpareCols: 2,
             rowHeaders: true,
-            afterChange: () => this.updateFromHot(),
+            rowHeights: 23,
+            stretchH: "all",
+            width: "100%",
+            wordWrap: false,
         }
 
         return (
