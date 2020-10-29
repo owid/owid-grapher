@@ -13,6 +13,7 @@ import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
+import { parseIntOrUndefined } from "grapher/utils/Util"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
@@ -82,6 +83,11 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             padding-top: 10px;
             text-align: center;
         }
+
+        .chart-id a {
+            text-decoration: underline;
+            text-decoration-color: #ccc;
+        }
     `
     return (
         <html>
@@ -97,7 +103,9 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                 </div>
                 {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
-                        <div className="chart-id">{chart.id}</div>
+                        <div className="chart-id">
+                            <a href={`?ids=${chart.id}`}>{chart.id}</a>
+                        </div>
                         <div className="side-by-side">
                             <iframe
                                 src={`https://ourworldindata.org/grapher/${chart.slug}`}
@@ -128,7 +136,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 }
 
 testPageRouter.get("/embeds", async (req, res) => {
-    const numPerPage = 20
+    const numPerPage = parseIntOrUndefined(req.query.perPage) ?? 20
     const page = req.query.page
         ? expectInt(req.query.page)
         : req.query.random
