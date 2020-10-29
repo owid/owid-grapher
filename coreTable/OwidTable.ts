@@ -52,6 +52,7 @@ import {
     interpolateRowValuesWithTolerance,
     replaceDef,
 } from "./CoreTableUtils"
+import { CoreColumn } from "./CoreTableColumns"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -495,12 +496,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
-        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
-        const timeColumnDef = this.get(timeColumnSlug)?.def as OwidColumnDef
+        const timeColumn =
+            this.get(timeColumnSlugFromColumnDef(columnDef)) ??
+            (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
+        const timeColumnDef = timeColumn.def as OwidColumnDef
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
         const originalRows = this.complete([
             OwidTableSlugs.entityName,
-            timeColumnSlug,
+            timeColumn.slug,
         ]).sortedByTime.rows
 
         const rows = flatten(
@@ -512,7 +515,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 // used.
                 rows = rows.map((row) => ({
                     ...row,
-                    [originalTimeSlug]: row[timeColumnSlug],
+                    [originalTimeSlug]: row[timeColumn.slug],
                 }))
                 return interpolateRowValuesWithTolerance(
                     rows,
