@@ -1454,10 +1454,10 @@
     bessel "^1.0.2"
     jstat "^1.9.2"
 
-"@handsontable/react@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-4.0.0.tgz#484423752d21d1313af5fed7cad6fef5e02ea676"
-  integrity sha512-c1HXvdmpKAhy/JoEYEDJSo+6NveQjMgYwBCr8RmhFj2Yo2y71PLK7zNVzKUzebleUDd1oMIbHFNgkpjL3hfT2A==
+"@handsontable/react@^3.1.3":
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-3.1.3.tgz#382ff655c17469bd587010e50281f0f47c3c0e79"
+  integrity sha512-XuLP0rmpkXAi55kmw1YtK1Icn2gtkHe0xT99inNgLiGGFMnv3ll1Y8NCfwHqSp0EMnpwpbO6wbN+ZBE/huwPwA==
 
 "@icons/material@^0.2.4":
   version "0.2.4"
@@ -10041,10 +10041,10 @@ handle-thing@^2.0.0:
   resolved "https://registry.yarnpkg.com/handle-thing/-/handle-thing-2.0.0.tgz#0e039695ff50c93fc288557d696f3c1dc6776754"
   integrity sha512-d4sze1JNC454Wdo2fkuyzCr6aHcbL6PGGuFAz0Li/NcOm1tCHGnWDRmJP85dh9IhQErTc2svWFEX5xHIOo//kQ==
 
-handsontable@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-8.1.0.tgz#8ad5df0e57f43ad46e4489269ca2b91e0dcca0f5"
-  integrity sha512-ovVuH3wAhB0LKt2wNuO1FClrZcFEN8lGSjzqygrTKfsjOnHMlJiCDIfVkl3u+6MVwExWSwiMfM+qdCpt+/Z1lA==
+handsontable@^7.4.2:
+  version "7.4.2"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-7.4.2.tgz#11097b17c36e5dffd9f54febdd904c3006c4f28e"
+  integrity sha512-xJ81nZfXWHmS+K8/Eshj776MQSe8003iue1hHumgb0bnJmG/WLOxRpN+Vurdl/WPwI3+fQOqb9nTzmM5n/LI2g==
   dependencies:
     "@types/pikaday" "1.7.4"
     core-js "^3.0.0"
