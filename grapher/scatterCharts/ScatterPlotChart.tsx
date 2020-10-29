@@ -84,6 +84,17 @@ export class ScatterPlotChart
                 this.colorColumnSlug
             )
 
+        if (this.manager.excludedEntities) {
+            const excludedEntityIdsSet = new Set(this.manager.excludedEntities)
+            table = table.columnFilter(
+                OwidTableSlugs.entityId,
+                (entityId) => !excludedEntityIdsSet.has(entityId as number),
+                `Excluded entity ids specified by author: ${this.manager.excludedEntities.join(
+                    ", "
+                )}`
+            )
+        }
+
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 

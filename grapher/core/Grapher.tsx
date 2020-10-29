@@ -1241,27 +1241,6 @@ export class Grapher
     }
 
     // todo: this is only relevant for scatter plots. move to scatter plot class?
-    getEntityNamesToShow(filterBackgroundEntities?: boolean): EntityName[] {
-        return []
-        // let entityNames = filterBackgroundEntities
-        //     ? this.table.selectedEntityNames
-        //     : this.possibleEntityNames
-
-        // if (this.matchingEntitiesOnly && this.colorDimension)
-        //     entityNames = intersection(
-        //         entityNames,
-        //         this.colorDimension.column.entityNamesUniqArr
-        //     )
-
-        // if (this.excludedEntityNames)
-        //     entityNames = entityNames.filter(
-        //         (entity) => !this.excludedEntityNames.includes(entity)
-        //     )
-
-        // return entityNames
-    }
-
-    // todo: this is only relevant for scatter plots. move to scatter plot class?
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
@@ -1272,15 +1251,6 @@ export class Grapher
     // todo: this is only relevant for scatter plots. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
-    }
-
-    // todo: this is only relevant for scatter plots. move to scatter plot class?
-    @computed get excludedEntityNames(): EntityName[] {
-        const entityIds = this.excludedEntities || []
-        const entityNameMap = this.table.entityIdToNameMap
-        return entityIds
-            .map((entityId) => entityNameMap.get(entityId)!)
-            .filter((d) => d)
     }
 
     @computed get idealBounds() {

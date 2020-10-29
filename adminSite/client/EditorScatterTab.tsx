@@ -1,5 +1,5 @@
 import * as React from "react"
-import { debounce } from "grapher/utils/Util"
+import { debounce, excludeUndefined } from "grapher/utils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"
@@ -11,6 +11,7 @@ import {
     ScatterPointLabelStrategy,
     HighlightToggleConfig,
 } from "grapher/core/GrapherConstants"
+import { EntityName } from "coreTable/OwidTableConstants"
 
 @observer
 export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
@@ -54,8 +55,22 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
             this.props.grapher.highlightToggle = toJS(this.highlightToggle)
     }
 
-    @computed get excludedEntityChoices() {
-        return this.props.grapher.getEntityNamesToShow()
+    @computed private get excludedEntityNames(): EntityName[] {
+        const { excludedEntities, inputTable } = this.props.grapher
+        const { entityIdToNameMap } = inputTable
+        const excludedEntityIds = excludedEntities ?? []
+        return excludeUndefined(
+            excludedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
+        )
+    }
+
+    @computed private get excludedEntityChoices() {
+        const { inputTable } = this.props.grapher
+        return inputTable.availableEntityNames
+            .filter(
+                (entityName) => !this.excludedEntityNames.includes(entityName)
+            )
+            .sort()
     }
 
     @action.bound onExcludeEntity(entity: string) {
@@ -145,9 +160,9 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         onValue={(v) => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
-                    {grapher.excludedEntityNames && (
+                    {this.excludedEntityNames && (
                         <ul className="excludedEntities">
-                            {grapher.excludedEntityNames.map((entity) => (
+                            {this.excludedEntityNames.map((entity) => (
                                 <li key={entity}>
                                     <div
                                         className="clickable"

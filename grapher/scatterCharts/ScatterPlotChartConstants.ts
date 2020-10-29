@@ -12,7 +12,7 @@ import {
 
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
-import { EntityName } from "coreTable/OwidTableConstants"
+import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 import { OwidTable } from "coreTable/OwidTable"
 
@@ -22,6 +22,7 @@ export interface ScatterPlotManager extends ChartManager {
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
     tableAfterPopulationFilterAndActiveChartTransform?: OwidTable
+    excludedEntities?: EntityId[]
 }
 
 export interface ScatterTooltipProps {
