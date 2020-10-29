@@ -7,6 +7,28 @@ import { GlossaryItem } from "./glossary"
 // Do not replace glossary terms within these tags
 export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
 
+export const GlossaryLink = ({
+    slug,
+    excerpt,
+    match,
+}: {
+    slug: string
+    excerpt: string
+    match: string
+}) => (
+    <span>
+        <script
+            data-type={ExpandableInlineBlock.name}
+            data-block={GlossaryExcerpt.name}
+            data-label={match}
+            type="component/props"
+            dangerouslySetInnerHTML={{
+                __html: JSON.stringify({ slug, excerpt }),
+            }}
+        ></script>
+        <a href={`/glossary/${slug}`}>{match}</a>
+    </span>
+)
 
 export const formatGlossaryTerms = (
     $: CheerioStatic,
@@ -48,19 +70,8 @@ export const _linkGlossaryTermsInText = (
         // once per page section)
         glossary.splice(idx, 1)
 
-        return ReactDOMServer.renderToString(
-            <span>
-                <script
-                    data-type={ExpandableInlineBlock.name}
-                    data-block={GlossaryExcerpt.name}
-                    data-label={match}
-                    type="component/props"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({ slug, excerpt }),
-                    }}
-                ></script>
-                <a href={`/glossary/${slug}`}>{match}</a>
-            </span>
+        return ReactDOMServer.renderToStaticMarkup(
+            <GlossaryLink slug={slug} excerpt={excerpt} match={match} />
         )
     }
 
