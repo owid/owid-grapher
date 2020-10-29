@@ -19,6 +19,7 @@ export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     addCountryMode?: EntitySelectionMode
+    xOverrideTime?: Time | undefined
 }
 
 export interface ScatterTooltipProps {
@@ -30,8 +31,6 @@ export interface ScatterTooltipProps {
     x: number
     y: number
 }
-
-export type SeriesPointMap = Map<SeriesName, Map<Time, SeriesPoint>>
 
 export interface ScatterSeries extends ChartSeries {
     label: string

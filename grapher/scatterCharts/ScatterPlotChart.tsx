@@ -9,13 +9,11 @@ import {
     flatten,
     isEmpty,
     isNumber,
-    has,
-    sortedFindClosestIndex,
     domainExtent,
     lowerCaseFirstLetterUnlessAbbreviation,
     relativeMinAndMax,
-    identity,
     exposeInstanceOnWindow,
+    groupBy,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -23,12 +21,11 @@ import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     ScaleType,
-    DimensionProperty,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
 } from "grapher/core/GrapherConstants"
-import { Color, Time } from "coreTable/CoreTableConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -41,7 +38,6 @@ import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 
-import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -49,17 +45,22 @@ import {
     ScatterPlotManager,
     ScatterSeries,
     SeriesPoint,
-    SeriesPointMap,
 } from "./ScatterPlotChartConstants"
 import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
+import {
+    EntityName,
+    OwidRow,
+    OwidTableSlugs,
+} from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { isValid } from "coreTable/InvalidCells"
+import { replaceInvalidRowValuesWithUndefined } from "coreTable/CoreTableUtils"
 
 @observer
 export class ScatterPlotChart
@@ -84,6 +85,13 @@ export class ScatterPlotChart
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
+        if (this.colorColumnSlug) {
+            table = table.interpolateColumnWithTolerance(
+                this.colorColumnSlug,
+                Infinity
+            )
+        }
+
         // To avoid injecting unnecessary rows in the interpolateColumnWithTolerance() transform,
         // we drop any rows which are blank for both X and Y values.
         // The common case is that the Population data goes back to 10,000 BCE and in almost every
@@ -102,12 +110,19 @@ export class ScatterPlotChart
             table = table.interpolateColumnWithTolerance(this.yColumnSlug)
         }
 
-        // Drop any rows which don't have data for either X or Y.
+        // Drop any rows which have an invalid cell for either X or Y.
         // This needs to be done after the tolerance, because the tolerance may fill in some gaps.
-        table = table.dropRowsWithInvalidValuesForAnyColumn([
-            this.xColumnSlug,
-            this.yColumnSlug,
-        ])
+        table = table
+            .columnFilter(
+                this.xColumnSlug,
+                isNumber,
+                "Filter non-number values from X column"
+            )
+            .columnFilter(
+                this.yColumnSlug,
+                isNumber,
+                "Filter non-number values from Y column"
+            )
 
         return table
     }
@@ -365,8 +380,12 @@ export class ScatterPlotChart
         )
     }
 
+    @computed private get colorColumnSlug() {
+        return this.manager.colorColumnSlug
+    }
+
     @computed private get colorColumn() {
-        return this.transformedTable.get(this.manager.colorColumnSlug)
+        return this.transformedTable.get(this.colorColumnSlug)
     }
 
     @computed get legendItems() {
@@ -470,6 +489,10 @@ export class ScatterPlotChart
         return new ColorScale(this)
     }
 
+    @computed get colorScaleColumn() {
+        return this.colorColumn
+    }
+
     @computed get colorScaleConfig() {
         return this.manager.colorScale
     }
@@ -478,11 +501,10 @@ export class ScatterPlotChart
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {
-        const colorColumn = this.colorColumn
-        return !!(
-            colorColumn &&
-            this.allPoints.some((point) => point.color === undefined)
-        )
+        if (!this.colorColumn) return true
+        return this.transformedTable
+            .getValuesFor(this.colorColumn.slug)
+            .some((value) => !isValid(value))
     }
 
     @computed get categoricalValues() {
@@ -530,9 +552,6 @@ export class ScatterPlotChart
         if (isEmpty(this.allEntityNamesWithXAndY))
             return "No entities with data for both X and Y"
 
-        if (isEmpty(this.possibleTimes))
-            return "No times with data for both X and Y"
-
         if (isEmpty(this.series)) return "No matching data"
 
         return ""
@@ -542,11 +561,7 @@ export class ScatterPlotChart
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
     @computed get xOverrideTime() {
-        return undefined // this.xColumn && this.xColumn.targetTime
-    }
-
-    set xOverrideTime(value: number | undefined) {
-        // this.xDimension!.targetTime = value
+        return this.manager.xOverrideTime
     }
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
@@ -579,22 +594,6 @@ export class ScatterPlotChart
         return new Set(seriesNames)
     }
 
-    // The times for which there MAY be data on the scatterplot
-    // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that time
-    // e.g. https://ourworldindata.org/grapher/life-expectancy-years-vs-real-gdp-per-capita-2011us
-    @computed private get possibleTimes(): Time[] {
-        if (!this.yColumn) return []
-
-        if (this.xOverrideTime !== undefined) return this.yColumn.uniqTimesAsc
-
-        if (!this.xColumn) return []
-
-        return intersection(
-            this.yColumn.uniqTimesAsc,
-            this.xColumn.uniqTimesAsc
-        )
-    }
-
     @computed private get compareEndPointsOnly() {
         return !!this.manager.compareEndPointsOnly
     }
@@ -603,156 +602,42 @@ export class ScatterPlotChart
         this.manager.compareEndPointsOnly = value ?? undefined
     }
 
-    @computed private get columns() {
-        return [
-            this.yColumn,
-            this.xColumn,
-            this.colorColumn,
-            this.sizeColumn,
-        ].filter(identity) as CoreColumn[]
-    }
-
-    // todo: move this sort of thing to OwidTable
-    // todo: add unit tests for this thing
-    // Precompute the data transformation for every timeline year (so later animation is fast)
-    // If there's no timeline, this uses the same structure but only computes for a single year
-    private getPointsByEntityAndTime(
-        seriesNamesToShow = this.getSeriesNamesToShow()
-    ): SeriesPointMap {
-        const pointsByEntityAndTime: SeriesPointMap = new Map()
-
-        for (const column of this.columns) {
-            const rowsByEntity = new Map<EntityName, OwidRow[]>()
-            column.owidRows
-                .filter((row) => {
-                    if (!seriesNamesToShow.has(row.entityName)) return false
-                    if (
-                        (column === this.xColumn || column === this.yColumn) &&
-                        !isNumber(row.value)
-                    )
-                        return false
-                    return true
-                })
-                .forEach((row) => {
-                    let rows = rowsByEntity.get(row.entityName)
-                    if (!rows) {
-                        rows = []
-                        rowsByEntity.set(row.entityName, rows)
-                    }
-
-                    rows.push(row as any)
-                })
-            this.setPointsUsingTolerance(
-                column,
-                pointsByEntityAndTime,
-                rowsByEntity
-            )
-        }
-
-        this.removePointsMissingCoordinatesOrOutsidePlane(pointsByEntityAndTime)
-        return pointsByEntityAndTime
-    }
-
-    private setPointsUsingTolerance(
-        column: CoreColumn,
-        pointsByEntityAndTime: SeriesPointMap,
-        rowsByEntity: Map<EntityName, OwidRow[]>
-    ) {
-        const { possibleTimes, xOverrideTime } = this
-        const tolerance =
-            column === this.sizeColumn ? Infinity : column.tolerance
-
-        // Now go through each entity + timeline year and use a binary search to find the closest
-        // matching data year within tolerance
-        // NOTE: this code assumes years is sorted asc!!!
-        rowsByEntity.forEach((rows, entityName) => {
-            let pointsByTime = pointsByEntityAndTime.get(entityName)
-            if (pointsByTime === undefined) {
-                pointsByTime = new Map<Time, SeriesPoint>()
-                pointsByEntityAndTime.set(entityName, pointsByTime)
-            }
-
-            const property = this.propertyForColumn(column)
-            const times = rows.map((row) => row.time)
-
-            for (const outputTime of possibleTimes) {
-                const targetTime =
-                    xOverrideTime !== undefined && column === this.xColumn
-                        ? xOverrideTime
-                        : outputTime
-                const index = sortedFindClosestIndex(times, targetTime)
-                const { time, value } = rows[index]
-
-                // Skip years that aren't within tolerance of the target
-                if (
-                    time < targetTime - tolerance ||
-                    time > targetTime + tolerance
-                ) {
-                    continue
-                }
-
-                let point = pointsByTime.get(outputTime)
-                if (point === undefined) {
-                    point = {
-                        entityName,
-                        timeValue: outputTime,
-                        time: {},
-                    } as SeriesPoint
-                    pointsByTime.set(outputTime, point)
-                }
-
-                point[property] = value
-                if (
-                    property === DimensionProperty.x ||
-                    property === DimensionProperty.y
-                )
-                    point.time[property] = time
-            }
-        })
-    }
-
-    propertyForColumn(column: CoreColumn) {
-        if (this.xColumn === column) return DimensionProperty.x
-        if (this.yColumn === column) return DimensionProperty.y
-        if (this.sizeColumn === column) return DimensionProperty.size
-        return DimensionProperty.color
-    }
-
-    private removePointsMissingCoordinatesOrOutsidePlane(
-        pointsByEntityAndTime: SeriesPointMap
-    ) {
+    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
         // The exclusion of points happens as a last step in order to avoid artefacts due to
         // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
         // domains before creating the points, the tolerance may lead to different X-Y
         // values being joined.
         // -@danielgavrilov, 2020-04-29
         const { yAxisConfig, xAxisConfig } = this
-        pointsByEntityAndTime.forEach((series) => {
-            series.forEach((point, time) => {
-                // Exclude any points with data for only one axis
-                if (!has(point, "x") || !has(point, "y")) series.delete(time)
-                // Exclude points that go beyond min/max of X axis
-                else if (xAxisConfig.shouldRemovePoint(point.x))
-                    series.delete(time)
-                // Exclude points that go beyond min/max of Y axis
-                else if (yAxisConfig.shouldRemovePoint(point.y))
-                    series.delete(time)
-            })
+        return points.filter((point) => {
+            return (
+                !xAxisConfig.shouldRemovePoint(point.x) &&
+                !yAxisConfig.shouldRemovePoint(point.y)
+            )
         })
     }
 
-    @computed get allPoints() {
-        const allPoints: SeriesPoint[] = []
-        this.getPointsByEntityAndTime().forEach((series) => {
-            series.forEach((point) => {
-                allPoints.push(point)
+    @computed get allPoints(): SeriesPoint[] {
+        return this.removePointsOutsidePlane(
+            this.transformedTable.rows.map((row) => {
+                row = replaceInvalidRowValuesWithUndefined(row)
+                return {
+                    x: row[this.xColumnSlug],
+                    y: row[this.yColumnSlug],
+                    size: this.sizeColumn ? row[this.sizeColumn.slug] : 0,
+                    color: this.colorColumn
+                        ? row[this.colorColumn.slug]
+                        : undefined,
+                    entityName: row[OwidTableSlugs.entityName],
+                    label: this.getPointLabel(row) ?? "",
+                    timeValue: row[OwidTableSlugs.time],
+                    time: {
+                        x: row[this.xColumn!.originalTimeColumnSlug!],
+                        y: row[this.yColumn!.originalTimeColumnSlug!],
+                    },
+                }
             })
-        })
-        return allPoints
-    }
-
-    @computed private get currentValues() {
-        return flatten(this.series.map((g) => g.points))
+        )
     }
 
     // domains across the entire timeline
@@ -793,20 +678,17 @@ export class ScatterPlotChart
             !this.selectionArray.numSelectedEntities ||
             !this.manager.zoomToSelection
         )
-            return this.currentValues
+            return this.allPoints
 
-        return this.selectedPoints.length
-            ? this.selectedPoints
-            : this.currentValues
+        return this.selectedPoints.length ? this.selectedPoints : this.allPoints
     }
 
     @computed private get sizeDomain(): [number, number] {
-        const sizeValues: number[] = []
-        this.allPoints.forEach(
-            (point) => point.size && sizeValues.push(point.size)
-        )
-        if (sizeValues.length === 0) return [1, 100]
-        else return domainExtent(sizeValues, ScaleType.linear)
+        if (!this.sizeColumn) return [1, 100]
+        const sizeValues = this.transformedTable
+            .getValuesFor(this.sizeColumn.slug)
+            .filter(isNumber)
+        return domainExtent(sizeValues, ScaleType.linear)
     }
 
     @computed private get yScaleType() {
@@ -878,61 +760,55 @@ export class ScatterPlotChart
         return axis
     }
 
+    getPointLabel(row: OwidRow): string | undefined {
+        const strat = this.manager.scatterPointLabelStrategy
+        let label
+        if (strat === ScatterPointLabelStrategy.year) {
+            label = this.transformedTable.timeColumnFormatFunction(
+                row[OwidTableSlugs.time]
+            )
+        } else if (strat === ScatterPointLabelStrategy.x) {
+            label = this.xColumn?.formatValue(row[this.xColumnSlug])
+        } else {
+            label = this.yColumn?.formatValue(row[this.yColumnSlug])
+        }
+        return label
+    }
+
     // todo: refactor/remove and/or add unit tests
-    @computed get series() {
+    @computed get series(): ScatterSeries[] {
         const { yColumn, transformedTable, xColumn } = this
         if (!yColumn || !xColumn) return []
 
-        const seriesArr: ScatterSeries[] = []
-        const strat = this.manager.scatterPointLabelStrategy
-
-        // As needed, join the individual year data points together to create an "arrow chart"
-        this.getPointsByEntityAndTime().forEach((pointsByTime, seriesName) => {
-            const series = {
-                seriesName,
-                label: seriesName,
-                color: "#932834", // Default color, used when no color dimension is present
-                size: 0,
-                points: [],
-            } as ScatterSeries
-
-            pointsByTime.forEach((point) => {
-                let label
-                if (strat === ScatterPointLabelStrategy.year)
-                    label = transformedTable.timeColumnFormatFunction(
-                        point.timeValue
-                    )
-                else if (strat === ScatterPointLabelStrategy.x)
-                    label = xColumn.formatValue(point.x)
-                else
-                    (label = yColumn.formatValue(point.y)),
-                        series.points.push({ ...point, label })
-            })
-
-            // Use most recent size and color values
-            // const lastPoint = last(series.values)
-
-            if (series.points.length) {
-                const keyColor = transformedTable.getColorForEntityName(
-                    seriesName
-                )
-                if (keyColor !== undefined) series.color = keyColor
-                else if (this.colorColumn) {
-                    const colorValue = last(
-                        series.points.map((point) => point.color)
-                    )
-                    const color = this.colorScale.getColor(colorValue)
-                    if (color !== undefined) {
-                        series.color = color
-                        series.isScaleColor = true
-                    }
+        return Object.entries(groupBy(this.allPoints, (p) => p.entityName))
+            .map(([entityName, points]) => {
+                const series: ScatterSeries = {
+                    seriesName: entityName,
+                    label: entityName,
+                    color: "#932834", // Default color, used when no color dimension is present
+                    size: last(points.map((p) => p.size).filter(isNumber)) ?? 0,
+                    points,
                 }
-                const sizes = series.points.map((v) => v.size)
-                series.size = last(sizes.filter((s) => isNumber(s))) ?? 0
-                seriesArr.push(series)
-            }
-        })
-
-        return seriesArr
+                if (points.length) {
+                    const keyColor = transformedTable.getColorForEntityName(
+                        entityName
+                    )
+                    if (keyColor !== undefined) series.color = keyColor
+                    else if (this.colorColumn) {
+                        const colorValue = last(
+                            series.points.map((point) => point.color)
+                        )
+                        const color = this.colorScale.getColor(colorValue)
+                        if (color !== undefined) {
+                            series.color = color
+                            series.isScaleColor = true
+                        }
+                    }
+                    const sizes = series.points.map((v) => v.size)
+                    series.size = last(sizes.filter(isNumber)) ?? 0
+                }
+                return series
+            })
+            .filter((series) => series.points.length > 0)
     }
 }

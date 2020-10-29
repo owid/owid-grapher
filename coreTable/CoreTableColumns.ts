@@ -321,11 +321,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
+    @imemo get originalTimeColumnSlug() {
+        return getOriginalTimeColumnSlug(this.table, this.slug)
+    }
+
     @imemo get originalTimes() {
-        const originalTimeColumnSlug = getOriginalTimeColumnSlug(
-            this.table,
-            this.slug
-        )
+        const { originalTimeColumnSlug } = this
         if (!originalTimeColumnSlug) return []
         return this.table.getValuesAtIndices(
             originalTimeColumnSlug,
