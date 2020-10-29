@@ -79,6 +79,11 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable) {
+        if (this.manager.matchingEntitiesOnly && this.colorColumnSlug)
+            table = table.dropRowsWithInvalidValuesForColumn(
+                this.colorColumnSlug
+            )
+
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 
