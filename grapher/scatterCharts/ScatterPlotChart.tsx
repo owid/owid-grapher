@@ -159,13 +159,16 @@ export class ScatterPlotChart
         if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
     }
 
-    // Only want to show colors on legend that are actually on the chart right now
-    @computed private get colorsInUse() {
+    // Returns the colors that are used by all points, *across the whole timeline*.
+    // This is why we need the table before the timeline filter is applied.
+    @computed private get colorsInUse(): Color[] {
+        const colorValues =
+            this.manager.tableAfterPopulationFilterAndActiveChartTransform?.get(
+                this.colorColumnSlug
+            )?.uniqValues ?? []
         return excludeUndefined(
-            uniq(
-                this.allPoints.map((point) =>
-                    this.colorScale.getColor(point.color)
-                )
+            colorValues.map((colorValue) =>
+                this.colorScale.getColor(colorValue)
             )
         )
     }
@@ -492,7 +495,10 @@ export class ScatterPlotChart
     colorScale = new ColorScale(this)
 
     @computed get colorScaleColumn() {
-        return this.colorColumn
+        // We need to use inputTable in order to get consistent coloring for a variable across
+        // charts, e.g. each continent being assigned to the same color.
+        // inputTable is unfiltered, so it contains every value that exists in the variable.
+        return this.inputTable.get(this.colorColumnSlug)
     }
 
     @computed get colorScaleConfig() {

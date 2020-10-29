@@ -14,12 +14,14 @@ import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 import { EntityName } from "coreTable/OwidTableConstants"
 import { ChartSeries } from "grapher/chart/ChartInterface"
+import { OwidTable } from "coreTable/OwidTable"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
+    tableAfterPopulationFilterAndActiveChartTransform?: OwidTable
 }
 
 export interface ScatterTooltipProps {

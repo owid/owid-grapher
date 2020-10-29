@@ -498,7 +498,7 @@ export class Grapher
     }
 
     @computed
-    private get tableAfterPopulationFilterAndActiveChartTransform(): OwidTable {
+    get tableAfterPopulationFilterAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterPopulationFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
