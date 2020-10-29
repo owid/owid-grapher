@@ -55,6 +55,7 @@ import {
     imemo,
     interpolateRowValuesWithTolerance,
     replaceDef,
+    rowsToColumnStore,
 } from "./CoreTableUtils"
 import { CoreColumn } from "./CoreTableColumns"
 
@@ -500,50 +501,61 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
+
         const maybeTimeColumnSlug =
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
         const timeColumn =
             this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
-        const timeColumnDef = timeColumn.def as OwidColumnDef
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
-        const originalRows = this.complete([
-            OwidTableSlugs.entityName,
-            timeColumn.slug,
-        ]).sortedByTime.rows
+        const newColumnDef = {
+            ...timeColumn.def,
+            slug: originalTimeSlug,
+        }
 
-        const rows = flatten(
-            Object.values(
-                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
-            ).map((rows) => {
-                // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
-                // will overwrite values in this column if a row value from a different time is
-                // used.
-                rows = rows.map((row) => ({
-                    ...row,
-                    [originalTimeSlug]: row[timeColumn.slug],
-                }))
-                return interpolateRowValuesWithTolerance(
-                    rows,
-                    columnSlug,
-                    originalTimeSlug,
-                    tolerance
+        let columnStore = this.columnStore
+        if (tolerance) {
+            const originalRows = this.complete([
+                OwidTableSlugs.entityName,
+                timeColumn.slug,
+            ]).sortedByTime.rows
+
+            columnStore = rowsToColumnStore(
+                flatten(
+                    Object.values(
+                        groupBy(
+                            originalRows,
+                            (row) => row[OwidTableSlugs.entityName]
+                        )
+                    ).map((rows) => {
+                        // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
+                        // will overwrite values in this column if a row value from a different time is
+                        // used.
+                        rows = rows.map((row) => ({
+                            ...row,
+                            [originalTimeSlug]: row[timeColumn.slug],
+                        }))
+                        return interpolateRowValuesWithTolerance(
+                            rows,
+                            columnSlug,
+                            originalTimeSlug,
+                            tolerance
+                        )
+                    })
                 )
-            })
-        )
-
-        const defs: OwidColumnDef[] = [
-            ...this.defs,
-            {
-                ...timeColumnDef,
-                slug: originalTimeSlug,
-            },
-        ]
+            )
+        } else {
+            // If there is no tolerance still append the tolerance column
+            columnStore = {
+                ...this.columnStore,
+                [originalTimeSlug]: timeColumn.allValues,
+            }
+        }
 
         return this.transform(
-            rows,
-            defs,
+            columnStore,
+            [...this.defs, newColumnDef],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
             TransformType.UpdateColumnDefs
         )

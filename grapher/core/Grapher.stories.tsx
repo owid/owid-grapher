@@ -11,6 +11,8 @@ import {
     GrapherTabOption,
 } from "./GrapherConstants"
 import { BlankOwidTable } from "coreTable/OwidTable"
+import { action, observable } from "mobx"
+import { observer } from "mobx-react"
 
 export default {
     title: "Grapher",
@@ -135,3 +137,31 @@ export const WithAuthorTimeFilter = () => {
     }
     return <Grapher {...model} />
 }
+
+@observer
+class PerfGrapher extends React.Component {
+    @action.bound loadBigTable() {
+        this.table = SynthesizeGDPTable({
+            entityCount: 200,
+            timeRange: [1500, 2000],
+        })
+    }
+
+    @observable.ref table = basics.table!
+
+    render() {
+        const key = this.table.guid // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020
+        return (
+            <div>
+                <div>
+                    <button onClick={this.loadBigTable}>
+                        Big Table for Perf
+                    </button>
+                </div>
+                <Grapher {...basics} table={this.table} key={key} />
+            </div>
+        )
+    }
+}
+
+export const Perf = () => <PerfGrapher />
