@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { ExpandableInlineBlock } from "site/ExpandableInlineBlock/ExpandableInlineBlock"
-import { GlossaryExcerpt } from "site/GlossaryExcerpt/GlossaryExcerpt"
+import { ExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
+import { GlossaryExcerpt } from "site/client/GlossaryExcerpt/GlossaryExcerpt"
 
 interface GlossaryItem {
     term: string
