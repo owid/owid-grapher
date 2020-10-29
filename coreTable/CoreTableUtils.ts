@@ -14,7 +14,7 @@ import {
     ColumnSlug,
     CoreMatrix,
 } from "./CoreTableConstants"
-import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
+import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
@@ -502,4 +502,12 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
                 .reduce((subResults, result) => [...subResults, ...result], []),
         [[]]
     )
+}
+
+export const replaceInvalidRowValuesWithUndefined = (row: CoreRow) => {
+    const result: CoreRow = {}
+    for (const key in row) {
+        result[key] = isValid(row[key]) ? row[key] : undefined
+    }
+    return result
 }
