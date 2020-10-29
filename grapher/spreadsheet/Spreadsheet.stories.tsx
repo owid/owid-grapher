@@ -10,6 +10,7 @@ import { Bounds } from "grapher/utils/Bounds"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
+import { ChartTypeSwitcher } from "grapher/chart/ChartTypeSwitcher"
 
 export default {
     title: "Spreadsheet",
@@ -78,17 +79,7 @@ class Editor extends React.Component {
                     />
                 </svg>
                 <button onClick={this.shuffleTable}>Shuffle</button>
-                <select
-                    onChange={(event) =>
-                        this.changeChartType(event.target.value as any)
-                    }
-                >
-                    {Object.values(ChartTypeName).map((value) => (
-                        <option key={value} value={value}>
-                            {value}
-                        </option>
-                    ))}
-                </select>
+                <ChartTypeSwitcher onChange={this.changeChartType} />
             </div>
         )
     }

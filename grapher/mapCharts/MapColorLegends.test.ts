@@ -1,9 +1,12 @@
 #! /usr/bin/env yarn jest
 
 import { CategoricalBin, NumericBin } from "grapher/color/ColorScaleBin"
-import { CategoricalColorLegend, NumericColorLegend } from "./MapColorLegends"
+import {
+    MapCategoricalColorLegend,
+    MapNumericColorLegend,
+} from "./MapColorLegends"
 
-describe(NumericColorLegend, () => {
+describe(MapNumericColorLegend, () => {
     test("can create one", () => {
         const bin = new NumericBin({
             isFirst: false,
@@ -16,14 +19,14 @@ describe(NumericColorLegend, () => {
             color: "blue",
         })
 
-        const legend = new NumericColorLegend({
+        const legend = new MapNumericColorLegend({
             manager: { numericLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)
     })
 })
 
-describe(CategoricalColorLegend, () => {
+describe(MapCategoricalColorLegend, () => {
     test("can create one", () => {
         const bin = new CategoricalBin({
             index: 1,
@@ -32,7 +35,7 @@ describe(CategoricalColorLegend, () => {
             color: "red",
         })
 
-        const legend = new CategoricalColorLegend({
+        const legend = new MapCategoricalColorLegend({
             manager: { categoricalLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)

@@ -3,10 +3,9 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
-    CategoricalColorLegend,
-    CategoricalColorLegendManager,
-    NumericColorLegend,
-    NumericColorLegendManager,
+    MapCategoricalColorLegend,
+    MapLegendManager,
+    MapNumericColorLegend,
 } from "grapher/mapCharts/MapColorLegends"
 import {
     flatten,
@@ -19,6 +18,7 @@ import {
     difference,
     uniq,
     excludeUndefined,
+    isPresent,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
@@ -78,11 +78,7 @@ interface MapChartProps {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements
-        ChartInterface,
-        CategoricalColorLegendManager,
-        NumericColorLegendManager,
-        ColorScaleManager {
+    implements ChartInterface, MapLegendManager, ColorScaleManager {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -223,8 +219,8 @@ export class MapChart
             ? this.colorScale.customNumericLabels
             : []
 
-        return excludeUndefined(
-            mapColumn.owidRows.map((row) => {
+        return mapColumn.owidRows
+            .map((row) => {
                 const { entityName, value, time } = row
                 const color = this.colorScale.getColor(value) || "red" // todo: color fix
                 if (!color) return undefined
@@ -240,7 +236,7 @@ export class MapChart
                     highlightFillColor: color,
                 }
             })
-        )
+            .filter(isPresent)
     }
 
     @computed private get seriesMap() {
@@ -252,7 +248,8 @@ export class MapChart
     }
 
     @computed get colorScaleColumn() {
-        return this.mapColumn
+        // Use the table before transform to build the legend. Otherwise the legend jumps around as you slide the timeline handle.
+        return this.inputTable.get(this.mapColumnSlug)!
     }
 
     @computed get colorScale() {
@@ -269,7 +266,7 @@ export class MapChart
     @computed get categoricalValues() {
         // return uniq(this.mappableData.values.filter(isString))
         // return this.options.mapColumn.values || [] // todo: mappable data
-        return uniq(this.mapColumn!.parsedValues.filter(isString))
+        return uniq(this.colorScaleColumn.parsedValues.filter(isString))
     }
 
     componentDidMount() {
@@ -395,13 +392,13 @@ export class MapChart
 
     @computed get categoryLegend() {
         return this.categoricalLegendData.length > 1
-            ? new CategoricalColorLegend({ manager: this })
+            ? new MapCategoricalColorLegend({ manager: this })
             : undefined
     }
 
     @computed get numericLegend() {
         return this.numericLegendData.length > 1
-            ? new NumericColorLegend({ manager: this })
+            ? new MapNumericColorLegend({ manager: this })
             : undefined
     }
 
@@ -434,8 +431,8 @@ export class MapChart
 
         return (
             <g className="mapLegend">
-                {numericLegend && <NumericColorLegend manager={this} />}
-                {categoryLegend && <CategoricalColorLegend manager={this} />}
+                {numericLegend && <MapNumericColorLegend manager={this} />}
+                {categoryLegend && <MapCategoricalColorLegend manager={this} />}
             </g>
         )
     }

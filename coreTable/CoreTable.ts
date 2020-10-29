@@ -757,7 +757,7 @@ export class CoreTable<
     }
 
     private static guids = 0
-    guid = ++CoreTable.guids
+    private guid = ++CoreTable.guids
 
     private get explanation() {
         // todo: is there a better way to do this in JS?

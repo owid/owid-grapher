@@ -13,6 +13,7 @@ import {
 import { BlankOwidTable } from "coreTable/OwidTable"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ChartTypeSwitcher } from "grapher/chart/ChartTypeSwitcher"
 
 export default {
     title: "Grapher",
@@ -149,16 +150,28 @@ class PerfGrapher extends React.Component {
 
     @observable.ref table = basics.table!
 
+    @action.bound private changeChartType(type: ChartTypeName) {
+        this.chartTypeName = type
+    }
+
+    @observable chartTypeName = ChartTypeName.LineChart
+
     render() {
-        const key = this.table.guid // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020
+        const key = Math.random() // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020
         return (
             <div>
                 <div>
                     <button onClick={this.loadBigTable}>
                         Big Table for Perf
                     </button>
+                    <ChartTypeSwitcher onChange={this.changeChartType} />
                 </div>
-                <Grapher {...basics} table={this.table} key={key} />
+                <Grapher
+                    {...basics}
+                    table={this.table}
+                    type={this.chartTypeName}
+                    key={key}
+                />
             </div>
         )
     }

@@ -52,35 +52,26 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-interface ColorLegendManager {
+export interface MapLegendManager {
     fontSize?: number
     legendX?: number
     legendY?: number
     legendWidth?: number
     legendHeight?: number
-    onLegendMouseLeave?: () => void
-}
-
-export interface CategoricalColorLegendManager extends ColorLegendManager {
     scale?: number
     categoricalLegendData: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
+    numericLegendData?: ColorScaleBin[]
+    numericFocusBracket?: ColorScaleBin
+    equalSizeBins?: boolean
+    onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: CategoricalBin) => void
 }
 
-export interface NumericColorLegendManager extends ColorLegendManager {
-    numericLegendData: ColorScaleBin[]
-    numericFocusBracket?: ColorScaleBin
-    equalSizeBins?: boolean
-    onLegendMouseOver?: (d: ColorScaleBin) => void
-}
-
 @observer
-export class NumericColorLegend extends React.Component<{
-    manager: NumericColorLegendManager
+class MapLegend extends React.Component<{
+    manager: MapLegendManager
 }> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
     @computed get manager() {
         return this.props.manager
     }
@@ -104,9 +95,18 @@ export class NumericColorLegend extends React.Component<{
     @computed get fontSize() {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
+}
+
+@observer
+export class MapNumericColorLegend extends MapLegend {
+    base: React.RefObject<SVGGElement> = React.createRef()
+
+    @computed get numericLegendData() {
+        return this.manager.numericLegendData ?? []
+    }
 
     @computed get numericBins() {
-        return this.manager.numericLegendData.filter(
+        return this.numericLegendData.filter(
             (bin) => bin instanceof NumericBin
         ) as NumericBin[]
     }
@@ -134,7 +134,7 @@ export class NumericColorLegend extends React.Component<{
         return this.rectHeight * 1.5
     }
     @computed get totalCategoricalWidth() {
-        const { numericLegendData } = this.manager
+        const { numericLegendData } = this
         const { categoryBinWidth, categoryBinMargin } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
@@ -154,11 +154,12 @@ export class NumericColorLegend extends React.Component<{
             categoryBinWidth,
             categoryBinMargin,
             availableNumericWidth,
+            numericLegendData,
             numericBins,
         } = this
         let xOffset = 0
 
-        return manager.numericLegendData.map((bin) => {
+        return numericLegendData.map((bin) => {
             let width = categoryBinWidth
             let margin = categoryBinMargin
             if (bin instanceof NumericBin) {
@@ -407,31 +408,9 @@ export class NumericColorLegend extends React.Component<{
 }
 
 @observer
-export class CategoricalColorLegend extends React.Component<{
-    manager: CategoricalColorLegendManager
-}> {
-    @computed get manager() {
-        return this.props.manager
-    }
-
-    @computed get legendX() {
-        return this.manager.legendX ?? 0
-    }
-
-    @computed get legendY() {
-        return this.manager.legendY ?? 0
-    }
-
-    @computed get legendWidth() {
-        return this.manager.legendWidth ?? 200
-    }
-
-    @computed get legendHeight() {
-        return this.manager.legendHeight ?? 200
-    }
-
-    @computed get fontSize() {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
+export class MapCategoricalColorLegend extends MapLegend {
+    @computed get categoricalLegendData() {
+        return this.manager.categoricalLegendData ?? []
     }
 
     @computed private get markLines() {
@@ -446,7 +425,7 @@ export class CategoricalColorLegend extends React.Component<{
         let marks: CategoricalMark[] = []
         let xOffset = 0
         let yOffset = 0
-        manager.categoricalLegendData.forEach((bin) => {
+        this.categoricalLegendData.forEach((bin) => {
             const labelBounds = Bounds.forText(bin.text, { fontSize })
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
