@@ -264,9 +264,7 @@ export class MapChart
     hasNoDataBin = true
 
     @computed get categoricalValues() {
-        // return uniq(this.mappableData.values.filter(isString))
-        // return this.options.mapColumn.values || [] // todo: mappable data
-        return uniq(this.colorScaleColumn.parsedValues.filter(isString))
+        return this.colorScaleColumn.uniqValues.filter(isString)
     }
 
     componentDidMount() {
@@ -317,17 +315,18 @@ export class MapChart
         if (
             this.hasCategorical ||
             !this.legendData.some(
-                (d) => (d as CategoricalBin).value === "No data" && !d.isHidden
+                (bin) =>
+                    (bin as CategoricalBin).value === "No data" && !bin.isHidden
             )
         )
             return this.legendData.filter(
-                (l) => l instanceof NumericBin && !l.isHidden
+                (bin) => bin instanceof NumericBin && !bin.isHidden
             )
 
         const bin = this.legendData.filter(
-            (l) =>
-                (l instanceof NumericBin || l.value === "No data") &&
-                !l.isHidden
+            (bin) =>
+                (bin instanceof NumericBin || bin.value === "No data") &&
+                !bin.isHidden
         )
         return flatten([bin[bin.length - 1], bin.slice(0, -1)])
     }
@@ -338,7 +337,7 @@ export class MapChart
 
     @computed get categoricalLegendData() {
         return this.legendData.filter(
-            (l) => l instanceof CategoricalBin && !l.isHidden
+            (bin) => bin instanceof CategoricalBin && !bin.isHidden
         ) as CategoricalBin[]
     }
 

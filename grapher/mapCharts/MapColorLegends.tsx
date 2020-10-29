@@ -119,10 +119,10 @@ export class MapNumericColorLegend extends MapLegend {
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
     @computed get minValue() {
-        return min(this.numericBins.map((d) => d.min)) as number
+        return min(this.numericBins.map((bin) => bin.min)) as number
     }
     @computed get maxValue() {
-        return max(this.numericBins.map((d) => d.max)) as number
+        return max(this.numericBins.map((bin) => bin.max)) as number
     }
     @computed get rangeSize() {
         return this.maxValue - this.minValue
@@ -188,13 +188,15 @@ export class MapNumericColorLegend extends MapLegend {
         const { rectHeight, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
-            d: PositionedBin,
+            bin: PositionedBin,
             minOrMax: "min" | "max",
             text: string
         ) => {
             const labelBounds = Bounds.forText(text, { fontSize: tickFontSize })
             const x =
-                d.x + (minOrMax === "min" ? 0 : d.width) - labelBounds.width / 2
+                bin.x +
+                (minOrMax === "min" ? 0 : bin.width) -
+                labelBounds.width / 2
             const y = -rectHeight - labelBounds.height - 3
 
             return {
@@ -205,15 +207,15 @@ export class MapNumericColorLegend extends MapLegend {
             }
         }
 
-        const makeRangeLabel = (d: PositionedBin) => {
-            const labelBounds = Bounds.forText(d.bin.text, {
+        const makeRangeLabel = (bin: PositionedBin) => {
+            const labelBounds = Bounds.forText(bin.bin.text, {
                 fontSize: tickFontSize,
             })
-            const x = d.x + d.width / 2 - labelBounds.width / 2
+            const x = bin.x + bin.width / 2 - labelBounds.width / 2
             const y = -rectHeight - labelBounds.height - 3
 
             return {
-                text: d.bin.text,
+                text: bin.bin.text,
                 fontSize: tickFontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
                 priority: true,
@@ -222,20 +224,20 @@ export class MapNumericColorLegend extends MapLegend {
         }
 
         let labels: NumericLabel[] = []
-        for (const d of positionedBins) {
-            if (d.bin.text) labels.push(makeRangeLabel(d))
-            else if (d.bin instanceof NumericBin) {
-                labels.push(makeBoundaryLabel(d, "min", d.bin.minText))
-                if (d === last(positionedBins))
-                    labels.push(makeBoundaryLabel(d, "max", d.bin.maxText))
+        for (const bin of positionedBins) {
+            if (bin.bin.text) labels.push(makeRangeLabel(bin))
+            else if (bin.bin instanceof NumericBin) {
+                labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
+                if (bin === last(positionedBins))
+                    labels.push(makeBoundaryLabel(bin, "max", bin.bin.maxText))
             }
         }
 
-        for (let i = 0; i < labels.length; i++) {
-            const l1 = labels[i]
+        for (let index = 0; index < labels.length; index++) {
+            const l1 = labels[index]
             if (l1.hidden) continue
 
-            for (let j = i + 1; j < labels.length; j++) {
+            for (let j = index + 1; j < labels.length; j++) {
                 const l2 = labels[j]
                 if (
                     l1.bounds.right + 5 >= l2.bounds.centerX ||
@@ -245,13 +247,13 @@ export class MapNumericColorLegend extends MapLegend {
             }
         }
 
-        labels = labels.filter((l) => !l.hidden)
+        labels = labels.filter((label) => !label.hidden)
 
         // If labels overlap, first we try alternating raised labels
         let raisedMode = false
-        for (let i = 1; i < labels.length; i++) {
-            const l1 = labels[i - 1],
-                l2 = labels[i]
+        for (let index = 1; index < labels.length; index++) {
+            const l1 = labels[index - 1],
+                l2 = labels[index]
             if (l1.bounds.right + 5 >= l2.bounds.left) {
                 raisedMode = true
                 break
@@ -259,11 +261,11 @@ export class MapNumericColorLegend extends MapLegend {
         }
 
         if (raisedMode) {
-            for (let i = 1; i < labels.length; i++) {
-                const l = labels[i]
-                if (i % 2 !== 0) {
-                    l.bounds = l.bounds.extend({
-                        y: l.bounds.y - l.bounds.height - 1,
+            for (let index = 1; index < labels.length; index++) {
+                const label = labels[index]
+                if (index % 2 !== 0) {
+                    label.bounds = label.bounds.extend({
+                        y: label.bounds.y - label.bounds.height - 1,
                     })
                 }
             }
@@ -273,7 +275,9 @@ export class MapNumericColorLegend extends MapLegend {
     }
 
     @computed get height() {
-        return Math.abs(min(this.numericLabels.map((l) => l.bounds.y)) ?? 0)
+        return Math.abs(
+            min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
+        )
     }
 
     @computed get bounds() {
@@ -306,12 +310,12 @@ export class MapNumericColorLegend extends MapLegend {
 
         // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
         let newFocusBracket = null
-        positionedBins.forEach((d) => {
+        positionedBins.forEach((bin) => {
             if (
-                mouse.x >= this.legendX + d.x &&
-                mouse.x <= this.legendX + d.x + d.width
+                mouse.x >= this.legendX + bin.x &&
+                mouse.x <= this.legendX + bin.x + bin.width
             )
-                newFocusBracket = d.bin
+                newFocusBracket = bin.bin
         })
 
         if (newFocusBracket && manager.onLegendMouseOver)
@@ -350,9 +354,9 @@ export class MapNumericColorLegend extends MapLegend {
 
         return (
             <g ref={this.base} className="numericColorLegend">
-                {numericLabels.map((label, i) => (
+                {numericLabels.map((label, index) => (
                     <line
-                        key={i}
+                        key={index}
                         x1={
                             this.legendX +
                             label.bounds.x +
@@ -370,13 +374,13 @@ export class MapNumericColorLegend extends MapLegend {
                     />
                 ))}
                 {sortBy(
-                    positionedBins.map((positionedBin, i) => {
+                    positionedBins.map((positionedBin, index) => {
                         const isFocus =
                             numericFocusBracket &&
                             positionedBin.bin.equals(numericFocusBracket)
                         return (
                             <rect
-                                key={i}
+                                key={index}
                                 x={this.legendX + positionedBin.x}
                                 y={bottomY - rectHeight}
                                 width={positionedBin.width}
@@ -389,11 +393,11 @@ export class MapNumericColorLegend extends MapLegend {
                             />
                         )
                     }),
-                    (r) => r.props["strokeWidth"]
+                    (rect) => rect.props["strokeWidth"]
                 )}
-                {numericLabels.map((label, i) => (
+                {numericLabels.map((label, index) => (
                     <text
-                        key={i}
+                        key={index}
                         x={this.legendX + label.bounds.x}
                         y={bottomY + label.bounds.y}
                         fontSize={label.fontSize}
@@ -476,10 +480,10 @@ export class MapCategoricalColorLegend extends MapLegend {
         // Center each line
         lines.forEach((line) => {
             const xShift = this.width / 2 - line.totalWidth / 2
-            line.marks.forEach((m) => {
-                m.x += xShift
-                m.label.bounds = m.label.bounds.extend({
-                    x: m.label.bounds.x + xShift,
+            line.marks.forEach((mark) => {
+                mark.x += xShift
+                mark.label.bounds = mark.label.bounds.extend({
+                    x: mark.label.bounds.x + xShift,
                 })
             })
         })
@@ -488,7 +492,7 @@ export class MapCategoricalColorLegend extends MapLegend {
     }
 
     @computed get height() {
-        return max(this.marks.map((m) => m.y + m.rectSize)) as number
+        return max(this.marks.map((mark) => mark.y + mark.rectSize)) as number
     }
 
     render() {
@@ -498,14 +502,14 @@ export class MapCategoricalColorLegend extends MapLegend {
         return (
             <g className="mapLegend">
                 <g className="categoricalColorLegend">
-                    {marks.map((mark, i) => {
+                    {marks.map((mark, index) => {
                         const isFocus =
                             categoricalFocusBracket &&
                             mark.bin.value === categoricalFocusBracket.value
                         const stroke = isFocus ? FOCUS_BORDER_COLOR : "#333"
                         return (
                             <g
-                                key={i}
+                                key={index}
                                 onMouseOver={() =>
                                     manager.onLegendMouseOver
                                         ? manager.onLegendMouseOver(mark.bin)
