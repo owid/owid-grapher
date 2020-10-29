@@ -350,10 +350,6 @@ export class MapChart
     defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
-    @computed get categoricalValues() {
-        return this.colorScaleColumn.uniqValues.filter(isString)
-    }
-
     componentDidMount() {
         select(this.base.current)
             .selectAll("path")

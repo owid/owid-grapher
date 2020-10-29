@@ -21,7 +21,6 @@ const NO_DATA_LABEL = "No data"
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
-    categoricalValues?: string[]
     hasNoDataBin?: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
@@ -126,7 +125,7 @@ export class ColorScale {
     }
 
     @computed private get categoricalValues() {
-        return this.manager.categoricalValues ?? []
+        return this.colorScaleColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
     @computed private get colorScheme() {
