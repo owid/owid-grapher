@@ -32,9 +32,10 @@ export const runExpandableInlineBlock = () => {
         `[data-type=${ExpandableInlineBlock.name}]`
     )
     expandableInlineBlocks.forEach((expandableInlineBlock) => {
-        const { label, ...props } = JSON.parse(expandableInlineBlock.innerHTML)
-        const subComponent = expandableInlineBlock.getAttribute("data-embedded")
-        if (!subComponent) return
+        const props = JSON.parse(expandableInlineBlock.innerHTML)
+        const subComponent = expandableInlineBlock.getAttribute("data-block")
+        const label = expandableInlineBlock.getAttribute("data-label")
+        if (!subComponent || !label || !props) return
 
         const Component = availableComponents[subComponent]
 

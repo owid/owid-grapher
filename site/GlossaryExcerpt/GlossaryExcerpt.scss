@@ -4,7 +4,12 @@
     padding: $padding-x-sm;
     background-color: $primary-color-100;
 
-    span {
+    span,
+    a {
         display: block;
+    }
+
+    a {
+        margin-top: $vertical-spacing;
     }
 }

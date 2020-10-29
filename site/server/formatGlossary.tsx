@@ -6,6 +6,7 @@ import { GlossaryExcerpt } from "site/GlossaryExcerpt/GlossaryExcerpt"
 interface GlossaryItem {
     term: string
     slug: string
+    excerpt: string
 }
 // Do not replace glossary terms within these tags
 export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
@@ -13,8 +14,18 @@ export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
 export const getGlossary = (): GlossaryItem[] => {
     // TODO
     return [
-        { term: "population", slug: "population" },
-        { term: "population growth", slug: "population-growth" },
+        {
+            term: "population",
+            slug: "population",
+            excerpt:
+                " Morbi vel maximus ipsum. Ut vitae condimentum leo. Cras sed libero vitae est hendrerit iaculis sed in felis. Curabitur eleifend neque at justo facilisis maximus.",
+        },
+        {
+            term: "population growth",
+            slug: "population-growth",
+            excerpt:
+                "Donec euismod magna vel nunc convallis cursus. Fusce at ante urna. Phasellus porta nunc lectus, euismod elementum est posuere sit amet. Fusce pretium nec justo id sollicitudin.",
+        },
     ]
 }
 
@@ -72,6 +83,8 @@ export const _linkGlossaryTermsInText = (
         if (idx === -1) return match
 
         const slug = glossary[idx].slug
+        const excerpt = glossary[idx].excerpt
+
         // Remove element in-place so that glossary items are only matched and
         // linked once per recursive traversal (at the moment, this is set to
         // once per page section)
@@ -81,10 +94,11 @@ export const _linkGlossaryTermsInText = (
             <span>
                 <script
                     data-type={ExpandableInlineBlock.name}
-                    data-embedded={GlossaryExcerpt.name}
+                    data-block={GlossaryExcerpt.name}
+                    data-label={match}
                     type="component/props"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({ slug, label: match }),
+                        __html: JSON.stringify({ slug, excerpt }),
                     }}
                 ></script>
                 <a href={`/glossary/${slug}`}>{match}</a>
