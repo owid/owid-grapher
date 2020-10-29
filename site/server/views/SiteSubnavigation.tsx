@@ -53,7 +53,11 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
         { label: "Cases", href: "/covid-cases", id: "cases" },
         { label: "Tests", href: "/coronavirus-testing", id: "testing" },
-        { label: "Hospitalizations", href: "/covid-hospitalizations", id: "hospitalizations" },
+        {
+            label: "Hospitalizations",
+            href: "/covid-hospitalizations",
+            id: "hospitalizations",
+        },
         {
             label: "Mortality risk",
             href: "/mortality-risk-covid",
