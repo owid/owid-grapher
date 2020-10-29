@@ -48,7 +48,7 @@ jobs:
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile
+              run: yarn --frozen-lockfile --network-concurrency 1
 
             # Note: running these two build steps subsequently means that if either `build-storybook` or `coverage` fails,
             # neither of them is deployed :(

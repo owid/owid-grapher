@@ -50,7 +50,7 @@ jobs:
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile
+              run: yarn --frozen-lockfile --network-concurrency 1
 
             - name: Run prettier
               run: yarn prettify-all

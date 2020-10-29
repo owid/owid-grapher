@@ -42,7 +42,7 @@ jobs:
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile
+              run: yarn --frozen-lockfile --network-concurrency 1
 
             - name: Register Problem Matcher
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
@@ -90,7 +90,7 @@ jobs:
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile
+              run: yarn --frozen-lockfile --network-concurrency 1
 
             - name: Run bundlewatch
               run: yarn bundlewatch
