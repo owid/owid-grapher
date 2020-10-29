@@ -67,7 +67,7 @@ export const MegaCsvToCovidExplorerTable = (
     )
         .updateColumnsToHideInDataTable()
         .loadColumnDefTemplatesFromGrapherBackend(
-            metaDataFromGrapherBackend.variables
+            metaDataFromGrapherBackend?.variables
         )
 }
 
