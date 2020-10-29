@@ -59,7 +59,7 @@ export interface MapLegendManager {
     legendWidth?: number
     legendHeight?: number
     scale?: number
-    categoricalLegendData: CategoricalBin[]
+    categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     numericLegendData?: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
