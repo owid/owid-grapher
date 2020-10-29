@@ -20,6 +20,17 @@ describe(interpolateRowValuesWithTolerance, () => {
             interpolateRowValuesWithTolerance([], "value", "time", 2)
         ).toEqual([])
     })
+    it("handles undefined values with infinte tolerance", () => {
+        // This is an edge case that can cause problems
+        expect(
+            interpolateRowValuesWithTolerance(
+                [{ value: undefined, time: 0 }],
+                "value",
+                "time",
+                Infinity
+            )
+        ).toEqual([{ value: InvalidCellTypes.NoValueWithinTolerance, time: 0 }])
+    })
     it("leaves array unchanged if tolerance = 0", () => {
         const result = interpolateRowValuesWithTolerance(
             [
