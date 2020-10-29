@@ -208,7 +208,10 @@ export function interpolateRowValuesWithTolerance<
                 [valueSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][valueSlug],
                 [timeSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][timeSlug],
             }
-        } else if (prevTimeDiff <= timeTolerance) {
+        } else if (
+            prevNonBlankIndex !== undefined &&
+            prevTimeDiff <= timeTolerance
+        ) {
             rowsSortedByTimeAsc[index] = {
                 ...rowsSortedByTimeAsc[index],
                 [valueSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][valueSlug],
