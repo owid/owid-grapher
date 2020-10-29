@@ -20,7 +20,7 @@ export function ExpandableInlineBlock({
     const toggleVisibility = () => setVisible(!isVisible)
 
     return (
-        <span>
+        <span className="expandable-inline-block">
             <button onClick={toggleVisibility}>{label}</button>
             {isVisible && <span>{children}</span>}
         </span>
