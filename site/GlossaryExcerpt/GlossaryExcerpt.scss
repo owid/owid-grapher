@@ -1,0 +1,10 @@
+.glossary-excerpt {
+    display: block;
+    margin: $vertical-spacing 0;
+    padding: $padding-x-sm;
+    background-color: $primary-color-100;
+
+    span {
+        display: block;
+    }
+}

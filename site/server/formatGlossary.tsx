@@ -1,3 +1,8 @@
+import * as React from "react"
+import * as ReactDOMServer from "react-dom/server"
+import { ExpandableInlineBlock } from "site/ExpandableInlineBlock/ExpandableInlineBlock"
+import { GlossaryExcerpt } from "site/GlossaryExcerpt/GlossaryExcerpt"
+
 interface GlossaryItem {
     term: string
     slug: string
@@ -72,7 +77,19 @@ export const _linkGlossaryTermsInText = (
         // once per page section)
         glossary.splice(idx, 1)
 
-        return `<a href="/glossary/${slug}">${match}</a>`
+        return ReactDOMServer.renderToString(
+            <span>
+                <script
+                    data-type={ExpandableInlineBlock.name}
+                    data-embedded={GlossaryExcerpt.name}
+                    type="component/props"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({ slug, label: match }),
+                    }}
+                ></script>
+                <a href={`/glossary/${slug}`}>{match}</a>
+            </span>
+        )
     }
 
     textWithGlossaryLinks = textWithGlossaryLinks.replace(
