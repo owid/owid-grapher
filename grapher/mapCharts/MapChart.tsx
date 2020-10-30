@@ -16,8 +16,6 @@ import {
     guid,
     minBy,
     difference,
-    uniq,
-    excludeUndefined,
     isPresent,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
@@ -73,6 +71,86 @@ interface MapChartProps {
     bounds?: Bounds
     manager: MapChartManager
     containerElement?: HTMLDivElement
+}
+
+// Get the underlying geographical topology elements we're going to display
+const GeoFeatures: GeoFeature[] = (topojson.feature(
+    MapTopology as any,
+    MapTopology.objects.world as any
+) as any).features
+
+// Get the svg path specification string for every feature
+const geoPathCache = new Map<MapProjectionName, string[]>()
+const geoPathsFor = (projectionName: MapProjectionName) => {
+    if (geoPathCache.has(projectionName))
+        return geoPathCache.get(projectionName)!
+    const projectionGeo = MapProjectionGeos[projectionName]
+    const strs = GeoFeatures.map((feature) => {
+        const s = projectionGeo(feature) as string
+        const paths = s.split(/Z/).filter(identity)
+
+        const newPaths = paths.map((path) => {
+            const points = path.split(/[MLZ]/).filter((f: any) => f)
+            const rounded = points.map((point) =>
+                point
+                    .split(/,/)
+                    .map((v) => parseFloat(v).toFixed(1))
+                    .join(",")
+            )
+            return "M" + rounded.join("L")
+        })
+
+        return newPaths.join("Z") + "Z"
+    })
+
+    geoPathCache.set(projectionName, strs)
+    return geoPathCache.get(projectionName)!
+}
+
+// Get the bounding box for every geographical feature
+const geoBoundsCache = new Map<MapProjectionName, Bounds[]>()
+const geoBoundsFor = (projectionName: MapProjectionName) => {
+    if (geoBoundsCache.has(projectionName))
+        return geoBoundsCache.get(projectionName)!
+    const projectionGeo = MapProjectionGeos[projectionName]
+    const bounds = GeoFeatures.map((feature) => {
+        const corners = projectionGeo.bounds(feature)
+
+        const bounds = Bounds.fromCorners(
+            new PointVector(...corners[0]),
+            new PointVector(...corners[1])
+        )
+
+        // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
+        if (feature.id === "Fiji")
+            return bounds.extend({
+                x: bounds.right - bounds.height,
+                width: bounds.height,
+            })
+        return bounds
+    })
+
+    geoBoundsCache.set(projectionName, bounds)
+    return geoBoundsCache.get(projectionName)!
+}
+
+// Bundle GeoFeatures with the calculated info needed to render them
+const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
+const renderFeaturesFor = (projectionName: MapProjectionName) => {
+    if (renderFeaturesCache.has(projectionName))
+        return renderFeaturesCache.get(projectionName)!
+    const geoBounds = geoBoundsFor(projectionName)
+    const geoPaths = geoPathsFor(projectionName)
+    const feats = GeoFeatures.map((geo, index) => ({
+        id: geo.id as string,
+        geo: geo,
+        path: geoPaths[index],
+        bounds: geoBounds[index],
+        center: geoBounds[index].centerPos,
+    }))
+
+    renderFeaturesCache.set(projectionName, feats)
+    return renderFeaturesCache.get(projectionName)!
 }
 
 @observer
@@ -519,73 +597,9 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return this.props.defaultFill
     }
 
-    // Get the underlying geographical topology elements we're going to display
-    @computed private get geoFeatures(): GeoFeature[] {
-        return (topojson.feature(
-            MapTopology as any,
-            MapTopology.objects.world as any
-        ) as any).features
-    }
-
-    // Get the bounding box for every geographical feature
-    @computed private get geoBounds() {
-        const projectionGeo = MapProjectionGeos[this.props.projection]
-        return this.geoFeatures.map((feature) => {
-            const corners = projectionGeo.bounds(feature)
-
-            const bounds = Bounds.fromCorners(
-                new PointVector(...corners[0]),
-                new PointVector(...corners[1])
-            )
-
-            // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
-            if (feature.id === "Fiji")
-                return bounds.extend({
-                    x: bounds.right - bounds.height,
-                    width: bounds.height,
-                })
-            return bounds
-        })
-    }
-
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds() {
-        return Bounds.merge(this.geoBounds)
-    }
-
-    // Get the svg path specification string for every feature
-    @computed private get geoPaths() {
-        const projectionGeo = MapProjectionGeos[this.props.projection]
-        const { geoFeatures } = this
-
-        return geoFeatures.map((feature) => {
-            const s = projectionGeo(feature) as string
-            const paths = s.split(/Z/).filter(identity)
-
-            const newPaths = paths.map((path) => {
-                const points = path.split(/[MLZ]/).filter((f: any) => f)
-                const rounded = points.map((point) =>
-                    point
-                        .split(/,/)
-                        .map((v) => parseFloat(v).toFixed(1))
-                        .join(",")
-                )
-                return "M" + rounded.join("L")
-            })
-
-            return newPaths.join("Z") + "Z"
-        })
-    }
-
-    // Bundle GeoFeatures with the calculated info needed to render them
-    @computed private get renderFeatures(): RenderFeature[] {
-        return this.geoFeatures.map((geo, index) => ({
-            id: geo.id as string,
-            geo: geo,
-            path: this.geoPaths[index],
-            bounds: this.geoBounds[index],
-            center: this.geoBounds[index].centerPos,
-        }))
+        return Bounds.merge(geoBoundsFor(this.props.projection))
     }
 
     @computed private get focusBracket() {
@@ -663,14 +677,18 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection() {
-        return difference(this.renderFeatures, this.featuresInProjection)
+        return difference(
+            renderFeaturesFor(this.props.projection),
+            this.featuresInProjection
+        )
     }
 
     @computed private get featuresInProjection() {
         const { projection } = this.props
-        if (projection === MapProjectionName.World) return this.renderFeatures
+        const features = renderFeaturesFor(this.props.projection)
+        if (projection === MapProjectionName.World) return features
 
-        return this.renderFeatures.filter(
+        return features.filter(
             (feature) =>
                 projection ===
                 ((WorldRegionToProjection[
