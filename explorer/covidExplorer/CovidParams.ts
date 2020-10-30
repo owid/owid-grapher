@@ -475,7 +475,7 @@ export const makeColumnDefFromParams = (
 
     const display = def.display || {}
     display.name = columnDisplayName(params)
-    display.unit = def.display?.unit ?? ""
+    display.unit = def.display?.unit
     def.display = display
 
     // Show decimal places for rolling average & per capita variables
