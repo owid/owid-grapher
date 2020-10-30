@@ -21,6 +21,9 @@ const PG_EXCERPT = `excert about ${population_growth}`
 const P_LINK = ReactDOMServer.renderToStaticMarkup(
     <GlossaryLink slug={P_SLUG} excerpt={P_EXCERPT} match={population} />
 )
+const P_LINK_PERIOD = ReactDOMServer.renderToStaticMarkup(
+    <GlossaryLink slug={P_SLUG} excerpt={P_EXCERPT} match={`${population}.`} />
+)
 const PS_LINK = ReactDOMServer.renderToStaticMarkup(
     <GlossaryLink slug={P_SLUG} excerpt={P_EXCERPT} match={populations} />
 )
@@ -51,6 +54,14 @@ const glossary = [
 it("formats glossary terms using the longest possible expression", () => {
     const input = `Vivamus ${population_growth} commodo posuere sed vel magna.`
     const output = `Vivamus ${PG_LINK} commodo posuere sed vel magna.`
+    const $ = cheerio.load(input)
+    formatGlossaryTerms($, $("body").contents(), getMutableGlossary(glossary))
+    expect($("body").html()).toEqual(output)
+})
+
+it("includes periods in matched term", () => {
+    const input = `Vivamus commodo posuere sed vel magna ${population}.`
+    const output = `Vivamus commodo posuere sed vel magna ${P_LINK_PERIOD}`
     const $ = cheerio.load(input)
     formatGlossaryTerms($, $("body").contents(), getMutableGlossary(glossary))
     expect($("body").html()).toEqual(output)

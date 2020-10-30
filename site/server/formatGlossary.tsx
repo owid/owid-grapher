@@ -55,14 +55,21 @@ export const _linkGlossaryTermsInText = (
 ) => {
     let textWithGlossaryLinks = srcText
 
+    // Include periods in matched text to prevent inelegant next line wrapping
     const regex = new RegExp(
-        `\\b(${glossary.map((item) => item.term).join("|")})\\b`,
+        `\\b(${glossary.map((item) => item.term).join("|")})\\b\\.?`,
         "ig"
     )
 
+    const trimLastCharIfPeriod = (text: string) => {
+        return text.replace(/\.$/, "")
+    }
+
     const _getGlossaryLink = (match: string) => {
         const idx = glossary.findIndex(
-            (item) => item.term.toLowerCase() === match.toLowerCase()
+            (item) =>
+                item.term.toLowerCase() ===
+                trimLastCharIfPeriod(match.toLowerCase())
         )
         if (idx === -1) return match
 
