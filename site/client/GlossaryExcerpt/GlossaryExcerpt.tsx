@@ -1,13 +1,14 @@
 import React from "react"
 
-// Leave as a function so GlossaryExcerpt.name resolves
-export function GlossaryExcerpt({
+export const GlossaryExcerpt_name = "GlossaryExcerpt"
+
+export const GlossaryExcerpt = ({
     excerpt,
     slug,
 }: {
     excerpt: string
     slug: string
-}) {
+}) => {
     return (
         <span className="glossary-excerpt">
             {excerpt}

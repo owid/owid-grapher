@@ -6,15 +6,15 @@ interface Component {
     [key: string]: any
 }
 const availableComponents: Component = { GlossaryExcerpt }
+export const ExpandableInlineBlock_name = "ExpandableInlineBlock"
 
-// Leave as a function so ExpandableInlineBlock.name resolves
-export function ExpandableInlineBlock({
+export const ExpandableInlineBlock = ({
     label,
     children,
 }: {
     label: string
     children: ReactElement
-}) {
+}) => {
     const [isVisible, setVisible] = useState(false)
 
     const toggleVisibility = () => setVisible(!isVisible)
@@ -29,7 +29,7 @@ export function ExpandableInlineBlock({
 
 export const runExpandableInlineBlock = () => {
     const expandableInlineBlocks = document.querySelectorAll(
-        `[data-type=${ExpandableInlineBlock.name}]`
+        `[data-type=${ExpandableInlineBlock_name}]`
     )
     expandableInlineBlocks.forEach((expandableInlineBlock) => {
         const props = JSON.parse(expandableInlineBlock.innerHTML)

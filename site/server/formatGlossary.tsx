@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { ExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
-import { GlossaryExcerpt } from "site/client/GlossaryExcerpt/GlossaryExcerpt"
+import { ExpandableInlineBlock_name } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
+import { GlossaryExcerpt_name } from "site/client/GlossaryExcerpt/GlossaryExcerpt"
 import { GlossaryItem } from "./glossary"
 
 // Do not replace glossary terms within these tags
@@ -18,8 +18,8 @@ export const GlossaryLink = ({
 }) => (
     <span>
         <script
-            data-type={ExpandableInlineBlock.name}
-            data-block={GlossaryExcerpt.name}
+            data-type={ExpandableInlineBlock_name}
+            data-block={GlossaryExcerpt_name}
             data-label={match}
             type="component/props"
             dangerouslySetInnerHTML={{
