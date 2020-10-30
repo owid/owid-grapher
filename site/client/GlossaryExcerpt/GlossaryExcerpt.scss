@@ -2,7 +2,8 @@
     display: block;
     margin: $vertical-spacing 0;
     padding: $padding-x-sm;
-    font-weight: normal; // prevent style bleed when link hooks are <strong> (for instance)
+    font-weight: initial; // prevent style bleed when surrounding text is <strong>
+    font-style: initial; // prevent style bleed when surrounding text is <em>
     background-color: $primary-color-100;
 
     a {
