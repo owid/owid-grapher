@@ -469,9 +469,7 @@ export class StackedBarChart
         return uniq(this.allStackedPoints.map((bar) => bar.x))
     }
 
-    @computed get colorScale() {
-        return new ColorScale(this)
-    }
+    colorScale = new ColorScale(this)
 
     getColorForSeries(seriesName: SeriesName) {
         const table = this.transformedTable

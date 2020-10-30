@@ -330,9 +330,7 @@ export class MapChart
         return this.inputTable.get(this.mapColumnSlug)!
     }
 
-    @computed get colorScale() {
-        return new ColorScale(this)
-    }
+    colorScale = new ColorScale(this)
 
     @computed get colorScaleConfig() {
         return this.mapConfig.colorScale

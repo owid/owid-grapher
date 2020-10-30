@@ -1,6 +1,5 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
-import { bind } from "decko"
 import { ColorScaleConfig, ColorScaleConfigInterface } from "./ColorScaleConfig"
 import {
     isEmpty,
@@ -326,10 +325,9 @@ export class ColorScale {
         })
     }
 
-    // todo: why do we need bind here?
-    @bind getColor(value: number | string | undefined) {
+    getColor(value: number | string | undefined) {
         return value === undefined
-            ? this.customCategoryColors[NO_DATA_LABEL]
+            ? this.noDataColor
             : this.legendBins.find((bin) => bin.contains(value))?.color
     }
 }

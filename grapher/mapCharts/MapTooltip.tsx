@@ -87,9 +87,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
     }
 
-    @computed get colorScale() {
-        return this.props.colorScale ?? new ColorScale()
-    }
+    colorScale = this.props.colorScale ?? new ColorScale()
 
     @computed private get renderSparkBars() {
         return this.props.manager.mapIsClickable

@@ -344,7 +344,9 @@ export class ScatterPlotChart
         const colorValues = uniq(
             flatten(series.map((s) => s.points.map((p) => p.color)))
         )
-        return excludeUndefined(colorValues.map(this.colorScale.getColor))
+        return excludeUndefined(
+            colorValues.map((color) => this.colorScale.getColor(color))
+        )
     }
 
     @computed private get hideLines() {
@@ -485,9 +487,7 @@ export class ScatterPlotChart
         return this.bounds.right - this.sidebarWidth
     }
 
-    @computed get colorScale() {
-        return new ColorScale(this)
-    }
+    colorScale = new ColorScale(this)
 
     @computed get colorScaleColumn() {
         return this.colorColumn

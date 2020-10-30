@@ -304,9 +304,7 @@ export class SlopeChart
         return ""
     }
 
-    @computed get colorScale() {
-        return new ColorScale(this)
-    }
+    colorScale = new ColorScale(this)
 
     @computed get colorScaleConfig() {
         return this.manager.colorScale
