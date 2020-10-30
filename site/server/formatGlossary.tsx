@@ -26,7 +26,9 @@ export const GlossaryLink = ({
                 __html: JSON.stringify({ slug, excerpt }),
             }}
         ></script>
-        <a href={`/glossary#${slug}`}>{match}</a>
+        <a className="expandable-block-button" href={`/glossary#${slug}`}>
+            {match}
+        </a>
     </span>
 )
 
