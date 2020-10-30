@@ -94,6 +94,22 @@ describe(interpolateRowValuesWithTolerance, () => {
         ])
         expect(result.map((r) => r.time)).toEqual([0, 2, 2, 2, 4, 6, 6, 6])
     })
+    it("handles infinity tolerance", () => {
+        const result = interpolateRowValuesWithTolerance(
+            [
+                { value: undefined, time: 0 },
+                { value: InvalidCellTypes.NaNButShouldBeNumber, time: 1 },
+                { value: 1, time: 2 },
+                { value: undefined, time: 3 },
+                { value: undefined, time: 4 },
+            ],
+            "value",
+            "time",
+            Infinity
+        )
+        expect(result.map((r) => r.value)).toEqual([1, 1, 1, 1, 1])
+        expect(result.map((r) => r.time)).toEqual([2, 2, 2, 2, 2])
+    })
 })
 
 describe(toleranceInterpolation, () => {
