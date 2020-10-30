@@ -180,7 +180,8 @@ export function interpolateColumnsWithTolerance(
             nextNonBlankIndex = findIndexFast(
                 valuesSortedByTimeAsc,
                 (val) => isNotInvalidOrEmptyCell(val),
-                index + 1
+                index + 1,
+                end
             )
         }
 

@@ -1012,11 +1012,11 @@ export const mapBy = (arr: any[], key: string, value: string) => {
 export const findIndexFast = (
     array: any[],
     predicate: (value: any, index: number) => boolean,
-    fromIndex = 0
+    fromIndex = 0,
+    toIndex = array.length
 ) => {
-    const length = array.length
     let index = fromIndex
-    while (index < length) {
+    while (index < toIndex) {
         if (predicate(array[index], index)) return index
         index++
     }

@@ -4,6 +4,7 @@ import { CoreMatrix } from "./CoreTableConstants"
 import {
     getDropIndexes,
     imemo,
+    interpolateColumnsWithTolerance,
     interpolateRowValuesWithTolerance,
     matrixToDelimited,
     parseDelimited,
@@ -89,6 +90,26 @@ describe(interpolateRowValuesWithTolerance, () => {
             3,
         ])
         expect(result.map((r) => r.time)).toEqual([0, 2, 2, 2, 4, 6, 6, 6])
+    })
+})
+
+describe(interpolateColumnsWithTolerance, () => {
+    it("doesn't interpolate values beyond end", () => {
+        const valuesAsc = [
+            1,
+            InvalidCellTypes.MissingValuePlaceholder,
+            InvalidCellTypes.MissingValuePlaceholder,
+            2,
+        ]
+        const timesAsc = [0, 1, 2, 3]
+        const tolerance = 1
+        interpolateColumnsWithTolerance(valuesAsc, timesAsc, tolerance, 0, 3)
+        expect(valuesAsc).toEqual([
+            1,
+            1,
+            InvalidCellTypes.MissingValuePlaceholder,
+            2,
+        ])
     })
 })
 
