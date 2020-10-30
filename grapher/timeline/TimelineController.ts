@@ -88,6 +88,7 @@ export class TimelineController {
                 ? manager.startHandleTimeBound
                 : this.minTime
         manager.endHandleTimeBound = beginning
+        manager.startHandleTimeBound = beginning
     }
 
     async play(numberOfTicks?: number) {

@@ -37,6 +37,12 @@ it("can play a timeline", async () => {
     const ticks2 = await controller.play()
     expect(ticks2).toEqual(9)
 
+    // Start handle also resets if replay triggered
+    controller.dragHandleToTime("start", controller.maxTime)
+    controller.dragHandleToTime("end", controller.maxTime)
+    await controller.play()
+    expect(controller.startTimeProgress).toEqual(0)
+
     // Can play single year mode
     controller.toggleRangeMode()
     await controller.play(2)
