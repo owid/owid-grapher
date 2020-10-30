@@ -11,6 +11,7 @@ import {
     sum,
     differenceBy,
     uniqBy,
+    intersectionOfSets,
 } from "grapher/utils/Util"
 import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
@@ -1135,6 +1136,55 @@ export class CoreTable<
         )
     }
 
+    columnIntersection(tables: CoreTable[]) {
+        return intersection(
+            this.columnSlugs,
+            ...tables.map((table) => table.columnSlugs)
+        )
+    }
+
+    private intersectingRowIndices(tables: CoreTable[]) {
+        const columnSlugs = this.columnIntersection(tables)
+        if (!columnSlugs.length) return []
+        const thisIndex = this.rowIndex(columnSlugs)
+        const indices = [
+            thisIndex,
+            ...tables.map((table) => table.rowIndex(columnSlugs)),
+        ]
+        const keys = intersectionOfSets(
+            indices.map((index) => new Set(index.keys()))
+        )
+        return Array.from(keys).map((key) => thisIndex.get(key)![0]) // Only include first match if many b/c we are treating tables as sets here
+    }
+
+    intersection(tables: CoreTable[]) {
+        return this.transform(
+            this.columnStore,
+            this.defs,
+            `Keeping only rows also in all tables`,
+            TransformType.FilterRows,
+            new FilterMask(
+                this.numRows,
+                this.intersectingRowIndices(tables),
+                true
+            )
+        )
+    }
+
+    difference(tables: CoreTable[]) {
+        return this.transform(
+            this.columnStore,
+            this.defs,
+            `Keeping only rows not in all other tables`,
+            TransformType.FilterRows,
+            new FilterMask(
+                this.numRows,
+                this.intersectingRowIndices(tables),
+                false
+            )
+        )
+    }
+
     appendColumnsIfNew(defs: COL_DEF_TYPE[]) {
         return this.appendColumns(defs.filter((def) => !this.has(def.slug)))
     }
@@ -1261,6 +1311,10 @@ export class CoreTable<
             .dropDuplicateRows()
     }
 
+    union(tables: CoreTable[]) {
+        return this.concat(tables).dropDuplicateRows()
+    }
+
     indexBy(slug: ColumnSlug) {
         const map = new Map<CoreValueType, number[]>()
         this.getValuesFor(slug).map((value, index) => {
@@ -1317,12 +1371,13 @@ class FilterMask {
         keepThese = true
     ) {
         this.numRows = numRows
-        if (typeof input[0] === "number") {
+        if (typeof input[0] === "boolean") this.mask = input as boolean[]
+        else {
             const set = new Set(input as number[])
             this.mask = range(0, numRows).map((index) =>
                 set.has(index) ? keepThese : !keepThese
             )
-        } else this.mask = input as boolean[]
+        }
     }
 
     inverse() {

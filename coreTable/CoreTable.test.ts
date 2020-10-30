@@ -1,12 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "./CoreTable"
-import {
-    ColumnTypeNames,
-    CoreMatrix,
-    TransformType,
-} from "./CoreTableConstants"
-import { rowsFromMatrix } from "./CoreTableUtils"
+import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
 import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population
@@ -141,6 +136,54 @@ describe("creating tables", () => {
             [{ slug: "name", type: ColumnTypeNames.String }]
         )
         expect(table.numRows).toEqual(1)
+    })
+})
+
+describe("set methods", () => {
+    it("can find intersection between 2 tables", () => {
+        const table = new CoreTable(sampleCsv)
+        expect(table.intersection([new CoreTable(sampleCsv)]).numRows).toEqual(
+            4
+        )
+        expect(table.intersection([new CoreTable()]).numRows).toEqual(0)
+        expect(
+            table.intersection([new CoreTable(sampleCsv), new CoreTable()])
+                .numRows
+        ).toEqual(0)
+        expect(
+            table.intersection([new CoreTable(sampleCsv + "\n" + sampleCsv)])
+                .numRows
+        ).toEqual(4)
+        expect(
+            table.intersection([
+                new CoreTable(sampleCsv.replace("\ncanada,20", "")),
+            ]).numRows
+        ).toEqual(3)
+    })
+
+    it("can perform a union", () => {
+        const table = new CoreTable(sampleCsv)
+        expect(table.union([new CoreTable(sampleCsv)]).numRows).toEqual(4)
+
+        expect(
+            table.union([
+                new CoreTable([{ country: "Mexico", population: 20 }]),
+            ]).numRows
+        ).toEqual(5)
+    })
+
+    it("can perform a diff", () => {
+        const table = new CoreTable(sampleCsv)
+        expect(table.difference([new CoreTable(sampleCsv)]).numRows).toEqual(0)
+
+        const tb = new CoreTable([{ country: "Mexico", population: 20 }])
+        expect(table.difference([tb]).numRows).toEqual(4)
+
+        expect(tb.difference([table]).numRows).toEqual(1)
+    })
+
+    it("does not drop any rows if there are no duplicates", () => {
+        expect(new CoreTable(sampleCsv).dropDuplicateRows().numRows).toEqual(4)
     })
 })
 
