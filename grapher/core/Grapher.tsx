@@ -279,7 +279,20 @@ export class Grapher
 
     @observable.ref inputTable: OwidTable
 
-    private legacyConfigAsAuthored: Partial<LegacyGrapherInterface>
+    @observable.ref private legacyConfigAsAuthored: Partial<
+        LegacyGrapherInterface
+    > = {}
+
+    /**
+     * todo: factor this out and make more RAII.
+     *
+     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
+     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
+     * So when an Explorer updates the grapher, it also needs to update this "original state".
+     */
+    @action.bound setAuthoredVersion(config: Partial<LegacyGrapherInterface>) {
+        this.legacyConfigAsAuthored = config
+    }
 
     constructor(
         propsWithGrapherInstanceGetter: GrapherProgrammaticInterface = {}
@@ -291,7 +304,7 @@ export class Grapher
         this.inputTable = props.table ?? BlankOwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        this.legacyConfigAsAuthored = props || {}
+        if (props) this.setAuthoredVersion(props)
 
         this.updateFromObject(modernConfig)
 

@@ -139,6 +139,7 @@ export class SwitcherExplorer
                 this
             )
 
+        grapher.setAuthoredVersion(config)
         grapher.updateFromObject(config)
         grapher.inputTable = BlankOwidTable()
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
