@@ -63,7 +63,8 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
 
     if (valueCount < 1 || binCount < 1) return []
 
-    if (binningStrategy === BinningStrategy.ckmeans) {
+    // ckmeans is currently (10/30/2020) n^2, so do not use it if more than 1e4 values
+    if (binningStrategy === BinningStrategy.ckmeans && valueCount < 1e4) {
         const clusters = ckmeans(
             sortedValues,
             binCount > valueCount ? valueCount : binCount
