@@ -38,7 +38,6 @@ export interface OwidColumnDef extends CoreColumnDef {
     coverage?: string
     datasetId?: string
     datasetName?: string
-    display?: LegacyVariableDisplayConfigInterface
     source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
