@@ -809,7 +809,7 @@ export class CovidExplorer
     private defaultMapConfig() {
         return {
             columnSlug: ColorScaleOptions.continents,
-            timeTolerance: 7,
+            timeTolerance: 10,
             projection: MapProjectionName.World,
             colorScale: {
                 colorSchemeValues: [],
