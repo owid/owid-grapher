@@ -7,7 +7,11 @@ import {
     Time,
     Year,
 } from "./CoreTableConstants"
-import { LegacyVariableId, OwidSource } from "./LegacyVariableCode"
+import {
+    LegacyVariableDisplayConfigInterface,
+    LegacyVariableId,
+    OwidSource,
+} from "./LegacyVariableCode"
 
 export enum OwidTableSlugs {
     entityName = "entityName",

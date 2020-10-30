@@ -57,7 +57,6 @@ export const MegaCsvToCovidExplorerTable = (
     )
 
     const tableWithRows = addGroups(coreTable)
-
     return new CovidExplorerTable(
         tableWithRows.columnStore,
         tableWithRows.defs,
@@ -67,7 +66,9 @@ export const MegaCsvToCovidExplorerTable = (
         }
     )
         .updateColumnsToHideInDataTable()
-        .loadColumnDefTemplatesFromGrapherBackend(metaDataFromGrapherBackend)
+        .loadColumnDefTemplatesFromGrapherBackend(
+            metaDataFromGrapherBackend?.variables
+        )
 }
 
 const addGroups = (coreTable: CoreTable) => {

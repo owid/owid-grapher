@@ -22,7 +22,11 @@ import {
     isPresent,
 } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
-import { allAvailableQueryStringCombos, CovidQueryParams } from "./CovidParams"
+import {
+    allAvailableQueryStringCombos,
+    columnDisplayName,
+    CovidQueryParams,
+} from "./CovidParams"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -453,31 +457,11 @@ export class CovidExplorer
     }
 
     @computed private get chartTitle() {
-        let title = ""
         const params = this.constrainedParams
-        const interval = params.interval
 
         if (params.yColumn || params.xColumn)
             return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
-
-        const isCumulative = interval === IntervalOptions.total
-        const freq = params.intervalTitle
-        if (params.cfrMetric)
-            title = `Case fatality rate of the ongoing COVID-19 pandemic`
-        else if (params.positiveTestRate)
-            title = `The share of ${
-                isCumulative ? "" : "daily "
-            }COVID-19 tests that are positive`
-        else if (params.testsPerCaseMetric)
-            title = `${
-                isCumulative ? `Cumulative tests` : `Tests`
-            } conducted per confirmed case of COVID-19`
-        else if (params.testsMetric) title = `${freq} COVID-19 tests`
-        else if (params.deathsMetric)
-            title = `${freq} confirmed COVID-19 deaths`
-        else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
-
-        return title + this.perCapitaTitle(params.metricName)
+        else return columnDisplayName(params)
     }
 
     @computed private get weekSubtitle() {
@@ -879,9 +863,10 @@ export class CovidExplorer
             this.colorScales[params.colorStrategy]
         )
 
-        grapher.dataTableColumnSlugsToShow = covidTableWithAdditionalColumnsAndFilters.columnSlugsToShowInDataTable(
-            params
-        )
+        grapher.dataTableColumnSlugsToShow = [this.yColumn.slug]
+        // grapher.dataTableColumnSlugsToShow = covidTableWithAdditionalColumnsAndFilters.columnSlugsToShowInDataTable(
+        //     params
+        // )
 
         grapher.id = this.sourceChartId
         grapher.baseQueryString = queryParamsToStr(this.params)
