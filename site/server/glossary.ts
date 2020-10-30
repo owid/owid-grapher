@@ -1,3 +1,4 @@
+import { memoize } from "grapher/utils/Util"
 export interface GlossaryItem {
     term: string
     slug: string
@@ -10,13 +11,18 @@ export interface GlossaryGroup {
     terms: string[]
 }
 
-export const getGlossary = () => {
-    return formatGlossary(glossary)
+export const getMutableGlossary = (glossary: GlossaryGroup[]) => {
+    const preparedGlossary = prepareGlossary(glossary)
+    // Individual glossary items won't mutated, only deleted so we don't need to
+    // deep clone the array.
+    return [...preparedGlossary]
 }
 
-export const formatGlossary = (glossary: GlossaryGroup[]): GlossaryItem[] => {
-    return sortGlossary(flattenGlossary(glossary))
-}
+export const prepareGlossary = memoize(
+    (glossary: GlossaryGroup[]): GlossaryItem[] => {
+        return sortGlossary(flattenGlossary(glossary))
+    }
+)
 
 const flattenGlossary = (glossary: GlossaryGroup[]): GlossaryItem[] => {
     return glossary.flatMap(({ slug, excerpt, terms }) =>
@@ -35,7 +41,7 @@ export const sortGlossary = (glossary: GlossaryItem[]) => {
     return glossary.sort((a, b) => b.term.length - a.term.length)
 }
 
-const glossary: GlossaryGroup[] = [
+export const glossary: GlossaryGroup[] = [
     {
         slug: "what-is-correlation",
         excerpt:
