@@ -155,7 +155,7 @@ function isNotInvalidOrEmptyCell(value: any) {
 }
 
 export function interpolateColumnsWithTolerance(
-    valuesSortedByTimeAsc: number[],
+    valuesSortedByTimeAsc: (number | InvalidCell)[],
     timesAsc: Time[],
     timeTolerance: number,
     start = 0,
@@ -213,16 +213,15 @@ export function interpolateColumnsWithTolerance(
                 valuesSortedByTimeAsc[prevNonBlankIndex!]
             timesAsc[index] = timesAsc[prevNonBlankIndex!]
         } else
-            valuesSortedByTimeAsc[
-                index
-            ] = InvalidCellTypes.NoValueWithinTolerance as any
+            valuesSortedByTimeAsc[index] =
+                InvalidCellTypes.NoValueWithinTolerance
     }
 }
 
 export function interpolateRowValuesWithTolerance<
     ValueSlug extends ColumnSlug,
     TimeSlug extends ColumnSlug,
-    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
+    Row extends { [key in TimeSlug]?: Time } & { [key in ValueSlug]?: any }
 >(
     rowsSortedByTimeAsc: Row[],
     valueSlug: ValueSlug,
