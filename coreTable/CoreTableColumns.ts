@@ -7,7 +7,6 @@ import {
     formatDay,
     isString,
     last,
-    sortBy,
     uniq,
     isPresent,
     sortNumeric,
@@ -365,7 +364,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get valuesAscending() {
-        return sortBy(this.parsedValues)
+        return sortNumeric(this.parsedValues.slice())
     }
 
     // todo: remove. should not be on coretable

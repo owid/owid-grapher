@@ -1007,3 +1007,18 @@ export const mapBy = (arr: any[], key: string, value: string) => {
     })
     return map
 }
+
+// Adapted from lodash baseFindIndex which is ~2x as fast as the wrapped findIndex
+export const findIndexFast = (
+    array: any[],
+    predicate: (value: any, index: number) => boolean,
+    fromIndex = 0
+) => {
+    const length = array.length
+    let index = fromIndex
+    while (index < length) {
+        if (predicate(array[index], index)) return index
+        index++
+    }
+    return -1
+}

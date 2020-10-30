@@ -12,12 +12,10 @@ import {
     uniq,
     sortNumeric,
     isPresent,
-    sortBy,
     sortedIndexBy,
     last,
     keyBy,
     groupBy,
-    sortedUniq,
     isNumber,
 } from "grapher/utils/Util"
 import {
@@ -26,6 +24,7 @@ import {
     Integer,
     Time,
     TransformType,
+    CoreColumnStore,
 } from "coreTable/CoreTableConstants"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
@@ -53,9 +52,8 @@ import {
 } from "./OwidTableUtil"
 import {
     imemo,
-    interpolateRowValuesWithTolerance,
+    interpolateColumnsWithTolerance,
     replaceDef,
-    rowsToColumnStore,
 } from "./CoreTableUtils"
 import { CoreColumn } from "./CoreTableColumns"
 
@@ -509,42 +507,39 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
-        const newColumnDef = {
-            ...timeColumn.def,
-            slug: originalTimeSlug,
-        }
 
-        let columnStore = this.columnStore
+        let columnStore: CoreColumnStore
         if (tolerance) {
-            const originalRows = this.complete([
+            const withAllRows = this.complete([
                 OwidTableSlugs.entityName,
                 timeColumn.slug,
-            ]).sortedByTime.rows
+            ]).sortBy([OwidTableSlugs.entityName, timeColumn.slug])
 
-            columnStore = rowsToColumnStore(
-                flatten(
-                    Object.values(
-                        groupBy(
-                            originalRows,
-                            (row) => row[OwidTableSlugs.entityName]
-                        )
-                    ).map((rows) => {
-                        // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
-                        // will overwrite values in this column if a row value from a different time is
-                        // used.
-                        rows = rows.map((row) => ({
-                            ...row,
-                            [originalTimeSlug]: row[timeColumn.slug],
-                        }))
-                        return interpolateRowValuesWithTolerance(
-                            rows,
-                            columnSlug,
-                            originalTimeSlug,
-                            tolerance
-                        )
-                    })
-                )
+            const groupBoundaries = withAllRows.groupBoundaries(
+                OwidTableSlugs.entityName
             )
+            const newValues = withAllRows
+                .get(columnSlug)!
+                .allValues.slice() as number[]
+            const newTimes = withAllRows
+                .get(timeColumn.slug)!
+                .allValues.slice() as Time[]
+
+            groupBoundaries.forEach((index) => {
+                interpolateColumnsWithTolerance(
+                    newValues,
+                    newTimes,
+                    tolerance,
+                    groupBoundaries[index],
+                    groupBoundaries[index + 1]
+                )
+            })
+
+            columnStore = {
+                ...withAllRows.columnStore,
+                [columnSlug]: newValues,
+                [originalTimeSlug]: newTimes,
+            }
         } else {
             // If there is no tolerance still append the tolerance column
             columnStore = {
@@ -555,7 +550,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         return this.transform(
             columnStore,
-            [...this.defs, newColumnDef],
+            [
+                ...this.defs,
+                {
+                    ...timeColumn.def,
+                    slug: originalTimeSlug,
+                },
+            ],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
             TransformType.UpdateColumnDefs
         )

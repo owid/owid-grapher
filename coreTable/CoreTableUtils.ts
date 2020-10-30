@@ -1,6 +1,6 @@
 import { dsvFormat } from "d3-dsv"
 import {
-    findIndex,
+    findIndexFast,
     range,
     sampleFrom,
     slugifySameCase,
@@ -13,6 +13,8 @@ import {
     CoreRow,
     ColumnSlug,
     CoreMatrix,
+    Time,
+    SortOrder,
 } from "./CoreTableConstants"
 import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 import {
@@ -152,23 +154,20 @@ function isNotInvalidOrEmptyCell(value: any) {
     return value !== undefined && !(value instanceof InvalidCell)
 }
 
-export function interpolateRowValuesWithTolerance<
-    ValueSlug extends ColumnSlug,
-    TimeSlug extends ColumnSlug,
-    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
->(
-    rowsSortedByTimeAsc: Row[],
-    valueSlug: ValueSlug,
-    timeSlug: TimeSlug,
-    timeTolerance: number
-): Row[] {
-    if (!rowsSortedByTimeAsc.length) return rowsSortedByTimeAsc
+export function interpolateColumnsWithTolerance(
+    valuesSortedByTimeAsc: number[],
+    timesAsc: Time[],
+    timeTolerance: number,
+    start = 0,
+    end = valuesSortedByTimeAsc.length
+) {
+    if (!valuesSortedByTimeAsc.length) return
 
     let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
-    for (let index = 0; index < rowsSortedByTimeAsc.length; index++) {
-        const currentValue = rowsSortedByTimeAsc[index][valueSlug]
+    for (let index = start; index < end; index++) {
+        const currentValue = valuesSortedByTimeAsc[index]
         if (isNotInvalidOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
             continue
@@ -178,21 +177,21 @@ export function interpolateRowValuesWithTolerance<
             nextNonBlankIndex !== -1 &&
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
-            nextNonBlankIndex = findIndex(
-                rowsSortedByTimeAsc,
-                (row) => isNotInvalidOrEmptyCell(row[valueSlug]),
+            nextNonBlankIndex = findIndexFast(
+                valuesSortedByTimeAsc,
+                (val) => isNotInvalidOrEmptyCell(val),
                 index + 1
             )
         }
 
-        const timeOfCurrent: number = rowsSortedByTimeAsc[index][timeSlug]
-        const timeOfPrevIndex: number =
+        const timeOfCurrent = timesAsc[index]
+        const timeOfPrevIndex =
             prevNonBlankIndex !== undefined
-                ? rowsSortedByTimeAsc[prevNonBlankIndex][timeSlug]
+                ? timesAsc[prevNonBlankIndex]
                 : -Infinity
-        const timeOfNextIndex: number =
+        const timeOfNextIndex =
             nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
-                ? rowsSortedByTimeAsc[nextNonBlankIndex][timeSlug]
+                ? timesAsc[nextNonBlankIndex]
                 : Infinity
 
         const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
@@ -203,29 +202,43 @@ export function interpolateRowValuesWithTolerance<
             nextTimeDiff <= prevTimeDiff &&
             nextTimeDiff <= timeTolerance
         ) {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][valueSlug],
-                [timeSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][timeSlug],
-            }
+            valuesSortedByTimeAsc[index] =
+                valuesSortedByTimeAsc[nextNonBlankIndex!]
+            timesAsc[index] = timesAsc[nextNonBlankIndex!]
         } else if (
             prevNonBlankIndex !== undefined &&
             prevTimeDiff <= timeTolerance
         ) {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][valueSlug],
-                [timeSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][timeSlug],
-            }
-        } else {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: InvalidCellTypes.NoValueWithinTolerance,
-            }
-        }
+            valuesSortedByTimeAsc[index] =
+                valuesSortedByTimeAsc[prevNonBlankIndex!]
+            timesAsc[index] = timesAsc[prevNonBlankIndex!]
+        } else
+            valuesSortedByTimeAsc[
+                index
+            ] = InvalidCellTypes.NoValueWithinTolerance as any
     }
+}
 
-    return rowsSortedByTimeAsc
+export function interpolateRowValuesWithTolerance<
+    ValueSlug extends ColumnSlug,
+    TimeSlug extends ColumnSlug,
+    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
+>(
+    rowsSortedByTimeAsc: Row[],
+    valueSlug: ValueSlug,
+    timeSlug: TimeSlug,
+    timeTolerance: number
+): Row[] {
+    const values = rowsSortedByTimeAsc.map((row) => row[valueSlug])
+    const times = rowsSortedByTimeAsc.map((row) => row[timeSlug])
+    interpolateColumnsWithTolerance(values, times, timeTolerance)
+    return rowsSortedByTimeAsc.map((row, index) => {
+        return {
+            ...row,
+            [valueSlug]: values[index],
+            [timeSlug]: times[index],
+        }
+    })
 }
 
 // A dumb function for making a function that makes a key for a row given certain columns.
@@ -510,4 +523,44 @@ export const replaceInvalidRowValuesWithUndefined = (row: CoreRow) => {
         result[key] = isValid(row[key]) ? row[key] : undefined
     }
     return result
+}
+
+const applyNewSortOrder = (arr: any[], newOrder: number[]) =>
+    newOrder.map((index) => arr[index])
+
+export const sortColumnStore = (
+    columnStore: CoreColumnStore,
+    slugs: ColumnSlug[]
+) => {
+    const firstCol = Object.values(columnStore)[0]
+    if (!firstCol) return {}
+    const len = firstCol.length
+    const newOrder = range(0, len).sort(makeSortByFn(columnStore, slugs))
+    const newStore: CoreColumnStore = {}
+    Object.keys(columnStore).forEach((slug) => {
+        newStore[slug] = applyNewSortOrder(columnStore[slug], newOrder)
+    })
+    return newStore
+}
+
+const makeSortByFn = (
+    columnStore: CoreColumnStore,
+    columnSlugs: ColumnSlug[]
+) => {
+    const numSlugs = columnSlugs.length
+    return (indexA: number, indexB: number) => {
+        const nodeAFirst = -1
+        const nodeBFirst = 1
+
+        for (let slugIndex = 0; slugIndex < numSlugs; slugIndex++) {
+            const slug = columnSlugs[slugIndex]
+            const col = columnStore[slug]
+            const av = col[indexA]
+            const bv = col[indexB]
+            if (av < bv) return nodeAFirst
+            if (av > bv) return nodeBFirst
+            // todo: handle invalids
+        }
+        return 0
+    }
 }

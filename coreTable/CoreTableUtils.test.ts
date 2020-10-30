@@ -8,6 +8,7 @@ import {
     matrixToDelimited,
     parseDelimited,
     rowsToMatrix,
+    sortColumnStore,
     trimArray,
     trimEmptyRows,
     trimMatrix,
@@ -189,5 +190,15 @@ describe(trimEmptyRows, () => {
                 testCase.length
             )
         })
+    })
+})
+
+describe(sortColumnStore, () => {
+    it("can sort", () => {
+        const result = sortColumnStore(
+            { countries: ["usa", "can", "mex"], pops: [123, 21, 99] },
+            ["pops"]
+        )
+        expect(result["pops"]).toEqual([21, 99, 123])
     })
 })

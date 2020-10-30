@@ -56,6 +56,7 @@ import {
     parseDelimited,
     rowsFromMatrix,
     cartesianProduct,
+    sortColumnStore,
 } from "./CoreTableUtils"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -579,11 +580,11 @@ export class CoreTable<
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]) {
+    sortBy(slugs: ColumnSlug[]) {
         return this.transform(
-            orderBy(this.rows, slugs, orders),
+            sortColumnStore(this.columnStore, slugs),
             this.defs,
-            `Sort by ${slugs.join(",")} ${orders?.join(",") ?? ""}`,
+            `Sort by ${slugs.join(",")}}`,
             TransformType.SortRows
         )
     }
@@ -606,6 +607,20 @@ export class CoreTable<
             `Reversed row order`,
             TransformType.SortRows
         )
+    }
+
+    // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
+    protected groupBoundaries(columnSlug: ColumnSlug) {
+        const arr: number[] = []
+        const values = this.get(columnSlug)?.allValues
+        let last: CoreValueType
+        values?.forEach((val, index) => {
+            if (val !== last) {
+                arr.push(index)
+                last = val
+            }
+        })
+        return arr
     }
 
     @imemo get defs() {
@@ -1271,7 +1286,7 @@ export class CoreTable<
         )
     }
 
-    complete(columnSlugs: ColumnSlug[]) {
+    complete(columnSlugs: ColumnSlug[]): this {
         const index = this.rowIndex(columnSlugs)
         const cols = this.getColumns(columnSlugs)
         const product = cartesianProduct(...cols.map((col) => col.uniqValues))
