@@ -1246,8 +1246,6 @@ export class CovidExplorer extends React.Component<{
             ? "%"
             : undefined
 
-        console.log(yColumn.spec.display)
-
         return {
             property: "y",
             variableId: yColumn.spec.owidVariableId!,
