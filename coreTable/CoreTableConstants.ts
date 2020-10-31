@@ -138,6 +138,8 @@ export interface CoreQuery {
 // todo: improve typings on this
 export type ColumnFn = (row: CoreRow, index?: Integer) => any
 
+type CoreVector = any[]
+
 /**
  * This is just an array of arrays where the first array is the header and the rest are rows. An example is:
  * [["country", "gdp"],
@@ -146,4 +148,4 @@ export type ColumnFn = (row: CoreRow, index?: Integer) => any
  * Having this type is just to provide a common unique name for the basic structure used by HandsOnTable
  * and some other popular JS data libraries.
  */
-export type CoreMatrix = any[][]
+export type CoreMatrix = CoreVector[]

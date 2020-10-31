@@ -9,13 +9,14 @@ import { SubNavId } from "site/server/views/SiteSubnavigation"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
-import { ColumnTypeNames } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames, CoreMatrix } from "coreTable/CoreTableConstants"
 import {
     trimMatrix,
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
+import { getRequiredChartIds } from "./ExplorerUtils"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
@@ -44,6 +45,13 @@ export enum ProgramKeyword {
     defaultView = "defaultView",
     wpBlockId = "wpBlockId",
 }
+
+export const DefaultExplorerProgram = `${ProgramKeyword.title}\tData Explorer
+${ProgramKeyword.isPublished}\tfalse
+${ProgramKeyword.switcher}
+\t${CHART_ID_SYMBOL}\tDevice
+\t35\tInternet
+\t46\tMobile`
 
 export class ExplorerProgram {
     constructor(slug: string, tsv: string, queryString = "") {
@@ -78,13 +86,6 @@ export class ExplorerProgram {
     private edgeDelimiter = edgeDelimiter
     private lines: string[]
 
-    static defaultExplorerProgram = `${ProgramKeyword.title}\tData Explorer
-${ProgramKeyword.isPublished}\tfalse
-${ProgramKeyword.switcher}
-\tchartId\tDevice
-\t35\tInternet
-\t46\tMobile`
-
     private getLineValue(keyword: string) {
         const line = this.lines.find((line) =>
             line.startsWith(keyword + this.cellDelimiter)
@@ -116,11 +117,11 @@ ${ProgramKeyword.switcher}
     }
 
     get requiredChartIds() {
-        return SwitcherRuntime.getRequiredChartIds(this.switcherCode || "")
+        return getRequiredChartIds(this.switcherCode ?? "")
     }
 
-    static fromArrays(slug: string, table: any[][]) {
-        const str = table
+    static fromMatrix(slug: string, matrix: CoreMatrix) {
+        const str = matrix
             .map((row) => row.join(cellDelimiter))
             .join(nodeDelimiter)
         return new ExplorerProgram(slug, str)
@@ -146,7 +147,7 @@ ${ProgramKeyword.switcher}
         const blockStart = keyLine + 1
         let length = this.lines
             .slice(blockStart)
-            .findIndex((line) => !line.startsWith(this.edgeDelimiter))
+            .findIndex((line) => line && !line.startsWith(this.edgeDelimiter))
         if (length === -1) length = this.lines.slice(blockStart).length
         return { start: blockStart, end: blockStart + length, length }
     }
@@ -276,7 +277,7 @@ export class SwitcherRuntime implements ObservableUrl {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
-            { slug: "chartId", type: ColumnTypeNames.Integer },
+            { slug: CHART_ID_SYMBOL, type: ColumnTypeNames.Integer },
         ])
         this.setValuesFromQueryString(queryString)
     }
@@ -299,12 +300,6 @@ export class SwitcherRuntime implements ObservableUrl {
 
     @computed get params(): QueryParams {
         return this.toObject()
-    }
-
-    static getRequiredChartIds(code: string) {
-        return parseDelimited(code)
-            .map((row: any) => parseInt(row.chartId!))
-            .filter((id) => !isNaN(id))
     }
 
     toConstrainedOptions() {

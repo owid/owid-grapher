@@ -1,12 +1,14 @@
 #! /usr/bin/env yarn jest
 
-import { ExplorerProgram, SwitcherRuntime } from "./ExplorerProgram"
+import {
+    DefaultExplorerProgram,
+    ExplorerProgram,
+    SwitcherRuntime,
+} from "./ExplorerProgram"
+import { getRequiredChartIds } from "./ExplorerUtils"
 
 describe(ExplorerProgram, () => {
-    const program = new ExplorerProgram(
-        "test",
-        ExplorerProgram.defaultExplorerProgram
-    )
+    const program = new ExplorerProgram("test", DefaultExplorerProgram)
     it("gets the required chart ids", () => {
         expect(program.requiredChartIds).toEqual([35, 46])
     })
@@ -16,6 +18,19 @@ describe(ExplorerProgram, () => {
 35\tInternet
 46\tMobile`
         expect(program.switcherCode).toEqual(expected)
+    })
+
+    it("allows blank lines in blocks", () => {
+        const code = `title\tData Explorer
+switcher
+\tchartId\tDevice
+\t35\tInternet
+
+\t46\tMobile`
+        expect(new ExplorerProgram("test", code).requiredChartIds).toEqual([
+            35,
+            46,
+        ])
     })
 })
 
@@ -41,15 +56,7 @@ describe(SwitcherRuntime, () => {
     })
 
     it("can detect needed chart configs", () => {
-        expect(SwitcherRuntime.getRequiredChartIds(code)).toEqual([
-            21,
-            24,
-            26,
-            29,
-            33,
-            55,
-            56,
-        ])
+        expect(getRequiredChartIds(code)).toEqual([21, 24, 26, 29, 33, 55, 56])
     })
 
     it("can detect unavailable options", () => {

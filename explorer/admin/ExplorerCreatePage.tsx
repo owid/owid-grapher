@@ -10,6 +10,7 @@ import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
+    DefaultExplorerProgram,
     ExplorerProgram,
     ProgramKeyword,
 } from "explorer/client/ExplorerProgram"
@@ -39,8 +40,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         const response = await readRemoteFile({
             filepath: ExplorerProgram.fullPath(this.props.slug),
         })
-        this.sourceOnDisk =
-            response.content || ExplorerProgram.defaultExplorerProgram
+        this.sourceOnDisk = response.content ?? DefaultExplorerProgram
         this.setProgram(this.sourceOnDisk)
     }
 
@@ -71,7 +71,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
         if (!newVersion) return
 
-        const newProgram = ExplorerProgram.fromArrays(
+        const newProgram = ExplorerProgram.fromMatrix(
             this.program.slug,
             newVersion
         )
@@ -79,7 +79,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.setProgram(newProgram.toString())
     }
 
-    @observable sourceOnDisk = ExplorerProgram.defaultExplorerProgram
+    @observable sourceOnDisk = DefaultExplorerProgram
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
