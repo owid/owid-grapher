@@ -14,7 +14,7 @@ describe(ExplorerProgram, () => {
     })
 
     it("gets code", () => {
-        const expected = `chartId\tDevice
+        const expected = `chartId\tDevice Radio
 35\tInternet
 46\tMobile`
         expect(program.switcherCode).toEqual(expected)
@@ -23,7 +23,7 @@ describe(ExplorerProgram, () => {
     it("allows blank lines in blocks", () => {
         const code = `title\tData Explorer
 switcher
-\tchartId\tDevice
+\tchartId\tDevice Radio
 \t35\tInternet
 
 \t46\tMobile`
@@ -35,7 +35,7 @@ switcher
 })
 
 describe(SwitcherRuntime, () => {
-    const code = `chartId,country,indicator,interval,perCapita
+    const code = `chartId,country Radio,indicator Radio,interval Radio,perCapita Radio
 21,usa,GDP,annual,FALSE
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
@@ -46,7 +46,7 @@ describe(SwitcherRuntime, () => {
     const options = new SwitcherRuntime(code)
 
     it("starts with a selected chart", () => {
-        expect(options.chartId).toEqual(21)
+        expect(options.selectedRow.chartId).toEqual(21)
         expect(options.toObject().country).toEqual("usa")
         expect(options.toObject().indicator).toEqual("GDP")
     })
@@ -72,7 +72,7 @@ describe(SwitcherRuntime, () => {
         expect(options.toConstrainedOptions().interval).toEqual(undefined)
         expect(options.toObject().perCapita).toEqual("FALSE")
         expect(options.toObject().interval).toEqual("annual")
-        expect(options.chartId).toEqual(33)
+        expect(options.selectedRow.chartId).toEqual(33)
     })
 
     it("can handle boolean groups", () => {
@@ -80,7 +80,7 @@ describe(SwitcherRuntime, () => {
         options.setValue("country", "usa")
         options.setValue("perCapita", "Per million")
         expect(options.isOptionAvailable("perCapita", "FALSE")).toEqual(true)
-        expect(options.chartId).toEqual(24)
+        expect(options.selectedRow.chartId).toEqual(24)
     })
 
     it("can show available choices in a later group", () => {
@@ -90,7 +90,7 @@ describe(SwitcherRuntime, () => {
             true
         )
         expect(options.isOptionAvailable("interval", "annual")).toEqual(false)
-        expect(options.chartId).toEqual(56)
+        expect(options.selectedRow.chartId).toEqual(56)
     })
 
     it("returns groups with undefined values if invalid value is selected", () => {
@@ -106,7 +106,7 @@ describe(SwitcherRuntime, () => {
     it("fails if no chartId column is provided", () => {
         try {
             new SwitcherRuntime(
-                `country,indicator
+                `country Radio,indicator Radio
 usa,GDP
 usa,Life expectancy
 france,Life expectancy`
@@ -119,12 +119,12 @@ france,Life expectancy`
 
     it("handles columns without options", () => {
         const options = new SwitcherRuntime(
-            `chartId,country,indicator
+            `chartId,country Radio,indicator Radio
 123,usa,
 32,usa,
 23,france,`
         )
-        expect(options.chartId).toEqual(123)
+        expect(options.selectedRow.chartId).toEqual(123)
         expect(options.choicesWithAvailability.length).toBeGreaterThan(0)
     })
 
@@ -135,7 +135,7 @@ france,Life expectancy`
 
     it("marks a radio as checked if its the only option", () => {
         const options = new SwitcherRuntime(
-            `chartId,Gas,Accounting
+            `chartId,Gas Radio,Accounting Radio
 488,CO₂,Production-based
 4331,CO₂,Consumption-based
 4147,GHGs,Production-based`
@@ -143,7 +143,7 @@ france,Life expectancy`
         options.setValue("Gas", "CO₂")
         options.setValue("Accounting", "Consumption-based")
         options.setValue("Gas", "GHGs")
-        expect(options.chartId).toEqual(4147)
+        expect(options.selectedRow.chartId).toEqual(4147)
         expect(options.toConstrainedOptions()["Accounting"]).toEqual(
             "Production-based"
         )

@@ -135,6 +135,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             manualColumnResize: [150, 200],
             minCols: 8,
             minRows: 20,
+            minSpareRows: 20,
             rowHeaders: true,
             stretchH: "all",
             width: "100%",
