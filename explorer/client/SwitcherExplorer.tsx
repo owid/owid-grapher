@@ -23,6 +23,7 @@ import {
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
+import { CoreRow } from "coreTable/CoreTableConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -112,17 +113,23 @@ export class SwitcherExplorer
     componentDidMount() {
         // Whenever the chartId changes, update Grapher.
         autorun(() =>
-            this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
+            this.updateGrapher(this.explorerProgram.switcherRuntime.selectedRow)
         )
         exposeInstanceOnWindow(this, "switcherExplorer")
     }
 
-    @action.bound private updateGrapher(newGrapherId: number) {
+    @action.bound private updateGrapher(selectedRow: CoreRow) {
         const grapher = this.grapher
-        if (!grapher || grapher.id === newGrapherId) return
+        if (!grapher) return // todo: can we remove this?
+        const { chartId } = selectedRow
+
+        if (chartId && grapher.id === chartId) return
+
+        const chartConfig = chartId ? this.chartConfigs.get(chartId)! : {}
 
         const config: GrapherProgrammaticInterface = {
-            ...this.chartConfigs.get(newGrapherId)!,
+            ...chartConfig,
+            ...selectedRow,
             hideEntityControls: !this.hideControls && !this.isEmbed,
             dropUnchangedUrlParams: false,
         }

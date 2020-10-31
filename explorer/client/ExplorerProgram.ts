@@ -7,7 +7,11 @@ import {
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
-import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
+import {
+    ExplorerControlType,
+    ExplorerControlOption,
+    ExplorerControlTypeRegex,
+} from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { ColumnTypeNames, CoreMatrix } from "coreTable/CoreTableConstants"
 import {
@@ -49,7 +53,7 @@ export enum ProgramKeyword {
 export const DefaultExplorerProgram = `${ProgramKeyword.title}\tData Explorer
 ${ProgramKeyword.isPublished}\tfalse
 ${ProgramKeyword.switcher}
-\t${CHART_ID_SYMBOL}\tDevice
+\t${CHART_ID_SYMBOL}\tDevice Radio
 \t35\tInternet
 \t46\tMobile`
 
@@ -231,12 +235,11 @@ const makeControlTypesMap = (delimited: string) => {
     const map = new Map<ChoiceName, ExplorerControlType>()
     headerLine
         .split(detectDelimiter(headerLine))
-        .filter((name) => name !== CHART_ID_SYMBOL)
+        .filter((name) => ExplorerControlTypeRegex.test(name))
         .forEach((choiceName) => {
             const words = choiceName.split(" ")
             const type = words.pop() as ExplorerControlType
-            if (ExplorerControlType[type]) map.set(words.join(" "), type)
-            else map.set(choiceName, ExplorerControlType.Radio)
+            map.set(words.join(" "), type)
         })
     return map
 }
@@ -247,11 +250,9 @@ const removeChoiceControlTypeInfo = (str: string) => {
     const lines = str.split("\n")
     const headerLine = lines[0]
     const delimiter = detectDelimiter(headerLine)
-    const types = Object.values(ExplorerControlType).join("|")
-    const reg = new RegExp(" (" + types + ")$")
     lines[0] = headerLine
         .split(delimiter)
-        .map((cell) => cell.replace(reg, ""))
+        .map((cell) => cell.replace(ExplorerControlTypeRegex, ""))
         .join(delimiter)
     return lines.join("\n")
 }
@@ -292,7 +293,7 @@ export class SwitcherRuntime implements ObservableUrl {
         })
     }
 
-    private choiceControlTypes: Map<string, ExplorerControlType>
+    private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
 
     toObject(): SwitcherQuery {
         return { ...this._settings }
@@ -330,7 +331,7 @@ export class SwitcherRuntime implements ObservableUrl {
     }
 
     @computed private get choiceNames(): ChoiceName[] {
-        return this.table.columnNames.filter((name) => name !== CHART_ID_SYMBOL)
+        return Array.from(this.choiceControlTypes.keys())
     }
 
     @computed private get allChoiceOptions(): ChoiceMap {
@@ -378,14 +379,14 @@ export class SwitcherRuntime implements ObservableUrl {
         return this.rowsWith(this.toConstrainedOptions())[0]
     }
 
-    @computed get chartId(): number {
-        return this.firstMatch?.chartId
-    }
-
     @computed get selectedRowIndex() {
         return this.firstMatch === undefined
             ? 0
             : this.table.indexOf(this.firstMatch)
+    }
+
+    @computed get selectedRow() {
+        return this.table.rowsAt([this.selectedRowIndex])[0]
     }
 
     private toControlOption(

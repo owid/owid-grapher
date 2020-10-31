@@ -4,6 +4,10 @@ export enum ExplorerControlType {
     Dropdown = "Dropdown",
 }
 
+export const ExplorerControlTypeRegex = new RegExp(
+    " (" + Object.values(ExplorerControlType).join("|") + ")$"
+)
+
 export interface ExplorerControlOption {
     label: string
     available: boolean
