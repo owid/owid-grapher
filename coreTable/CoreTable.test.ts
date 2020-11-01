@@ -35,6 +35,11 @@ describe("creating tables", () => {
         expect(table.numRows).toEqual(8)
     })
 
+    it("can drop empty rows", () => {
+        const table = new CoreTable(`country,gdp\nusa,123\n,\n`)
+        expect(table.dropEmptyRows().numRows).toEqual(1)
+    })
+
     it("can create a table from columns", () => {
         const table = new CoreTable({
             scores: [0, 1, 2],
