@@ -16,7 +16,7 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/captionedChart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
-import { Time } from "coreTable/CoreTableConstants"
+import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
 import { omit } from "grapher/utils/Util"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
@@ -78,6 +78,12 @@ export interface GrapherInterface {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+
+    // When we move graphers to Git, and remove dimensions, we can clean this up.
+    ySlugs?: ColumnSlugs
+    xSlug?: ColumnSlug
+    sizeSlug?: ColumnSlug
+    colorSlug?: ColumnSlug
 }
 
 export interface LegacyGrapherInterface extends GrapherInterface {

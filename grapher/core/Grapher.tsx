@@ -101,7 +101,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
+import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
@@ -258,6 +258,11 @@ export class Grapher
     @observable colorScale = new ColorScaleConfig()
     @observable map = new MapConfig()
     @observable.ref dimensions: ChartDimension[] = []
+
+    @observable ySlugs?: ColumnSlugs = undefined
+    @observable xSlug?: ColumnSlug = undefined
+    @observable colorSlug?: ColumnSlug = undefined
+    @observable sizeSlug?: ColumnSlug = undefined
 
     @observable selectedEntityNames: EntityName[] = []
     @observable selectedEntityIds: EntityId[] = []
@@ -676,7 +681,15 @@ export class Grapher
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady() {
-        return this.dimensions.length > 0 && this.loadingDimensions.length === 0
+        return (
+            this.isUsingNewSlugs ||
+            (this.dimensions.length > 0 && this.loadingDimensions.length === 0)
+        )
+    }
+
+    // If we are using new slugs and not dimensions, Grapher is ready.
+    @computed get isUsingNewSlugs() {
+        return !!(this.ySlugs || this.xSlug || this.colorSlug || this.sizeSlug)
     }
 
     async whenReady() {
@@ -886,7 +899,7 @@ export class Grapher
 
         // table tab cannot be downloaded, so revert to default tab
         if (desiredTab === GrapherTabOption.download && this.isOnTableTab)
-            this.tab = this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
+            this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
         this.overlay = desiredTab
     }
 
@@ -1047,25 +1060,31 @@ export class Grapher
     }
 
     @computed get yColumnSlugs() {
-        return this.dimensions
-            .filter((dim) => dim.property === DimensionProperty.y)
-            .map((dim) => dim.columnSlug)
+        return this.ySlugs
+            ? this.ySlugs.split(" ")
+            : this.dimensions
+                  .filter((dim) => dim.property === DimensionProperty.y)
+                  .map((dim) => dim.columnSlug)
     }
 
     @computed get yColumnSlug() {
-        return this.getSlugForProperty(DimensionProperty.y)
+        return this.ySlugs
+            ? this.ySlugs.split(" ")[0]
+            : this.getSlugForProperty(DimensionProperty.y)
     }
 
     @computed get xColumnSlug() {
-        return this.getSlugForProperty(DimensionProperty.x)
+        return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
     }
 
     @computed get sizeColumnSlug() {
-        return this.getSlugForProperty(DimensionProperty.size)
+        return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
     }
 
     @computed get colorColumnSlug() {
-        return this.getSlugForProperty(DimensionProperty.color)
+        return (
+            this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
+        )
     }
 
     @computed get yScaleType() {
