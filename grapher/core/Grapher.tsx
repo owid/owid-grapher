@@ -688,9 +688,7 @@ export class Grapher
     }
 
     @computed private get tableIsLoaded() {
-        const slugs = this.newSlugs
-        const len = slugs.length
-        return !len || this.inputTable.getColumns(this.newSlugs).length === len
+        return this.inputTable.hasColumns(this.newSlugs)
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.
