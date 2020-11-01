@@ -40,10 +40,10 @@ describe(legacyToOwidTableAndDimensions, () => {
                 StandardOwidColumnDefs.map((def) => def.slug)
             )
         )
-        expect(table.get(OwidTableSlugs.entityName)?.allValues).toEqual([
+        expect(table.get(OwidTableSlugs.entityName).allValues).toEqual([
             "World",
         ])
-        expect(table.get(OwidTableSlugs.entityCode)?.allValues).toEqual([
+        expect(table.get(OwidTableSlugs.entityCode).allValues).toEqual([
             "OWID_WRL",
         ])
     })
@@ -142,7 +142,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Year
             ).toBeTruthy()
             expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
-            expect(table.get(OwidTableSlugs.time)?.valuesAscending).toEqual([
+            expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
                 2020,
                 2021,
                 2022,
@@ -205,8 +205,8 @@ describe(legacyToOwidTableAndDimensions, () => {
         )
 
         it("shifts values in days array when zeroDay is is not EPOCH_DATE", () => {
-            expect(table.get("2")?.uniqTimesAsc).toEqual([-5, 0, 1])
-            expect(table.get("3")?.uniqTimesAsc).toEqual([-6, -5])
+            expect(table.get("2").uniqTimesAsc).toEqual([-5, 0, 1])
+            expect(table.get("3").uniqTimesAsc).toEqual([-6, -5])
         })
 
         it("duplicates 'day' column into 'time'", () => {
@@ -220,7 +220,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
             ).toBeTruthy()
             expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
-            expect(table.get(OwidTableSlugs.time)?.valuesAscending).toEqual([
+            expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
                 -6,
                 -5,
                 0,
@@ -280,7 +280,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(
                 table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
             ).toBeTruthy()
-            expect(table.get(OwidTableSlugs.time)?.uniqValues).toEqual([
+            expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
                 -5,
                 0,
                 1,
@@ -290,7 +290,7 @@ describe(legacyToOwidTableAndDimensions, () => {
         it("handles targetTime joins", () => {
             expect(table.rows.length).toEqual(3)
             expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
-            const column = table.get("3-2020")!
+            const column = table.get("3-2020")
             expect(column.allValues).toEqual([20, 20, 20])
             expect(column.originalTimes).toEqual([2020, 2020, 2020])
         })

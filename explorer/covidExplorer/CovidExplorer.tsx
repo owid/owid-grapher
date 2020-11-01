@@ -688,7 +688,7 @@ export class CovidExplorer
 
     @computed private get yColumn() {
         const slug = this.constrainedParams.yColumnSlug
-        const col = this.covidTableWithAdditionalColumns.get(slug)!
+        const col = this.covidTableWithAdditionalColumns.get(slug)
         if (!col) debugger
         return col
     }
@@ -697,7 +697,7 @@ export class CovidExplorer
         return this.constrainedParams.xColumnSlug
             ? this.covidTableWithAdditionalColumns.get(
                   this.constrainedParams.xColumnSlug!
-              )!
+              )
             : undefined
     }
 
@@ -705,7 +705,7 @@ export class CovidExplorer
         return this.constrainedParams.sizeColumn
             ? this.covidTableWithAdditionalColumns.get(
                   this.constrainedParams.sizeColumn!
-              )!
+              )
             : undefined
     }
 

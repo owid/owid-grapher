@@ -168,7 +168,7 @@ export class MapChart
             isOnTheMap
         )
 
-        if (!table.get(this.mapColumnSlug)) return table
+        if (!table.has(this.mapColumnSlug)) return table
 
         return table
             .filterByEntityNames(entityNamesToSelect)
@@ -338,7 +338,7 @@ export class MapChart
 
     @computed get colorScaleColumn() {
         // Use the table before transform to build the legend. Otherwise the legend jumps around as you slide the timeline handle.
-        return this.inputTable.get(this.mapColumnSlug)!
+        return this.inputTable.get(this.mapColumnSlug)
     }
 
     colorScale = new ColorScale(this)

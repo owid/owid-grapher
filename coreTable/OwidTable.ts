@@ -25,6 +25,7 @@ import {
     Time,
     TransformType,
     CoreColumnStore,
+    Color,
 } from "coreTable/CoreTableConstants"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
@@ -114,7 +115,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo private get allTimes(): Time[] {
-        return this.sortedByTime.get(this.timeColumn?.slug)?.parsedValues ?? []
+        return this.sortedByTime.get(this.timeColumn.slug).parsedValues
     }
 
     @imemo get hasDayColumn() {
@@ -131,7 +132,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
     getAnnotationColumnForColumn(columnSlug: ColumnSlug) {
-        const def = this.get(columnSlug)?.def as OwidColumnDef
+        const def = this.get(columnSlug).def as OwidColumnDef
         const slug =
             (def && def.annotationsColumnSlug) ??
             makeAnnotationsSlug(columnSlug)
@@ -260,8 +261,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     private sumsByTime(columnSlug: ColumnSlug) {
-        const timeValues = this.timeColumn!.parsedValues
-        const values = this.get(columnSlug)!.parsedValues
+        const timeValues = this.timeColumn.parsedValues
+        const values = this.get(columnSlug).parsedValues
         const map = new Map<number, number>()
         timeValues.forEach((time, index) => {
             if (!map.has(time)) map.set(time, 0)
@@ -274,7 +275,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
         const timeColumn = this.timeColumn!
-        const col = this.get(columnSlug)!
+        const col = this.get(columnSlug)
         const timeTotals = this.sumsByTime(columnSlug)
         const timeValues = timeColumn.parsedValues
         const newDef = {
@@ -452,7 +453,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityColor
-        )
+        ) as Map<EntityName, Color>
     }
 
     getColorForEntityName(entityName: EntityName) {
@@ -471,7 +472,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
         const indices = this.rowIndicesByEntityName.get(entityName)!
-        const values = this.get(columnSlug)!.allValues
+        const values = this.get(columnSlug).allValues
         const descending = indices.slice().reverse()
         const index = descending.find(
             (index) => !(values[index] instanceof InvalidCell)
@@ -482,10 +483,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     entitiesWith(columnSlugs: ColumnSlug[]): Set<EntityName> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
-            return new Set(this.get(columnSlugs[0])!.uniqEntityNames)
+            return new Set(this.get(columnSlugs[0]).uniqEntityNames)
 
         return intersectionOfSets<EntityName>(
-            columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
+            columnSlugs.map((slug) => new Set(this.get(slug).uniqEntityNames))
         )
     }
 
@@ -494,11 +495,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         toleranceOverride?: number
     ) {
         const column = this.get(columnSlug)
-        // If the column doesn't exist, return the table unchanged.
-        if (!column) return this
-
-        const columnDef = column?.def as OwidColumnDef
-        const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
+        const columnDef = column.def as OwidColumnDef
+        const tolerance = toleranceOverride ?? column.display.tolerance ?? 0
 
         const timeColumnOfTable =
             this.timeColumn ??
@@ -508,9 +506,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
-        const timeColumnOfValue =
-            this.get(maybeTimeColumnOfValue) ??
-            (this.get(OwidTableSlugs.time) as CoreColumn)
+        const timeColumnOfValue = this.get(maybeTimeColumnOfValue)
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
 
         let columnStore: CoreColumnStore
@@ -524,10 +520,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 OwidTableSlugs.entityName
             )
             const newValues = withAllRows
-                .get(columnSlug)!
+                .get(columnSlug)
                 .allValues.slice() as number[]
             const newTimes = withAllRows
-                .get(timeColumnOfValue.slug)!
+                .get(timeColumnOfValue.slug)
                 .allValues.slice() as Time[]
 
             groupBoundaries.forEach((_, index) => {

@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed, autorun, runInAction } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
@@ -15,7 +15,7 @@ import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { exposeInstanceOnWindow } from "grapher/utils/Util"
+import { exposeInstanceOnWindow, fetchText } from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -23,7 +23,7 @@ import {
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
-import { CoreRow } from "coreTable/CoreTableConstants"
+import { CoreRow, TableSlug } from "coreTable/CoreTableConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -110,9 +110,19 @@ export class SwitcherExplorer
         return this.explorerShellRef.current?.grapherRef?.current
     }
 
-    getTable(tableSlug: string) {
-        const code = this.explorerProgram.getTableCode(tableSlug)
-        return code ? new OwidTable(code).dropEmptyRows() : BlankOwidTable()
+    private getTable(tableSlug: TableSlug) {
+        const table = this.explorerProgram.getTableCode(tableSlug)
+        if (!table) return BlankOwidTable()
+        if (table.url) {
+            this.fetchData(table.url)
+            return BlankOwidTable()
+        }
+        return new OwidTable(table.block).dropEmptyRows()
+    }
+
+    @action.bound async fetchData(path: string) {
+        const csv = await fetchText(path)
+        return (this.grapher!.inputTable = new OwidTable(csv))
     }
 
     componentDidMount() {

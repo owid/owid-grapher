@@ -431,7 +431,7 @@ export class DataTable extends React.Component<{
         if (this.manager.dataTableColumnSlugsToShow?.length) {
             return this.manager.dataTableColumnSlugsToShow
                 .map((slug) => {
-                    const col = this.table.get(slug)!
+                    const col = this.table.get(slug)
                     if (!col) console.log(`Warning: column '${slug}' not found`)
                     return col
                 })
@@ -460,7 +460,7 @@ export class DataTable extends React.Component<{
             )
         return union(
             ...this.columnsToShow.map(
-                (col) => tableForEntities.get(col.slug)?.uniqEntityNames || []
+                (col) => tableForEntities.get(col.slug).uniqEntityNames
             )
         )
     }

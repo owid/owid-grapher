@@ -31,6 +31,7 @@ import {
     difference,
     exposeInstanceOnWindow,
     findClosestTime,
+    isPresent,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -681,15 +682,22 @@ export class Grapher
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady() {
-        return (
-            this.isUsingNewSlugs ||
-            (this.dimensions.length > 0 && this.loadingDimensions.length === 0)
-        )
+        return this.newSlugs.length
+            ? this.tableIsLoaded
+            : this.dimensions.length > 0 && this.loadingDimensions.length === 0
+    }
+
+    @computed private get tableIsLoaded() {
+        const slugs = this.newSlugs
+        const len = slugs.length
+        return !len || this.inputTable.getColumns(this.newSlugs).length === len
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.
-    @computed get isUsingNewSlugs() {
-        return !!(this.ySlugs || this.xSlug || this.colorSlug || this.sizeSlug)
+    @computed private get newSlugs() {
+        const { xSlug, colorSlug, sizeSlug } = this
+        const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
+        return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(isPresent)
     }
 
     async whenReady() {
@@ -1326,11 +1334,9 @@ export class Grapher
 
     // Filter data to what can be display on the map (across all times)
     @computed get mappableData() {
-        const mapColumn = this.inputTable.get(this.mapColumnSlug)
-        return (
-            mapColumn?.owidRows.filter((row) => isOnTheMap(row.entityName)) ??
-            []
-        )
+        return this.inputTable
+            .get(this.mapColumnSlug)
+            .owidRows.filter((row) => isOnTheMap(row.entityName))
     }
 
     @computed private get hasMultipleCountriesOnTheMap() {

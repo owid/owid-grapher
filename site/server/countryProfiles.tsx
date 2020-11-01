@@ -201,7 +201,7 @@ export async function countryProfilePage(countrySlug: string) {
                     },
                 ]
             )
-            const column = table.get(vid.toString())!
+            const column = table.get(vid.toString())
 
             let value: string | number
             value = parseFloat(latestValue.value)

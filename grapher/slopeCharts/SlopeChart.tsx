@@ -53,7 +53,6 @@ import {
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { SelectionArray } from "grapher/core/SelectionArray"
 
 @observer
 export class SlopeChart
@@ -68,7 +67,7 @@ export class SlopeChart
     @observable hoverColor?: string
 
     transformTable(table: OwidTable) {
-        if (!table.get(this.yColumnSlug)) return table
+        if (!table.has(this.yColumnSlug)) return table
 
         return table
             .dropRowsWithInvalidValuesForColumn(this.yColumnSlug)

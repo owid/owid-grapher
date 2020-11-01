@@ -5,7 +5,6 @@ import { observable, computed } from "mobx"
 import { trimObject } from "grapher/utils/Util"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
-import { LoadingColumn } from "coreTable/CoreTableColumns"
 import {
     LegacyChartDimensionInterface,
     LegacyVariableDisplayConfig,
@@ -82,12 +81,7 @@ export class ChartDimension
     @observable slug?: ColumnSlug
 
     @computed get column() {
-        return (
-            this.table.get(this.columnSlug) ||
-            new LoadingColumn(this.table, {
-                slug: this.variableId?.toString() || "loading",
-            })
-        )
+        return this.table.get(this.columnSlug)
     }
 
     @computed get columnSlug() {
