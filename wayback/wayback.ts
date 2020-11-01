@@ -1,7 +1,8 @@
 #! /usr/bin/env yarn tsn
 
 import express from "express"
-import * as fs from "fs"
+import path from "path"
+import * as fs from "fs-extra"
 import * as mime from "mime-types"
 
 const PORT = 4433
@@ -12,11 +13,17 @@ const staticFolder = __dirname + "/../../owid-static"
 if (!fs.existsSync(staticFolder))
     throw new Error(`Owid Static not found at ${staticFolder}`)
 
-const fixPaths = (html: string) =>
-    html.replace(/https\:\/\/ourworldindata\.org\//g, "/")
+const needsRewrite = (mimeType: string) =>
+    // text/html, text/css, application/javascript or image/svg+xml
+    mimeType.startsWith("text/") ||
+    mimeType === "application/javascript" ||
+    mimeType === "image/svg+xml"
+
+const fixPaths = (fileContent: string) =>
+    fileContent.replace(/https?\:\/\/ourworldindata\.org\//g, "/")
 
 app.get("*", async (req, res) => {
-    const filepath = staticFolder + req.path
+    const filepath = path.resolve(staticFolder + req.path)
     if (req.path === "/") return res.redirect("/index.html")
     if (!fs.existsSync(filepath) || fs.statSync(filepath).isDirectory()) {
         if (fs.existsSync(filepath + ".html"))
@@ -24,10 +31,14 @@ app.get("*", async (req, res) => {
         return res.send("Not found")
     }
 
-    const html = fs.readFileSync(filepath, "utf8")
-    const rewritten = fixPaths(html)
-    res.setHeader("Content-Type", mime.lookup(filepath) || "text/plain")
-    return res.send(rewritten)
+    const mimeType = mime.lookup(filepath) || "text/plain"
+
+    if (needsRewrite(mimeType)) {
+        const fileContent = await fs.readFile(filepath, "utf8")
+        const rewritten = fixPaths(fileContent)
+        res.setHeader("Content-Type", mimeType)
+        return res.send(rewritten)
+    } else res.sendFile(filepath)
 })
 
 app.listen(PORT, () => {
