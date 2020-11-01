@@ -13,7 +13,7 @@ import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { BlankOwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow } from "grapher/utils/Util"
 import {
@@ -110,6 +110,11 @@ export class SwitcherExplorer
         return this.explorerShellRef.current?.grapherRef?.current
     }
 
+    getTable(tableSlug: string) {
+        const code = this.explorerProgram.getTableCode(tableSlug)
+        return code ? new OwidTable(code).dropEmptyRows() : BlankOwidTable()
+    }
+
     componentDidMount() {
         // Whenever the chartId changes, update Grapher.
         autorun(() =>
@@ -121,7 +126,7 @@ export class SwitcherExplorer
     @action.bound private updateGrapher(selectedRow: CoreRow) {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
-        const { chartId } = selectedRow
+        const { chartId, table } = selectedRow
 
         if (chartId && grapher.id === chartId) return
 
@@ -132,6 +137,7 @@ export class SwitcherExplorer
             ...selectedRow,
             hideEntityControls: !this.hideControls && !this.isEmbed,
             dropUnchangedUrlParams: false,
+            manuallyProvideData: table ? true : undefined,
         }
 
         grapher.hasError = false
@@ -148,7 +154,7 @@ export class SwitcherExplorer
 
         grapher.setAuthoredVersion(config)
         grapher.updateFromObject(config)
-        grapher.inputTable = BlankOwidTable()
+        grapher.inputTable = this.getTable(table)
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         this.addEntityOptionsToPickerWhenReady()

@@ -1,4 +1,4 @@
-import { trimObject } from "grapher/utils/Util"
+import { isPresent, trimObject } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -40,6 +40,7 @@ const edgeDelimiter = "\t"
 
 export enum ProgramKeyword {
     switcher = "switcher",
+    table = "table",
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
@@ -56,6 +57,12 @@ ${ProgramKeyword.switcher}
 \t${CHART_ID_SYMBOL}\tDevice Radio
 \t35\tInternet
 \t46\tMobile`
+
+interface BlockLocation {
+    start: number
+    end: number
+    length: number
+}
 
 export class ExplorerProgram {
     constructor(slug: string, tsv: string, queryString = "") {
@@ -97,25 +104,34 @@ export class ExplorerProgram {
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
 
-    getLineIndex(key: ProgramKeyword) {
+    getKeywordIndex(key: ProgramKeyword) {
         return this.lines.findIndex(
             (line) => line.startsWith(key + this.cellDelimiter) || line === key
         )
     }
 
+    getKeywordIndexes(key: ProgramKeyword) {
+        return this.lines
+            .map((line, index) =>
+                line.startsWith(key + this.cellDelimiter) || line === key
+                    ? index
+                    : null
+            )
+            .filter(isPresent)
+    }
+
     private setLineValue(key: ProgramKeyword, value: string | undefined) {
-        const index = this.getLineIndex(key)
+        const index = this.getKeywordIndex(key)
         const newLine = `${key}${this.cellDelimiter}${value}`
         if (index === -1 && value !== undefined) this.lines.push(newLine)
         else if (value === undefined) this.lines = this.lines.splice(index, 1)
         else this.lines[index] = newLine
     }
 
-    private getBlock(key: ProgramKeyword) {
-        const ends = this.getBlockEnds(key)
-        if (!ends) return undefined
+    private getBlock(keywordIndex: number) {
+        const location = this.getBlockLocation(keywordIndex)
         return this.lines
-            .slice(ends.start, ends.end)
+            .slice(location.start, location.end)
             .map((line) => line.substr(1))
             .join(this.nodeDelimiter)
     }
@@ -145,10 +161,8 @@ export class ExplorerProgram {
             .join(this.nodeDelimiter)
     }
 
-    private getBlockEnds(key: ProgramKeyword) {
-        const keyLine = this.getLineIndex(key)
-        if (keyLine === -1) return undefined
-        const blockStart = keyLine + 1
+    private getBlockLocation(blockStartLine: number): BlockLocation {
+        const blockStart = blockStartLine + 1
         let length = this.lines
             .slice(blockStart)
             .findIndex((line) => line && !line.startsWith(this.edgeDelimiter))
@@ -156,16 +170,17 @@ export class ExplorerProgram {
         return { start: blockStart, end: blockStart + length, length }
     }
 
-    private setBlock(key: ProgramKeyword, value: string | undefined) {
-        if (!value) return this.deleteBlock(key)
+    private setBlock(keyword: ProgramKeyword, value: string | undefined) {
+        if (!value) return this.deleteBlock(keyword)
 
-        const ends = this.getBlockEnds(key)
-        if (!ends) return this.appendBlock(key, value)
+        const keywordIndex = this.getKeywordIndex(keyword)
+        if (keywordIndex === -1) return this.appendBlock(keyword, value)
+        const location = this.getBlockLocation(keywordIndex)
 
         this.lines = this.lines.splice(
-            ends.start,
-            ends.length,
-            key,
+            location.start,
+            location.length,
+            keyword,
             ...value
                 .split(this.nodeDelimiter)
                 .map((line) => this.edgeDelimiter + line)
@@ -179,11 +194,11 @@ export class ExplorerProgram {
             .forEach((line) => this.lines.push(this.edgeDelimiter + line))
     }
 
-    private deleteBlock(key: ProgramKeyword) {
-        const ends = this.getBlockEnds(key)
-        if (!ends) return
-
-        this.lines = this.lines.splice(ends.start, ends.length)
+    private deleteBlock(keyword: ProgramKeyword) {
+        const keywordIndex = this.getKeywordIndex(keyword)
+        if (keywordIndex === -1) return
+        const location = this.getBlockLocation(keywordIndex)
+        this.lines = this.lines.splice(location.start, location.length)
     }
 
     get title(): string | undefined {
@@ -225,7 +240,20 @@ export class ExplorerProgram {
     }
 
     get switcherCode() {
-        return this.getBlock(ProgramKeyword.switcher)
+        const keywordIndex = this.getKeywordIndex(ProgramKeyword.switcher)
+        if (keywordIndex === -1) return undefined
+        return this.getBlock(keywordIndex)
+    }
+
+    getTableCode(tableSlug: string) {
+        const keywordIndexes = this.getKeywordIndexes(ProgramKeyword.table)
+        const matchingTableIndex = keywordIndexes.find((index) =>
+            this.lines[index].startsWith(
+                [ProgramKeyword.table, tableSlug].join(this.cellDelimiter)
+            )
+        )
+        if (matchingTableIndex === undefined) return undefined
+        return this.getBlock(matchingTableIndex)
     }
 }
 
