@@ -12,6 +12,7 @@ import {
     differenceBy,
     uniqBy,
     intersectionOfSets,
+    isPresent,
 } from "grapher/utils/Util"
 import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
@@ -976,6 +977,23 @@ export class CoreTable<
 
     dropDuplicateRows() {
         return this.dropRowsAt(this.duplicateRowIndices)
+    }
+
+    isRowEmpty(index: number) {
+        const { columnStore } = this
+        return (
+            this.columnSlugs
+                .map((slug) => columnStore[slug][index])
+                .filter((value) => isValid(value) && value !== "").length === 0
+        )
+    }
+
+    dropEmptyRows() {
+        return this.dropRowsAt(
+            this.indices
+                .map((index) => (this.isRowEmpty(index) ? index : null))
+                .filter(isPresent)
+        )
     }
 
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
