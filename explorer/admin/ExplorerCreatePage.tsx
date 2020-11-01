@@ -40,7 +40,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         const response = await readRemoteFile({
             filepath: ExplorerProgram.fullPath(this.props.slug),
         })
-        this.sourceOnDisk = response.content ?? DefaultExplorerProgram
+        this.sourceOnDisk = response.content || DefaultExplorerProgram
         this.setProgram(this.sourceOnDisk)
     }
 
@@ -105,7 +105,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
         // Highlight the active view
         const activeViewRowNumber =
-            this.program.getLineIndex(ProgramKeyword.switcher) +
+            this.program.getKeywordIndex(ProgramKeyword.switcher) +
             this.program.switcherRuntime.selectedRowIndex +
             3
         const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) > td:nth-child(3) {
