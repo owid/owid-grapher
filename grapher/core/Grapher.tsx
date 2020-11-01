@@ -379,10 +379,8 @@ export class Grapher
         this.map.time = maxTimeBoundFromJSONOrPositiveInfinity(mapTime)
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime)
-            this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
-        if (obj.maxTime)
-            this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
+        this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
+        this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
