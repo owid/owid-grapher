@@ -376,10 +376,7 @@ export class Grapher
         if (obj.originUrl === null) this.originUrl = ""
 
         const mapTime = obj.map?.time
-        if (mapTime !== undefined) {
-            this.minTime = minTimeBoundFromJSONOrNegativeInfinity(mapTime)
-            this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(mapTime)
-        }
+        this.map.time = maxTimeBoundFromJSONOrPositiveInfinity(mapTime)
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime)
@@ -896,6 +893,10 @@ export class Grapher
     }
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
+        if (this.isOnMapTab) {
+            const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
+            return [time, time]
+        }
         return [
             // Handle `undefined` values in minTime/maxTime
             minTimeBoundFromJSONOrNegativeInfinity(this.minTime),
@@ -904,8 +905,12 @@ export class Grapher
     }
 
     set timelineHandleTimeBounds(value: TimeBounds) {
-        this.minTime = value[0]
-        this.maxTime = value[1]
+        if (this.isOnMapTab) {
+            this.map.time = value[1]
+        } else {
+            this.minTime = value[0]
+            this.maxTime = value[1]
+        }
     }
 
     // Get the dimension slots appropriate for this type of chart
