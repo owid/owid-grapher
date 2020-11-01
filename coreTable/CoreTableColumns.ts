@@ -443,9 +443,9 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
 export type CoreColumn = AbstractCoreColumn<any>
 
-export class LoadingColumn extends AbstractCoreColumn<any> {
+export class MissingColumn extends AbstractCoreColumn<any> {
     jsType = JsTypes.string
-} // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
+}
 
 class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string

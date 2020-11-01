@@ -73,7 +73,7 @@ export const MegaCsvToCovidExplorerTable = (
 
 const addGroups = (coreTable: CoreTable) => {
     // todo: this can be better expressed as a group + reduce.
-    const continentGroups = coreTable.get(MegaSlugs.continent)!.valuesToIndices
+    const continentGroups = coreTable.get(MegaSlugs.continent).valuesToIndices
     const continentNames = Array.from(continentGroups.keys()).filter(
         (cont) => cont
     )

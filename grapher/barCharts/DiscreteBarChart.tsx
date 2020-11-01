@@ -62,10 +62,7 @@ export class DiscreteBarChart
         table = table.dropRowsWithInvalidValuesForAllColumns(this.yColumnSlugs)
 
         this.yColumnSlugs.forEach((slug) => {
-            const column = table.get(slug)
-            if (column) {
-                table = table.interpolateColumnWithTolerance(slug)
-            }
+            table = table.interpolateColumnWithTolerance(slug)
         })
 
         return table

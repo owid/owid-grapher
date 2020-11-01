@@ -113,7 +113,7 @@ describe("creating a table from legacy", () => {
             "time",
         ])
 
-        expect(table.get("3512")?.displayName).toBe("Some Display Name")
+        expect(table.get("3512").displayName).toBe("Some Display Name")
     })
 
     it("can apply legacy unit conversion factors", () => {
@@ -165,10 +165,10 @@ it("can parse data to Javascript data structures", () => {
         timeRange: [2000, 2010],
     })
 
-    const parsed = table.get("Population")!.parsedValues
+    const parsed = table.get("Population").parsedValues
     expect(parsed.filter((item) => isNaN(item))).toEqual([])
 
-    table.get("Population")!.owidRows.forEach((row) => {
+    table.get("Population").owidRows.forEach((row) => {
         expect(typeof row.entityName).toBe("string")
         expect(row.value).toBeGreaterThan(100)
         expect(row.time).toBeGreaterThan(1999)
@@ -180,11 +180,11 @@ it("can drop random cells", () => {
         timeRange: [2000, 2010],
         entityCount: 1,
     })
-    expect(table.get(SampleColumnSlugs.GDP)!.numValues).toBe(10)
+    expect(table.get(SampleColumnSlugs.GDP).numValues).toBe(10)
     expect(
         table
             .replaceRandomCells(7, [SampleColumnSlugs.GDP])
-            .get(SampleColumnSlugs.GDP)!.numValues
+            .get(SampleColumnSlugs.GDP).numValues
     ).toBe(3)
 })
 
@@ -196,7 +196,7 @@ it("can group data by entity and time", () => {
 
     const timeValues = flatten(
         Array.from(
-            table.get("Population")!.valueByEntityNameAndTime.values()
+            table.get("Population").valueByEntityNameAndTime.values()
         ).map((value) => Array.from(value.values()))
     )
 
@@ -229,7 +229,7 @@ it("can synth numerics", () => {
         entityCount: 1,
     })
 
-    const row = table.get("GDP")!.owidRows[0]
+    const row = table.get("GDP").owidRows[0]
     expect(typeof row.value).toEqual("number")
 })
 
@@ -240,8 +240,8 @@ france,fr,3,23,4`
 
 it("can get entities with required columns", () => {
     const table = new OwidTable(basicTableCsv)
-    expect(table.get("pop")?.def.type).toEqual(ColumnTypeNames.Numeric)
-    expect(table.get("pop")?.uniqEntityNames.length).toEqual(2)
+    expect(table.get("pop").def.type).toEqual(ColumnTypeNames.Numeric)
+    expect(table.get("pop").uniqEntityNames.length).toEqual(2)
     expect(table.entitiesWith(["gdp"]).size).toEqual(3)
     expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
 })
@@ -256,7 +256,7 @@ usa,us,23,`)
 
 it("can handle columns with commas", () => {
     const table = new OwidTable(basicTableCsv)
-    table.get("gdp")!.def.name = "Gross, Domestic, Product"
+    table.get("gdp").def.name = "Gross, Domestic, Product"
     expect(table.toPrettyCsv())
         .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
@@ -428,7 +428,7 @@ describe("rolling averages", () => {
     // sortedUniqNonEmptyStringVals
     it("can get values for color legend", () => {
         expect(
-            table.get("continent")?.sortedUniqNonEmptyStringVals.length
+            table.get("continent").sortedUniqNonEmptyStringVals.length
         ).toEqual(1)
     })
 })
@@ -466,7 +466,7 @@ describe("relative mode", () => {
             SampleColumnSlugs.Vegetables,
         ])
         expect(
-            table.get(SampleColumnSlugs.Fruit)?.summary.numInvalidCells
+            table.get(SampleColumnSlugs.Fruit).summary.numInvalidCells
         ).toEqual(1)
     })
 })
@@ -501,9 +501,9 @@ describe("time domain", () => {
             ]
         )
 
-        expect(table.get("gdp")!.minTime).toEqual(1950)
-        expect(table.get("gdp")!.maxTime).toEqual(2000)
-        expect(table.get("gdp")!.uniqTimesAsc).toEqual([1950, 1970, 2000])
+        expect(table.get("gdp").minTime).toEqual(1950)
+        expect(table.get("gdp").maxTime).toEqual(2000)
+        expect(table.get("gdp").uniqTimesAsc).toEqual([1950, 1970, 2000])
     })
 })
 
@@ -631,7 +631,7 @@ it("assigns originalTime as 'time' in owidRows", () => {
 1000,2019,USA,,
 1001,2020,UK,,`
     const table = new OwidTable(csv).interpolateColumnWithTolerance("gdp", 1)
-    const owidRows = table.get("gdp")!.owidRows
+    const owidRows = table.get("gdp").owidRows
     expect(owidRows).toEqual(
         expect.not.arrayContaining([
             expect.objectContaining({

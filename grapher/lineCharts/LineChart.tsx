@@ -584,7 +584,7 @@ export class LineChart
     }
 
     @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug)!)
+        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
     @computed protected get yColumnSlugs() {

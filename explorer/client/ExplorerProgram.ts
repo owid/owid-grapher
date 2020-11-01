@@ -253,7 +253,10 @@ export class ExplorerProgram {
             )
         )
         if (matchingTableIndex === undefined) return undefined
-        return this.getBlock(matchingTableIndex)
+        return {
+            url: this.lines[matchingTableIndex].split(this.cellDelimiter)[2],
+            block: this.getBlock(matchingTableIndex),
+        }
     }
 }
 
@@ -366,7 +369,7 @@ export class SwitcherRuntime implements ObservableUrl {
         const choiceMap: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
             choiceMap[choiceName] = this.table
-                .get(choiceName)!
+                .get(choiceName)
                 .uniqValues.filter((cell) => !isCellEmpty(cell)) as string[]
         })
         return choiceMap

@@ -178,7 +178,7 @@ export class FacetChart
     }
 
     @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.inputTable.get(slug)!)
+        return this.yColumnSlugs.map((slug) => this.inputTable.get(slug))
     }
 
     @computed private get yColumnSlugs() {

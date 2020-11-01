@@ -15,7 +15,7 @@ import {
     isPresent,
 } from "grapher/utils/Util"
 import { queryParamsToStr } from "utils/client/url"
-import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
+import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,
     CoreColumnStore,
@@ -183,12 +183,7 @@ export class CoreTable<
     }
 
     getValuesFor(columnSlug: ColumnSlug): CoreValueType[] {
-        if (!this.columnStore[columnSlug])
-            throw new Error(
-                `getValuesFor() was called with a columnSlug that doesn't exist on the table: ${columnSlug}`
-            )
-
-        return this.columnStore[columnSlug]
+        return this.has(columnSlug) ? this.columnStore[columnSlug] : []
     }
 
     private get blankColumnStore() {
@@ -359,7 +354,7 @@ export class CoreTable<
     }
 
     getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
-        const values = this.get(columnSlug)!.allValues
+        const values = this.get(columnSlug).allValues
         return indices.map((index) => values[index])
     }
 
@@ -387,10 +382,17 @@ export class CoreTable<
         return this.columnSlugs.length
     }
 
-    get(columnSlug?: ColumnSlug) {
-        return columnSlug !== undefined
-            ? this._columns.get(columnSlug)
-            : undefined
+    get(columnSlug: ColumnSlug | undefined): CoreColumn {
+        if (columnSlug === undefined)
+            return new MissingColumn(this, {
+                slug: `undefined_slug`,
+            })
+        return (
+            this._columns.get(columnSlug) ??
+            new MissingColumn(this, {
+                slug: columnSlug,
+            })
+        )
     }
 
     has(columnSlug: ColumnSlug) {
@@ -407,11 +409,13 @@ export class CoreTable<
                 (col) => col instanceof ColumnTypeMap.Date
             ) ||
             this.columnsAsArray.find((col) => col instanceof ColumnTypeMap.Year)
-        return col
-            ? col
-            : this.get(OwidTableSlugs.time) ??
-                  this.get(OwidTableSlugs.day) ??
-                  this.get(OwidTableSlugs.year)
+        return col ? col : this.get(this.timeColumnSlug)
+    }
+
+    @imemo private get timeColumnSlug() {
+        if (this.has(OwidTableSlugs.time)) return OwidTableSlugs.time
+        if (this.has(OwidTableSlugs.day)) return OwidTableSlugs.day
+        return OwidTableSlugs.year
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
@@ -480,9 +484,6 @@ export class CoreTable<
     ) {
         const indexCol = this.get(indexColumnSlug)
         const valueCol = this.get(valueColumnSlug)
-
-        if (!indexCol || !valueCol) return new Map()
-
         const indexValues = indexCol.allValues
         const valueValues = valueCol.allValues
         const valueIndices = new Set(valueCol.validRowIndices)
@@ -613,9 +614,8 @@ export class CoreTable<
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
     protected groupBoundaries(columnSlug: ColumnSlug) {
         const arr: number[] = []
-        const values = this.get(columnSlug)?.allValues
         let last: CoreValueType
-        values?.forEach((val, index) => {
+        this.get(columnSlug).allValues.forEach((val, index) => {
             if (val !== last) {
                 arr.push(index)
                 last = val
@@ -667,7 +667,7 @@ export class CoreTable<
     }
 
     getColumns(slugs: ColumnSlug[]) {
-        return slugs.map((slug) => this.get(slug)!)
+        return slugs.map((slug) => this.get(slug))
     }
 
     // Get the min and max for multiple columns at once
@@ -1123,17 +1123,6 @@ export class CoreTable<
     }
 
     duplicateColumn(slug: ColumnSlug, overrides: COL_DEF_TYPE) {
-        if (slug === overrides.slug) {
-            throw new Error(
-                `Cannot duplicate column: column slug '${slug}' matches the existing column`
-            )
-        }
-
-        const existingColumn = this.get(slug)
-        if (!existingColumn) {
-            throw new Error(`Cannot duplicate column: '${slug}' does not exist`)
-        }
-
         return this.transform(
             {
                 ...this.columnStore,
@@ -1141,7 +1130,7 @@ export class CoreTable<
             },
             this.defs.concat([
                 {
-                    ...existingColumn.def,
+                    ...this.get(slug).def,
                     ...overrides,
                 },
             ]),
@@ -1154,7 +1143,7 @@ export class CoreTable<
         by: ColumnSlug,
         columnTypeNameForNewColumns = ColumnTypeNames.Numeric
     ) {
-        const newColumnSlugs = [by, ...this.get(by)!.uniqValues]
+        const newColumnSlugs = [by, ...this.get(by).uniqValues]
         const newColumnDefs = newColumnSlugs.map((slug) => {
             if (slug === by) return { slug }
             return {
@@ -1378,7 +1367,7 @@ export class CoreTable<
         const lastRow = { ...this.lastRow }
         Object.keys(reductionMap).forEach((slug) => {
             const prop = reductionMap[slug]
-            const col = this.get(slug)!
+            const col = this.get(slug)
             if (typeof prop === "string") lastRow[slug] = col[prop]
             else lastRow[slug] = prop(col)
         })

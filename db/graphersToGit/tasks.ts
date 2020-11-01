@@ -97,11 +97,10 @@ const dumpComplexSelections = async () => {
         if (!config.selectedData || !config.selectedData.length) return null
         const selection = new CoreTable(config.selectedData)
         const dimensions = new CoreTable(config.dimensions)
-        const dimensionVariableCount =
-            dimensions.get("variableId")?.numUniqs ?? 0
+        const dimensionVariableCount = dimensions.get("variableId").numUniqs
         const actualSelectionCount = selection.numRows
-        const selectionVariableCount = selection.get("index")!.numUniqs
-        const selectedEntities = selection.get("entityId")!.numUniqs
+        const selectionVariableCount = selection.get("index").numUniqs
+        const selectedEntities = selection.get("entityId").numUniqs
         const expectedSelectionCount = selectionVariableCount * selectedEntities
         const fullSelectionCount = selectedEntities * dimensionVariableCount
         const couldBeAProblem =

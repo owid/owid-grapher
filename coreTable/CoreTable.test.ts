@@ -63,7 +63,7 @@ describe("creating tables", () => {
             { country: "Germany", gdp: undefined },
         ]
         const table = new CoreTable(rows)
-        expect(table.get("gdp")?.numValues).toEqual(1)
+        expect(table.get("gdp").numValues).toEqual(1)
     })
 
     it("it parses values to correct provided type even if first row is missing value", () => {
@@ -76,7 +76,7 @@ describe("creating tables", () => {
                 type: ColumnTypeNames.Numeric,
             },
         ])
-        expect(table.get("gdp")?.maxValue).toEqual(123)
+        expect(table.get("gdp").maxValue).toEqual(123)
     })
 
     describe("can load a table from a matrix", () => {
@@ -264,7 +264,7 @@ describe("column operations", () => {
                 fn: (row) => row.country.length,
             },
         ])
-        expect(table.get("countryNameLength")?.parsedValues.join("")).toEqual(
+        expect(table.get("countryNameLength").parsedValues.join("")).toEqual(
             `37`
         )
         expect((rows[0] as any).countryNameLength).toEqual(undefined)
@@ -399,7 +399,7 @@ hi,1,,2001`
         const table = new CoreTable(csv)
 
         const annotationsColumn = table.get("notes")
-        const entityNameMap = annotationsColumn!.getUniqueValuesGroupedBy(
+        const entityNameMap = annotationsColumn.getUniqueValuesGroupedBy(
             "entityName"
         )
 
@@ -416,8 +416,8 @@ describe("filtering", () => {
         "Pop filter"
     )
     it("one filter works", () => {
-        expect(rootTable.get("country")!.parsedValues[3]).toEqual("canada")
-        const parsedValues = filteredTable.get("country")!.parsedValues
+        expect(rootTable.get("country").parsedValues[3]).toEqual("canada")
+        const parsedValues = filteredTable.get("country").parsedValues
         expect(parsedValues[0]).toEqual("france")
         expect(parsedValues[1]).toEqual("usa")
     })
@@ -427,7 +427,7 @@ describe("filtering", () => {
             (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
         )
-        const parsedValues = filteredTwiceTable.get("country")!.parsedValues
+        const parsedValues = filteredTwiceTable.get("country").parsedValues
         expect(parsedValues[0]).toEqual("usa")
         expect(parsedValues[1]).toEqual(undefined)
     })
@@ -469,7 +469,7 @@ iceland,1`)
         const csv = table.toDelimited()
         expect(csv).toEqual(`country,Population-in-2020
 iceland,1`)
-        expect(table.get("country")!.isEmpty).toBe(false)
+        expect(table.get("country").isEmpty).toBe(false)
     })
 
     it("can export a clean csv with dates", () => {
@@ -503,7 +503,7 @@ Canada,2020-01-23,`)
                 },
             ]
         )
-        expect(table.get("growthRate")?.formatValueShort(20)).toEqual("20%")
+        expect(table.get("growthRate").formatValueShort(20)).toEqual("20%")
     })
 })
 
@@ -511,8 +511,8 @@ describe("value operations", () => {
     it("can detect all integers", () => {
         const table = new CoreTable(`gdp,perCapita
 123,123.1`)
-        expect(table.get("gdp")?.isAllIntegers).toBeTruthy()
-        expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()
+        expect(table.get("gdp").isAllIntegers).toBeTruthy()
+        expect(table.get("perCapita").isAllIntegers).toBeFalsy()
     })
 
     it("can get all defined values for a column", () => {
@@ -523,8 +523,8 @@ describe("value operations", () => {
             ],
             [{ type: ColumnTypeNames.Numeric, slug: "pop" }]
         )
-        expect(table.get("pop")?.numValues).toEqual(1)
-        expect(table.get("pop")?.numInvalidCells).toEqual(1)
+        expect(table.get("pop").numValues).toEqual(1)
+        expect(table.get("pop").numInvalidCells).toEqual(1)
         expect(table.numColumnsWithInvalidCells).toEqual(1)
     })
 
@@ -533,12 +533,12 @@ describe("value operations", () => {
             { pop: -20, gdp: 100, births: -4 },
             { pop: 0, gdp: -2, births: 20 },
         ])
-        expect(table.get("pop")?.numValues).toEqual(2)
-        expect(table.get("gdp")?.numValues).toEqual(2)
+        expect(table.get("pop").numValues).toEqual(2)
+        expect(table.get("gdp").numValues).toEqual(2)
         table = table.replaceNonPositiveCellsForLogScale(["pop", "gdp"])
-        expect(table.get("pop")?.numValues).toEqual(0)
-        expect(table.get("gdp")?.numValues).toEqual(1)
-        expect(table.get("births")?.numValues).toEqual(2)
+        expect(table.get("pop").numValues).toEqual(0)
+        expect(table.get("gdp").numValues).toEqual(1)
+        expect(table.get("births").numValues).toEqual(2)
     })
 })
 
