@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun, runInAction } from "mobx"
+import { action, observable, computed, autorun } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
