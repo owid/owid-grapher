@@ -2,7 +2,8 @@ import { InvalidCell } from "./InvalidCells"
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
 
 export type Integer = number
-export type ColumnSlug = string // let's be very restrictive on valid column names to start.
+export type ColumnSlug = string // cannot have spaces
+export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs
 
 export enum SortOrder {
     asc = "asc",
