@@ -670,6 +670,10 @@ export class CoreTable<
         return slugs.map((slug) => this.get(slug))
     }
 
+    hasColumns(slugs: ColumnSlug[]) {
+        return slugs.every((slug) => this.has(slug))
+    }
+
     // Get the min and max for multiple columns at once
     domainFor(slugs: ColumnSlug[]): ValueRange {
         const cols = this.getColumns(slugs)

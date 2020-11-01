@@ -122,7 +122,8 @@ export class SwitcherExplorer
 
     @action.bound async fetchData(path: string) {
         const csv = await fetchText(path)
-        return (this.grapher!.inputTable = new OwidTable(csv))
+        this.grapher!.inputTable = new OwidTable(csv)
+        this.addEntityOptionsToPickerWhenReady()
     }
 
     componentDidMount() {
