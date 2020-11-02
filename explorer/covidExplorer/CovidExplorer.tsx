@@ -901,6 +901,7 @@ export const PerfTest = async () => {
     // table.dumpPipeline()
     // timer.tick("dumped pipelin")
 
+    const table = MegaCsvToCovidExplorerTable(megaCsv).appendEveryColumn()
     timer.tick("csv to covid explorer table with every possible column")
     // table.dumpPipeline()
     // timer.tick("dumped pipelin")
