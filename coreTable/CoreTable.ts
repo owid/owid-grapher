@@ -417,7 +417,7 @@ export class CoreTable<
     // and not the first time column from the table.
     @imemo get timeColumn() {
         // For now, return a day column first if present. But see note above about removing this method.
-        const col =
+        return (
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Day
             ) ??
@@ -425,9 +425,7 @@ export class CoreTable<
                 (col) => col instanceof ColumnTypeMap.Date
             ) ??
             this.columnsAsArray.find((col) => col instanceof ColumnTypeMap.Year)
-
-        if (!col) throw new Error(`No time column found`)
-        return col
+        )
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made

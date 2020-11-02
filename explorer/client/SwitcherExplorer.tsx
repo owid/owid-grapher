@@ -24,7 +24,6 @@ import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 import { CoreRow, TableSlug } from "coreTable/CoreTableConstants"
-import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
