@@ -288,14 +288,27 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed get series(): ChoroplethSeries[] {
-        const { mapConfig, mapColumn, selectionArray, targetTime } = this
-        if (!mapColumn) return []
-        if (targetTime === undefined) return []
+    @computed get formatTooltipValue(): (d: number | string) => string {
+        const { mapConfig, mapColumn, colorScale } = this
 
         const customLabels = mapConfig.tooltipUseCustomLabels
-            ? this.colorScale.customNumericLabels
+            ? colorScale.customNumericLabels
             : []
+        return (d: number | string) => {
+            if (isString(d)) return d
+            else return customLabels[d] ?? mapColumn?.formatValueLong(d) ?? ""
+        }
+    }
+
+    @computed get series(): ChoroplethSeries[] {
+        const {
+            mapColumn,
+            selectionArray,
+            targetTime,
+            formatTooltipValue,
+        } = this
+        if (!mapColumn) return []
+        if (targetTime === undefined) return []
 
         return mapColumn.owidRows
             .map((row) => {
@@ -304,9 +317,7 @@ export class MapChart
                 if (!color) return undefined
                 return {
                     seriesName: entityName,
-                    displayValue:
-                        customLabels[value as any] ??
-                        mapColumn.formatValueLong(value),
+                    displayValue: formatTooltipValue(value),
                     time,
                     value,
                     isSelected: selectionArray.selectedSet.has(entityName),
