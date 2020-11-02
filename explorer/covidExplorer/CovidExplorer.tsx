@@ -451,12 +451,6 @@ export class CovidExplorer
         }
     }
 
-    private perCapitaTitle(metric: MetricOptions) {
-        return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
-            : ""
-    }
-
     @computed private get chartTitle() {
         const params = this.constrainedParams
 
