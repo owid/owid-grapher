@@ -88,12 +88,15 @@ export class SlopeChart
     }
 
     @computed get legendItems() {
-        return this.series.map((series) => {
-            return {
-                label: series.seriesName,
-                color: series.color,
-            }
-        })
+        return this.colorScale.legendBins
+            .filter((bin) => this.colorsInUse.includes(bin.color))
+            .map((bin) => {
+                return {
+                    key: bin.label ?? "",
+                    label: bin.label ?? "",
+                    color: bin.color,
+                }
+            })
     }
 
     @computed get maxLegendWidth() {
@@ -332,7 +335,7 @@ export class SlopeChart
         // NB: This is tricky. Often it seems we use the Continent variable (123) for colors, but we only have 1 year for that variable, which
         // would likely get filtered by any time filtering. So we need to jump up to the root table to get the color values we want.
         // We should probably refactor this as part of a bigger color refactoring.
-        return this.transformedTable.rootTable.get(this.manager.colorColumnSlug)
+        return this.inputTable.get(this.manager.colorColumnSlug)
     }
 
     @computed get transformedTable() {
