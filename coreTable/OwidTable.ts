@@ -260,6 +260,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // Ensures the table has an EntityName column
+    withEntityNameColumn() {
+        if (this.has(OwidTableSlugs.entityName)) return this
+        return this.duplicateColumn(guessEntityNameColumnSlug(this), {
+            slug: OwidTableSlugs.entityName,
+        })
+    }
+
     private sumsByTime(columnSlug: ColumnSlug) {
         const timeValues = this.timeColumn.parsedValues
         const values = this.get(columnSlug).parsedValues
@@ -641,3 +649,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 // This just assures that even an emtpty OwidTable will have an entityName column. Probably a cleaner way to do this pattern (add a defaultColumns prop??)
 export const BlankOwidTable = () =>
     new OwidTable(undefined, [{ slug: OwidTableSlugs.entityName }])
+
+// todo: make more robust
+const guessEntityNameColumnSlug = (table: OwidTable) => {
+    const hit = ["location", "country"].find((guess) => table.has(guess))
+    return hit ?? table.columnSlugs[0]
+}
