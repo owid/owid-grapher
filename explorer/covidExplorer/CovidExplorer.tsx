@@ -87,6 +87,7 @@ import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { Timer } from "coreTable/CoreTableUtils"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -663,7 +664,12 @@ export class CovidExplorer
     }
 
     @computed get params() {
-        return this.writeableParams.toQueryParams
+        return {
+            ...this.writeableParams.toQueryParams,
+            country: EntityUrlBuilder.entitiesToQueryParam(
+                Array.from(this.selectionArray.selectedEntityCodes)
+            ),
+        }
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []
