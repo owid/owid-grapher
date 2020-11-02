@@ -510,12 +510,14 @@ describe("time domain", () => {
 describe("tolerance", () => {
     const table = new OwidTable(
         `gdp,year,entityName,entityId,entityCode
-,2000,usa,1,
-0,2001,usa,1,
-,2002,usa,1,
-,2003,usa,1,
-2,2004,uk,2,
-1,2005,usa,1,`,
+,2000,france,1,
+2,2000,uk,2,
+0,2001,france,1,
+,2002,france,1,
+,2003,france,1,
+3,2004,uk,2,
+1,2005,france,1,
+,2006,france,1,`,
         [
             { slug: "gdp", type: ColumnTypeNames.Numeric },
             { slug: "year", type: ColumnTypeNames.Year },
@@ -527,57 +529,68 @@ describe("tolerance", () => {
     }
 
     // Applying the tolerance twice to ensure operation is idempotent.
-    ;[applyTolerance(table), applyTolerance(applyTolerance(table))].forEach(
-        (toleranceTable, index) => {
-            it(
-                index === 0
-                    ? "applies tolerance to a column"
-                    : "tolerance application is idempotent",
-                () => {
-                    expect(toleranceTable.rows).toEqual(
-                        expect.arrayContaining([
-                            expect.objectContaining({
-                                entityName: "usa",
-                                gdp: 0,
-                                year: 2000,
-                                "gdp-originalTime": 2001,
-                            }),
-                        ])
-                    )
-                    expect(toleranceTable.rows).toEqual(
-                        expect.arrayContaining([
-                            expect.objectContaining({
-                                entityName: "usa",
-                                gdp: InvalidCellTypes.NoValueWithinTolerance,
-                                year: 2003,
-                                "gdp-originalTime": 2003,
-                            }),
-                        ])
-                    )
-                    expect(toleranceTable.rows).toEqual(
-                        expect.arrayContaining([
-                            expect.objectContaining({
-                                entityName: "uk",
-                                gdp: 2,
-                                year: 2004,
-                                "gdp-originalTime": 2004,
-                            }),
-                        ])
-                    )
-                    expect(toleranceTable.rows).toEqual(
-                        expect.arrayContaining([
-                            expect.objectContaining({
-                                entityName: "uk",
-                                gdp: 2,
-                                year: 2005,
-                                "gdp-originalTime": 2004,
-                            }),
-                        ])
-                    )
-                }
-            )
-        }
-    )
+    it("applies tolerance to a column", () => {
+        const toleranceTable = applyTolerance(table)
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 0,
+                    year: 2000,
+                    "gdp-originalTime": 2001,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: InvalidCellTypes.NoValueWithinTolerance,
+                    year: 2003,
+                    "gdp-originalTime": 2003,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 3,
+                    year: 2004,
+                    "gdp-originalTime": 2004,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 3,
+                    year: 2005,
+                    "gdp-originalTime": 2004,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 1,
+                    year: 2006,
+                    "gdp-originalTime": 2005,
+                }),
+            ])
+        )
+        expect(
+            toleranceTable.rows.filter((row) => isNaN(row.year)).length
+        ).toEqual(0)
+    })
+
+    it("tolerance application is idempotent", () => {
+        expect(applyTolerance(table).rows).toEqual(
+            applyTolerance(applyTolerance(table)).rows
+        )
+    })
 })
 
 it("assigns originalTime as 'time' in owidRows", () => {

@@ -500,20 +500,25 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
 
-        const maybeTimeColumnSlug =
+        const timeColumnOfTable =
+            this.timeColumn ??
+            // CovidTable does not have a day or year column so we need to use time.
+            (this.get(OwidTableSlugs.time) as CoreColumn)
+
+        const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
             timeColumnSlugFromColumnDef(columnDef)
-        const timeColumn =
-            this.get(maybeTimeColumnSlug) ??
-            (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
+        const timeColumnOfValue =
+            this.get(maybeTimeColumnOfValue) ??
+            (this.get(OwidTableSlugs.time) as CoreColumn)
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
 
         let columnStore: CoreColumnStore
         if (tolerance) {
             const withAllRows = this.complete([
                 OwidTableSlugs.entityName,
-                timeColumn.slug,
-            ]).sortBy([OwidTableSlugs.entityName, timeColumn.slug])
+                timeColumnOfTable.slug,
+            ]).sortBy([OwidTableSlugs.entityName, timeColumnOfTable.slug])
 
             const groupBoundaries = withAllRows.groupBoundaries(
                 OwidTableSlugs.entityName
@@ -522,10 +527,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 .get(columnSlug)!
                 .allValues.slice() as number[]
             const newTimes = withAllRows
-                .get(timeColumn.slug)!
+                .get(timeColumnOfValue.slug)!
                 .allValues.slice() as Time[]
 
-            groupBoundaries.forEach((_, index) => {
+            groupBoundaries.forEach((index) => {
                 interpolateColumnsWithTolerance(
                     newValues,
                     newTimes,
@@ -544,7 +549,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             // If there is no tolerance still append the tolerance column
             columnStore = {
                 ...this.columnStore,
-                [originalTimeSlug]: timeColumn.allValues,
+                [originalTimeSlug]: timeColumnOfValue.allValues,
             }
         }
 
@@ -553,7 +558,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             [
                 ...this.defs,
                 {
-                    ...timeColumn.def,
+                    ...timeColumnOfValue.def,
                     slug: originalTimeSlug,
                 },
             ],
