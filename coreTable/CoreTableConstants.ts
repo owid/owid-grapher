@@ -35,6 +35,7 @@ export enum ColumnTypeNames {
     Age = "Age",
     Ratio = "Ratio",
     Year = "Year",
+    Day = "Day",
     Date = "Date",
     Color = "Color",
 }

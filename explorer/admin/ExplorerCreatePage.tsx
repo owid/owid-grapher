@@ -133,7 +133,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             contextMenu: true,
             data,
             manualColumnResize: [150, 200],
-            minCols: 8,
+            minCols: 12,
             minRows: 20,
             minSpareRows: 20,
             rowHeaders: true,

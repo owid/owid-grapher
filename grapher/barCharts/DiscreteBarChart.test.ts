@@ -94,9 +94,9 @@ describe("barcharts with columns as the series", () => {
 
     it("displays interpolated date when value is not from current year", () => {
         const csv = `gdp,year,entityName,entityCode,entityId
-        1000,2019,USA,,
-        1001,2019,UK,,
-        1002,2020,UK,,`
+1000,2019,USA,,
+1001,2019,UK,,
+1002,2020,UK,,`
 
         const table = new OwidTable(csv)
             .interpolateColumnWithTolerance("gdp", 1)

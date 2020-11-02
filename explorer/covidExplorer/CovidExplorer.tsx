@@ -687,10 +687,9 @@ export class CovidExplorer
     }
 
     @computed private get yColumn() {
-        const slug = this.constrainedParams.yColumnSlug
-        const col = this.covidTableWithAdditionalColumns.get(slug)
-        if (!col) debugger
-        return col
+        return this.covidTableWithAdditionalColumns.get(
+            this.constrainedParams.yColumnSlug
+        )
     }
 
     @computed private get xColumn() {

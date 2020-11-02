@@ -481,7 +481,7 @@ describe("time domain", () => {
             [
                 { slug: "gdp", type: ColumnTypeNames.Numeric },
                 { slug: "perCapita", type: ColumnTypeNames.Numeric },
-                { slug: "day", type: ColumnTypeNames.Date },
+                { slug: "day", type: ColumnTypeNames.Day },
             ]
         )
 
@@ -497,7 +497,7 @@ describe("time domain", () => {
 20,1970,usa,,`,
             [
                 { slug: "gdp", type: ColumnTypeNames.Numeric },
-                { slug: "day", type: ColumnTypeNames.Date },
+                { slug: "day", type: ColumnTypeNames.Day },
             ]
         )
 

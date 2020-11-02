@@ -39,6 +39,7 @@ export const columnStoreToRows = (columnStore: CoreColumnStore) => {
 
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
+const numberOnly = /^-?\d+\.?\d*$/
 export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
     const slugToType: any = {}
     numericSlugs?.forEach((slug) => {
@@ -61,7 +62,7 @@ export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
                 continue
             }
 
-            if (isNaN(number)) {
+            if (isNaN(number) || !numberOnly.test(value)) {
                 object[columnSlug] = value
                 slugToType[columnSlug] = "string"
                 continue
@@ -106,8 +107,8 @@ export const guessColumnDefFromSlugAndRow = (
     if (slug === "day")
         return {
             slug: "day",
-            type: ColumnTypeNames.Date,
-            name: "Date",
+            type: ColumnTypeNames.Day,
+            name: "Day",
         }
 
     if (slug === "year")
@@ -120,6 +121,13 @@ export const guessColumnDefFromSlugAndRow = (
     if (slug === OwidTableSlugs.entityName) return OwidEntityNameColumnDef
     if (slug === OwidTableSlugs.entityCode) return OwidEntityCodeColumnDef
     if (slug === OwidTableSlugs.entityId) return OwidEntityIdColumnDef
+
+    if (slug === "date")
+        return {
+            slug: "date",
+            type: ColumnTypeNames.Date,
+            name: "Date",
+        }
 
     if (valueType === "number")
         return {
