@@ -1022,3 +1022,16 @@ export const findIndexFast = (
     }
     return -1
 }
+
+export const logMe = (
+    target: any,
+    propertyName: string,
+    descriptor: TypedPropertyDescriptor<any>
+) => {
+    const originalMethod = descriptor.value
+    descriptor.value = function (...args: any[]) {
+        console.log(`Running ${propertyName} with '${args}'`)
+        return originalMethod.apply(this, args)
+    }
+    return descriptor
+}
