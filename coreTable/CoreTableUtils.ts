@@ -564,3 +564,14 @@ const makeSortByFn = (
         return 0
     }
 }
+
+export const emptyColumnsInFirstRowInDelimited = (str: string) => {
+    // todo: don't split a big string here, just do a faster first line scan
+    const shortCsv = parseDelimited(str.split("\n").slice(0, 2).join("\n"))
+    const firstRow: any = shortCsv[0]
+    const emptySlugs: string[] = []
+    Object.keys(firstRow).forEach((slug) => {
+        if (firstRow[slug] === "") emptySlugs.push(slug)
+    })
+    return emptySlugs
+}

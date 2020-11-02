@@ -2,6 +2,7 @@
 
 import { CoreMatrix } from "./CoreTableConstants"
 import {
+    emptyColumnsInFirstRowInDelimited,
     getDropIndexes,
     imemo,
     interpolateColumnsWithTolerance,
@@ -182,6 +183,18 @@ describe(parseDelimited, () => {
         expect(parseDelimited(str)).toEqual(
             parseDelimited(str.replace(/,/g, "\t"))
         )
+    })
+})
+
+describe(emptyColumnsInFirstRowInDelimited, () => {
+    it("detects slugs needing reparsing", () => {
+        const str = `location,new_cases,new_tests
+usa,,
+canada,,`
+        expect(emptyColumnsInFirstRowInDelimited(str)).toEqual([
+            "new_cases",
+            "new_tests",
+        ])
     })
 })
 

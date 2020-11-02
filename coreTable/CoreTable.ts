@@ -56,6 +56,7 @@ import {
     rowsFromMatrix,
     cartesianProduct,
     sortColumnStore,
+    emptyColumnsInFirstRowInDelimited,
 } from "./CoreTableUtils"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -265,12 +266,12 @@ export class CoreTable<
 
     private get colsToParse() {
         const { inputType } = this
-        if (
-            inputType === InputType.Delimited ||
-            inputType === InputType.ColumnStore ||
-            this.parent
-        )
-            return []
+        if (inputType === InputType.Delimited)
+            return this.getColumns(
+                emptyColumnsInFirstRowInDelimited(this.originalInput as string)
+            ) // Our autotyping is poor if the first value in a column is empty
+
+        if (inputType === InputType.ColumnStore || this.parent) return []
 
         const firstInputRow = makeRowFromColumnStore(0, this.inputColumnStore)
         if (!firstInputRow) return []
