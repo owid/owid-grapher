@@ -9,7 +9,6 @@ import {
     IReactionDisposer,
     Lambda,
     reaction,
-    autorun,
 } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -58,7 +57,7 @@ import {
     ScaleType,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
-import { queryParamsToStr } from "utils/client/url"
+import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import {
     fetchRequiredData,
     perCapitaDivisorByMetric,
@@ -620,6 +619,10 @@ export class CovidExplorer
             this
         )
 
+        grapher.populateFromQueryParams(
+            strToQueryParams(this.props.queryStr ?? "")
+        )
+
         this.selectionArray.setSelectedEntitiesByCode(
             Array.from(this.writeableParams.selectedCountryCodes.values())
         )
@@ -887,7 +890,6 @@ export const PerfTest = async () => {
     // table.dumpPipeline()
     // timer.tick("dumped pipelin")
 
-    const table = MegaCsvToCovidExplorerTable(megaCsv).appendEveryColumn()
     timer.tick("csv to covid explorer table with every possible column")
     // table.dumpPipeline()
     // timer.tick("dumped pipelin")
