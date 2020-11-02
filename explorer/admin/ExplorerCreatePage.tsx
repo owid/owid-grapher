@@ -180,7 +180,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             Preview
                         </Link>
                     </div>
-                    <div style={{ height: "500px", overflow: "scroll" }}>
+                    <div style={{ height: "400px", overflow: "scroll" }}>
                         <SwitcherExplorer
                             chartConfigs={Object.values(this.chartConfigs)}
                             explorerProgram={this.program}
@@ -188,7 +188,13 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             slug={""}
                         />
                     </div>
-                    <div>
+                    <div
+                        style={{
+                            height: "calc(100% - 400px)",
+                            width: "100%",
+                            overflow: "scroll",
+                        }}
+                    >
                         <HotTable
                             settings={hotSettings}
                             ref={this.hotTableComponent as any}
