@@ -69,7 +69,7 @@ export class SwitcherExplorer
 
     selectionArray = new SelectionArray(this)
     @observable selectedEntityNames = EntityUrlBuilder.queryParamToEntities(
-        this.explorerProgram.queryString
+        strToQueryParams(this.explorerProgram.queryString ?? "").country ?? ""
     )
     @observable availableEntities = []
 
