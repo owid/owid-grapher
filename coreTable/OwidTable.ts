@@ -56,7 +56,7 @@ import {
     interpolateColumnsWithTolerance,
     replaceDef,
 } from "./CoreTableUtils"
-import { CoreColumn } from "./CoreTableColumns"
+import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -260,12 +260,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // Ensures the table has an EntityName column
-    withEntityNameColumn() {
-        if (this.has(OwidTableSlugs.entityName)) return this
-        return this.duplicateColumn(guessEntityNameColumnSlug(this), {
-            slug: OwidTableSlugs.entityName,
-        })
+    // Ensures the table has the needed columns. todo: cleanup
+    withRequiredColumns() {
+        let table = this
+        if (!table.has(OwidTableSlugs.entityName))
+            table = table.renameColumn(
+                guessEntityNameColumnSlug(table),
+                OwidTableSlugs.entityName
+            )
+        if (!table.has(OwidTableSlugs.entityCode) && table.has("iso_code"))
+            table = table.renameColumn("iso_code", OwidTableSlugs.entityCode)
+        return table
     }
 
     private sumsByTime(columnSlug: ColumnSlug) {
@@ -648,7 +653,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
 // This just assures that even an emtpty OwidTable will have an entityName column. Probably a cleaner way to do this pattern (add a defaultColumns prop??)
 export const BlankOwidTable = () =>
-    new OwidTable(undefined, [{ slug: OwidTableSlugs.entityName }])
+    new OwidTable(undefined, [
+        { slug: OwidTableSlugs.entityName },
+        { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
+    ])
 
 // todo: make more robust
 const guessEntityNameColumnSlug = (table: OwidTable) => {

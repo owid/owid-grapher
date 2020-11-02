@@ -480,7 +480,7 @@ iceland,1`)
             ],
             [
                 { slug: "entityName" },
-                { slug: "day", type: "Date" as any },
+                { slug: "day", type: "Day" as any },
                 { slug: "annotation" },
             ]
         )

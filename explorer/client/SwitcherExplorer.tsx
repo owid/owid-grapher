@@ -124,7 +124,7 @@ export class SwitcherExplorer
     @action.bound async fetchData(path: string) {
         const csv = await fetchText(path)
         const table = new OwidTable(csv)
-        this.grapher!.inputTable = table.withEntityNameColumn()
+        this.grapher!.inputTable = table.withRequiredColumns()
         this.addEntityOptionsToPickerWhenReady()
     }
 

@@ -265,30 +265,42 @@ export class CoreTable<
     }
 
     private get colsToParse() {
-        const { inputType } = this
-        if (inputType === InputType.Delimited)
-            return this.getColumns(
-                emptyColumnsInFirstRowInDelimited(this.originalInput as string)
+        const { inputType, columnsAsArray, inputColumnStore } = this
+        const firstInputRow = makeRowFromColumnStore(0, inputColumnStore)
+        if (inputType === InputType.Delimited) {
+            const missingTypes = new Set(
+                this.getColumns(
+                    emptyColumnsInFirstRowInDelimited(
+                        this.originalInput as string
+                    )
+                )
             ) // Our autotyping is poor if the first value in a column is empty
+            return columnsAsArray.filter(
+                (col) =>
+                    col.needsParsing(firstInputRow[col.slug]) ||
+                    missingTypes.has(col)
+            )
+        }
 
-        if (inputType === InputType.ColumnStore || this.parent) return []
-
-        const firstInputRow = makeRowFromColumnStore(0, this.inputColumnStore)
-        if (!firstInputRow) return []
-        const allCols = this.columnsAsArray
+        if (
+            inputType === InputType.ColumnStore ||
+            this.parent ||
+            !firstInputRow
+        )
+            return []
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of computed columns.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
         if (this.isRoot) {
             const colsExceptForComputeds = differenceBy(
-                allCols,
+                columnsAsArray,
                 this.newProvidedColumnDefsToCompute,
                 (item) => item.slug
             )
             return colsExceptForComputeds
         }
 
-        return allCols.filter((col) =>
+        return columnsAsArray.filter((col) =>
             col.needsParsing(firstInputRow[col.slug])
         )
     }
@@ -349,6 +361,7 @@ export class CoreTable<
     }
 
     getTimesAtIndices(indices: number[]) {
+        if (!indices.length) return []
         return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
     }
 
@@ -398,6 +411,7 @@ export class CoreTable<
         return this._columns.has(columnSlug)
     }
 
+    // todo: move this. time methods should not be in CoreTable, in OwidTable instead (which is really TimeSeriesTable).
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
@@ -405,16 +419,15 @@ export class CoreTable<
         // For now, return a day column first if present. But see note above about removing this method.
         const col =
             this.columnsAsArray.find(
+                (col) => col instanceof ColumnTypeMap.Day
+            ) ??
+            this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Date
-            ) ||
+            ) ??
             this.columnsAsArray.find((col) => col instanceof ColumnTypeMap.Year)
-        return col ? col : this.get(this.timeColumnSlug)
-    }
 
-    @imemo private get timeColumnSlug() {
-        if (this.has(OwidTableSlugs.time)) return OwidTableSlugs.time
-        if (this.has(OwidTableSlugs.day)) return OwidTableSlugs.day
-        return OwidTableSlugs.year
+        if (!col) throw new Error(`No time column found`)
+        return col
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
@@ -997,6 +1010,10 @@ export class CoreTable<
                 .map((index) => (this.isRowEmpty(index) ? index : null))
                 .filter(isPresent)
         )
+    }
+
+    renameColumn(oldSlug: ColumnSlug, newSlug: ColumnSlug) {
+        return this.renameColumns({ [oldSlug]: newSlug })
     }
 
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.

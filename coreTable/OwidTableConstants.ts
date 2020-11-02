@@ -17,6 +17,7 @@ export enum OwidTableSlugs {
     time = "time",
     day = "day",
     year = "year",
+    date = "date",
 }
 
 enum OwidTableNames {

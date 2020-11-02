@@ -12,6 +12,7 @@ import {
     sortNumeric,
     range,
     union,
+    dateDiffInDays,
 } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import {
@@ -28,6 +29,7 @@ import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
+import moment from "moment"
 
 interface ColumnSummary {
     numInvalidCells: number
@@ -290,7 +292,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         // If we already tried to parse it and failed we consider it "parsed"
         if (value instanceof InvalidCell) return false
 
-        // If the passed value is of the correc type consider the column parsed.
+        // If the passed value is of the correct type consider the column parsed.
         if (typeof value === this.jsType) return false
         return true
     }
@@ -536,6 +538,7 @@ class IntegerColumn extends NumericColumn {
     }
 }
 
+// todo: cleanup time columns. current schema is a little incorrect.
 abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
@@ -560,7 +563,7 @@ class YearColumn extends TimeColumn {
     }
 }
 
-class DateColumn extends TimeColumn {
+class DayColumn extends TimeColumn {
     formatValue(value: number) {
         return formatDay(value)
     }
@@ -571,6 +574,21 @@ class DateColumn extends TimeColumn {
 
     formatForCsv(value: number) {
         return formatDay(value, { format: "YYYY-MM-DD" })
+    }
+}
+
+const dateToTimeCache = new Map<string, Time>() // Cache for performance
+class DateColumn extends DayColumn {
+    parse(val: any) {
+        if (!dateToTimeCache.has(val))
+            dateToTimeCache.set(
+                val,
+                dateDiffInDays(
+                    moment.utc(val).toDate(),
+                    moment.utc("2020-01-21").toDate()
+                )
+            )
+        return dateToTimeCache.get(val)!
     }
 }
 
@@ -671,6 +689,7 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     Region: RegionColumn,
     Continent: ContinentColumn,
     Numeric: NumericColumn,
+    Day: DayColumn,
     Date: DateColumn,
     Year: YearColumn,
     Boolean: BooleanColumn,

@@ -73,7 +73,7 @@ it("will combine entity and column name when we set multi country multi column",
 describe("colors", () => {
     const table = new OwidTable({
         entityName: ["usa", "canada", "usa", "canada"],
-        time: [2000, 2000, 2001, 2001],
+        year: [2000, 2000, 2001, 2001],
         gdp: [100, 200, 200, 300],
         entityColor: ["blue", "red", "blue", "red"],
     })

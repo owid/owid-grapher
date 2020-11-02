@@ -217,7 +217,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 ])
             )
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
             expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
             expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
@@ -278,7 +278,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 ])
             )
             expect(
-                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Date
+                table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
             expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
                 -5,

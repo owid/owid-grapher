@@ -242,8 +242,8 @@ const timeColumnDefFromLegacyVariable = (
     return variable.display?.yearIsDay
         ? {
               slug: OwidTableSlugs.day,
-              type: ColumnTypeNames.Date,
-              name: "Date",
+              type: ColumnTypeNames.Day,
+              name: "Day",
           }
         : {
               slug: OwidTableSlugs.year,
