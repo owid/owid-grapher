@@ -115,17 +115,20 @@ export class SwitcherExplorer
         const table = this.explorerProgram.getTableCode(tableSlug)
         if (!table) return BlankOwidTable()
         if (table.url) {
+            const cached = this.tableCache.get(table.url)
+            if (cached) return cached
             this.fetchData(table.url)
             return BlankOwidTable()
         }
         return new OwidTable(table.block).dropEmptyRows()
     }
 
-    @action.bound async fetchData(path: string) {
+    private tableCache = new Map<string, OwidTable>()
+    @action.bound private async fetchData(path: string) {
         const csv = await fetchText(path)
-        const table = new OwidTable(csv)
-        this.grapher!.inputTable = table.withRequiredColumns()
+        this.grapher!.inputTable = new OwidTable(csv).withRequiredColumns()
         this.addEntityOptionsToPickerWhenReady()
+        this.tableCache.set(path, this.grapher!.inputTable)
     }
 
     componentDidMount() {
