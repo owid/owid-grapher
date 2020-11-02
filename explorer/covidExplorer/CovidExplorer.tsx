@@ -1,6 +1,9 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+} from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import {
     computed,
@@ -660,13 +663,20 @@ export class CovidExplorer
         new UrlBinder().bindToWindow(url)
     }
 
+    @computed private get paramsFromGrapher(): GrapherQueryParams {
+        return {
+            tab: this.grapher.tab,
+            time: this.grapher.timeParam,
+        }
+    }
+
     @computed get params() {
         return {
             ...this.writeableParams.toQueryParams,
+            ...this.paramsFromGrapher,
             country: EntityUrlBuilder.entitiesToQueryParam(
                 Array.from(this.selectionArray.selectedEntityCodes)
             ),
-            tab: this.grapher.tab,
         }
     }
 
