@@ -591,6 +591,39 @@ describe("tolerance", () => {
             applyTolerance(applyTolerance(table)).rows
         )
     })
+
+    it("doesn't leak between entities", () => {
+        const table = new OwidTable(
+            `gdp,year,entityName,entityId,entityCode
+,2000,france,1,
+,2000,germany,1,
+,2001,germany,1,
+3,2000,uk,2,
+,2001,uk,2,`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+        const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
+        // tests assume sorted by [entityName, year]
+        expect(toleranceTable.get("entityName")?.allValues).toEqual([
+            "france",
+            "france",
+            "germany",
+            "germany",
+            "uk",
+            "uk",
+        ])
+        expect(toleranceTable.get("gdp")?.allValues).toEqual([
+            InvalidCellTypes.NoValueWithinTolerance,
+            InvalidCellTypes.NoValueWithinTolerance,
+            InvalidCellTypes.NoValueWithinTolerance,
+            InvalidCellTypes.NoValueWithinTolerance,
+            3,
+            3,
+        ])
+    })
 })
 
 it("assigns originalTime as 'time' in owidRows", () => {
