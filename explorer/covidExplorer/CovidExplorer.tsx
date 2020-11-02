@@ -666,6 +666,7 @@ export class CovidExplorer
             country: EntityUrlBuilder.entitiesToQueryParam(
                 Array.from(this.selectionArray.selectedEntityCodes)
             ),
+            tab: this.grapher.tab,
         }
     }
 
