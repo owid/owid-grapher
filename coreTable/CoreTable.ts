@@ -424,7 +424,10 @@ export class CoreTable<
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Date
             ) ??
-            this.columnsAsArray.find((col) => col instanceof ColumnTypeMap.Year)
+            this.columnsAsArray.find(
+                (col) => col instanceof ColumnTypeMap.Year
+            ) ??
+            this.get(OwidTableSlugs.time)
         )
     }
 
@@ -623,6 +626,7 @@ export class CoreTable<
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
     protected groupBoundaries(columnSlug: ColumnSlug) {
+        const values = this.get(columnSlug).allValues
         const arr: number[] = []
         let last: CoreValueType
         this.get(columnSlug).allValues.forEach((val, index) => {
