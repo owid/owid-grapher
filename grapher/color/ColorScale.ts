@@ -110,7 +110,11 @@ export class ColorScale {
     }
 
     @computed get sortedNumericValues() {
-        return this.colorScaleColumn?.valuesAscending ?? []
+        return (
+            this.colorScaleColumn?.valuesAscending?.filter(
+                (x) => typeof x === "number"
+            ) ?? []
+        )
     }
 
     @computed private get minPossibleValue() {
