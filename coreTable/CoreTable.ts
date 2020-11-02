@@ -620,6 +620,10 @@ export class CoreTable<
                 last = val
             }
         })
+        // Include the end of the last group, which doesn't result in a change in value above.
+        if (values && values.length) {
+            arr.push(values.length)
+        }
         return arr
     }
 

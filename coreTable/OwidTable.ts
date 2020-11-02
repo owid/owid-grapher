@@ -525,7 +525,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 .get(timeColumn.slug)!
                 .allValues.slice() as Time[]
 
-            groupBoundaries.forEach((index) => {
+            groupBoundaries.forEach((_, index) => {
                 interpolateColumnsWithTolerance(
                     newValues,
                     newTimes,
