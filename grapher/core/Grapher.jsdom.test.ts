@@ -160,6 +160,8 @@ const getGrapher = () =>
                 "2": { name: "Ireland", code: "IRL", id: 2 },
             },
         },
+        minTime: -5000,
+        maxTime: 5000,
     })
 
 function fromQueryParams(
@@ -626,7 +628,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-describe("year parameter", () => {
+describe("year parameter (applies to map only)", () => {
     describe("with years", () => {
         const tests: {
             name: string
@@ -659,6 +661,7 @@ describe("year parameter", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
+                    tab: GrapherTabOption.map,
                     map: { time: test.param },
                 })
                 expect(params.time).toEqual(test.query)
@@ -726,6 +729,7 @@ describe("year parameter", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
+                        tab: GrapherTabOption.map,
                         map: { time: test.param },
                     })
                     const params = grapher.params
