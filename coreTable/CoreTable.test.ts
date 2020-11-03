@@ -17,6 +17,14 @@ describe("creating tables", () => {
         expect(table.columnNames).toEqual(["country", "population"])
     })
 
+    it("a table can be made from csv with columns defined in csv", () => {
+        const table = new CoreTable(sampleCsv, `slug,name
+country,Region
+population,Population in 2020`)
+        expect(table.numRows).toEqual(4)
+        expect(table.columnNames).toEqual(["Region", "Population in 2020"])
+    })
+
     it("you can create an empty table", () => {
         expect(new CoreTable().transformCategory).toEqual(
             TransformType.LoadFromRowStore
