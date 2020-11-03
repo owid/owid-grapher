@@ -144,7 +144,9 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     render() {
-        const { title, hideTitle, name, type } = this.props
+        const { title, name, type } = this.props
+        const hideTitle =
+            this.props.hideTitle || type === ExplorerControlType.Checkbox
         return (
             <div key={name} className={classNames("ExplorerControl", name)}>
                 <div
