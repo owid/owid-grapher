@@ -1,6 +1,9 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+} from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import {
     computed,
@@ -9,7 +12,6 @@ import {
     IReactionDisposer,
     Lambda,
     reaction,
-    autorun,
 } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -58,7 +60,7 @@ import {
     ScaleType,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
-import { queryParamsToStr } from "utils/client/url"
+import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import {
     fetchRequiredData,
     perCapitaDivisorByMetric,
@@ -87,6 +89,7 @@ import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { Timer } from "coreTable/CoreTableUtils"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -450,12 +453,6 @@ export class CovidExplorer
         }
     }
 
-    private perCapitaTitle(metric: MetricOptions) {
-        return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
-            : ""
-    }
-
     @computed private get chartTitle() {
         const params = this.constrainedParams
 
@@ -625,6 +622,10 @@ export class CovidExplorer
             this
         )
 
+        grapher.populateFromQueryParams(
+            strToQueryParams(this.props.queryStr ?? "")
+        )
+
         this.selectionArray.setSelectedEntitiesByCode(
             Array.from(this.writeableParams.selectedCountryCodes.values())
         )
@@ -662,8 +663,21 @@ export class CovidExplorer
         new UrlBinder().bindToWindow(url)
     }
 
+    @computed private get paramsFromGrapher(): GrapherQueryParams {
+        return {
+            tab: this.grapher.tab,
+            time: this.grapher.timeParam,
+        }
+    }
+
     @computed get params() {
-        return this.writeableParams.toQueryParams
+        return {
+            ...this.writeableParams.toQueryParams,
+            ...this.paramsFromGrapher,
+            country: EntityUrlBuilder.entitiesToQueryParam(
+                Array.from(this.selectionArray.selectedEntityCodes)
+            ),
+        }
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []
