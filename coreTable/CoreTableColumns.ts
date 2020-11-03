@@ -287,7 +287,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // We approximate whether a column is parsed simply by looking at the first row.
     needsParsing(value: any) {
         // Never parse computeds. The computed should return the correct JS type. Ideally we can provide some error messaging around this.
-        if (this.def.fn || this.def.values) return false
+        if (this.def.fn || this.def.values || this.def.transform) return false
 
         // If we already tried to parse it and failed we consider it "parsed"
         if (value instanceof InvalidCell) return false

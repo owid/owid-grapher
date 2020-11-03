@@ -61,6 +61,7 @@ import {
 } from "./CoreTableUtils"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
+import { applyTransforms } from "./Transforms"
 
 const TransformsRequiringCompute = new Set([
     TransformType.LoadFromColumnStore,
@@ -181,6 +182,9 @@ export class CoreTable<
                 columnStore,
                 inputColumnsToComputedColumns
             )
+
+        // Now we can run any transforms
+        columnStore = applyTransforms(columnStore, this.defs)
 
         return this.advancedOptions.filterMask
             ? this.advancedOptions.filterMask.apply(columnStore)
