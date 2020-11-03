@@ -4,12 +4,8 @@ import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { DataTable } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
-import {
-    ChartTypeName,
-    DimensionProperty,
-    GrapherTabOption,
-} from "grapher/core/GrapherConstants"
-import { childMortalityGrapher } from "./DataTable.sample"
+import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
+import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
 
 describe("when you render a table", () => {
     let view: ReactWrapper
@@ -104,48 +100,18 @@ describe("when you select a range of years", () => {
 })
 
 describe("when the table doesn't have data for all rows", () => {
-    const grapher = new Grapher({
-        tab: GrapherTabOption.table,
-        dimensions: [
-            {
-                variableId: 3512,
-                property: DimensionProperty.y,
-                display: {
-                    name: "",
-                    unit: "% of children under 5",
-                    tolerance: 1,
-                    isProjection: false,
-                },
-            },
-        ],
-        owidDataset: {
-            variables: {
-                "3512": {
-                    years: [2000, 2001, 2010, 2010],
-                    entities: [207, 33, 15, 207],
-                    values: [4, 22, 20, 34],
-                    id: 3512,
-                    shortUnit: "%",
-                },
-            },
-            entityKey: {
-                "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                "207": { name: "Iceland", id: 207, code: "ISL" },
-                "33": { name: "France", id: 33, code: "FRA" },
-            },
-        },
-    })
+    const grapher = IncompleteDataTable()
     grapher.timelineHandleTimeBounds = [2000, 2000]
     const view = shallow(<DataTable manager={grapher} />)
 
-    it.skip("renders no value when data is not available for years within the tolerance", () => {
-        expect(view.find("tbody .dimension").at(1).first().text()).toBe("")
+    it("renders no value when data is not available for years within the tolerance", () => {
+        expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
 
     // todo: This test should be reenabled, but the problem is an undefined value somewhere in the "columnsWithValues" function
     // I couldn't quite crack it and think we could reduce the size of the columnsWithValues method
-    it.skip("renders a tolerance notice when data is not from targetYear", () => {
-        expect(view.find(".closest-time-notice-icon").text()).toContain("2000")
+    it("renders a tolerance notice when data is not from targetYear", () => {
+        expect(view.find(".closest-time-notice-icon").text()).toContain("2001")
     })
 })
 
