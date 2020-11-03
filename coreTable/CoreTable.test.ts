@@ -18,9 +18,12 @@ describe("creating tables", () => {
     })
 
     it("a table can be made from csv with columns defined in csv", () => {
-        const table = new CoreTable(sampleCsv, `slug,name
+        const table = new CoreTable(
+            sampleCsv,
+            `slug,name
 country,Region
-population,Population in 2020`)
+population,Population in 2020`
+        )
         expect(table.numRows).toEqual(4)
         expect(table.columnNames).toEqual(["Region", "Population in 2020"])
     })
