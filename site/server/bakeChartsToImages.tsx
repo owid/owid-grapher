@@ -84,18 +84,21 @@ export async function bakeChartsToImages(
     await fs.mkdirp(outDir)
     const chartsBySlug = await getChartsAndRedirectsBySlug()
 
-    for (const urlStr of chartUrls) {
-        const url = parseUrl(urlStr)
-        const slug = lodash.last(url.pathname.split("/")) as string
-        const jsonConfig = chartsBySlug.get(slug)
-        if (jsonConfig) {
-            bakeChartToImage(
-                jsonConfig,
-                outDir,
-                slug,
-                (url.query as unknown) as string,
-                optimizeSvgs
-            )
-        }
-    }
+    return Promise.all(
+        chartUrls.map((urlStr) => {
+            const url = parseUrl(urlStr)
+            const slug = lodash.last(url.pathname.split("/")) as string
+            const jsonConfig = chartsBySlug.get(slug)
+            if (jsonConfig) {
+                return bakeChartToImage(
+                    jsonConfig,
+                    outDir,
+                    slug,
+                    (url.query as unknown) as string,
+                    optimizeSvgs
+                )
+            }
+            return undefined
+        })
+    )
 }
