@@ -5,22 +5,6 @@ import {
 } from "./CoreTableConstants"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 
-const asPercentageOf = (
-    columnStore: CoreColumnStore,
-    numeratorSlug: ColumnSlug,
-    denominatorSlug: ColumnSlug
-) => {
-    const numeratorValues = columnStore[numeratorSlug] as number[]
-    const denominatorValues = columnStore[denominatorSlug] as number[]
-    return denominatorValues.map((denominator, index) => {
-        if (denominator === 0) return InvalidCellTypes.DivideByZeroError
-        const numerator = numeratorValues[index]
-        if (!isValid(numerator)) return numerator
-        if (!isValid(denominator)) return denominator
-        return (100 * numerator) / denominator
-    })
-}
-
 const timeSinceEntityExceededThreshold = (
     columnStore: CoreColumnStore,
     timeSlug: ColumnSlug,
@@ -48,9 +32,36 @@ const timeSinceEntityExceededThreshold = (
     })
 }
 
+const divideBy = (
+    columnStore: CoreColumnStore,
+    numeratorSlug: ColumnSlug,
+    denominatorSlug: ColumnSlug
+) => {
+    const numeratorValues = columnStore[numeratorSlug] as number[]
+    const denominatorValues = columnStore[denominatorSlug] as number[]
+    return denominatorValues.map((denominator, index) => {
+        if (denominator === 0) return InvalidCellTypes.DivideByZeroError
+        const numerator = numeratorValues[index]
+        if (!isValid(numerator)) return numerator
+        if (!isValid(denominator)) return denominator
+        return numerator / denominator
+    })
+}
+
+// Todo: remove?
+const asPercentageOf = (
+    columnStore: CoreColumnStore,
+    numeratorSlug: ColumnSlug,
+    denominatorSlug: ColumnSlug
+) =>
+    divideBy(columnStore, numeratorSlug, denominatorSlug).map((num) =>
+        typeof num === "number" ? 100 * num : num
+    )
+
 const availableTransforms: any = {
     asPercentageOf: asPercentageOf,
     timeSinceEntityExceededThreshold: timeSinceEntityExceededThreshold,
+    divideBy: divideBy,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
