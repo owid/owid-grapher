@@ -57,6 +57,7 @@ import {
     cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
+    columnDefinitionsFromDelimited,
 } from "./CoreTableUtils"
 import { InvalidCellTypes, isValid } from "./InvalidCells"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -96,7 +97,7 @@ export class CoreTable<
     private inputColumnDefs: COL_DEF_TYPE[]
     constructor(
         input: CoreTableInputOption = [],
-        inputColumnDefs: COL_DEF_TYPE[] = [],
+        inputColumnDefs: COL_DEF_TYPE[] | string = [],
         advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
@@ -105,7 +106,12 @@ export class CoreTable<
         this.originalInput = input
         this.tableDescription = tableDescription
         this.parent = parent as this
-        this.inputColumnDefs = inputColumnDefs
+        this.inputColumnDefs =
+            typeof inputColumnDefs === "string"
+                ? (columnDefinitionsFromDelimited(
+                      inputColumnDefs
+                  ) as COL_DEF_TYPE[])
+                : inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
         this.advancedOptions = advancedOptions
 
@@ -169,7 +175,7 @@ export class CoreTable<
                 inputColumnsToParsedColumnStore
             )
 
-        // Adppend any computed columns
+        // Append any computed columns
         if (Object.keys(inputColumnsToComputedColumns).length)
             columnStore = Object.assign(
                 columnStore,

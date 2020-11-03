@@ -583,3 +583,10 @@ export const emptyColumnsInFirstRowInDelimited = (str: string) => {
     })
     return emptySlugs
 }
+
+/**
+ * Allows you to store your column definitions in CSV/TSV like:
+ * slug,name,type etc.
+ */
+export const columnDefinitionsFromDelimited = (delimited: string) =>
+    parseDelimited(delimited.trim()).filter((def: any) => !!def.slug)
