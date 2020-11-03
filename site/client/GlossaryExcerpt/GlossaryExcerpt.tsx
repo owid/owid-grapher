@@ -1,4 +1,6 @@
 import React from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 
 export const GlossaryExcerpt_name = "GlossaryExcerpt"
 
@@ -12,7 +14,10 @@ export const GlossaryExcerpt = ({
     return (
         <span className="glossary-excerpt">
             {excerpt}
-            <a href={`/glossary/${slug}`}>Read more</a>
+            <a target="_blank" rel="noopener" href={`/glossary#${slug}`}>
+                Read more
+                <FontAwesomeIcon icon={faExternalLinkAlt} />
+            </a>
         </span>
     )
 }

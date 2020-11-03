@@ -9,5 +9,11 @@
     a {
         display: block;
         margin-top: $vertical-spacing;
+
+        svg {
+            font-size: 0.8em;
+            margin-left: 0.5rem;
+            margin-bottom: 1px;
+        }
     }
 }
