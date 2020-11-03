@@ -21,8 +21,36 @@ const asPercentageOf = (
     })
 }
 
+const timeSinceEntityExceededThreshold = (
+    columnStore: CoreColumnStore,
+    timeSlug: ColumnSlug,
+    entitySlug: ColumnSlug,
+    columnSlug: ColumnSlug,
+    thresholdAsString: string
+) => {
+    const threshold = parseFloat(thresholdAsString)
+    const groupValues = columnStore[entitySlug] as string[]
+    const columnValues = columnStore[columnSlug] as number[]
+    const timeValues = columnStore[timeSlug] as number[]
+    // NB: This assumes rows sorted by country then time. Would be better to do that more explicitly.
+    let currentGroup: string
+    let groupExceededThresholdAtTime: number
+    return columnValues.map((value, index) => {
+        const group = groupValues[index]
+        if (group !== currentGroup) {
+            if (!isValid(value)) return value
+            if (value < threshold) return InvalidCellTypes.ValueTooLow
+
+            currentGroup = group
+            groupExceededThresholdAtTime = timeValues[index]
+        }
+        return groupExceededThresholdAtTime
+    })
+}
+
 const availableTransforms: any = {
     asPercentageOf: asPercentageOf,
+    timeSinceEntityExceededThreshold: timeSinceEntityExceededThreshold,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
