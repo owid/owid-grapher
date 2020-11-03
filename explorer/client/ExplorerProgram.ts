@@ -23,7 +23,6 @@ import {
 import { getRequiredChartIds } from "./ExplorerUtils"
 
 const CHART_ID_SYMBOL = "chartId"
-const FALSE_SYMBOL = "FALSE"
 
 interface Choice {
     title: string
@@ -360,7 +359,8 @@ export class SwitcherRuntime implements ObservableUrl {
     }
 
     @action.bound setValue(choiceName: ChoiceName, value: ChoiceValue) {
-        this._settings[choiceName] = value
+        if (value === "") delete this._settings[choiceName]
+        else this._settings[choiceName] = value
     }
 
     @action.bound setValuesFromQueryString(queryString: string) {
@@ -451,18 +451,19 @@ export class SwitcherRuntime implements ObservableUrl {
         const constrainedOptions = this.toConstrainedOptions()
         return this.choiceNames.map((title) => {
             const value = constrainedOptions[title]
-            let options = this.allChoiceOptions[title].map((optionName) =>
+            const options = this.allChoiceOptions[title].map((optionName) =>
                 this.toControlOption(title, optionName, value)
             )
             const type = this.choiceControlTypes.get(title)!
-            if (type === ExplorerControlType.Checkbox)
-                options = options.filter((opt) => opt.label !== FALSE_SYMBOL)
 
             return {
                 title,
                 type,
                 value,
-                options,
+                options:
+                    type === ExplorerControlType.Checkbox
+                        ? makeCheckBoxOptions(options, title)
+                        : options,
             }
         })
     }
@@ -470,4 +471,21 @@ export class SwitcherRuntime implements ObservableUrl {
     toString() {
         return queryParamsToStr(this._settings)
     }
+}
+
+const makeCheckBoxOptions = (
+    options: ExplorerControlOption[],
+    choiceName: string
+) => {
+    const checked = options.find(
+        (option) => option.checked === true && option.label === "TRUE"
+    )
+    return [
+        {
+            label: choiceName,
+            checked,
+            value: "TRUE",
+            available: options.length > 1,
+        },
+    ] as ExplorerControlOption[]
 }
