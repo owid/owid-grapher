@@ -168,6 +168,9 @@ export class SwitcherExplorer
             manuallyProvideData: table ? true : undefined,
         }
 
+        if (selectedRow.yScaleToggle === "true")
+            grapher.yAxis.canChangeScaleType = true
+
         grapher.hasError = false
         const queryStr = grapher.id
             ? grapher.queryStr
