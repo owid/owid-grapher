@@ -108,8 +108,6 @@ describe("when the table doesn't have data for all rows", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
 
-    // todo: This test should be reenabled, but the problem is an undefined value somewhere in the "columnsWithValues" function
-    // I couldn't quite crack it and think we could reduce the size of the columnsWithValues method
     it("renders a tolerance notice when data is not from targetYear", () => {
         expect(view.find(".closest-time-notice-icon").text()).toContain("2001")
     })
