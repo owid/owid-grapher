@@ -53,6 +53,7 @@ export interface CoreColumnDef {
     description?: string
     unit?: string
     shortUnit?: string
+    transform?: string // Code that maps to a CoreTable transform
     fn?: ColumnFn
     values?: CoreValueType[] // Similar to Fn, but the already computed values.
     type?: ColumnTypeNames
