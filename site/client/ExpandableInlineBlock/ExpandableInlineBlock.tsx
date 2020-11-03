@@ -41,7 +41,7 @@ export const runExpandableInlineBlock = () => {
 
         ReactDOM.render(
             <ExpandableInlineBlock label={label}>
-                <Component {...props} />
+                <Component {...props} label={label} />
             </ExpandableInlineBlock>,
             expandableInlineBlock.parentElement
         )
