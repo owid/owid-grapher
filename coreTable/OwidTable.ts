@@ -260,19 +260,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // Ensures the table has the needed columns. todo: cleanup
-    withRequiredColumns() {
-        let table = this
-        if (!table.has(OwidTableSlugs.entityName))
-            table = table.renameColumn(
-                guessEntityNameColumnSlug(table),
-                OwidTableSlugs.entityName
-            )
-        if (!table.has(OwidTableSlugs.entityCode) && table.has("iso_code"))
-            table = table.renameColumn("iso_code", OwidTableSlugs.entityCode)
-        return table
-    }
-
     private sumsByTime(columnSlug: ColumnSlug) {
         const timeValues = this.timeColumn.parsedValues
         const values = this.get(columnSlug).parsedValues
@@ -657,9 +644,3 @@ export const BlankOwidTable = () =>
         { slug: OwidTableSlugs.entityName },
         { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
     ])
-
-// todo: make more robust
-const guessEntityNameColumnSlug = (table: OwidTable) => {
-    const hit = ["location", "country"].find((guess) => table.has(guess))
-    return hit ?? table.columnSlugs[0]
-}
