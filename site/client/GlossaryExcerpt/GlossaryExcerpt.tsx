@@ -13,6 +13,7 @@ export const GlossaryExcerpt = ({
 }) => {
     return (
         <span className="glossary-excerpt">
+            <span className="title">Definition</span>
             {excerpt}
             <a target="_blank" rel="noopener" href={`/glossary#${slug}`}>
                 Read more

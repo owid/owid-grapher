@@ -6,6 +6,15 @@
     font-style: initial; // prevent style bleed when surrounding text is <em>
     background-color: $primary-color-100;
 
+    .title {
+        display: block;
+        margin-bottom: $vertical-spacing;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: $primary-color-400;
+    }
+
     a {
         display: block;
         margin-top: $vertical-spacing;
