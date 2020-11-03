@@ -14,7 +14,7 @@ import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
-import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow, fetchText } from "grapher/utils/Util"
 import {
     SlideShowController,
@@ -23,7 +23,12 @@ import {
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
-import { CoreRow, TableSlug } from "coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    CoreRow,
+    SortOrder,
+    TableSlug,
+} from "coreTable/CoreTableConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -106,9 +111,7 @@ export class SwitcherExplorer
         selectionArray.addAvailableEntityNames(missingEntities)
     }
 
-    @computed get grapher() {
-        return this.explorerShellRef.current?.grapherRef?.current
-    }
+    @observable.ref grapher?: Grapher
 
     private getTable(tableSlug: TableSlug) {
         const table = this.explorerProgram.getTableCode(tableSlug)
@@ -130,8 +133,13 @@ export class SwitcherExplorer
         this.tableCache.set(path, this.grapher!.inputTable)
     }
 
+    @action.bound setGrapher(grapher: Grapher) {
+        this.grapher = grapher
+    }
+
     componentDidMount() {
-        // Whenever the chartId changes, update Grapher.
+        this.setGrapher(this.explorerShellRef.current!.grapherRef!.current!)
+        // Whenever the selected row changes, update Grapher.
         autorun(() =>
             this.updateGrapher(this.explorerProgram.switcherRuntime.selectedRow)
         )
@@ -259,4 +267,19 @@ export class SwitcherExplorer
             />
         )
     }
+
+    @computed get countryPickerTable() {
+        return this.grapher?.table
+    }
+
+    @computed get pickerColumnSlugs() {
+        return this.grapher?.table.columnSlugs ?? []
+    }
+
+    @computed get requiredColumnSlugs() {
+        return this.grapher?.newSlugs ?? []
+    }
+
+    @observable countryPickerMetric?: ColumnSlug
+    @observable countryPickerSort?: SortOrder
 }

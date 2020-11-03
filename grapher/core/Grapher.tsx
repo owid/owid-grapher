@@ -692,7 +692,7 @@ export class Grapher
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.
-    @computed private get newSlugs() {
+    @computed get newSlugs() {
         const { xSlug, colorSlug, sizeSlug } = this
         const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
         return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(isPresent)
