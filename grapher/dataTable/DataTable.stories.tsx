@@ -1,7 +1,7 @@
 import * as React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
-import { childMortalityGrapher } from "./DataTable.sample"
+import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
 import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 
 export default {
@@ -80,6 +80,12 @@ export const FromLegacyWithTimeRange = () => {
     })
     grapher.startHandleTimeBound = 1950
     grapher.endHandleTimeBound = 2019
+    return <DataTable manager={grapher} />
+}
+
+export const IncompleteDataTableComponent = () => {
+    const grapher = IncompleteDataTable()
+    grapher.timelineHandleTimeBounds = [2000, 2000]
     return <DataTable manager={grapher} />
 }
 
