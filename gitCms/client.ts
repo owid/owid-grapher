@@ -1,15 +1,25 @@
 import {
-    gitCmsRoute,
+    GIT_CMS_ROUTE,
     WriteRequest,
     ReadRequest,
     GitCmsResponse,
     GitCmsReadResponse,
     DeleteRequest,
+    GIT_PULL_ROUTE,
 } from "./constants"
-const gitCmsApiPath = `/admin/api${gitCmsRoute}`
+const adminPath = `/admin/api`
+const gitCmsApiPath = `${adminPath}${GIT_CMS_ROUTE}`
 
 const validateFilePath = (path: string) => {
     if (path.includes("~")) throw new Error(`Filenames with ~ not supported`)
+}
+
+export const pullFromGithub = async () => {
+    const response = await fetch(`${adminPath}${GIT_PULL_ROUTE}`, {
+        method: "POST",
+    })
+    const parsed: GitCmsResponse = await response.json()
+    return parsed
 }
 
 export const deleteRemoteFile = async (request: DeleteRequest) => {

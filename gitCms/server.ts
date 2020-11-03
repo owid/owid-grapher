@@ -5,12 +5,14 @@ import * as fs from "fs-extra"
 import { execFormatted } from "utils/server/serverUtil"
 import {
     GIT_CMS_DIR,
-    gitCmsRoute,
+    GIT_CMS_ROUTE,
     GitCmsResponse,
     GitCmsReadResponse,
     WriteRequest,
     ReadRequest,
     DeleteRequest,
+    GIT_PULL_ROUTE,
+    GitPullResponse,
 } from "./constants"
 const IS_PROD = ENV === "production"
 
@@ -38,6 +40,9 @@ async function saveFileToGitContentDirectory(
     return ""
 }
 
+const pullFromGit = async () =>
+    await execFormatted(`cd %s && git pull`, [GIT_CMS_DIR])
+
 async function deleteFileFromGitContentDirectory(
     filename: string,
     commitName: string,
@@ -58,7 +63,7 @@ async function deleteFileFromGitContentDirectory(
 
 export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
     app.post(
-        gitCmsRoute,
+        GIT_CMS_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
             const request = req.body as WriteRequest
             const filename = request.filepath
@@ -77,8 +82,17 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
         }
     )
 
+    app.post(GIT_PULL_ROUTE, async (req: Request, res: Response) => {
+        const result = await pullFromGit()
+        return {
+            success: result.stderr ? false : true,
+            stdout: result.stdout,
+            errorMessage: result.stderr,
+        } as GitPullResponse
+    })
+
     app.get(
-        gitCmsRoute,
+        GIT_CMS_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsReadResponse> => {
             const request = req.query as ReadRequest
             const filepath = `/${request.filepath.replace(/\~/g, "/")}`
@@ -102,7 +116,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
     )
 
     app.delete(
-        gitCmsRoute,
+        GIT_CMS_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
             const request = req.query as DeleteRequest
             const filepath = request.filepath.replace(/\~/g, "/")

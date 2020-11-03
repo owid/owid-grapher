@@ -110,7 +110,7 @@ export const splitOnLastWord = (s: string) => {
 export async function execFormatted(cmd: string, args: string[]) {
     const formatCmd = util.format(cmd, ...args.map((s) => quote([s])))
     console.log(formatCmd)
-    await exec(formatCmd)
+    return await exec(formatCmd)
 }
 
 import filenamify from "filenamify"

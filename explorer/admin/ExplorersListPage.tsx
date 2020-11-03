@@ -18,7 +18,11 @@ import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
 import { getAvailableSlugSync } from "grapher/utils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { deleteRemoteFile, writeRemoteFile } from "gitCms/client"
+import {
+    deleteRemoteFile,
+    pullFromGithub,
+    writeRemoteFile,
+} from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
 import { GIT_CMS_REPO } from "gitCms/constants"
 
@@ -166,6 +170,11 @@ export class ExplorersIndexPage extends React.Component {
         this.maxVisibleRows += 100
     }
 
+    @action.bound private async pullFromGithub() {
+        const result = await pullFromGithub()
+        alert(JSON.stringify(result))
+    }
+
     render() {
         const { explorersToShow, numTotalRows } = this
 
@@ -198,7 +207,11 @@ export class ExplorersIndexPage extends React.Component {
                             explorers |{" "}
                             <Link to={`/explorers/${nextAvailableSlug}`}>
                                 New
-                            </Link>
+                            </Link>{" "}
+                            |{" "}
+                            <a href="#" onClick={this.pullFromGithub}>
+                                Pull from GitHub
+                            </a>
                         </span>
                     </FieldsRow>
                     <ExplorerList
