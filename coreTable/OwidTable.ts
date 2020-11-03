@@ -69,45 +69,57 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo get availableEntityNameSet() {
-        return new Set(
-            this.getValuesFor(OwidTableSlugs.entityName) as EntityName[]
-        )
+        return new Set(this.entityNameColumn.uniqValues)
     }
 
     // todo: can we remove at some point?
     @imemo get entityIdToNameMap() {
         return this.valueIndex(
-            OwidTableSlugs.entityId,
-            OwidTableSlugs.entityName
+            this.entityIdColumn.slug,
+            this.entityNameColumn.slug
         ) as Map<number, string>
     }
 
     // todo: can we remove at some point?
     @imemo get entityCodeToNameMap() {
         return this.valueIndex(
-            OwidTableSlugs.entityCode,
-            OwidTableSlugs.entityName
+            this.entityCodeColumn.slug,
+            this.entityNameColumn.slug
         ) as Map<string, string>
     }
 
     // todo: can we remove at some point?
     @imemo get entityNameToIdMap() {
         return this.valueIndex(
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityId
+            this.entityNameColumn.slug,
+            this.entityIdColumn.slug
         ) as Map<string, number>
     }
 
     // todo: can we remove at some point?
     @imemo get entityNameToCodeMap() {
         return this.valueIndex(
-            OwidTableSlugs.entityName,
-            OwidTableSlugs.entityCode
+            this.entityNameColumn.slug,
+            this.entityCodeColumn.slug
         ) as Map<string, string>
     }
 
     @imemo get maxTime() {
         return last(this.allTimes)
+    }
+
+    @imemo get entityIdColumn() {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
+            this.get(OwidTableSlugs.entityId)
+        )
+    }
+
+    @imemo get entityCodeColumn() {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
+            this.get(OwidTableSlugs.entityCode)
+        )
     }
 
     @imemo get minTime() {
@@ -122,12 +134,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.has(OwidTableSlugs.day)
     }
 
-    @imemo get dayColumn() {
-        return this.get(OwidTableSlugs.day)
-    }
-
     @imemo get rowIndicesByEntityName() {
-        return this.rowIndex([OwidTableSlugs.entityName])
+        return this.rowIndex([this.entityNameSlug])
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
@@ -162,7 +170,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByEntityNames(names: EntityName[]) {
         const namesSet = new Set(names)
         return this.columnFilter(
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             (value) => namesSet.has(value as string),
             `Filter out all entities except '${names}'`
         )
@@ -226,7 +234,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         })
 
         return this.columnFilter(
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             (row, index) => matchingIndices.has(index),
             `Keep a row for each entity for each of the closest times ${targetTimes.join(
                 ", "
@@ -357,7 +365,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             Object.values(
                 groupBy(
                     this.sortedByTime.rows,
-                    (row) => row[OwidTableSlugs.entityName]
+                    (row) => row[this.entityNameSlug]
                 )
             ).map((rowsForSingleEntity) => {
                 columnSlugs.forEach((valueSlug) => {
@@ -427,7 +435,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 OwidTableSlugs.time,
                 OwidTableSlugs.entityColor,
             ])
-            .sortBy([OwidTableSlugs.entityName])
+            .sortBy([this.entityNameSlug])
             .toCsvWithColumnNames()
     }
 
@@ -451,7 +459,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @imemo get entityNameColorIndex() {
         return this.valueIndex(
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             OwidTableSlugs.entityColor
         ) as Map<EntityName, Color>
     }
@@ -497,6 +505,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const column = this.get(columnSlug)
         const columnDef = column.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column.display.tolerance ?? 0
+        const entityNameSlug = this.entityNameSlug
 
         const timeColumnOfTable =
             this.timeColumn ??
@@ -512,13 +521,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         let columnStore: CoreColumnStore
         if (tolerance) {
             const withAllRows = this.complete([
-                OwidTableSlugs.entityName,
+                entityNameSlug,
                 timeColumnOfTable.slug,
-            ]).sortBy([OwidTableSlugs.entityName, timeColumnOfTable.slug])
+            ]).sortBy([entityNameSlug, timeColumnOfTable.slug])
 
-            const groupBoundaries = withAllRows.groupBoundaries(
-                OwidTableSlugs.entityName
-            )
+            const groupBoundaries = withAllRows.groupBoundaries(entityNameSlug)
             const newValues = withAllRows
                 .get(columnSlug)
                 .allValues.slice() as number[]
@@ -603,7 +610,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByPopulationExcept(minPop: number, entityNames: string[] = []) {
         const set = new Set(entityNames)
         return this.columnFilter(
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             (value) => {
                 const name = value as string
                 const pop = populationMap[name]
@@ -616,7 +623,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterBySelectedOnly(selectedEntityNames: string[]) {
         const set = new Set(selectedEntityNames)
         return this.columnFilter(
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             (name) => set.has(name as string),
             `Keep selected rows only`
         )
@@ -640,7 +647,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
 // This just assures that even an emtpty OwidTable will have an entityName column. Probably a cleaner way to do this pattern (add a defaultColumns prop??)
 export const BlankOwidTable = () =>
-    new OwidTable(undefined, [
-        { slug: OwidTableSlugs.entityName },
-        { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
-    ])
+    new OwidTable(
+        undefined,
+        [
+            { slug: OwidTableSlugs.entityName },
+            { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
+        ],
+        { tableDescription: `Loaded Blank OwidTable` }
+    )

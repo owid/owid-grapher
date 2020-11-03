@@ -122,17 +122,18 @@ export class SwitcherExplorer
             this.fetchTable(table)
             return BlankOwidTable()
         }
-        return new OwidTable(
-            table.inlineData,
-            table.columnDefinitions
-        ).dropEmptyRows()
+        return new OwidTable(table.inlineData, table.columnDefinitions, {
+            tableDescription: `Loaded from inline data`,
+        }).dropEmptyRows()
     }
 
     private tableCache = new Map<string, OwidTable>()
     @action.bound private async fetchTable(table: TableDef) {
         const path = table.url!
         const csv = await fetchText(path)
-        this.grapher!.inputTable = new OwidTable(csv, table.columnDefinitions)
+        this.grapher!.inputTable = new OwidTable(csv, table.columnDefinitions, {
+            tableDescription: `Loaded from ${path}`,
+        })
         this.addEntityOptionsToPickerWhenReady()
         this.tableCache.set(path, this.grapher!.inputTable)
     }

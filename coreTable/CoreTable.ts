@@ -417,6 +417,12 @@ export class CoreTable<
         return this._columns.has(columnSlug)
     }
 
+    getFirstColumnWithType(columnTypeName: ColumnTypeNames) {
+        return this.columnsAsArray.find(
+            (col) => col.def.type === columnTypeName
+        )
+    }
+
     // todo: move this. time methods should not be in CoreTable, in OwidTable instead (which is really TimeSeriesTable).
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
@@ -435,6 +441,19 @@ export class CoreTable<
             ) ??
             this.get(OwidTableSlugs.time)
         )
+    }
+
+    // todo: should be on owidtable
+    @imemo get entityNameColumn() {
+        return (
+            this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
+            this.get(OwidTableSlugs.entityName)
+        )
+    }
+
+    // todo: should be on owidtable
+    @imemo get entityNameSlug() {
+        return this.entityNameColumn.slug
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
