@@ -132,11 +132,7 @@ export class SwitcherExplorer
     @action.bound private async fetchTable(table: TableDef) {
         const path = table.url!
         const csv = await fetchText(path)
-        this.grapher!.inputTable = new OwidTable(csv).withRequiredColumns()
-        this.grapher!.inputTable = new OwidTable(
-            csv,
-            table.columnDefinitions
-        ).withRequiredColumns()
+        this.grapher!.inputTable = new OwidTable(csv, table.columnDefinitions)
         this.addEntityOptionsToPickerWhenReady()
         this.tableCache.set(path, this.grapher!.inputTable)
     }
