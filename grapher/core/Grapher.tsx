@@ -695,7 +695,9 @@ export class Grapher
     @computed get newSlugs() {
         const { xSlug, colorSlug, sizeSlug } = this
         const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
-        return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(isPresent)
+        return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(
+            (slug) => slug
+        ) as ColumnSlug[]
     }
 
     async whenReady() {
