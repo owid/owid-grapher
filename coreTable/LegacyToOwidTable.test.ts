@@ -40,12 +40,8 @@ describe(legacyToOwidTableAndDimensions, () => {
                 StandardOwidColumnDefs.map((def) => def.slug)
             )
         )
-        expect(table.get(OwidTableSlugs.entityName).allValues).toEqual([
-            "World",
-        ])
-        expect(table.get(OwidTableSlugs.entityCode).allValues).toEqual([
-            "OWID_WRL",
-        ])
+        expect(table.entityNameColumn.allValues).toEqual(["World"])
+        expect(table.entityCodeColumn.allValues).toEqual(["OWID_WRL"])
     })
 
     describe("conversionFactor", () => {

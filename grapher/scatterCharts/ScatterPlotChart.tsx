@@ -618,6 +618,7 @@ export class ScatterPlotChart
     }
 
     @computed get allPoints(): SeriesPoint[] {
+        const entityNameSlug = this.transformedTable.entityNameSlug
         return this.removePointsOutsidePlane(
             this.transformedTable.rows.map((row) => {
                 row = replaceInvalidRowValuesWithUndefined(row)
@@ -628,7 +629,7 @@ export class ScatterPlotChart
                     color: this.colorColumn
                         ? row[this.colorColumn.slug]
                         : undefined,
-                    entityName: row[OwidTableSlugs.entityName],
+                    entityName: row[entityNameSlug],
                     label: this.getPointLabel(row) ?? "",
                     timeValue: row[OwidTableSlugs.time],
                     time: {

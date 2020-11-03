@@ -397,7 +397,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // todo: remove? Should not be on CoreTable
     @imemo private get allEntityNames() {
         return this.table.getValuesAtIndices(
-            OwidTableSlugs.entityName,
+            this.table.entityNameSlug,
             this.validRowIndices
         ) as EntityName[]
     }

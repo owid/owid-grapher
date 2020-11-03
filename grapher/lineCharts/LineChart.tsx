@@ -595,7 +595,7 @@ export class LineChart
     @computed private get annotationsMap() {
         return this.inputTable
             .getAnnotationColumnForColumn(this.yColumnSlugs[0])
-            ?.getUniqueValuesGroupedBy(OwidTableSlugs.entityName)
+            ?.getUniqueValuesGroupedBy(this.inputTable.entityNameSlug)
     }
 
     getAnnotationsForSeries(seriesName: SeriesName) {
