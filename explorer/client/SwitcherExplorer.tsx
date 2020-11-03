@@ -10,7 +10,7 @@ import {
     MultipleUrlBinder,
 } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
-import { ExplorerProgram } from "./ExplorerProgram"
+import { ExplorerProgram, TableDef } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
@@ -114,21 +114,29 @@ export class SwitcherExplorer
     @observable.ref grapher?: Grapher
 
     private getTable(tableSlug: TableSlug) {
-        const table = this.explorerProgram.getTableCode(tableSlug)
+        const table = this.explorerProgram.getTableDef(tableSlug)
         if (!table) return BlankOwidTable()
         if (table.url) {
             const cached = this.tableCache.get(table.url)
             if (cached) return cached
-            this.fetchData(table.url)
+            this.fetchTable(table)
             return BlankOwidTable()
         }
-        return new OwidTable(table.block).dropEmptyRows()
+        return new OwidTable(
+            table.inlineData,
+            table.columnDefinitions
+        ).dropEmptyRows()
     }
 
     private tableCache = new Map<string, OwidTable>()
-    @action.bound private async fetchData(path: string) {
+    @action.bound private async fetchTable(table: TableDef) {
+        const path = table.url!
         const csv = await fetchText(path)
         this.grapher!.inputTable = new OwidTable(csv).withRequiredColumns()
+        this.grapher!.inputTable = new OwidTable(
+            csv,
+            table.columnDefinitions
+        ).withRequiredColumns()
         this.addEntityOptionsToPickerWhenReady()
         this.tableCache.set(path, this.grapher!.inputTable)
     }

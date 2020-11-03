@@ -41,6 +41,7 @@ const edgeDelimiter = "\t"
 export enum ProgramKeyword {
     switcher = "switcher",
     table = "table",
+    columns = "columns",
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
@@ -62,6 +63,12 @@ interface BlockLocation {
     start: number
     end: number
     length: number
+}
+
+export interface TableDef {
+    url?: string
+    columnDefinitions?: string
+    inlineData?: string
 }
 
 export class ExplorerProgram {
@@ -110,7 +117,8 @@ export class ExplorerProgram {
         )
     }
 
-    getKeywordIndexes(key: ProgramKeyword) {
+    getKeywordIndexes(words: string[]) {
+        const key = words.join(this.cellDelimiter)
         return this.lines
             .map((line, index) =>
                 line.startsWith(key + this.cellDelimiter) || line === key
@@ -245,17 +253,23 @@ export class ExplorerProgram {
         return this.getBlock(keywordIndex)
     }
 
-    getTableCode(tableSlug: string) {
-        const keywordIndexes = this.getKeywordIndexes(ProgramKeyword.table)
-        const matchingTableIndex = keywordIndexes.find((index) =>
-            this.lines[index].startsWith(
-                [ProgramKeyword.table, tableSlug].join(this.cellDelimiter)
-            )
-        )
+    getTableDef(tableSlug: string): TableDef | undefined {
+        const matchingTableIndex = this.getKeywordIndexes([
+            ProgramKeyword.table,
+            tableSlug,
+        ])[0]
         if (matchingTableIndex === undefined) return undefined
+
+        const matchingColumnsIndex = this.getKeywordIndexes([
+            ProgramKeyword.columns,
+            tableSlug,
+        ])[0]
         return {
             url: this.lines[matchingTableIndex].split(this.cellDelimiter)[2],
-            block: this.getBlock(matchingTableIndex),
+            columnDefinitions: matchingColumnsIndex
+                ? this.getBlock(matchingColumnsIndex)
+                : undefined,
+            inlineData: this.getBlock(matchingTableIndex),
         }
     }
 }
