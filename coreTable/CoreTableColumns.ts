@@ -418,6 +418,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
+    // assumes table is sorted by time
     @imemo get owidRows() {
         const times = this.originalTimes
         const values = this.values

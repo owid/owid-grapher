@@ -188,7 +188,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const adjustedEnd = end === -Infinity ? this.minTime! : end
         // todo: we should set a time column onload so we don't have to worry about it again.
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
-        return this.columnFilter(
+        // Sorting by time, because incidentally some parts of the code depended on this method
+        // returning sorted rows.
+        return this.sortedByTime.columnFilter(
             timeColumnSlug,
             (time) => time >= adjustedStart && time <= adjustedEnd,
             `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
