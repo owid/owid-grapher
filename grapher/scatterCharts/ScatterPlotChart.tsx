@@ -823,7 +823,6 @@ export class ScatterPlotChart
 
     // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
-        const { transformedTable } = this
         return Object.entries(
             groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
         )
@@ -842,7 +841,7 @@ export class ScatterPlotChart
                     points: seriesPoints,
                 }
                 if (seriesPoints.length) {
-                    const keyColor = transformedTable.getColorForEntityName(
+                    const keyColor = this.transformedTable.getColorForEntityName(
                         entityName
                     )
                     if (keyColor !== undefined) series.color = keyColor
