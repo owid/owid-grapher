@@ -44,7 +44,7 @@ function setup()
 function register()
 {
     wp_register_script(
-        'owid-plugin-script',
+        'owid-plugins-script',
         plugins_url('build/plugins.js', __FILE__),
         [
             'wp-plugins',
@@ -57,7 +57,7 @@ function register()
     );
 
     wp_register_style(
-        'owid-plugin-css',
+        'owid-plugins-css',
         plugins_url('src/style.css', __FILE__)
     );
 
@@ -173,12 +173,9 @@ function graphql_register_types()
 
 function assets_enqueue()
 {
-    $screen = get_current_screen();
-
-    if ($screen->post_type === 'page') {
-        wp_enqueue_script('owid-plugin-script');
-        wp_enqueue_style('owid-plugin-css');
-    }
+    // $post_type = get_current_screen()->post_type;
+    wp_enqueue_script('owid-plugins-script');
+    wp_enqueue_style('owid-plugins-css');
 }
 
 add_action('after_setup_theme', __NAMESPACE__ . '\setup');
