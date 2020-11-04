@@ -10,7 +10,7 @@ import {
     MultipleUrlBinder,
 } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
-import { ExplorerProgram, TableDef } from "./ExplorerProgram"
+import { CheckboxOption, ExplorerProgram, TableDef } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
@@ -168,7 +168,7 @@ export class SwitcherExplorer
             manuallyProvideData: table ? true : undefined,
         }
 
-        if (selectedRow.yScaleToggle === "true")
+        if (selectedRow.yScaleToggle === CheckboxOption.true)
             grapher.yAxis.canChangeScaleType = true
 
         grapher.hasError = false

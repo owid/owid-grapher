@@ -33,6 +33,11 @@ interface Choice {
 
 export const explorerFileSuffix = ".explorer.tsv"
 
+export enum CheckboxOption {
+    true = "true",
+    false = "false",
+}
+
 const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
 const edgeDelimiter = "\t"
@@ -234,11 +239,17 @@ export class ExplorerProgram {
     }
 
     get isPublished() {
-        return this.getLineValue(ProgramKeyword.isPublished) === "true"
+        return (
+            this.getLineValue(ProgramKeyword.isPublished) ===
+            CheckboxOption.true
+        )
     }
 
     set isPublished(value: boolean) {
-        this.setLineValue(ProgramKeyword.isPublished, value ? "true" : "false")
+        this.setLineValue(
+            ProgramKeyword.isPublished,
+            value ? CheckboxOption.true : CheckboxOption.false
+        )
     }
 
     get wpBlockId(): number | undefined {
@@ -478,13 +489,14 @@ const makeCheckBoxOptions = (
     choiceName: string
 ) => {
     const checked = options.find(
-        (option) => option.checked === true && option.label === "TRUE"
+        (option) =>
+            option.checked === true && option.label === CheckboxOption.true
     )
     return [
         {
             label: choiceName,
             checked,
-            value: "TRUE",
+            value: CheckboxOption.true,
             available: options.length > 1,
         },
     ] as ExplorerControlOption[]

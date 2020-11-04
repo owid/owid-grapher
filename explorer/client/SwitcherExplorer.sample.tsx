@@ -11,10 +11,10 @@ subNavId	co2
 subNavCurrentId	co2-data-explorer
 switcher
 	chartId	Gas Radio	Accounting Radio	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox
-	488	CO₂	Production-based	Total	Per country	FALSE
+	488	CO₂	Production-based	Total	Per country	false
 	3219	CO₂	Production-based	Total	Per country	Share of global emissions
 	486	CO₂	Production-based	Total	Per capita
-	485	CO₂	Production-based	Total	Cumulative	FALSE
+	485	CO₂	Production-based	Total	Cumulative	false
 	3218	CO₂	Production-based	Total	Cumulative	Share of global emissions
 	4267	CO₂	Production-based	Total	Per MWh of energy
 	530	CO₂	Production-based	Total	Per $ of GDP

@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import {
+    CheckboxOption,
     DefaultExplorerProgram,
     ExplorerProgram,
     SwitcherRuntime,
@@ -36,12 +37,12 @@ switcher
 
 describe(SwitcherRuntime, () => {
     const code = `chartId,country Radio,indicator Radio,interval Radio,perCapita Radio
-21,usa,GDP,annual,FALSE
+21,usa,GDP,annual,${CheckboxOption.false}
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
 29,usa,Life expectancy,,
 33,france,Life expectancy,,
-55,spain,GDP,,FALSE
+55,spain,GDP,,${CheckboxOption.false}
 56,spain,GDP,,Per million`
     const options = new SwitcherRuntime(code)
 
@@ -70,22 +71,28 @@ describe(SwitcherRuntime, () => {
         )
         expect(options.toConstrainedOptions().perCapita).toEqual(undefined)
         expect(options.toConstrainedOptions().interval).toEqual(undefined)
-        expect(options.toObject().perCapita).toEqual("FALSE")
+        expect(options.toObject().perCapita).toEqual(CheckboxOption.false)
         expect(options.toObject().interval).toEqual("annual")
         expect(options.selectedRow.chartId).toEqual(33)
     })
 
     it("can handle boolean groups", () => {
-        expect(options.isOptionAvailable("perCapita", "FALSE")).toEqual(false)
+        expect(
+            options.isOptionAvailable("perCapita", CheckboxOption.false)
+        ).toEqual(false)
         options.setValue("country", "usa")
         options.setValue("perCapita", "Per million")
-        expect(options.isOptionAvailable("perCapita", "FALSE")).toEqual(true)
+        expect(
+            options.isOptionAvailable("perCapita", CheckboxOption.false)
+        ).toEqual(true)
         expect(options.selectedRow.chartId).toEqual(24)
     })
 
     it("can show available choices in a later group", () => {
         options.setValue("country", "spain")
-        expect(options.isOptionAvailable("perCapita", "FALSE")).toEqual(true)
+        expect(
+            options.isOptionAvailable("perCapita", CheckboxOption.false)
+        ).toEqual(true)
         expect(options.isOptionAvailable("perCapita", "Per million")).toEqual(
             true
         )
