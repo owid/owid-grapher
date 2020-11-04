@@ -24,6 +24,7 @@ include 'src/LastUpdated/last-updated.php';
 include 'src/Byline/byline.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
+const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 
 function setup()
 {
@@ -85,6 +86,18 @@ function register()
         ],
     ]);
 
+    // Add (temporary) support for toggling glossary terms highlighting on the
+    // current post. This is used by the editor (see also the GraphQL
+    // registration of that field below)
+    //
+    // TODO: delete this field's data from the DB when not used anymore
+    // (delete_post_meta_by_key( $post_meta_key )).
+    register_post_meta('', GLOSSARY_META_FIELD, [
+        'single' => true,
+        'type' => 'boolean',
+        'show_in_rest' => true,
+    ]);
+
     wp_register_script(
         'owid-blocks-script',
         plugins_url('build/blocks.js', __FILE__),
@@ -124,11 +137,11 @@ function register()
     ]);
 }
 
-// Registering the KPI meta field for querying through GraphQL.
-// Only the rendered version is returned for simplicity.
-// (see also the REST API registration of that field above)
 function graphql_register_types()
 {
+    // Registering the KPI meta field for querying through GraphQL.
+    // Only the rendered version is returned for simplicity.
+    // (see also the REST API registration of that field above)
     register_graphql_field('Page', 'kpi', [
         'type' => 'String',
         'description' => 'Key Performance Indicators',
@@ -141,6 +154,19 @@ function graphql_register_types()
             return !empty($kpi_post_meta['rendered'])
                 ? $kpi_post_meta['rendered']
                 : '';
+        },
+    ]);
+
+    register_graphql_field('', 'glossary', [
+        'type' => 'Boolean',
+        'description' => 'Glossary',
+        'resolve' => function ($post) {
+            $glossary_post_meta = get_post_meta(
+                $post->ID,
+                GLOSSARY_META_FIELD,
+                true
+            );
+            return !!$glossary_post_meta;
         },
     ]);
 }

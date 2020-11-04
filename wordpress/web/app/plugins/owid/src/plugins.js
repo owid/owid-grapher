@@ -1,4 +1,5 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
+import Glossary from "./Glossary/Glossary"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
 
@@ -6,15 +7,14 @@ const KEY_PERFORMANCE_INDICATORS_META_FIELD =
     "owid_key_performance_indicators_meta_field"
 
 registerPlugin("owid-key-performance-indicators", {
+registerPlugin("owid-glossary", {
     render: () => (
         <PluginDocumentSettingPanel
-            name="owid-key-performance-indicators"
-            title="Key Performance Indicators (KPI)"
-            className="owid-key-performance-indicators"
+            name="owid-glossary"
+            title="Glossary"
+            className="owid-glossary"
         >
-            <KeyPerformanceIndicators
-                fieldName={KEY_PERFORMANCE_INDICATORS_META_FIELD}
-            />
+            <Glossary />
         </PluginDocumentSettingPanel>
     ),
     icon: false,
