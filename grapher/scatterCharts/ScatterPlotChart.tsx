@@ -195,7 +195,7 @@ export class ScatterPlotChart
     // This is why we need the table before the timeline filter is applied.
     @computed private get colorsInUse(): Color[] {
         const colorValues =
-            this.manager.tableAfterPopulationFilterAndActiveChartTransform?.get(
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
                 this.colorColumnSlug
             )?.uniqValues ?? []
         return excludeUndefined(

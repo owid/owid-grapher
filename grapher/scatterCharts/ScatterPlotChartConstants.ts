@@ -21,7 +21,7 @@ export interface ScatterPlotManager extends ChartManager {
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
-    tableAfterPopulationFilterAndActiveChartTransform?: OwidTable
+    tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
     excludedEntities?: EntityId[]
 }
 
