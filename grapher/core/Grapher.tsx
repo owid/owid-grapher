@@ -350,12 +350,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
-        if (
-            this.manuallyProvideData ||
-            !country ||
-            this.addCountryMode === "disabled"
-        )
-            return
+        if (!country || this.addCountryMode === "disabled") return
         when(
             () => this.isReady,
             () => {
