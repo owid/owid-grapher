@@ -71,6 +71,12 @@ export class SwitcherExplorer
     }
 
     @observable hideControls = false
+    @observable countryPickerMetric?: ColumnSlug =
+        strToQueryParams(this.explorerProgram.queryString ?? "").pickerMetric ??
+        undefined
+    @observable countryPickerSort?: SortOrder =
+        (strToQueryParams(this.explorerProgram.queryString ?? "")
+            .pickerSort as SortOrder) ?? undefined
 
     selectionArray = new SelectionArray(this)
     @observable selectedEntityNames = EntityUrlBuilder.queryParamToEntities(
@@ -287,7 +293,4 @@ export class SwitcherExplorer
     @computed get requiredColumnSlugs() {
         return this.grapher?.newSlugs ?? []
     }
-
-    @observable countryPickerMetric?: ColumnSlug
-    @observable countryPickerSort?: SortOrder
 }
