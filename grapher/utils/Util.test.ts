@@ -22,6 +22,7 @@ import {
     getRandomNumberGenerator,
     findClosestTimeIndex,
     intersection,
+    splitArrayIntoGroupsOfN,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder } from "coreTable/CoreTableConstants"
@@ -384,5 +385,15 @@ describe(sortNumeric, () => {
                 (o) => o.a
             )
         ).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 3 }, { a: 4 }, { a: 8 }])
+    })
+})
+
+describe(splitArrayIntoGroupsOfN, () => {
+    it("can split groups", () => {
+        expect(splitArrayIntoGroupsOfN([], 3).length).toBe(0)
+        expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 3).length).toBe(3)
+        expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 5).length).toBe(2)
+        expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 7).length).toBe(1)
+        expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 9).length).toBe(1)
     })
 })

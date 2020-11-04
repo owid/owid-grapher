@@ -1035,3 +1035,10 @@ export const logMe = (
     }
     return descriptor
 }
+
+export const splitArrayIntoGroupsOfN = (arr: any[], maxPerGroup: number) => {
+    const result: any[] = []
+    for (let index = 0; index < arr.length; index += maxPerGroup)
+        result.push(arr.slice(index, index + maxPerGroup))
+    return result
+}

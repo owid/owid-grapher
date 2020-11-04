@@ -5,6 +5,7 @@ import classNames from "classnames"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
+import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile: boolean
@@ -137,18 +138,14 @@ export class ExplorerControlPanel extends React.Component<{
         this.props.onChange!(value)
     }
 
-    private renderCheckboxesOrRadios() {
-        return this.props.options.map((option, index) =>
-            this.renderCheckboxOrRadio(option, index)
-        )
-    }
-
-    render() {
-        const { title, name, type } = this.props
-        const hideTitle =
-            this.props.hideTitle || type === ExplorerControlType.Checkbox
+    renderColumn(
+        key: string,
+        hideTitle: boolean,
+        options?: ExplorerControlOption[]
+    ) {
+        const { title, type } = this.props
         return (
-            <div key={name} className={classNames("ExplorerControl", name)}>
+            <div key={key} className="ExplorerControl">
                 <div
                     className={
                         "ControlHeader" +
@@ -159,8 +156,29 @@ export class ExplorerControlPanel extends React.Component<{
                 </div>
                 {type === ExplorerControlType.Dropdown
                     ? this.renderDropdown()
-                    : this.renderCheckboxesOrRadios()}
+                    : (options ?? this.props.options).map((option, index) =>
+                          this.renderCheckboxOrRadio(option, index)
+                      )}
             </div>
+        )
+    }
+
+    render() {
+        const { name, type, options, hideTitle } = this.props
+        if (type === ExplorerControlType.Radio && options.length > 3)
+            return splitArrayIntoGroupsOfN(
+                options,
+                3
+            ).map((optionsGroup, index) =>
+                this.renderColumn(
+                    `${name}${index}`,
+                    hideTitle || index > 0,
+                    optionsGroup
+                )
+            )
+        return this.renderColumn(
+            name,
+            hideTitle || type === ExplorerControlType.Checkbox
         )
     }
 }
