@@ -14,6 +14,7 @@ import {
     relativeMinAndMax,
     exposeInstanceOnWindow,
     groupBy,
+    first,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -632,53 +633,16 @@ export class ScatterPlotChart
         return new Set(seriesNames)
     }
 
-    @computed private get compareEndPointsOnly() {
+    @computed get compareEndPointsOnly() {
         return !!this.manager.compareEndPointsOnly
     }
 
-    private set compareEndPointsOnly(value: boolean) {
+    set compareEndPointsOnly(value: boolean) {
         this.manager.compareEndPointsOnly = value ?? undefined
     }
 
-    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
-        // The exclusion of points happens as a last step in order to avoid artefacts due to
-        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
-        // domains before creating the points, the tolerance may lead to different X-Y
-        // values being joined.
-        // -@danielgavrilov, 2020-04-29
-        const { yAxisConfig, xAxisConfig } = this
-        return points.filter((point) => {
-            return (
-                !xAxisConfig.shouldRemovePoint(point.x) &&
-                !yAxisConfig.shouldRemovePoint(point.y)
-            )
-        })
-    }
-
     @computed get allPoints(): SeriesPoint[] {
-        const entityNameSlug = this.transformedTable.entityNameSlug
-        return this.removePointsOutsidePlane(
-            this.transformedTable.rows.map((row) => {
-                row = replaceErrorValuesWithUndefined(row)
-                return {
-                    x: row[this.xColumnSlug],
-                    y: row[this.yColumnSlug],
-                    size: !this.sizeColumn.isMissing
-                        ? row[this.sizeColumn.slug]
-                        : 0,
-                    color: !this.colorColumn.isMissing
-                        ? row[this.colorColumn.slug]
-                        : undefined,
-                    entityName: row[entityNameSlug],
-                    label: this.getPointLabel(row) ?? "",
-                    timeValue: row[OwidTableSlugs.time],
-                    time: {
-                        x: row[this.xColumn!.originalTimeColumnSlug!],
-                        y: row[this.yColumn!.originalTimeColumnSlug!],
-                    },
-                }
-            })
-        )
+        return flatten(this.series.map((series) => series.points))
     }
 
     // domains across the entire timeline
@@ -816,19 +780,68 @@ export class ScatterPlotChart
         return label
     }
 
+    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
+        // The exclusion of points happens as a last step in order to avoid artefacts due to
+        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
+        // domains before creating the points, the tolerance may lead to different X-Y
+        // values being joined.
+        // -@danielgavrilov, 2020-04-29
+        const { yAxisConfig, xAxisConfig } = this
+        return points.filter((point) => {
+            return (
+                !xAxisConfig.shouldRemovePoint(point.x) &&
+                !yAxisConfig.shouldRemovePoint(point.y)
+            )
+        })
+    }
+
+    @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
+        const entityNameSlug = this.transformedTable.entityNameSlug
+        return this.removePointsOutsidePlane(
+            this.transformedTable.rows.map((row) => {
+                row = replaceErrorValuesWithUndefined(row)
+                return {
+                    x: row[this.xColumnSlug],
+                    y: row[this.yColumnSlug],
+                    size: !this.sizeColumn.isMissing
+                        ? row[this.sizeColumn.slug]
+                        : 0,
+                    color: !this.colorColumn.isMissing
+                        ? row[this.colorColumn.slug]
+                        : undefined,
+                    entityName: row[entityNameSlug],
+                    label: this.getPointLabel(row) ?? "",
+                    timeValue: row[OwidTableSlugs.time],
+                    time: {
+                        x: row[this.xColumn!.originalTimeColumnSlug!],
+                        y: row[this.yColumn!.originalTimeColumnSlug!],
+                    },
+                }
+            })
+        )
+    }
+
     // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
         const { transformedTable } = this
-        return Object.entries(groupBy(this.allPoints, (p) => p.entityName))
+        return Object.entries(
+            groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
+        )
             .map(([entityName, points]) => {
+                const seriesPoints = this.compareEndPointsOnly
+                    ? excludeUndefined([first(points), last(points)])
+                    : points
                 const series: ScatterSeries = {
                     seriesName: entityName,
                     label: entityName,
                     color: "#932834", // Default color, used when no color dimension is present
-                    size: last(points.map((p) => p.size).filter(isNumber)) ?? 0,
-                    points,
+                    size:
+                        last(
+                            seriesPoints.map((p) => p.size).filter(isNumber)
+                        ) ?? 0,
+                    points: seriesPoints,
                 }
-                if (points.length) {
+                if (seriesPoints.length) {
                     const keyColor = transformedTable.getColorForEntityName(
                         entityName
                     )

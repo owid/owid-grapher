@@ -9,7 +9,7 @@ export interface ConnectedScatterLegendManager {
     displayStartTime: string
     displayEndTime: string
     fontSize?: number
-    compareEndpointsOnly?: boolean
+    compareEndPointsOnly?: boolean
 }
 
 export class ConnectedScatterLegend {
@@ -97,7 +97,7 @@ export class ConnectedScatterLegend {
                     stroke="#ccc"
                     strokeWidth={0.2}
                 />
-                {!manager.compareEndpointsOnly && (
+                {!manager.compareEndPointsOnly && (
                     <React.Fragment>
                         <circle
                             cx={lineLeft + (lineRight - lineLeft) / 3}
