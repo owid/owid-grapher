@@ -457,7 +457,9 @@ export class Grapher
     @observable private selectedEntitiesInQueryParam: string[] = []
 
     @action.bound private setTimeFromTimeQueryParam(time: string) {
-        this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time)
+        this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
+            (time) => findClosestTime(this.times, time) ?? time
+        ) as TimeBounds
     }
 
     @computed private get isChartOrMapTab() {

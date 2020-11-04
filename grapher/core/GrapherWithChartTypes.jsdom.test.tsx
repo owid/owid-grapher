@@ -18,7 +18,7 @@ describe("grapher and map charts", () => {
         expect(grapher.times).toEqual([2000, 2010])
 
         // Todo: not actually clear what the desired behavior is here (we have a query string time not actually an available time.)
-        it.skip("sets correct time handles", () => {
+        it("sets correct time handles", () => {
             expect(grapher.startHandleTimeBound).toBe(2000)
             expect(grapher.endHandleTimeBound).toBe(2000)
         })
