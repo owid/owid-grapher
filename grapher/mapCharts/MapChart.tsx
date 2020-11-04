@@ -496,7 +496,14 @@ export class MapChart
         return 0
     }
 
-    @computed get legendYNumeric(): number {
+    @computed get categoryLegendY(): number {
+        const { categoryLegend, bounds, categoryLegendHeight } = this
+
+        if (categoryLegend) return bounds.bottom - categoryLegendHeight
+        return 0
+    }
+
+    @computed get numericLegendY(): number {
         const {
             numericLegend,
             numericLegendHeight,
@@ -508,13 +515,6 @@ export class MapChart
             return (
                 bounds.bottom - categoryLegendHeight - numericLegendHeight - 4
             )
-        return 0
-    }
-
-    @computed get legendYCategorical(): number {
-        const { categoryLegend, bounds, categoryLegendHeight } = this
-
-        if (categoryLegend) return bounds.bottom - categoryLegendHeight
         return 0
     }
 
