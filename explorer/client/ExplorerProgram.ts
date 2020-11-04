@@ -163,6 +163,11 @@ export class ExplorerProgram {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
+    // The max number of columns in any row when you view a program as a spreadsheet
+    get width() {
+        return Math.max(...this.toArrays().map((arr) => arr.length))
+    }
+
     toString() {
         return this.prettify()
     }
