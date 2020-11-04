@@ -16,15 +16,27 @@ import {
 } from "./constants"
 const IS_PROD = ENV === "production"
 
+const isFolderOnStagingBranch = async (dir: string) => {
+    const result = await execFormatted(
+        `cd %s && git rev-parse --abbrev-ref HEAD`,
+        [dir]
+    )
+    return result.stdout.trim() === "staging"
+}
+
 async function saveFileToGitContentDirectory(
     filename: string,
     content: string,
     commitName: string,
-    commitEmail: string,
-    shouldPush = IS_PROD
+    commitEmail: string
 ) {
     const path = GIT_CMS_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
+
+    // Push if on owid.cloud, or if on a development branch
+    const shouldPush = IS_PROD
+        ? true
+        : await isFolderOnStagingBranch(GIT_CMS_DIR)
 
     const commitMsg = fs.existsSync(path)
         ? `Updating ${filename}`
