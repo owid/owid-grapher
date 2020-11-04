@@ -26,6 +26,7 @@ class DivideByZeroError extends InvalidCell {}
 class NoValueWithinTolerance extends InvalidCell {}
 class NoMatchingValueAfterJoin extends InvalidCell {}
 class ValueTooLow extends InvalidCell {}
+class NoValueToCompareAgainst extends InvalidCell {}
 
 export const InvalidCellTypes = {
     NaNButShouldBeNumber: new NaNButShouldBeNumber(),
@@ -42,6 +43,7 @@ export const InvalidCellTypes = {
     NoValueWithinTolerance: new NoValueWithinTolerance(),
     NoMatchingValueAfterJoin: new NoMatchingValueAfterJoin(),
     ValueTooLow: new ValueTooLow(),
+    NoValueToCompareAgainst: new NoValueToCompareAgainst(),
 }
 
 // https://github.com/robertmassaioli/ts-is-present

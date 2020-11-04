@@ -1,10 +1,18 @@
 import {
+    computeRollingAverage,
+    insertMissingValuePlaceholders,
+} from "explorer/covidExplorer/CovidExplorerUtils"
+import { flatten } from "grapher/utils/Util"
+import {
     ColumnSlug,
     CoreColumnDef,
     CoreColumnStore,
+    Time,
 } from "./CoreTableConstants"
-import { InvalidCellTypes, isValid } from "./InvalidCells"
+import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 
+// Assumptions: data is sorted by entity, then time
+// todo: move tests over from CE
 const timeSinceEntityExceededThreshold = (
     columnStore: CoreColumnStore,
     timeSlug: ColumnSlug,
@@ -16,7 +24,6 @@ const timeSinceEntityExceededThreshold = (
     const groupValues = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
     const timeValues = columnStore[timeSlug] as number[]
-    // NB: This assumes rows sorted by country then time. Would be better to do that more explicitly.
     let currentGroup: string
     let groupExceededThresholdAtTime: number
     return columnValues.map((value, index) => {
@@ -30,6 +37,46 @@ const timeSinceEntityExceededThreshold = (
         }
         return groupExceededThresholdAtTime
     })
+}
+
+// Assumptions: data is sorted by entity, then time
+// todo: move tests over from CE
+const rollingAverage = (
+    columnStore: CoreColumnStore,
+    timeSlug: ColumnSlug,
+    entitySlug: ColumnSlug,
+    columnSlug: ColumnSlug,
+    windowSize: number
+) => {
+    const groupValues = columnStore[entitySlug] as string[]
+    const columnValues = columnStore[columnSlug] as number[]
+    const timeValues = columnStore[timeSlug] as number[]
+    const groups: (number | InvalidCell)[][] = []
+    const len = groupValues.length
+    if (!len) return []
+    let currentGroup = groupValues[0]
+    let currentValues: number[] = []
+    let currentTimes: Time[] = []
+
+    for (let rowIndex = 0; rowIndex <= len; rowIndex++) {
+        const groupName = groupValues[rowIndex]
+        const value = columnValues[rowIndex]
+        const time = timeValues[rowIndex]
+        if (currentGroup !== groupName) {
+            const averages = computeRollingAverage(
+                insertMissingValuePlaceholders(currentValues, currentTimes),
+                windowSize
+            ).filter((value) => !(value instanceof InvalidCell))
+            groups.push(averages)
+            if (value === undefined) break // We iterate to <= so that we push the last row
+            currentValues = []
+            currentTimes = []
+            currentGroup = groupName
+        }
+        currentValues.push(value)
+        currentTimes.push(time)
+    }
+    return flatten(groups)
 }
 
 const divideBy = (
@@ -48,6 +95,38 @@ const divideBy = (
     })
 }
 
+// Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
+// todo: move tests over from CE
+const percentChange = (
+    columnStore: CoreColumnStore,
+    timeSlug: ColumnSlug,
+    entitySlug: ColumnSlug,
+    columnSlug: ColumnSlug,
+    windowSize: number
+) => {
+    const groupValues = columnStore[entitySlug] as string[]
+    const columnValues = columnStore[columnSlug] as number[]
+
+    let currentEntity: string
+    return columnValues.map((value: any, index) => {
+        if (!currentEntity) currentEntity = groupValues[index]
+        const previousValue = columnValues[index! - windowSize] as any
+        if (currentEntity !== groupValues[index]) {
+            currentEntity = groupValues[index]
+            return InvalidCellTypes.NoValueToCompareAgainst
+        }
+        if (previousValue instanceof InvalidCell) return previousValue
+        if (value instanceof InvalidCell) return value
+
+        if (previousValue === 0) return InvalidCellTypes.DivideByZeroError
+
+        if (previousValue === undefined)
+            return InvalidCellTypes.NoValueToCompareAgainst
+
+        return (100 * (value - previousValue)) / previousValue
+    })
+}
+
 // Todo: remove?
 const asPercentageOf = (
     columnStore: CoreColumnStore,
@@ -62,6 +141,8 @@ const availableTransforms: any = {
     asPercentageOf: asPercentageOf,
     timeSinceEntityExceededThreshold: timeSinceEntityExceededThreshold,
     divideBy: divideBy,
+    rollingAverage: rollingAverage,
+    percentChange: percentChange,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
