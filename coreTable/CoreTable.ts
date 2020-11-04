@@ -394,7 +394,8 @@ export class CoreTable<
         )
     }
 
-    has(columnSlug: ColumnSlug) {
+    has(columnSlug: ColumnSlug | undefined) {
+        if (columnSlug === undefined) return false
         return this._columns.has(columnSlug)
     }
 
