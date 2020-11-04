@@ -55,7 +55,8 @@ interface MarkLine {
 export interface MapLegendManager {
     fontSize?: number
     legendX?: number
-    legendY?: number
+    legendYCategorical?: number
+    legendYNumeric?: number
     legendWidth?: number
     legendHeight?: number
     scale?: number
@@ -80,8 +81,12 @@ class MapLegend extends React.Component<{
         return this.manager.legendX ?? 0
     }
 
-    @computed get legendY() {
-        return this.manager.legendY ?? 0
+    @computed get legendYCategorical() {
+        return this.manager.legendYCategorical ?? 0
+    }
+
+    @computed get legendYNumeric() {
+        return this.manager.legendYNumeric ?? 0
     }
 
     @computed get legendWidth() {
@@ -283,7 +288,7 @@ export class MapNumericColorLegend extends MapLegend {
     @computed get bounds() {
         return new Bounds(
             this.legendX,
-            this.legendY,
+            this.legendYNumeric,
             this.legendWidth,
             this.legendHeight
         )
@@ -350,7 +355,7 @@ export class MapNumericColorLegend extends MapLegend {
         //Bounds.debug([this.bounds])
 
         const borderColor = "#333"
-        const bottomY = this.legendY + height
+        const bottomY = this.legendYNumeric + height
 
         return (
             <g ref={this.base} className="numericColorLegend">
@@ -523,7 +528,7 @@ export class MapCategoricalColorLegend extends MapLegend {
                             >
                                 <rect
                                     x={this.legendX + mark.x}
-                                    y={this.legendY + mark.y}
+                                    y={this.legendYCategorical + mark.y}
                                     width={mark.rectSize}
                                     height={mark.rectSize}
                                     fill={mark.bin.color}
@@ -533,7 +538,10 @@ export class MapCategoricalColorLegend extends MapLegend {
                                 ,
                                 <text
                                     x={this.legendX + mark.label.bounds.x}
-                                    y={this.legendY + mark.label.bounds.y}
+                                    y={
+                                        this.legendYCategorical +
+                                        mark.label.bounds.y
+                                    }
                                     fontSize={mark.label.fontSize}
                                     dominantBaseline="hanging"
                                 >
