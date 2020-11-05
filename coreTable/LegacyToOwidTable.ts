@@ -1,6 +1,6 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { ChartTypeName, EPOCH_DATE } from "grapher/core/GrapherConstants"
 import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
 
@@ -161,7 +161,10 @@ export const legacyToOwidTableAndDimensions = (
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
-        if (targetTime !== undefined) {
+        if (
+            grapherConfig.type === ChartTypeName.ScatterPlot &&
+            targetTime !== undefined
+        ) {
             variableTable = variableTable
                 .interpolateColumnWithTolerance(valueColumnDef.slug)
                 .filterByTargetTimes([targetTime])
