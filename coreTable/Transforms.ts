@@ -102,6 +102,14 @@ const multiplyBy = (
         isValid(value) ? (value as number) * factor : value
     )
 
+enum WhereOperators {
+    is = "is",
+    isNot = "isNot",
+    isGreaterThan = "isGreaterThan",
+    isGreaterThanOrEqual = "isGreaterThanOrEqual",
+    isLessThan = "isLessThan",
+    isLessThanOrEqual = "isLessThanOrEqual",
+}
 // Todo: add tests/expand capabilities/remove?
 // Currently this just supports `columnSlug where someColumnSlug (isNot|is) this or that or this`
 const where = (
@@ -113,10 +121,21 @@ const where = (
     const values = columnStore[columnSlug]
     const conditionValues = columnStore[conditionSlug]
     const operator = condition.shift()
-    const result = operator === "isNot" ? false : true
-    const list = condition.join(" ").split(" or ")
-    const set = new Set(list)
-    const passes = (value: any) => (set.has(value) ? result : !result)
+    let passes = (value: any) => true
+    if (operator === WhereOperators.isNot || operator === WhereOperators.is) {
+        const result = operator === "isNot" ? false : true
+        const list = condition.join(" ").split(" or ")
+        const set = new Set(list)
+        passes = (value: any) => (set.has(value) ? result : !result)
+    } else if (operator === WhereOperators.isGreaterThan)
+        passes = (value: any) => value > parseFloat(condition.join(""))
+    else if (operator === WhereOperators.isGreaterThanOrEqual)
+        passes = (value: any) => value >= parseFloat(condition.join(""))
+    else if (operator === WhereOperators.isLessThan)
+        passes = (value: any) => value < parseFloat(condition.join(""))
+    else if (operator === WhereOperators.isLessThanOrEqual)
+        passes = (value: any) => value <= parseFloat(condition.join(""))
+
     return values.map((value, index) =>
         passes(conditionValues[index]) ? value : InvalidCellTypes.FilteredValue
     )
