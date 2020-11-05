@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { ChartTypeName, DimensionProperty } from "grapher/core/GrapherConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import { ColumnTypeMap } from "./CoreTableColumns"
 import { InvalidCellTypes } from "./InvalidCells"
@@ -248,6 +248,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             },
         }
         const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+            type: ChartTypeName.ScatterPlot,
             dimensions: [
                 {
                     variableId: 2,
