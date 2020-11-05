@@ -109,22 +109,29 @@ const percentChange = (
     columnSlug: ColumnSlug,
     windowSize: number
 ) => {
-    const groupValues = columnStore[entitySlug] as string[]
+    const entityNames = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
+
+    // If windowSize is 0 then there is zero change for every valid value
+    if (!windowSize) return columnValues.map((val) => (isValid(val) ? 0 : val))
 
     let currentEntity: string
     return columnValues.map((value: any, index) => {
-        if (!currentEntity) currentEntity = groupValues[index]
-        const previousValue = columnValues[index! - windowSize] as any
-        if (currentEntity !== groupValues[index]) {
-            currentEntity = groupValues[index]
+        const entity = entityNames[index]
+        const previousEntity = entityNames[index - windowSize] as any
+        const previousValue = columnValues[index - windowSize] as any
+        if (
+            !currentEntity ||
+            currentEntity !== entity ||
+            previousEntity !== entity
+        ) {
+            currentEntity = entity
             return InvalidCellTypes.NoValueToCompareAgainst
         }
         if (previousValue instanceof InvalidCell) return previousValue
         if (value instanceof InvalidCell) return value
 
         if (previousValue === 0) return InvalidCellTypes.DivideByZeroError
-
         if (previousValue === undefined)
             return InvalidCellTypes.NoValueToCompareAgainst
 
@@ -157,8 +164,7 @@ export const applyTransforms = (
     columnStore: CoreColumnStore,
     defs: CoreColumnDef[]
 ) => {
-    const orderedDefs = defs.filter((def) => def.transform) // todo: sort by graph dependency order
-    orderedDefs.forEach((def) => {
+    defs.forEach((def) => {
         const words = def.transform!.split(" ")
         const transformName = words.find(
             (word) => availableTransforms[word] !== undefined

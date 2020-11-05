@@ -127,6 +127,10 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
+    private get columnsToTransform() {
+        return this.inputColumnDefs.filter((def) => def.transform) // todo: sort by graph dependency order
+    }
+
     @imemo get transformCategory() {
         const { advancedOptions, inputType } = this
         if (advancedOptions.transformCategory)
@@ -183,8 +187,9 @@ export class CoreTable<
                 inputColumnsToComputedColumns
             )
 
-        // Now we can run any transforms
-        columnStore = applyTransforms(columnStore, this.defs)
+        // NB: transforms are *only* run on the root table for now. They will not be rerun later on (after adding or filtering rows, for example)
+        if (this.isRoot && this.columnsToTransform.length)
+            columnStore = applyTransforms(columnStore, this.columnsToTransform)
 
         return this.advancedOptions.filterMask
             ? this.advancedOptions.filterMask.apply(columnStore)

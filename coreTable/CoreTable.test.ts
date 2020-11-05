@@ -29,6 +29,62 @@ population,Population in 2020`
         expect(table.columnNames).toEqual(["Region", "Population in 2020"])
     })
 
+    describe("transforms", () => {
+        it("can create columns from transforms", () => {
+            const table = new CoreTable(
+                sampleCsv,
+                `slug,name,transform
+country,Region,
+population,Population in 2020,
+popTimes10,Pop times 10,multiplyBy population 10`
+            )
+            expect(table.get("popTimes10").allValues).toEqual([
+                10,
+                500,
+                3000,
+                200,
+            ])
+        })
+
+        describe("runs transforms just once", () => {
+            const table = new CoreTable(
+                `country,population
+iceland,1
+iceland,2
+iceland,3
+france,50
+france,60
+france,75`,
+                `slug,name,transform
+country,Region,
+population,Population in 2020,
+popChange,Pop change,percentChange time country population 2`
+            )
+            const expected = [
+                InvalidCellTypes.NoValueToCompareAgainst,
+                InvalidCellTypes.NoValueToCompareAgainst,
+                200,
+                InvalidCellTypes.NoValueToCompareAgainst,
+                InvalidCellTypes.NoValueToCompareAgainst,
+                50,
+            ]
+            it("runs transforms correctly", () => {
+                expect(table.get("popChange").allValues).toEqual(expected)
+            })
+
+            it("runs transforms once", () => {
+                expect(
+                    table
+                        .rowFilter((row, index) => !!index, "drop first")
+                        .appendColumns([
+                            { slug: "test", values: [1, 1, 1, 1, 1, 1] },
+                        ])
+                        .get("popChange").allValues
+                ).toEqual(expected.slice(1))
+            })
+        })
+    })
+
     it("can create an empty table", () => {
         expect(new CoreTable().transformCategory).toEqual(
             TransformType.LoadFromRowStore
