@@ -38,7 +38,7 @@ export class AbstactStackedChart
 
         if (!this.props.disableLinearInterpolation) {
             this.yColumnSlugs.forEach((slug) => {
-                table = table.interpolateColumnsLinearly(slug)
+                table = table.interpolateColumnLinearly(slug)
             })
         }
 

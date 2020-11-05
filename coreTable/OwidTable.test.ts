@@ -525,7 +525,7 @@ describe("linear interpolation", () => {
     )
 
     it("applies interpolation", () => {
-        const interpolatedTable = table.interpolateColumnsLinearly("gdp")
+        const interpolatedTable = table.interpolateColumnLinearly("gdp")
 
         expect(interpolatedTable.get("gdp").allValues).toEqual([
             // France

@@ -528,7 +528,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         }
     }
 
-    // TODO generalize `interpolateColumnWithTolerance` and `interpolateColumnsLinearly` more
+    // TODO generalize `interpolateColumnWithTolerance` and `interpolateColumnLinearly` more
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
@@ -594,7 +594,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    interpolateColumnsLinearly(columnSlug: ColumnSlug) {
+    interpolateColumnLinearly(columnSlug: ColumnSlug) {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
 
