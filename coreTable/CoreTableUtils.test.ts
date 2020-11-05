@@ -105,7 +105,13 @@ describe(toleranceInterpolation, () => {
         ]
         const timesAsc = [0, 1, 2, 3]
         const tolerance = 1
-        toleranceInterpolation(valuesAsc, timesAsc, tolerance, 0, 3)
+        toleranceInterpolation(
+            valuesAsc,
+            timesAsc,
+            { timeTolerance: tolerance },
+            0,
+            3
+        )
         expect(valuesAsc).toEqual([
             1,
             1,
@@ -125,7 +131,7 @@ describe(linearInterpolation, () => {
             InvalidCellTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4]
-        linearInterpolation(values, timesAsc)
+        linearInterpolation(values, timesAsc, {})
         expect(values).toEqual([4, 3, 2, 1, 1])
     })
 })
