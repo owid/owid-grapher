@@ -53,6 +53,7 @@ import {
     linearInterpolation,
     toleranceInterpolation,
     replaceDef,
+    InterpolationProvider,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 import { OwidSourceProps } from "./OwidSource"
@@ -491,14 +492,54 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // Retrieves the two columns `columnSlug` and `timeColumnSlug` from the table and
+    // passes their values to the respective interpolation method.
+    // `withAllRows` is expected to be completed and sorted.
+    private interpolate<K>(
+        withAllRows: this,
+        columnSlug: ColumnSlug,
+        timeColumnSlug: ColumnSlug,
+        interpolation: InterpolationProvider<K>,
+        context: K
+    ) {
+        const groupBoundaries = withAllRows.groupBoundaries(
+            OwidTableSlugs.entityName
+        )
+        const newValues = withAllRows
+            .get(columnSlug)
+            .allValues.slice() as number[]
+        const newTimes = withAllRows
+            .get(timeColumnSlug)
+            .allValues.slice() as Time[]
+
+        groupBoundaries.forEach((_, index) => {
+            interpolation(
+                newValues,
+                newTimes,
+                context,
+                groupBoundaries[index],
+                groupBoundaries[index + 1]
+            )
+        })
+
+        return {
+            values: newValues,
+            times: newTimes,
+        }
+    }
+
+    // TODO generalize `interpolateColumnWithTolerance` and `interpolateColumnsLinearly` more
+    // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
         toleranceOverride?: number
     ) {
+        // If the column doesn't exist, return the table unchanged.
+        if (!this.has(columnSlug)) return this
+
         const column = this.get(columnSlug)
         const columnDef = column.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column.display.tolerance ?? 0
-        const entityNameSlug = this.entityNameSlug
 
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
@@ -514,32 +555,22 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         let columnStore: CoreColumnStore
         if (tolerance) {
             const withAllRows = this.complete([
-                entityNameSlug,
+                OwidTableSlugs.entityName,
                 timeColumnOfTable.slug,
-            ]).sortBy([entityNameSlug, timeColumnOfTable.slug])
+            ]).sortBy([OwidTableSlugs.entityName, timeColumnOfTable.slug])
 
-            const groupBoundaries = withAllRows.groupBoundaries(entityNameSlug)
-            const newValues = withAllRows
-                .get(columnSlug)
-                .allValues.slice() as number[]
-            const newTimes = withAllRows
-                .get(timeColumnOfValue.slug)
-                .allValues.slice() as Time[]
-
-            groupBoundaries.forEach((_, index) => {
-                toleranceInterpolation(
-                    newValues,
-                    newTimes,
-                    tolerance,
-                    groupBoundaries[index],
-                    groupBoundaries[index + 1]
-                )
-            })
+            const interpolationResult = this.interpolate(
+                withAllRows,
+                columnSlug,
+                timeColumnOfValue.slug,
+                toleranceInterpolation,
+                { timeTolerance: tolerance }
+            )
 
             columnStore = {
                 ...withAllRows.columnStore,
-                [columnSlug]: newValues,
-                [originalTimeSlug]: newTimes,
+                [columnSlug]: interpolationResult.values,
+                [originalTimeSlug]: interpolationResult.times,
             }
         } else {
             // If there is no tolerance still append the tolerance column
@@ -582,28 +613,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             timeColumn.slug,
         ]).sortBy([OwidTableSlugs.entityName, timeColumn.slug])
 
-        const groupBoundaries = withAllRows.groupBoundaries(
-            OwidTableSlugs.entityName
+        const interpolationResult = this.interpolate(
+            withAllRows,
+            columnSlug,
+            timeColumn.slug,
+            linearInterpolation,
+            {}
         )
-        const newValues = withAllRows
-            .get(columnSlug)!
-            .allValues.slice() as number[]
-        const newTimes = withAllRows
-            .get(timeColumn.slug)!
-            .allValues.slice() as Time[]
-
-        groupBoundaries.forEach((index) => {
-            linearInterpolation(
-                newValues,
-                newTimes,
-                groupBoundaries[index],
-                groupBoundaries[index + 1]
-            )
-        })
 
         const columnStore = {
             ...withAllRows.columnStore,
-            [columnSlug]: newValues,
+            [columnSlug]: interpolationResult.values,
         }
 
         return this.transform(

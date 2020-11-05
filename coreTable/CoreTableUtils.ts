@@ -164,11 +164,26 @@ function isNotInvalidOrEmptyCell<K>(
     return value !== undefined && !(value instanceof InvalidCell)
 }
 
+export interface InterpolationContext {}
+
+export interface ToleranceInterpolationContext extends InterpolationContext {
+    timeTolerance: number
+}
+
+export type InterpolationProvider<C extends InterpolationContext> = (
+    valuesSortedByTimeAsc: (number | InvalidCell)[],
+    timesAsc: Time[],
+    context: C,
+    start: number,
+    end: number
+) => void
+
 export function linearInterpolation(
     valuesSortedByTimeAsc: (number | InvalidCell)[],
     timesAsc: Time[],
-    start = 0,
-    end = valuesSortedByTimeAsc.length
+    context: InterpolationContext,
+    start: number = 0,
+    end: number = valuesSortedByTimeAsc.length
 ) {
     if (!valuesSortedByTimeAsc.length) return
 
@@ -217,9 +232,9 @@ export function linearInterpolation(
 export function toleranceInterpolation(
     valuesSortedByTimeAsc: (number | InvalidCell)[],
     timesAsc: Time[],
-    timeTolerance: number,
-    start = 0,
-    end = valuesSortedByTimeAsc.length
+    context: ToleranceInterpolationContext,
+    start: number = 0,
+    end: number = valuesSortedByTimeAsc.length
 ) {
     if (!valuesSortedByTimeAsc.length) return
 
@@ -261,14 +276,14 @@ export function toleranceInterpolation(
         if (
             nextNonBlankIndex !== -1 &&
             nextTimeDiff <= prevTimeDiff &&
-            nextTimeDiff <= timeTolerance
+            nextTimeDiff <= context.timeTolerance
         ) {
             valuesSortedByTimeAsc[index] =
                 valuesSortedByTimeAsc[nextNonBlankIndex!]
             timesAsc[index] = timesAsc[nextNonBlankIndex!]
         } else if (
             prevNonBlankIndex !== undefined &&
-            prevTimeDiff <= timeTolerance
+            prevTimeDiff <= context.timeTolerance
         ) {
             valuesSortedByTimeAsc[index] =
                 valuesSortedByTimeAsc[prevNonBlankIndex!]
@@ -291,7 +306,7 @@ export function interpolateRowValuesWithTolerance<
 ): Row[] {
     const values = rowsSortedByTimeAsc.map((row) => row[valueSlug])
     const times = rowsSortedByTimeAsc.map((row) => row[timeSlug])
-    toleranceInterpolation(values, times, timeTolerance)
+    toleranceInterpolation(values, times, { timeTolerance })
     return rowsSortedByTimeAsc.map((row, index) => {
         return {
             ...row,
