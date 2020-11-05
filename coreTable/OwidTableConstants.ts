@@ -1,13 +1,8 @@
-import {
-    ColumnSlug,
-    ColumnTypeNames,
-    CoreColumnDef,
-    CoreRow,
-    Integer,
-    Time,
-    Year,
-} from "./CoreTableConstants"
-import { LegacyVariableId, OwidSource } from "./LegacyVariableCode"
+import { ColumnSlug, CoreRow, Integer, Time, Year } from "./CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+
+import { LegacyVariableId } from "./LegacyVariableCode"
+import { OwidSource } from "./OwidSource"
 
 export enum OwidTableSlugs {
     entityName = "entityName",

@@ -16,14 +16,14 @@ import {
 } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import {
-    CoreColumnDef,
     CoreRow,
     ColumnSlug,
-    ColumnTypeNames,
     Time,
     PrimitiveType,
     JsTypes,
 } from "./CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"

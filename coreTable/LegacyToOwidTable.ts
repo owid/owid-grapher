@@ -1,12 +1,9 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-import {
-    Color,
-    ColumnTypeNames,
-    ColumnSlug,
-    CoreColumnDef,
-} from "coreTable/CoreTableConstants"
+import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
+
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
     diffDateISOStringInDays,

@@ -77,11 +77,8 @@ import {
     ExplorerControlOption,
     ExplorerContainerId,
 } from "explorer/client/ExplorerConstants"
-import {
-    ColumnSlug,
-    CoreColumnDef,
-    CsvString,
-} from "coreTable/CoreTableConstants"
+import { ColumnSlug, CsvString } from "coreTable/CoreTableConstants"
+import { CoreColumnDef } from "coreTable/CoreColumnDef"
 import { ContinentColors } from "grapher/color/ColorConstants"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"

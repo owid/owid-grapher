@@ -8,14 +8,14 @@ import {
 } from "grapher/utils/Util"
 import {
     CoreColumnStore,
-    ColumnTypeNames,
-    CoreColumnDef,
     CoreRow,
     ColumnSlug,
     CoreMatrix,
     Time,
     SortOrder,
 } from "./CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+
 import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 import {
     OwidEntityCodeColumnDef,

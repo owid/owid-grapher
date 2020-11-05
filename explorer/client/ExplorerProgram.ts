@@ -13,7 +13,8 @@ import {
     ExplorerControlTypeRegex,
 } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
-import { ColumnTypeNames, CoreMatrix } from "coreTable/CoreTableConstants"
+import { CoreMatrix } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import {
     trimMatrix,
     detectDelimiter,

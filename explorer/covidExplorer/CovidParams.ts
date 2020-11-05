@@ -5,7 +5,8 @@ import {
     queryParamsToStr,
 } from "utils/client/url"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { SortOrder, ColumnTypeNames } from "coreTable/CoreTableConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnThresholds,

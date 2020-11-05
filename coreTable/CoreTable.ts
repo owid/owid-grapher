@@ -18,8 +18,6 @@ import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,
     CoreColumnStore,
-    ColumnTypeNames,
-    CoreColumnDef,
     CoreRow,
     CoreTableInputOption,
     PrimitiveType,
@@ -31,6 +29,8 @@ import {
     InputType,
     CoreMatrix,
 } from "./CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,

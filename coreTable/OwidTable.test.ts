@@ -6,7 +6,7 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
-import { ColumnTypeNames } from "./CoreTableConstants"
+import { ColumnTypeNames } from "./CoreColumnDef"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import { InvalidCellTypes } from "./InvalidCells"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"

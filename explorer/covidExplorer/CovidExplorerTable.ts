@@ -1,14 +1,13 @@
 import { cloneDeep, flatten, isPresent } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
+import { ColumnSlug, Integer, CoreRow } from "coreTable/CoreTableConstants"
 import {
     ColumnTypeNames,
-    ColumnSlug,
-    Integer,
-    CoreRow,
     ColumnFn,
     CoreColumnDef,
-} from "coreTable/CoreTableConstants"
+} from "coreTable/CoreColumnDef"
+
 import {
     allAvailableQueryStringCombos,
     CovidColumnDefObjectMap,

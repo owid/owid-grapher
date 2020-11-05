@@ -3,12 +3,8 @@ import {
     insertMissingValuePlaceholders,
 } from "explorer/covidExplorer/CovidExplorerUtils"
 import { flatten } from "grapher/utils/Util"
-import {
-    ColumnSlug,
-    CoreColumnDef,
-    CoreColumnStore,
-    Time,
-} from "./CoreTableConstants"
+import { ColumnSlug, CoreColumnStore, Time } from "./CoreTableConstants"
+import { CoreColumnDef } from "./CoreColumnDef"
 import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 
 // Assumptions: data is sorted by entity, then time

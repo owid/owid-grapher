@@ -1,9 +1,6 @@
-import {
-    ColumnSlug,
-    ColumnTypeNames,
-    CoreColumnDef,
-    CoreRow,
-} from "coreTable/CoreTableConstants"
+import { ColumnSlug, CoreRow } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
+
 import { EntityName } from "coreTable/OwidTableConstants"
 import { csvParse } from "d3-dsv"
 import moment from "moment"

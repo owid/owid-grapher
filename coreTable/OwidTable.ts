@@ -1,7 +1,4 @@
-import {
-    LegacyVariablesAndEntityKey,
-    OwidSourceProperty,
-} from "./LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import {
     max,
     min,
@@ -19,7 +16,6 @@ import {
     isNumber,
 } from "grapher/utils/Util"
 import {
-    ColumnTypeNames,
     ColumnSlug,
     Integer,
     Time,
@@ -27,6 +23,7 @@ import {
     CoreColumnStore,
     Color,
 } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
@@ -57,6 +54,7 @@ import {
     replaceDef,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
+import { OwidSourceProps } from "./OwidSource"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -441,13 +439,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Pretty print all column sources (currently just used in debugging)
     sourcesTable(options: AlignedTextTableOptions) {
-        const header: OwidSourceProperty[] = [
-            `name`,
-            `retrievedDate`,
-            `dataPublishedBy`,
-            `dataPublisherSource`,
-            `additionalInfo`,
-        ]
+        const header = Object.values(OwidSourceProps)
         return toAlignedTextTable(
             [`slug`, ...header],
             this.defs.map((def) => {

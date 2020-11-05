@@ -1,7 +1,8 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "./CoreTable"
-import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
+import { TransformType } from "./CoreTableConstants"
+import { ColumnTypeNames } from "./CoreColumnDef"
 import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleCsv = `country,population

@@ -1,4 +1,5 @@
-import { ColumnTypeNames, CoreRow, Time } from "coreTable/CoreTableConstants"
+import { CoreRow, Time } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"

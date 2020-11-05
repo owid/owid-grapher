@@ -9,6 +9,7 @@ import {
 } from "grapher/persistable/Persistable"
 import { ColumnSlug, Integer, Time } from "./CoreTableConstants"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { OwidSource } from "./OwidSource"
 
 export declare type LegacyVariableId = Integer
 
@@ -41,18 +42,6 @@ class LegacyVariableDisplayConfigDefaults {
 }
 
 export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplayConfigDefaults
-
-export interface OwidSource {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-}
-
-export type OwidSourceProperty = keyof OwidSource
 
 export class LegacyVariableDisplayConfig
     extends LegacyVariableDisplayConfigDefaults
