@@ -565,10 +565,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     interpolateColumnsLinearly(columnSlug: ColumnSlug) {
-        const column = this.get(columnSlug)
         // If the column doesn't exist, return the table unchanged.
-        if (!column) return this
+        if (!this.has(columnSlug)) return this
 
+        const column = this.get(columnSlug)
         const columnDef = column?.def as OwidColumnDef
 
         const maybeTimeColumnSlug =

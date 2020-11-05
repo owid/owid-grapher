@@ -507,6 +507,95 @@ describe("time domain", () => {
     })
 })
 
+describe("linear interpolation", () => {
+    const table = new OwidTable(
+        `gdp,year,entityName,entityId,entityCode
+10,2000,france,1,
+0,2001,france,1,
+,2002,france,1,
+,2003,france,1,
+8,2005,france,1,
+,2006,france,1,
+2,2000,uk,2,
+3,2004,uk,2,`,
+        [
+            { slug: "gdp", type: ColumnTypeNames.Numeric },
+            { slug: "year", type: ColumnTypeNames.Year },
+        ]
+    )
+
+    it("applies interpolation", () => {
+        const interpolatedTable = table.interpolateColumnsLinearly("gdp")
+
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 10,
+                    year: 2000,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 0,
+                    year: 2001,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 2,
+                    year: 2002,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 4,
+                    year: 2003,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 6,
+                    year: 2004,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 8,
+                    year: 2005,
+                }),
+            ])
+        )
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 8,
+                    year: 2006,
+                }),
+            ])
+        )
+        expect(
+            interpolatedTable.rows.filter((row) => isNaN(row.year)).length
+        ).toEqual(0)
+    })
+})
+
 describe("tolerance", () => {
     const table = new OwidTable(
         `gdp,year,entityName,entityId,entityCode
