@@ -12,13 +12,13 @@ usa,300
 canada,20`
 
 describe("creating tables", () => {
-    it("a table can be made from csv", () => {
+    it("can create tables from csv", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
         expect(table.columnNames).toEqual(["country", "population"])
     })
 
-    it("a table can be made from csv with columns defined in csv", () => {
+    it("can create tables from csv with columns definitions also as csv", () => {
         const table = new CoreTable(
             sampleCsv,
             `slug,name
@@ -29,18 +29,18 @@ population,Population in 2020`
         expect(table.columnNames).toEqual(["Region", "Population in 2020"])
     })
 
-    it("you can create an empty table", () => {
+    it("can create an empty table", () => {
         expect(new CoreTable().transformCategory).toEqual(
             TransformType.LoadFromRowStore
         )
     })
 
-    it("when parsing object literals as rows, if a later row has more properties than the first row they will be ignored", () => {
+    it("will only look at properties of the first object literal when autodetecting columns from rows", () => {
         const table = new CoreTable([{ name: "test" }, { score: 123 }])
         expect(table.columnNames).toEqual(["name"])
     })
 
-    it("tables can be combined", () => {
+    it("can combine tables", () => {
         const table = new CoreTable(sampleCsv).concat([
             new CoreTable(sampleCsv),
         ])
@@ -69,7 +69,7 @@ population,Population in 2020`
         expect(table.columnJsTypes).toEqual(["string", "number"])
     })
 
-    it("it always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {
+    it("always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {
         const rows = [
             { country: "USA", gdp: 2000 },
             { country: "Germany", gdp: undefined },
@@ -78,7 +78,7 @@ population,Population in 2020`
         expect(table.get("gdp").numValues).toEqual(1)
     })
 
-    it("it parses values to correct provided type even if first row is missing value", () => {
+    it("parses values to the provided type even if first row is missing value", () => {
         const rows = `gdp,country
 ,usa
 123,can`
@@ -91,7 +91,7 @@ population,Population in 2020`
         expect(table.get("gdp").maxValue).toEqual(123)
     })
 
-    describe("can load a table from a matrix", () => {
+    describe("loading from matrix", () => {
         const sampleRows = [
             {
                 year: 2020,
@@ -123,7 +123,7 @@ population,Population in 2020`
         expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
     })
 
-    it("handles invalid values when going to a matrix", () => {
+    it("handles invalid values when serializing to a matrix", () => {
         const table = new CoreTable([{ country: "usa", gdp: undefined }])
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
@@ -157,7 +157,7 @@ population,Population in 2020`
 })
 
 describe("set methods", () => {
-    it("can find intersection between 2 tables", () => {
+    it("can find the intersection between 2 tables", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.intersection([new CoreTable(sampleCsv)]).numRows).toEqual(
             4
@@ -216,7 +216,7 @@ uk,2001`
 })
 
 describe("adding rows", () => {
-    describe("rows can be added without mutating the parent table", () => {
+    describe("adding rows is immutable", () => {
         const table = new CoreTable(sampleCsv)
         expect(table.numRows).toEqual(4)
 
@@ -268,7 +268,7 @@ describe("column operations", () => {
         expect(firstRow.Population).toEqual(123)
     })
 
-    it("input rows are never mutated", () => {
+    it("does not mutate input rows ever", () => {
         const rows = [{ country: "USA" }, { country: "Germany" }]
         const table = new CoreTable(rows, [
             {
@@ -282,7 +282,7 @@ describe("column operations", () => {
         expect((rows[0] as any).countryNameLength).toEqual(undefined)
     })
 
-    it("computations are only run once", () => {
+    it("runs computations just once", () => {
         const rows = [{ country: "USA" }]
         let count = 0
         let table = new CoreTable(rows, [
@@ -427,14 +427,14 @@ describe("filtering", () => {
         (row) => parseInt(row.population) > 40,
         "Pop filter"
     )
-    it("one filter works", () => {
+    it("can filter", () => {
         expect(rootTable.get("country").parsedValues[3]).toEqual("canada")
         const parsedValues = filteredTable.get("country").parsedValues
         expect(parsedValues[0]).toEqual("france")
         expect(parsedValues[1]).toEqual("usa")
     })
 
-    it("multiple filters work", () => {
+    it("can chain filters", () => {
         const filteredTwiceTable = filteredTable.rowFilter(
             (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
@@ -444,7 +444,7 @@ describe("filtering", () => {
         expect(parsedValues[1]).toEqual(undefined)
     })
 
-    it("filter all works", () => {
+    it("can filter all", () => {
         const table = new CoreTable(`country,pop
 usa,123
 can,333`)
@@ -466,10 +466,10 @@ ger,0.1`)
     })
 })
 
-describe("debugging", () => {
+describe("debug tools", () => {
     const table = new CoreTable(sampleCsv).dropColumns(["population"])
 
-    it("tables have access to their ancestors", () => {
+    it("can dump its ancestors", () => {
         expect(table.ancestors.length).toEqual(2)
     })
 })
@@ -634,11 +634,11 @@ europe,2001,france,200
 asia,2000,japan,300
 europe,2000,france,600`
 
-    describe("create groups", () => {
+    describe("creating groups", () => {
         const table = new CoreTable(csv)
         const groups = table.groupBy("continent")
         expect(groups.length).toBe(2)
-        it("can reduce", () => {
+        it("can reduce groups", () => {
             expect(groups[0].reduce({ gdp: "sum" }).firstRow.gdp).toBe(1200)
         })
     })
