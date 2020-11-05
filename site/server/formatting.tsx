@@ -28,6 +28,8 @@ import {
     countryProfileDefaultCountryPlaceholder,
     countryProfileSpecs,
 } from "site/server/countryProfileProjects"
+import { formatGlossaryTerms } from "./formatGlossary"
+import { getMutableGlossary, glossary } from "./glossary"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -233,7 +235,7 @@ export async function formatWordpressPost(
         $pageSubtitle.remove()
     }
 
-    // Extract page subtitle
+    // Extract page byline
     let byline
     const $byline = $(".wp-block-owid-byline")
     if ($byline.length) {
@@ -510,6 +512,10 @@ export async function formatWordpressPost(
             .append($start.clone(), $start.nextUntil($("h2")))
             .contents()
 
+        if (post.glossary) {
+            formatGlossaryTerms($, $contents, getMutableGlossary(glossary))
+        }
+
         $contents.each((i, el) => {
             const $el = $(el)
             // Leave h2 at the section level, do not move into columns
@@ -607,7 +613,6 @@ export async function formatWordpressPost(
 
     return {
         id: post.id,
-        postId: post.postId,
         type: post.type,
         slug: post.slug,
         path: post.path,
@@ -711,7 +716,6 @@ export async function formatPost(
     if (formattingOptions.raw) {
         return {
             id: post.id,
-            postId: post.postId,
             type: post.type,
             slug: post.slug,
             path: post.path,

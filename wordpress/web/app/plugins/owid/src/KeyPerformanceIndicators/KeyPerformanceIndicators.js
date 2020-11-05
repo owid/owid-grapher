@@ -3,11 +3,14 @@ const { withSelect, withDispatch } = wp.data
 const { compose } = wp.compose
 const md = require("markdown-it")()
 
+const KEY_PERFORMANCE_INDICATORS_META_FIELD =
+    "owid_key_performance_indicators_meta_field"
+
 const KeyPerformanceIndicators = ({
     keyPerformanceIndicators = { raw: "", rendered: "" },
     setKeyPerformanceIndicators,
 }) => {
-    const helpText = `Example:<br /> 
+    const helpText = `Example:<br />
   KPI with some <strong>**bold text**</strong><br />
   [EMPTY LINE]<br />
   KPI subtitle`
@@ -37,7 +40,7 @@ const mapSelectToProps = function (select, props) {
     return {
         keyPerformanceIndicators: select("core/editor").getEditedPostAttribute(
             "meta"
-        )[props.fieldName],
+        )[KEY_PERFORMANCE_INDICATORS_META_FIELD],
     }
 }
 
@@ -45,7 +48,12 @@ const mapDispatchToProps = function (dispatch, props) {
     return {
         setKeyPerformanceIndicators: function (raw) {
             dispatch("core/editor").editPost({
-                meta: { [props.fieldName]: { raw, rendered: md.render(raw) } },
+                meta: {
+                    [KEY_PERFORMANCE_INDICATORS_META_FIELD]: {
+                        raw,
+                        rendered: md.render(raw),
+                    },
+                },
             })
         },
     }

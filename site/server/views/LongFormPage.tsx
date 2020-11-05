@@ -358,9 +358,7 @@ export const LongFormPage = (props: {
                             <li id="wp-admin-bar-edit">
                                 <a
                                     className="ab-item"
-                                    href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${
-                                        post.postId || post.id
-                                    }&action=edit`}
+                                    href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}
                                 >
                                     Edit Page
                                 </a>

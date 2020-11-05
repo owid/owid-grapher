@@ -24,6 +24,7 @@ include 'src/LastUpdated/last-updated.php';
 include 'src/Byline/byline.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
+const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 
 function setup()
 {
@@ -43,7 +44,7 @@ function setup()
 function register()
 {
     wp_register_script(
-        'owid-plugin-script',
+        'owid-plugins-script',
         plugins_url('build/plugins.js', __FILE__),
         [
             'wp-plugins',
@@ -56,7 +57,7 @@ function register()
     );
 
     wp_register_style(
-        'owid-plugin-css',
+        'owid-plugins-css',
         plugins_url('src/style.css', __FILE__)
     );
 
@@ -83,6 +84,18 @@ function register()
                 ],
             ],
         ],
+    ]);
+
+    // Add (temporary) support for toggling glossary terms highlighting on the
+    // current post. This is used by the editor (see also the GraphQL
+    // registration of that field below)
+    //
+    // TODO: delete this field's data from the DB when not used anymore
+    // (delete_post_meta_by_key( $post_meta_key )).
+    register_post_meta('', GLOSSARY_META_FIELD, [
+        'single' => true,
+        'type' => 'boolean',
+        'show_in_rest' => true,
     ]);
 
     wp_register_script(
@@ -124,11 +137,11 @@ function register()
     ]);
 }
 
-// Registering the KPI meta field for querying through GraphQL.
-// Only the rendered version is returned for simplicity.
-// (see also the REST API registration of that field above)
 function graphql_register_types()
 {
+    // Registering the KPI meta field for querying through GraphQL.
+    // Only the rendered version is returned for simplicity.
+    // (see also the REST API registration of that field above)
     register_graphql_field('Page', 'kpi', [
         'type' => 'String',
         'description' => 'Key Performance Indicators',
@@ -143,16 +156,26 @@ function graphql_register_types()
                 : '';
         },
     ]);
+
+    register_graphql_field('', 'glossary', [
+        'type' => 'Boolean',
+        'description' => 'Glossary',
+        'resolve' => function ($post) {
+            $glossary_post_meta = get_post_meta(
+                $post->ID,
+                GLOSSARY_META_FIELD,
+                true
+            );
+            return !!$glossary_post_meta;
+        },
+    ]);
 }
 
 function assets_enqueue()
 {
-    $screen = get_current_screen();
-
-    if ($screen->post_type === 'page') {
-        wp_enqueue_script('owid-plugin-script');
-        wp_enqueue_style('owid-plugin-css');
-    }
+    // $post_type = get_current_screen()->post_type;
+    wp_enqueue_script('owid-plugins-script');
+    wp_enqueue_style('owid-plugins-css');
 }
 
 add_action('after_setup_theme', __NAMESPACE__ . '\setup');
