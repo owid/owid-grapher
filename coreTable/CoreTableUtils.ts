@@ -194,15 +194,22 @@ export function interpolateColumnsLinearly(
         const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
         const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
 
+        const distLeft = index - prevNonBlankIndex
+        const distRight = nextNonBlankIndex - index
+
         let value
         if (
             isNotInvalidOrEmptyCell(prevValue) &&
             isNotInvalidOrEmptyCell(nextValue)
         )
-            value = (prevValue + nextValue) / 2
+            value =
+                (prevValue * distRight + nextValue * distLeft) /
+                (distLeft + distRight)
         else if (isNotInvalidOrEmptyCell(prevValue)) value = prevValue
         else if (isNotInvalidOrEmptyCell(nextValue)) value = nextValue
-        else value = currentValue
+        else value = InvalidCellTypes.NoValueForInterpolation
+
+        prevNonBlankIndex = index
 
         valuesSortedByTimeAsc[index] = value
     }

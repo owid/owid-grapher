@@ -28,11 +28,7 @@ import {
     AbstactStackedChartProps,
 } from "grapher/stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
-import {
-    stackSeries,
-    withZeroesAsInterpolatedPoints,
-    withLinearInterpolatedPoints,
-} from "./StackedUtils"
+import { stackSeries } from "./StackedUtils"
 import { makeClipPath } from "grapher/chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
