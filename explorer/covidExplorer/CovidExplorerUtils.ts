@@ -155,23 +155,23 @@ export const computeRollingAveragesForEachGroup = (
 // the existing values.
 export function insertMissingValuePlaceholders(
     values: number[],
-    years: number[]
+    times: number[]
 ) {
-    const startYear = years[0]
-    const endYear = years[years.length - 1]
+    const startTime = times[0]
+    const endTime = times[times.length - 1]
     const filledRange = []
-    let year = startYear
-    const map = new Map()
-    years.forEach((year, index) => {
-        map.set(year, index)
+    let time = startTime
+    const timeToValueIndex = new Map()
+    times.forEach((time, index) => {
+        timeToValueIndex.set(time, index)
     })
-    while (year <= endYear) {
+    while (time <= endTime) {
         filledRange.push(
-            map.has(year)
-                ? values[map.get(year)]
+            timeToValueIndex.has(time)
+                ? values[timeToValueIndex.get(time)]
                 : InvalidCellTypes.MissingValuePlaceholder
         )
-        year++
+        time++
     }
     return filledRange
 }

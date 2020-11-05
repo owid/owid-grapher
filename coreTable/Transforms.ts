@@ -44,30 +44,32 @@ const rollingAverage = (
     columnSlug: ColumnSlug,
     windowSize: number
 ) => {
-    const groupValues = columnStore[entitySlug] as string[]
+    const entityNames = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
     const timeValues = columnStore[timeSlug] as number[]
-    const groups: (number | InvalidCell)[][] = []
-    const len = groupValues.length
+    const len = entityNames.length
     if (!len) return []
-    let currentGroup = groupValues[0]
+    let currentEntity = entityNames[0]
     let currentValues: number[] = []
     let currentTimes: Time[] = []
 
+    const groups: (number | InvalidCell)[][] = []
     for (let rowIndex = 0; rowIndex <= len; rowIndex++) {
-        const groupName = groupValues[rowIndex]
+        const entityName = entityNames[rowIndex]
         const value = columnValues[rowIndex]
         const time = timeValues[rowIndex]
-        if (currentGroup !== groupName) {
+        if (currentEntity !== entityName) {
             const averages = computeRollingAverage(
                 insertMissingValuePlaceholders(currentValues, currentTimes),
                 windowSize
-            ).filter((value) => !(value instanceof InvalidCell))
+            ).filter(
+                (value) => !(value === InvalidCellTypes.MissingValuePlaceholder)
+            ) // filter the placeholders back out
             groups.push(averages)
             if (value === undefined) break // We iterate to <= so that we push the last row
             currentValues = []
             currentTimes = []
-            currentGroup = groupName
+            currentEntity = entityName
         }
         currentValues.push(value)
         currentTimes.push(time)
