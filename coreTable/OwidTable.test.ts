@@ -509,15 +509,15 @@ describe("time domain", () => {
 
 describe("linear interpolation", () => {
     const table = new OwidTable(
-        `gdp,year,entityName,entityId,entityCode
-10,2000,france,1,
-0,2001,france,1,
-,2002,france,1,
-,2003,france,1,
-8,2005,france,1,
-,2006,france,1,
-2,2000,uk,2,
-3,2004,uk,2,`,
+        `gdp,year,entityName
+10,2000,france
+0,2001,france
+,2002,france
+,2003,france
+8,2005,france
+,2006,france
+2,2000,uk
+3,2004,uk`,
         [
             { slug: "gdp", type: ColumnTypeNames.Numeric },
             { slug: "year", type: ColumnTypeNames.Year },
@@ -527,66 +527,32 @@ describe("linear interpolation", () => {
     it("applies interpolation", () => {
         const interpolatedTable = table.interpolateColumnsLinearly("gdp")
 
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 10,
-                    year: 2000,
-                }),
-            ])
-        )
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 0,
-                    year: 2001,
-                }),
-            ])
-        )
+        expect(interpolatedTable.get("gdp").allValues).toEqual([
+            // France
+            10,
+            0,
+            2,
+            4,
+            6,
+            8,
+            8,
+            // UK
+            2,
+            2.25,
+            2.5,
+            2.75,
+            3,
+            3,
+            3,
+        ])
+
+        // Check that not only the gdp values are correct but also the other fields
         expect(interpolatedTable.rows).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     entityName: "france",
                     gdp: 2,
                     year: 2002,
-                }),
-            ])
-        )
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 4,
-                    year: 2003,
-                }),
-            ])
-        )
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 6,
-                    year: 2004,
-                }),
-            ])
-        )
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 8,
-                    year: 2005,
-                }),
-            ])
-        )
-        expect(interpolatedTable.rows).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    entityName: "france",
-                    gdp: 8,
-                    year: 2006,
                 }),
             ])
         )
