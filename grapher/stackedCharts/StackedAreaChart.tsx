@@ -486,10 +486,6 @@ export class StackedAreaChart
     }
 
     @computed get series() {
-        if (this.props.disableLinearInterpolation === true)
-            return stackSeries(
-                withZeroesAsInterpolatedPoints(this.unstackedSeries)
-            )
-        return stackSeries(withLinearInterpolatedPoints(this.unstackedSeries))
+        return stackSeries(this.unstackedSeries)
     }
 }

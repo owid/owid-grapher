@@ -158,8 +158,54 @@ export const makeRowFromColumnStore = (
     return row
 }
 
-function isNotInvalidOrEmptyCell(value: any) {
+function isNotInvalidOrEmptyCell<K>(
+    value: K
+): value is Exclude<K, InvalidCell | undefined> {
     return value !== undefined && !(value instanceof InvalidCell)
+}
+
+export function interpolateColumnsLinearly(
+    valuesSortedByTimeAsc: (number | InvalidCell)[],
+    timesAsc: Time[],
+    start = 0,
+    end = valuesSortedByTimeAsc.length
+) {
+    if (!valuesSortedByTimeAsc.length) return
+
+    let prevNonBlankIndex = -1
+    let nextNonBlankIndex = -1
+
+    for (let index = start; index < end; index++) {
+        const currentValue = valuesSortedByTimeAsc[index]
+        if (isNotInvalidOrEmptyCell(currentValue)) {
+            prevNonBlankIndex = index
+            continue
+        }
+
+        if (nextNonBlankIndex === -1) {
+            nextNonBlankIndex = findIndexFast(
+                valuesSortedByTimeAsc,
+                (val) => isNotInvalidOrEmptyCell(val),
+                index + 1,
+                end
+            )
+        }
+
+        const prevValue = valuesSortedByTimeAsc[prevNonBlankIndex]
+        const nextValue = valuesSortedByTimeAsc[nextNonBlankIndex]
+
+        let value
+        if (
+            isNotInvalidOrEmptyCell(prevValue) &&
+            isNotInvalidOrEmptyCell(nextValue)
+        )
+            value = (prevValue + nextValue) / 2
+        else if (isNotInvalidOrEmptyCell(prevValue)) value = prevValue
+        else if (isNotInvalidOrEmptyCell(nextValue)) value = nextValue
+        else value = currentValue
+
+        valuesSortedByTimeAsc[index] = value
+    }
 }
 
 export function interpolateColumnsWithTolerance(
