@@ -50,8 +50,8 @@ import {
 } from "./OwidTableUtil"
 import {
     imemo,
-    interpolateColumnsLinearly,
-    interpolateColumnsWithTolerance,
+    linearInterpolation,
+    toleranceInterpolation,
     replaceDef,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
@@ -528,7 +528,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 .allValues.slice() as Time[]
 
             groupBoundaries.forEach((_, index) => {
-                interpolateColumnsWithTolerance(
+                toleranceInterpolation(
                     newValues,
                     newTimes,
                     tolerance,
@@ -594,7 +594,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .allValues.slice() as Time[]
 
         groupBoundaries.forEach((index) => {
-            interpolateColumnsLinearly(
+            linearInterpolation(
                 newValues,
                 newTimes,
                 groupBoundaries[index],

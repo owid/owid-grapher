@@ -5,7 +5,7 @@ import {
     emptyColumnsInFirstRowInDelimited,
     getDropIndexes,
     imemo,
-    interpolateColumnsWithTolerance,
+    toleranceInterpolation,
     interpolateRowValuesWithTolerance,
     matrixToDelimited,
     parseDelimited,
@@ -94,7 +94,7 @@ describe(interpolateRowValuesWithTolerance, () => {
     })
 })
 
-describe(interpolateColumnsWithTolerance, () => {
+describe(toleranceInterpolation, () => {
     it("doesn't interpolate values beyond end", () => {
         const valuesAsc = [
             1,
@@ -104,7 +104,7 @@ describe(interpolateColumnsWithTolerance, () => {
         ]
         const timesAsc = [0, 1, 2, 3]
         const tolerance = 1
-        interpolateColumnsWithTolerance(valuesAsc, timesAsc, tolerance, 0, 3)
+        toleranceInterpolation(valuesAsc, timesAsc, tolerance, 0, 3)
         expect(valuesAsc).toEqual([
             1,
             1,
