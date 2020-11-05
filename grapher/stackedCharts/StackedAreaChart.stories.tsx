@@ -65,6 +65,31 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolation = () => (
     </svg>
 )
 
+export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{
+                ...entitiesChart,
+                table: table.dropRandomRows(30, seed),
+                isRelativeMode: true,
+            }}
+        />
+    </svg>
+)
+
+export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            disableLinearInterpolation={true}
+            manager={{
+                ...entitiesChart,
+                table: table.dropRandomRows(30, seed),
+                isRelativeMode: true,
+            }}
+        />
+    </svg>
+)
+
 const colTable = SynthesizeFruitTable()
 const columnsChart: ChartManager = {
     table: colTable,
