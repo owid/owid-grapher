@@ -91,6 +91,15 @@ const divideBy = (
     })
 }
 
+const multiplyBy = (
+    columnStore: CoreColumnStore,
+    columnSlug: ColumnSlug,
+    factor: number
+) =>
+    columnStore[columnSlug].map((value) =>
+        isValid(value) ? (value as number) * factor : value
+    )
+
 // Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
 // todo: move tests over from CE
 const percentChange = (
@@ -139,6 +148,7 @@ const availableTransforms: any = {
     divideBy: divideBy,
     rollingAverage: rollingAverage,
     percentChange: percentChange,
+    multiplyBy: multiplyBy,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
