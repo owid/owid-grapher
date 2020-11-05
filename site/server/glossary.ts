@@ -165,4 +165,46 @@ export const glossary: GlossaryGroup[] = [
             "‘Carbon budget’ is a concept used to define the quantity of greenhouse gases we can emit over a given period of time before average warming would exceed a given level – for example, 2°C higher than pre-industrial temperatures.",
         terms: ["Carbon Budget"],
     },
+    {
+        slug: "what-is-radiative-forcing",
+        excerpt:
+            "Radiative forcing measures the difference between incoming energy and the energy radiated back to space. If more energy is absorbed than radiated, the atmosphere becomes warmer.",
+        terms: ["Effective radiative forcing", "Radiative forcing", "RF"],
+    },
+    {
+        slug: "what-is-child-mortality",
+        excerpt:
+            "Child mortality measures the share of newborns who die before reaching the age of five.",
+        terms: ["Child mortality rate", "Child mortality"],
+    },
+    {
+        slug: "what-is-infant-mortality",
+        excerpt:
+            "Infant mortality measures the share of newborns who die before reaching one year of age.",
+        terms: ["Infant mortality rate", "Infant mortality"],
+    },
+    {
+        slug: "what-is-neonatal-mortality",
+        excerpt:
+            "Neonatal mortality measures the share of newborns who die before reaching 28 days of age.",
+        terms: ["Neonatal mortality rate", "Neonatal mortality"],
+    },
+    {
+        slug: "what-is-maternal-mortality",
+        excerpt:
+            "The maternal mortality ratio measures the number of women who die from pregnancy-related causes per 100,000 live births.",
+        terms: ["Maternal mortality ratio", "Maternal mortality rate", "Maternal mortality"],
+    },
+    {
+        slug: "what-is-a-maternal-death",
+        excerpt:
+            "A maternal death refers to the death of a woman while pregnant or within 42 days of termination of pregnancy. Included are deaths from any cause related to or aggravated by the pregnancy but not from accidental or incidental causes.",
+        terms: ["Maternal deaths", "Maternal death"],
+    },
+    {
+        slug: "what-is-fertility-rate",
+        excerpt:
+            "Children per woman is measured as the total fertility rate, which is the number of children that would be born to the average woman if she were to live to the end of her child-bearing years and give birth to children at the current age-specific fertility rates.",
+        terms: ["Fertility rates", "Fertility rate"],
+    }   
 ]
