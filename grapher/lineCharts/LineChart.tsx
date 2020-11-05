@@ -601,7 +601,11 @@ export class LineChart
     getAnnotationsForSeries(seriesName: SeriesName) {
         const annotationsMap = this.annotationsMap
         const annos = annotationsMap?.get(seriesName)
-        return annos ? Array.from(annos.values()).join(" & ") : undefined
+        return annos
+            ? Array.from(annos.values())
+                  .filter((anno) => anno)
+                  .join(" & ")
+            : undefined
     }
 
     @computed private get colorScheme() {
