@@ -176,6 +176,8 @@ export class SwitcherExplorer
 
         if (selectedRow.yScaleToggle === CheckboxOption.true)
             grapher.yAxis.canChangeScaleType = true
+        else if (selectedRow.yScaleToggle === CheckboxOption.false)
+            grapher.yAxis.canChangeScaleType = false
 
         grapher.hasError = false
         const queryStr = grapher.id
