@@ -289,9 +289,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             type: ColumnTypeNames.Percentage,
             values: col.parsedValues.map((val, index) => {
                 const timeTotal = timeTotals.get(timeValues[index])
-                if (timeTotal === undefined || timeTotal === 0)
-                    return InvalidCellTypes.DivideByZeroError
-                return (100 * (val as number)) / timeTotal
+                if (timeTotal === 0) return InvalidCellTypes.DivideByZeroError
+                return (100 * (val as number)) / timeTotal!
             }),
         }
 
