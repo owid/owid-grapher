@@ -194,10 +194,14 @@ export class ScatterPlotChart
     // Returns the colors that are used by all points, *across the whole timeline*.
     // This is why we need the table before the timeline filter is applied.
     @computed private get colorsInUse(): Color[] {
-        const colorValues =
+        const allValues =
             this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
                 this.colorColumnSlug
-            )?.uniqValues ?? []
+            )?.allValues ?? []
+        // Need to convert InvalidCell to undefined for color scale to assign correct color
+        const colorValues = uniq(
+            allValues.map((value) => (isValid(value) ? value : undefined))
+        ) as (string | number)[]
         return excludeUndefined(
             colorValues.map((colorValue) =>
                 this.colorScale.getColor(colorValue)
@@ -541,10 +545,10 @@ export class ScatterPlotChart
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {
-        if (this.colorColumn.isMissing) return true
-        return this.transformedTable
-            .get(this.colorColumn.slug)
-            .values.some((value) => !isNotErrorValue(value))
+        if (this.colorColumn.isMissing) return false
+        return this.colorColumn.valuesIncludingErrorValues.some(
+            (value) => !isNotErrorValue(value)
+        )
     }
 
     @computed private get yAxisConfig() {
