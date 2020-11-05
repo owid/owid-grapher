@@ -50,6 +50,7 @@ import {
 } from "./OwidTableUtil"
 import {
     imemo,
+    interpolateColumnsLinearly,
     interpolateColumnsWithTolerance,
     replaceDef,
 } from "./CoreTableUtils"
@@ -558,6 +559,62 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 },
             ],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
+            TransformType.UpdateColumnDefs
+        )
+    }
+
+    interpolateColumnsLinearly(columnSlug: ColumnSlug) {
+        const column = this.get(columnSlug)
+        // If the column doesn't exist, return the table unchanged.
+        if (!column) return this
+
+        const columnDef = column?.def as OwidColumnDef
+
+        const maybeTimeColumnSlug =
+            getOriginalTimeColumnSlug(this, columnSlug) ??
+            timeColumnSlugFromColumnDef(columnDef)
+        const timeColumn =
+            this.get(maybeTimeColumnSlug) ??
+            (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
+
+        const withAllRows = this.complete([
+            OwidTableSlugs.entityName,
+            timeColumn.slug,
+        ]).sortBy([OwidTableSlugs.entityName, timeColumn.slug])
+
+        const groupBoundaries = withAllRows.groupBoundaries(
+            OwidTableSlugs.entityName
+        )
+        const newValues = withAllRows
+            .get(columnSlug)!
+            .allValues.slice() as number[]
+        const newTimes = withAllRows
+            .get(timeColumn.slug)!
+            .allValues.slice() as Time[]
+
+        groupBoundaries.forEach((index) => {
+            interpolateColumnsLinearly(
+                newValues,
+                newTimes,
+                groupBoundaries[index],
+                groupBoundaries[index + 1]
+            )
+        })
+
+        const columnStore = {
+            ...withAllRows.columnStore,
+            [columnSlug]: newValues,
+        }
+
+        return this.transform(
+            columnStore,
+            [
+                ...this.defs,
+                {
+                    ...timeColumn.def,
+                },
+            ],
+            `Interpolated values in column ${columnSlug} linearly`,
             TransformType.UpdateColumnDefs
         )
     }

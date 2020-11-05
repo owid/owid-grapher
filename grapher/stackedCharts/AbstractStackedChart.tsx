@@ -36,6 +36,9 @@ export class AbstactStackedChart
             this.selectionArray.selectedEntityNames
         )
 
+        for (const slug of this.yColumnSlugs)
+            table = table.interpolateColumnsLinearly(slug)
+
         if (this.manager.isRelativeMode) {
             table = this.isEntitySeries
                 ? table.toPercentageFromEachEntityForEachTime(
