@@ -269,12 +269,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     private sumsByTime(columnSlug: ColumnSlug) {
         const timeValues = this.timeColumn.parsedValues
-        const values = this.get(columnSlug).parsedValues
+        const values = this.get(columnSlug).parsedValues as number[]
         const map = new Map<number, number>()
-        timeValues.forEach((time, index) => {
-            if (!map.has(time)) map.set(time, 0)
-            map.set(time, map.get(time) + values[index])
-        })
+        timeValues.forEach((time, index) =>
+            map.set(time, (map.get(time) ?? 0) + values[index])
+        )
         return map
     }
 
