@@ -193,7 +193,11 @@ export const glossary: GlossaryGroup[] = [
         slug: "what-is-maternal-mortality",
         excerpt:
             "The maternal mortality ratio measures the number of women who die from pregnancy-related causes per 100,000 live births.",
-        terms: ["Maternal mortality ratio", "Maternal mortality rate", "Maternal mortality"],
+        terms: [
+            "Maternal mortality ratio",
+            "Maternal mortality rate",
+            "Maternal mortality",
+        ],
     },
     {
         slug: "what-is-a-maternal-death",
@@ -206,5 +210,5 @@ export const glossary: GlossaryGroup[] = [
         excerpt:
             "Children per woman is measured as the total fertility rate, which is the number of children that would be born to the average woman if she were to live to the end of her child-bearing years and give birth to children at the current age-specific fertility rates.",
         terms: ["Fertility rates", "Fertility rate"],
-    }   
+    },
 ]
