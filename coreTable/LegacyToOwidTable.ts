@@ -166,8 +166,18 @@ export const legacyToOwidTableAndDimensions = (
             targetTime !== undefined
         ) {
             variableTable = variableTable
-                .interpolateColumnWithTolerance(valueColumnDef.slug)
-                .filterByTargetTimes([targetTime])
+                // interpolateColumnWithTolerance() won't handle injecting times beyond the current
+                // allTimes. So if targetYear is 2018, and we have data up to 2017, the
+                // interpolation won't add the 2018 rows (unless we apply the interpolation after
+                // the big join).
+                // This is why we use filterByTargetTimes() which handles that case.
+                .filterByTargetTimes(
+                    [targetTime],
+                    valueColumnDef.display?.tolerance
+                )
+                // Interpolate with 0 to add originalTimes column
+                .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
+                // Drop the time column to join table only on entity
                 .dropColumns([timeColumnDef.slug])
         }
 
