@@ -512,7 +512,9 @@ export async function formatWordpressPost(
             .append($start.clone(), $start.nextUntil($("h2")))
             .contents()
 
-        formatGlossaryTerms($, $contents, getMutableGlossary(glossary))
+        if (post.glossary) {
+            formatGlossaryTerms($, $contents, getMutableGlossary(glossary))
+        }
 
         $contents.each((i, el) => {
             const $el = $(el)

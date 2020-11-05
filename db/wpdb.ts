@@ -563,6 +563,7 @@ export interface FullPost {
     imageUrl?: string
     postId?: number
     relatedCharts?: RelatedChart[]
+    glossary: boolean
 }
 
 export async function getFullPost(
@@ -588,6 +589,7 @@ export async function getFullPost(
             postApi.type === "page"
                 ? await getRelatedCharts(postApi.id)
                 : undefined,
+        glossary: postApi.meta.owid_glossary_meta_field,
     }
 }
 
