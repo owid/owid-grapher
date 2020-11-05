@@ -102,6 +102,26 @@ const multiplyBy = (
         isValid(value) ? (value as number) * factor : value
     )
 
+// Todo: add tests/expand capabilities/remove?
+// Currently this just supports `columnSlug where someColumnSlug (isNot|is) this or that or this`
+const where = (
+    columnStore: CoreColumnStore,
+    columnSlug: ColumnSlug,
+    conditionSlug: ColumnSlug,
+    ...condition: string[]
+) => {
+    const values = columnStore[columnSlug]
+    const conditionValues = columnStore[conditionSlug]
+    const operator = condition.shift()
+    const result = operator === "isNot" ? false : true
+    const list = condition.join(" ").split(" or ")
+    const set = new Set(list)
+    const passes = (value: any) => (set.has(value) ? result : !result)
+    return values.map((value, index) =>
+        passes(conditionValues[index]) ? value : InvalidCellTypes.FilteredValue
+    )
+}
+
 // Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
 // todo: move tests over from CE
 const percentChange = (
@@ -158,6 +178,7 @@ const availableTransforms: any = {
     rollingAverage: rollingAverage,
     percentChange: percentChange,
     multiplyBy: multiplyBy,
+    where: where,
 } as const
 
 export const AvailableTransforms = Object.keys(availableTransforms)
