@@ -1106,9 +1106,9 @@ export class Grapher
     }
 
     @computed private get timeTitleSuffix() {
-        if (!this.table.timeColumn) return "" // Do not show year until data is loaded
-        const { startTime, endTime } = this
         const timeColumn = this.table.timeColumn
+        if (timeColumn.isMissing) return "" // Do not show year until data is loaded
+        const { startTime, endTime } = this
         const time =
             startTime === endTime
                 ? timeColumn.formatValue(startTime)
@@ -2070,7 +2070,8 @@ export class Grapher
 
     formatTime(value: Time) {
         const timeColumn = this.table.timeColumn
-        if (!timeColumn) return this.table.timeColumnFormatFunction(value)
+        if (timeColumn.isMissing)
+            return this.table.timeColumnFormatFunction(value)
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)

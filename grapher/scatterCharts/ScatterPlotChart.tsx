@@ -363,6 +363,8 @@ export class ScatterPlotChart
             series,
             sizeDomain,
             colorScale,
+            colorColumn,
+            transformedTable,
         } = this
 
         return (
@@ -371,7 +373,7 @@ export class ScatterPlotChart
                 hideLines={hideLines}
                 seriesArray={series}
                 dualAxis={dualAxis}
-                colorScale={this.colorColumn ? colorScale : undefined}
+                colorScale={!colorColumn.isMissing ? colorScale : undefined}
                 sizeDomain={sizeDomain}
                 focusedSeriesNames={focusedEntityNames}
                 hoveredSeriesNames={hoveredSeriesNames}
@@ -501,7 +503,7 @@ export class ScatterPlotChart
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {
-        if (!this.colorColumn) return true
+        if (this.colorColumn.isMissing) return true
         return this.transformedTable
             .getValuesFor(this.colorColumn.slug)
             .some((value) => !isValid(value))
@@ -545,9 +547,9 @@ export class ScatterPlotChart
     }
 
     @computed get failMessage() {
-        if (!this.yColumn) return "Missing Y axis variable"
+        if (this.yColumn.isMissing) return "Missing Y axis variable"
 
-        if (!this.xColumn) return "Missing X axis variable"
+        if (this.yColumn.isMissing) return "Missing X axis variable"
 
         if (isEmpty(this.allEntityNamesWithXAndY))
             return "No entities with data for both X and Y"
@@ -571,7 +573,6 @@ export class ScatterPlotChart
     }
 
     @computed private get allEntityNamesWithXAndY(): EntityName[] {
-        if (!this.yColumn || !this.xColumn) return []
         return intersection(
             this.yColumn.uniqEntityNames,
             this.xColumn.uniqEntityNames
@@ -586,7 +587,7 @@ export class ScatterPlotChart
             ? this.selectionArray.selectedEntityNames
             : this.allEntityNamesWithXAndY
 
-        if (this.manager.matchingEntitiesOnly && this.colorColumn)
+        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing)
             return new Set(
                 intersection(seriesNames, this.colorColumn.uniqEntityNames)
             )
@@ -625,8 +626,10 @@ export class ScatterPlotChart
                 return {
                     x: row[this.xColumnSlug],
                     y: row[this.yColumnSlug],
-                    size: this.sizeColumn ? row[this.sizeColumn.slug] : 0,
-                    color: this.colorColumn
+                    size: !this.sizeColumn.isMissing
+                        ? row[this.sizeColumn.slug]
+                        : 0,
+                    color: !this.colorColumn.isMissing
                         ? row[this.colorColumn.slug]
                         : undefined,
                     entityName: row[entityNameSlug],
@@ -685,7 +688,7 @@ export class ScatterPlotChart
     }
 
     @computed private get sizeDomain(): [number, number] {
-        if (!this.sizeColumn) return [1, 100]
+        if (this.sizeColumn.isMissing) return [1, 100]
         const sizeValues = this.transformedTable
             .getValuesFor(this.sizeColumn.slug)
             .filter(isNumber)
@@ -778,9 +781,7 @@ export class ScatterPlotChart
 
     // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
-        const { yColumn, transformedTable, xColumn } = this
-        if (!yColumn || !xColumn) return []
-
+        const { transformedTable } = this
         return Object.entries(groupBy(this.allPoints, (p) => p.entityName))
             .map(([entityName, points]) => {
                 const series: ScatterSeries = {
@@ -795,7 +796,7 @@ export class ScatterPlotChart
                         entityName
                     )
                     if (keyColor !== undefined) series.color = keyColor
-                    else if (this.colorColumn) {
+                    else if (!this.colorColumn.isMissing) {
                         const colorValue = last(
                             series.points.map((point) => point.color)
                         )

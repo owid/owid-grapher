@@ -191,7 +191,7 @@ export class MapChart
     }
 
     @computed get failMessage() {
-        if (!this.mapColumn) return "Missing map column"
+        if (this.mapColumn.isMissing) return "Missing map column"
         return ""
     }
 
@@ -307,7 +307,7 @@ export class MapChart
             targetTime,
             formatTooltipValue,
         } = this
-        if (!mapColumn) return []
+        if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
         return mapColumn.owidRows

@@ -176,7 +176,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Does a stable sort by time. You can refer to this table for fast time filtering.
     @imemo private get sortedByTime() {
-        if (!this.timeColumn) return this
+        if (this.timeColumn.isMissing) return this
         return this.sortBy([this.timeColumn.slug])
     }
 
@@ -352,7 +352,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         startTimeBound: TimeBound,
         columnSlugs: ColumnSlug[]
     ) {
-        if (!this.timeColumn) return this
+        if (this.timeColumn.isMissing) return this
         const timeColumnSlug = this.timeColumn.slug
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
@@ -499,10 +499,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const tolerance = toleranceOverride ?? column.display.tolerance ?? 0
         const entityNameSlug = this.entityNameSlug
 
-        const timeColumnOfTable =
-            this.timeColumn ??
-            // CovidTable does not have a day or year column so we need to use time.
-            (this.get(OwidTableSlugs.time) as CoreColumn)
+        const timeColumnOfTable = !this.timeColumn.isMissing
+            ? this.timeColumn
+            : // CovidTable does not have a day or year column so we need to use time.
+              (this.get(OwidTableSlugs.time) as CoreColumn)
 
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
@@ -582,7 +582,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     ) {
         const indexMap = this.rowIndicesByEntityName
         const timeColumn = this.timeColumn
-        if (!timeColumn) return []
+        if (this.timeColumn.isMissing) return []
         const timeValues = timeColumn.allValues
         return entityNames
             .map((name) => {

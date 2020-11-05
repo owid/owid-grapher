@@ -477,7 +477,9 @@ export class CoreTable<
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
     // on the column itself, and not tied tightly to the idea of a time column.
     @imemo get timeColumnFormatFunction() {
-        return this.timeColumn ? this.timeColumn.formatValue : formatYear
+        return !this.timeColumn.isMissing
+            ? this.timeColumn.formatValue
+            : formatYear
     }
 
     formatTime(value: any) {

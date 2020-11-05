@@ -126,7 +126,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const { timeColumn } = this.inputTable
         const { renderSparkBars, barColor, tooltipTarget } = this
 
-        const displayTime = timeColumn
+        const displayTime = !timeColumn.isMissing
             ? timeColumn.formatValue(targetTime)
             : targetTime
         const displayDatumTime =
