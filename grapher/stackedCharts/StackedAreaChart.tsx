@@ -28,7 +28,7 @@ import {
     AbstactStackedChartProps,
 } from "grapher/stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
-import { stackSeries } from "./StackedUtils"
+import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "grapher/chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
@@ -482,6 +482,10 @@ export class StackedAreaChart
     }
 
     @computed get series() {
-        return stackSeries(this.unstackedSeries)
+        if (this.props.disableLinearInterpolation)
+            return stackSeries(
+                withZeroesAsInterpolatedPoints(this.unstackedSeries)
+            )
+        else return stackSeries(this.unstackedSeries)
     }
 }

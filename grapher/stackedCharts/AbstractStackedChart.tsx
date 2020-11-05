@@ -36,8 +36,11 @@ export class AbstactStackedChart
             this.selectionArray.selectedEntityNames
         )
 
-        for (const slug of this.yColumnSlugs)
-            table = table.interpolateColumnsLinearly(slug)
+        if (!this.props.disableLinearInterpolation) {
+            this.yColumnSlugs.forEach((slug) => {
+                table = table.interpolateColumnsLinearly(slug)
+            })
+        }
 
         if (this.manager.isRelativeMode) {
             table = this.isEntitySeries
