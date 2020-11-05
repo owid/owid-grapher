@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { InvalidCell, InvalidCellTypes } from "coreTable/InvalidCells"
 import {
-    computeRollingAverage,
     insertMissingValuePlaceholders,
-} from "./CovidExplorerUtils"
+    computeRollingAverage,
+} from "./Transforms"
+import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 
 describe(insertMissingValuePlaceholders, () => {
     const testCases = [

@@ -1,12 +1,9 @@
 import {
     dateDiffInDays,
-    difference,
     fetchJSON,
     fetchText,
     flatten,
-    groupBy,
     memoize,
-    minBy,
     retryPromise,
     sortBy,
 } from "grapher/utils/Util"
@@ -20,7 +17,11 @@ import {
 } from "./CovidConstants"
 import { CoreRow, Time } from "coreTable/CoreTableConstants"
 import { EntityName } from "coreTable/OwidTableConstants"
-import { InvalidCell, InvalidCellTypes } from "coreTable/InvalidCells"
+import { InvalidCell } from "coreTable/InvalidCells"
+import {
+    computeRollingAverage,
+    insertMissingValuePlaceholders,
+} from "coreTable/Transforms"
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 export const megaDateToTime = (dateString: string): Time => {
@@ -146,92 +147,6 @@ export const computeRollingAveragesForEachGroup = (
         currentRows.push(row)
     }
     return flatten(groups)
-}
-
-// In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
-// in the spots where we are missing values (added to make computing rolling windows easier).
-// Takes an array of value/year pairs and expands it so that there is an undefined
-// for each missing value from the first year to the last year, preserving the position of
-// the existing values.
-export function insertMissingValuePlaceholders(
-    values: number[],
-    times: number[]
-) {
-    const startTime = times[0]
-    const endTime = times[times.length - 1]
-    const filledRange = []
-    let time = startTime
-    const timeToValueIndex = new Map()
-    times.forEach((time, index) => {
-        timeToValueIndex.set(time, index)
-    })
-    while (time <= endTime) {
-        filledRange.push(
-            timeToValueIndex.has(time)
-                ? values[timeToValueIndex.get(time)]
-                : InvalidCellTypes.MissingValuePlaceholder
-        )
-        time++
-    }
-    return filledRange
-}
-
-// todo: add the precision param to ensure no floating point effects
-export function computeRollingAverage(
-    numbers: (number | undefined | null | InvalidCell)[],
-    windowSize: number,
-    align: "right" | "center" = "right"
-) {
-    const result: (number | InvalidCell)[] = []
-
-    for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
-        // If a value is undefined in the original input, keep it undefined in the output
-        const currentVal = numbers[valueIndex]
-        if (currentVal === null) {
-            result[valueIndex] = InvalidCellTypes.NullButShouldBeNumber
-            continue
-        } else if (currentVal === undefined) {
-            result[valueIndex] = InvalidCellTypes.UndefinedButShouldBeNumber
-            continue
-        } else if (currentVal instanceof InvalidCell) {
-            result[valueIndex] = currentVal
-            continue
-        }
-
-        // Take away 1 for the current value (windowSize=1 means no smoothing & no expansion)
-        const expand = windowSize - 1
-
-        // With centered smoothing, expand uneven windows asymmetrically (ceil & floor) to ensure
-        // a correct number of window values get taken into account.
-        // Arbitrarily biased towards left (past).
-        const expandLeft = align === "center" ? Math.ceil(expand / 2) : expand
-        const expandRight = align === "center" ? Math.floor(expand / 2) : 0
-
-        const startIndex = Math.max(valueIndex - expandLeft, 0)
-        const endIndex = Math.min(valueIndex + expandRight, numbers.length - 1)
-
-        let count = 0
-        let sum = 0
-        for (
-            let windowIndex = startIndex;
-            windowIndex <= endIndex;
-            windowIndex++
-        ) {
-            const value = numbers[windowIndex]
-            if (
-                value !== undefined &&
-                value !== null &&
-                !(value instanceof InvalidCell)
-            ) {
-                sum += value!
-                count++
-            }
-        }
-
-        result[valueIndex] = sum / count
-    }
-
-    return result
 }
 
 const fetchMegaCsv = async () => {
