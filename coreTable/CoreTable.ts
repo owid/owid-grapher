@@ -127,6 +127,15 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
+    // A method currently used just in debugging but may be useful in the author backend.
+    // If your charts look funny, a good thing to check is if the autodetected columns are wrong.
+    get autodetectedColumnDefs() {
+        const providedSlugs = new Set(
+            this.inputColumnDefs.map((def) => def.slug)
+        )
+        return this.defs.filter((def) => !providedSlugs.has(def.slug))
+    }
+
     private get columnsToTransform() {
         return this.inputColumnDefs.filter((def) => def.transform) // todo: sort by graph dependency order
     }
