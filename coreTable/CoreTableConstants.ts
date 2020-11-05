@@ -41,6 +41,7 @@ export enum TransformType {
     SortColumns = "SortColumns",
     AppendColumns = "AppendColumns", // This will run column transform fns.
     UpdateColumnDefs = "UpdateColumnDefs", // do not use for updates that add a column transform fn.
+    UpdateColumnDefsAndApply = "UpdateColumnDefsAndApply", // use this for updates that add a column transform fn.
     RenameColumns = "RenameColumns",
     InverseFilterColumns = "InverseFilterColumns",
 }

@@ -301,7 +301,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             {
                 parent: this,
                 tableDescription: `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
-                transformCategory: TransformType.UpdateColumnDefs,
+                transformCategory: TransformType.UpdateColumnDefsAndApply,
             }
         )
     }
