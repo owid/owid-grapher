@@ -301,7 +301,7 @@ export class SlopeChart
     }
 
     @computed get failMessage() {
-        if (!this.yColumn) return "Missing Y column"
+        if (this.yColumn.isMissing) return "Missing Y column"
         else if (isEmpty(this.series)) return "No matching data"
         return ""
     }
@@ -356,7 +356,7 @@ export class SlopeChart
         Color | undefined
     > {
         const { colorScale, colorColumn } = this
-        if (!colorColumn) return new Map()
+        if (colorColumn.isMissing) return new Map()
 
         const colorByEntity = new Map<SeriesName, Color | undefined>()
 

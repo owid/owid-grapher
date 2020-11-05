@@ -61,6 +61,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return val
     }
 
+    @imemo get isMissing(): boolean {
+        return this instanceof MissingColumn
+    }
+
     @imemo get unit() {
         return this.def.unit || this.display?.unit || ""
     }
