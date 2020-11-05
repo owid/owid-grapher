@@ -14,6 +14,7 @@ import {
     trimArray,
     trimEmptyRows,
     trimMatrix,
+    linearInterpolation,
 } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
@@ -111,6 +112,21 @@ describe(toleranceInterpolation, () => {
             InvalidCellTypes.MissingValuePlaceholder,
             2,
         ])
+    })
+})
+
+describe(linearInterpolation, () => {
+    it("interpolates", () => {
+        const values = [
+            4,
+            InvalidCellTypes.MissingValuePlaceholder,
+            InvalidCellTypes.MissingValuePlaceholder,
+            1,
+            InvalidCellTypes.MissingValuePlaceholder,
+        ]
+        const timesAsc = [0, 1, 2, 3, 4]
+        linearInterpolation(values, timesAsc)
+        expect(values).toEqual([4, 3, 2, 1, 1])
     })
 })
 
