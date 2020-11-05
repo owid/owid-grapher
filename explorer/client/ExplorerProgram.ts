@@ -50,6 +50,7 @@ export enum ProgramKeyword {
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
+    hideAlertBanner = "hideAlertBanner",
     subNavCurrentId = "subNavCurrentId",
     thumbnail = "thumbnail",
     subtitle = "subtitle",
@@ -225,6 +226,10 @@ export class ExplorerProgram {
 
     get subNavId(): SubNavId | undefined {
         return this.getLineValue(ProgramKeyword.subNavId) as SubNavId
+    }
+
+    get hideAlertBanner() {
+        return this.getLineValue(ProgramKeyword.hideAlertBanner) === "true"
     }
 
     get subNavCurrentId(): string | undefined {

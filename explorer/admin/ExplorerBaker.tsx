@@ -170,6 +170,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
             subnavCurrentId={program.subNavCurrentId}
             preloads={[]}
             inlineJs={script}
+            hideAlertBanner={program.hideAlertBanner}
             wpContent={wpContent}
         />
     )
