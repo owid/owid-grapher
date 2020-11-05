@@ -6,6 +6,7 @@ import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
+import { CheckboxOption } from "./ExplorerProgram"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile: boolean
@@ -61,9 +62,15 @@ export class ExplorerControlPanel extends React.Component<{
         const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
             ? option.checked
-                ? ""
-                : option.value
+                ? CheckboxOption.false
+                : CheckboxOption.true
             : option.value
+        const currentValue = isCheckbox
+            ? option.checked
+                ? CheckboxOption.true
+                : CheckboxOption.false
+            : value
+        const checked = !!(option.available && option.checked)
         return (
             <div key={index} className="ControlOption">
                 <label
@@ -80,8 +87,8 @@ export class ExplorerControlPanel extends React.Component<{
                         type={isCheckbox ? "checkbox" : "radio"}
                         disabled={!option.available}
                         name={name}
-                        checked={option.available && option.checked}
-                        value={value}
+                        checked={checked}
+                        value={currentValue}
                     />{" "}
                     {option.label}
                     {comment && (
