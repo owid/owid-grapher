@@ -15,7 +15,11 @@ import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { exposeInstanceOnWindow, fetchText } from "grapher/utils/Util"
+import {
+    exposeInstanceOnWindow,
+    fetchText,
+    trimObject,
+} from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -29,6 +33,7 @@ import {
     SortOrder,
     TableSlug,
 } from "coreTable/CoreTableConstants"
+import { isValid } from "coreTable/InvalidCells"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -161,25 +166,10 @@ export class SwitcherExplorer
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
         const { chartId, table } = selectedRow
+        const hasChartId = isValid(chartId)
 
-        if (chartId && grapher.id === chartId) return
+        if (hasChartId && grapher.id === chartId) return
 
-        const chartConfig = chartId ? this.chartConfigs.get(chartId)! : {}
-
-        const config: GrapherProgrammaticInterface = {
-            ...chartConfig,
-            ...selectedRow,
-            hideEntityControls: !this.hideControls && !this.isEmbed,
-            dropUnchangedUrlParams: false,
-            manuallyProvideData: table ? true : undefined,
-        }
-
-        if (selectedRow.yScaleToggle === CheckboxOption.true)
-            grapher.yAxis.canChangeScaleType = true
-        else if (selectedRow.yScaleToggle === CheckboxOption.false)
-            grapher.yAxis.canChangeScaleType = false
-
-        grapher.hasError = false
         const queryStr = grapher.id
             ? grapher.queryStr
             : this.explorerProgram.queryString
@@ -191,11 +181,33 @@ export class SwitcherExplorer
                 this
             )
 
+        const chartConfig = hasChartId ? this.chartConfigs.get(chartId)! : {}
+
+        // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
+        const trimmedRow = trimObject(selectedRow, true)
+
+        const config: GrapherProgrammaticInterface = {
+            ...chartConfig,
+            ...trimmedRow,
+            hideEntityControls: !this.hideControls && !this.isEmbed,
+            dropUnchangedUrlParams: false,
+            manuallyProvideData: table ? true : false,
+        }
+
+        if (selectedRow.yScaleToggle === CheckboxOption.true)
+            grapher.yAxis.canChangeScaleType = true
+        else if (selectedRow.yScaleToggle === CheckboxOption.false)
+            grapher.yAxis.canChangeScaleType = false
+
+        grapher.hasError = false
+
         grapher.setAuthoredVersion(config)
+        grapher.reset()
         grapher.updateFromObject(config)
         grapher.inputTable = this.getTable(table)
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
+        if (!hasChartId) grapher.id = 0
         this.addEntityOptionsToPickerWhenReady()
         this.bindToWindow()
     }
