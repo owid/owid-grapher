@@ -48,6 +48,14 @@ export interface CoreColumnDef {
     growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
     color?: Color // A column can have a color for use in charts.
+
+    // Source information:
+    sourceName?: string
+    sourceLink?: string
+    dataPublishedBy?: string
+    dataPublisherSource?: string
+    retrievedDate?: string
+    additionalInfo?: string
 }
 
 // todo: remove index param?

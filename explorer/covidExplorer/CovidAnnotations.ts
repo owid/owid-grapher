@@ -6,9 +6,8 @@ import { csvParse } from "d3-dsv"
 import moment from "moment"
 
 // todo: auto import from covid repo.
-export const covidAnnotations = `location,date,cases_series_annotations,deaths_series_annotations
-Ecuador,2020-10-09,,probable/earlier deaths added
-Mexico,2020-10-09,probable/earlier cases added,probable/earlier deaths added`
+export const covidAnnotations = `location,date,cases_annotations,deaths_annotations
+Spain,2020-11-04,,earlier deaths added`
 
 interface AnnotationsRow {
     location: EntityName

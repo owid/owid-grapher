@@ -1132,13 +1132,13 @@ export class Grapher
                 column.name === "Total population (Gapminder)"
             )
                 return false
-            return !!(column.def as OwidColumnDef).source
+            return !!column.source.name
         })
     }
 
     @computed private get defaultSourcesLine() {
         let sourceNames = this.columnsWithSources.map(
-            (column) => (column.def as OwidColumnDef)?.source?.name || ""
+            (column) => column.source.name ?? ""
         )
 
         // Shorten automatic source names for certain major sources
@@ -1918,6 +1918,19 @@ export class Grapher
         this.map.projection = authorsVersion.map.projection
         this.selection.clearSelection()
         this.applyOriginalSelectionAsAuthored()
+    }
+
+    // Todo: come up with a more general pattern?
+    // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
+    // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
+    @action.bound reset() {
+        const grapher = new Grapher()
+        this.title = grapher.title
+        this.subtitle = grapher.subtitle
+        this.type = grapher.type
+        this.ySlugs = grapher.ySlugs
+        this.xSlug = grapher.xSlug
+        this.hasMapTab = grapher.hasMapTab
     }
 
     debounceMode = false

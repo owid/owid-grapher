@@ -1,0 +1,29 @@
+.glossary-excerpt {
+    display: block;
+    margin: $vertical-spacing 0;
+    padding: $padding-x-sm;
+    font-weight: initial; // prevent style bleed when surrounding text is <strong>
+    font-style: initial; // prevent style bleed when surrounding text is <em>
+    background-color: $primary-color-100;
+
+    .title {
+        display: block;
+        margin-bottom: $vertical-spacing;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: $primary-color-400;
+    }
+
+    a {
+        display: block;
+        margin-top: $vertical-spacing;
+        text-align: right;
+
+        svg {
+            font-size: 0.8em;
+            margin-left: 0.5rem;
+            margin-bottom: 1px;
+        }
+    }
+}

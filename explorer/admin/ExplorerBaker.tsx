@@ -24,6 +24,8 @@ import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import { getPublishedGraphersBySlug } from "site/server/bakeGraphersToImages"
+import { getGitBranchNameForDir, getLastModifiedTime } from "gitCms/server"
+import moment from "moment"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -32,13 +34,10 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // Download all explorers for the admin index page
     app.get("/explorers.json", async () => {
         const explorers = await getAllExplorers()
+        const gitCmsBranchName = await getGitBranchNameForDir(storageFolder)
         return {
-            explorers: explorers.map((explorer) => {
-                return {
-                    program: explorer.toString(),
-                    slug: explorer.slug,
-                }
-            }),
+            gitCmsBranchName,
+            explorers: explorers.map((explorer) => explorer.toJson()),
         }
     })
 
@@ -101,11 +100,15 @@ const getAllExplorers = async (directory = storageFolder) => {
     )
     const explorers: ExplorerProgram[] = []
     for (const filename of explorerFiles) {
-        const content = await fs.readFile(directory + "/" + filename, "utf8")
+        const fullPath = directory + "/" + filename
+        const content = await fs.readFile(fullPath, "utf8")
+        const lastModified = await getLastModifiedTime(directory, filename)
         explorers.push(
             new ExplorerProgram(
                 filename.replace(explorerFileSuffix, ""),
-                content
+                content,
+                undefined,
+                moment.utc(lastModified).unix()
             )
         )
     }

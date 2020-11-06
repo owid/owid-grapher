@@ -1,7 +1,8 @@
 export const GIT_CMS_ROUTE = "/git-cms"
-export const GIT_CMS_REPO = `https://github.com/owid/owid-content`
+export const GIT_CMS_DEFAULT_BRANCH = "master"
+export const GIT_CMS_REPO_URL = `https://github.com/owid/owid-content`
 export const GIT_CMS_DIR = __dirname + "/../../owid-content"
-export const GIT_PULL_ROUTE = `${GIT_CMS_ROUTE}/pull`
+export const GIT_CMS_PULL_ROUTE = `${GIT_CMS_ROUTE}/pull`
 
 export interface WriteRequest {
     filepath: string

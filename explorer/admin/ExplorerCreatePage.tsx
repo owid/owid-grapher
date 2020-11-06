@@ -101,23 +101,23 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     render() {
-        const data = this.program.toArrays()
+        const { program } = this
+        const data = program.toArrays()
 
         // Highlight the active view
         const activeViewRowNumber =
-            this.program.getKeywordIndex(ProgramKeyword.switcher) +
-            this.program.switcherRuntime.selectedRowIndex +
+            program.getKeywordIndex(ProgramKeyword.switcher) +
+            program.switcherRuntime.selectedRowIndex +
             3
-        const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) > td:nth-child(3) {
-            outline: 3px dashed rgba(0,0,255,.5);
-          }`
 
         const cells = function (row: number, column: number) {
             const cellProperties: Partial<Handsontable.CellProperties> = {}
+            const cellParseResults = program.getCellParseResults(row, column)
 
-            if (column === 0) {
+            if (cellParseResults.options.length) {
                 cellProperties.type = "autocomplete"
-                cellProperties.source = Object.values(ProgramKeyword)
+                cellProperties.source = cellParseResults.options
+                cellProperties.valid = cellParseResults.isValid
             }
 
             return cellProperties
@@ -127,13 +127,12 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             afterChange: () => this.updateProgramFromHot(),
             allowInsertColumn: false,
             allowInsertRow: true,
-            autoColumnSize: true,
+            autoColumnSize: false,
             cells,
-            colHeaders: false,
+            colHeaders: true,
             contextMenu: true,
             data,
-            manualColumnResize: [150, 200],
-            minCols: this.program.width + 3,
+            minCols: program.width + 3,
             minSpareCols: 2,
             minRows: 20,
             minSpareRows: 20,
@@ -149,7 +148,6 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     when={this.isModified}
                     message="Are you sure you want to leave? Unsaved changes will be lost."
                 />
-                <style dangerouslySetInnerHTML={{ __html: hotStyles }}></style>
                 <main style={{ padding: 0, position: "relative" }}>
                     <div
                         style={{
@@ -175,7 +173,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         <br />
                         <Link
                             target="preview"
-                            to={`/explorers/preview/${this.program.slug}`}
+                            to={`/explorers/preview/${program.slug}`}
                             className="btn btn-secondary"
                         >
                             Preview
@@ -184,7 +182,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     <div style={{ height: "400px", overflow: "scroll" }}>
                         <SwitcherExplorer
                             chartConfigs={Object.values(this.chartConfigs)}
-                            explorerProgram={this.program}
+                            explorerProgram={program}
                             explorerProgramCode={""}
                             slug={""}
                         />

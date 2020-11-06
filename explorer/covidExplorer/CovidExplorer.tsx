@@ -707,6 +707,7 @@ export class CovidExplorer
 
     @computed private get yDimension(): LegacyChartDimensionInterface {
         const yColumn = this.yColumn
+
         return {
             property: DimensionProperty.y,
             slug: yColumn.slug,

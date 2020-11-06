@@ -12,7 +12,7 @@
         "experimentalDecorators": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es7", "esnext.asynciterable"],
+        "lib": ["dom", "es2020"],
         "baseUrl": ".",
         "plugins": [],
         "keyofStringsOnly": true,

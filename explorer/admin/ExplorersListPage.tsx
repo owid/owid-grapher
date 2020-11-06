@@ -16,39 +16,42 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync } from "grapher/utils/Util"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
+import {
+    ExplorerProgram,
+    SerializedExplorerProgram,
+} from "explorer/client/ExplorerProgram"
 import {
     deleteRemoteFile,
     pullFromGithub,
     writeRemoteFile,
 } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
-import { GIT_CMS_REPO } from "gitCms/constants"
-
-const contentRepo = GIT_CMS_REPO + "/commits/master/explorers/"
+import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
+import moment from "moment"
 
 @observer
 class ExplorerRow extends React.Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
+    gitCmsBranchName: string
     searchHighlight?: (text: string) => any
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
     render() {
-        const { explorer, searchHighlight } = this.props
+        const { explorer, searchHighlight, gitCmsBranchName } = this.props
 
-        const publishedUrl = BAKED_BASE_URL + "/explorers/" + explorer.slug
+        const publishedUrl = `${BAKED_BASE_URL}/explorers/${explorer.slug}`
+
+        const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/explorers/`
 
         return (
             <tr>
                 <td>
                     {!explorer.isPublished ? (
-                        <span className="text-secondary">
-                            Unpublished: {explorer.slug}
-                        </span>
+                        <span className="text-secondary">{explorer.slug}</span>
                     ) : (
                         <a href={publishedUrl}>{explorer.slug}</a>
                     )}
@@ -57,6 +60,11 @@ class ExplorerRow extends React.Component<{
                     {searchHighlight
                         ? searchHighlight(explorer.title || "")
                         : explorer.title}
+                </td>
+                <td>
+                    {explorer.lastModifiedTime
+                        ? moment(explorer.lastModifiedTime * 1000).fromNow()
+                        : ""}
                 </td>
 
                 <td>
@@ -100,10 +108,7 @@ class ExplorerRow extends React.Component<{
                     </button>
                 </td>
                 <td>
-                    <a
-                        target="explorers"
-                        href={contentRepo + explorer.filename}
-                    >
+                    <a target="explorers" href={repoPath + explorer.filename}>
                         File History
                     </a>
                 </td>
@@ -117,6 +122,7 @@ class ExplorerList extends React.Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
+    gitCmsBranchName: string
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -134,6 +140,7 @@ class ExplorerList extends React.Component<{
                         <th></th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -143,6 +150,7 @@ class ExplorerList extends React.Component<{
                             key={explorer.slug}
                             explorer={explorer}
                             searchHighlight={props.searchHighlight}
+                            gitCmsBranchName={props.gitCmsBranchName}
                         />
                     ))}
                 </tbody>
@@ -163,7 +171,7 @@ export class ExplorersIndexPage extends React.Component {
     @observable highlightSearch?: string
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return this.explorers
+        return orderBy(this.explorers, ["lastModifiedTime"], ["desc"])
     }
 
     @action.bound onShowMore() {
@@ -172,7 +180,7 @@ export class ExplorersIndexPage extends React.Component {
 
     @action.bound private async pullFromGithub() {
         const result = await pullFromGithub()
-        alert(JSON.stringify(result))
+        alert([result.stdout, result.errorMessage].filter((i) => i).join("\n"))
     }
 
     render() {
@@ -198,6 +206,7 @@ export class ExplorersIndexPage extends React.Component {
             "untitled",
             this.explorersToShow.map((exp) => exp.slug)
         )
+
         return (
             <AdminLayout title="Explorers">
                 <main className="DatasetsIndexPage">
@@ -211,6 +220,12 @@ export class ExplorersIndexPage extends React.Component {
                             |{" "}
                             <a href="#" onClick={this.pullFromGithub}>
                                 Pull from GitHub
+                            </a>{" "}
+                            |{" "}
+                            <a
+                                href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
+                            >
+                                All activity
                             </a>
                         </span>
                     </FieldsRow>
@@ -218,11 +233,14 @@ export class ExplorersIndexPage extends React.Component {
                         explorers={explorersToShow}
                         searchHighlight={highlight}
                         indexPage={this}
+                        gitCmsBranchName={this.gitCmsBranchName}
                     />
                 </main>
             </AdminLayout>
         )
     }
+
+    @observable gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH
 
     async getData() {
         const { searchInput } = this
@@ -230,10 +248,12 @@ export class ExplorersIndexPage extends React.Component {
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(
-                    (exp: any) => new ExplorerProgram(exp.slug, exp.program)
+                    (exp: SerializedExplorerProgram) =>
+                        ExplorerProgram.fromJson(exp)
                 )
                 this.numTotalRows = json.explorers.length
                 this.highlightSearch = searchInput
+                this.gitCmsBranchName = json.gitCmsBranchName
             }
         })
     }

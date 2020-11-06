@@ -58,12 +58,29 @@ export enum ProgramKeyword {
     wpBlockId = "wpBlockId",
 }
 
-export const DefaultExplorerProgram = `${ProgramKeyword.title}\tData Explorer
-${ProgramKeyword.isPublished}\tfalse
-${ProgramKeyword.switcher}
-\t${CHART_ID_SYMBOL}\tDevice Radio
-\t35\tInternet
-\t46\tMobile`
+// Note: the following sample program was actually made in a spreadsheet and copy/pasted. Easier that way.
+export const DefaultExplorerProgram = `title	New Data Explorer Template
+defaultView	?country=Canada~France
+isPublished	false
+switcher
+	chartId	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
+	35	Load A Grapher Demo
+		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
+		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME
+
+table	demo
+	entityName	year	gdp
+	Canada	2020	100
+	France	2020	110
+columns	demo
+	slug	name	type
+	gdp	Gross Domestic Product	Currency
+
+table	lifeExpectancy	https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/Healthy%20Life%20Expectancy%20-%20IHME/Healthy%20Life%20Expectancy%20-%20IHME.csv
+columns	lifeExpectancy
+	slug	type
+	Entity	EntityName
+	Year	Year`
 
 interface BlockLocation {
     start: number
@@ -77,8 +94,24 @@ export interface TableDef {
     inlineData?: string
 }
 
+export interface SerializedExplorerProgram {
+    slug: string
+    program: string
+    lastModifiedTime?: number
+}
+
+interface CellParseResults {
+    isValid: boolean
+    options: string[]
+}
+
 export class ExplorerProgram {
-    constructor(slug: string, tsv: string, queryString = "") {
+    constructor(
+        slug: string,
+        tsv: string,
+        queryString = "",
+        lastModifiedTime?: number
+    ) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         queryString = (queryString ? queryString : this.defaultView) ?? ""
@@ -87,11 +120,30 @@ export class ExplorerProgram {
             queryString
         )
         this.queryString = queryString
+        this.lastModifiedTime = lastModifiedTime
     }
 
+    lastModifiedTime?: number
     slug: string
     queryString: string
     switcherRuntime: SwitcherRuntime
+
+    toJson(): SerializedExplorerProgram {
+        return {
+            program: this.toString(),
+            slug: this.slug,
+            lastModifiedTime: this.lastModifiedTime,
+        }
+    }
+
+    static fromJson(json: SerializedExplorerProgram) {
+        return new ExplorerProgram(
+            json.slug,
+            json.program,
+            undefined,
+            json.lastModifiedTime
+        )
+    }
 
     get filename() {
         return this.slug + explorerFileSuffix
@@ -132,6 +184,30 @@ export class ExplorerProgram {
                     : null
             )
             .filter(isPresent)
+    }
+
+    getCellParseResults(row: number, col: number): CellParseResults {
+        const line = this.lines[row]
+        const words = line ? line.split(this.cellDelimiter) : []
+        const value = words[col]
+        if (col === 0)
+            return {
+                options: Object.values(ProgramKeyword),
+                isValid:
+                    value === undefined ||
+                    value === "" ||
+                    Object.values(ProgramKeyword).includes(value as any),
+            }
+        if (!line) return { options: [], isValid: true }
+        const keyword = words[0]
+        if (keyword === "") {
+            // const parentKeyword = ""
+        } else if (keyword === ProgramKeyword.isPublished && col === 1)
+            return {
+                options: Object.values(CheckboxOption),
+                isValid: Object.values(CheckboxOption).includes(value as any),
+            }
+        return { options: [], isValid: true }
     }
 
     private setLineValue(key: ProgramKeyword, value: string | undefined) {

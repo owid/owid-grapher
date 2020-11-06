@@ -30,6 +30,7 @@ import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
+import { OwidSource } from "./OwidSource"
 
 interface ColumnSummary {
     numInvalidCells: number
@@ -371,6 +372,24 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get valuesAscending() {
         return sortNumeric(this.parsedValues.slice())
+    }
+
+    // todo: cleanup this method. figure out what source properties should be on CoreTable vs OwidTable.
+    get source(): OwidSource {
+        const { def } = this
+
+        // todo: flatten out source onto column def in Grapher backend, then can remove this.
+        const { source } = def as any
+        if (source) return source as OwidSource
+
+        return {
+            name: def.sourceName,
+            link: def.sourceLink,
+            dataPublishedBy: def.dataPublishedBy,
+            dataPublisherSource: def.dataPublisherSource,
+            retrievedDate: def.retrievedDate,
+            additionalInfo: def.additionalInfo,
+        } as OwidSource
     }
 
     // todo: remove. should not be on coretable
