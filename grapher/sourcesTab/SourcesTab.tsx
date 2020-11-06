@@ -1,4 +1,4 @@
-import { min, max, linkify } from "grapher/utils/Util"
+import { linkify } from "grapher/utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -30,12 +30,11 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn) {
-        const def = column.def as OwidColumnDef
-        const source = def.source!
-        const { table } = column
+        const { table, slug, source, def } = column
+        const { datasetId, coverage } = def as OwidColumnDef
 
         const editUrl = this.manager.showAdminControls
-            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${def.datasetId}`
+            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
             : undefined
 
         const { minTime, maxTime } = column
@@ -46,7 +45,7 @@ export class SourcesTab extends React.Component<{
             )} – ${table.timeColumn?.formatValue(maxTime)}`
 
         return (
-            <div key={def.slug} className="datasource-wrapper">
+            <div key={slug} className="datasource-wrapper">
                 <h2>
                     {column.name}{" "}
                     {editUrl && (
@@ -67,10 +66,10 @@ export class SourcesTab extends React.Component<{
                                 />
                             </tr>
                         ) : null}
-                        {def.coverage ? (
+                        {coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
-                                <td>{def.coverage}</td>
+                                <td>{coverage}</td>
                             </tr>
                         ) : null}
                         {timespan ? (
@@ -140,10 +139,7 @@ export class SourcesTab extends React.Component<{
 
     render() {
         const { bounds } = this
-        // todo: cleanup the Owidcolumn typings
-        const cols = this.manager.columnsWithSources.filter(
-            (col) => (col.def as OwidColumnDef).source
-        )
+        const cols = this.manager.columnsWithSources.filter((col) => col.source)
 
         return (
             <div
