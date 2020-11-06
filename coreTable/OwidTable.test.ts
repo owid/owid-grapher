@@ -527,7 +527,7 @@ describe("linear interpolation", () => {
     it("applies interpolation", () => {
         const interpolatedTable = table.interpolateColumnLinearly("gdp")
 
-        expect(interpolatedTable.get("gdp").allValues).toEqual([
+        expect(interpolatedTable.get("gdp").valuesIncludingInvalids).toEqual([
             // France
             10,
             0,
@@ -662,15 +662,10 @@ describe("tolerance", () => {
         )
         const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
         // tests assume sorted by [entityName, year]
-        expect(toleranceTable.get("entityName")?.allValues).toEqual([
-            "france",
-            "france",
-            "germany",
-            "germany",
-            "uk",
-            "uk",
-        ])
-        expect(toleranceTable.get("gdp")?.allValues).toEqual([
+        expect(
+            toleranceTable.get("entityName")?.valuesIncludingInvalids
+        ).toEqual(["france", "france", "germany", "germany", "uk", "uk"])
+        expect(toleranceTable.get("gdp")?.valuesIncludingInvalids).toEqual([
             InvalidCellTypes.NoValueWithinTolerance,
             InvalidCellTypes.NoValueWithinTolerance,
             InvalidCellTypes.NoValueWithinTolerance,

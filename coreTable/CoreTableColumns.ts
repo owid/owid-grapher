@@ -249,7 +249,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get isEmpty() {
-        return this.allValues.length === 0
+        return this.valuesIncludingInvalids.length === 0
     }
 
     @imemo get name() {
@@ -273,7 +273,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get valuesToIndices() {
         const map = new Map<any, number[]>()
-        this.allValues.forEach((value, index) => {
+        this.valuesIncludingInvalids.forEach((value, index) => {
             if (!map.has(value)) map.set(value, [])
             map.get(value)!.push(index)
         })
@@ -310,12 +310,17 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return uniq(this.parsedValues)
     }
 
-    @imemo get allValues() {
+    /**
+     * Returns all values including InvalidCells.
+     * Normally you want just the valid values, like `[45000, 50000, ...]`. But sometimes you
+     * need the ErrorValues too like `[45000, DivideByZeroError, 50000,...]`
+     */
+    @imemo get valuesIncludingInvalids() {
         return this.table.getValuesFor(this.slug)
     }
 
     @imemo get validRowIndices() {
-        return this.allValues
+        return this.valuesIncludingInvalids
             .map((value, index) =>
                 (value as any) instanceof InvalidCell ? null : index
             )
@@ -323,7 +328,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get parsedValues() {
-        const values = this.allValues
+        const values = this.valuesIncludingInvalids
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
@@ -340,13 +345,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as number[]
     }
 
-    @imemo private get allValuesAsSet() {
-        return new Set(this.allValues)
-    }
-
-    // True if the column has only 1 value. Looks at the (potentially) unparsed values.
+    /**
+     * True if the column has only 1 unique value. InvalidCells are counted as values, so
+     * something like [DivideByZeroError, 2, 2] would not be constant.
+     */
     @imemo get isConstant() {
-        return this.allValuesAsSet.size === 1
+        return new Set(this.valuesIncludingInvalids).size === 1
     }
 
     @imemo get minValue() {
@@ -358,7 +362,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get numInvalidCells() {
-        return this.allValues.length - this.numValues
+        return this.valuesIncludingInvalids.length - this.numValues
     }
 
     // Number of correctly parsed values

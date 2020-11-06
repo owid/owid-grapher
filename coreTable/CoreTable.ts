@@ -391,7 +391,7 @@ export class CoreTable<
     }
 
     getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
-        const values = this.get(columnSlug).allValues
+        const values = this.get(columnSlug).valuesIncludingInvalids
         return indices.map((index) => values[index])
     }
 
@@ -543,8 +543,8 @@ export class CoreTable<
     ) {
         const indexCol = this.get(indexColumnSlug)
         const valueCol = this.get(valueColumnSlug)
-        const indexValues = indexCol.allValues
-        const valueValues = valueCol.allValues
+        const indexValues = indexCol.valuesIncludingInvalids
+        const valueValues = valueCol.valuesIncludingInvalids
         const valueIndices = new Set(valueCol.validRowIndices)
         const intersection = indexCol.validRowIndices.filter((index) =>
             valueIndices.has(index)
@@ -672,10 +672,10 @@ export class CoreTable<
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
     protected groupBoundaries(columnSlug: ColumnSlug) {
-        const values = this.get(columnSlug).allValues
+        const values = this.get(columnSlug).valuesIncludingInvalids
         const arr: number[] = []
         let last: CoreValueType
-        this.get(columnSlug).allValues.forEach((val, index) => {
+        this.get(columnSlug).valuesIncludingInvalids.forEach((val, index) => {
             if (val !== last) {
                 arr.push(index)
                 last = val
@@ -1221,7 +1221,7 @@ export class CoreTable<
         }) as COL_DEF_TYPE[]
         const newRowValues = this.columnsAsArray
             .filter((col) => col.slug !== by)
-            .map((col) => [col.slug, ...col.allValues])
+            .map((col) => [col.slug, ...col.valuesIncludingInvalids])
         return this.transform(
             [newColumnSlugs, ...newRowValues],
             newColumnDefs,

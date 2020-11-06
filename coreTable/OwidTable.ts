@@ -214,7 +214,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
         const timeColumn = this.timeColumn!
-        const timeValues = timeColumn.allValues
+        const timeValues = timeColumn.valuesIncludingInvalids
         const entityNameToIndices = this.rowIndicesByEntityName
         const matchingIndices = new Set<number>()
         this.availableEntityNames.forEach((entityName) => {
@@ -481,7 +481,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
         const indices = this.rowIndicesByEntityName.get(entityName)!
-        const values = this.get(columnSlug).allValues
+        const values = this.get(columnSlug).valuesIncludingInvalids
         const descending = indices.slice().reverse()
         const index = descending.find(
             (index) => !(values[index] instanceof InvalidCell)
@@ -514,10 +514,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
         const newValues = withAllRows
             .get(columnSlug)
-            .allValues.slice() as number[]
+            .valuesIncludingInvalids.slice() as number[]
         const newTimes = withAllRows
             .get(timeColumnSlug)
-            .allValues.slice() as Time[]
+            .valuesIncludingInvalids.slice() as Time[]
 
         groupBoundaries.forEach((_, index) => {
             interpolation(
@@ -583,7 +583,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             // If there is no tolerance still append the tolerance column
             columnStore = {
                 ...this.columnStore,
-                [originalTimeSlug]: timeColumnOfValue.allValues,
+                [originalTimeSlug]: timeColumnOfValue.valuesIncludingInvalids,
             }
         }
 
@@ -667,7 +667,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const indexMap = this.rowIndicesByEntityName
         const timeColumn = this.timeColumn
         if (this.timeColumn.isMissing) return []
-        const timeValues = timeColumn.allValues
+        const timeValues = timeColumn.valuesIncludingInvalids
         return entityNames
             .map((name) => {
                 const rowIndices = indexMap.get(name)

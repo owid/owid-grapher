@@ -38,7 +38,7 @@ country,Region,
 population,Population in 2020,
 popTimes10,Pop times 10,multiplyBy population 10`
             )
-            expect(table.get("popTimes10").allValues).toEqual([
+            expect(table.get("popTimes10").valuesIncludingInvalids).toEqual([
                 10,
                 500,
                 3000,
@@ -69,7 +69,9 @@ popChange,Pop change,percentChange time country population 2`
                 50,
             ]
             it("runs transforms correctly", () => {
-                expect(table.get("popChange").allValues).toEqual(expected)
+                expect(table.get("popChange").valuesIncludingInvalids).toEqual(
+                    expected
+                )
             })
 
             it("runs transforms once", () => {
@@ -79,7 +81,7 @@ popChange,Pop change,percentChange time country population 2`
                         .appendColumns([
                             { slug: "test", values: [1, 1, 1, 1, 1, 1] },
                         ])
-                        .get("popChange").allValues
+                        .get("popChange").valuesIncludingInvalids
                 ).toEqual(expected.slice(1))
             })
         })

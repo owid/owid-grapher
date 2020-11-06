@@ -40,8 +40,12 @@ describe(legacyToOwidTableAndDimensions, () => {
                 StandardOwidColumnDefs.map((def) => def.slug)
             )
         )
-        expect(table.entityNameColumn.allValues).toEqual(["World"])
-        expect(table.entityCodeColumn.allValues).toEqual(["OWID_WRL"])
+        expect(table.entityNameColumn.valuesIncludingInvalids).toEqual([
+            "World",
+        ])
+        expect(table.entityCodeColumn.valuesIncludingInvalids).toEqual([
+            "OWID_WRL",
+        ])
     })
 
     describe("conversionFactor", () => {
@@ -288,7 +292,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(table.rows.length).toEqual(3)
             expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
             const column = table.get("3-2020")
-            expect(column.allValues).toEqual([20, 20, 20])
+            expect(column.valuesIncludingInvalids).toEqual([20, 20, 20])
             expect(column.originalTimes).toEqual([2020, 2020, 2020])
         })
     })
