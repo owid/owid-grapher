@@ -30,7 +30,6 @@ import {
     CoreMatrix,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,
@@ -63,21 +62,10 @@ import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { OwidTableSlugs } from "./OwidTableConstants"
 import { applyTransforms } from "./Transforms"
 
-const TransformsRequiringCompute = new Set([
-    TransformType.LoadFromColumnStore,
-    TransformType.LoadFromDelimited,
-    TransformType.LoadFromRowStore,
-    TransformType.AppendRows,
-    TransformType.AppendColumns,
-    TransformType.UpdateRows,
-    TransformType.UpdateColumnDefsAndApply,
-])
-
 interface AdvancedOptions {
     tableDescription?: string
     transformCategory?: TransformType
     parent?: CoreTable
-    rowConversionFunction?: (row: any) => CoreRow
     filterMask?: FilterMask
 }
 
@@ -173,8 +161,8 @@ export class CoreTable<
     @imemo get columnStore() {
         const {
             inputColumnStore,
-            inputColumnsToComputedColumns,
             inputColumnsToParsedColumnStore,
+            newProvidedColumnDefsWithValues,
         } = this
 
         // Set blank columns
@@ -191,11 +179,10 @@ export class CoreTable<
             )
 
         // Append any computed columns
-        if (Object.keys(inputColumnsToComputedColumns).length)
-            columnStore = Object.assign(
-                columnStore,
-                inputColumnsToComputedColumns
-            )
+        if (newProvidedColumnDefsWithValues.length)
+            newProvidedColumnDefsWithValues.forEach((def) => {
+                columnStore[def.slug] = def.values as PrimitiveType[]
+            })
 
         // NB: transforms are *only* run on the root table for now. They will not be rerun later on (after adding or filtering rows, for example)
         if (this.isRoot && this.columnsToTransform.length)
@@ -215,12 +202,11 @@ export class CoreTable<
     }
 
     @imemo private get delimitedAsColumnStore() {
-        const { originalInput, advancedOptions } = this
+        const { originalInput, _numericColumnSlugs } = this
         const parsed = parseDelimited(
             originalInput as string,
             undefined,
-            advancedOptions.rowConversionFunction ??
-                makeAutoTypeFn(this._numericColumnSlugs)
+            makeAutoTypeFn(_numericColumnSlugs)
         ) as any
         // dsv_parse adds a columns prop to the result we don't want since we handle our own column defs.
         // https://github.com/d3/d3-dsv#dsv_parse
@@ -228,17 +214,6 @@ export class CoreTable<
 
         const renamedRows = standardizeSlugs(parsed) // todo: pass renamed defs back in.
         return rowsToColumnStore(renamedRows ? renamedRows.rows : parsed)
-    }
-
-    private get inputColumnsToComputedColumns() {
-        const { colsToCompute } = this
-        const columnsObject: CoreColumnStore = {}
-        if (!colsToCompute.length) return columnsObject
-        colsToCompute.forEach((def) => {
-            columnsObject[def.slug] = def.values!
-        })
-
-        return columnsObject
     }
 
     private get inputColumnsToParsedColumnStore() {
@@ -267,13 +242,6 @@ export class CoreTable<
                 ))
         )
         return columnsObject
-    }
-
-    private get colsToCompute() {
-        // We never need to compute on certain transforms
-        return TransformsRequiringCompute.has(this.transformCategory)
-            ? this.newProvidedColumnDefsWithValues
-            : []
     }
 
     @imemo private get newProvidedColumnDefsWithValues() {
@@ -308,7 +276,7 @@ export class CoreTable<
         )
             return []
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
-        // user data, with the exception of computed columns.
+        // user data, with the exception of columns that have values passed directly.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
         if (this.isRoot) {
             const colsExceptForComputeds = differenceBy(
@@ -322,10 +290,6 @@ export class CoreTable<
         return columnsAsArray.filter((col) =>
             col.needsParsing(firstInputRow[col.slug])
         )
-    }
-
-    @imemo private get numColsToCompute() {
-        return this.colsToCompute.length
     }
 
     toOneDimensionalArray() {
@@ -846,7 +810,6 @@ export class CoreTable<
             betweenTime,
             timeToLoad,
             numColsToParse,
-            numColsToCompute,
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
@@ -860,7 +823,6 @@ export class CoreTable<
             betweenTime,
             timeToLoad,
             numColsToParse,
-            numColsToCompute,
             numValidCells,
             numErrorValues,
             numColumnsWithErrorValues,
