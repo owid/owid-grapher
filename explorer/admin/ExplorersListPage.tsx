@@ -225,7 +225,7 @@ export class ExplorersIndexPage extends React.Component {
                             <a
                                 href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
                             >
-                                All activiy
+                                All activity
                             </a>
                         </span>
                     </FieldsRow>
