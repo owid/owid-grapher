@@ -281,28 +281,30 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // todo: this needs tests (and/or drop in favor of someone else's package)
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
+        if (!this.has(columnSlug)) return this
         const timeColumn = this.timeColumn!
         const col = this.get(columnSlug)
         const timeTotals = this.sumsByTime(columnSlug)
         const timeValues = timeColumn.parsedValues
-        const newDef = {
-            ...col.def,
-            type: ColumnTypeNames.Percentage,
-            values: col.parsedValues.map((val, index) => {
+        const newDefs = replaceDef(this.defs, [
+            {
+                ...col.def,
+                type: ColumnTypeNames.Percentage,
+            },
+        ])
+        const newColumnStore: CoreColumnStore = {
+            ...this.columnStore,
+            [columnSlug]: this.columnStore[columnSlug].map((val, index) => {
                 const timeTotal = timeTotals.get(timeValues[index])
                 if (timeTotal === 0) return InvalidCellTypes.DivideByZeroError
                 return (100 * (val as number)) / timeTotal!
             }),
         }
-
-        return new OwidTable(
-            this.columnStore,
-            replaceDef(this.defs, [newDef]),
-            {
-                parent: this,
-                tableDescription: `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
-                transformCategory: TransformType.UpdateColumnDefs,
-            }
+        return this.transform(
+            newColumnStore,
+            newDefs,
+            `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
+            TransformType.UpdateColumnDefs
         )
     }
 
