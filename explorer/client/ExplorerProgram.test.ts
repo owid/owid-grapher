@@ -30,6 +30,15 @@ switcher
             46,
         ])
     })
+
+    it("can detect errors", () => {
+        const results = new ExplorerProgram(
+            "test",
+            `titleTypo Foo`
+        ).getCellParseResults(0, 0)
+        expect(results.isValid).toEqual(false)
+        expect(results.options.length).toBeGreaterThan(1)
+    })
 })
 
 describe(SwitcherRuntime, () => {

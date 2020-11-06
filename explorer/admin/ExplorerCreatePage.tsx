@@ -101,20 +101,23 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     render() {
-        const data = this.program.toArrays()
+        const { program } = this
+        const data = program.toArrays()
 
         // Highlight the active view
         const activeViewRowNumber =
-            this.program.getKeywordIndex(ProgramKeyword.switcher) +
-            this.program.switcherRuntime.selectedRowIndex +
+            program.getKeywordIndex(ProgramKeyword.switcher) +
+            program.switcherRuntime.selectedRowIndex +
             3
 
         const cells = function (row: number, column: number) {
             const cellProperties: Partial<Handsontable.CellProperties> = {}
+            const cellParseResults = program.getCellParseResults(row, column)
 
-            if (column === 0) {
+            if (cellParseResults.options.length) {
                 cellProperties.type = "autocomplete"
-                cellProperties.source = Object.values(ProgramKeyword)
+                cellProperties.source = cellParseResults.options
+                cellProperties.valid = cellParseResults.isValid
             }
 
             return cellProperties
@@ -129,7 +132,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             colHeaders: true,
             contextMenu: true,
             data,
-            minCols: this.program.width + 3,
+            minCols: program.width + 3,
             minSpareCols: 2,
             minRows: 20,
             minSpareRows: 20,
@@ -170,7 +173,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         <br />
                         <Link
                             target="preview"
-                            to={`/explorers/preview/${this.program.slug}`}
+                            to={`/explorers/preview/${program.slug}`}
                             className="btn btn-secondary"
                         >
                             Preview
@@ -179,7 +182,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     <div style={{ height: "400px", overflow: "scroll" }}>
                         <SwitcherExplorer
                             chartConfigs={Object.values(this.chartConfigs)}
-                            explorerProgram={this.program}
+                            explorerProgram={program}
                             explorerProgramCode={""}
                             slug={""}
                         />

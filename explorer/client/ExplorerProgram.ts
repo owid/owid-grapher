@@ -100,6 +100,11 @@ export interface SerializedExplorerProgram {
     lastModifiedTime?: number
 }
 
+interface CellParseResults {
+    isValid: boolean
+    options: string[]
+}
+
 export class ExplorerProgram {
     constructor(
         slug: string,
@@ -179,6 +184,30 @@ export class ExplorerProgram {
                     : null
             )
             .filter(isPresent)
+    }
+
+    getCellParseResults(row: number, col: number): CellParseResults {
+        const line = this.lines[row]
+        const words = line ? line.split(this.cellDelimiter) : []
+        const value = words[col]
+        if (col === 0)
+            return {
+                options: Object.values(ProgramKeyword),
+                isValid:
+                    value === undefined ||
+                    value === "" ||
+                    Object.values(ProgramKeyword).includes(value as any),
+            }
+        if (!line) return { options: [], isValid: true }
+        const keyword = words[0]
+        if (keyword === "") {
+            // const parentKeyword = ""
+        } else if (keyword === ProgramKeyword.isPublished && col === 1)
+            return {
+                options: Object.values(CheckboxOption),
+                isValid: Object.values(CheckboxOption).includes(value as any),
+            }
+        return { options: [], isValid: true }
     }
 
     private setLineValue(key: ProgramKeyword, value: string | undefined) {
