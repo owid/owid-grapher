@@ -24,6 +24,15 @@ export const getGitBranchNameForDir = async (dir: string) => {
     return result.stdout.trim()
 }
 
+export const getLastModifiedTime = async (dir: string, filename: string) => {
+    const result = await execFormatted(`cd %s && git log -1 --format=%s %s`, [
+        dir,
+        `%cd`,
+        filename,
+    ])
+    return result.stdout.trim()
+}
+
 const isFolderOnStagingBranch = async (dir: string) => {
     const result = await getGitBranchNameForDir(dir)
     return result === "staging"

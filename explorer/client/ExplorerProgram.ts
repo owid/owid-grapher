@@ -77,8 +77,19 @@ export interface TableDef {
     inlineData?: string
 }
 
+export interface SerializedExplorerProgram {
+    slug: string
+    program: string
+    lastModifiedTime?: number
+}
+
 export class ExplorerProgram {
-    constructor(slug: string, tsv: string, queryString = "") {
+    constructor(
+        slug: string,
+        tsv: string,
+        queryString = "",
+        lastModifiedTime?: number
+    ) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         queryString = (queryString ? queryString : this.defaultView) ?? ""
@@ -87,11 +98,30 @@ export class ExplorerProgram {
             queryString
         )
         this.queryString = queryString
+        this.lastModifiedTime = lastModifiedTime
     }
 
+    lastModifiedTime?: number
     slug: string
     queryString: string
     switcherRuntime: SwitcherRuntime
+
+    toJson(): SerializedExplorerProgram {
+        return {
+            program: this.toString(),
+            slug: this.slug,
+            lastModifiedTime: this.lastModifiedTime,
+        }
+    }
+
+    static fromJson(json: SerializedExplorerProgram) {
+        return new ExplorerProgram(
+            json.slug,
+            json.program,
+            undefined,
+            json.lastModifiedTime
+        )
+    }
 
     get filename() {
         return this.slug + explorerFileSuffix

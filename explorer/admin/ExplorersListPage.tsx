@@ -17,7 +17,10 @@ import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
 import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import {
+    ExplorerProgram,
+    SerializedExplorerProgram,
+} from "explorer/client/ExplorerProgram"
 import {
     deleteRemoteFile,
     pullFromGithub,
@@ -25,6 +28,7 @@ import {
 } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
 import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
+import moment from "moment"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -58,6 +62,11 @@ class ExplorerRow extends React.Component<{
                     {searchHighlight
                         ? searchHighlight(explorer.title || "")
                         : explorer.title}
+                </td>
+                <td>
+                    {explorer.lastModifiedTime
+                        ? moment(explorer.lastModifiedTime * 1000).fromNow()
+                        : ""}
                 </td>
 
                 <td>
@@ -133,6 +142,7 @@ class ExplorerList extends React.Component<{
                         <th></th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -163,7 +173,7 @@ export class ExplorersIndexPage extends React.Component {
     @observable highlightSearch?: string
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return orderBy(this.explorers, ["isPublished", "slug"], ["desc", "asc"])
+        return orderBy(this.explorers, ["lastModifiedTime"], ["desc"])
     }
 
     @action.bound onShowMore() {
@@ -233,7 +243,8 @@ export class ExplorersIndexPage extends React.Component {
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(
-                    (exp: any) => new ExplorerProgram(exp.slug, exp.program)
+                    (exp: SerializedExplorerProgram) =>
+                        ExplorerProgram.fromJson(exp)
                 )
                 this.numTotalRows = json.explorers.length
                 this.highlightSearch = searchInput
