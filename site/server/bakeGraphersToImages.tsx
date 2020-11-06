@@ -87,18 +87,21 @@ export async function bakeGraphersToImages(
     await fs.mkdirp(outDir)
     const graphersBySlug = await getGraphersAndRedirectsBySlug()
 
-    for (const urlStr of grapherUrls) {
-        const url = parseUrl(urlStr)
-        const slug = lodash.last(url.pathname.split("/")) as string
-        const jsonConfig = graphersBySlug.get(slug)
-        if (jsonConfig) {
-            bakeGrapherToImage(
-                jsonConfig,
-                outDir,
-                slug,
-                (url.query as unknown) as string,
-                optimizeSvgs
-            )
-        }
-    }
+    return Promise.all(
+        Array.from(graphersBySlug.keys()).map((urlStr) => {
+            const url = parseUrl(urlStr)
+            const slug = lodash.last(url.pathname.split("/")) as string
+            const jsonConfig = graphersBySlug.get(slug)
+            if (jsonConfig) {
+                return bakeGrapherToImage(
+                    jsonConfig,
+                    outDir,
+                    slug,
+                    (url.query as unknown) as string,
+                    optimizeSvgs
+                )
+            }
+            return undefined
+        })
+    )
 }

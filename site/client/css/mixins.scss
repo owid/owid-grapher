@@ -162,6 +162,20 @@
     @include popover-box-button;
 }
 
+@mixin expandable-block-button {
+    background-color: $primary-color-100;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    padding: 0.25rem;
+    color: $primary-color;
+    transition: all 150ms;
+    &:hover {
+        background-color: $primary-color-200;
+    }
+}
+
 @mixin wrapper-spacing-sm {
     margin-left: auto;
     margin-right: auto;

@@ -491,18 +491,18 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     const revision = (await response.json())[0]
 
     return {
-        ...revision,
-        authors_name: postApi.authors_name,
-        type: postApi.type,
-        path: postApi.path,
-        // revision.date holds the modified date and not the published date
-        // (visible in the admin sidebar), so it is not being used. The
-        // published date will only be correctly displayed when previewing
-        // unpublished posts. When previewing published posts, the current
-        // published date will be displayed, regardless of what is shown in the
-        // admin.
-        date: postApi.date,
-        postId: id,
+        // Since WP does not store metadata for revisions, some elements of a
+        // previewed page will not reflect the latest edits:
+        // - published date (will show the correct one - that is the one in the
+        //   sidebar - for unpublished posts though. For published posts, the
+        //   current published date is displayed, regardless of what is shown
+        //   and could have been modified in the sidebar.)
+        // - glossary highlights
+        // - authors
+        // ...
+        ...postApi,
+        content: revision.content,
+        title: revision.title,
     }
 }
 
@@ -563,6 +563,7 @@ export interface FullPost {
     imageUrl?: string
     postId?: number
     relatedCharts?: RelatedChart[]
+    glossary: boolean
 }
 
 export async function getFullPost(
@@ -571,7 +572,6 @@ export async function getFullPost(
 ): Promise<FullPost> {
     return {
         id: postApi.id,
-        postId: postApi.postId, // for previews, the `id` is the revision ID, this field stores the original post ID
         type: postApi.type,
         slug: postApi.slug,
         path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
@@ -588,6 +588,7 @@ export async function getFullPost(
             postApi.type === "page"
                 ? await getRelatedCharts(postApi.id)
                 : undefined,
+        glossary: postApi.meta.owid_glossary_meta_field,
     }
 }
 
