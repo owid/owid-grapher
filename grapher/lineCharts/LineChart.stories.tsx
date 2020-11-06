@@ -9,6 +9,8 @@ import {
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { makeAnnotationsSlug } from "coreTable/LegacyToOwidTable"
+import { range } from "grapher/utils/Util"
+import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export default {
     title: "LineChart",
@@ -96,17 +98,19 @@ export const WithoutCirclesOnPoints = () => {
 }
 
 export const WithAnnotations = () => {
-    const table = SynthesizeGDPTable({
+    let table = SynthesizeGDPTable({
         entityCount: 6,
         timeRange: [1900, 2000],
     })
-        // todo: eventually we should create a better API for annotations
-        .appendColumns([
-            {
-                slug: makeAnnotationsSlug(SampleColumnSlugs.GDP),
-                fn: (row) => `${row.entityName} is a country`,
-            },
-        ])
+    // todo: eventually we should create a better API for annotations
+    table = table.appendColumns([
+        {
+            slug: makeAnnotationsSlug(SampleColumnSlugs.GDP),
+            values: table
+                .get(OwidTableSlugs.entityName)
+                .values.map((name) => `${name} is a country`),
+        },
+    ])
     return (
         <div>
             <svg width={600} height={600}>
