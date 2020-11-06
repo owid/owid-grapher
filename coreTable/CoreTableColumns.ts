@@ -70,20 +70,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.unit || this.display?.unit || ""
     }
 
-    @imemo protected get sortedValuesString() {
-        return this.values.slice().sort()
-    }
-
-    @imemo protected get sortedValuesNumeric() {
-        const numericCompare = (av: JS_TYPE, bv: JS_TYPE) =>
-            av > bv ? 1 : av < bv ? -1 : 0
-        return this.values.slice().sort(numericCompare)
-    }
-
-    @imemo get sortedValues() {
-        return this.sortedValuesString
-    }
-
     get sum() {
         return this.summary.sum
     }
@@ -110,8 +96,8 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         }
         if (!numValues) return basicSummary
         const summary: Partial<ColumnSummary> = { ...basicSummary }
-        const arr = this.sortedValues
-        const isNumeric = typeof arr[0] === "number"
+        const arr = this.valuesAscending
+        const isNumeric = this.jsType === "number"
 
         let min = arr[0]
         let max = arr[0]
@@ -375,7 +361,8 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get valuesAscending() {
-        return sortNumeric(this.values.slice())
+        const values = this.values.slice()
+        return this.jsType === "string" ? values.sort() : sortNumeric(values)
     }
 
     // todo: cleanup this method. figure out what source properties should be on CoreTable vs OwidTable.
@@ -513,10 +500,6 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         return this.values.every((val) => val % 1 === 0)
     }
 
-    @imemo get sortedValues() {
-        return this.sortedValuesNumeric
-    }
-
     formatValueLong(value: number) {
         const { unit, numDecimalPlaces } = this
         return formatValue(value, {
@@ -569,10 +552,6 @@ abstract class TimeColumn extends AbstractCoreColumn<number> {
 
     parse(val: any) {
         return parseInt(val)
-    }
-
-    @imemo get sortedValues() {
-        return this.sortedValuesNumeric
     }
 }
 
