@@ -36,7 +36,7 @@ import {
 import { isNotErrorValue } from "coreTable/ErrorValues"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 
-export interface SwitcherExplorerProps {
+export interface ExplorerProps {
     explorerProgramCode: string
     slug: string
     explorerProgram?: ExplorerProgram
@@ -58,26 +58,23 @@ interface BootstrapProps {
 }
 
 @observer
-export class SwitcherExplorer
-    extends React.Component<SwitcherExplorerProps>
+export class Explorer
+    extends React.Component<ExplorerProps>
     implements
         ObservableUrl,
         SlideShowManager,
         CountryPickerManager,
         SelectionManager {
-    static bootstrap(props: SwitcherExplorerProps) {
+    static bootstrap(props: ExplorerProps) {
         return ReactDOM.render(
-            <SwitcherExplorer
-                {...props}
-                queryString={window.location.search}
-            />,
+            <Explorer {...props} queryString={window.location.search} />,
             document.getElementById(ExplorerContainerId)
         )
     }
 
-    static async createSwitcherExplorerAndRenderToDom(props: BootstrapProps) {
+    static async createExplorerAndRenderToDom(props: BootstrapProps) {
         return ReactDOM.render(
-            <SwitcherExplorer
+            <Explorer
                 explorerProgramCode={props.explorerProgramCode}
                 slug={props.slug}
                 queryString={props.queryStr}
@@ -184,9 +181,9 @@ export class SwitcherExplorer
         this.setGrapher(this.explorerShellRef.current!.grapherRef!.current!)
         // Whenever the selected row changes, update Grapher.
         autorun(() =>
-            this.updateGrapher(this.explorerProgram.switcherRuntime.selectedRow)
+            this.updateGrapher(this.explorerProgram.decisionMatrix.selectedRow)
         )
-        exposeInstanceOnWindow(this, "switcherExplorer")
+        exposeInstanceOnWindow(this, "explorer")
     }
 
     @action.bound private updateGrapher(selectedRow: CoreRow) {
@@ -203,7 +200,7 @@ export class SwitcherExplorer
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
-                this.explorerProgram.switcherRuntime.allOptionsAsQueryStrings(),
+                this.explorerProgram.decisionMatrix.allOptionsAsQueryStrings(),
                 0,
                 this
             )
@@ -240,7 +237,7 @@ export class SwitcherExplorer
     }
 
     @action.bound setSlide(queryString: string) {
-        this.explorerProgram.switcherRuntime.setValuesFromQueryString(
+        this.explorerProgram.decisionMatrix.setValuesFromQueryString(
             queryString
         )
     }
@@ -253,14 +250,14 @@ export class SwitcherExplorer
         this.urlBinding.bindToWindow(
             new MultipleUrlBinder([
                 this.grapher,
-                this.explorerProgram.switcherRuntime,
+                this.explorerProgram.decisionMatrix,
                 this,
             ])
         )
     }
 
     private get panels() {
-        return this.explorerProgram.switcherRuntime.choicesWithAvailability.map(
+        return this.explorerProgram.decisionMatrix.choicesWithAvailability.map(
             (choice) => (
                 <ExplorerControlPanel
                     key={choice.title}
@@ -271,7 +268,7 @@ export class SwitcherExplorer
                     options={choice.options}
                     type={choice.type}
                     onChange={(value) => {
-                        this.explorerProgram.switcherRuntime.setValue(
+                        this.explorerProgram.decisionMatrix.setValue(
                             choice.title,
                             value
                         )

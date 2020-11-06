@@ -4,7 +4,7 @@ import {
     CheckboxOption,
     DefaultExplorerProgram,
     ExplorerProgram,
-    SwitcherRuntime,
+    DecisionMatrix,
 } from "./ExplorerProgram"
 import { getRequiredChartIds } from "./ExplorerUtils"
 
@@ -15,7 +15,7 @@ describe(ExplorerProgram, () => {
     })
 
     it("gets code", () => {
-        expect(program.switcherCode).toContain("chartId")
+        expect(program.decisionMatrixCode).toContain("chartId")
     })
 
     it("allows blank lines in blocks", () => {
@@ -41,7 +41,7 @@ switcher
     })
 })
 
-describe(SwitcherRuntime, () => {
+describe(DecisionMatrix, () => {
     const code = `chartId,country Radio,indicator Radio,interval Radio,perCapita Radio
 21,usa,GDP,annual,${CheckboxOption.false}
 24,usa,GDP,annual,Per million
@@ -50,7 +50,7 @@ describe(SwitcherRuntime, () => {
 33,france,Life expectancy,,
 55,spain,GDP,,${CheckboxOption.false}
 56,spain,GDP,,Per million`
-    const options = new SwitcherRuntime(code)
+    const options = new DecisionMatrix(code)
 
     it("starts with a selected chart", () => {
         expect(options.selectedRow.chartId).toEqual(21)
@@ -107,7 +107,7 @@ describe(SwitcherRuntime, () => {
     })
 
     it("returns groups with undefined values if invalid value is selected", () => {
-        const options = new SwitcherRuntime(code)
+        const options = new DecisionMatrix(code)
         options.setValue("country", "usa")
         options.setValue("indicator", "GDP")
         options.setValue("interval", "annual")
@@ -118,7 +118,7 @@ describe(SwitcherRuntime, () => {
 
     it("fails if no chartId column is provided", () => {
         try {
-            new SwitcherRuntime(
+            new DecisionMatrix(
                 `country Radio,indicator Radio
 usa,GDP
 usa,Life expectancy
@@ -131,7 +131,7 @@ france,Life expectancy`
     })
 
     it("handles columns without options", () => {
-        const options = new SwitcherRuntime(
+        const options = new DecisionMatrix(
             `chartId,country Radio,indicator Radio
 123,usa,
 32,usa,
@@ -142,12 +142,12 @@ france,Life expectancy`
     })
 
     it("handles empty options", () => {
-        const options = new SwitcherRuntime(``)
+        const options = new DecisionMatrix(``)
         expect(options.choicesWithAvailability.length).toEqual(0)
     })
 
     it("marks a radio as checked if its the only option", () => {
-        const options = new SwitcherRuntime(
+        const options = new DecisionMatrix(
             `chartId,Gas Radio,Accounting Radio
 488,CO₂,Production-based
 4331,CO₂,Consumption-based

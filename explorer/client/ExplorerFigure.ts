@@ -1,16 +1,16 @@
-import { SwitcherExplorer } from "./SwitcherExplorer"
+import { Explorer } from "./Explorer"
 import { excludeUndefined } from "grapher/utils/Util"
 import { Figure, LoadProps } from "site/client/figures/Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
-interface SwitcherExplorerFigureProps {
+interface ExplorerFigureProps {
     queryStr?: string
     container: HTMLElement
 }
 
-export class SwitcherExplorerFigure implements Figure {
-    private props: SwitcherExplorerFigureProps
-    constructor(props: SwitcherExplorerFigureProps) {
+export class ExplorerFigure implements Figure {
+    private props: ExplorerFigureProps
+    constructor(props: ExplorerFigureProps) {
         this.props = props
     }
 
@@ -35,7 +35,7 @@ export class SwitcherExplorerFigure implements Figure {
     async load(loadProps: LoadProps) {
         if (!this._isLoaded) {
             this._isLoaded = true
-            SwitcherExplorer.createSwitcherExplorerAndRenderToDom({
+            Explorer.createExplorerAndRenderToDom({
                 containerNode: this.container,
                 isEmbed: true,
                 queryStr: this.props.queryStr,
@@ -48,7 +48,7 @@ export class SwitcherExplorerFigure implements Figure {
 
     static figuresFromDOM(
         container: HTMLElement | Document = document
-    ): SwitcherExplorerFigure[] {
+    ): ExplorerFigure[] {
         const elements = Array.from(
             container.querySelectorAll<HTMLElement>("*[data-explorer-src]")
         )
@@ -61,7 +61,7 @@ export class SwitcherExplorerFigure implements Figure {
                     queryString: queryStr,
                 } = splitURLintoPathAndQueryString(dataSrc)
                 if (!explorerUrl.includes("explorer")) return undefined
-                return new SwitcherExplorerFigure({
+                return new ExplorerFigure({
                     queryStr,
                     container: element,
                 })

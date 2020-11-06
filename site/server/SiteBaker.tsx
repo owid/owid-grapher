@@ -52,7 +52,7 @@ import {
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
-    renderSwitcherExplorerPage,
+    renderExplorerPage,
 } from "explorer/admin/ExplorerBaker"
 import { deserializeJSONFromHTML } from "utils/serializers"
 
@@ -526,7 +526,7 @@ export class SiteBaker {
             const { slugs, explorerQueryStr } = chartExplorerRedirect
             // explorerQueryStr
             // todo: make qork
-            const html = await renderSwitcherExplorerPage("slug", "")
+            const html = await renderExplorerPage("slug", "")
             await Promise.all(
                 slugs.map((slug) =>
                     this.stageWrite(

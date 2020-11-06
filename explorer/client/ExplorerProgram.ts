@@ -115,8 +115,8 @@ export class ExplorerProgram {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         queryString = (queryString ? queryString : this.defaultView) ?? ""
-        this.switcherRuntime = new SwitcherRuntime(
-            this.switcherCode || "",
+        this.decisionMatrix = new DecisionMatrix(
+            this.decisionMatrixCode || "",
             queryString
         )
         this.queryString = queryString
@@ -126,7 +126,7 @@ export class ExplorerProgram {
     lastModifiedTime?: number
     slug: string
     queryString: string
-    switcherRuntime: SwitcherRuntime
+    decisionMatrix: DecisionMatrix
 
     toJson(): SerializedExplorerProgram {
         return {
@@ -227,7 +227,7 @@ export class ExplorerProgram {
     }
 
     get requiredChartIds() {
-        return getRequiredChartIds(this.switcherCode ?? "")
+        return getRequiredChartIds(this.decisionMatrixCode ?? "")
     }
 
     static fromMatrix(slug: string, matrix: CoreMatrix) {
@@ -344,7 +344,7 @@ export class ExplorerProgram {
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
-    get switcherCode() {
+    get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(ProgramKeyword.switcher)
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
@@ -403,7 +403,7 @@ type ChoiceName = string
 type ChoiceValue = string
 
 // A "query" here is just a map of choice names and values. Maps nicely to a query string.
-interface SwitcherQuery {
+interface DecisionMatrixQuery {
     [choiceName: string]: ChoiceValue
 }
 
@@ -413,9 +413,9 @@ interface ChoiceMap {
 
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
-export class SwitcherRuntime implements ObservableUrl {
+export class DecisionMatrix implements ObservableUrl {
     private table: CoreTable
-    @observable private _settings: SwitcherQuery = {}
+    @observable private _settings: DecisionMatrixQuery = {}
     constructor(delimited: string, queryString: string = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
@@ -437,7 +437,7 @@ export class SwitcherRuntime implements ObservableUrl {
 
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
 
-    toObject(): SwitcherQuery {
+    toObject(): DecisionMatrixQuery {
         return { ...this._settings }
     }
 
@@ -496,7 +496,7 @@ export class SwitcherRuntime implements ObservableUrl {
     }
 
     isOptionAvailable(choiceName: ChoiceName, option: ChoiceValue) {
-        const query: SwitcherQuery = {}
+        const query: DecisionMatrixQuery = {}
         this.choiceNames
             .slice(0, this.choiceNames.indexOf(choiceName))
             .forEach((name) => {
@@ -506,7 +506,7 @@ export class SwitcherRuntime implements ObservableUrl {
         return this.rowsWith(query, choiceName).length > 0
     }
 
-    private rowsWith(query: SwitcherQuery, choiceName?: ChoiceName) {
+    private rowsWith(query: DecisionMatrixQuery, choiceName?: ChoiceName) {
         // We allow other options to be blank.
         const modifiedQuery: any = {}
         Object.keys(trimObject(query)).forEach((queryColumn) => {

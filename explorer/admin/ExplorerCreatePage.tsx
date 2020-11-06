@@ -5,7 +5,7 @@ import {
     AdminAppContextType,
     AdminAppContext,
 } from "adminSite/client/AdminAppContext"
-import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
+import { Explorer } from "explorer/client/Explorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
@@ -107,7 +107,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         // Highlight the active view
         const activeViewRowNumber =
             program.getKeywordIndex(ProgramKeyword.switcher) +
-            program.switcherRuntime.selectedRowIndex +
+            program.decisionMatrix.selectedRowIndex +
             3
 
         const cells = function (row: number, column: number) {
@@ -180,7 +180,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         </Link>
                     </div>
                     <div style={{ height: "400px", overflow: "scroll" }}>
-                        <SwitcherExplorer
+                        <Explorer
                             chartConfigs={Object.values(this.chartConfigs)}
                             explorerProgram={program}
                             explorerProgramCode={""}

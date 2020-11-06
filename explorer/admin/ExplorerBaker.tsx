@@ -9,7 +9,7 @@ import {
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
-import { SwitcherExplorerProps } from "explorer/client/SwitcherExplorer"
+import { ExplorerProps } from "explorer/client/Explorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
 import { Router } from "express"
@@ -56,14 +56,14 @@ export const addExplorerAdminRoutes = (app: Router) => {
     app.get(`/explorers/preview/mega`, async (req, res) => {
         const code = await getMegaExplorerCode()
         if (code === undefined) res.send(`File not found`)
-        else res.send(await renderSwitcherExplorerPage(req.params.slug, code))
+        else res.send(await renderExplorerPage(req.params.slug, code))
     })
 
     // http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/explorers/preview/:slug`, async (req, res) => {
         const code = await getExplorerCodeBySlug(req.params.slug)
         if (code === undefined) res.send(`File not found`)
-        else res.send(await renderSwitcherExplorerPage(req.params.slug, code))
+        else res.send(await renderExplorerPage(req.params.slug, code))
     })
 }
 
@@ -121,15 +121,12 @@ const bakeExplorersToDir = async (
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderSwitcherExplorerPage(explorer.slug, explorer.toString())
+            await renderExplorerPage(explorer.slug, explorer.toString())
         )
     }
 }
 
-export const renderSwitcherExplorerPage = async (
-    slug: string,
-    code: string
-) => {
+export const renderExplorerPage = async (slug: string, code: string) => {
     const program = new ExplorerProgram(slug, code)
     const { requiredChartIds } = program
     let chartConfigs: any[] = []
@@ -139,7 +136,7 @@ export const renderSwitcherExplorerPage = async (
             [requiredChartIds]
         )
 
-    const props: SwitcherExplorerProps = {
+    const props: ExplorerProps = {
         bindToWindow: true,
         slug,
         explorerProgramCode: program.toString(),
@@ -150,7 +147,7 @@ export const renderSwitcherExplorerPage = async (
         }),
     }
 
-    const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(
+    const script = `window.Explorer.bootstrap(${JSON.stringify(
         props,
         null,
         2

@@ -27,7 +27,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "site/client/Footnote"
-import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
+import { Explorer } from "explorer/client/Explorer"
 import { ENV } from "settings"
 import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
@@ -35,7 +35,7 @@ import { Grapher } from "grapher/core/Grapher"
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
 window.Grapher = Grapher
-window.SwitcherExplorer = SwitcherExplorer
+window.Explorer = Explorer
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage

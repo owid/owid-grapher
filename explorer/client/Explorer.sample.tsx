@@ -1,7 +1,7 @@
 import React from "react"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
-import { SwitcherExplorer } from "./SwitcherExplorer"
+import { Explorer } from "./Explorer"
 
 const SampleExplorerProgram = `title	CO₂ Data Explorer
 isPublished	false
@@ -75,7 +75,7 @@ export const SampleExplorer = () => {
         },
     ]
     return (
-        <SwitcherExplorer
+        <Explorer
             slug="test-slug"
             explorerProgramCode={SampleExplorerProgram}
             chartConfigs={chartConfigs}

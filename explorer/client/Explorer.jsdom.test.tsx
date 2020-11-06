@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { mount } from "enzyme"
-import { SampleExplorer } from "./SwitcherExplorer.sample"
+import { SampleExplorer } from "./Explorer.sample"
 
 it("renders the Explorer", async () => {
     const title = "AlphaBeta"

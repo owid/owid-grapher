@@ -33,7 +33,7 @@ import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "site/server/svgPngExport"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { chartExplorerRedirectsBySlug } from "explorer/legacyCovidExplorerRedirects"
-import { renderSwitcherExplorerPage } from "explorer/admin/ExplorerBaker"
+import { renderExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
 
@@ -93,7 +93,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
             req.params.slug
         ]
         // explorerQueryStr
-        res.send(await renderSwitcherExplorerPage(req.params.slug, ""))
+        res.send(await renderExplorerPage(req.params.slug, ""))
     } else {
         res.send(await grapherPageFromSlug(req.params.slug))
     }

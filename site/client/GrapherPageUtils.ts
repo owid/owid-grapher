@@ -7,7 +7,7 @@ import {
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
 import { ChartFigure } from "./figures/ChartFigure"
-import { SwitcherExplorerFigure } from "explorer/client/SwitcherExplorerFigure"
+import { ExplorerFigure } from "explorer/client/ExplorerFigure"
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
@@ -87,7 +87,7 @@ class MultiEmbedder {
         container: HTMLElement | Document = document
     ) {
         ChartFigure.figuresFromDOM(container).forEach(this.addFigure)
-        SwitcherExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
+        ExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
         // Trigger load for any added figures
         this.loadVisibleFiguresThrottled()
         return this
