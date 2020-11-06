@@ -24,23 +24,26 @@ import {
     writeRemoteFile,
 } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
-import { GIT_CMS_REPO } from "gitCms/constants"
-
-const contentRepo = GIT_CMS_REPO + "/commits/master/explorers/"
+import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
 
 @observer
 class ExplorerRow extends React.Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
+    gitCmsBranchName?: string
     searchHighlight?: (text: string) => any
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
     render() {
-        const { explorer, searchHighlight } = this.props
+        const { explorer, searchHighlight, gitCmsBranchName } = this.props
 
-        const publishedUrl = BAKED_BASE_URL + "/explorers/" + explorer.slug
+        const publishedUrl = `${BAKED_BASE_URL}/explorers/${explorer.slug}`
+
+        const repoPath = `${GIT_CMS_REPO_URL}/commits/${
+            gitCmsBranchName ?? GIT_CMS_DEFAULT_BRANCH
+        }/explorers/`
 
         return (
             <tr>
@@ -100,10 +103,7 @@ class ExplorerRow extends React.Component<{
                     </button>
                 </td>
                 <td>
-                    <a
-                        target="explorers"
-                        href={contentRepo + explorer.filename}
-                    >
+                    <a target="explorers" href={repoPath + explorer.filename}>
                         File History
                     </a>
                 </td>
@@ -117,6 +117,7 @@ class ExplorerList extends React.Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
+    gitCmsBranchName?: string
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -143,6 +144,7 @@ class ExplorerList extends React.Component<{
                             key={explorer.slug}
                             explorer={explorer}
                             searchHighlight={props.searchHighlight}
+                            gitCmsBranchName={props.gitCmsBranchName}
                         />
                     ))}
                 </tbody>
@@ -218,11 +220,14 @@ export class ExplorersIndexPage extends React.Component {
                         explorers={explorersToShow}
                         searchHighlight={highlight}
                         indexPage={this}
+                        gitCmsBranchName={this.gitCmsBranchName}
                     />
                 </main>
             </AdminLayout>
         )
     }
+
+    @observable gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH
 
     async getData() {
         const { searchInput } = this
@@ -234,6 +239,7 @@ export class ExplorersIndexPage extends React.Component {
                 )
                 this.numTotalRows = json.explorers.length
                 this.highlightSearch = searchInput
+                this.gitCmsBranchName = json.gitCmsBranchName
             }
         })
     }

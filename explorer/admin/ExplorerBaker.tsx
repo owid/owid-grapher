@@ -24,6 +24,7 @@ import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import { getPublishedGraphersBySlug } from "site/server/bakeGraphersToImages"
+import { getGitBranchNameForDir } from "gitCms/server"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -32,7 +33,9 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // Download all explorers for the admin index page
     app.get("/explorers.json", async () => {
         const explorers = await getAllExplorers()
+        const gitCmsBranchName = await getGitBranchNameForDir(storageFolder)
         return {
+            gitCmsBranchName,
             explorers: explorers.map((explorer) => {
                 return {
                     program: explorer.toString(),

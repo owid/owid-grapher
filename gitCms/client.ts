@@ -5,7 +5,7 @@ import {
     GitCmsResponse,
     GitCmsReadResponse,
     DeleteRequest,
-    GIT_PULL_ROUTE,
+    GIT_CMS_PULL_ROUTE,
 } from "./constants"
 const adminPath = `/admin/api`
 const gitCmsApiPath = `${adminPath}${GIT_CMS_ROUTE}`
@@ -15,7 +15,7 @@ const validateFilePath = (path: string) => {
 }
 
 export const pullFromGithub = async () => {
-    const response = await fetch(`${adminPath}${GIT_PULL_ROUTE}`, {
+    const response = await fetch(`${adminPath}${GIT_CMS_PULL_ROUTE}`, {
         method: "POST",
     })
     const parsed: GitCmsResponse = await response.json()

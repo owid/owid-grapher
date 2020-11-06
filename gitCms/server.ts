@@ -11,17 +11,22 @@ import {
     WriteRequest,
     ReadRequest,
     DeleteRequest,
-    GIT_PULL_ROUTE,
+    GIT_CMS_PULL_ROUTE,
     GitPullResponse,
 } from "./constants"
 const IS_PROD = ENV === "production"
 
-const isFolderOnStagingBranch = async (dir: string) => {
+export const getGitBranchNameForDir = async (dir: string) => {
     const result = await execFormatted(
         `cd %s && git rev-parse --abbrev-ref HEAD`,
         [dir]
     )
-    return result.stdout.trim() === "staging"
+    return result.stdout.trim()
+}
+
+const isFolderOnStagingBranch = async (dir: string) => {
+    const result = await getGitBranchNameForDir(dir)
+    return result === "staging"
 }
 
 async function saveFileToGitContentDirectory(
@@ -94,7 +99,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
         }
     )
 
-    app.post(GIT_PULL_ROUTE, async (req: Request, res: Response) => {
+    app.post(GIT_CMS_PULL_ROUTE, async (req: Request, res: Response) => {
         const result = await pullFromGit()
         return {
             success: result.stderr ? false : true,
