@@ -31,14 +31,9 @@ import {
 import { makeSitemap } from "site/server/sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "site/server/svgPngExport"
-import {
-    covidDashboardSlug,
-    covidChartAndVariableMetaPath,
-} from "explorer/covidExplorer/CovidConstants"
-import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
-import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
+import { chartExplorerRedirectsBySlug } from "explorer/legacyCovidExplorerRedirects"
+import { renderSwitcherExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
 
@@ -97,7 +92,8 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         const { explorerQueryStr } = chartExplorerRedirectsBySlug[
             req.params.slug
         ]
-        res.send(await renderCovidExplorerPage({ explorerQueryStr }))
+        // explorerQueryStr
+        res.send(await renderSwitcherExplorerPage(req.params.slug, ""))
     } else {
         res.send(await grapherPageFromSlug(req.params.slug))
     }
@@ -115,18 +111,10 @@ mockSiteRouter.get("/charts", async (req, res) => {
     res.send(await renderChartsPage())
 })
 
-mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
-    res.send(await renderCovidExplorerPage())
-})
-
 countryProfileSpecs.forEach((spec) => {
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
         res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
     })
-})
-
-mockSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {
-    res.send(await bakeCovidChartAndVariableMeta())
 })
 
 // Route only available on the dev server

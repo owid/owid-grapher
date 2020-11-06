@@ -34,14 +34,27 @@ import {
     TableSlug,
 } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
+import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
-    explorerProgram?: ExplorerProgram
     slug: string
+    explorerProgram?: ExplorerProgram
     chartConfigs?: GrapherInterface[]
     bindToWindow?: boolean
     queryString?: string
+    isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
+    globalEntitySelection?: GlobalEntitySelection // todo: use this
+}
+
+interface BootstrapProps {
+    slug: string
+    explorerProgramCode: string
+    containerNode: HTMLElement
+    isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
+    queryStr?: string
+    globalEntitySelection?: GlobalEntitySelection
+    bindToWindow?: boolean
 }
 
 @observer
@@ -59,6 +72,20 @@ export class SwitcherExplorer
                 queryString={window.location.search}
             />,
             document.getElementById(ExplorerContainerId)
+        )
+    }
+
+    static async createSwitcherExplorerAndRenderToDom(props: BootstrapProps) {
+        return ReactDOM.render(
+            <SwitcherExplorer
+                explorerProgramCode={props.explorerProgramCode}
+                slug={props.slug}
+                queryString={props.queryStr}
+                isEmbed={props.isEmbed}
+                globalEntitySelection={props.globalEntitySelection}
+                bindToWindow={props.bindToWindow}
+            />,
+            props.containerNode
         )
     }
 
@@ -273,7 +300,7 @@ export class SwitcherExplorer
 
     //todo
     private get isEmbed() {
-        return false
+        return this.props.isEmbed ?? false
     }
 
     @observable.ref explorerShellRef: React.RefObject<

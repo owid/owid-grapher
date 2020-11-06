@@ -46,15 +46,13 @@ import { countries, getCountryDetectionRedirects } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
+    chartExplorerRedirects,
     covidDashboardSlug,
-    covidChartAndVariableMetaFilename,
-} from "explorer/covidExplorer/CovidConstants"
-import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
+} from "explorer/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
-    renderCovidExplorerPage,
+    renderSwitcherExplorerPage,
 } from "explorer/admin/ExplorerBaker"
 import { deserializeJSONFromHTML } from "utils/serializers"
 
@@ -332,17 +330,6 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        if (settings.COVID_DASHBOARD) {
-            await this.stageWrite(
-                `${BAKED_SITE_DIR}/${covidDashboardSlug}.html`,
-                await renderCovidExplorerPage()
-            )
-        }
-        await this.stageWrite(
-            `${BAKED_SITE_DIR}/${covidChartAndVariableMetaFilename}`,
-            await bakeCovidChartAndVariableMeta()
-        )
-
         await bakeAllPublishedExplorers()
     }
 
@@ -537,7 +524,9 @@ export class SiteBaker {
     async bakeExplorerRedirects() {
         for (const chartExplorerRedirect of chartExplorerRedirects) {
             const { slugs, explorerQueryStr } = chartExplorerRedirect
-            const html = await renderCovidExplorerPage({ explorerQueryStr })
+            // explorerQueryStr
+            // todo: make qork
+            const html = await renderSwitcherExplorerPage("slug", "")
             await Promise.all(
                 slugs.map((slug) =>
                     this.stageWrite(

@@ -1,17 +1,16 @@
-import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
-import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
+import { SwitcherExplorer } from "./SwitcherExplorer"
 import { excludeUndefined } from "grapher/utils/Util"
 import { Figure, LoadProps } from "site/client/figures/Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
-interface CovidExplorerFigureProps {
+interface SwitcherExplorerFigureProps {
     queryStr?: string
     container: HTMLElement
 }
 
-export class CovidExplorerFigure implements Figure {
-    private props: CovidExplorerFigureProps
-    constructor(props: CovidExplorerFigureProps) {
+export class SwitcherExplorerFigure implements Figure {
+    private props: SwitcherExplorerFigureProps
+    constructor(props: SwitcherExplorerFigureProps) {
         this.props = props
     }
 
@@ -36,18 +35,20 @@ export class CovidExplorerFigure implements Figure {
     async load(loadProps: LoadProps) {
         if (!this._isLoaded) {
             this._isLoaded = true
-            CovidExplorer.createCovidExplorerAndRenderToDom({
+            SwitcherExplorer.createSwitcherExplorerAndRenderToDom({
                 containerNode: this.container,
                 isEmbed: true,
                 queryStr: this.props.queryStr,
                 globalEntitySelection: loadProps.globalEntitySelection,
+                slug: "",
+                explorerProgramCode: "",
             })
         }
     }
 
     static figuresFromDOM(
         container: HTMLElement | Document = document
-    ): CovidExplorerFigure[] {
+    ): SwitcherExplorerFigure[] {
         const elements = Array.from(
             container.querySelectorAll<HTMLElement>("*[data-explorer-src]")
         )
@@ -59,8 +60,8 @@ export class CovidExplorerFigure implements Figure {
                     path: explorerUrl,
                     queryString: queryStr,
                 } = splitURLintoPathAndQueryString(dataSrc)
-                if (!explorerUrl.includes(covidDashboardSlug)) return undefined
-                return new CovidExplorerFigure({
+                if (!explorerUrl.includes("explorer")) return undefined
+                return new SwitcherExplorerFigure({
                     queryStr,
                     container: element,
                 })

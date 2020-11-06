@@ -332,27 +332,11 @@ describe("column operations", () => {
         const table = new CoreTable(rows, [
             {
                 slug: "countryNameLength",
-                fn: (row) => row.country.length,
+                values: rows.map((row) => row.country.length),
             },
         ])
         expect(table.get("countryNameLength").values.join("")).toEqual(`37`)
         expect((rows[0] as any).countryNameLength).toEqual(undefined)
-    })
-
-    it("runs computations just once", () => {
-        const rows = [{ country: "USA" }]
-        let count = 0
-        let table = new CoreTable(rows, [
-            {
-                slug: "count",
-                fn: (row) => ++count,
-            },
-        ])
-        let firstRow = table.firstRow as any
-        expect(firstRow.count).toEqual(1)
-        table = table.updateDefs((def) => def)
-        firstRow = table.firstRow as any
-        expect(firstRow.count).toEqual(1)
     })
 
     it("can drop columns", () => {

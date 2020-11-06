@@ -26,7 +26,6 @@ import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
-import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ENV } from "settings"
@@ -36,7 +35,6 @@ import { Grapher } from "grapher/core/Grapher"
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
 window.Grapher = Grapher
-window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
