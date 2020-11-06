@@ -526,12 +526,13 @@ export function sign(n: number) {
 }
 
 // Removes all undefineds from an object.
-export function trimObject(obj: any = {}) {
+export function trimObject(obj: any = {}, trimStringEmptyStrings = false) {
     const clone: any = {}
     Object.keys(obj).forEach((key) => {
         const val = obj[key]
         if (isObject(val) && isEmpty(val)) {
             // Drop empty objects
+        } else if (trimStringEmptyStrings && val === "") {
         } else if (val !== undefined) clone[key] = obj[key]
     })
     return clone

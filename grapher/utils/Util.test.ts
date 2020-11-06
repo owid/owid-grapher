@@ -292,6 +292,13 @@ describe(trimObject, () => {
         expect(trimObject({ foo: undefined })).toEqual({})
         expect(trimObject({ foo: {} })).toEqual({})
         expect(trimObject({ foo: undefined, bar: 1 })).toEqual({ bar: 1 })
+        expect(trimObject({ foo: undefined, bar: 1, test: "" })).toEqual({
+            bar: 1,
+            test: "",
+        })
+        expect(trimObject({ foo: undefined, bar: 1, test: "" }, true)).toEqual({
+            bar: 1,
+        })
     })
 })
 
