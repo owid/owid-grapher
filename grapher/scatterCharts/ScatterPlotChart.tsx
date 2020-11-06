@@ -15,6 +15,7 @@ import {
     exposeInstanceOnWindow,
     groupBy,
     first,
+    cagr,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -26,7 +27,7 @@ import {
     ScatterPointLabelStrategy,
     SeriesName,
 } from "grapher/core/GrapherConstants"
-import { Color } from "coreTable/CoreTableConstants"
+import { Color, Time } from "coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -405,7 +406,6 @@ export class ScatterPlotChart
             sizeDomain,
             colorScale,
             colorColumn,
-            transformedTable,
         } = this
 
         return (
@@ -829,43 +829,109 @@ export class ScatterPlotChart
 
     // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
-        return Object.entries(
+        let seriesArr = Object.entries(
             groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
-        )
-            .map(([entityName, points]) => {
-                const seriesPoints = this.compareEndPointsOnly
-                    ? excludeUndefined([first(points), last(points)])
-                    : points
-                const series: ScatterSeries = {
-                    seriesName: entityName,
-                    label: entityName,
-                    color: "#932834", // Default color, used when no color dimension is present
-                    size:
-                        last(
-                            seriesPoints.map((p) => p.size).filter(isNumber)
-                        ) ?? 0,
-                    points: seriesPoints,
+        ).map(([entityName, points]) => {
+            if (this.compareEndPointsOnly) {
+                points = this.extractEndpoints(points)
+            }
+            const series: ScatterSeries = {
+                seriesName: entityName,
+                label: entityName,
+                color: "#932834", // Default color, used when no color dimension is present
+                size: this.getSizeFromPoints(points),
+                points,
+            }
+            this.assignColorToSeries(entityName, series)
+            return series
+        })
+
+        if (
+            this.manager.hideLinesOutsideTolerance &&
+            this.manager.startTime !== undefined &&
+            this.manager.endTime !== undefined
+        ) {
+            seriesArr = this.dropSeriesNotCoveringTimespan(seriesArr, [
+                this.manager.startTime,
+                this.manager.endTime,
+            ])
+        }
+
+        // We need to apply the relative transform after hideLinesOutsideTolerance, because the
+        // original timespan info gets dropped and we cannot infer it after this.
+        // There is a timespan, but it's for the original times, pre-interpolation.
+        if (this.manager.isRelativeMode) {
+            seriesArr = seriesArr.map((series) => {
+                return {
+                    ...series,
+                    points: excludeUndefined([
+                        this.getAverageAnnualChangePoint(series.points),
+                    ]),
                 }
-                if (seriesPoints.length) {
-                    const keyColor = this.transformedTable.getColorForEntityName(
-                        entityName
-                    )
-                    if (keyColor !== undefined) series.color = keyColor
-                    else if (!this.colorColumn.isMissing) {
-                        const colorValue = last(
-                            series.points.map((point) => point.color)
-                        )
-                        const color = this.colorScale.getColor(colorValue)
-                        if (color !== undefined) {
-                            series.color = color
-                            series.isScaleColor = true
-                        }
-                    }
-                    const sizes = series.points.map((v) => v.size)
-                    series.size = last(sizes.filter(isNumber)) ?? 0
-                }
-                return series
             })
-            .filter((series) => series.points.length > 0)
+        }
+
+        return seriesArr.filter((series) => series.points.length > 0)
+    }
+
+    private extractEndpoints(points: SeriesPoint[]): SeriesPoint[] {
+        return uniq(excludeUndefined([first(points), last(points)]))
+    }
+
+    private getAverageAnnualChangePoint(
+        points: SeriesPoint[]
+    ): SeriesPoint | undefined {
+        const [startPoint, endPoint] = this.extractEndpoints(points)
+        if (!startPoint || !endPoint) return undefined
+        return {
+            ...endPoint,
+            x: cagr(startPoint, endPoint, "x"),
+            y: cagr(startPoint, endPoint, "y"),
+            time: {
+                y: endPoint.time.y,
+                x: endPoint.time.x,
+                span: [startPoint.time.y, endPoint.time.y],
+            },
+        }
+    }
+
+    private dropSeriesNotCoveringTimespan(
+        seriesArr: ScatterSeries[],
+        timespan: [Time, Time]
+    ): ScatterSeries[] {
+        const [startTime, endTime] = timespan
+        return seriesArr.filter((series) => {
+            return (
+                first(series.points)?.timeValue === startTime &&
+                last(series.points)?.timeValue === endTime
+            )
+        })
+    }
+
+    private assignColorToSeries(
+        entityName: EntityName,
+        series: ScatterSeries
+    ): void {
+        if (series.points.length) {
+            const keyColor = this.transformedTable.getColorForEntityName(
+                entityName
+            )
+            if (keyColor !== undefined) series.color = keyColor
+            else if (!this.colorColumn.isMissing) {
+                const colorValue = last(
+                    series.points.map((point) => point.color)
+                )
+                const color = this.colorScale.getColor(colorValue)
+                if (color !== undefined) {
+                    series.color = color
+                    series.isScaleColor = true
+                }
+            }
+        }
+    }
+
+    private getSizeFromPoints(points: SeriesPoint[]): number {
+        const size = last(points.map((v) => v.size).filter(isNumber))
+        return size ?? 0
     }
 }

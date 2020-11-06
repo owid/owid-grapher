@@ -392,7 +392,7 @@ interface Point {
     y?: number
 }
 // Todo: add unit tests
-function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
+export function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
     const elapsed = endValue.timeValue - startValue.timeValue
     if (!elapsed) return 0
 

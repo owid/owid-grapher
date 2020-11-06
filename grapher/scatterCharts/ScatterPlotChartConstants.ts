@@ -23,6 +23,9 @@ export interface ScatterPlotManager extends ChartManager {
     xOverrideTime?: Time | undefined
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
     excludedEntities?: EntityId[]
+    hideLinesOutsideTolerance?: boolean
+    startTime?: Time
+    endTime?: Time
 }
 
 export interface ScatterTooltipProps {
