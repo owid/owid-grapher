@@ -616,6 +616,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
 
+        // todo: we can probably do this once early in the pipeline so we dont have to do it again since complete and sort can be expensive.
         const withAllRows = this.complete([
             OwidTableSlugs.entityName,
             timeColumn.slug,

@@ -123,3 +123,26 @@ export const ColumnsAsSeriesWithMissingCells = () => {
         </svg>
     )
 }
+
+export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative = () => {
+    let table = SynthesizeFruitTable().dropRandomRows(30, seed)
+    const firstCol = table.columnsAsArray[0]
+    const junkFoodColumn = {
+        ...firstCol.def,
+        slug: "junkFood",
+        name: "JunkFood",
+        values: firstCol.values.slice().reverse(),
+    }
+    table = table.appendColumns([junkFoodColumn])
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                manager={{
+                    selection: table.sampleEntityName(1),
+                    table,
+                    isRelativeMode: true,
+                }}
+            />
+        </svg>
+    )
+}

@@ -103,7 +103,21 @@ export class CoreTable<
                       inputColumnDefs
                   ) as COL_DEF_TYPE[])
                 : inputColumnDefs
+
+        // If any values were passed in, copy those to column store now and then remove them from column definitions.
+        // todo: remove values property entirely? may be an anti-pattern.
+        this.inputColumnDefs = this.inputColumnDefs.map((def) => {
+            if (!def.values) return def
+            this.valuesFromColumnDefs[def.slug] = def.values
+            const copy = {
+                ...def,
+            }
+            delete copy.values
+            return copy
+        })
+
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
+
         this.advancedOptions = advancedOptions
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
@@ -117,6 +131,8 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
+    private valuesFromColumnDefs: CoreColumnStore = {}
+
     // A method currently used just in debugging but may be useful in the author backend.
     // If your charts look funny, a good thing to check is if the autodetected columns are wrong.
     get autodetectedColumnDefs() {
@@ -124,10 +140,6 @@ export class CoreTable<
             this.inputColumnDefs.map((def) => def.slug)
         )
         return this.defs.filter((def) => !providedSlugs.has(def.slug))
-    }
-
-    private get columnsToTransform() {
-        return this.inputColumnDefs.filter((def) => def.transform) // todo: sort by graph dependency order
     }
 
     @imemo get transformCategory() {
@@ -162,15 +174,20 @@ export class CoreTable<
     @imemo get columnStore() {
         const {
             inputColumnStore,
+            valuesFromColumnDefs,
             inputColumnsToParsedColumnStore,
-            newProvidedColumnDefsWithValues,
+            inputColumnDefs,
+            isRoot,
+            advancedOptions,
         } = this
 
         // Set blank columns
-        let columnStore = Object.assign({}, this.blankColumnStore)
-
-        // Append input columns
-        columnStore = Object.assign(columnStore, inputColumnStore)
+        let columnStore = Object.assign(
+            {},
+            this.blankColumnStore,
+            inputColumnStore,
+            valuesFromColumnDefs
+        )
 
         // Overwrite any non-parsed columns with parsed values
         if (Object.keys(inputColumnsToParsedColumnStore).length)
@@ -179,18 +196,15 @@ export class CoreTable<
                 inputColumnsToParsedColumnStore
             )
 
-        // Append any computed columns
-        if (newProvidedColumnDefsWithValues.length)
-            newProvidedColumnDefsWithValues.forEach((def) => {
-                columnStore[def.slug] = def.values as PrimitiveType[]
-            })
-
         // NB: transforms are *only* run on the root table for now. They will not be rerun later on (after adding or filtering rows, for example)
-        if (this.isRoot && this.columnsToTransform.length)
-            columnStore = applyTransforms(columnStore, this.columnsToTransform)
+        const columnsFromTransforms = inputColumnDefs.filter(
+            (def) => def.transform
+        ) // todo: sort by graph dependency order
+        if (isRoot && columnsFromTransforms.length)
+            columnStore = applyTransforms(columnStore, columnsFromTransforms)
 
-        return this.advancedOptions.filterMask
-            ? this.advancedOptions.filterMask.apply(columnStore)
+        return advancedOptions.filterMask
+            ? advancedOptions.filterMask.apply(columnStore)
             : columnStore
     }
 
@@ -245,13 +259,6 @@ export class CoreTable<
         return columnsObject
     }
 
-    @imemo private get newProvidedColumnDefsWithValues() {
-        const cols = this.parent
-            ? difference(this.inputColumnDefs, this.parent.defs)
-            : this.inputColumnDefs
-        return cols.filter((def) => def.values)
-    }
-
     private get colsToParse() {
         const { inputType, columnsAsArray, inputColumnStore } = this
         const firstInputRow = makeRowFromColumnStore(0, inputColumnStore)
@@ -279,17 +286,19 @@ export class CoreTable<
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of columns that have values passed directly.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
+        const alreadyTypedSlugs = new Set(
+            Object.keys(this.valuesFromColumnDefs)
+        )
         if (this.isRoot) {
-            const colsExceptForComputeds = differenceBy(
-                columnsAsArray,
-                this.newProvidedColumnDefsWithValues,
-                (item) => item.slug
+            return this.columnsAsArray.filter(
+                (col) => !alreadyTypedSlugs.has(col.slug)
             )
-            return colsExceptForComputeds
         }
 
-        return columnsAsArray.filter((col) =>
-            col.needsParsing(firstInputRow[col.slug])
+        return columnsAsArray.filter(
+            (col) =>
+                !alreadyTypedSlugs.has(col.slug) ||
+                col.needsParsing(firstInputRow[col.slug])
         )
     }
 
