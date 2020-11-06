@@ -1,5 +1,5 @@
 export interface OwidSource {
-    id: number
+    id?: number
 
     /**
      * Source name displayed on charts using this dataset. For academic papers, the name of the source should be "Authors (year)" e.g.

@@ -1132,13 +1132,13 @@ export class Grapher
                 column.name === "Total population (Gapminder)"
             )
                 return false
-            return !!(column.def as OwidColumnDef).source
+            return !!column.source.name
         })
     }
 
     @computed private get defaultSourcesLine() {
         let sourceNames = this.columnsWithSources.map(
-            (column) => (column.def as OwidColumnDef)?.source?.name || ""
+            (column) => column.source.name ?? ""
         )
 
         // Shorten automatic source names for certain major sources
