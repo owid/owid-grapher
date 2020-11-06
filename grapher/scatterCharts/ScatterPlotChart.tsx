@@ -200,10 +200,12 @@ export class ScatterPlotChart
         const allValues =
             this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
                 this.colorColumnSlug
-            )?.allValues ?? []
+            )?.valuesIncludingErrorValues ?? []
         // Need to convert InvalidCell to undefined for color scale to assign correct color
         const colorValues = uniq(
-            allValues.map((value) => (isValid(value) ? value : undefined))
+            allValues.map((value) =>
+                isNotErrorValue(value) ? value : undefined
+            )
         ) as (string | number)[]
         return excludeUndefined(
             colorValues.map((colorValue) =>

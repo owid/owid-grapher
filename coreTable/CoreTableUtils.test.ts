@@ -98,7 +98,7 @@ describe(interpolateRowValuesWithTolerance, () => {
         const result = interpolateRowValuesWithTolerance(
             [
                 { value: undefined, time: 0 },
-                { value: InvalidCellTypes.NaNButShouldBeNumber, time: 1 },
+                { value: ErrorValueTypes.NaNButShouldBeNumber, time: 1 },
                 { value: 1, time: 2 },
                 { value: undefined, time: 3 },
                 { value: undefined, time: 4 },
