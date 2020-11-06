@@ -108,9 +108,6 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             this.program.getKeywordIndex(ProgramKeyword.switcher) +
             this.program.switcherRuntime.selectedRowIndex +
             3
-        const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) > td:nth-child(3) {
-            outline: 3px dashed rgba(0,0,255,.5);
-          }`
 
         const cells = function (row: number, column: number) {
             const cellProperties: Partial<Handsontable.CellProperties> = {}
@@ -149,7 +146,6 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     when={this.isModified}
                     message="Are you sure you want to leave? Unsaved changes will be lost."
                 />
-                <style dangerouslySetInnerHTML={{ __html: hotStyles }}></style>
                 <main style={{ padding: 0, position: "relative" }}>
                     <div
                         style={{
