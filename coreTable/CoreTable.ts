@@ -70,7 +70,6 @@ const TransformsRequiringCompute = new Set([
     TransformType.AppendRows,
     TransformType.AppendColumns,
     TransformType.UpdateRows,
-    TransformType.UpdateColumnDefs,
 ])
 
 interface AdvancedOptions {
