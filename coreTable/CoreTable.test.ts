@@ -201,7 +201,7 @@ popChange,Pop change,percentChange time country population 2`
 
     it("can create a table with columns but no rows", () => {
         expect(
-            new CoreTable({}, [{ slug: "entityId" }]).getValuesFor("entityId")
+            new CoreTable({}, [{ slug: "entityId" }]).get("entityId").values
         ).toEqual([])
     })
 
@@ -210,6 +210,7 @@ popChange,Pop change,percentChange time country population 2`
             [{ color: "blue" }],
             [{ slug: "name", type: ColumnTypeNames.String }]
         )
+        expect(table.columnSlugs).toEqual(["name", "color"])
         expect(table.numRows).toEqual(1)
     })
 })
@@ -505,7 +506,7 @@ describe("filtering", () => {
 usa,123
 can,333`)
         const allFiltered = table.rowFilter((row) => false, "filter all")
-        expect(allFiltered.getValuesFor("pop")).toEqual([])
+        expect(allFiltered.get("pop").values).toEqual([])
     })
 
     it("can filter negatives", () => {
@@ -514,7 +515,7 @@ fra,0
 usa,-2
 can,333
 ger,0.1`)
-        expect(table.filterNegatives("pop").getValuesFor("pop")).toEqual([
+        expect(table.filterNegatives("pop").get("pop").values).toEqual([
             0,
             333,
             0.1,

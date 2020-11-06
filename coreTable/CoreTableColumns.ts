@@ -302,7 +302,8 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
      * need the ErrorValues too like `[45000, DivideByZeroError, 50000,...]`
      */
     @imemo get valuesIncludingErrorValues() {
-        return this.table.getValuesFor(this.slug)
+        const { table, slug } = this
+        return table.has(slug) ? table.columnStore[slug] : []
     }
 
     @imemo get validRowIndices() {

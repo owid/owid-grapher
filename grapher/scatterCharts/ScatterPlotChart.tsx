@@ -505,8 +505,8 @@ export class ScatterPlotChart
     @computed get hasNoDataBin() {
         if (this.colorColumn.isMissing) return true
         return this.transformedTable
-            .getValuesFor(this.colorColumn.slug)
-            .some((value) => !isNotErrorValue(value))
+            .get(this.colorColumn.slug)
+            .values.some((value) => !isNotErrorValue(value))
     }
 
     @computed get categoricalValues() {
@@ -690,8 +690,8 @@ export class ScatterPlotChart
     @computed private get sizeDomain(): [number, number] {
         if (this.sizeColumn.isMissing) return [1, 100]
         const sizeValues = this.transformedTable
-            .getValuesFor(this.sizeColumn.slug)
-            .filter(isNumber)
+            .get(this.sizeColumn.slug)
+            .values.filter(isNumber)
         return domainExtent(sizeValues, ScaleType.linear)
     }
 

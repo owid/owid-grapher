@@ -206,10 +206,6 @@ export class CoreTable<
             : columnStore
     }
 
-    getValuesFor(columnSlug: ColumnSlug): CoreValueType[] {
-        return this.has(columnSlug) ? this.columnStore[columnSlug] : []
-    }
-
     private get blankColumnStore() {
         const columnsObject: CoreColumnStore = {}
         this.columnSlugs.forEach((slug) => {
@@ -404,15 +400,8 @@ export class CoreTable<
     }
 
     @imemo get numRows() {
-        return this.firstColumnValues.length
-    }
-
-    @imemo private get firstColumnValues() {
-        return this.firstSlug ? this.getValuesFor(this.firstSlug) : []
-    }
-
-    @imemo private get firstSlug() {
-        return this.columnSlugs[0]
+        const firstColValues = Object.values(this.columnStore)[0]
+        return firstColValues ? firstColValues.length : 0
     }
 
     @imemo get numColumns() {
@@ -636,7 +625,7 @@ export class CoreTable<
             TransformType.FilterRows,
             new FilterMask(
                 this.numRows,
-                this.getValuesFor(columnSlug).map(predicate)
+                this.get(columnSlug).values.map(predicate)
             )
         )
     }
@@ -1416,7 +1405,7 @@ export class CoreTable<
 
     indexBy(slug: ColumnSlug) {
         const map = new Map<CoreValueType, number[]>()
-        this.getValuesFor(slug).map((value, index) => {
+        this.get(slug).values.map((value, index) => {
             if (!map.has(value)) map.set(value, [])
             map.get(value)!.push(index)
         })
