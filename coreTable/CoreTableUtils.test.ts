@@ -16,7 +16,7 @@ import {
     trimMatrix,
     linearInterpolation,
 } from "./CoreTableUtils"
-import { InvalidCellTypes } from "./InvalidCells"
+import { ErrorValueTypes } from "./ErrorValues"
 
 describe(interpolateRowValuesWithTolerance, () => {
     it("handles empty array", () => {
@@ -33,7 +33,7 @@ describe(interpolateRowValuesWithTolerance, () => {
                 "time",
                 Infinity
             )
-        ).toEqual([{ value: InvalidCellTypes.NoValueWithinTolerance, time: 0 }])
+        ).toEqual([{ value: ErrorValueTypes.NoValueWithinTolerance, time: 0 }])
     })
     it("leaves array unchanged if tolerance = 0", () => {
         const result = interpolateRowValuesWithTolerance(
@@ -47,8 +47,8 @@ describe(interpolateRowValuesWithTolerance, () => {
             "time",
             0
         )
-        expect(result[1].value).toEqual(InvalidCellTypes.NoValueWithinTolerance)
-        expect(result[2].value).toEqual(InvalidCellTypes.NoValueWithinTolerance)
+        expect(result[1].value).toEqual(ErrorValueTypes.NoValueWithinTolerance)
+        expect(result[2].value).toEqual(ErrorValueTypes.NoValueWithinTolerance)
     })
     it("fills in gaps in simple case", () => {
         const result = interpolateRowValuesWithTolerance(
@@ -69,9 +69,9 @@ describe(interpolateRowValuesWithTolerance, () => {
         const result = interpolateRowValuesWithTolerance(
             [
                 { value: undefined, time: 0 },
-                { value: InvalidCellTypes.NaNButShouldBeNumber, time: 1 },
+                { value: ErrorValueTypes.NaNButShouldBeNumber, time: 1 },
                 { value: 1, time: 2 },
-                { value: InvalidCellTypes.UndefinedButShouldBeNumber, time: 3 },
+                { value: ErrorValueTypes.UndefinedButShouldBeNumber, time: 3 },
                 { value: undefined, time: 4 },
                 { value: undefined, time: 5 },
                 { value: 3, time: 6 },
@@ -82,11 +82,11 @@ describe(interpolateRowValuesWithTolerance, () => {
             1
         )
         expect(result.map((r) => r.value)).toEqual([
-            InvalidCellTypes.NoValueWithinTolerance,
+            ErrorValueTypes.NoValueWithinTolerance,
             1,
             1,
             1,
-            InvalidCellTypes.NoValueWithinTolerance,
+            ErrorValueTypes.NoValueWithinTolerance,
             3,
             3,
             3,
@@ -99,8 +99,8 @@ describe(toleranceInterpolation, () => {
     it("doesn't interpolate values beyond end", () => {
         const valuesAsc = [
             1,
-            InvalidCellTypes.MissingValuePlaceholder,
-            InvalidCellTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
             2,
         ]
         const timesAsc = [0, 1, 2, 3]
@@ -115,7 +115,7 @@ describe(toleranceInterpolation, () => {
         expect(valuesAsc).toEqual([
             1,
             1,
-            InvalidCellTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
             2,
         ])
     })
@@ -125,10 +125,10 @@ describe(linearInterpolation, () => {
     it("interpolates", () => {
         const values = [
             4,
-            InvalidCellTypes.MissingValuePlaceholder,
-            InvalidCellTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
             1,
-            InvalidCellTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
         ]
         const timesAsc = [0, 1, 2, 3, 4]
         linearInterpolation(values, timesAsc, {})

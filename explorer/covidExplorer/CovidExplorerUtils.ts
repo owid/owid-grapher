@@ -17,7 +17,7 @@ import {
 } from "./CovidConstants"
 import { CoreRow, Time } from "coreTable/CoreTableConstants"
 import { EntityName } from "coreTable/OwidTableConstants"
-import { InvalidCell } from "coreTable/InvalidCells"
+import { ErrorValue } from "coreTable/ErrorValues"
 import {
     computeRollingAverage,
     insertMissingValuePlaceholders,
@@ -122,7 +122,7 @@ export const computeRollingAveragesForEachGroup = (
     dateColName: string,
     rollingAverage: number
 ) => {
-    const groups: (number | InvalidCell)[][] = []
+    const groups: (number | ErrorValue)[][] = []
     if (!rows[0]) return []
     let currentGroup = rows[0][groupColName]
     let currentRows: CoreRow[] = []
@@ -138,7 +138,7 @@ export const computeRollingAveragesForEachGroup = (
                     currentRows.map((row) => row[dateColName])
                 ),
                 rollingAverage
-            ).filter((value) => !(value instanceof InvalidCell))
+            ).filter((value) => !(value instanceof ErrorValue))
             groups.push(averages)
             if (!row) break
             currentRows = []

@@ -1,6 +1,6 @@
 import { CoreTable } from "coreTable/CoreTable"
 import { CsvString } from "coreTable/CoreTableConstants"
-import { InvalidCellTypes } from "coreTable/InvalidCells"
+import { ErrorValueTypes } from "coreTable/ErrorValues"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { flatten } from "grapher/utils/Util"
 import { MegaRow, CovidRow, MegaColumnMap, MegaSlugs } from "./CovidConstants"
@@ -44,8 +44,7 @@ export const MegaCsvToCovidExplorerTable = (
                     const number = +value
                     if (!isNaN(number)) object[key] = number
                     else
-                        object[key] =
-                            InvalidCellTypes.UndefinedButShouldBeNumber
+                        object[key] = ErrorValueTypes.UndefinedButShouldBeNumber
                 }
             }
             return object

@@ -3,7 +3,7 @@
 import { CoreTable } from "./CoreTable"
 import { TransformType } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { InvalidCellTypes } from "./InvalidCells"
+import { ErrorValueTypes } from "./ErrorValues"
 
 const sampleCsv = `country,population
 iceland,1
@@ -38,7 +38,7 @@ country,Region,
 population,Population in 2020,
 popTimes10,Pop times 10,multiplyBy population 10`
             )
-            expect(table.get("popTimes10").valuesIncludingInvalids).toEqual([
+            expect(table.get("popTimes10").valuesIncludingErrorValues).toEqual([
                 10,
                 500,
                 3000,
@@ -61,17 +61,17 @@ population,Population in 2020,
 popChange,Pop change,percentChange time country population 2`
             )
             const expected = [
-                InvalidCellTypes.NoValueToCompareAgainst,
-                InvalidCellTypes.NoValueToCompareAgainst,
+                ErrorValueTypes.NoValueToCompareAgainst,
+                ErrorValueTypes.NoValueToCompareAgainst,
                 200,
-                InvalidCellTypes.NoValueToCompareAgainst,
-                InvalidCellTypes.NoValueToCompareAgainst,
+                ErrorValueTypes.NoValueToCompareAgainst,
+                ErrorValueTypes.NoValueToCompareAgainst,
                 50,
             ]
             it("runs transforms correctly", () => {
-                expect(table.get("popChange").valuesIncludingInvalids).toEqual(
-                    expected
-                )
+                expect(
+                    table.get("popChange").valuesIncludingErrorValues
+                ).toEqual(expected)
             })
 
             it("runs transforms once", () => {
@@ -81,7 +81,7 @@ popChange,Pop change,percentChange time country population 2`
                         .appendColumns([
                             { slug: "test", values: [1, 1, 1, 1, 1, 1] },
                         ])
-                        .get("popChange").valuesIncludingInvalids
+                        .get("popChange").valuesIncludingErrorValues
                 ).toEqual(expected.slice(1))
             })
         })
@@ -181,7 +181,7 @@ popChange,Pop change,percentChange time country population 2`
         expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
     })
 
-    it("handles invalid values when serializing to a matrix", () => {
+    it("handles ErrorValues when serializing to a matrix", () => {
         const table = new CoreTable([{ country: "usa", gdp: undefined }])
         expect(table.toMatrix()[1][1]).toEqual(undefined)
     })
@@ -594,8 +594,8 @@ describe("value operations", () => {
             [{ type: ColumnTypeNames.Numeric, slug: "pop" }]
         )
         expect(table.get("pop").numValues).toEqual(1)
-        expect(table.get("pop").numInvalidCells).toEqual(1)
-        expect(table.numColumnsWithInvalidCells).toEqual(1)
+        expect(table.get("pop").numErrorValues).toEqual(1)
+        expect(table.numColumnsWithErrorValues).toEqual(1)
     })
 
     it("can replace cells for log scale", () => {
@@ -637,7 +637,7 @@ describe("joins", () => {
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],
-                ["fra", 2002, "red", InvalidCellTypes.NoMatchingValueAfterJoin],
+                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
             ])
         })
 
@@ -657,7 +657,7 @@ describe("joins", () => {
                 ["country", "time", "population", "color"],
                 ["usa", 2000, 55, "red"],
                 ["can", 2001, 66, "green"],
-                ["turk", 2002, 77, InvalidCellTypes.NoMatchingValueAfterJoin],
+                ["turk", 2002, 77, ErrorValueTypes.NoMatchingValueAfterJoin],
             ])
         })
     })
@@ -678,8 +678,8 @@ describe("joins", () => {
                 ["country", "time", "color", "population"],
                 ["usa", 2000, "red", 55],
                 ["can", 2001, "green", 66],
-                ["fra", 2002, "red", InvalidCellTypes.NoMatchingValueAfterJoin],
-                ["turk", 2002, InvalidCellTypes.NoMatchingValueAfterJoin, 77],
+                ["fra", 2002, "red", ErrorValueTypes.NoMatchingValueAfterJoin],
+                ["turk", 2002, ErrorValueTypes.NoMatchingValueAfterJoin, 77],
             ])
         })
     })

@@ -70,7 +70,7 @@ export class SlopeChart
         if (!table.has(this.yColumnSlug)) return table
 
         return table
-            .dropRowsWithInvalidValuesForColumn(this.yColumnSlug)
+            .dropRowsWithErrorValuesForColumn(this.yColumnSlug)
             .interpolateColumnWithTolerance(this.yColumnSlug)
     }
 

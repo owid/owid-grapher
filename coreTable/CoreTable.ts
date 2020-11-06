@@ -59,7 +59,7 @@ import {
     emptyColumnsInFirstRowInDelimited,
     columnDefinitionsFromDelimited,
 } from "./CoreTableUtils"
-import { InvalidCellTypes, isValid } from "./InvalidCells"
+import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { OwidTableSlugs } from "./OwidTableConstants"
 import { applyTransforms } from "./Transforms"
 
@@ -391,7 +391,7 @@ export class CoreTable<
     }
 
     getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
-        const values = this.get(columnSlug).valuesIncludingInvalids
+        const values = this.get(columnSlug).valuesIncludingErrorValues
         return indices.map((index) => values[index])
     }
 
@@ -488,15 +488,15 @@ export class CoreTable<
     }
 
     @imemo private get columnsWithParseErrors() {
-        return this.columnsAsArray.filter((col) => col.numInvalidCells)
+        return this.columnsAsArray.filter((col) => col.numErrorValues)
     }
 
-    @imemo get numColumnsWithInvalidCells() {
+    @imemo get numColumnsWithErrorValues() {
         return this.columnsWithParseErrors.length
     }
 
-    @imemo get numInvalidCells() {
-        return sum(this.columnsAsArray.map((col) => col.numInvalidCells))
+    @imemo get numErrorValues() {
+        return sum(this.columnsAsArray.map((col) => col.numErrorValues))
     }
 
     @imemo get numValidCells() {
@@ -543,8 +543,8 @@ export class CoreTable<
     ) {
         const indexCol = this.get(indexColumnSlug)
         const valueCol = this.get(valueColumnSlug)
-        const indexValues = indexCol.valuesIncludingInvalids
-        const valueValues = valueCol.valuesIncludingInvalids
+        const indexValues = indexCol.valuesIncludingErrorValues
+        const valueValues = valueCol.valuesIncludingErrorValues
         const valueIndices = new Set(valueCol.validRowIndices)
         const intersection = indexCol.validRowIndices.filter((index) =>
             valueIndices.has(index)
@@ -672,15 +672,17 @@ export class CoreTable<
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
     protected groupBoundaries(columnSlug: ColumnSlug) {
-        const values = this.get(columnSlug).valuesIncludingInvalids
+        const values = this.get(columnSlug).valuesIncludingErrorValues
         const arr: number[] = []
         let last: CoreValueType
-        this.get(columnSlug).valuesIncludingInvalids.forEach((val, index) => {
-            if (val !== last) {
-                arr.push(index)
-                last = val
+        this.get(columnSlug).valuesIncludingErrorValues.forEach(
+            (val, index) => {
+                if (val !== last) {
+                    arr.push(index)
+                    last = val
+                }
             }
-        })
+        )
         // Include the end of the last group, which doesn't result in a change in value above.
         if (values && values.length) {
             arr.push(values.length)
@@ -744,7 +746,9 @@ export class CoreTable<
 
     private extract(slugs = this.columnSlugs) {
         return this.rows.map((row) =>
-            slugs.map((slug) => (isValid(row[slug]) ? row[slug] : undefined))
+            slugs.map((slug) =>
+                isNotErrorValue(row[slug]) ? row[slug] : undefined
+            )
         )
     }
 
@@ -816,7 +820,7 @@ export class CoreTable<
                 jsType,
                 name,
                 numValues,
-                numInvalidCells,
+                numErrorValues,
                 displayName,
                 def,
             } = col
@@ -826,7 +830,7 @@ export class CoreTable<
                 jsType,
                 name,
                 numValues,
-                numInvalidCells,
+                numErrorValues,
                 displayName,
                 color: def.color,
             }
@@ -857,8 +861,8 @@ export class CoreTable<
             numColsToParse,
             numColsToCompute,
             numValidCells,
-            numInvalidCells,
-            numColumnsWithInvalidCells,
+            numErrorValues,
+            numColumnsWithErrorValues,
         } = this
         return {
             tableDescription: tableDescription.substr(0, 30),
@@ -871,8 +875,8 @@ export class CoreTable<
             numColsToParse,
             numColsToCompute,
             numValidCells,
-            numInvalidCells,
-            numColumnsWithInvalidCells,
+            numErrorValues,
+            numColumnsWithErrorValues,
         }
     }
 
@@ -1048,7 +1052,8 @@ export class CoreTable<
         return (
             this.columnSlugs
                 .map((slug) => columnStore[slug][index])
-                .filter((value) => isValid(value) && value !== "").length === 0
+                .filter((value) => isNotErrorValue(value) && value !== "")
+                .length === 0
         )
     }
 
@@ -1126,7 +1131,7 @@ export class CoreTable<
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now(),
         replacementGenerator: () => any = () =>
-            InvalidCellTypes.DroppedForTesting
+            ErrorValueTypes.DroppedForTesting
     ) {
         return this.transform(
             replaceRandomCellsInColumnStore(
@@ -1221,7 +1226,7 @@ export class CoreTable<
         }) as COL_DEF_TYPE[]
         const newRowValues = this.columnsAsArray
             .filter((col) => col.slug !== by)
-            .map((col) => [col.slug, ...col.valuesIncludingInvalids])
+            .map((col) => [col.slug, ...col.valuesIncludingErrorValues])
         return this.transform(
             [newColumnSlugs, ...newRowValues],
             newColumnDefs,
@@ -1286,7 +1291,9 @@ export class CoreTable<
     toMatrix() {
         const slugs = this.columnSlugs
         const rows = this.rows.map((row) =>
-            slugs.map((slug) => (isValid(row[slug]) ? row[slug] : undefined))
+            slugs.map((slug) =>
+                isNotErrorValue(row[slug]) ? row[slug] : undefined
+            )
         )
         return [this.columnSlugs, ...rows]
     }
@@ -1347,7 +1354,7 @@ export class CoreTable<
                 // todo: use first or last match?
                 else
                     def.values?.push(
-                        InvalidCellTypes.NoMatchingValueAfterJoin as any
+                        ErrorValueTypes.NoMatchingValueAfterJoin as any
                     )
             })
         })
@@ -1390,9 +1397,7 @@ export class CoreTable<
         const rowsToDrop: number[] = []
         newValues.forEach((col) => {
             col?.forEach((value, index) => {
-                if (
-                    (value as any) === InvalidCellTypes.NoMatchingValueAfterJoin
-                )
+                if ((value as any) === ErrorValueTypes.NoMatchingValueAfterJoin)
                     rowsToDrop.push(index)
             })
         })

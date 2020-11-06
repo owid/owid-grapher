@@ -59,7 +59,7 @@ export class DiscreteBarChart
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 
-        table = table.dropRowsWithInvalidValuesForAllColumns(this.yColumnSlugs)
+        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
         this.yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)

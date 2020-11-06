@@ -37,7 +37,7 @@ import {
     legacyToOwidTableAndDimensions,
     makeAnnotationsSlug,
 } from "./LegacyToOwidTable"
-import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,
@@ -214,7 +214,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
         const timeColumn = this.timeColumn!
-        const timeValues = timeColumn.valuesIncludingInvalids
+        const timeValues = timeColumn.valuesIncludingErrorValues
         const entityNameToIndices = this.rowIndicesByEntityName
         const matchingIndices = new Set<number>()
         this.availableEntityNames.forEach((entityName) => {
@@ -242,27 +242,27 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    dropRowsWithInvalidValuesForColumn(slug: ColumnSlug) {
+    dropRowsWithErrorValuesForColumn(slug: ColumnSlug) {
         return this.columnFilter(
             slug,
-            (value) => isValid(value),
-            `Drop rows with empty or invalid values in ${slug} column`
+            (value) => isNotErrorValue(value),
+            `Drop rows with empty or ErrorValues in ${slug} column`
         )
     }
 
-    dropRowsWithInvalidValuesForAnyColumn(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]) {
         return this.rowFilter(
-            (row) => slugs.every((slug) => isValid(row[slug])),
-            `Drop rows with empty or invalid values in any column: ${slugs.join(
+            (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
+            `Drop rows with empty or ErrorValues in any column: ${slugs.join(
                 ", "
             )}`
         )
     }
 
-    dropRowsWithInvalidValuesForAllColumns(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]) {
         return this.rowFilter(
-            (row) => slugs.some((slug) => isValid(row[slug])),
-            `Drop rows with empty or invalid values in every column: ${slugs.join(
+            (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
+            `Drop rows with empty or ErrorValues in every column: ${slugs.join(
                 ", "
             )}`
         )
@@ -296,7 +296,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             ...this.columnStore,
             [columnSlug]: this.columnStore[columnSlug].map((val, index) => {
                 const timeTotal = timeTotals.get(timeValues[index])
-                if (timeTotal === 0) return InvalidCellTypes.DivideByZeroError
+                if (timeTotal === 0) return ErrorValueTypes.DivideByZeroError
                 return (100 * (val as number)) / timeTotal!
             }),
         }
@@ -335,7 +335,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             columnStorePatch[slug] = columnStore[slug].map((value, i) => {
                 const total = totals[i]
                 if (!isNumber(value) || !isNumber(total)) return value
-                if (total === 0) return InvalidCellTypes.DivideByZeroError
+                if (total === 0) return ErrorValueTypes.DivideByZeroError
                 return (100 * Math.abs(value)) / total
             })
         })
@@ -387,10 +387,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
                             if (row[timeColumnSlug] < startTimeBound) {
                                 newRow[valueSlug] =
-                                    InvalidCellTypes.MissingValuePlaceholder
+                                    ErrorValueTypes.MissingValuePlaceholder
                             } else if (!isNumber(value)) {
                                 newRow[valueSlug] =
-                                    InvalidCellTypes.NaNButShouldBeNumber
+                                    ErrorValueTypes.NaNButShouldBeNumber
                             } else if (comparisonValue !== undefined) {
                                 // Note: comparisonValue can be negative!
                                 // +value / -comparisonValue = negative growth, which is incorrect.
@@ -399,7 +399,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                                     Math.abs(comparisonValue)
                             } else if (value === 0) {
                                 newRow[valueSlug] =
-                                    InvalidCellTypes.MissingValuePlaceholder
+                                    ErrorValueTypes.MissingValuePlaceholder
                             } else {
                                 comparisonValue = value
                                 newRow[valueSlug] = 0
@@ -481,10 +481,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
         const indices = this.rowIndicesByEntityName.get(entityName)!
-        const values = this.get(columnSlug).valuesIncludingInvalids
+        const values = this.get(columnSlug).valuesIncludingErrorValues
         const descending = indices.slice().reverse()
         const index = descending.find(
-            (index) => !(values[index] instanceof InvalidCell)
+            (index) => !(values[index] instanceof ErrorValue)
         )
         return index !== undefined ? values[index] : undefined
     }
@@ -514,10 +514,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
         const newValues = withAllRows
             .get(columnSlug)
-            .valuesIncludingInvalids.slice() as number[]
+            .valuesIncludingErrorValues.slice() as number[]
         const newTimes = withAllRows
             .get(timeColumnSlug)
-            .valuesIncludingInvalids.slice() as Time[]
+            .valuesIncludingErrorValues.slice() as Time[]
 
         groupBoundaries.forEach((_, index) => {
             interpolation(
@@ -583,7 +583,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             // If there is no tolerance still append the tolerance column
             columnStore = {
                 ...this.columnStore,
-                [originalTimeSlug]: timeColumnOfValue.valuesIncludingInvalids,
+                [originalTimeSlug]:
+                    timeColumnOfValue.valuesIncludingErrorValues,
             }
         }
 
@@ -667,7 +668,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const indexMap = this.rowIndicesByEntityName
         const timeColumn = this.timeColumn
         if (this.timeColumn.isMissing) return []
-        const timeValues = timeColumn.valuesIncludingInvalids
+        const timeValues = timeColumn.valuesIncludingErrorValues
         return entityNames
             .map((name) => {
                 const rowIndices = indexMap.get(name)

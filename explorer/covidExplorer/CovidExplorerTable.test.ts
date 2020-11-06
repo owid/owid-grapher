@@ -8,7 +8,7 @@ import {
 import { queryParamsToStr } from "utils/client/url"
 import { sampleMegaCsv } from "./CovidExplorerUtils"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
-import { InvalidCell } from "coreTable/InvalidCells"
+import { ErrorValue } from "coreTable/ErrorValues"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 const table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
@@ -93,7 +93,7 @@ describe("build covid column", () => {
 
         expect(table2.rows[8].weeklyChange).toEqual(0)
         expect(table2.rows[21].weeklyChange).toEqual(100)
-        expect(table2.rows[3].weeklyChange).toBeInstanceOf(InvalidCell)
+        expect(table2.rows[3].weeklyChange).toBeInstanceOf(ErrorValue)
     })
 
     it("never creates nulls or undefineds", () => {

@@ -3,7 +3,7 @@
 import { ChartTypeName, DimensionProperty } from "grapher/core/GrapherConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import { ColumnTypeMap } from "./CoreTableColumns"
-import { InvalidCellTypes } from "./InvalidCells"
+import { ErrorValueTypes } from "./ErrorValues"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import { OwidTableSlugs, StandardOwidColumnDefs } from "./OwidTableConstants"
@@ -40,10 +40,10 @@ describe(legacyToOwidTableAndDimensions, () => {
                 StandardOwidColumnDefs.map((def) => def.slug)
             )
         )
-        expect(table.entityNameColumn.valuesIncludingInvalids).toEqual([
+        expect(table.entityNameColumn.valuesIncludingErrorValues).toEqual([
             "World",
         ])
-        expect(table.entityCodeColumn.valuesIncludingInvalids).toEqual([
+        expect(table.entityCodeColumn.valuesIncludingErrorValues).toEqual([
             "OWID_WRL",
         ])
     })
@@ -117,17 +117,17 @@ describe(legacyToOwidTableAndDimensions, () => {
             legacyGrapherConfig
         )
 
-        it("leaves invalid cells when there were no values to join to", () => {
+        it("leaves ErrorValues when there were no values to join to", () => {
             // Currently joins may just be partial and have many blank values. CoreTable will fill those in with the
-            // appropriate invalid type. It may make sense to change that and normalize keys in this method.
+            // appropriate ErrorValue type. It may make sense to change that and normalize keys in this method.
             const worldRows = table.rows.filter(
                 (row) => row.entityName === "World"
             )
             expect(worldRows[0]["3"]).toEqual(
-                InvalidCellTypes.NoMatchingValueAfterJoin
+                ErrorValueTypes.NoMatchingValueAfterJoin
             )
             expect(worldRows[3]["2"]).toEqual(
-                InvalidCellTypes.NoMatchingValueAfterJoin
+                ErrorValueTypes.NoMatchingValueAfterJoin
             )
         })
 
@@ -292,7 +292,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             expect(table.rows.length).toEqual(3)
             expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
             const column = table.get("3-2020")
-            expect(column.valuesIncludingInvalids).toEqual([20, 20, 20])
+            expect(column.valuesIncludingErrorValues).toEqual([20, 20, 20])
             expect(column.originalTimes).toEqual([2020, 2020, 2020])
         })
     })

@@ -4,14 +4,14 @@ import {
     insertMissingValuePlaceholders,
     computeRollingAverage,
 } from "./Transforms"
-import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
+import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 
 describe(insertMissingValuePlaceholders, () => {
     const testCases = [
         {
             values: [2, -3, 10],
             years: [0, 2, 3],
-            expected: [2, InvalidCellTypes.MissingValuePlaceholder, -3, 10],
+            expected: [2, ErrorValueTypes.MissingValuePlaceholder, -3, 10],
         },
     ]
     it("computes the rolling average", () => {
@@ -26,7 +26,7 @@ describe(insertMissingValuePlaceholders, () => {
         {
             values: [0, 2, 3],
             years: [0, 2, 3],
-            expected: [0, InvalidCellTypes.MissingValuePlaceholder, 2, 2.5],
+            expected: [0, ErrorValueTypes.MissingValuePlaceholder, 2, 2.5],
         },
     ]
 
@@ -50,7 +50,7 @@ describe(computeRollingAverage, () => {
         numbers: (number | undefined | null)[]
         window: number
         align: "center" | "right"
-        result: (number | InvalidCell)[]
+        result: (number | ErrorValue)[]
     }[] = [
         // no smoothing
         {
@@ -71,8 +71,8 @@ describe(computeRollingAverage, () => {
             align: "right",
             result: [
                 1,
-                InvalidCellTypes.UndefinedButShouldBeNumber,
-                InvalidCellTypes.NullButShouldBeNumber,
+                ErrorValueTypes.UndefinedButShouldBeNumber,
+                ErrorValueTypes.NullButShouldBeNumber,
                 -1,
                 0,
             ],

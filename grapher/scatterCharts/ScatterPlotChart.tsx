@@ -59,8 +59,8 @@ import {
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { isValid } from "coreTable/InvalidCells"
-import { replaceInvalidRowValuesWithUndefined } from "coreTable/CoreTableUtils"
+import { isNotErrorValue } from "coreTable/ErrorValues"
+import { replaceErrorValuesWithUndefined } from "coreTable/CoreTableUtils"
 
 @observer
 export class ScatterPlotChart
@@ -97,7 +97,7 @@ export class ScatterPlotChart
         // The common case is that the Population data goes back to 10,000 BCE and in almost every
         // case we don't have that data for X and Y.
         // -@danielgavrilov, 2020-10-22
-        table = table.dropRowsWithInvalidValuesForAllColumns([
+        table = table.dropRowsWithErrorValuesForAllColumns([
             this.xColumnSlug,
             this.yColumnSlug,
         ])
@@ -110,7 +110,7 @@ export class ScatterPlotChart
             table = table.interpolateColumnWithTolerance(this.yColumnSlug)
         }
 
-        // Drop any rows which have an invalid cell for either X or Y.
+        // Drop any rows which have an ErrorValues for either X or Y.
         // This needs to be done after the tolerance, because the tolerance may fill in some gaps.
         table = table
             .columnFilter(
@@ -506,7 +506,7 @@ export class ScatterPlotChart
         if (this.colorColumn.isMissing) return true
         return this.transformedTable
             .getValuesFor(this.colorColumn.slug)
-            .some((value) => !isValid(value))
+            .some((value) => !isNotErrorValue(value))
     }
 
     @computed get categoricalValues() {
@@ -622,7 +622,7 @@ export class ScatterPlotChart
         const entityNameSlug = this.transformedTable.entityNameSlug
         return this.removePointsOutsidePlane(
             this.transformedTable.rows.map((row) => {
-                row = replaceInvalidRowValuesWithUndefined(row)
+                row = replaceErrorValuesWithUndefined(row)
                 return {
                     x: row[this.xColumnSlug],
                     y: row[this.yColumnSlug],

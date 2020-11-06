@@ -25,7 +25,7 @@ import {
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
-import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
+import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
@@ -33,7 +33,7 @@ import moment from "moment"
 import { OwidSource } from "./OwidSource"
 
 interface ColumnSummary {
-    numInvalidCells: number
+    numErrorValues: number
     numUniqs: number
     numValues: number
     median: PrimitiveType
@@ -102,9 +102,9 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
     @imemo get summary() {
-        const { numInvalidCells, numValues, numUniqs } = this
+        const { numErrorValues, numValues, numUniqs } = this
         const basicSummary: Partial<ColumnSummary> = {
-            numInvalidCells,
+            numErrorValues,
             numUniqs,
             numValues,
         }
@@ -249,7 +249,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get isEmpty() {
-        return this.valuesIncludingInvalids.length === 0
+        return this.valuesIncludingErrorValues.length === 0
     }
 
     @imemo get name() {
@@ -273,7 +273,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get valuesToIndices() {
         const map = new Map<any, number[]>()
-        this.valuesIncludingInvalids.forEach((value, index) => {
+        this.valuesIncludingErrorValues.forEach((value, index) => {
             if (!map.has(value)) map.set(value, [])
             map.get(value)!.push(index)
         })
@@ -295,7 +295,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         if (this.def.fn || this.def.values || this.def.transform) return false
 
         // If we already tried to parse it and failed we consider it "parsed"
-        if (value instanceof InvalidCell) return false
+        if (value instanceof ErrorValue) return false
 
         // If the passed value is of the correct type consider the column parsed.
         if (typeof value === this.jsType) return false
@@ -311,24 +311,24 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     /**
-     * Returns all values including InvalidCells.
+     * Returns all values including ErrorValues..
      * Normally you want just the valid values, like `[45000, 50000, ...]`. But sometimes you
      * need the ErrorValues too like `[45000, DivideByZeroError, 50000,...]`
      */
-    @imemo get valuesIncludingInvalids() {
+    @imemo get valuesIncludingErrorValues() {
         return this.table.getValuesFor(this.slug)
     }
 
     @imemo get validRowIndices() {
-        return this.valuesIncludingInvalids
+        return this.valuesIncludingErrorValues
             .map((value, index) =>
-                (value as any) instanceof InvalidCell ? null : index
+                (value as any) instanceof ErrorValue ? null : index
             )
             .filter(isPresent)
     }
 
     @imemo get parsedValues() {
-        const values = this.valuesIncludingInvalids
+        const values = this.valuesIncludingErrorValues
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
@@ -346,11 +346,11 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     /**
-     * True if the column has only 1 unique value. InvalidCells are counted as values, so
+     * True if the column has only 1 unique value. ErrorValues are counted as values, so
      * something like [DivideByZeroError, 2, 2] would not be constant.
      */
     @imemo get isConstant() {
-        return new Set(this.valuesIncludingInvalids).size === 1
+        return new Set(this.valuesIncludingErrorValues).size === 1
     }
 
     @imemo get minValue() {
@@ -361,8 +361,8 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return last(this.valuesAscending)!
     }
 
-    @imemo get numInvalidCells() {
-        return this.valuesIncludingInvalids.length - this.numValues
+    @imemo get numErrorValues() {
+        return this.valuesIncludingErrorValues.length - this.numValues
     }
 
     // Number of correctly parsed values
@@ -480,9 +480,8 @@ class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
 
     parse(val: any) {
-        if (val === null) return InvalidCellTypes.NullButShouldBeString
-        if (val === undefined)
-            return InvalidCellTypes.UndefinedButShouldBeString
+        if (val === null) return ErrorValueTypes.NullButShouldBeString
+        if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeString
         return val.toString() || ""
     }
 }
@@ -526,17 +525,16 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    parse(val: any): number | InvalidCell {
-        if (val === null) return InvalidCellTypes.NullButShouldBeNumber
-        if (val === undefined)
-            return InvalidCellTypes.UndefinedButShouldBeNumber
-        if (val === "") return InvalidCellTypes.BlankButShouldBeNumber
-        if (isNaN(val)) return InvalidCellTypes.NaNButShouldBeNumber
+    parse(val: any): number | ErrorValue {
+        if (val === null) return ErrorValueTypes.NullButShouldBeNumber
+        if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
+        if (val === "") return ErrorValueTypes.BlankButShouldBeNumber
+        if (isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
 
         const res = this._parse(val)
 
         if (isNaN(res))
-            return InvalidCellTypes.NotAParseableNumberButShouldBeNumber
+            return ErrorValueTypes.NotAParseableNumberButShouldBeNumber
 
         return res
     }

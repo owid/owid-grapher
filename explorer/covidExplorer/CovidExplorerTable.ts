@@ -26,16 +26,16 @@ import {
 } from "./CovidConstants"
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
-import { InvalidCell } from "coreTable/InvalidCells"
+import { ErrorValue } from "coreTable/ErrorValues"
 import { ContinentColors } from "grapher/color/ColorConstants"
 
-class NotApplicableCell extends InvalidCell {}
-class TestRateExclusionList extends InvalidCell {}
-class NoTestData extends InvalidCell {}
-class TestRateTooHigh extends InvalidCell {}
-class TestRateTooLow extends InvalidCell {}
-class UndefinedValue extends InvalidCell {}
-class UnableToCompute extends InvalidCell {} // a catchall out of laziness
+class NotApplicableCell extends ErrorValue {}
+class TestRateExclusionList extends ErrorValue {}
+class NoTestData extends ErrorValue {}
+class TestRateTooHigh extends ErrorValue {}
+class TestRateTooLow extends ErrorValue {}
+class UndefinedValue extends ErrorValue {}
+class UnableToCompute extends ErrorValue {} // a catchall out of laziness
 
 const CovidCellTypes = {
     BelowDeathsThreshold: new NotApplicableCell(),
@@ -146,7 +146,7 @@ export class CovidExplorerTable extends OwidTable {
         multiplyByWindowSize = false,
         convertToPercentChangeOverWindow = false
     ) {
-        let averages: (number | InvalidCell)[]
+        let averages: (number | ErrorValue)[]
 
         def.fn = (row, index) => {
             if (!averages)
@@ -159,14 +159,14 @@ export class CovidExplorerTable extends OwidTable {
                 )
             const val = averages[index!]
             if (!convertToPercentChangeOverWindow)
-                return val instanceof InvalidCell
+                return val instanceof ErrorValue
                     ? val
                     : val * (multiplyByWindowSize ? windowSize : 1)
             const previousValue = averages[index! - windowSize]
-            return previousValue instanceof InvalidCell ||
+            return previousValue instanceof ErrorValue ||
                 previousValue === undefined ||
                 previousValue === 0 ||
-                val instanceof InvalidCell
+                val instanceof ErrorValue
                 ? CovidCellTypes.UndefinedValue
                 : (100 * (val - previousValue)) / previousValue
         }

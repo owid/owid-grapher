@@ -8,7 +8,7 @@ import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
-import { InvalidCellTypes } from "./InvalidCells"
+import { ErrorValueTypes } from "./ErrorValues"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
 
@@ -466,7 +466,7 @@ describe("relative mode", () => {
             SampleColumnSlugs.Vegetables,
         ])
         expect(
-            table.get(SampleColumnSlugs.Fruit).summary.numInvalidCells
+            table.get(SampleColumnSlugs.Fruit).summary.numErrorValues
         ).toEqual(1)
     })
 })
@@ -527,24 +527,26 @@ describe("linear interpolation", () => {
     it("applies interpolation", () => {
         const interpolatedTable = table.interpolateColumnLinearly("gdp")
 
-        expect(interpolatedTable.get("gdp").valuesIncludingInvalids).toEqual([
-            // France
-            10,
-            0,
-            2,
-            4,
-            6,
-            8,
-            8,
-            // UK
-            2,
-            2.25,
-            2.5,
-            2.75,
-            3,
-            3,
-            3,
-        ])
+        expect(interpolatedTable.get("gdp").valuesIncludingErrorValues).toEqual(
+            [
+                // France
+                10,
+                0,
+                2,
+                4,
+                6,
+                8,
+                8,
+                // UK
+                2,
+                2.25,
+                2.5,
+                2.75,
+                3,
+                3,
+                3,
+            ]
+        )
 
         // Check that not only the gdp values are correct but also the other fields
         expect(interpolatedTable.rows).toEqual(
@@ -600,7 +602,7 @@ describe("tolerance", () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     entityName: "france",
-                    gdp: InvalidCellTypes.NoValueWithinTolerance,
+                    gdp: ErrorValueTypes.NoValueWithinTolerance,
                     year: 2003,
                     "gdp-originalTime": 2003,
                 }),
@@ -663,13 +665,13 @@ describe("tolerance", () => {
         const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
         // tests assume sorted by [entityName, year]
         expect(
-            toleranceTable.get("entityName")?.valuesIncludingInvalids
+            toleranceTable.get("entityName")?.valuesIncludingErrorValues
         ).toEqual(["france", "france", "germany", "germany", "uk", "uk"])
-        expect(toleranceTable.get("gdp")?.valuesIncludingInvalids).toEqual([
-            InvalidCellTypes.NoValueWithinTolerance,
-            InvalidCellTypes.NoValueWithinTolerance,
-            InvalidCellTypes.NoValueWithinTolerance,
-            InvalidCellTypes.NoValueWithinTolerance,
+        expect(toleranceTable.get("gdp")?.valuesIncludingErrorValues).toEqual([
+            ErrorValueTypes.NoValueWithinTolerance,
+            ErrorValueTypes.NoValueWithinTolerance,
+            ErrorValueTypes.NoValueWithinTolerance,
+            ErrorValueTypes.NoValueWithinTolerance,
             3,
             3,
         ])

@@ -1,7 +1,7 @@
 import { flatten } from "grapher/utils/Util"
 import { ColumnSlug, CoreColumnStore, Time } from "./CoreTableConstants"
 import { CoreColumnDef } from "./CoreColumnDef"
-import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
 // in the spots where we are missing values (added to make computing rolling windows easier).
@@ -24,7 +24,7 @@ export function insertMissingValuePlaceholders(
         filledRange.push(
             timeToValueIndex.has(time)
                 ? values[timeToValueIndex.get(time)]
-                : InvalidCellTypes.MissingValuePlaceholder
+                : ErrorValueTypes.MissingValuePlaceholder
         )
         time++
     }
@@ -33,22 +33,22 @@ export function insertMissingValuePlaceholders(
 
 // todo: add the precision param to ensure no floating point effects
 export function computeRollingAverage(
-    numbers: (number | undefined | null | InvalidCell)[],
+    numbers: (number | undefined | null | ErrorValue)[],
     windowSize: number,
     align: "right" | "center" = "right"
 ) {
-    const result: (number | InvalidCell)[] = []
+    const result: (number | ErrorValue)[] = []
 
     for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
         // If a value is undefined in the original input, keep it undefined in the output
         const currentVal = numbers[valueIndex]
         if (currentVal === null) {
-            result[valueIndex] = InvalidCellTypes.NullButShouldBeNumber
+            result[valueIndex] = ErrorValueTypes.NullButShouldBeNumber
             continue
         } else if (currentVal === undefined) {
-            result[valueIndex] = InvalidCellTypes.UndefinedButShouldBeNumber
+            result[valueIndex] = ErrorValueTypes.UndefinedButShouldBeNumber
             continue
-        } else if (currentVal instanceof InvalidCell) {
+        } else if (currentVal instanceof ErrorValue) {
             result[valueIndex] = currentVal
             continue
         }
@@ -76,7 +76,7 @@ export function computeRollingAverage(
             if (
                 value !== undefined &&
                 value !== null &&
-                !(value instanceof InvalidCell)
+                !(value instanceof ErrorValue)
             ) {
                 sum += value!
                 count++
@@ -107,8 +107,8 @@ const timeSinceEntityExceededThreshold = (
     return columnValues.map((value, index) => {
         const group = groupValues[index]
         if (group !== currentGroup) {
-            if (!isValid(value)) return value
-            if (value < threshold) return InvalidCellTypes.ValueTooLow
+            if (!isNotErrorValue(value)) return value
+            if (value < threshold) return ErrorValueTypes.ValueTooLow
 
             currentGroup = group
             groupExceededThresholdAtTime = timeValues[index]
@@ -135,7 +135,7 @@ const rollingAverage = (
     let currentValues: number[] = []
     let currentTimes: Time[] = []
 
-    const groups: (number | InvalidCell)[][] = []
+    const groups: (number | ErrorValue)[][] = []
     for (let rowIndex = 0; rowIndex <= len; rowIndex++) {
         const entityName = entityNames[rowIndex]
         const value = columnValues[rowIndex]
@@ -145,7 +145,7 @@ const rollingAverage = (
                 insertMissingValuePlaceholders(currentValues, currentTimes),
                 windowSize
             ).filter(
-                (value) => !(value === InvalidCellTypes.MissingValuePlaceholder)
+                (value) => !(value === ErrorValueTypes.MissingValuePlaceholder)
             ) // filter the placeholders back out
             groups.push(averages)
             if (value === undefined) break // We iterate to <= so that we push the last row
@@ -167,10 +167,10 @@ const divideBy = (
     const numeratorValues = columnStore[numeratorSlug] as number[]
     const denominatorValues = columnStore[denominatorSlug] as number[]
     return denominatorValues.map((denominator, index) => {
-        if (denominator === 0) return InvalidCellTypes.DivideByZeroError
+        if (denominator === 0) return ErrorValueTypes.DivideByZeroError
         const numerator = numeratorValues[index]
-        if (!isValid(numerator)) return numerator
-        if (!isValid(denominator)) return denominator
+        if (!isNotErrorValue(numerator)) return numerator
+        if (!isNotErrorValue(denominator)) return denominator
         return numerator / denominator
     })
 }
@@ -181,7 +181,7 @@ const multiplyBy = (
     factor: number
 ) =>
     columnStore[columnSlug].map((value) =>
-        isValid(value) ? (value as number) * factor : value
+        isNotErrorValue(value) ? (value as number) * factor : value
     )
 
 enum WhereOperators {
@@ -219,7 +219,7 @@ const where = (
         passes = (value: any) => value <= parseFloat(condition.join(""))
 
     return values.map((value, index) =>
-        passes(conditionValues[index]) ? value : InvalidCellTypes.FilteredValue
+        passes(conditionValues[index]) ? value : ErrorValueTypes.FilteredValue
     )
 }
 
@@ -236,7 +236,8 @@ const percentChange = (
     const columnValues = columnStore[columnSlug] as number[]
 
     // If windowSize is 0 then there is zero change for every valid value
-    if (!windowSize) return columnValues.map((val) => (isValid(val) ? 0 : val))
+    if (!windowSize)
+        return columnValues.map((val) => (isNotErrorValue(val) ? 0 : val))
 
     let currentEntity: string
     return columnValues.map((value: any, index) => {
@@ -249,14 +250,14 @@ const percentChange = (
             previousEntity !== entity
         ) {
             currentEntity = entity
-            return InvalidCellTypes.NoValueToCompareAgainst
+            return ErrorValueTypes.NoValueToCompareAgainst
         }
-        if (previousValue instanceof InvalidCell) return previousValue
-        if (value instanceof InvalidCell) return value
+        if (previousValue instanceof ErrorValue) return previousValue
+        if (value instanceof ErrorValue) return value
 
-        if (previousValue === 0) return InvalidCellTypes.DivideByZeroError
+        if (previousValue === 0) return ErrorValueTypes.DivideByZeroError
         if (previousValue === undefined)
-            return InvalidCellTypes.NoValueToCompareAgainst
+            return ErrorValueTypes.NoValueToCompareAgainst
 
         return (100 * (value - previousValue)) / previousValue
     })

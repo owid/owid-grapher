@@ -33,7 +33,7 @@ import {
     SortOrder,
     TableSlug,
 } from "coreTable/CoreTableConstants"
-import { isValid } from "coreTable/InvalidCells"
+import { isNotErrorValue } from "coreTable/ErrorValues"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -166,7 +166,7 @@ export class SwitcherExplorer
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
         const { chartId, table } = selectedRow
-        const hasChartId = isValid(chartId)
+        const hasChartId = isNotErrorValue(chartId)
 
         if (hasChartId && grapher.id === chartId) return
 

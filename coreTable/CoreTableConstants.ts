@@ -1,4 +1,4 @@
-import { InvalidCell } from "./InvalidCells"
+import { ErrorValue } from "./ErrorValues"
 
 export type Integer = number
 export type TableSlug = string // a url friendly name for a table
@@ -71,7 +71,7 @@ export enum JsTypes {
 
 export type CsvString = string
 
-export type CoreValueType = PrimitiveType | InvalidCell
+export type CoreValueType = PrimitiveType | ErrorValue
 
 /**
  * An Object Literal of Column Slugs and Primitives of the same type:

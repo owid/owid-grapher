@@ -16,7 +16,7 @@ import {
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 
-import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
@@ -57,7 +57,7 @@ export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
             const number = parseFloat(value) // The "+" type casting that d3 does for perf converts "" to 0, so use parseFloat.
             if (type === "number") {
                 object[columnSlug] = isNaN(number)
-                    ? InvalidCellTypes.NaNButShouldBeNumber
+                    ? ErrorValueTypes.NaNButShouldBeNumber
                     : number
                 continue
             }
@@ -158,10 +158,10 @@ export const makeRowFromColumnStore = (
     return row
 }
 
-function isNotInvalidOrEmptyCell<K>(
+function isNotErrorValueOrEmptyCell<K>(
     value: K
-): value is Exclude<K, InvalidCell | undefined> {
-    return value !== undefined && !(value instanceof InvalidCell)
+): value is Exclude<K, ErrorValue | undefined> {
+    return value !== undefined && !(value instanceof ErrorValue)
 }
 
 export interface InterpolationContext {}
@@ -171,7 +171,7 @@ export interface ToleranceInterpolationContext extends InterpolationContext {
 }
 
 export type InterpolationProvider<C extends InterpolationContext> = (
-    valuesSortedByTimeAsc: (number | InvalidCell)[],
+    valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
     context: C,
     start: number,
@@ -179,7 +179,7 @@ export type InterpolationProvider<C extends InterpolationContext> = (
 ) => void
 
 export function linearInterpolation(
-    valuesSortedByTimeAsc: (number | InvalidCell)[],
+    valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
     context: InterpolationContext,
     start: number = 0,
@@ -192,7 +192,7 @@ export function linearInterpolation(
 
     for (let index = start; index < end; index++) {
         const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotInvalidOrEmptyCell(currentValue)) {
+        if (isNotErrorValueOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
             continue
         }
@@ -200,7 +200,7 @@ export function linearInterpolation(
         if (nextNonBlankIndex === -1 || nextNonBlankIndex <= index) {
             nextNonBlankIndex = findIndexFast(
                 valuesSortedByTimeAsc,
-                (val) => isNotInvalidOrEmptyCell(val),
+                (val) => isNotErrorValueOrEmptyCell(val),
                 index + 1,
                 end
             )
@@ -211,17 +211,17 @@ export function linearInterpolation(
 
         let value
         if (
-            isNotInvalidOrEmptyCell(prevValue) &&
-            isNotInvalidOrEmptyCell(nextValue)
+            isNotErrorValueOrEmptyCell(prevValue) &&
+            isNotErrorValueOrEmptyCell(nextValue)
         ) {
             const distLeft = index - prevNonBlankIndex
             const distRight = nextNonBlankIndex - index
             value =
                 (prevValue * distRight + nextValue * distLeft) /
                 (distLeft + distRight)
-        } else if (isNotInvalidOrEmptyCell(prevValue)) value = prevValue
-        else if (isNotInvalidOrEmptyCell(nextValue)) value = nextValue
-        else value = InvalidCellTypes.NoValueForInterpolation
+        } else if (isNotErrorValueOrEmptyCell(prevValue)) value = prevValue
+        else if (isNotErrorValueOrEmptyCell(nextValue)) value = nextValue
+        else value = ErrorValueTypes.NoValueForInterpolation
 
         prevNonBlankIndex = index
 
@@ -230,7 +230,7 @@ export function linearInterpolation(
 }
 
 export function toleranceInterpolation(
-    valuesSortedByTimeAsc: (number | InvalidCell)[],
+    valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
     context: ToleranceInterpolationContext,
     start: number = 0,
@@ -243,7 +243,7 @@ export function toleranceInterpolation(
 
     for (let index = start; index < end; index++) {
         const currentValue = valuesSortedByTimeAsc[index]
-        if (isNotInvalidOrEmptyCell(currentValue)) {
+        if (isNotErrorValueOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
             continue
         }
@@ -254,7 +254,7 @@ export function toleranceInterpolation(
         ) {
             nextNonBlankIndex = findIndexFast(
                 valuesSortedByTimeAsc,
-                (val) => isNotInvalidOrEmptyCell(val),
+                (val) => isNotErrorValueOrEmptyCell(val),
                 index + 1,
                 end
             )
@@ -290,7 +290,7 @@ export function toleranceInterpolation(
             timesAsc[index] = timesAsc[prevNonBlankIndex!]
         } else
             valuesSortedByTimeAsc[index] =
-                InvalidCellTypes.NoValueWithinTolerance
+                ErrorValueTypes.NoValueWithinTolerance
     }
 }
 
@@ -463,7 +463,7 @@ export const replaceNonPositives = (
     const newStore: CoreColumnStore = Object.assign({}, columnStore)
     slugs.forEach((slug) => {
         newStore[slug] = newStore[slug].map((val) =>
-            val <= 0 ? InvalidCellTypes.InvalidOnALogScale : val
+            val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
         )
     })
     return newStore
@@ -481,7 +481,7 @@ export const replaceRandomCellsInColumnStore = (
     howMany = 1,
     columnSlugs: ColumnSlug[] = [],
     seed = Date.now(),
-    replacementGenerator: () => any = () => InvalidCellTypes.DroppedForTesting
+    replacementGenerator: () => any = () => ErrorValueTypes.DroppedForTesting
 ) => {
     const newStore: CoreColumnStore = Object.assign({}, columnStore)
     columnSlugs.forEach((slug) => {
@@ -592,10 +592,10 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
     )
 }
 
-export const replaceInvalidRowValuesWithUndefined = (row: CoreRow) => {
+export const replaceErrorValuesWithUndefined = (row: CoreRow) => {
     const result: CoreRow = {}
     for (const key in row) {
-        result[key] = isValid(row[key]) ? row[key] : undefined
+        result[key] = isNotErrorValue(row[key]) ? row[key] : undefined
     }
     return result
 }
@@ -634,7 +634,7 @@ const makeSortByFn = (
             const bv = col[indexB]
             if (av < bv) return nodeAFirst
             if (av > bv) return nodeBFirst
-            // todo: handle invalids
+            // todo: handle ErrorValues
         }
         return 0
     }
