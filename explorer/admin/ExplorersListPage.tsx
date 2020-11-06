@@ -34,7 +34,7 @@ import moment from "moment"
 class ExplorerRow extends React.Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
-    gitCmsBranchName?: string
+    gitCmsBranchName: string
     searchHighlight?: (text: string) => any
 }> {
     static contextType = AdminAppContext
@@ -45,9 +45,7 @@ class ExplorerRow extends React.Component<{
 
         const publishedUrl = `${BAKED_BASE_URL}/explorers/${explorer.slug}`
 
-        const repoPath = `${GIT_CMS_REPO_URL}/commits/${
-            gitCmsBranchName ?? GIT_CMS_DEFAULT_BRANCH
-        }/explorers/`
+        const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/explorers/`
 
         return (
             <tr>
@@ -124,7 +122,7 @@ class ExplorerList extends React.Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
-    gitCmsBranchName?: string
+    gitCmsBranchName: string
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -208,6 +206,7 @@ export class ExplorersIndexPage extends React.Component {
             "untitled",
             this.explorersToShow.map((exp) => exp.slug)
         )
+
         return (
             <AdminLayout title="Explorers">
                 <main className="DatasetsIndexPage">
@@ -221,6 +220,12 @@ export class ExplorersIndexPage extends React.Component {
                             |{" "}
                             <a href="#" onClick={this.pullFromGithub}>
                                 Pull from GitHub
+                            </a>{" "}
+                            |{" "}
+                            <a
+                                href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
+                            >
+                                All activiy
                             </a>
                         </span>
                     </FieldsRow>
