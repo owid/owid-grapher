@@ -252,7 +252,6 @@ describe(legacyToOwidTableAndDimensions, () => {
             },
         }
         const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
-            type: ChartTypeName.ScatterPlot,
             dimensions: [
                 {
                     variableId: 2,
@@ -288,12 +287,28 @@ describe(legacyToOwidTableAndDimensions, () => {
             ])
         })
 
-        it("handles targetTime joins", () => {
-            expect(table.rows.length).toEqual(3)
-            expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
-            const column = table.get("3-2020")
-            expect(column.valuesIncludingErrorValues).toEqual([20, 20, 20])
-            expect(column.originalTimes).toEqual([2020, 2020, 2020])
+        describe("scatter-specific behavior", () => {
+            it("only joins targetTime on Scatters", () => {
+                expect(table.rows.length).toEqual(4)
+            })
+
+            it("joins targetTime", () => {
+                const scatterLegacyGrapherConfig = {
+                    ...legacyGrapherConfig,
+                    type: ChartTypeName.ScatterPlot,
+                }
+
+                const { table } = legacyToOwidTableAndDimensions(
+                    legacyVariableConfig,
+                    scatterLegacyGrapherConfig
+                )
+
+                expect(table.rows.length).toEqual(3)
+                expect(table.columnSlugs.includes("3-2020")).toBeTruthy()
+                const column = table.get("3-2020")
+                expect(column.valuesIncludingErrorValues).toEqual([20, 20, 20])
+                expect(column.originalTimes).toEqual([2020, 2020, 2020])
+            })
         })
     })
 })
