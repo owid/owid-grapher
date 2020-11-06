@@ -310,41 +310,48 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // NB: Uses absolute value. So if one entity added 100, and another -100, they both would have contributed "50%" to that year.
     // Otherwise we'd have NaN.
     toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
+        columnSlugs = columnSlugs.filter((slug) => this.has(slug))
+        if (!columnSlugs.length) return this
+
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
                 return { ...def, type: ColumnTypeNames.RelativePercentage }
             return def
         })
-        return new OwidTable(
-            this.rows.map((row) => {
-                const newRow = {
-                    ...row,
-                }
-                const total = sum(
-                    columnSlugs
-                        .map((slug) => row[slug])
-                        .filter(isValid)
-                        .map((val) => Math.abs(val))
-                )
-                columnSlugs.forEach((slug) => {
-                    const value =
-                        total === 0
-                            ? InvalidCellTypes.DivideByZeroError
-                            : row[slug]
-                    newRow[slug] = isValid(value)
-                        ? (100 * value) / total
-                        : value
-                })
-                return newRow
-            }),
+
+        const columnStore = this.columnStore
+        const columnStorePatch: CoreColumnStore = {}
+
+        const totals = new Array(this.numRows).map((_, i) => {
+            return sum(
+                columnSlugs
+                    .map((slug) => columnStore[slug][i])
+                    .filter(isNumber)
+                    .map((val) => Math.abs(val))
+            )
+        })
+
+        columnSlugs.forEach((slug) => {
+            columnStorePatch[slug] = columnStore[slug].map((value, i) => {
+                const total = totals[i]
+                if (!isNumber(value) || !isNumber(total)) return value
+                if (total === 0) return InvalidCellTypes.DivideByZeroError
+                return (100 * Math.abs(value)) / total
+            })
+        })
+
+        const newColumnStore = {
+            ...columnStore,
+            ...columnStorePatch,
+        }
+
+        return this.transform(
+            newColumnStore,
             newDefs,
-            {
-                parent: this,
-                tableDescription: `Transformed columns from absolute numbers to % of abs sum of ${columnSlugs.join(
-                    ","
-                )} `,
-                transformCategory: TransformType.UpdateColumnDefs,
-            }
+            `Transformed columns from absolute numbers to % of abs sum of ${columnSlugs.join(
+                ","
+            )} `,
+            TransformType.UpdateColumnDefs
         )
     }
 
