@@ -38,6 +38,10 @@ const isFolderOnStagingBranch = async (dir: string) => {
     return result === "staging"
 }
 
+// Push if on owid.cloud, or if on a development branch
+const shouldPush = async () =>
+    IS_PROD ? true : await isFolderOnStagingBranch(GIT_CMS_DIR)
+
 async function saveFileToGitContentDirectory(
     filename: string,
     content: string,
@@ -47,15 +51,11 @@ async function saveFileToGitContentDirectory(
     const path = GIT_CMS_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
 
-    // Push if on owid.cloud, or if on a development branch
-    const shouldPush = IS_PROD
-        ? true
-        : await isFolderOnStagingBranch(GIT_CMS_DIR)
-
     const commitMsg = fs.existsSync(path)
         ? `Updating ${filename}`
         : `Adding ${filename}`
-    const pushCommand = shouldPush ? `&& git push` : ""
+    const push = await shouldPush()
+    const pushCommand = push ? `&& git push` : ""
 
     await execFormatted(
         `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
@@ -72,11 +72,11 @@ const pullFromGit = async () =>
 async function deleteFileFromGitContentDirectory(
     filename: string,
     commitName: string,
-    commitEmail: string,
-    shouldPush = IS_PROD
+    commitEmail: string
 ) {
     const path = GIT_CMS_DIR + "/" + filename
-    const pushCommand = shouldPush ? `&& git push` : ""
+    const push = await shouldPush()
+    const pushCommand = push ? `&& git push` : ""
     await fs.unlink(path)
     await execFormatted(
         `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
