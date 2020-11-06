@@ -4,7 +4,7 @@ import {
     min,
     intersectionOfSets,
     findClosestTimeIndex,
-    sum,
+    sumBy,
     flatten,
     uniq,
     sortNumeric,
@@ -322,14 +322,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const columnStore = this.columnStore
         const columnStorePatch: CoreColumnStore = {}
 
-        const totals = new Array(this.numRows).map((_, i) => {
-            return sum(
-                columnSlugs
-                    .map((slug) => columnStore[slug][i])
-                    .filter(isNumber)
-                    .map((val) => Math.abs(val))
-            )
-        })
+        const totals = new Array(this.numRows).fill(0).map((_, i) =>
+            sumBy(columnSlugs, (slug) => {
+                const value = columnStore[slug][i]
+                return isNumber(value) ? Math.abs(value) : 0
+            })
+        )
 
         columnSlugs.forEach((slug) => {
             columnStorePatch[slug] = columnStore[slug].map((value, i) => {
