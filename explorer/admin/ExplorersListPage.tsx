@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync } from "grapher/utils/Util"
+import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import {
     deleteRemoteFile,
@@ -49,9 +49,7 @@ class ExplorerRow extends React.Component<{
             <tr>
                 <td>
                     {!explorer.isPublished ? (
-                        <span className="text-secondary">
-                            Unpublished: {explorer.slug}
-                        </span>
+                        <span className="text-secondary">{explorer.slug}</span>
                     ) : (
                         <a href={publishedUrl}>{explorer.slug}</a>
                     )}
@@ -165,7 +163,7 @@ export class ExplorersIndexPage extends React.Component {
     @observable highlightSearch?: string
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return this.explorers
+        return orderBy(this.explorers, ["isPublished", "slug"], ["desc", "asc"])
     }
 
     @action.bound onShowMore() {
