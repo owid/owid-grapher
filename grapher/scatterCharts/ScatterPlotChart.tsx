@@ -80,9 +80,6 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable) {
-        if (this.manager.matchingEntitiesOnly && this.colorColumnSlug)
-            table = table.dropRowsWithErrorValuesForColumn(this.colorColumnSlug)
-
         if (this.manager.excludedEntities) {
             const excludedEntityIdsSet = new Set(this.manager.excludedEntities)
             table = table.columnFilter(
@@ -140,6 +137,11 @@ export class ScatterPlotChart
                 this.colorColumnSlug,
                 tolerance
             )
+            if (this.manager.matchingEntitiesOnly) {
+                table = table.dropRowsWithErrorValuesForColumn(
+                    this.colorColumnSlug
+                )
+            }
         }
 
         // Drop any rows which have an invalid cell for either X or Y.
