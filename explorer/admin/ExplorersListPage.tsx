@@ -182,7 +182,7 @@ export class ExplorersIndexPage extends React.Component {
 
     @action.bound private async pullFromGithub() {
         const result = await pullFromGithub()
-        alert(JSON.stringify(result))
+        alert([result.stdout, result.errorMessage].filter((i) => i).join("\n"))
     }
 
     render() {
