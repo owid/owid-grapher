@@ -288,12 +288,47 @@ describe(concatColumnStores, () => {
                 },
                 {
                     a: [3, 4],
+                    c: [0, 0],
                 },
                 { a: [5], b: [8] },
             ])
         ).toEqual({
             a: [1, 2, 3, 4, 5],
-            b: [6, 7, undefined, undefined, 8],
+            b: [
+                6,
+                7,
+                ErrorValueTypes.MissingValuePlaceholder,
+                ErrorValueTypes.MissingValuePlaceholder,
+                8,
+            ],
+        })
+    })
+
+    it("respects slugsToKeep param", () => {
+        expect(
+            concatColumnStores(
+                [
+                    {
+                        a: [1, 2],
+                        b: [6, 7],
+                    },
+                    {
+                        a: [3, 4],
+                        c: [0, 0],
+                    },
+                    { a: [5], b: [8] },
+                ],
+                ["a", "c"]
+            )
+        ).toEqual({
+            a: [1, 2, 3, 4, 5],
+            c: [
+                ErrorValueTypes.MissingValuePlaceholder,
+                ErrorValueTypes.MissingValuePlaceholder,
+                0,
+                0,
+                ErrorValueTypes.MissingValuePlaceholder,
+            ],
         })
     })
 })

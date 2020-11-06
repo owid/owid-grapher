@@ -1,6 +1,8 @@
 import { dsvFormat } from "d3-dsv"
 import {
     findIndexFast,
+    first,
+    flatten,
     range,
     sampleFrom,
     slugifySameCase,
@@ -363,14 +365,32 @@ export const appendRowsToColumnStore = (
     return newColumnStore
 }
 
-export const concatColumnStores = (stores: CoreColumnStore[]) => {
+const getColumnStoreLength = (store: CoreColumnStore) => {
+    for (const slug in store) {
+        return store[slug].length
+    }
+    return 0
+}
+
+export const concatColumnStores = (
+    stores: CoreColumnStore[],
+    slugsToKeep?: ColumnSlug[]
+) => {
+    if (!stores.length) return {}
+
+    const lengths = stores.map(getColumnStoreLength)
+    const slugs = slugsToKeep ?? Object.keys(first(stores)!)
+
     const newColumnStore: CoreColumnStore = {}
-    const firstStore = stores[0]
-    const restStores = stores.slice(1)
-    const slugs = Object.keys(firstStore)
     slugs.forEach((slug) => {
-        newColumnStore[slug] = firstStore[slug].concat(
-            ...restStores.map((store) => store[slug])
+        newColumnStore[slug] = flatten(
+            stores.map(
+                (store, i) =>
+                    store[slug] ??
+                    new Array(lengths[i]).fill(
+                        ErrorValueTypes.MissingValuePlaceholder
+                    )
+            )
         )
     })
     return newColumnStore
