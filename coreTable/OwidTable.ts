@@ -127,7 +127,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo private get allTimes(): Time[] {
-        return this.sortedByTime.get(this.timeColumn.slug).parsedValues
+        return this.sortedByTime.get(this.timeColumn.slug).values
     }
 
     @imemo get hasDayColumn() {
@@ -269,8 +269,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     private sumsByTime(columnSlug: ColumnSlug) {
-        const timeValues = this.timeColumn.parsedValues
-        const values = this.get(columnSlug).parsedValues as number[]
+        const timeValues = this.timeColumn.values
+        const values = this.get(columnSlug).values as number[]
         const map = new Map<number, number>()
         timeValues.forEach((time, index) =>
             map.set(time, (map.get(time) ?? 0) + values[index])
@@ -285,7 +285,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumn = this.timeColumn!
         const col = this.get(columnSlug)
         const timeTotals = this.sumsByTime(columnSlug)
-        const timeValues = timeColumn.parsedValues
+        const timeValues = timeColumn.values
         const newDefs = replaceDef(this.defs, [
             {
                 ...col.def,

@@ -121,7 +121,7 @@ describe("creating a table from legacy", () => {
         varSet.variables["3512"].display!.conversionFactor = 100
         expect(
             OwidTable.fromLegacy(varSet, getLegacyGrapherConfig()).get("3512")!
-                .parsedValues
+                .values
         ).toEqual([550, 420, 1260])
     })
 
@@ -165,7 +165,7 @@ it("can parse data to Javascript data structures", () => {
         timeRange: [2000, 2010],
     })
 
-    const parsed = table.get("Population").parsedValues
+    const parsed = table.get("Population").values
     expect(parsed.filter((item) => isNaN(item))).toEqual([])
 
     table.get("Population").owidRows.forEach((row) => {

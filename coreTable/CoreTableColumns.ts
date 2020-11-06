@@ -24,7 +24,7 @@ import {
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 
-import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
@@ -71,13 +71,13 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo protected get sortedValuesString() {
-        return this.parsedValues.slice().sort()
+        return this.values.slice().sort()
     }
 
     @imemo protected get sortedValuesNumeric() {
         const numericCompare = (av: JS_TYPE, bv: JS_TYPE) =>
             av > bv ? 1 : av < bv ? -1 : 0
-        return this.parsedValues.slice().sort(numericCompare)
+        return this.values.slice().sort(numericCompare)
     }
 
     @imemo get sortedValues() {
@@ -232,7 +232,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // of all the unique values that this column has for that particular series.
     getUniqueValuesGroupedBy(indexColumnSlug: ColumnSlug) {
         const map = new Map<PrimitiveType, Set<PrimitiveType>>()
-        const values = this.parsedValues
+        const values = this.values
         const indexValues = this.table.getValuesAtIndices(
             indexColumnSlug,
             this.validRowIndices
@@ -263,7 +263,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // todo: is the isString necessary?
     @imemo get sortedUniqNonEmptyStringVals() {
         return Array.from(
-            new Set(this.parsedValues.filter(isString).filter((i) => i))
+            new Set(this.values.filter(isString).filter((i) => i))
         ).sort()
     }
 
@@ -307,7 +307,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get uniqValues() {
-        return uniq(this.parsedValues)
+        return uniq(this.values)
     }
 
     /**
@@ -327,7 +327,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             .filter(isPresent)
     }
 
-    @imemo get parsedValues() {
+    @imemo get values() {
         const values = this.valuesIncludingErrorValues
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
@@ -367,7 +367,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // Number of correctly parsed values
     @imemo get numValues() {
-        return this.parsedValues.length
+        return this.values.length
     }
 
     @imemo get numUniqs() {
@@ -375,7 +375,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get valuesAscending() {
-        return sortNumeric(this.parsedValues.slice())
+        return sortNumeric(this.values.slice())
     }
 
     // todo: cleanup this method. figure out what source properties should be on CoreTable vs OwidTable.
@@ -432,7 +432,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // todo: remove? Should not be on CoreTable
     @imemo get owidRows() {
         const times = this.originalTimes
-        const values = this.parsedValues
+        const values = this.values
         const entities = this.allEntityNames
         return range(0, times.length).map((index) => {
             return {
@@ -510,7 +510,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     }
 
     @imemo get isAllIntegers() {
-        return this.parsedValues.every((val) => val % 1 === 0)
+        return this.values.every((val) => val % 1 === 0)
     }
 
     @imemo get sortedValues() {

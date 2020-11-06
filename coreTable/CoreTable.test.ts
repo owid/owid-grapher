@@ -334,9 +334,7 @@ describe("column operations", () => {
                 fn: (row) => row.country.length,
             },
         ])
-        expect(table.get("countryNameLength").parsedValues.join("")).toEqual(
-            `37`
-        )
+        expect(table.get("countryNameLength").values.join("")).toEqual(`37`)
         expect((rows[0] as any).countryNameLength).toEqual(undefined)
     })
 
@@ -486,8 +484,8 @@ describe("filtering", () => {
         "Pop filter"
     )
     it("can filter", () => {
-        expect(rootTable.get("country").parsedValues[3]).toEqual("canada")
-        const parsedValues = filteredTable.get("country").parsedValues
+        expect(rootTable.get("country").values[3]).toEqual("canada")
+        const parsedValues = filteredTable.get("country").values
         expect(parsedValues[0]).toEqual("france")
         expect(parsedValues[1]).toEqual("usa")
     })
@@ -497,7 +495,7 @@ describe("filtering", () => {
             (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
         )
-        const parsedValues = filteredTwiceTable.get("country").parsedValues
+        const parsedValues = filteredTwiceTable.get("country").values
         expect(parsedValues[0]).toEqual("usa")
         expect(parsedValues[1]).toEqual(undefined)
     })
