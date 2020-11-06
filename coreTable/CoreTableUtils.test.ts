@@ -15,6 +15,7 @@ import {
     trimEmptyRows,
     trimMatrix,
     linearInterpolation,
+    concatColumnStores,
 } from "./CoreTableUtils"
 import { ErrorValueTypes } from "./ErrorValues"
 
@@ -256,5 +257,43 @@ describe(sortColumnStore, () => {
             ["pops"]
         )
         expect(result["pops"]).toEqual([21, 99, 123])
+    })
+})
+
+describe(concatColumnStores, () => {
+    it("concats stores with matching columns", () => {
+        expect(
+            concatColumnStores([
+                {
+                    a: [1, 2],
+                    b: [5, 6],
+                },
+                {
+                    a: [3, 4],
+                    b: [7, 8],
+                },
+            ])
+        ).toEqual({
+            a: [1, 2, 3, 4],
+            b: [5, 6, 7, 8],
+        })
+    })
+
+    it("concats column stores with missing columns", () => {
+        expect(
+            concatColumnStores([
+                {
+                    a: [1, 2],
+                    b: [6, 7],
+                },
+                {
+                    a: [3, 4],
+                },
+                { a: [5], b: [8] },
+            ])
+        ).toEqual({
+            a: [1, 2, 3, 4, 5],
+            b: [6, 7, undefined, undefined, 8],
+        })
     })
 })
