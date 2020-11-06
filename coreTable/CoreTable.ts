@@ -57,6 +57,7 @@ import {
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     columnDefinitionsFromDelimited,
+    truncate,
 } from "./CoreTableUtils"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -596,7 +597,7 @@ export class CoreTable<
         return this.transform(
             sortColumnStore(this.columnStore, slugs),
             this.defs,
-            `Sort by ${slugs.join(",")}}`,
+            `Sort by ${slugs.join(",")}`,
             TransformType.SortRows
         )
     }
@@ -815,7 +816,7 @@ export class CoreTable<
             numColumnsWithErrorValues,
         } = this
         return {
-            tableDescription: tableDescription.substr(0, 30),
+            tableDescription: truncate(tableDescription, 40),
             transformCategory,
             guid,
             numColumns,
