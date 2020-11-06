@@ -7,7 +7,7 @@ const GLOSSARY_META_FIELD = "owid_glossary_meta_field"
 const Glossary = ({ hasGlossary = false, setGlossary }) => {
     return (
         <ToggleControl
-            label="Hightlight terms"
+            label="Highlight terms"
             help={
                 hasGlossary
                     ? "All glossary terms highlighted."
