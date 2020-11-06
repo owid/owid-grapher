@@ -5,7 +5,8 @@ import {
     urlToSlug,
     mergeQueryStr,
 } from "grapher/utils/Util"
-import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
+
+export const covidDashboardSlug = "coronavirus-data-explorer"
 
 interface ChartExplorerRedirect {
     id: number

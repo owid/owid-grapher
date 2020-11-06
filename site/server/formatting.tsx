@@ -19,10 +19,12 @@ import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
-import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
-import { replaceChartIframesWithExplorerIframes } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
+import {
+    replaceChartIframesWithExplorerIframes,
+    covidDashboardSlug,
+} from "explorer/legacyCovidExplorerRedirects"
 import { SubNavId } from "./views/SiteSubnavigation"
 import {
     countryProfileDefaultCountryPlaceholder,

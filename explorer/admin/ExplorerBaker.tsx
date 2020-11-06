@@ -9,13 +9,6 @@ import {
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
-import {
-    covidDashboardSlug,
-    coronaOpenGraphImagePath,
-    covidPageTitle,
-    covidPreloads,
-    covidWpBlockId,
-} from "explorer/covidExplorer/CovidConstants"
 import { SwitcherExplorerProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
@@ -133,7 +126,10 @@ const bakeExplorersToDir = async (
     }
 }
 
-async function renderSwitcherExplorerPage(slug: string, code: string) {
+export const renderSwitcherExplorerPage = async (
+    slug: string,
+    code: string
+) => {
     const program = new ExplorerProgram(slug, code)
     const { requiredChartIds } = program
     let chartConfigs: any[] = []
@@ -175,41 +171,6 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
             inlineJs={script}
             hideAlertBanner={program.hideAlertBanner}
             wpContent={wpContent}
-        />
-    )
-}
-
-export async function renderCovidExplorerPage(props?: CovidExplorerPageProps) {
-    const wpContent = await getBlockContent(covidWpBlockId)
-    return renderToHtmlPage(
-        <CovidExplorerPage {...props} wpContent={wpContent} />
-    )
-}
-
-interface CovidExplorerPageProps {
-    explorerQueryStr?: string
-    wpContent?: string
-}
-
-const CovidExplorerPage = (props: CovidExplorerPageProps) => {
-    // This script allows us to replace existing Grapher pages with Explorer pages.
-    // Part of the reason for doing the redirect client-side is that Netlify doesn't support
-    // redirecting while preserving all query parameters.
-    const script = `window.CovidExplorer.replaceStateAndCreateCovidExplorerAndRenderToDom("${
-        props.explorerQueryStr ?? ""
-    }")`
-
-    return (
-        <ExplorerPage
-            subnavId="coronavirus"
-            subnavCurrentId="data-explorer"
-            title={covidPageTitle}
-            slug={covidDashboardSlug}
-            imagePath={coronaOpenGraphImagePath}
-            preloads={covidPreloads}
-            inlineJs={script}
-            hideAlertBanner={true}
-            wpContent={props.wpContent}
         />
     )
 }

@@ -33,7 +33,7 @@ it("can create a new table by adding a column", () => {
     const table = new OwidTable(sampleRows, [
         {
             slug: "populationInMillions",
-            fn: (row: any) => row.population / 1000000,
+            values: sampleRows.map((row) => row.population / 1000000),
         },
     ])
     expect(table.rows[0].populationInMillions).toEqual(300)
@@ -418,7 +418,7 @@ describe("rolling averages", () => {
         const newTable = table.appendColumns([
             {
                 slug: "populationInMillions",
-                fn: (row) => row.population / 1000000,
+                values: rows.map((row) => row.population / 1000000),
             },
         ])
         expect(newTable.rows[0].populationInMillions).toEqual(300)

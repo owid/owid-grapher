@@ -234,10 +234,8 @@ export class CoreTable<
         const { colsToCompute } = this
         const columnsObject: CoreColumnStore = {}
         if (!colsToCompute.length) return columnsObject
-        const rows = this.inputColumnStoreToRows
         colsToCompute.forEach((def) => {
-            columnsObject[def.slug] =
-                def.values ?? rows.map((row, index) => def.fn!(row, index)) // Todo: make these not operate on rows
+            columnsObject[def.slug] = def.values!
         })
 
         return columnsObject
@@ -274,15 +272,15 @@ export class CoreTable<
     private get colsToCompute() {
         // We never need to compute on certain transforms
         return TransformsRequiringCompute.has(this.transformCategory)
-            ? this.newProvidedColumnDefsToCompute
+            ? this.newProvidedColumnDefsWithValues
             : []
     }
 
-    @imemo private get newProvidedColumnDefsToCompute() {
+    @imemo private get newProvidedColumnDefsWithValues() {
         const cols = this.parent
             ? difference(this.inputColumnDefs, this.parent.defs)
             : this.inputColumnDefs
-        return cols.filter((def) => def.fn || def.values)
+        return cols.filter((def) => def.values)
     }
 
     private get colsToParse() {
@@ -315,7 +313,7 @@ export class CoreTable<
         if (this.isRoot) {
             const colsExceptForComputeds = differenceBy(
                 columnsAsArray,
-                this.newProvidedColumnDefsToCompute,
+                this.newProvidedColumnDefsWithValues,
                 (item) => item.slug
             )
             return colsExceptForComputeds

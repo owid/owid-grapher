@@ -41,7 +41,6 @@ export interface CoreColumnDef {
     unit?: string
     shortUnit?: string
     transform?: string // Code that maps to a CoreTable transform
-    fn?: ColumnFn
     values?: CoreValueType[] // Similar to Fn, but the already computed values.
     type?: ColumnTypeNames
     generator?: () => number // A function for generating synthetic data for testing
