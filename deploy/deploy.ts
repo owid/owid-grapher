@@ -88,9 +88,9 @@ const main = async () => {
     console.log(`Baking and deploying to ${NAME}`)
 
     let progressBarStep = 0
-    const progressBarTotalSteps = 5
+    const progressBarTotalSteps = 6
     const progressBar = new ProgressBar(
-        "  deploying [:bar] :rate/bps :percent :etas",
+        "  bakeAndDeploy [:bar] :percent :etas",
         {
             complete: "=",
             incomplete: " ",
@@ -98,6 +98,7 @@ const main = async () => {
             total: progressBarTotalSteps,
         }
     )
+    progressBar.tick(++progressBarStep)
 
     const ROOT = "/home/owid"
     const SYNC_TARGET = `${ROOT}/tmp/${NAME}-${USER}`

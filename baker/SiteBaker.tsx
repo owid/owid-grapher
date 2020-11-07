@@ -319,15 +319,12 @@ export class SiteBaker {
     async bakeAll() {
         let progressBarStep = 0
         const progressBarTotalSteps = 14
-        const progressBar = new ProgressBar(
-            "  baking [:bar] :rate/bps :percent :etas",
-            {
-                complete: "=",
-                incomplete: " ",
-                width: 40,
-                total: progressBarTotalSteps,
-            }
-        )
+        const progressBar = new ProgressBar("  bakeAll [:bar] :percent :etas", {
+            complete: "=",
+            incomplete: " ",
+            width: 40,
+            total: progressBarTotalSteps,
+        })
 
         // Ensure caches are correctly initialized
         this.flushCache()
@@ -406,7 +403,7 @@ export class SiteBaker {
         let progressBarStep = 0
         const progressBarTotalSteps = 3
         const progressBar = new ProgressBar(
-            "  baking [:bar] :rate/bps :percent :etas",
+            "  deployToNetlify [:bar] :percent :etas",
             {
                 complete: "=",
                 incomplete: " ",
