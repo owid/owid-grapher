@@ -11,6 +11,7 @@ import {
     parseQueueContent,
 } from "./queue"
 import { DeployChange } from "./types"
+import { BAKED_SITE_DIR } from "serverSettings"
 
 async function defaultCommitMessage(): Promise<string> {
     let message = "Automated update"
@@ -33,7 +34,7 @@ async function defaultCommitMessage(): Promise<string> {
 async function deploy(message?: string, email?: string, name?: string) {
     message = message ?? (await defaultCommitMessage())
 
-    const baker = new SiteBaker({})
+    const baker = new SiteBaker(BAKED_SITE_DIR)
 
     try {
         await baker.bakeAll()
@@ -55,7 +56,7 @@ export async function tryDeployAndTerminate(
 ) {
     message = message ?? (await defaultCommitMessage())
 
-    const baker = new SiteBaker({})
+    const baker = new SiteBaker(BAKED_SITE_DIR)
 
     try {
         await baker.bakeAll()

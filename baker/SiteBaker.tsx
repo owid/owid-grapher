@@ -9,7 +9,7 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "site/server/formatting"
 import { LongFormPage } from "site/server/views/LongFormPage"
-import { BAKED_SITE_DIR, BASE_DIR, WORDPRESS_DIR } from "serverSettings"
+import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -54,7 +54,7 @@ export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
 
-    constructor(bakedSiteDir = BAKED_SITE_DIR) {
+    constructor(bakedSiteDir) {
         this.bakedSiteDir = bakedSiteDir
     }
 
