@@ -1,7 +1,6 @@
 import express, { Router } from "express"
 require("express-async-errors")
 import * as path from "path"
-
 import {
     renderFrontPage,
     renderPageBySlug,
@@ -18,7 +17,7 @@ import {
     renderCovidPage,
     countryProfileCountryPage,
 } from "site/server/siteRenderers"
-import { chartDataJson, grapherPageFromSlug } from "site/server/grapherBaking"
+import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
@@ -30,10 +29,11 @@ import {
 } from "site/server/countryProfiles"
 import { makeSitemap } from "site/server/sitemap"
 import { OldChart } from "db/model/Chart"
-import { chartToSVG } from "site/server/svgPngExport"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { grapherToExplorerRedirectsByGrapherSlug } from "explorer/legacyCovidExplorerRedirects"
 import { renderExplorerPage } from "explorer/admin/ExplorerBaker"
+import { grapherToSVG } from "baker/GrapherImageBaker"
+import { getVariableData } from "db/model/Variable"
 
 const mockSiteRouter = Router()
 
@@ -61,7 +61,7 @@ mockSiteRouter.get(
     async (req, res) => {
         res.set("Access-Control-Allow-Origin", "*")
         res.json(
-            await chartDataJson(
+            await getVariableData(
                 (req.params.variableIds as string)
                     .split("+")
                     .map((v) => expectInt(v))
@@ -94,7 +94,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
             req.params.slug
         ]
         res.send(await renderExplorerPage(req.params.slug, ""))
-    } else res.send(await grapherPageFromSlug(req.params.slug))
+    } else res.send(await grapherSlugToHtmlPage(req.params.slug))
 })
 
 mockSiteRouter.get("/", async (req, res) => {
@@ -157,10 +157,10 @@ mockSiteRouter.use(
 )
 
 mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
-    const chart = await OldChart.getBySlug(req.params.slug)
-    const vardata = await chart.getVariableData()
+    const grapher = await OldChart.getBySlug(req.params.slug)
+    const vardata = await grapher.getVariableData()
     res.setHeader("Content-Type", "image/svg+xml")
-    res.send(await chartToSVG(chart.config, vardata))
+    res.send(await grapherToSVG(grapher.config, vardata))
 })
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))

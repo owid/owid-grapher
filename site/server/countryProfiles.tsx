@@ -8,9 +8,8 @@ import {
     CountryProfileIndicator,
     CountryProfilePage,
 } from "./views/CountryProfilePage"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { Variable } from "db/model/Variable"
-import { SiteBaker } from "./SiteBaker"
+import { SiteBaker } from "baker/SiteBaker"
 import { countries, getCountry } from "utils/countries"
 import { OwidTable } from "coreTable/OwidTable"
 

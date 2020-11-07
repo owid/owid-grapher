@@ -4,9 +4,9 @@ import md5 from "md5"
 import { BAKED_GRAPHER_URL } from "settings"
 import React from "react"
 import {
-    bakeGrapherToImage,
+    bakeGrapherToSvg,
     getPublishedGraphersBySlug,
-} from "site/server/bakeGraphersToImages"
+} from "baker/GrapherImageBaker"
 
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
 const sampleRow = `1,123,world-pop,LineChart,ee5a6312...`
@@ -57,7 +57,7 @@ export async function bakeAndSaveResultsFile(
     for (const [slug, config] of graphersBySlug) {
         if (bakeOrder > bakeLimit) break
         const startTime = Date.now()
-        const svg = await bakeGrapherToImage(
+        const svg = await bakeGrapherToSvg(
             config,
             outDir,
             slug,

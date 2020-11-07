@@ -3,14 +3,43 @@ import parseUrl from "url-parse"
 import * as db from "db/db"
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
-import { optimizeSvg } from "./svgPngExport"
+import svgo from "svgo"
 import md5 from "md5"
+import sharp from "sharp"
+import * as path from "path"
 
+// todo: can we remove the below 2 lines?
 declare var global: any
 global.window = { location: { search: "" } }
 
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
+
+export async function bakeGraphersToPngs(
+    outDir: string,
+    jsonConfig: GrapherInterface,
+    vardata: any,
+    optimizeSvgs = false
+) {
+    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
+    grapher.isExporting = true
+    grapher.receiveLegacyData(vardata)
+    const outPath = path.join(outDir, grapher.slug as string)
+
+    let svgCode = grapher.staticSVG
+    if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+
+    return Promise.all([
+        fs
+            .writeFile(`${outPath}.svg`, svgCode)
+            .then(() => console.log(`${outPath}.svg`)),
+        sharp(Buffer.from(grapher.staticSVG), { density: 144 })
+            .png()
+            .resize(grapher.idealBounds.width, grapher.idealBounds.height)
+            .flatten({ background: "#ffffff" })
+            .toFile(`${outPath}.png`),
+    ])
+}
 
 async function getGraphersAndRedirectsBySlug() {
     const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug()
@@ -43,12 +72,12 @@ export async function getPublishedGraphersBySlug() {
     return { graphersBySlug, graphersById }
 }
 
-export async function bakeGrapherToImage(
+export async function bakeGrapherToSvg(
     jsonConfig: GrapherInterface,
     outDir: string,
     slug: string,
-    queryStr: string = "",
-    optimizeSvgs: boolean = false,
+    queryStr = "",
+    optimizeSvgs = false,
     overwriteExisting = false,
     verbose = true
 ) {
@@ -79,8 +108,8 @@ export async function bakeGrapherToImage(
     return svgCode
 }
 
-export async function bakeGraphersToImages(
-    grapherUrls: string[],
+export async function bakeGraphersToSvgs(
+    grapherUrls: string[], // todo: this is not being used. need to fix or update.
     outDir: string,
     optimizeSvgs = false
 ) {
@@ -93,7 +122,7 @@ export async function bakeGraphersToImages(
             const slug = lodash.last(url.pathname.split("/")) as string
             const jsonConfig = graphersBySlug.get(slug)
             if (jsonConfig) {
-                return bakeGrapherToImage(
+                return bakeGrapherToSvg(
                     jsonConfig,
                     outDir,
                     slug,
@@ -104,4 +133,31 @@ export async function bakeGraphersToImages(
             return undefined
         })
     )
+}
+
+const svgoConfig: svgo.Options = {
+    floatPrecision: 2,
+    plugins: [
+        { collapseGroups: false }, // breaks the "Our World in Data" logo in the upper right
+        { removeUnknownsAndDefaults: false }, // would remove hrefs from links (<a>)
+        { removeViewBox: false },
+        { removeXMLNS: false },
+    ],
+}
+
+const svgoInstance = new svgo(svgoConfig)
+
+async function optimizeSvg(svgString: string): Promise<string> {
+    const optimizedSvg = await svgoInstance.optimize(svgString)
+    return optimizedSvg.data
+}
+
+export async function grapherToSVG(
+    jsonConfig: GrapherInterface,
+    vardata: any
+): Promise<string> {
+    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
+    grapher.isExporting = true
+    grapher.receiveLegacyData(vardata)
+    return grapher.staticSVG
 }
