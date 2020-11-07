@@ -46,10 +46,6 @@ yarn testcheck`
 
 const LIVE_NAME = "live"
 
-const runChecksLocally = async () => {
-    await exec("yarn testcheck")
-}
-
 const printAndExit = (message: string) => {
     // eslint-disable-next-line no-console
     console.log(message)
@@ -87,18 +83,17 @@ const main = async () => {
     // eslint-disable-next-line no-console
     console.log(`Baking and deploying to ${NAME}`)
 
-    let progressBarStep = 0
-    const progressBarTotalSteps = 6
+    const testSteps = !skipChecks && !runChecksRemotely ? 3 : 0
     const progressBar = new ProgressBar(
-        "  bakeAndDeploy [:bar] :percent :etas",
+        "  bakeAndDeploy [:bar] :current/:total :elapseds\n",
         {
             complete: "=",
             incomplete: " ",
             width: 40,
-            total: progressBarTotalSteps,
+            total: 6 + (skipChecks ? 0 : testSteps),
         }
     )
-    progressBar.tick(++progressBarStep)
+    progressBar.tick()
 
     const ROOT = "/home/owid"
     const SYNC_TARGET = `${ROOT}/tmp/${NAME}-${USER}`
@@ -109,20 +104,27 @@ const main = async () => {
     else if (skipChecks) {
         if (NAME === LIVE_NAME)
             printAndExit(`Cannot skip checks when deploying to live`)
-    } else await runChecksLocally()
-    progressBar.tick(++progressBarStep)
+    } else {
+        await exec(`yarn prettify:check`)
+        progressBar.tick()
+        await exec(`yarn typecheck`)
+        progressBar.tick()
+        await exec(`yarn test`)
+        progressBar.tick()
+    }
+    progressBar.tick()
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     const gitInfo = await gitUserInfo(DIR)
     fs.writeFileSync(DIR + "/public/head.txt", gitInfo.head)
-    progressBar.tick(++progressBarStep)
+    progressBar.tick()
 
     await ensureTmpDirExistsOnServer(HOST, ROOT)
-    progressBar.tick(++progressBarStep)
+    progressBar.tick()
     await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
-    progressBar.tick(++progressBarStep)
+    progressBar.tick()
     await runBigCommandOnServer(ROOT, NAME, USER, DIR, SYNC_TARGET, HOST)
-    progressBar.tick(++progressBarStep)
+    progressBar.tick()
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT: string) => {

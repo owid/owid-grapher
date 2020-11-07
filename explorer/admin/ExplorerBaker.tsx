@@ -18,7 +18,7 @@ import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import { getPublishedGraphersBySlug } from "baker/GrapherImageBaker"
 import moment from "moment"
-import { getGitBranchNameForDir } from "gitCms/GitUtils"
+import { getGitBranchNameForDir, getLastModifiedTime } from "gitCms/GitUtils"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 

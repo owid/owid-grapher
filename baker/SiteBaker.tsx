@@ -317,49 +317,50 @@ export class SiteBaker {
     }
 
     async bakeAll() {
-        let progressBarStep = 0
-        const progressBarTotalSteps = 14
-        const progressBar = new ProgressBar("  bakeAll [:bar] :percent :etas", {
-            complete: "=",
-            incomplete: " ",
-            width: 40,
-            total: progressBarTotalSteps,
-        })
+        const progressBar = new ProgressBar(
+            "  bakeAll [:bar] :current/:total :elapseds\n",
+            {
+                complete: "=",
+                incomplete: " ",
+                width: 40,
+                total: 14,
+            }
+        )
 
         // Ensure caches are correctly initialized
         this.flushCache()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         const redirects = await getRedirects()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeEmbeds()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeBlogIndex()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await bakeCountries(this)
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeRSS()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeAssets()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeSpecialPages()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeGoogleScholar()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeCountryProfiles()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakePosts()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             this.bakedSiteDir
         )
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         await this.bakeGrapherToExplorerRedirects()
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()
     }
@@ -400,15 +401,13 @@ export class SiteBaker {
         authorEmail?: string,
         authorName?: string
     ) {
-        let progressBarStep = 0
-        const progressBarTotalSteps = 3
         const progressBar = new ProgressBar(
-            "  deployToNetlify [:bar] :percent :etas",
+            "  deployToNetlify [:bar] :current/:total :elapseds\n",
             {
                 complete: "=",
                 incomplete: " ",
                 width: 40,
-                total: progressBarTotalSteps,
+                total: 3,
             }
         )
         // Deploy directly to Netlify (faster than using the github hook)
@@ -420,14 +419,14 @@ export class SiteBaker {
             )
         }
 
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
 
         // Ensure there is a git repo in there
         await this.execAndLogAnyErrorsToSlack(
             `cd ${this.bakedSiteDir} && git init`
         )
 
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
 
         // Prettify HTML source for easier debugging
         // Target root level HTML files only (entries and posts) for performance
@@ -443,7 +442,7 @@ export class SiteBaker {
             await this.execAndLogAnyErrorsToSlack(
                 `cd ${this.bakedSiteDir} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`
             )
-        progressBar.tick(++progressBarStep)
+        progressBar.tick()
     }
 
     endDbConnections() {
