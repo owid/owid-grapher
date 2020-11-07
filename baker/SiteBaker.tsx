@@ -54,7 +54,7 @@ export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
 
-    constructor(bakedSiteDir) {
+    constructor(bakedSiteDir: string) {
         this.bakedSiteDir = bakedSiteDir
     }
 
