@@ -108,7 +108,7 @@ pm2 stop $NAME-deploy-queue
 
 # Static build to update the public frontend code
 cd $FINAL_TARGET
-yarn tsn deploy/bakeSite.ts "$GIT_EMAIL" "$GIT_NAME"
+yarn tsn deploy/bakeAndDeploySite.ts "$GIT_EMAIL" "$GIT_NAME"
 
 # Restart the deploy queue
 pm2 start $NAME-deploy-queue

@@ -14,24 +14,8 @@ import {
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
 } from "./constants"
+import { getGitBranchNameForDir, pullFromGit } from "./GitUtils"
 const IS_PROD = ENV === "production"
-
-export const getGitBranchNameForDir = async (dir: string) => {
-    const result = await execFormatted(
-        `cd %s && git rev-parse --abbrev-ref HEAD`,
-        [dir]
-    )
-    return result.stdout.trim()
-}
-
-export const getLastModifiedTime = async (dir: string, filename: string) => {
-    const result = await execFormatted(`cd %s && git log -1 --format=%s %s`, [
-        dir,
-        `%cd`,
-        filename,
-    ])
-    return result.stdout.trim()
-}
 
 const isFolderOnStagingBranch = async (dir: string) => {
     const result = await getGitBranchNameForDir(dir)
@@ -65,9 +49,6 @@ async function saveFileToGitContentDirectory(
     )
     return ""
 }
-
-const pullFromGit = async () =>
-    await execFormatted(`cd %s && git pull`, [GIT_CMS_DIR])
 
 async function deleteFileFromGitContentDirectory(
     filename: string,
@@ -109,7 +90,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
     )
 
     app.post(GIT_CMS_PULL_ROUTE, async (req: Request, res: Response) => {
-        const result = await pullFromGit()
+        const result = await pullFromGit(GIT_CMS_DIR)
         return {
             success: result.stderr ? false : true,
             stdout: result.stdout,

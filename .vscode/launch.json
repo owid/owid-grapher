@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Run bake",
-            "args": ["deploy/bakeSite.ts"],
+            "name": "Run bake and deploy",
+            "args": ["deploy/bakeAndDeploySite.ts"],
             "runtimeArgs": [
                 "--nolazy",
                 "-r",
