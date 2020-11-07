@@ -1,6 +1,5 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import * as ReactDOMServer from "react-dom/server"
 import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
 import { observer } from "mobx-react"
 import Select, {
@@ -29,6 +28,9 @@ import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
+
+export const GLOBAL_ENTITY_CONTROL_DATA_ATTR = "data-global-entity-control"
+export const GLOBAL_ENTITY_CONTROL_SELECTOR = `*[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -127,7 +129,9 @@ interface GlobalEntityControlProps {
 }
 
 @observer
-class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
+export class GlobalEntityControl extends React.Component<
+    GlobalEntityControlProps
+> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
@@ -383,34 +387,10 @@ class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
     }
 }
 
-const DATA_ATTR = "data-global-entity-control"
-
-export function bakeGlobalEntityControl($: CheerioStatic) {
-    // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
-    // But we should still support the old attribute.
-    $(`*[data-entity-select], *[${DATA_ATTR}]`).each((_, el) => {
-        const $el = $(el)
-        const $section = $el.closest("section")
-
-        const rendered = ReactDOMServer.renderToString(
-            <GlobalEntityControl
-                globalEntitySelection={new GlobalEntitySelection()}
-            />
-        )
-
-        // Move the element to top-level where <section>s are,
-        // in order to make position:sticky work.
-        $el.remove()
-        $el.attr(DATA_ATTR, "")
-        $el.addClass("global-entity-control-container")
-        $el.html(rendered).insertAfter($section)
-    })
-}
-
 export function runGlobalEntityControl(
     globalEntitySelection: GlobalEntitySelection
 ) {
-    const element = document.querySelector(`*[${DATA_ATTR}]`)
+    const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (element) {
         ReactDOM.hydrate(
             <GlobalEntityControl

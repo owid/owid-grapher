@@ -74,7 +74,7 @@ import {
 import {
     GlobalEntitySelection,
     subscribeGrapherToGlobalEntitySelection,
-} from "site/globalEntityControl/GlobalEntitySelection"
+} from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import {
     strToQueryParams,
     queryParamsToStr,

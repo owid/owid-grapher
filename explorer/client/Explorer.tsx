@@ -34,7 +34,7 @@ import {
     TableSlug,
 } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
-import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
+import { GlobalEntitySelection } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 
 export interface ExplorerProps {
     explorerProgramCode: string

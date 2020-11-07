@@ -16,7 +16,7 @@ import {
     RelatedChart,
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
-import { bakeGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
+import { bakeGlobalEntityControl } from "grapher/controls/globalEntityControl/bakeGlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
