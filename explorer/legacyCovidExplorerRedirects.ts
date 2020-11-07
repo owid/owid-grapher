@@ -210,7 +210,9 @@ export function replaceGrapherIframesWithExplorerIframes($: CheerioStatic) {
         const url = el.attribs["src"].trim()
         const slug = urlToSlug(url)
         if (slug in grapherToExplorerRedirectsByGrapherSlug) {
-            const { explorerQueryStr } = grapherToExplorerRedirectsByGrapherSlug[slug]
+            const {
+                explorerQueryStr,
+            } = grapherToExplorerRedirectsByGrapherSlug[slug]
             const matchQueryStr = url.match(/\?([^#]*)/)
             const chartQueryStr = matchQueryStr ? matchQueryStr[1] : ""
             const queryStr = mergeQueryStr(explorerQueryStr, chartQueryStr)
