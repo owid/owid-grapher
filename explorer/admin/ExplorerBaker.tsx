@@ -16,7 +16,7 @@ import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
-import { getPublishedGraphersBySlug } from "site/server/bakeGraphersToImages"
+import { getPublishedGraphersBySlug } from "baker/GrapherImageBaker"
 import { getGitBranchNameForDir, getLastModifiedTime } from "gitCms/server"
 import moment from "moment"
 

@@ -4,7 +4,6 @@ import { Router } from "express"
 import * as React from "react"
 
 import { renderToHtmlPage, expectInt } from "utils/server/serverUtil"
-import { chartToSVG } from "site/server/svgPngExport"
 import { OldChart, Chart } from "db/model/Chart"
 import { Head } from "site/server/views/Head"
 import * as db from "db/db"
@@ -14,6 +13,7 @@ import * as lodash from "lodash"
 import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 import { parseIntOrUndefined } from "grapher/utils/Util"
+import { grapherToSVG } from "baker/GrapherImageBaker"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
@@ -493,9 +493,9 @@ testPageRouter.post("/compareSvgs", async (req, res) => {
 })
 
 testPageRouter.get("/:slug.svg", async (req, res) => {
-    const chart = await OldChart.getBySlug(req.params.slug)
-    const vardata = await chart.getVariableData()
-    res.send(await chartToSVG(chart.config, vardata))
+    const grapher = await OldChart.getBySlug(req.params.slug)
+    const vardata = await grapher.getVariableData()
+    res.send(await grapherToSVG(grapher.config, vardata))
 })
 
 export { testPageRouter }

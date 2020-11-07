@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 
-import { SiteBaker } from "site/server/SiteBaker"
+import { SiteBaker } from "baker/SiteBaker"
 import { log } from "utils/server/log"
 import {
     queueIsEmpty,
@@ -37,7 +37,7 @@ async function deploy(message?: string, email?: string, name?: string) {
 
     try {
         await baker.bakeAll()
-        await baker.deploy(message, email, name)
+        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
         log.error(err)
         throw err
@@ -59,11 +59,11 @@ export async function tryDeployAndTerminate(
 
     try {
         await baker.bakeAll()
-        await baker.deploy(message, email, name)
+        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
         log.error(err)
     } finally {
-        baker.end()
+        baker.endDbConnections()
     }
 }
 
