@@ -32,7 +32,7 @@ import { makeSitemap } from "site/server/sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "site/server/svgPngExport"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
-import { chartExplorerRedirectsBySlug } from "explorer/legacyCovidExplorerRedirects"
+import { grapherToExplorerRedirectsByGrapherSlug } from "explorer/legacyCovidExplorerRedirects"
 import { renderExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
@@ -88,15 +88,13 @@ mockSiteRouter.get("/grapher/latest", async (req, res) => {
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    if (req.params.slug in chartExplorerRedirectsBySlug) {
-        const { explorerQueryStr } = chartExplorerRedirectsBySlug[
+    if (req.params.slug in grapherToExplorerRedirectsByGrapherSlug) {
+        // todo: restore functionality
+        const { explorerQueryStr } = grapherToExplorerRedirectsByGrapherSlug[
             req.params.slug
         ]
-        // explorerQueryStr
         res.send(await renderExplorerPage(req.params.slug, ""))
-    } else {
-        res.send(await grapherPageFromSlug(req.params.slug))
-    }
+    } else res.send(await grapherPageFromSlug(req.params.slug))
 })
 
 mockSiteRouter.get("/", async (req, res) => {

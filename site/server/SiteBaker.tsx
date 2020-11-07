@@ -45,10 +45,7 @@ import { grapherPageFromConfig } from "./grapherBaking"
 import { countries, getCountryDetectionRedirects } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
-import {
-    chartExplorerRedirects,
-    covidDashboardSlug,
-} from "explorer/legacyCovidExplorerRedirects"
+import { grapherToExplorerRedirects } from "explorer/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
@@ -251,7 +248,6 @@ export class SiteBaker {
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
-                    !path.startsWith(covidDashboardSlug) &&
                     !countryProfileSpecs.some((spec) =>
                         path.startsWith(spec.rootPath)
                     ) &&
@@ -521,11 +517,10 @@ export class SiteBaker {
         return Promise.all(requests)
     }
 
-    async bakeExplorerRedirects() {
-        for (const chartExplorerRedirect of chartExplorerRedirects) {
-            const { slugs, explorerQueryStr } = chartExplorerRedirect
-            // explorerQueryStr
-            // todo: make qork
+    async bakeGrapherToExplorerRedirects() {
+        for (const grapherToExplorerRedirect of grapherToExplorerRedirects) {
+            const { slugs, explorerQueryStr } = grapherToExplorerRedirect
+            // todo: restore functionality
             const html = await renderExplorerPage("slug", "")
             await Promise.all(
                 slugs.map((slug) =>
@@ -552,7 +547,7 @@ export class SiteBaker {
         await this.bakeCountryProfiles()
         await this.bakePosts()
         await this.bakeGraphers()
-        await this.bakeExplorerRedirects()
+        await this.bakeGrapherToExplorerRedirects()
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()
     }

@@ -22,7 +22,7 @@ import { Country } from "utils/countries"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 import {
-    replaceChartIframesWithExplorerIframes,
+    replaceGrapherIframesWithExplorerIframes,
     covidDashboardSlug,
 } from "explorer/legacyCovidExplorerRedirects"
 import { SubNavId } from "./views/SiteSubnavigation"
@@ -246,7 +246,7 @@ export async function formatWordpressPost(
     }
 
     // Replace grapher iframes with explorer iframes
-    replaceChartIframesWithExplorerIframes($)
+    replaceGrapherIframesWithExplorerIframes($)
 
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"

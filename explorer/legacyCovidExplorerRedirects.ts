@@ -8,19 +8,19 @@ import {
 
 export const covidDashboardSlug = "coronavirus-data-explorer"
 
-interface ChartExplorerRedirect {
+interface GrapherToExplorerRedirect {
     id: number
     slugs: string[] // includes redirect slugs
     explorerQueryStr: string
 }
 
 /**
- * The chart IDs are not used anywhere, they are here just for reference.
+ * The grapher IDs are not used anywhere, they are here just for reference.
  * We need to include any slug changes below that may happen after deploying this.
- * We are manually tracking the slugs because deleting/unpublishing a chart automatically
- * deletes all chart redirects (old slugs).
+ * We are manually tracking the slugs because deleting/unpublishing a grapher automatically
+ * deletes all grapher redirects (old slugs).
  */
-export const chartExplorerRedirects: ChartExplorerRedirect[] = [
+export const grapherToExplorerRedirects: GrapherToExplorerRedirect[] = [
     {
         id: 4018,
         slugs: [
@@ -191,26 +191,26 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
     ),
 }))
 
-export const chartExplorerRedirectsBySlug: Record<
+export const grapherToExplorerRedirectsByGrapherSlug: Record<
     string,
-    ChartExplorerRedirect
+    GrapherToExplorerRedirect
 > = fromPairs(
     flatten(
-        chartExplorerRedirects.map((redirect) =>
+        grapherToExplorerRedirects.map((redirect) =>
             redirect.slugs.map((slug) => [slug, redirect])
         )
     )
 )
 
-export function replaceChartIframesWithExplorerIframes($: CheerioStatic) {
+export function replaceGrapherIframesWithExplorerIframes($: CheerioStatic) {
     const grapherIframes = $("iframe")
         .toArray()
         .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
     for (const el of grapherIframes) {
         const url = el.attribs["src"].trim()
         const slug = urlToSlug(url)
-        if (slug in chartExplorerRedirectsBySlug) {
-            const { explorerQueryStr } = chartExplorerRedirectsBySlug[slug]
+        if (slug in grapherToExplorerRedirectsByGrapherSlug) {
+            const { explorerQueryStr } = grapherToExplorerRedirectsByGrapherSlug[slug]
             const matchQueryStr = url.match(/\?([^#]*)/)
             const chartQueryStr = matchQueryStr ? matchQueryStr[1] : ""
             const queryStr = mergeQueryStr(explorerQueryStr, chartQueryStr)
