@@ -136,6 +136,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
 
     const newSlugs = []
     let requests = []
+    await fs.mkdirp(bakedSiteDir + "/grapher")
     for (const row of rows) {
         const grapher: GrapherInterface = JSON.parse(row.config)
         grapher.id = row.id
