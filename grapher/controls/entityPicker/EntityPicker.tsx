@@ -26,7 +26,7 @@ import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import { ColumnTypeMap } from "coreTable/CoreTableColumns"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
-import { CountryPickerManager } from "./CountryPickerConstants"
+import { EntityPickerManager } from "./EntityPickerConstants"
 
 const toggleSort = (order: SortOrder) =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
@@ -48,8 +48,8 @@ interface EntityOptionWithMetricValue {
 const mod = (n: number, m: number) => ((n % m) + m) % m
 
 @observer
-export class CountryPicker extends React.Component<{
-    manager?: CountryPickerManager
+export class EntityPicker extends React.Component<{
+    manager?: EntityPickerManager
     isDropdownMenu?: boolean
 }> {
     @computed private get analyticsNamespace() {
@@ -83,7 +83,7 @@ export class CountryPicker extends React.Component<{
         this.manager.selectionArray.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
-        this.manager.analytics?.logCountrySelectorEvent(
+        this.manager.analytics?.logEntityPickerEvent(
             this.analyticsNamespace,
             checked ? "select" : "deselect",
             name
@@ -91,17 +91,17 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get manager() {
-        return this.props.manager || ({} as CountryPickerManager)
+        return this.props.manager || ({} as EntityPickerManager)
     }
 
     @computed private get metric() {
-        return this.manager.countryPickerMetric
+        return this.manager.entityPickerMetric
     }
 
     @computed private get sortOrder(): SortOrder {
         // On mobile, only allow sorting by entityName (ascending)
         if (this.isDropdownMenu) return SortOrder.asc
-        return this.manager.countryPickerSort ?? SortOrder.asc
+        return this.manager.entityPickerSort ?? SortOrder.asc
     }
 
     @computed private get availablePickerColumns() {
@@ -162,7 +162,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get table() {
-        return this.manager.countryPickerTable
+        return this.manager.entityPickerTable
     }
 
     @computed get selectionArray() {
@@ -249,7 +249,7 @@ export class CountryPicker extends React.Component<{
                 const name = this.focusedOption
                 this.selectEntity(name)
                 this.clearSearchInput()
-                this.manager.analytics?.logCountrySelectorEvent(
+                this.manager.analytics?.logEntityPickerEvent(
                     this.analyticsNamespace,
                     "enter",
                     name
@@ -376,11 +376,11 @@ export class CountryPicker extends React.Component<{
     }
 
     @action private updateMetric(columnSlug: ColumnSlug) {
-        this.manager.countryPickerMetric = columnSlug
-        this.manager.countryPickerSort = this.isActivePickerColumnTypeNumeric
+        this.manager.entityPickerMetric = columnSlug
+        this.manager.entityPickerSort = this.isActivePickerColumnTypeNumeric
             ? SortOrder.desc
             : SortOrder.asc
-        this.manager.analytics?.logCountrySelectorEvent(
+        this.manager.analytics?.logEntityPickerEvent(
             this.analyticsNamespace,
             "sortBy",
             columnSlug
@@ -418,8 +418,8 @@ export class CountryPicker extends React.Component<{
                     className="sort"
                     onClick={() => {
                         const sortOrder = toggleSort(this.sortOrder)
-                        this.manager.countryPickerSort = sortOrder
-                        this.manager.analytics?.logCountrySelectorEvent(
+                        this.manager.entityPickerSort = sortOrder
+                        this.manager.analytics?.logEntityPickerEvent(
                             this.analyticsNamespace,
                             "sortOrder",
                             sortOrder
@@ -446,15 +446,16 @@ export class CountryPicker extends React.Component<{
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
+        const entityType = "country"
         return (
-            <div className="CountryPicker" onKeyDown={this.onKeyDown}>
-                <div className="CountryPickerSearchInput">
+            <div className="EntityPicker" onKeyDown={this.onKeyDown}>
+                <div className="EntityPickerSearchInput">
                     <input
                         className={classnames("input-field", {
                             "with-done-button": this.showDoneButton,
                         })}
                         type="text"
-                        placeholder="Type to add a country..."
+                        placeholder={`Type to add a ${entityType}...`}
                         value={this.searchInput ?? ""}
                         onChange={(e) =>
                             (this.searchInput = e.currentTarget.value)
@@ -462,7 +463,7 @@ export class CountryPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
-                        data-track-note={`${this.analyticsNamespace}-country-search-input`}
+                        data-track-note={`${this.analyticsNamespace}-picker-search-input`}
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
@@ -474,10 +475,10 @@ export class CountryPicker extends React.Component<{
                     )}
                 </div>
                 {this.pickerMenu}
-                <div className="CountryListContainer">
+                <div className="EntityListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
-                            className={classnames("CountryList", {
+                            className={classnames("EntityList", {
                                 isDropdown: this.isDropdownMenu,
                             })}
                             onMouseDown={this.onMenuMouseDown}
@@ -485,7 +486,7 @@ export class CountryPicker extends React.Component<{
                             <VerticalScrollContainer
                                 scrollingShadows={true}
                                 scrollLock={true}
-                                className="CountrySearchResults"
+                                className="EntitySearchResults"
                                 contentsId={entities
                                     .map((c) => c.entityName)
                                     .join(",")}
@@ -527,7 +528,7 @@ export class CountryPicker extends React.Component<{
                                     ))}
                                 </Flipper>
                             </VerticalScrollContainer>
-                            <div className="CountrySelectionControls">
+                            <div>
                                 <div
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
@@ -548,7 +549,7 @@ export class CountryPicker extends React.Component<{
     }
 }
 
-interface CountryOptionProps {
+interface PickerOptionProps {
     optionWithMetricValue: EntityOptionWithMetricValue
     highlight: (label: string) => JSX.Element | string
     onChange: (name: string, checked: boolean) => void
@@ -560,7 +561,7 @@ interface CountryOptionProps {
     hasDataForActiveMetric: boolean
 }
 
-class PickerOption extends React.Component<CountryOptionProps> {
+class PickerOption extends React.Component<PickerOptionProps> {
     @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) {
         event.stopPropagation()
         event.preventDefault()
@@ -581,13 +582,13 @@ class PickerOption extends React.Component<CountryOptionProps> {
             highlight,
         } = this.props
         const { entityName, plotValue, formattedValue } = optionWithMetricValue
-        const metricValue = formattedValue === entityName ? "" : formattedValue // If the user has "country name" selected, don't show the name twice.
+        const metricValue = formattedValue === entityName ? "" : formattedValue // If the user has this entity selected, don't show the name twice.
 
         return (
             <Flipped flipId={entityName} translate opacity>
                 <label
                     className={classnames(
-                        "CountryOption",
+                        "EntityPickerOption",
                         {
                             selected: isSelected,
                             focused: isFocused,

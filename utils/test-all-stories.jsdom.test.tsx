@@ -14,7 +14,7 @@ import * as CaptionedChart from "grapher/captionedChart/CaptionedChart.stories"
 import * as NoDataModal from "grapher/noDataModal/NoDataModal.stories"
 import * as CollapsibleList from "grapher/controls/CollapsibleList/CollapsibleList.stories"
 import * as CommandPalette from "grapher/controls/CommandPalette.stories"
-import * as CountryPicker from "grapher/controls/countryPicker/CountryPicker.stories"
+import * as EntityPicker from "grapher/controls/entityPicker/EntityPicker.stories"
 import * as ScaleSelector from "grapher/controls/ScaleSelector.stories"
 import * as Grapher from "grapher/core/Grapher.stories"
 import * as DataTable from "grapher/dataTable/DataTable.stories"
@@ -55,7 +55,7 @@ runTests(CaptionedChart)
 runTests(NoDataModal)
 runTests(CollapsibleList)
 runTests(CommandPalette)
-runTests(CountryPicker)
+runTests(EntityPicker)
 runTests(ScaleSelector)
 runTests(Grapher)
 runTests(DataTable)

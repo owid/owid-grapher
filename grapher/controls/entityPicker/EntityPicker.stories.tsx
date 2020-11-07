@@ -1,6 +1,5 @@
 import * as React from "react"
-import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
-import { BlankOwidTable } from "coreTable/OwidTable"
+import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
@@ -8,11 +7,11 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
-import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { computed, observable } from "mobx"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 
-class CountryPickerHolder extends React.Component {
+class PickerHolder extends React.Component {
     render() {
         return (
             <div
@@ -37,16 +36,16 @@ const defaultSlugs = [
 
 // A stub class for testing
 @observer
-class SomeThingWithACountryPicker
+class SomeThingWithAPicker
     extends React.Component<{
         pickerSlugs?: ColumnSlug[]
         selection?: EntityName[]
     }>
-    implements CountryPickerManager, SelectionManager {
-    countryPickerTable = SynthesizeGDPTable({ entityCount: 30 }, 1)
+    implements EntityPickerManager, SelectionManager {
+    entityPickerTable = SynthesizeGDPTable({ entityCount: 30 }, 1)
 
-    @observable countryPickerMetric?: ColumnSlug
-    @observable countryPickerSort?: SortOrder
+    @observable entityPickerMetric?: ColumnSlug
+    @observable entityPickerSort?: SortOrder
 
     @computed get pickerColumnSlugs() {
         return this.props.pickerSlugs
@@ -55,43 +54,43 @@ class SomeThingWithACountryPicker
     selectionArray = new SelectionArray(this)
     @observable selectedEntityNames = this.props.selection ?? []
     @computed get availableEntities() {
-        return this.countryPickerTable.availableEntities
+        return this.entityPickerTable.availableEntities
     }
 
     requiredColumnSlugs = defaultSlugs
 
     render() {
         return (
-            <CountryPickerHolder>
-                <CountryPicker manager={this} />
-            </CountryPickerHolder>
+            <PickerHolder>
+                <EntityPicker manager={this} />
+            </PickerHolder>
         )
     }
 }
 
 export default {
-    title: "CountryPicker",
-    component: CountryPicker,
+    title: "EntityPicker",
+    component: EntityPicker,
 }
 
 export const Empty = () => (
-    <CountryPickerHolder>
-        <CountryPicker
+    <PickerHolder>
+        <EntityPicker
             manager={{
                 selectionArray: new SelectionArray(),
             }}
         />
-    </CountryPickerHolder>
+    </PickerHolder>
 )
 
-export const WithChoices = () => <SomeThingWithACountryPicker />
+export const WithChoices = () => <SomeThingWithAPicker />
 
 export const WithPickerMetricsChoices = () => (
-    <SomeThingWithACountryPicker pickerSlugs={defaultSlugs} />
+    <SomeThingWithAPicker pickerSlugs={defaultSlugs} />
 )
 
 export const WithExistingSelectionChoices = () => (
-    <SomeThingWithACountryPicker
+    <SomeThingWithAPicker
         pickerSlugs={defaultSlugs}
         selection={["Japan", "Samoa"]}
     />

@@ -54,25 +54,21 @@ export class Analytics {
         this.logToSA(`GlobalEntityControl :: ${action} :: ${note}`)
     }
 
-    logCountrySelectorEvent(
-        countryPickerName: string,
+    logEntityPickerEvent(
+        pickerSlug: string,
         action: "enter" | "select" | "deselect" | "sortBy" | "sortOrder",
         note?: string
     ) {
         this.logToAmplitude(
-            `${countryPickerName.toUpperCase()}_DATA_EXPLORER_COUNTRY_SELECTOR`,
+            `${pickerSlug.toUpperCase()}_DATA_EXPLORER_COUNTRY_SELECTOR`,
             {
                 action,
                 note,
             }
         )
-        this.logToGA(
-            `${countryPickerName}DataExplorerCountrySelector`,
-            action,
-            note
-        )
+        this.logToGA(`${pickerSlug}DataExplorerCountrySelector`, action, note)
         this.logToSA(
-            `${countryPickerName}DataExplorerCountrySelector :: ${action} :: ${note}`
+            `${pickerSlug}DataExplorerCountrySelector :: ${action} :: ${note}`
         )
     }
 

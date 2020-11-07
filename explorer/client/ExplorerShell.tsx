@@ -5,11 +5,11 @@ import { Grapher } from "grapher/core/Grapher"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
+import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
-import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "grapher/core/SelectionArray"
 
 interface ExplorerShellProps {
@@ -17,7 +17,7 @@ interface ExplorerShellProps {
     controlPanels: JSX.Element[]
     headerElement: JSX.Element
     hideControls?: boolean
-    countryPickerManager?: CountryPickerManager
+    entityPickerManager?: EntityPickerManager
     isEmbed: boolean
     enableKeyboardShortcuts?: boolean
     selectionArray: SelectionArray
@@ -110,11 +110,11 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
 
     @observable.ref grapherRef: React.RefObject<Grapher> = React.createRef()
 
-    private renderCountryPicker() {
+    private renderEntityPicker() {
         return (
-            <CountryPicker
-                key="countryPicker"
-                manager={this.props.countryPickerManager}
+            <EntityPicker
+                key="entityPicker"
+                manager={this.props.entityPickerManager}
                 isDropdownMenu={this.isMobile}
             />
         )
@@ -137,7 +137,7 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
                         </div>
                     )}
                     {this.showExplorerControls && this.controlBar}
-                    {this.showExplorerControls && this.renderCountryPicker()}
+                    {this.showExplorerControls && this.renderEntityPicker()}
                     {this.showExplorerControls &&
                         this.customizeChartMobileButton}
                     <div

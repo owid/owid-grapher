@@ -25,7 +25,7 @@ import {
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
 import { ExplorerContainerId } from "./ExplorerConstants"
-import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
 import {
     ColumnSlug,
@@ -63,7 +63,7 @@ export class Explorer
     implements
         ObservableUrl,
         SlideShowManager,
-        CountryPickerManager,
+        EntityPickerManager,
         SelectionManager {
     static bootstrap(props: ExplorerProps) {
         return ReactDOM.render(
@@ -100,10 +100,10 @@ export class Explorer
     }
 
     @observable hideControls = false
-    @observable countryPickerMetric?: ColumnSlug =
+    @observable entityPickerMetric?: ColumnSlug =
         strToQueryParams(this.explorerProgram.queryString ?? "").pickerMetric ??
         undefined
-    @observable countryPickerSort?: SortOrder =
+    @observable entityPickerSort?: SortOrder =
         (strToQueryParams(this.explorerProgram.queryString ?? "")
             .pickerSort as SortOrder) ?? undefined
 
@@ -311,7 +311,7 @@ export class Explorer
                 selectionArray={this.selectionArray}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerProgram.slug}
-                countryPickerManager={this}
+                entityPickerManager={this}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
                 enableKeyboardShortcuts={!this.isEmbed}
@@ -320,7 +320,7 @@ export class Explorer
         )
     }
 
-    @computed get countryPickerTable() {
+    @computed get entityPickerTable() {
         return this.grapher?.table
     }
 

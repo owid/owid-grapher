@@ -4,14 +4,14 @@ $chart-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
     rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 $zindex-dropdown: 100;
 
-.CountryListContainer {
+.EntityListContainer {
     flex: 1;
     position: relative;
     display: flex;
     flex-direction: column;
 }
 
-.CountryList {
+.EntityList {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -38,11 +38,11 @@ $zindex-dropdown: 100;
     padding: 5px;
 }
 
-.CountrySearchResults {
+.EntitySearchResults {
     overflow-y: scroll;
 }
 
-.CountryPicker {
+.EntityPicker {
     display: flex;
     flex-direction: column;
 }
@@ -74,7 +74,7 @@ $zindex-dropdown: 100;
     }
 }
 
-.CountryOption {
+.EntityPickerOption {
     display: flex;
     align-items: center;
     padding: 10px;
@@ -173,7 +173,7 @@ $zindex-dropdown: 100;
     opacity: 0.4;
 }
 
-.CountryPickerSearchInput {
+.EntityPickerSearchInput {
     flex: 0;
     position: relative;
     color: $primary-color-800;
@@ -245,7 +245,7 @@ $zindex-dropdown: 100;
     grid-template-columns: auto;
     grid-template-rows: 0fr 0fr 0fr 1fr;
 
-    .CountryList {
+    .EntityList {
         min-height: 150px;
         height: 35vh;
     }

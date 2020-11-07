@@ -131,7 +131,7 @@ $zindex-Tooltip: 20;
     z-index: $zindex-Tooltip;
 }
 
-@import "grapher/controls/countryPicker/CountryPicker.scss";
+@import "grapher/controls/entityPicker/EntityPicker.scss";
 @import "grapher/controls/CommandPalette.scss";
 @import "grapher/controls/ScaleSelector.scss";
 @import "grapher/controls/Controls.scss";

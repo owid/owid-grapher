@@ -78,18 +78,14 @@ export class GrapherAnalytics {
         )
     }
 
-    logCountrySelectorEvent(
-        countryPickerName: string,
+    logEntityPickerEvent(
+        pickerSlug: string,
         action: countrySelectorEvent,
         note?: string
     ) {
-        this.logToGA(
-            `${countryPickerName}ExplorerCountrySelectorUsage`,
-            action,
-            note
-        )
+        this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
         this.logToSA(
-            `${countryPickerName}DataExplorerCountrySelector :: ${action} :: ${note}`
+            `${pickerSlug}DataExplorerCountrySelector :: ${action} :: ${note}`
         )
     }
 
