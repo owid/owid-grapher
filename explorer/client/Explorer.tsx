@@ -2,14 +2,16 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, computed, autorun } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
+import {
+    ExplorerControlPanel,
+    ExplorerControlBar,
+} from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
 import {
     UrlBinder,
     ObservableUrl,
     MultipleUrlBinder,
 } from "grapher/utils/UrlBinder"
-import { ExplorerShell } from "./ExplorerShell"
 import { CheckboxOption, ExplorerProgram, TableDef } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
@@ -19,6 +21,7 @@ import {
     exposeInstanceOnWindow,
     fetchText,
     trimObject,
+    throttle,
 } from "grapher/utils/Util"
 import {
     SlideShowController,
@@ -35,6 +38,12 @@ import {
 } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
 import { GlobalEntitySelection } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
+
+import classNames from "classnames"
 
 export interface ExplorerProps {
     explorerProgramCode: string
@@ -178,12 +187,20 @@ export class Explorer
     }
 
     componentDidMount() {
-        this.setGrapher(this.explorerShellRef.current!.grapherRef!.current!)
+        this.setGrapher(this.grapherRef!.current!)
         // Whenever the selected row changes, update Grapher.
         autorun(() =>
             this.updateGrapher(this.explorerProgram.decisionMatrix.selectedRow)
         )
         exposeInstanceOnWindow(this, "explorer")
+        this.onResizeThrottled = throttle(this.onResize, 100)
+        window.addEventListener("resize", this.onResizeThrottled)
+        this.onResize() // call resize for the first time to initialize chart
+    }
+
+    componentWillUnmount() {
+        if (this.onResizeThrottled)
+            window.removeEventListener("resize", this.onResizeThrottled)
     }
 
     @action.bound private updateGrapher(selectedRow: CoreRow) {
@@ -213,7 +230,7 @@ export class Explorer
         const config: GrapherProgrammaticInterface = {
             ...chartConfig,
             ...trimmedRow,
-            hideEntityControls: !this.hideControls && !this.isEmbed,
+            hideEntityControls: !this.hideControls && !this.props.isEmbed,
             dropUnchangedUrlParams: false,
             manuallyProvideData: table ? true : false,
         }
@@ -278,9 +295,9 @@ export class Explorer
         )
     }
 
-    private get header() {
+    private renderHeaderElement() {
         return (
-            <>
+            <div className="ExplorerHeaderBox">
                 <div></div>
                 <div className="ExplorerTitle">
                     {this.explorerProgram.title}
@@ -291,32 +308,122 @@ export class Explorer
                         __html: this.explorerProgram.subtitle || "",
                     }}
                 ></div>
-            </>
+            </div>
         )
     }
 
-    //todo
-    private get isEmbed() {
-        return this.props.isEmbed ?? false
+    private _isMobile() {
+        return (
+            window.screen.width < 450 ||
+            document.documentElement.clientWidth <= 800
+        )
     }
 
-    @observable.ref explorerShellRef: React.RefObject<
-        ExplorerShell
+    @observable private isMobile = this._isMobile()
+
+    @computed private get showExplorerControls() {
+        return !this.hideControls || !this.props.isEmbed
+    }
+
+    @observable private grapherContainerRef: React.RefObject<
+        HTMLDivElement
     > = React.createRef()
 
-    render() {
+    @observable.ref private grapherBounds = DEFAULT_BOUNDS
+    @observable.ref private grapherRef: React.RefObject<
+        Grapher
+    > = React.createRef()
+
+    private renderControlBar() {
         return (
-            <ExplorerShell
-                headerElement={this.header}
-                selectionArray={this.selectionArray}
-                controlPanels={this.panels}
-                explorerSlug={this.explorerProgram.slug}
-                entityPickerManager={this}
-                hideControls={this.hideControls}
-                isEmbed={this.isEmbed}
-                enableKeyboardShortcuts={!this.isEmbed}
-                ref={this.explorerShellRef}
+            <ExplorerControlBar
+                isMobile={this.isMobile}
+                showControls={this.showMobileControlsPopup}
+                closeControls={this.closeControls}
+            >
+                {this.panels}
+            </ExplorerControlBar>
+        )
+    }
+
+    private renderEntityPicker() {
+        return (
+            <EntityPicker
+                key="entityPicker"
+                manager={this}
+                isDropdownMenu={this.isMobile}
             />
+        )
+    }
+
+    private onResizeThrottled?: () => void
+
+    @action.bound private toggleMobileControls() {
+        this.showMobileControlsPopup = !this.showMobileControlsPopup
+    }
+
+    @action.bound private onResize() {
+        this.isMobile = this._isMobile()
+        this.grapherBounds = this.getGrapherBounds() || this.grapherBounds
+    }
+
+    // Todo: add better logic to maximize the size of the Grapher
+    private getGrapherBounds() {
+        const grapherContainer = this.grapherContainerRef.current
+        return grapherContainer
+            ? new Bounds(
+                  0,
+                  0,
+                  grapherContainer.clientWidth,
+                  grapherContainer.clientHeight
+              )
+            : undefined
+    }
+
+    @observable private showMobileControlsPopup = false
+    private get mobileCustomizeButton() {
+        return (
+            <a
+                className="btn btn-primary mobile-button"
+                onClick={this.toggleMobileControls}
+                data-track-note="covid-customize-chart"
+            >
+                <FontAwesomeIcon icon={faChartLine} /> Customize chart
+            </a>
+        )
+    }
+
+    @action.bound private closeControls() {
+        this.showMobileControlsPopup = false
+    }
+
+    render() {
+        const { showExplorerControls } = this
+        return (
+            <div
+                className={classNames({
+                    Explorer: true,
+                    "mobile-explorer": this.isMobile,
+                    HideControls: !showExplorerControls,
+                    "is-embed": this.props.isEmbed,
+                })}
+            >
+                {showExplorerControls && this.renderHeaderElement()}
+                {showExplorerControls && this.renderControlBar()}
+                {showExplorerControls && this.renderEntityPicker()}
+                {showExplorerControls &&
+                    this.isMobile &&
+                    this.mobileCustomizeButton}
+                <div className="ExplorerFigure" ref={this.grapherContainerRef}>
+                    <Grapher
+                        bounds={this.grapherBounds}
+                        isEmbed={true}
+                        selectionArray={this.selectionArray}
+                        ref={this.grapherRef}
+                        enableKeyboardShortcuts={true}
+                    />
+                </div>
+            </div>
         )
     }
 
