@@ -8,7 +8,6 @@ import {
     intersection,
     flatten,
     sum,
-    differenceBy,
     uniqBy,
     intersectionOfSets,
     isPresent,
@@ -139,7 +138,9 @@ export class CoreTable<
         const providedSlugs = new Set(
             this.inputColumnDefs.map((def) => def.slug)
         )
-        return this.defs.filter((def) => !providedSlugs.has(def.slug))
+        return new CoreTable(
+            this.defs.filter((def) => !providedSlugs.has(def.slug))
+        )
     }
 
     @imemo get transformCategory() {
