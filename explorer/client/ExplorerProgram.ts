@@ -11,6 +11,7 @@ import {
     ExplorerControlType,
     ExplorerControlOption,
     ExplorerControlTypeRegex,
+    DefaultNewExplorerSlug,
 } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
@@ -135,6 +136,10 @@ export class ExplorerProgram {
             slug: this.slug,
             lastModifiedTime: this.lastModifiedTime,
         }
+    }
+
+    get isNewFile() {
+        return this.slug === DefaultNewExplorerSlug
     }
 
     static fromJson(json: SerializedExplorerProgram) {

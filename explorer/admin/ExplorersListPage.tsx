@@ -29,6 +29,7 @@ import {
 import { BAKED_BASE_URL } from "settings"
 import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
 import moment from "moment"
+import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -149,7 +150,7 @@ class ExplorerList extends React.Component<{
                     <tr>
                         <th>Slug</th>
                         <th>Title</th>
-                        <th></th>
+                        <th>Updated</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -217,7 +218,7 @@ export class ExplorersIndexPage extends React.Component {
         }
 
         const nextAvailableSlug = getAvailableSlugSync(
-            "untitled",
+            DefaultNewExplorerSlug,
             this.explorersToShow.map((exp) => exp.slug)
         )
 

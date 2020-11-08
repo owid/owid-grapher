@@ -7,6 +7,7 @@ export const GIT_CMS_PULL_ROUTE = `${GIT_CMS_ROUTE}/pull`
 export interface WriteRequest {
     filepath: string
     content: string
+    commitMessage: string
 }
 
 export interface ReadRequest {

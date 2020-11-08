@@ -83,17 +83,35 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
-    @action.bound async saveExplorer() {
-        const slug = prompt("Slug for this explorer", this.program.slug)
-        if (!slug) return
+    private async _save(slug: string, commitMessage: string) {
         this.context.admin.loadingIndicatorSetting = "loading"
         this.program.slug = slug
         await writeRemoteFile({
             filepath: this.program.fullPath,
             content: this.program.toString(),
+            commitMessage,
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.sourceOnDisk = this.program.toString()
+    }
+
+    @action.bound private async saveAs() {
+        const slug = prompt(
+            "Create a slug (URL friendly name) for this explorer",
+            this.program.slug
+        )
+        if (!slug) return
+        await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
+        window.location.href = slug
+    }
+
+    @action.bound private async save() {
+        const commitMessage = prompt(
+            "Enter a message describing this change",
+            `Updated ${this.program.slug}`
+        )
+        if (!commitMessage) return
+        await this._save(this.program.slug, commitMessage)
     }
 
     @computed get isModified() {
@@ -160,7 +178,12 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         {this.isModified ? (
                             <button
                                 className="btn btn-primary"
-                                onClick={this.saveExplorer}
+                                onClick={() =>
+                                    program.isNewFile
+                                        ? this.saveAs()
+                                        : this.save()
+                                }
+                                title="Saves file to disk, commits and pushes to GitHub"
                             >
                                 Save
                             </button>
@@ -178,6 +201,14 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         >
                             Preview
                         </Link>
+                        &nbsp;
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.saveAs}
+                            title="Saves file to disk, commits and pushes to GitHub"
+                        >
+                            Save as
+                        </button>
                     </div>
                     <div style={{ height: "400px", overflow: "scroll" }}>
                         <Explorer

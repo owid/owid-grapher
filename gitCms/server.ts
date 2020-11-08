@@ -30,12 +30,15 @@ async function saveFileToGitContentDirectory(
     filename: string,
     content: string,
     commitName: string,
-    commitEmail: string
+    commitEmail: string,
+    commitMsg?: string
 ) {
     const path = GIT_CMS_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
 
-    const commitMsg = fs.existsSync(path)
+    commitMsg = commitMsg
+        ? commitMsg
+        : fs.existsSync(path)
         ? `Updating ${filename}`
         : `Adding ${filename}`
     const push = await shouldPush()
@@ -83,7 +86,8 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                 filename,
                 request.content,
                 res.locals.user.fullName,
-                res.locals.user.email
+                res.locals.user.email,
+                request.commitMessage
             )
             return { success: errorMessage ? false : true }
         }

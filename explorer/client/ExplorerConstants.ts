@@ -4,6 +4,8 @@ export enum ExplorerControlType {
     Dropdown = "Dropdown",
 }
 
+export const DefaultNewExplorerSlug = "untitled"
+
 export const ExplorerControlTypeRegex = new RegExp(
     " (" + Object.values(ExplorerControlType).join("|") + ")$"
 )
