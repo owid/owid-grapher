@@ -92,10 +92,11 @@ const main = async () => {
     } else printAndExit("Please select either live or a valid test target.")
 
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
+    const scriptSteps = 4
     const progressBar = new ProgressBar(
         `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
-            total: 8 + testSteps,
+            total: 5 + scriptSteps + testSteps,
             renderThrottle: 0, // print on every tick
         }
     )
