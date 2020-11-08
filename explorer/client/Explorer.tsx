@@ -138,23 +138,6 @@ export class Explorer
         return chartConfigsMap
     }
 
-    // The country picker can have entities not present in all charts
-    @action.bound private async addEntityOptionsToPickerWhenReady() {
-        if (!this.grapher) return
-        await this.grapher.whenReady()
-        this.addEntityOptionsToPicker()
-    }
-
-    @action.bound private addEntityOptionsToPicker() {
-        if (!this.grapher) return
-        const { selectionArray } = this
-        const currentEntities = selectionArray.availableEntityNameSet
-        const missingEntities = this.grapher.availableEntities.filter(
-            (entity) => !currentEntities.has(entity.entityName)
-        )
-        selectionArray.addAvailableEntityNames(missingEntities)
-    }
-
     @observable.ref grapher?: Grapher
 
     private getTable(tableSlug: TableSlug) {
@@ -175,11 +158,12 @@ export class Explorer
     @action.bound private async fetchTable(table: TableDef) {
         const path = table.url!
         const csv = await fetchText(path)
-        this.grapher!.inputTable = new OwidTable(csv, table.columnDefinitions, {
+        const grapher = this.grapher!
+        grapher.inputTable = new OwidTable(csv, table.columnDefinitions, {
             tableDescription: `Loaded from ${path}`,
         })
-        this.addEntityOptionsToPickerWhenReady()
-        this.tableCache.set(path, this.grapher!.inputTable)
+        grapher.appendNewEntitySelectionOptions()
+        this.tableCache.set(path, grapher.inputTable)
     }
 
     @action.bound setGrapher(grapher: Grapher) {
@@ -249,7 +233,6 @@ export class Explorer
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         if (!hasChartId) grapher.id = 0
-        this.addEntityOptionsToPickerWhenReady()
         this.bindToWindow()
     }
 

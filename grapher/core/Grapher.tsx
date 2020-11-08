@@ -641,11 +641,22 @@ export class Grapher
         // transformation (can happen when columns use targetTime)
         this.setDimensionsFromConfigs(dimensions)
 
+        this.appendNewEntitySelectionOptions()
+
         if (this.props.selectionArray) {
             // Selection is managed externally, do nothing.
         } else if (this.selectedEntitiesInQueryParam.length)
             this._applySelectionFromQueryParams()
         else this.applyOriginalSelectionAsAuthored()
+    }
+
+    @action.bound appendNewEntitySelectionOptions() {
+        const { selection } = this
+        const currentEntities = selection.availableEntityNameSet
+        const missingEntities = this.availableEntities.filter(
+            (entity) => !currentEntities.has(entity.entityName)
+        )
+        selection.addAvailableEntityNames(missingEntities)
     }
 
     @action.bound private _applySelectionFromQueryParams() {
@@ -700,15 +711,6 @@ export class Grapher
         return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(
             (slug) => slug
         ) as ColumnSlug[]
-    }
-
-    async whenReady() {
-        return new Promise((resolve) => {
-            if (this.isReady) return resolve()
-            observe(this, "isReady", () => {
-                if (this.isReady) resolve()
-            })
-        })
     }
 
     @computed private get loadingDimensions() {
