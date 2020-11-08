@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
+import { getAvailableSlugSync, isPresent, orderBy } from "grapher/utils/Util"
 import {
     ExplorerProgram,
     SerializedExplorerProgram,
@@ -46,6 +46,21 @@ class ExplorerRow extends React.Component<{
         const publishedUrl = `${BAKED_BASE_URL}/explorers/${explorer.slug}`
 
         const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/explorers/`
+
+        const fileHistory = (
+            <a key="explorers" href={repoPath + explorer.filename}>
+                File History
+            </a>
+        )
+
+        const googleSheet = explorer.googleSheet ? (
+            <>
+                <span> | </span>
+                <a key="googleSheets" href={explorer.googleSheet}>
+                    Google Sheet
+                </a>
+            </>
+        ) : null
 
         return (
             <tr>
@@ -108,9 +123,8 @@ class ExplorerRow extends React.Component<{
                     </button>
                 </td>
                 <td>
-                    <a target="explorers" href={repoPath + explorer.filename}>
-                        File History
-                    </a>
+                    {fileHistory}
+                    {googleSheet}
                 </td>
             </tr>
         )

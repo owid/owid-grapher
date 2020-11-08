@@ -56,6 +56,7 @@ export enum ProgramKeyword {
     subtitle = "subtitle",
     defaultView = "defaultView",
     wpBlockId = "wpBlockId",
+    googleSheet = "googleSheet",
 }
 
 // Note: the following sample program was actually made in a spreadsheet and copy/pasted. Easier that way.
@@ -296,7 +297,7 @@ export class ExplorerProgram {
         this.lines = this.lines.splice(location.start, location.length)
     }
 
-    get title(): string | undefined {
+    get title() {
         return this.getLineValue(ProgramKeyword.title)
     }
 
@@ -304,23 +305,27 @@ export class ExplorerProgram {
         return this.getLineValue(ProgramKeyword.subNavId) as SubNavId
     }
 
+    get googleSheet() {
+        return this.getLineValue(ProgramKeyword.googleSheet)
+    }
+
     get hideAlertBanner() {
         return this.getLineValue(ProgramKeyword.hideAlertBanner) === "true"
     }
 
-    get subNavCurrentId(): string | undefined {
+    get subNavCurrentId() {
         return this.getLineValue(ProgramKeyword.subNavCurrentId)
     }
 
-    get thumbnail(): string | undefined {
+    get thumbnail() {
         return this.getLineValue(ProgramKeyword.thumbnail)
     }
 
-    get subtitle(): string | undefined {
+    get subtitle() {
         return this.getLineValue(ProgramKeyword.subtitle)
     }
 
-    get defaultView(): string | undefined {
+    get defaultView() {
         // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
         return this.getLineValue(ProgramKeyword.defaultView)
     }
@@ -339,7 +344,7 @@ export class ExplorerProgram {
         )
     }
 
-    get wpBlockId(): number | undefined {
+    get wpBlockId() {
         const blockIdString = this.getLineValue(ProgramKeyword.wpBlockId)
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
