@@ -318,51 +318,55 @@ export class SiteBaker {
 
     async bakeAll() {
         const progressBar = new ProgressBar(
-            "  bakeAll [:bar] :current/:total :elapseds\n",
+            "  bakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 complete: "=",
                 incomplete: " ",
                 width: 40,
-                total: 14,
+                total: 15,
             }
         )
 
         // Ensure caches are correctly initialized
         this.flushCache()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ cache flushed" })
         const redirects = await getRedirects()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked redirects" })
         await this.bakeEmbeds()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked embeds" })
         await this.bakeBlogIndex()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked blog index" })
         await bakeCountries(this)
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked countries" })
         await this.bakeRSS()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked rss" })
         await this.bakeAssets()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked assets" })
         await this.bakeSpecialPages()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked special pages" })
         await this.bakeGoogleScholar()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked google scholar" })
         await this.bakeCountryProfiles()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked country profiles" })
         await this.bakePosts()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ baked posts" })
         await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             this.bakedSiteDir
         )
-        progressBar.tick()
+        progressBar.tick({
+            name:
+                "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+        })
         await this.bakeGrapherToExplorerRedirects()
-        progressBar.tick()
+        progressBar.tick({ name: "✅ bakeGrapherToExplorerRedirects" })
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()
+        progressBar.tick({ name: "✅ cache flushed" })
     }
 
     async ensureDir(relPath: string) {
@@ -401,32 +405,33 @@ export class SiteBaker {
         authorEmail?: string,
         authorName?: string
     ) {
+        const deployDirectlyToNetlix = fs.existsSync(
+            path.join(this.bakedSiteDir, ".netlify/state.json")
+        )
         const progressBar = new ProgressBar(
-            "  deployToNetlify [:bar] :current/:total :elapseds\n",
+            "  deployToNetlify [:bar] :current/:total :elapseds :name\n",
             {
                 complete: "=",
                 incomplete: " ",
                 width: 40,
-                total: 3,
+                total: 3 + (deployDirectlyToNetlix ? 1 : 0),
             }
         )
+        progressBar.tick({ name: "✅ read to deploy" })
         // Deploy directly to Netlify (faster than using the github hook)
-        if (
-            fs.existsSync(path.join(this.bakedSiteDir, ".netlify/state.json"))
-        ) {
+        if (deployDirectlyToNetlix) {
             await this.execAndLogAnyErrorsToSlack(
                 `cd ${this.bakedSiteDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod --timeout 6000`
             )
+            progressBar.tick({ name: "✅ deployed directly to netlify" })
         }
-
-        progressBar.tick()
 
         // Ensure there is a git repo in there
         await this.execAndLogAnyErrorsToSlack(
             `cd ${this.bakedSiteDir} && git init`
         )
 
-        progressBar.tick()
+        progressBar.tick({ name: "✅ ensured git repo" })
 
         // Prettify HTML source for easier debugging
         // Target root level HTML files only (entries and posts) for performance
@@ -442,7 +447,7 @@ export class SiteBaker {
             await this.execAndLogAnyErrorsToSlack(
                 `cd ${this.bakedSiteDir} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`
             )
-        progressBar.tick()
+        progressBar.tick({ name: "✅ committed and pushed to github" })
     }
 
     endDbConnections() {

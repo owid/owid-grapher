@@ -28,5 +28,9 @@ export const gitUserInfo = async (dir: string) => {
     const email = await execFormatted("git config user.email", [dir], false)
     const name = await execFormatted("git config user.name", [dir], false)
     const head = await execFormatted("git rev-parse HEAD", [dir], false)
-    return { email, name, head }
+    return {
+        email: email.stdout.trim(),
+        name: name.stdout.trim(),
+        head: head.stdout.trim(),
+    }
 }

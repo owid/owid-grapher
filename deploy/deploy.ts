@@ -12,6 +12,7 @@ import {
     gitUserInfo,
     pullAndRebaseFromGit,
 } from "gitCms/GitUtils"
+import { spawn } from "child_process"
 
 const runLiveSafetyChecks = async (dir: string) => {
     const branch = await getGitBranchNameForDir(dir)
@@ -31,6 +32,7 @@ const runLiveSafetyChecks = async (dir: string) => {
     if (!response) printAndExit("Cancelled")
 }
 
+// todo: I have not tested this yet, and would be surprised if it worked on the first attempt.
 const runPreDeployChecksRemotely = async (
     dir: string,
     HOST: string,
@@ -42,7 +44,7 @@ const runPreDeployChecksRemotely = async (
     const script = `cd ${SYNC_TARGET_TESTS}
 yarn install --production=false --frozen-lockfile
 yarn testcheck`
-    return await runScriptOnRemoteServerViaSSH(HOST, script)
+    return await exec(`ssh -t ${HOST} 'bash -e -s' ${script}`)
 }
 
 const LIVE_NAME = "live"
@@ -124,20 +126,36 @@ const main = async () => {
 
     await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
     progressBar.tick({ name: `✅ ${ROOT_TMP} exists on ${HOST}` })
-    await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
-    progressBar.tick({
-        name: `✅ ${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
-    })
-    await runBigCommandOnServer(
+
+    const script = makeScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue(
         ROOT,
         NAME,
         USER,
         DIR,
         SYNC_TARGET,
         HOST,
-        ROOT_TMP
+        ROOT_TMP,
+        gitInfo.email,
+        gitInfo.name
     )
-    progressBar.tick({ name: "✅ run big" })
+
+    const tempScriptFilename = "temp_deploy_script.sh"
+    const remoteScriptPath = `${SYNC_TARGET}/${tempScriptFilename}`
+    const deployScriptPath = `${DIR}/${tempScriptFilename}`
+    fs.writeFileSync(deployScriptPath, script, "utf8")
+    fs.chmodSync(deployScriptPath, "755")
+
+    await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
+    progressBar.tick({
+        name: `✅ ${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
+    })
+
+    console.log(`⏳ Running ${remoteScriptPath} on ${HOST}`)
+    await runAndStreamScriptOnRemoteServerViaSSH(HOST, remoteScriptPath)
+    progressBar.tick({
+        name:
+            "✅ ranScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue",
+    })
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT_TMP: string) => {
@@ -153,27 +171,43 @@ const copyLocalRepoToServerTmpDirectory = async (
     return await exec(`${RSYNC} ${DIR}/ ${HOST}:${SYNC_TARGET}`)
 }
 
-const runScriptOnRemoteServerViaSSH = async (host: string, script: string) => {
-    const result = await exec(`ssh -t ${host} 'bash -e -s' ${script}`)
-    return result
+const runAndStreamScriptOnRemoteServerViaSSH = async (
+    host: string,
+    path: string
+) => {
+    const params = [`-t`, host, "bash -e", path]
+    const child = spawn(`ssh`, params)
+
+    for await (const chunk of child.stdout) {
+        console.log(chunk.toString())
+    }
+    for await (const chunk of child.stderr) {
+        console.error(chunk.toString())
+    }
+    const exitCode = await new Promise((resolve, reject) => {
+        child.on("close", resolve)
+    })
+
+    if (exitCode) {
+        console.log(`Exit code: ${exitCode}`)
+    }
 }
 
-const runBigCommandOnServer = async (
+const makeScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue = (
     ROOT: string,
     NAME: string,
     USER: string,
     DIR: string,
     SYNC_TARGET: string,
     HOST: string,
-    ROOT_TMP: string
+    ROOT_TMP: string,
+    GIT_EMAIL: string,
+    GIT_NAME: string
 ) => {
     const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
     const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
     const FINAL_TARGET = `${ROOT}/${NAME}`
     const FINAL_DATA = `${ROOT}/${NAME}-data`
-    const gitInfo = await gitUserInfo(DIR)
-    const GIT_EMAIL = gitInfo.email
-    const GIT_NAME = gitInfo.name
 
     const script = `# Remove any previous temporary repo
 rm -rf ${TMP_NEW}
@@ -215,7 +249,7 @@ yarn tsn deploy/bakeAndDeploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
 
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
-    return runScriptOnRemoteServerViaSSH(HOST, script)
+    return script
 }
 
 main()
