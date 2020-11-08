@@ -2,6 +2,7 @@
 
 import * as fs from "fs-extra"
 import os from "os"
+import * as path from "path"
 import parseArgs from "minimist"
 import * as prompts from "prompts"
 import ProgressBar = require("progress")
@@ -64,7 +65,7 @@ const main = async () => {
     const firstArg = parsedArgs["_"][0]
 
     const USER = os.userInfo().username
-    const DIR = __dirname + "/../"
+    const DIR = path.normalize(__dirname + "/../")
     const NAME = firstArg
     const stagingServers = new Set([
         "staging",
@@ -99,8 +100,9 @@ const main = async () => {
     progressBar.tick({ name: "✅ set params and run checks" })
 
     const ROOT = "/home/owid"
-    const SYNC_TARGET = `${ROOT}/tmp/${NAME}-${USER}`
-    const SYNC_TARGET_TESTS = `${ROOT}/tmp/${NAME}-tests`
+    const ROOT_TMP = `${ROOT}/tmp`
+    const SYNC_TARGET = `${ROOT_TMP}/${NAME}-${USER}`
+    const SYNC_TARGET_TESTS = `${ROOT_TMP}/${NAME}-tests`
 
     if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
@@ -120,16 +122,26 @@ const main = async () => {
     fs.writeFileSync(DIR + "/public/head.txt", gitInfo.head, "utf8")
     progressBar.tick({ name: "✅ write head.txt" })
 
-    await ensureTmpDirExistsOnServer(HOST, ROOT)
-    progressBar.tick({ name: "✅ tmp exists" })
+    await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
+    progressBar.tick({ name: `✅ ${ROOT_TMP} exists on ${HOST}` })
     await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
-    progressBar.tick({ name: "✅ copy local" })
-    await runBigCommandOnServer(ROOT, NAME, USER, DIR, SYNC_TARGET, HOST)
+    progressBar.tick({
+        name: `✅ ${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
+    })
+    await runBigCommandOnServer(
+        ROOT,
+        NAME,
+        USER,
+        DIR,
+        SYNC_TARGET,
+        HOST,
+        ROOT_TMP
+    )
     progressBar.tick({ name: "✅ run big" })
 }
 
-const ensureTmpDirExistsOnServer = async (HOST: string, ROOT: string) => {
-    await exec(`ssh ${HOST} mkdir -p ${ROOT}/tmp`)
+const ensureTmpDirExistsOnServer = async (HOST: string, ROOT_TMP: string) => {
+    await exec(`ssh ${HOST} mkdir -p ${ROOT_TMP}`)
 }
 
 const copyLocalRepoToServerTmpDirectory = async (
@@ -152,10 +164,11 @@ const runBigCommandOnServer = async (
     USER: string,
     DIR: string,
     SYNC_TARGET: string,
-    HOST: string
+    HOST: string,
+    ROOT_TMP: string
 ) => {
-    const OLD_REPO_BACKUP = `${ROOT}/tmp/${NAME}-old`
-    const TMP_NEW = `${ROOT}/tmp/${NAME}-${USER}-tmp`
+    const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
+    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
     const FINAL_TARGET = `${ROOT}/${NAME}`
     const FINAL_DATA = `${ROOT}/${NAME}-data`
     const gitInfo = await gitUserInfo(DIR)
