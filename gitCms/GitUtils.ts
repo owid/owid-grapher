@@ -25,8 +25,8 @@ export const pullAndRebaseFromGit = async (dir: string) =>
     await execFormatted(`cd %s && git pull --rebase`, [dir], false)
 
 export const gitUserInfo = async (dir: string) => {
-    const email = await execFormatted("$(git config user.email)", [dir], false)
-    const name = await execFormatted("$(git config user.name)", [dir], false)
-    const head = await execFormatted("$(git rev-parse HEAD)", [dir], false)
+    const email = await execFormatted("git config user.email", [dir], false)
+    const name = await execFormatted("git config user.name", [dir], false)
+    const head = await execFormatted("git rev-parse HEAD", [dir], false)
     return { email, name, head }
 }
