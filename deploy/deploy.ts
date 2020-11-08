@@ -52,6 +52,11 @@ const printAndExit = (message: string) => {
     process.exit()
 }
 
+const runAndTick = async (command: string, progressBar: ProgressBar) => {
+    await exec(command)
+    progressBar.tick({ name: `✅ ${command}` })
+}
+
 const main = async () => {
     const parsedArgs = parseArgs(process.argv.slice(2))
     const runChecksRemotely = parsedArgs["r"] === true
@@ -80,51 +85,47 @@ const main = async () => {
         await runLiveSafetyChecks(DIR)
     } else printAndExit("Please select either live or a valid test target.")
 
-    // eslint-disable-next-line no-console
-    console.log(`Baking and deploying to ${NAME}`)
-
-    const testSteps = !skipChecks && !runChecksRemotely ? 3 : 0
+    const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
     const progressBar = new ProgressBar(
-        "  bakeAndDeploy [:bar] :current/:total :elapseds\n",
+        ` Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
             complete: "=",
             incomplete: " ",
             width: 40,
-            total: 6 + (skipChecks ? 0 : testSteps),
+            total: 6 + testSteps,
         }
     )
-    progressBar.tick()
+
+    progressBar.tick({ name: "✅ set params and run checks" })
 
     const ROOT = "/home/owid"
     const SYNC_TARGET = `${ROOT}/tmp/${NAME}-${USER}`
     const SYNC_TARGET_TESTS = `${ROOT}/tmp/${NAME}-tests`
 
-    if (runChecksRemotely)
+    if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
-    else if (skipChecks) {
+        progressBar.tick({ name: "✅ runPreDeployChecksRemotely" })
+    } else if (skipChecks) {
         if (NAME === LIVE_NAME)
             printAndExit(`Cannot skip checks when deploying to live`)
+        progressBar.tick({ name: "✅ skip checks" })
     } else {
-        await exec(`yarn prettify:check`)
-        progressBar.tick()
-        await exec(`yarn typecheck`)
-        progressBar.tick()
-        await exec(`yarn test`)
-        progressBar.tick()
+        await runAndTick(`yarn prettify:check`, progressBar)
+        await runAndTick(`yarn typecheck`, progressBar)
+        await runAndTick(`yarn test`, progressBar)
     }
-    progressBar.tick()
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     const gitInfo = await gitUserInfo(DIR)
-    fs.writeFileSync(DIR + "/public/head.txt", gitInfo.head)
-    progressBar.tick()
+    fs.writeFileSync(DIR + "/public/head.txt", gitInfo.head, "utf8")
+    progressBar.tick({ name: "✅ write head.txt" })
 
     await ensureTmpDirExistsOnServer(HOST, ROOT)
-    progressBar.tick()
+    progressBar.tick({ name: "✅ tmp exists" })
     await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
-    progressBar.tick()
+    progressBar.tick({ name: "✅ copy local" })
     await runBigCommandOnServer(ROOT, NAME, USER, DIR, SYNC_TARGET, HOST)
-    progressBar.tick()
+    progressBar.tick({ name: "✅ run big" })
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT: string) => {
