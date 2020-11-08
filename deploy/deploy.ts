@@ -96,6 +96,7 @@ const main = async () => {
         `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
             total: 8 + testSteps,
+            renderThrottle: 0, // print on every tick
         }
     )
 
@@ -184,13 +185,16 @@ const runAndStreamScriptOnRemoteServerViaSSH = async (
     const params = [`-t`, host, "bash -e", path]
     const child = spawn(`ssh`, params)
 
-    for await (const chunk of child.stdout) {
+    child.stdout.on("data", (data) => {
         // eslint-disable-next-line no-console
-        console.log(chunk.toString())
-    }
-    for await (const chunk of child.stderr) {
-        console.error(chunk.toString())
-    }
+        console.log(data.toString())
+    })
+
+    child.stderr.on("data", (data) => {
+        // eslint-disable-next-line no-console
+        console.log(data.toString())
+    })
+
     const exitCode = await new Promise((resolve) => {
         child.on("close", resolve)
     })
