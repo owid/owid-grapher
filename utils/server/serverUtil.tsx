@@ -30,12 +30,11 @@ export function exec(
     options?: shell.ExecOptions
 ): Promise<ExecReturn> {
     return new Promise((resolve, reject) => {
-        shell.exec(command, options || {}, (code, stdout, stderr) => {
-            if (code !== 0) {
-                return reject(new ExecError({ code, stdout, stderr }))
-            }
-            return resolve({ code, stdout, stderr })
-        })
+        shell.exec(command, options || {}, (code, stdout, stderr) =>
+            code === 0
+                ? resolve({ code, stdout, stderr })
+                : reject(new ExecError({ code, stdout, stderr }))
+        )
     })
 }
 
@@ -107,10 +106,14 @@ export const splitOnLastWord = (s: string) => {
     }
 }
 
-export async function execFormatted(cmd: string, args: string[]) {
+export async function execFormatted(
+    cmd: string,
+    args: string[],
+    verbose = true
+) {
     const formatCmd = util.format(cmd, ...args.map((s) => quote([s])))
-    console.log(formatCmd)
-    return await exec(formatCmd)
+    if (verbose) console.log(formatCmd)
+    return await exec(formatCmd, { silent: !verbose })
 }
 
 import filenamify from "filenamify"
