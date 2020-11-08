@@ -13,6 +13,7 @@ import { deserializeJSONFromHTML } from "utils/serializers"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker"
 import { OPTIMIZE_SVG_EXPORTS } from "settings"
+import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
 
@@ -135,24 +136,25 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     )
 
     const newSlugs = []
-    let requests = []
     await fs.mkdirp(bakedSiteDir + "/grapher")
+    const progressBar = new ProgressBar(
+        "  bakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :name\n",
+        {
+            width: 20,
+            total: rows.length + 1,
+        }
+    )
     for (const row of rows) {
         const grapher: GrapherInterface = JSON.parse(row.config)
         grapher.id = row.id
         newSlugs.push(grapher.slug)
-
-        requests.push(
-            bakeGrapherPageAndVariablesPngAndSVGIfChanged(bakedSiteDir, grapher)
+        await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
+            bakedSiteDir,
+            grapher
         )
-        // Execute in batches
-        if (requests.length > 50) {
-            await Promise.all(requests)
-            requests = []
-        }
+        progressBar.tick({ name: `✅ ${grapher.slug}` })
     }
 
     await deleteOldGraphers(bakedSiteDir, newSlugs.filter(isPresent))
-
-    return Promise.all(requests)
+    progressBar.tick({ name: `✅ Deleted old graphers` })
 }

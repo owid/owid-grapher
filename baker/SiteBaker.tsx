@@ -320,9 +320,6 @@ export class SiteBaker {
         const progressBar = new ProgressBar(
             "  bakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                complete: "=",
-                incomplete: " ",
-                width: 40,
                 total: 15,
             }
         )
@@ -411,9 +408,6 @@ export class SiteBaker {
         const progressBar = new ProgressBar(
             "  deployToNetlify [:bar] :current/:total :elapseds :name\n",
             {
-                complete: "=",
-                incomplete: " ",
-                width: 40,
                 total: 3 + (deployDirectlyToNetlix ? 1 : 0),
             }
         )

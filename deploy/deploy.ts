@@ -92,9 +92,6 @@ const main = async () => {
     const progressBar = new ProgressBar(
         ` Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
-            complete: "=",
-            incomplete: " ",
-            width: 40,
             total: 6 + testSteps,
         }
     )
