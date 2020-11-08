@@ -9,7 +9,7 @@ import {
 import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

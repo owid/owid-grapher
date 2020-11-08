@@ -21,7 +21,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "grapher/timeline/TimelineController"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig

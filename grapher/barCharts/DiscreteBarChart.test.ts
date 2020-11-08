@@ -12,7 +12,7 @@ import {
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 import { OwidTable } from "coreTable/OwidTable"
 
 it("can create a new bar chart", () => {

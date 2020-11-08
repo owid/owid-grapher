@@ -29,7 +29,7 @@ import {
 } from "grapher/slideshowController/SlideShowController"
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 import {
     ColumnSlug,
     CoreRow,

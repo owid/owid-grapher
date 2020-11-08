@@ -13,7 +13,7 @@ import { ColumnSlug } from "coreTable/CoreTableConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { EntityName } from "coreTable/OwidTableConstants"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 

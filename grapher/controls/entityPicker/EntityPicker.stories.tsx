@@ -9,7 +9,7 @@ import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { computed, observable } from "mobx"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 class PickerHolder extends React.Component {
     render() {

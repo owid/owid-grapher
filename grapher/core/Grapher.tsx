@@ -147,7 +147,7 @@ import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { SelectionArray } from "./SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 
 declare const window: any
@@ -1568,7 +1568,12 @@ export class Grapher
         this.timelineController.togglePlay()
     }
 
-    selection = this.props.selectionArray ?? new SelectionArray()
+    selection =
+        this.props.selectionArray ??
+        new SelectionArray(
+            this.props.selectedEntityNames ?? [],
+            this.props.table?.availableEntities ?? []
+        )
 
     @computed get availableEntities() {
         return this.tableForSelection.availableEntities

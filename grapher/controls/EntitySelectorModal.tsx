@@ -5,7 +5,7 @@ import { uniqBy, isTouchDevice, sortBy } from "grapher/utils/Util"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 interface SearchableEntity {
     name: string

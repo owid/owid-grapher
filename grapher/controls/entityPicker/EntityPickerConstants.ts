@@ -1,7 +1,7 @@
 import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { Analytics } from "grapher/core/Analytics"
-import { SelectionArray } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/selection/SelectionArray"
 
 export interface EntityPickerManager {
     entityPickerMetric?: ColumnSlug
