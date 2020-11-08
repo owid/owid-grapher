@@ -318,7 +318,7 @@ export class SiteBaker {
 
     async bakeAll() {
         const progressBar = new ProgressBar(
-            "  bakeAll [:bar] :current/:total :elapseds :name\n",
+            "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: 15,
             }
@@ -406,7 +406,7 @@ export class SiteBaker {
             path.join(this.bakedSiteDir, ".netlify/state.json")
         )
         const progressBar = new ProgressBar(
-            "  deployToNetlify [:bar] :current/:total :elapseds :name\n",
+            "DeployToNetlify [:bar] :current/:total :elapseds :name\n",
             {
                 total: 3 + (deployDirectlyToNetlix ? 1 : 0),
             }

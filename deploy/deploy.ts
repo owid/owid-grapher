@@ -14,6 +14,8 @@ import {
 } from "gitCms/GitUtils"
 import { spawn } from "child_process"
 
+const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
+
 const runLiveSafetyChecks = async (dir: string) => {
     const branch = await getGitBranchNameForDir(dir)
     if (branch !== "master")
@@ -60,6 +62,7 @@ const runAndTick = async (command: string, progressBar: ProgressBar) => {
     progressBar.tick({ name: `✅ ${command}` })
 }
 
+// 📡 indicates that a task is running/ran on the remote server
 const main = async () => {
     const parsedArgs = parseArgs(process.argv.slice(2))
     const runChecksRemotely = parsedArgs["r"] === true
@@ -90,9 +93,9 @@ const main = async () => {
 
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
     const progressBar = new ProgressBar(
-        ` Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
+        `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
-            total: 6 + testSteps,
+            total: 8 + testSteps,
         }
     )
 
@@ -105,7 +108,7 @@ const main = async () => {
 
     if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
-        progressBar.tick({ name: "✅ runPreDeployChecksRemotely" })
+        progressBar.tick({ name: "✅📡 runPreDeployChecksRemotely" })
     } else if (skipChecks) {
         if (NAME === LIVE_NAME)
             printAndExit(`Cannot skip checks when deploying to live`)
@@ -122,37 +125,43 @@ const main = async () => {
     progressBar.tick({ name: "✅ write head.txt" })
 
     await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
-    progressBar.tick({ name: `✅ ${ROOT_TMP} exists on ${HOST}` })
+    progressBar.tick({ name: `✅ 📡${ROOT_TMP} exists on ${HOST}` })
 
-    const script = makeScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue(
-        ROOT,
-        NAME,
-        USER,
-        DIR,
-        SYNC_TARGET,
-        HOST,
-        ROOT_TMP,
-        gitInfo.email,
-        gitInfo.name
-    )
+    const scripts: any = {
+        file: makeScriptToDoFileStuff(ROOT, NAME, USER, SYNC_TARGET, ROOT_TMP),
+        yarn: makeScriptToDoYarnStuff(NAME, USER, ROOT_TMP),
+        bake: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue(
+            ROOT,
+            NAME,
+            USER,
+            ROOT_TMP,
+            gitInfo.email,
+            gitInfo.name
+        ),
+    }
 
-    const tempScriptFilename = "temp_deploy_script.sh"
-    const remoteScriptPath = `${SYNC_TARGET}/${tempScriptFilename}`
-    const deployScriptPath = `${DIR}/${tempScriptFilename}`
-    fs.writeFileSync(deployScriptPath, script, "utf8")
-    fs.chmodSync(deployScriptPath, "755")
+    Object.keys(scripts).forEach((name) => {
+        const fullName = `${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
+        const localPath = `${DIR}/${fullName}`
+        fs.writeFileSync(localPath, scripts[name], "utf8")
+        fs.chmodSync(localPath, "755")
+    })
 
     await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
     progressBar.tick({
-        name: `✅ ${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
+        name: `✅ 📡${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
     })
 
-    console.log(`⏳ Running ${remoteScriptPath} on ${HOST}`)
-    await runAndStreamScriptOnRemoteServerViaSSH(HOST, remoteScriptPath)
-    progressBar.tick({
-        name:
-            "✅ ranScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue",
-    })
+    for await (const name of Object.keys(scripts)) {
+        const fullName = `${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
+        const remoteScriptPath = `${SYNC_TARGET}/${fullName}`
+        // eslint-disable-next-line no-console
+        console.log(`📡 Running ${remoteScriptPath} on ${HOST}`)
+        await runAndStreamScriptOnRemoteServerViaSSH(HOST, remoteScriptPath)
+        progressBar.tick({
+            name: `✅ 📡${DIR} ${remoteScriptPath}`,
+        })
+    }
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT_TMP: string) => {
@@ -176,34 +185,30 @@ const runAndStreamScriptOnRemoteServerViaSSH = async (
     const child = spawn(`ssh`, params)
 
     for await (const chunk of child.stdout) {
+        // eslint-disable-next-line no-console
         console.log(chunk.toString())
     }
     for await (const chunk of child.stderr) {
         console.error(chunk.toString())
     }
-    const exitCode = await new Promise((resolve, reject) => {
+    const exitCode = await new Promise((resolve) => {
         child.on("close", resolve)
     })
 
     if (exitCode) {
+        // eslint-disable-next-line no-console
         console.log(`Exit code: ${exitCode}`)
     }
 }
 
-const makeScriptToDoFileStuffDoYarnStuffDoAlgoliaStuffDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue = (
+const makeScriptToDoFileStuff = (
     ROOT: string,
     NAME: string,
     USER: string,
-    DIR: string,
     SYNC_TARGET: string,
-    HOST: string,
-    ROOT_TMP: string,
-    GIT_EMAIL: string,
-    GIT_NAME: string
+    ROOT_TMP: string
 ) => {
-    const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
     const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
-    const FINAL_TARGET = `${ROOT}/${NAME}`
     const FINAL_DATA = `${ROOT}/${NAME}-data`
 
     const script = `# Remove any previous temporary repo
@@ -218,16 +223,37 @@ ln -sf ${FINAL_DATA}/.env ${TMP_NEW}/.env
 mkdir -p ${FINAL_DATA}/bakedSite
 ln -sf ${FINAL_DATA}/bakedSite ${TMP_NEW}/bakedSite
 mkdir -p ${FINAL_DATA}/datasetsExport
-ln -sf ${FINAL_DATA}/datasetsExport ${TMP_NEW}/datasetsExport
+ln -sf ${FINAL_DATA}/datasetsExport ${TMP_NEW}/datasetsExport`
+    return script
+}
 
-# Install dependencies, build assets and migrate
+const makeScriptToDoYarnStuff = (
+    NAME: string,
+    USER: string,
+    ROOT_TMP: string
+) => {
+    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
+    return `# Install dependencies, build assets and migrate
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
 yarn build
 yarn migrate
-yarn tsn algolia/configureAlgolia.ts
+yarn tsn algolia/configureAlgolia.ts`
+}
 
-# Create deploy queue file writable by any user
+const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue = (
+    ROOT: string,
+    NAME: string,
+    USER: string,
+    ROOT_TMP: string,
+    GIT_EMAIL: string,
+    GIT_NAME: string
+) => {
+    const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
+    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
+    const FINAL_TARGET = `${ROOT}/${NAME}`
+
+    const script = `# Create deploy queue file writable by any user
 touch .queue
 chmod 0666 .queue
 

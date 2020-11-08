@@ -138,7 +138,7 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     const newSlugs = []
     await fs.mkdirp(bakedSiteDir + "/grapher")
     const progressBar = new ProgressBar(
-        "  bakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :name\n",
+        "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :name\n",
         {
             width: 20,
             total: rows.length + 1,
