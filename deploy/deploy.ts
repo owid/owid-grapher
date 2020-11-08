@@ -108,6 +108,7 @@ const main = async () => {
     const SYNC_TARGET = `${ROOT_TMP}/${NAME}-${USER}`
     const SYNC_TARGET_TESTS = `${ROOT_TMP}/${NAME}-tests`
     const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
+    const FINAL_TARGET = `${ROOT}/${NAME}`
 
     if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
@@ -134,15 +135,16 @@ const main = async () => {
         file: makeScriptToDoFileStuff(ROOT, NAME, SYNC_TARGET, TMP_NEW),
         yarn: makeScriptToDoYarnStuff(TMP_NEW),
         bake: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake(
-            ROOT,
             NAME,
             ROOT_TMP,
-            TMP_NEW
+            TMP_NEW,
+            FINAL_TARGET
         ),
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitInfo.email,
-            gitInfo.name
+            gitInfo.name,
+            FINAL_TARGET
         ),
     }
 
@@ -243,13 +245,12 @@ yarn migrate
 yarn tsn algolia/configureAlgolia.ts`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake = (
-    ROOT: string,
     NAME: string,
     ROOT_TMP: string,
-    TMP_NEW: string
+    TMP_NEW: string,
+    FINAL_TARGET: string
 ) => {
     const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
-    const FINAL_TARGET = `${ROOT}/${NAME}`
 
     return `# Create deploy queue file writable by any user
 touch .queue
@@ -272,8 +273,10 @@ yarn tsn deploy/bakeSite.ts`
 const makeScriptToDeployToNetlifyDoQueue = (
     NAME: string,
     GIT_EMAIL: string,
-    GIT_NAME: string
-) => `yarn tsn deploy/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
+    GIT_NAME: string,
+    FINAL_TARGET: string
+) => `cd ${FINAL_TARGET}
+yarn tsn deploy/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
 
