@@ -8,7 +8,6 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-    observe,
 } from "mobx"
 import { bind } from "decko"
 import {
@@ -31,7 +30,6 @@ import {
     difference,
     exposeInstanceOnWindow,
     findClosestTime,
-    isPresent,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -149,7 +147,7 @@ import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { SelectionArray, SelectionManager } from "./SelectionArray"
+import { SelectionArray } from "./SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 
 declare const window: any
@@ -208,7 +206,6 @@ export class Grapher
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
-        SelectionManager,
         DataTableManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
@@ -1571,7 +1568,7 @@ export class Grapher
         this.timelineController.togglePlay()
     }
 
-    selection = this.props.selectionArray ?? new SelectionArray(this)
+    selection = this.props.selectionArray ?? new SelectionArray()
 
     @computed get availableEntities() {
         return this.tableForSelection.availableEntities

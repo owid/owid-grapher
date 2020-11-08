@@ -29,7 +29,7 @@ import {
 } from "grapher/slideshowController/SlideShowController"
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
-import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/core/SelectionArray"
 import {
     ColumnSlug,
     CoreRow,
@@ -69,11 +69,7 @@ interface BootstrapProps {
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements
-        ObservableUrl,
-        SlideShowManager,
-        EntityPickerManager,
-        SelectionManager {
+    implements ObservableUrl, SlideShowManager, EntityPickerManager {
     static bootstrap(props: ExplorerProps) {
         return ReactDOM.render(
             <Explorer {...props} queryString={window.location.search} />,
@@ -116,11 +112,12 @@ export class Explorer
         (strToQueryParams(this.explorerProgram.queryString ?? "")
             .pickerSort as SortOrder) ?? undefined
 
-    selectionArray = new SelectionArray(this)
-    @observable selectedEntityNames = EntityUrlBuilder.queryParamToEntities(
-        strToQueryParams(this.explorerProgram.queryString ?? "").country ?? ""
+    selectionArray = new SelectionArray(
+        EntityUrlBuilder.queryParamToEntities(
+            strToQueryParams(this.explorerProgram.queryString ?? "").country ??
+                ""
+        )
     )
-    @observable availableEntities = []
 
     @computed get params(): QueryParams {
         const params: any = {}

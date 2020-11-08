@@ -17,10 +17,7 @@ import { OwidTable } from "coreTable/OwidTable"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
-    const selection = new SelectionArray({
-        availableEntities: table.availableEntities,
-        selectedEntityNames: [],
-    })
+    const selection = new SelectionArray([], table.availableEntities)
     const manager: DiscreteBarChartManager = {
         table,
         selection,

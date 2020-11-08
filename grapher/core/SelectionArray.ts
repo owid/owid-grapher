@@ -5,7 +5,7 @@ import {
     OwidTableSlugs,
 } from "coreTable/OwidTableConstants"
 import { difference, isPresent, mapBy } from "grapher/utils/Util"
-import { action, computed } from "mobx"
+import { action, computed, observable } from "mobx"
 
 interface Entity {
     entityName: EntityName
@@ -13,38 +13,17 @@ interface Entity {
     entityCode?: EntityCode
 }
 
-export interface SelectionManager {
-    selectedEntityNames: EntityName[]
-    availableEntities: Entity[]
-}
-
 export class SelectionArray {
-    constructor(manager?: SelectionManager | EntityName[]) {
-        if (Array.isArray(manager))
-            this.manager = {
-                selectedEntityNames: manager,
-                availableEntities: manager.map((entityName) => {
-                    return {
-                        entityName,
-                    }
-                }),
-            }
-        else
-            this.manager = manager ?? {
-                selectedEntityNames: [],
-                availableEntities: [],
-            }
+    constructor(
+        selectedEntityNames: EntityName[] = [],
+        availableEntities: Entity[] = []
+    ) {
+        this.selectedEntityNames = selectedEntityNames.slice()
+        this.availableEntities = availableEntities.slice()
     }
 
-    private manager: SelectionManager
-
-    @computed get selectedEntityNames() {
-        return this.manager.selectedEntityNames
-    }
-
-    @computed private get availableEntities() {
-        return this.manager.availableEntities
-    }
+    @observable selectedEntityNames: EntityName[]
+    @observable private availableEntities: Entity[]
 
     @computed get availableEntityNames() {
         return this.availableEntities.map((entity) => entity.entityName)
@@ -116,14 +95,12 @@ export class SelectionArray {
     }
 
     @action.bound addToSelection(entityNames: EntityName[]) {
-        this.manager.selectedEntityNames = this.selectedEntityNames.concat(
-            entityNames
-        )
+        this.selectedEntityNames = this.selectedEntityNames.concat(entityNames)
         return this
     }
 
     @action.bound addAvailableEntityNames(entities: Entity[]) {
-        this.manager.availableEntities.push(...entities)
+        this.availableEntities.push(...entities)
         return this
     }
 
@@ -145,7 +122,7 @@ export class SelectionArray {
     }
 
     @action.bound clearSelection() {
-        this.manager.selectedEntityNames = []
+        this.selectedEntityNames = []
     }
 
     @action.bound toggleSelection(entityName: EntityName) {
@@ -170,7 +147,7 @@ export class SelectionArray {
     }
 
     @action.bound deselectEntity(entityName: EntityName) {
-        this.manager.selectedEntityNames = this.selectedEntityNames.filter(
+        this.selectedEntityNames = this.selectedEntityNames.filter(
             (name) => name !== entityName
         )
         return this

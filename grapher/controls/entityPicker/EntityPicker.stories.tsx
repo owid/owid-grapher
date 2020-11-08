@@ -9,7 +9,7 @@ import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { computed, observable } from "mobx"
-import { SelectionArray, SelectionManager } from "grapher/core/SelectionArray"
+import { SelectionArray } from "grapher/core/SelectionArray"
 
 class PickerHolder extends React.Component {
     render() {
@@ -41,7 +41,7 @@ class SomeThingWithAPicker
         pickerSlugs?: ColumnSlug[]
         selection?: EntityName[]
     }>
-    implements EntityPickerManager, SelectionManager {
+    implements EntityPickerManager {
     entityPickerTable = SynthesizeGDPTable({ entityCount: 30 }, 1)
 
     @observable entityPickerMetric?: ColumnSlug
@@ -51,11 +51,10 @@ class SomeThingWithAPicker
         return this.props.pickerSlugs
     }
 
-    selectionArray = new SelectionArray(this)
-    @observable selectedEntityNames = this.props.selection ?? []
-    @computed get availableEntities() {
-        return this.entityPickerTable.availableEntities
-    }
+    selectionArray = new SelectionArray(
+        this.props.selection ?? [],
+        this.entityPickerTable.availableEntities
+    )
 
     requiredColumnSlugs = defaultSlugs
 
