@@ -67,6 +67,38 @@ export async function tryBakeDeployAndTerminate(
     }
 }
 
+export async function tryBake() {
+    const baker = new SiteBaker(BAKED_SITE_DIR)
+    try {
+        await baker.bakeAll()
+    } catch (err) {
+        log.error(err)
+    } finally {
+        baker.endDbConnections()
+    }
+}
+
+/**
+ * Try to initiate a deploy and then terminate the baker, allowing a clean exit.
+ * Used in CLI.
+ */
+export async function tryDeploy(
+    message?: string,
+    email?: string,
+    name?: string
+) {
+    message = message ?? (await defaultCommitMessage())
+    const baker = new SiteBaker(BAKED_SITE_DIR)
+
+    try {
+        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
+    } catch (err) {
+        log.error(err)
+    } finally {
+        baker.endDbConnections()
+    }
+}
+
 function generateCommitMsg(queueItems: DeployChange[]): string {
     const date: string = new Date().toISOString()
 

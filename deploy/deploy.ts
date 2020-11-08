@@ -106,6 +106,7 @@ const main = async () => {
     const ROOT_TMP = `${ROOT}/tmp`
     const SYNC_TARGET = `${ROOT_TMP}/${NAME}-${USER}`
     const SYNC_TARGET_TESTS = `${ROOT_TMP}/${NAME}-tests`
+    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
 
     if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
@@ -129,13 +130,16 @@ const main = async () => {
     progressBar.tick({ name: `✅ 📡${ROOT_TMP} exists on ${HOST}` })
 
     const scripts: any = {
-        file: makeScriptToDoFileStuff(ROOT, NAME, USER, SYNC_TARGET, ROOT_TMP),
-        yarn: makeScriptToDoYarnStuff(NAME, USER, ROOT_TMP),
-        bake: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue(
+        file: makeScriptToDoFileStuff(ROOT, NAME, SYNC_TARGET, TMP_NEW),
+        yarn: makeScriptToDoYarnStuff(TMP_NEW),
+        bake: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake(
             ROOT,
             NAME,
-            USER,
             ROOT_TMP,
+            TMP_NEW
+        ),
+        deploy: makeScriptToDeployToNetlifyDoQueue(
+            NAME,
             gitInfo.email,
             gitInfo.name
         ),
@@ -208,14 +212,12 @@ const runAndStreamScriptOnRemoteServerViaSSH = async (
 const makeScriptToDoFileStuff = (
     ROOT: string,
     NAME: string,
-    USER: string,
     SYNC_TARGET: string,
-    ROOT_TMP: string
+    TMP_NEW: string
 ) => {
-    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
     const FINAL_DATA = `${ROOT}/${NAME}-data`
 
-    const script = `# Remove any previous temporary repo
+    return `# Remove any previous temporary repo
 rm -rf ${TMP_NEW}
 
 # Copy the synced repo-- this is because we're about to move it, and we want the
@@ -228,36 +230,27 @@ mkdir -p ${FINAL_DATA}/bakedSite
 ln -sf ${FINAL_DATA}/bakedSite ${TMP_NEW}/bakedSite
 mkdir -p ${FINAL_DATA}/datasetsExport
 ln -sf ${FINAL_DATA}/datasetsExport ${TMP_NEW}/datasetsExport`
-    return script
 }
 
 const makeScriptToDoYarnStuff = (
-    NAME: string,
-    USER: string,
-    ROOT_TMP: string
-) => {
-    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
-    return `# Install dependencies, build assets and migrate
+    TMP_NEW: string
+) => `# Install dependencies, build assets and migrate
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
 yarn build
 yarn migrate
 yarn tsn algolia/configureAlgolia.ts`
-}
 
-const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBakeAndDeployToNetlifyDoQueue = (
+const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake = (
     ROOT: string,
     NAME: string,
-    USER: string,
     ROOT_TMP: string,
-    GIT_EMAIL: string,
-    GIT_NAME: string
+    TMP_NEW: string
 ) => {
     const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
-    const TMP_NEW = `${ROOT_TMP}/${NAME}-${USER}-tmp`
     const FINAL_TARGET = `${ROOT}/${NAME}`
 
-    const script = `# Create deploy queue file writable by any user
+    return `# Create deploy queue file writable by any user
 touch .queue
 chmod 0666 .queue
 
@@ -272,11 +265,15 @@ pm2 stop ${NAME}-deploy-queue
 
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-yarn tsn deploy/bakeAndDeploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
+yarn tsn deploy/bakeSite.ts`
+}
 
+const makeScriptToDeployToNetlifyDoQueue = (
+    NAME: string,
+    GIT_EMAIL: string,
+    GIT_NAME: string
+) => `yarn tsn deploy/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
-    return script
-}
 
 main()
