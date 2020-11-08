@@ -283,6 +283,7 @@ export class ExplorersIndexPage extends React.Component {
         await writeRemoteFile({
             filepath: explorer.fullPath,
             content: explorer.toString(),
+            commitMessage: `Setting publish status of ${filename} to ${explorer.isPublished}`,
         })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()
