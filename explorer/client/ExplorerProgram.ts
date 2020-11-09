@@ -21,7 +21,6 @@ import {
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
-    truncate,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
 
@@ -70,15 +69,23 @@ enum CellTypes {
 
 interface CellTypeDefinition {
     options: string[]
+    cssClass: string
+    description: string
 }
 
 const BooleanCellTypeDefinition: CellTypeDefinition = {
     options: Object.values(CheckboxOption),
+    cssClass: "BooleanCellType",
+    description: "Boolean",
 }
 
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
-    keyword: { options: Object.values(ExplorerKeywordList) },
-    wip: { options: [] },
+    keyword: {
+        options: Object.values(ExplorerKeywordList),
+        cssClass: "KeywordCellType",
+        description: "Keyword",
+    },
+    wip: { options: [], cssClass: "WipCellType", description: "A comment" },
     isPublished: BooleanCellTypeDefinition,
     hideAlertBanner: BooleanCellTypeDefinition,
 }
@@ -100,6 +107,8 @@ export interface SerializedExplorerProgram {
     program: string
     lastModifiedTime?: number
 }
+
+const ErrorCellTypeClass = "ErrorCellType"
 
 type CellCoordinate = number // An integer >= 0
 
@@ -123,20 +132,14 @@ class ExplorerProgramCell {
     }
 
     get comment() {
-        const { cellTypeDefinition, cellTypeName, value, isValid } = this
+        const { cellTypeDefinition, value } = this
         if (value === undefined || value === "") return undefined
 
         const { options } = cellTypeDefinition
         const optionsLine = options.length
-            ? `Options: ${truncate(options.join(", "), 30)}`
+            ? `Options: ${options.join(", ")}`
             : undefined
-        const position = `Row: ${this.row} Col: ${this.column}`
-        return [
-            `Type: ${cellTypeName}`,
-            `Valid: ${isValid}`,
-            optionsLine,
-            position,
-        ]
+        return [this.cellTypeDefinition.description, optionsLine]
             .filter(isPresent)
             .join("\n")
     }
@@ -180,6 +183,12 @@ class ExplorerProgramCell {
 
     private get cellTypeDefinition() {
         return CellTypeDefinitions[this.cellTypeName]
+    }
+
+    get cssClasses() {
+        if (!this.isValid) return [ErrorCellTypeClass]
+
+        return [this.cellTypeDefinition.cssClass]
     }
 
     private get secondaryNotations() {

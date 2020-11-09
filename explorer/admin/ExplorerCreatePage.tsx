@@ -135,11 +135,13 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             if (cellParseResults.options.length) {
                 cellProperties.type = "autocomplete"
                 cellProperties.source = cellParseResults.options
-                cellProperties.valid = cellParseResults.isValid
-                // const comment = cellParseResults.comment
-                // cellProperties.comment = comment
-                //     ? { value: comment }
-                //     : undefined
+                cellProperties.className = cellParseResults.cssClasses.length
+                    ? cellParseResults.cssClasses.join(" ")
+                    : undefined
+                const comment = cellParseResults.comment
+                cellProperties.comment = comment
+                    ? { value: comment }
+                    : undefined
             }
 
             return cellProperties

@@ -1,0 +1,59 @@
+// Hide the noisy arrow in the autocomplete dropdown.
+.handsontable .htAutocompleteArrow {
+    font-size: 0 !important;
+}
+
+// Change the default dark top right corner comment arrow into a subtle checkmark.
+.handsontable .htCommentCell:after {
+    content: "✓" !important;
+    color: #ccc !important;
+    border: 0 !important;
+    font-size: 8px;
+}
+
+.handsontable .KeywordCellType {
+    color: #3c4e66;
+}
+
+.handsontable .BooleanCellType {
+    color: #00847e;
+}
+
+.handsontable .ErrorCellType {
+    color: #b13507;
+    text-decoration: underline;
+    text-decoration-style: wavy;
+
+    &.htCommentCell:after {
+        content: "✗" !important;
+        color: #b13507 !important;
+    }
+}
+
+.handsontable .WipCellType {
+    color: #777;
+}
+
+// Unused colors from Owid Default Color Scheme:
+// "#6D3E91",
+// "#CF0A66",
+// "#883039",
+// "#00823F",
+// "#4C6A9C",
+// "#C05917",
+// "#D73C50",
+// "#287669",
+// "#CD2285",
+// "#0F739C",
+// "#9A5129",
+// "#C45267",
+// "#008860",
+// "#8C4569",
+// "#B36216",
+// "#366388",
+// "#A2559C",
+// "#578145",
+// "#D7263F",
+// "#18470F",
+// "#BC8E5A",
+// "#585C64",
