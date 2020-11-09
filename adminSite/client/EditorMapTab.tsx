@@ -18,6 +18,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { LegacyVariableId } from "coreTable/LegacyVariableCode"
 import { MapConfig } from "grapher/mapCharts/MapConfig"
 import { ChartDimension } from "grapher/chart/ChartDimension"
+import { ColorScale } from "grapher/color/ColorScale"
 
 @observer
 class VariableSection extends React.Component<{
@@ -146,7 +147,9 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
         const { grapher } = this
         const mapConfig = grapher.map
 
-        const colorScale = {} as any // todo:
+        const colorScale = new ColorScale({
+            colorScaleConfig: mapConfig.colorScale,
+        })
 
         const isReady =
             !!mapConfig.columnSlug && grapher.table.has(mapConfig.columnSlug)
