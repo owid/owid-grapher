@@ -71,11 +71,13 @@ export async function bakeGrapherUrls(urls: string[]) {
     }
 
     if (toBake.length > 0) {
-        await bakeGraphersToSvgs(
-            toBake,
-            `${BAKED_SITE_DIR}/exports`,
-            OPTIMIZE_SVG_EXPORTS
-        )
+        for (const grapherUrls of lodash.chunk(toBake, 50)) {
+            await bakeGraphersToSvgs(
+                grapherUrls,
+                `${BAKED_SITE_DIR}/exports`,
+                OPTIMIZE_SVG_EXPORTS
+            )
+        }
     }
 }
 

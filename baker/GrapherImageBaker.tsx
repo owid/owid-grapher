@@ -109,7 +109,7 @@ export async function bakeGrapherToSvg(
 }
 
 export async function bakeGraphersToSvgs(
-    grapherUrls: string[], // todo: this is not being used. need to fix or update.
+    grapherUrls: string[],
     outDir: string,
     optimizeSvgs = false
 ) {
@@ -117,7 +117,7 @@ export async function bakeGraphersToSvgs(
     const graphersBySlug = await getGraphersAndRedirectsBySlug()
 
     return Promise.all(
-        Array.from(graphersBySlug.keys()).map((urlStr) => {
+        Array.from(grapherUrls).map((urlStr) => {
             const url = parseUrl(urlStr)
             const slug = lodash.last(url.pathname.split("/")) as string
             const jsonConfig = graphersBySlug.get(slug)
