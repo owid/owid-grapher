@@ -21,6 +21,7 @@ import {
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
+    truncate,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
 
@@ -63,15 +64,23 @@ export enum ExplorerKeywordList {
 enum CellTypes {
     keyword = "keyword",
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
+    isPublished = "isPublished",
+    hideAlertBanner = "hideAlertBanner",
 }
 
 interface CellTypeDefinition {
     options: string[]
 }
 
+const BooleanCellTypeDefinition: CellTypeDefinition = {
+    options: Object.values(CheckboxOption),
+}
+
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
     keyword: { options: Object.values(ExplorerKeywordList) },
     wip: { options: [] },
+    isPublished: BooleanCellTypeDefinition,
+    hideAlertBanner: BooleanCellTypeDefinition,
 }
 
 interface BlockLocation {
@@ -113,15 +122,40 @@ class ExplorerProgramCell {
         this.program = program
     }
 
-    get words() {
-        return this.line.split(this.program.cellDelimiter)
+    get comment() {
+        const { cellTypeDefinition, cellTypeName, value, isValid } = this
+        if (value === undefined || value === "") return undefined
+
+        const { options } = cellTypeDefinition
+        const optionsLine = options.length
+            ? `Options: ${truncate(options.join(", "), 30)}`
+            : undefined
+        const position = `Row: ${this.row} Col: ${this.column}`
+        return [
+            `Type: ${cellTypeName}`,
+            `Valid: ${isValid}`,
+            optionsLine,
+            position,
+        ]
+            .filter(isPresent)
+            .join("\n")
     }
 
-    get value() {
-        return this.words[this.row]
+    private get words() {
+        return this.line !== undefined
+            ? this.line.split(this.program.cellDelimiter)
+            : []
     }
 
-    get line() {
+    private get lineKeyword() {
+        return this.words[0]
+    }
+
+    private get value() {
+        return this.words[this.column]
+    }
+
+    private get line() {
         return this.program.lines[this.row]
     }
 
@@ -135,12 +169,20 @@ class ExplorerProgramCell {
         return options.includes(value)
     }
 
-    get cellType() {
+    private get cellTypeName() {
         if (this.column === 0) return CellTypes.keyword
+        if (this.column === 1) {
+            const keyword = this.lineKeyword as CellTypes
+            if (CellTypeDefinitions[keyword]) return keyword
+        }
         return CellTypes.wip
     }
 
-    get secondaryNotations() {
+    private get cellTypeDefinition() {
+        return CellTypeDefinitions[this.cellTypeName]
+    }
+
+    private get secondaryNotations() {
         return {
             fontColor: "black",
             fontSize: "12",
@@ -155,26 +197,26 @@ class ExplorerProgramCell {
     }
 
     get options() {
-        return CellTypeDefinitions[this.cellType].options ?? []
+        return this.cellTypeDefinition.options ?? []
     }
 
-    get errors() {
+    private get errors() {
         return []
     }
 
-    get examples() {
+    private get examples() {
         return []
     }
 
-    get suggestions() {
+    private get suggestions() {
         return []
     }
 
-    get definitionLinks(): CellLink[] {
+    private get definitionLinks(): CellLink[] {
         return []
     }
 
-    get implementationLinks(): CellLink[] {
+    private get implementationLinks(): CellLink[] {
         return []
     }
 }
@@ -367,7 +409,10 @@ export class ExplorerProgram {
     }
 
     get hideAlertBanner() {
-        return this.getLineValue(ExplorerKeywordList.hideAlertBanner) === "true"
+        return (
+            this.getLineValue(ExplorerKeywordList.hideAlertBanner) ===
+            CheckboxOption.true
+        )
     }
 
     get subNavCurrentId() {
