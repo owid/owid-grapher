@@ -778,7 +778,7 @@ export class ScatterPlotChart
         let label
         if (strat === ScatterPointLabelStrategy.year) {
             label = this.transformedTable.timeColumnFormatFunction(
-                row[OwidTableSlugs.time]
+                row[this.transformedTable.timeColumn.slug]
             )
         } else if (strat === ScatterPointLabelStrategy.x) {
             label = this.xColumn?.formatValue(row[this.xColumnSlug])
@@ -804,7 +804,7 @@ export class ScatterPlotChart
     }
 
     @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
-        const entityNameSlug = this.transformedTable.entityNameSlug
+        const { entityNameSlug, timeColumn } = this.transformedTable
         return this.removePointsOutsidePlane(
             this.transformedTable.rows.map((row) => {
                 row = replaceErrorValuesWithUndefined(row)
@@ -819,7 +819,7 @@ export class ScatterPlotChart
                         : undefined,
                     entityName: row[entityNameSlug],
                     label: this.getPointLabel(row) ?? "",
-                    timeValue: row[OwidTableSlugs.time],
+                    timeValue: row[timeColumn.slug],
                     time: {
                         x: row[this.xColumn!.originalTimeColumnSlug!],
                         y: row[this.yColumn!.originalTimeColumnSlug!],
