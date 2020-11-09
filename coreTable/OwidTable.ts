@@ -54,6 +54,8 @@ import {
     toleranceInterpolation,
     replaceDef,
     InterpolationProvider,
+    cartesianProduct,
+    rowsFromMatrix,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 import { OwidSourceProps } from "./OwidSource"
@@ -497,6 +499,51 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return intersectionOfSets<EntityName>(
             columnSlugs.map((slug) => new Set(this.get(slug).uniqEntityNames))
         )
+    }
+
+    owidComplete(): this {
+        const columnSlugs = [OwidTableSlugs.entityName, this.timeColumn.slug]
+        const index = this.rowIndex(columnSlugs)
+        const cols = this.getColumns(columnSlugs)
+        const product = cartesianProduct(...cols.map((col) => col.uniqValues))
+        const toAdd = product
+            .filter((row) => !index.has(row.join(" ")))
+            .map((row) => {
+                const entityName = row[0]
+                return [
+                    ...row,
+                    this.entityNameToIdMap.get(entityName),
+                    this.entityNameToCodeMap.get(entityName),
+                ]
+            })
+        const headerRow = [
+            ...columnSlugs,
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.entityCode,
+        ]
+
+        let table = this.appendRows(
+            rowsFromMatrix([headerRow, ...toAdd]),
+            `Append missing combos of ${columnSlugs}`
+        ).sortBy([OwidTableSlugs.entityName, this.timeColumn.slug])
+
+        if (
+            table.timeColumn.slug !== OwidTableSlugs.time &&
+            table.has(OwidTableSlugs.time)
+        ) {
+            table = table.transform(
+                {
+                    ...table.columnStore,
+                    [OwidTableSlugs.time]:
+                        table.columnStore[table.timeColumn.slug],
+                },
+                table.defs,
+                "Complete OwidTable",
+                TransformType.UpdateRows
+            )
+        }
+
+        return table
     }
 
     // Retrieves the two columns `columnSlug` and `timeColumnSlug` from the table and
