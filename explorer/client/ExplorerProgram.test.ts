@@ -2,10 +2,10 @@
 
 import {
     CheckboxOption,
-    DefaultExplorerProgram,
     ExplorerProgram,
     DecisionMatrix,
 } from "./ExplorerProgram"
+import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
 import { getRequiredChartIds } from "./ExplorerUtils"
 
 describe(ExplorerProgram, () => {

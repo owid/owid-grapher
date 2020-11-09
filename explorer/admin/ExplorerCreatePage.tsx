@@ -10,10 +10,10 @@ import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
-    DefaultExplorerProgram,
     ExplorerProgram,
     ProgramKeyword,
 } from "explorer/client/ExplorerProgram"
+import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
