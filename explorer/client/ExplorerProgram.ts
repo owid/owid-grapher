@@ -44,7 +44,7 @@ const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
 const edgeDelimiter = "\t"
 
-export enum ProgramKeyword {
+export enum ExplorerKeywordList {
     switcher = "switcher",
     table = "table",
     columns = "columns",
@@ -70,7 +70,7 @@ interface CellTypeDefinition {
 }
 
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
-    keyword: { options: Object.values(ProgramKeyword) },
+    keyword: { options: Object.values(ExplorerKeywordList) },
     wip: { options: [] },
 }
 
@@ -247,7 +247,7 @@ export class ExplorerProgram {
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
 
-    getKeywordIndex(key: ProgramKeyword) {
+    getKeywordIndex(key: ExplorerKeywordList) {
         return this.lines.findIndex(
             (line) => line.startsWith(key + this.cellDelimiter) || line === key
         )
@@ -268,7 +268,7 @@ export class ExplorerProgram {
         return new ExplorerProgramCell(this, row, col)
     }
 
-    private setLineValue(key: ProgramKeyword, value: string | undefined) {
+    private setLineValue(key: ExplorerKeywordList, value: string | undefined) {
         const index = this.getKeywordIndex(key)
         const newLine = `${key}${this.cellDelimiter}${value}`
         if (index === -1 && value !== undefined) this.lines.push(newLine)
@@ -323,7 +323,7 @@ export class ExplorerProgram {
         return { start: blockStart, end: blockStart + length, length }
     }
 
-    private setBlock(keyword: ProgramKeyword, value: string | undefined) {
+    private setBlock(keyword: ExplorerKeywordList, value: string | undefined) {
         if (!value) return this.deleteBlock(keyword)
 
         const keywordIndex = this.getKeywordIndex(keyword)
@@ -347,7 +347,7 @@ export class ExplorerProgram {
             .forEach((line) => this.lines.push(this.edgeDelimiter + line))
     }
 
-    private deleteBlock(keyword: ProgramKeyword) {
+    private deleteBlock(keyword: ExplorerKeywordList) {
         const keywordIndex = this.getKeywordIndex(keyword)
         if (keywordIndex === -1) return
         const location = this.getBlockLocation(keywordIndex)
@@ -355,72 +355,72 @@ export class ExplorerProgram {
     }
 
     get title() {
-        return this.getLineValue(ProgramKeyword.title)
+        return this.getLineValue(ExplorerKeywordList.title)
     }
 
     get subNavId(): SubNavId | undefined {
-        return this.getLineValue(ProgramKeyword.subNavId) as SubNavId
+        return this.getLineValue(ExplorerKeywordList.subNavId) as SubNavId
     }
 
     get googleSheet() {
-        return this.getLineValue(ProgramKeyword.googleSheet)
+        return this.getLineValue(ExplorerKeywordList.googleSheet)
     }
 
     get hideAlertBanner() {
-        return this.getLineValue(ProgramKeyword.hideAlertBanner) === "true"
+        return this.getLineValue(ExplorerKeywordList.hideAlertBanner) === "true"
     }
 
     get subNavCurrentId() {
-        return this.getLineValue(ProgramKeyword.subNavCurrentId)
+        return this.getLineValue(ExplorerKeywordList.subNavCurrentId)
     }
 
     get thumbnail() {
-        return this.getLineValue(ProgramKeyword.thumbnail)
+        return this.getLineValue(ExplorerKeywordList.thumbnail)
     }
 
     get subtitle() {
-        return this.getLineValue(ProgramKeyword.subtitle)
+        return this.getLineValue(ExplorerKeywordList.subtitle)
     }
 
     get defaultView() {
         // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
-        return this.getLineValue(ProgramKeyword.defaultView)
+        return this.getLineValue(ExplorerKeywordList.defaultView)
     }
 
     get isPublished() {
         return (
-            this.getLineValue(ProgramKeyword.isPublished) ===
+            this.getLineValue(ExplorerKeywordList.isPublished) ===
             CheckboxOption.true
         )
     }
 
     set isPublished(value: boolean) {
         this.setLineValue(
-            ProgramKeyword.isPublished,
+            ExplorerKeywordList.isPublished,
             value ? CheckboxOption.true : CheckboxOption.false
         )
     }
 
     get wpBlockId() {
-        const blockIdString = this.getLineValue(ProgramKeyword.wpBlockId)
+        const blockIdString = this.getLineValue(ExplorerKeywordList.wpBlockId)
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     get decisionMatrixCode() {
-        const keywordIndex = this.getKeywordIndex(ProgramKeyword.switcher)
+        const keywordIndex = this.getKeywordIndex(ExplorerKeywordList.switcher)
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
     }
 
     getTableDef(tableSlug: string): TableDef | undefined {
         const matchingTableIndex = this.getKeywordIndexes([
-            ProgramKeyword.table,
+            ExplorerKeywordList.table,
             tableSlug,
         ])[0]
         if (matchingTableIndex === undefined) return undefined
 
         const matchingColumnsIndex = this.getKeywordIndexes([
-            ProgramKeyword.columns,
+            ExplorerKeywordList.columns,
             tableSlug,
         ])[0]
         return {

@@ -11,7 +11,7 @@ import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     ExplorerProgram,
-    ProgramKeyword,
+    ExplorerKeywordList,
 } from "explorer/client/ExplorerProgram"
 import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
@@ -124,7 +124,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
         // Highlight the active view
         const activeViewRowNumber =
-            program.getKeywordIndex(ProgramKeyword.switcher) +
+            program.getKeywordIndex(ExplorerKeywordList.switcher) +
             program.decisionMatrix.selectedRowIndex +
             3
 
