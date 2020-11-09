@@ -372,7 +372,8 @@ export class ScatterPlotChart
     }
 
     @action.bound private onToggleEndpoints() {
-        this.compareEndPointsOnly = !this.compareEndPointsOnly
+        this.manager.compareEndPointsOnly =
+            !this.compareEndPointsOnly || undefined
     }
 
     // Colors currently on the chart and not greyed out
@@ -643,10 +644,6 @@ export class ScatterPlotChart
 
     @computed get compareEndPointsOnly() {
         return !!this.manager.compareEndPointsOnly
-    }
-
-    set compareEndPointsOnly(value: boolean) {
-        this.manager.compareEndPointsOnly = value ?? undefined
     }
 
     @computed get allPoints(): SeriesPoint[] {
