@@ -130,7 +130,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
         const cells = function (row: number, column: number) {
             const cellProperties: Partial<Handsontable.CellProperties> = {}
-            const cellParseResults = program.getCellParseResults(row, column)
+            const cellParseResults = program.getCell(row, column)
 
             if (cellParseResults.options.length) {
                 cellProperties.type = "autocomplete"

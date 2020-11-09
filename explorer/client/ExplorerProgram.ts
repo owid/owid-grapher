@@ -60,6 +60,20 @@ export enum ProgramKeyword {
     googleSheet = "googleSheet",
 }
 
+enum CellTypes {
+    keyword = "keyword",
+    wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
+}
+
+interface CellTypeDefinition {
+    options: string[]
+}
+
+const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
+    keyword: { options: Object.values(ProgramKeyword) },
+    wip: { options: [] },
+}
+
 // Note: the following sample program was actually made in a spreadsheet and copy/pasted. Easier that way.
 export const DefaultExplorerProgram = `title	New Data Explorer Template
 defaultView	?country=Canada~France
@@ -102,9 +116,91 @@ export interface SerializedExplorerProgram {
     lastModifiedTime?: number
 }
 
-interface CellParseResults {
-    isValid: boolean
-    options: string[]
+type CellCoordinate = number // An integer >= 0
+
+interface CellLink {
+    row: CellCoordinate
+    column: CellCoordinate
+}
+
+class ExplorerProgramCell {
+    private row: CellCoordinate
+    private column: CellCoordinate
+    private program: ExplorerProgram
+    constructor(
+        program: ExplorerProgram,
+        row: CellCoordinate,
+        column: CellCoordinate
+    ) {
+        this.row = row
+        this.column = column
+        this.program = program
+    }
+
+    get words() {
+        return this.line.split(this.program.cellDelimiter)
+    }
+
+    get value() {
+        return this.words[this.row]
+    }
+
+    get line() {
+        return this.program.lines[this.row]
+    }
+
+    get isValid() {
+        if (!this.line) return true
+
+        const { options } = this
+        if (!options.length) return true
+        const value = this.value
+        if (value === undefined || value === "") return true
+        return options.includes(value)
+    }
+
+    get cellType() {
+        if (this.column === 0) return CellTypes.keyword
+        return CellTypes.wip
+    }
+
+    get secondaryNotations() {
+        return {
+            fontColor: "black",
+            fontSize: "12",
+            fontWeight: 400,
+            textDecoration: "underline",
+            backgroundColor: "white",
+            textTransform: "red",
+            rightEmoji: "red",
+            leftEmoji: "red",
+            backgroundEmoji: "icon",
+        }
+    }
+
+    get options() {
+        return CellTypeDefinitions[this.cellType].options ?? []
+    }
+
+    get errors() {
+        return []
+    }
+
+    get examples() {
+        return []
+    }
+
+    get suggestions() {
+        return []
+    }
+
+    get definitionLinks(): CellLink[] {
+        return []
+    }
+
+    get implementationLinks(): CellLink[] {
+        return []
+    }
 }
 
 export class ExplorerProgram {
@@ -164,9 +260,9 @@ export class ExplorerProgram {
     }
 
     private nodeDelimiter = nodeDelimiter
-    private cellDelimiter = cellDelimiter
+    cellDelimiter = cellDelimiter
     private edgeDelimiter = edgeDelimiter
-    private lines: string[]
+    lines: string[]
 
     private getLineValue(keyword: string) {
         const line = this.lines.find((line) =>
@@ -192,28 +288,8 @@ export class ExplorerProgram {
             .filter(isPresent)
     }
 
-    getCellParseResults(row: number, col: number): CellParseResults {
-        const line = this.lines[row]
-        const words = line ? line.split(this.cellDelimiter) : []
-        const value = words[col]
-        if (col === 0)
-            return {
-                options: Object.values(ProgramKeyword),
-                isValid:
-                    value === undefined ||
-                    value === "" ||
-                    Object.values(ProgramKeyword).includes(value as any),
-            }
-        if (!line) return { options: [], isValid: true }
-        const keyword = words[0]
-        if (keyword === "") {
-            // const parentKeyword = ""
-        } else if (keyword === ProgramKeyword.isPublished && col === 1)
-            return {
-                options: Object.values(CheckboxOption),
-                isValid: Object.values(CheckboxOption).includes(value as any),
-            }
-        return { options: [], isValid: true }
+    getCell(row: number, col: number) {
+        return new ExplorerProgramCell(this, row, col)
     }
 
     private setLineValue(key: ProgramKeyword, value: string | undefined) {
