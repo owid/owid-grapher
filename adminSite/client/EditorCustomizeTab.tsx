@@ -22,6 +22,7 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
+import { GrapherTabOption } from "grapher/core/GrapherConstants"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
@@ -385,18 +386,19 @@ export class EditorCustomizeTab extends React.Component<{
                 <Section name="Color scheme">
                     <ColorSchemeSelector grapher={grapher} />
                 </Section>
-                {grapher.activeColorScale && (
-                    <EditorColorScaleSection
-                        scale={grapher.activeColorScale}
-                        features={{
-                            visualScaling: false,
-                            legendDescription:
-                                grapher.isScatter ||
-                                grapher.isSlopeChart ||
-                                grapher.isStackedBar,
-                        }}
-                    />
-                )}
+                {grapher.tab != GrapherTabOption.map && // Map color scale config is in EditorMapTab
+                    grapher.activeColorScale && (
+                        <EditorColorScaleSection
+                            scale={grapher.activeColorScale}
+                            features={{
+                                visualScaling: false,
+                                legendDescription:
+                                    grapher.isScatter ||
+                                    grapher.isSlopeChart ||
+                                    grapher.isStackedBar,
+                            }}
+                        />
+                    )}
                 {(features.hideLegend || features.entityType) && (
                     <Section name="Legend">
                         <FieldsRow>
