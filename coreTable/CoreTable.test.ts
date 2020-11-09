@@ -535,11 +535,17 @@ describe("filtering", () => {
         })
 
         it("can filter error values", () => {
-            const table = new CoreTable([
-                ["country", "value"],
-                ["usa", ErrorValueTypes.MissingValuePlaceholder],
-                ["usa", "1"],
-            ])
+            const table = new CoreTable(
+                [
+                    ["country", "value"],
+                    ["usa", null],
+                    ["usa", "1"],
+                ],
+                [
+                    { slug: "country", type: ColumnTypeNames.String },
+                    { slug: "value", type: ColumnTypeNames.Numeric },
+                ]
+            )
             expect(
                 table.columnFilter(
                     "value",
