@@ -163,7 +163,7 @@ export const legacyToOwidTableAndDimensions = (
         const targetTime = dimension?.targetYear
         if (
             grapherConfig.type === ChartTypeName.ScatterPlot &&
-            targetTime !== undefined
+            isNumber(targetTime)
         ) {
             variableTable = variableTable
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
