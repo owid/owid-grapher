@@ -33,7 +33,7 @@
         "test-leaks": "yarn test --detectLeaks",
         "cypress:open": "yarn cypress open --project .",
         "testcheck": "./deploy/testcheck.sh",
-        "deploy": "./deploy/deploy.ts",
+        "deploy": "yarn tsn deploy/deploy.ts",
         "deploy:wordpress": "./wordpress/scripts/deploy.sh",
         "refresh": "cd wordpress && lando refresh",
         "serve": "yarn tsn adminSite/server/app.tsx",
