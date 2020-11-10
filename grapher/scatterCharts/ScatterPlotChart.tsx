@@ -152,12 +152,12 @@ export class ScatterPlotChart
             .columnFilter(
                 this.xColumnSlug,
                 isNumber,
-                "Filter non-number values from X column"
+                "Drop rows with non-number values in X column"
             )
             .columnFilter(
                 this.yColumnSlug,
                 isNumber,
-                "Filter non-number values from Y column"
+                "Drop rows with non-number values in Y column"
             )
 
         return table
@@ -903,6 +903,8 @@ export class ScatterPlotChart
     ): ScatterSeries[] {
         const [startTime, endTime] = timespan
         return seriesArr.filter((series) => {
+            // Since the timeline filter is already applied,
+            // we only need to look at first & last points
             return (
                 first(series.points)?.timeValue === startTime &&
                 last(series.points)?.timeValue === endTime
