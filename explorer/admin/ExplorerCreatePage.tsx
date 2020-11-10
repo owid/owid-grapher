@@ -157,6 +157,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             comments: true,
             contextMenu: true,
             data,
+            manualColumnResize: true,
+            manualRowMove: true,
             minCols: program.width + 3,
             minSpareCols: 2,
             minRows: 20,
