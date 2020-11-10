@@ -40,8 +40,6 @@ import { enqueueChange, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
-import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
-import { Grapher } from "grapher/core/Grapher"
 
 const apiRouter = new FunctionalRouter()
 
@@ -313,24 +311,15 @@ async function saveGrapher(
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     const limit =
         req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
-    const charts = await db
-        .query(
-            `
+    const charts = await db.query(
+        `
         SELECT ${OldChart.listFields} FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
         ORDER BY charts.lastEditedAt DESC LIMIT ?
     `,
-            [limit]
-        )
-        .then((charts) =>
-            charts.map((chart: any) => {
-                // These fields are left out in some Grapher configs, so we populate with the default values here
-                chart.type ??= ChartTypeName.LineChart
-                chart.tab ??= GrapherTabOption.chart
-                return chart
-            })
-        )
+        [limit]
+    )
 
     await Chart.assignTagsForCharts(charts)
 

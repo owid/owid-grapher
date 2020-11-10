@@ -12,29 +12,36 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "settings"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { startCase } from "grapher/utils/Util"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
+// These properties are coming from OldChart.ts
 export interface ChartListItem {
-    id: number
-    slug: string
-    title: string
-    tab: string
-    hasChartTab: boolean
-    hasMapTab: boolean
-    isPublished: boolean
+    // the first few entries mirror GrapherInterface, so take the types from there
+    id: GrapherInterface["id"]
+    title: GrapherInterface["title"]
+    slug: GrapherInterface["slug"]
+    type: GrapherInterface["type"]
+    internalNotes: GrapherInterface["internalNotes"]
+    variantName: GrapherInterface["variantName"]
+    isPublished: GrapherInterface["isPublished"]
+    tab: GrapherInterface["tab"]
+    hasChartTab: GrapherInterface["hasChartTab"]
+    hasMapTab: GrapherInterface["hasMapTab"]
+
     isStarred: boolean
-    variantName: string
-    internalNotes: string
-    type: ChartTypeName
     lastEditedAt: string
     lastEditedBy: string
     publishedAt: string
     publishedBy: string
+    isExplorable: boolean
+
     tags: Tag[]
 }
 
 function showChartType(chart: ChartListItem) {
-    const displayType = ChartTypeName[chart.type]
-        ? startCase(ChartTypeName[chart.type])
+    const chartType = chart.type ?? ChartTypeName.LineChart
+    const displayType = ChartTypeName[chartType]
+        ? startCase(ChartTypeName[chartType])
         : "Unknown"
 
     if (chart.tab === "map") {
@@ -93,12 +100,12 @@ class ChartRow extends React.Component<{
                 <td style={{ minWidth: "180px" }}>
                     {chart.isPublished ? (
                         <a href={`${BAKED_GRAPHER_URL}/${chart.slug}`}>
-                            {highlight(chart.title)}
+                            {highlight(chart.title ?? "")}
                         </a>
                     ) : (
                         <span>
                             <span style={{ color: "red" }}>Draft: </span>{" "}
-                            {highlight(chart.title)}
+                            {highlight(chart.title ?? "")}
                         </span>
                     )}{" "}
                     {chart.variantName ? (
