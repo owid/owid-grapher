@@ -7,11 +7,11 @@ import { ScatterTooltipProps, SeriesPoint } from "./ScatterPlotChartConstants"
 @observer
 export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: SeriesPoint) {
-        return "Y Axis: " + this.props.yColumn.formatValue(value.y)
+        return "Y Axis: " + this.props.yColumn.formatValueLong(value.y)
     }
 
     formatValueX(value: SeriesPoint) {
-        let s = `X Axis: ${this.props.xColumn.formatValue(value.x)}`
+        let s = `X Axis: ${this.props.xColumn.formatValueLong(value.x)}`
         if (!value.time.span && value.time.y !== value.time.x)
             s += ` (data from ${this.props.xColumn.table.formatTime(
                 value.time.x
