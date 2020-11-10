@@ -1,4 +1,5 @@
 import { CoreColumnDefKeyword } from "coreTable/CoreColumnDef"
+import { imemo } from "coreTable/CoreTableUtils"
 import { isPresent } from "grapher/utils/Util"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import {
@@ -13,16 +14,18 @@ import {
     StringCellTypeDefinition,
     UrlCellTypeDefinition,
     NothingGoesThereDefinition,
+    SubTableHeaderCellTypeDefinition,
+    SubTableWordCellTypeDefinition,
 } from "./GridGrammarConstants"
 
 export enum ExplorerKeywordList {
-    // Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
     keyword = "keyword",
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
     nothingGoesThere = "nothingGoesThere",
     delimitedUrl = "delimitedUrl",
+    subtableWord = "subtableWord",
+    subtableHeaderWord = "subtableHeaderWord",
 
-    // Tuples
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
@@ -35,17 +38,26 @@ export enum ExplorerKeywordList {
     googleSheet = "googleSheet",
     entityType = "entityType",
 
-    // Subtables
     switcher = "switcher",
     table = "table",
     columns = "columns",
 }
 
+// Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
 const AbstractKeywords = new Set([
     ExplorerKeywordList.keyword,
     ExplorerKeywordList.wip,
     ExplorerKeywordList.nothingGoesThere,
     ExplorerKeywordList.delimitedUrl,
+    ExplorerKeywordList.subtableWord,
+    ExplorerKeywordList.subtableHeaderWord,
+])
+
+// Keywords that also can have child tables
+const SubtableKeywords = new Set([
+    ExplorerKeywordList.switcher,
+    ExplorerKeywordList.table,
+    ExplorerKeywordList.columns,
 ])
 
 const ConcreteKeywords = Object.values(ExplorerKeywordList).filter(
@@ -69,6 +81,10 @@ const CellTypeDefinitions: {
     wip: { cssClass: "WipCellType", description: "A comment" },
     delimitedUrl: DelimitedUrlDefinition,
     nothingGoesThere: NothingGoesThereDefinition,
+
+    subtableWord: SubTableWordCellTypeDefinition,
+    subtableHeaderWord: SubTableHeaderCellTypeDefinition,
+
     // Tuples
     isPublished: {
         ...BooleanCellTypeDefinition,
@@ -141,6 +157,9 @@ const CellTypeDefinitions: {
     },
 }
 
+// Todo: figure out Matrix cell type and whether we need the double check
+const isEmpty = (value: any) => value === "" || value === undefined
+
 export class ExplorerProgramCell {
     private row: CellCoordinate
     private column: CellCoordinate
@@ -163,7 +182,7 @@ export class ExplorerProgramCell {
         return this.matrix[this.row]
     }
 
-    private get cellTypeDefinition() {
+    private get cellTerminalTypeDefinition() {
         if (this.column === 0)
             return CellTypeDefinitions[ExplorerKeywordList.keyword]
         const firstWord = this.line ? this.line[0] : undefined
@@ -172,27 +191,58 @@ export class ExplorerProgramCell {
         if (this.column === 1 && firstWordAsKeyword)
             return CellTypeDefinitions[firstWordAsKeyword]
 
-        if (firstWordAsKeyword) {
-            // It has a keyword but it is column 2+
-            const def = CellTypeDefinitions[firstWordAsKeyword]
-            const cellTypeDef = def.rest && def.rest[this.column - 2]
-            if (cellTypeDef) return cellTypeDef
-            return CellTypeDefinitions[ExplorerKeywordList.nothingGoesThere]
-        }
-        return CellTypeDefinitions[
-            this.horizontalCellTypeName ?? ExplorerKeywordList.wip
-        ]
+        if (!firstWordAsKeyword) return undefined
+
+        // It has a keyword but it is column 2+
+        const def = CellTypeDefinitions[firstWordAsKeyword]
+        const cellTypeDef = def.rest && def.rest[this.column - 2]
+        if (cellTypeDef) return cellTypeDef
+        return CellTypeDefinitions[ExplorerKeywordList.nothingGoesThere]
     }
 
-    private get isFirstBlankRow() {
-        const { row } = this
+    @imemo private get cellTypeDefinition() {
+        const def = this.cellTerminalTypeDefinition
+        if (def) return def
+
+        const subTable = this.subTableInfo
+        if (subTable) return subTable.def
+
+        return CellTypeDefinitions[ExplorerKeywordList.wip]
+    }
+
+    @imemo private get subTableInfo() {
+        if (this.cellTerminalTypeDefinition) return undefined
+
+        let start = this.row
+        while (start) {
+            const parentLine = this.matrix[start - 1]
+            if (!parentLine) return undefined
+            const parentKeyword = parentLine[0] as ExplorerKeywordList
+            if (parentKeyword) {
+                if (!SubtableKeywords.has(parentKeyword)) return undefined
+                const subTableDef = CellTypeDefinitions[parentKeyword]
+                const isHeaderRow = this.row === start && this.value
+                return {
+                    isHeaderRow,
+                    def: isHeaderRow
+                        ? CellTypeDefinitions[
+                              ExplorerKeywordList.subtableHeaderWord
+                          ]
+                        : CellTypeDefinitions[ExplorerKeywordList.subtableWord],
+                }
+            }
+            start--
+        }
+        return undefined
+    }
+
+    // If true show a +
+    private get isFrontierCell() {
+        const { row, value } = this
         const numRows = this.matrix.length
+        if (!isEmpty(value)) return false
         if (numRows === 1) return row === 0
         return row === numRows
-    }
-
-    private get errors() {
-        return []
     }
 
     private get suggestions() {
@@ -233,32 +283,32 @@ export class ExplorerProgramCell {
 
     get comment() {
         const { value, errorMessage } = this
-        if (value === undefined || value === "") return undefined
+        if (isEmpty(value)) return undefined
         if (errorMessage) return errorMessage
 
         return [this.cellTypeDefinition.description].join("\n")
     }
 
+    // If true show a +
+    // todo: not actually getting called by HOT.
+    private get isSubTableFrontierCell() {
+        const { subTableInfo, line, value, column } = this
+        if (!line || !isEmpty(value) || !subTableInfo) return false
+        if (column === 1) return true
+        return !isEmpty(line[column - 1]) && isEmpty(line[column + 1])
+    }
+
     get cssClasses() {
-        if (this.errorMessage) return [ErrorCellTypeClass]
-        const isEmpty = this.value === undefined || this.value === ""
+        const { errorMessage, cellTypeDefinition } = this
+        if (errorMessage) return [ErrorCellTypeClass]
         const showArrow =
-            isEmpty && this.isFirstBlankRow ? "ShowDropdownArrow" : undefined
-        return [this.cellTypeDefinition.cssClass, showArrow].filter(isPresent)
+            this.isFrontierCell || this.isSubTableFrontierCell
+                ? "ShowDropdownArrow"
+                : undefined
+        return [cellTypeDefinition.cssClass, showArrow].filter(isPresent)
     }
 
     get options() {
         return this.cellTypeDefinition.options
-    }
-
-    private get horizontalCellTypeName() {
-        const isHeaderRow = false
-        const headerOptions = []
-        const columnOptions = []
-        const rowType = ""
-        if (isHeaderRow) {
-        } else {
-        }
-        return undefined
     }
 }

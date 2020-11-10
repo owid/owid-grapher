@@ -39,6 +39,15 @@
         color: #0f739c;
     }
 
+    .SubTableHeaderCellType {
+        color: #4c6a9c;
+        border-bottom: 1px solid #4c6a9c;
+    }
+
+    .SubTableWordCellType {
+        color: #287669;
+    }
+
     .UrlCellType {
         color: #00823f;
     }
@@ -65,9 +74,6 @@
 }
 
 // Unused colors from Owid Default Color Scheme:
-// "#4C6A9C",
-// "#C05917",
-// "#D73C50",
 // "#287669",
 // "#CD2285",
 // "#9A5129",

@@ -33,6 +33,16 @@ export const StringCellTypeDefinition: CellTypeDefinition = {
     description: "",
 }
 
+export const SubTableHeaderCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SubTableHeaderCellType",
+    description: "",
+}
+
+export const SubTableWordCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SubTableWordCellType",
+    description: "",
+}
+
 export const UrlCellTypeDefinition: CellTypeDefinition = {
     cssClass: "UrlCellType",
     description: "",
