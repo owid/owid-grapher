@@ -116,7 +116,9 @@ export class Explorer
         EntityUrlBuilder.queryParamToEntities(
             strToQueryParams(this.explorerProgram.queryString ?? "").country ??
                 ""
-        )
+        ),
+        undefined,
+        this.explorerProgram.entityType
     )
 
     @computed get params(): QueryParams {

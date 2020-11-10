@@ -30,6 +30,7 @@ export enum ExplorerKeywordList {
     googleSheet = "googleSheet",
     keyword = "keyword",
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
+    entityType = "entityType",
 }
 
 const KeywordEnum = Object.values(ExplorerKeywordList).filter(
@@ -106,6 +107,11 @@ const CellTypeDefinitions: {
         ...StringCellTypeDefinition,
         description:
             "If present will show the matching Wordpress block ID beneath the Explorer.",
+    },
+    entityType: {
+        ...StringCellTypeDefinition,
+        description:
+            "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
 }
 

@@ -440,13 +440,14 @@ export class EntityPicker extends React.Component<{
     }
 
     render() {
+        const { selectionArray } = this
         const entities = this.searchResults
-        const selectedEntityNames = this.selectionArray.selectedEntityNames
+        const selectedEntityNames = selectionArray.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
-        const entityType = "country"
+        const entityType = selectionArray.entityType
         return (
             <div className="EntityPicker" onKeyDown={this.onKeyDown}>
                 <div className="EntityPickerSearchInput">
@@ -534,7 +535,7 @@ export class EntityPicker extends React.Component<{
                                     className="ClearSelectionButton"
                                     data-track-note={`${this.analyticsNamespace}-clear-selection`}
                                     onClick={() =>
-                                        this.selectionArray.clearSelection()
+                                        selectionArray.clearSelection()
                                     }
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear

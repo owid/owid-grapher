@@ -269,6 +269,10 @@ export class ExplorerProgram {
         return this.getLineValue(ExplorerKeywordList.subtitle)
     }
 
+    get entityType() {
+        return this.getLineValue(ExplorerKeywordList.entityType)
+    }
+
     get defaultView() {
         // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
         return this.getLineValue(ExplorerKeywordList.defaultView)
