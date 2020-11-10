@@ -106,14 +106,15 @@ const timeSinceEntityExceededThreshold = (
     let groupExceededThresholdAtTime: number
     return columnValues.map((value, index) => {
         const group = groupValues[index]
+        const currentTime = timeValues[index]
         if (group !== currentGroup) {
             if (!isNotErrorValue(value)) return value
             if (value < threshold) return ErrorValueTypes.ValueTooLow
 
             currentGroup = group
-            groupExceededThresholdAtTime = timeValues[index]
+            groupExceededThresholdAtTime = currentTime
         }
-        return groupExceededThresholdAtTime
+        return currentTime - groupExceededThresholdAtTime
     })
 }
 
