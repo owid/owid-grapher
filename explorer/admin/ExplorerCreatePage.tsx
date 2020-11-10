@@ -217,8 +217,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         >
                             Save as
                         </button>
+                        <br />
                     </div>
-                    <div style={{ height: "400px", overflow: "scroll" }}>
+                    <div style={{ height: "300px", overflow: "scroll" }}>
                         <Explorer
                             chartConfigs={Object.values(this.chartConfigs)}
                             explorerProgram={program}
@@ -228,7 +229,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     </div>
                     <div
                         style={{
-                            height: "calc(100% - 400px)",
+                            height: "calc(100% - 300px)",
                             width: "100%",
                             overflow: "scroll",
                         }}
