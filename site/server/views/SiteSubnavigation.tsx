@@ -9,8 +9,12 @@ interface SubnavItem {
     highlight?: boolean
 }
 
-const SubNavIds = ["about", "coronavirus", "co2", "energy"] as const
-export type SubNavId = typeof SubNavIds[number]
+export enum SubNavId {
+    about = "about",
+    coronavirus = "coronavirus",
+    co2 = "co2",
+    energy = "energy",
+}
 
 const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     about: [

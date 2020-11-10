@@ -51,8 +51,8 @@ export enum ExplorerKeywordList {
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
-    hideAlertBanner = "hideAlertBanner",
     subNavCurrentId = "subNavCurrentId",
+    hideAlertBanner = "hideAlertBanner",
     thumbnail = "thumbnail",
     subtitle = "subtitle",
     defaultView = "defaultView",
@@ -65,6 +65,12 @@ enum CellTypes {
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
     isPublished = "isPublished",
     hideAlertBanner = "hideAlertBanner",
+    title = "title",
+    subtitle = "subtitle",
+    googleSheet = "googleSheet",
+    defaultView = "defaultView",
+    subNavId = "subNavId",
+    subNavCurrentId = "subNavCurrentId",
 }
 
 interface CellTypeDefinition {
@@ -79,6 +85,17 @@ const BooleanCellTypeDefinition: CellTypeDefinition = {
     description: "Boolean",
 }
 
+const StringCellTypeDefinition: CellTypeDefinition = {
+    options: [],
+    cssClass: "StringCellType",
+    description: "",
+}
+
+const UrlCellTypeDefinition: CellTypeDefinition = {
+    ...StringCellTypeDefinition,
+    cssClass: "UrlCellType",
+}
+
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
     keyword: {
         options: Object.values(ExplorerKeywordList),
@@ -86,8 +103,43 @@ const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
         description: "Keyword",
     },
     wip: { options: [], cssClass: "WipCellType", description: "A comment" },
-    isPublished: BooleanCellTypeDefinition,
-    hideAlertBanner: BooleanCellTypeDefinition,
+    isPublished: {
+        ...BooleanCellTypeDefinition,
+        description: "Set to true to make this Explorer public.",
+    },
+    hideAlertBanner: {
+        ...BooleanCellTypeDefinition,
+        description: "Set to true to hide the Covid alert banner.",
+    },
+    title: {
+        ...StringCellTypeDefinition,
+        description:
+            "The title will appear in the top left corner of the page.",
+    },
+    subtitle: {
+        ...StringCellTypeDefinition,
+        description: "The subtitle will appear under the title.",
+    },
+    googleSheet: {
+        ...UrlCellTypeDefinition,
+        description:
+            "Create a Google Sheet, share it with the OWID Group, then put the link here.",
+    },
+    defaultView: {
+        ...UrlCellTypeDefinition,
+        description:
+            "Use the Explorer, then copy the part of the url starting with ? here.",
+    },
+    subNavId: {
+        options: Object.values(SubNavId),
+        cssClass: "EnumCellType",
+        description: "A subnav to show, if any.",
+    },
+    subNavCurrentId: {
+        options: [], // todo: get options in here
+        cssClass: "EnumCellType",
+        description: "The current page in the subnav.",
+    },
 }
 
 interface BlockLocation {

@@ -129,19 +129,20 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             3
 
         const cells = function (row: number, column: number) {
-            const cellProperties: Partial<Handsontable.CellProperties> = {}
-            const cellParseResults = program.getCell(row, column)
+            const { comment, cssClasses, options } = program.getCell(
+                row,
+                column
+            )
 
-            if (cellParseResults.options.length) {
+            const cellProperties: Partial<Handsontable.CellProperties> = {}
+            cellProperties.className = cssClasses.length
+                ? cssClasses.join(" ")
+                : undefined
+            cellProperties.comment = comment ? { value: comment } : undefined
+
+            if (options.length) {
                 cellProperties.type = "autocomplete"
-                cellProperties.source = cellParseResults.options
-                cellProperties.className = cellParseResults.cssClasses.length
-                    ? cellParseResults.cssClasses.join(" ")
-                    : undefined
-                const comment = cellParseResults.comment
-                cellProperties.comment = comment
-                    ? { value: comment }
-                    : undefined
+                cellProperties.source = options
             }
 
             return cellProperties

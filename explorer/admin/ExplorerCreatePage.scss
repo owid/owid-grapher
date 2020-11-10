@@ -19,6 +19,18 @@
     color: #00847e;
 }
 
+.handsontable .EnumCellType {
+    color: #00847e;
+}
+
+.handsontable .StringCellType {
+    color: #6d3e91;
+}
+
+.handsontable .UrlCellType {
+    color: #883039;
+}
+
 .handsontable .ErrorCellType {
     color: #b13507;
     text-decoration: underline;
@@ -35,8 +47,6 @@
 }
 
 // Unused colors from Owid Default Color Scheme:
-// "#6D3E91",
-// "#CF0A66",
 // "#883039",
 // "#00823F",
 // "#4C6A9C",
