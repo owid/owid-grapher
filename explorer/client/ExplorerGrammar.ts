@@ -7,6 +7,8 @@ import {
     CellLink,
     CellTypeDefinition,
     ErrorCellTypeClass,
+    MatrixLine,
+    MatrixProgram,
     SlugDeclarationCellTypeDefinition,
     StringCellTypeDefinition,
     UrlCellTypeDefinition,
@@ -26,26 +28,20 @@ export enum ExplorerKeywordList {
     defaultView = "defaultView",
     wpBlockId = "wpBlockId",
     googleSheet = "googleSheet",
-}
-
-enum CellTypes {
     keyword = "keyword",
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
-    isPublished = "isPublished",
-    hideAlertBanner = "hideAlertBanner",
-    title = "title",
-    subtitle = "subtitle",
-    googleSheet = "googleSheet",
-    defaultView = "defaultView",
-    subNavId = "subNavId",
-    subNavCurrentId = "subNavCurrentId",
-    table = "table",
-    columns = "columns",
 }
 
-const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
+const KeywordEnum = Object.values(ExplorerKeywordList).filter(
+    (word) =>
+        word !== ExplorerKeywordList.wip && word !== ExplorerKeywordList.keyword
+)
+
+const CellTypeDefinitions: {
+    [key in ExplorerKeywordList]: CellTypeDefinition
+} = {
     keyword: {
-        options: Object.values(ExplorerKeywordList),
+        options: KeywordEnum,
         cssClass: "KeywordCellType",
         description: "Keyword",
     },
@@ -89,15 +85,29 @@ const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
     },
     table: {
         ...SlugDeclarationCellTypeDefinition,
+        description:
+            "Give your table a slug and include a link to a CSV or put data inline.",
     },
     columns: {
         ...SlugDeclarationCellTypeDefinition,
         headerKeywordOptions: Object.values(CoreColumnDefKeyword),
+        description:
+            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
+    },
+    switcher: {
+        ...SlugDeclarationCellTypeDefinition,
+        description: "The decision matrix for your Explorer goes here.",
+    },
+    thumbnail: {
+        ...UrlCellTypeDefinition,
+        description: "URL to the social sharing thumbnail.",
+    },
+    wpBlockId: {
+        ...StringCellTypeDefinition,
+        description:
+            "If present will show the matching Wordpress block ID beneath the Explorer.",
     },
 }
-
-type MatrixLine = string[]
-type MatrixProgram = MatrixLine[]
 
 export class ExplorerProgramCell {
     private row: CellCoordinate
@@ -122,13 +132,13 @@ export class ExplorerProgramCell {
     }
 
     private get cellTypeName() {
-        if (this.column === 0) return CellTypes.keyword
+        if (this.column === 0) return ExplorerKeywordList.keyword
         if (this.column === 1) {
             const firstWord = this.line ? this.line[0] : undefined
-            if (CellTypeDefinitions[firstWord as CellTypes])
-                return firstWord as CellTypes
+            if (ExplorerKeywordList[firstWord as ExplorerKeywordList])
+                return firstWord as ExplorerKeywordList
         }
-        return this.horizontalCellTypeName ?? CellTypes.wip
+        return this.horizontalCellTypeName ?? ExplorerKeywordList.wip
     }
 
     private get cellTypeDefinition() {
@@ -169,16 +179,17 @@ export class ExplorerProgramCell {
     }
 
     get comment() {
-        const { cellTypeDefinition, value } = this
+        const { value } = this
         if (value === undefined || value === "") return undefined
 
-        const { options } = cellTypeDefinition
-        const optionsLine = options
-            ? `Options: ${options.join(", ")}`
-            : undefined
-        return [this.cellTypeDefinition.description, optionsLine]
-            .filter(isPresent)
-            .join("\n")
+        if (this.cellTypeName === ExplorerKeywordList.keyword)
+            return [
+                this.value,
+                CellTypeDefinitions[this.value as ExplorerKeywordList]
+                    .description,
+            ].join(": ")
+
+        return [this.cellTypeDefinition.description].join("\n")
     }
 
     get cssClasses() {

@@ -39,3 +39,6 @@ export interface CellTypeDefinition {
     description: string
     headerKeywordOptions?: string[]
 }
+
+export type MatrixLine = string[]
+export type MatrixProgram = MatrixLine[]
