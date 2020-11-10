@@ -485,10 +485,6 @@ export class StackedBarChart
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
-    @computed get categoricalValues() {
-        return this.rawSeries.map((series) => series.seriesName).reverse()
-    }
-
     @computed get series() {
         return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
     }

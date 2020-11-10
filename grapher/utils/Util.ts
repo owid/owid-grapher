@@ -8,6 +8,7 @@ import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
 import differenceBy from "lodash/differenceBy"
+import dropWhile from "lodash/dropWhile"
 import extend from "lodash/extend"
 import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
@@ -65,6 +66,7 @@ export {
     debounce,
     difference,
     differenceBy,
+    dropWhile,
     extend,
     findIndex,
     flatten,
@@ -392,7 +394,7 @@ interface Point {
     y?: number
 }
 // Todo: add unit tests
-function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
+export function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
     const elapsed = endValue.timeValue - startValue.timeValue
     if (!elapsed) return 0
 

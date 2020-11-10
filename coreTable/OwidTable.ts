@@ -186,29 +186,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
-
-        const sortedTable = this.sortedByTime
-        const rowsSortedByTime = sortedTable.rows
-
         // todo: we should set a time column onload so we don't have to worry about it again.
         const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
-        const firstRowIndex = sortedIndexBy(
-            rowsSortedByTime,
-            { [timeColumnSlug]: adjustedStart } as any,
-            (row) => row[timeColumnSlug]
-        )
-        const lastRowIndex = sortedIndexBy(
-            rowsSortedByTime,
-            { [timeColumnSlug]: adjustedEnd + 1 } as any,
-            (row) => row[timeColumnSlug]
-        )
-
-        // NB: this one does something tricky in that it is a 2 step transform. Probably want to do indexes instead.
-        return sortedTable.transform(
-            rowsSortedByTime.slice(firstRowIndex, lastRowIndex),
-            this.defs,
-            `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`,
-            TransformType.FilterRows
+        // Sorting by time, because incidentally some parts of the code depended on this method
+        // returning sorted rows.
+        return this.sortedByTime.columnFilter(
+            timeColumnSlug,
+            (time) => time >= adjustedStart && time <= adjustedEnd,
+            `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
         )
     }
 

@@ -3,7 +3,7 @@
 import { CoreTable } from "./CoreTable"
 import { TransformType } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { ErrorValueTypes } from "./ErrorValues"
+import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 
 const sampleCsv = `country,population
 iceland,1
@@ -463,47 +463,109 @@ hi,1,,2001`
 })
 
 describe("filtering", () => {
-    const rootTable = new CoreTable(sampleCsv)
-    const filteredTable = rootTable.rowFilter(
-        (row) => parseInt(row.population) > 40,
-        "Pop filter"
-    )
-    it("can filter", () => {
-        expect(rootTable.get("country").values[3]).toEqual("canada")
-        const parsedValues = filteredTable.get("country").values
-        expect(parsedValues[0]).toEqual("france")
-        expect(parsedValues[1]).toEqual("usa")
-    })
-
-    it("can chain filters", () => {
-        const filteredTwiceTable = filteredTable.rowFilter(
-            (row: any) => (row.country as string).startsWith("u"),
-            "Letter filter"
+    describe("row filter", () => {
+        const rootTable = new CoreTable(sampleCsv)
+        const filteredTable = rootTable.rowFilter(
+            (row) => parseInt(row.population) > 40,
+            "Pop filter"
         )
-        const parsedValues = filteredTwiceTable.get("country").values
-        expect(parsedValues[0]).toEqual("usa")
-        expect(parsedValues[1]).toEqual(undefined)
+        it("can filter", () => {
+            expect(rootTable.get("country").values[3]).toEqual("canada")
+            const parsedValues = filteredTable.get("country").values
+            expect(parsedValues[0]).toEqual("france")
+            expect(parsedValues[1]).toEqual("usa")
+        })
+
+        it("can chain filters", () => {
+            const filteredTwiceTable = filteredTable.rowFilter(
+                (row: any) => (row.country as string).startsWith("u"),
+                "Letter filter"
+            )
+            const parsedValues = filteredTwiceTable.get("country").values
+            expect(parsedValues[0]).toEqual("usa")
+            expect(parsedValues[1]).toEqual(undefined)
+        })
+
+        it("can filter all", () => {
+            const table = new CoreTable(`country,pop
+    usa,123
+    can,333`)
+            const allFiltered = table.rowFilter((row) => false, "filter all")
+            expect(allFiltered.get("pop").values).toEqual([])
+        })
+
+        it("can filter negatives", () => {
+            const table = new CoreTable(`country,pop
+    fra,0
+    usa,-2
+    can,333
+    ger,0.1`)
+            expect(table.filterNegatives("pop").get("pop").values).toEqual([
+                0,
+                333,
+                0.1,
+            ])
+        })
     })
 
-    it("can filter all", () => {
-        const table = new CoreTable(`country,pop
-usa,123
-can,333`)
-        const allFiltered = table.rowFilter((row) => false, "filter all")
-        expect(allFiltered.get("pop").values).toEqual([])
-    })
+    describe("column filter", () => {
+        const rootTable = new CoreTable(sampleCsv)
+        const filteredTable = rootTable.columnFilter(
+            "population",
+            (v) => parseInt(v as any) > 40,
+            "Pop filter"
+        )
 
-    it("can filter negatives", () => {
-        const table = new CoreTable(`country,pop
-fra,0
-usa,-2
-can,333
-ger,0.1`)
-        expect(table.filterNegatives("pop").get("pop").values).toEqual([
-            0,
-            333,
-            0.1,
-        ])
+        it("can filter", () => {
+            expect(rootTable.get("country").values[3]).toEqual("canada")
+            const parsedValues = filteredTable.get("country").values
+            expect(parsedValues[0]).toEqual("france")
+            expect(parsedValues[1]).toEqual("usa")
+        })
+
+        it("can chain filters", () => {
+            const filteredTwiceTable = filteredTable.columnFilter(
+                "country",
+                (v) => (v as string).startsWith("u"),
+                "Letter filter"
+            )
+            const parsedValues = filteredTwiceTable.get("country").values
+            expect(parsedValues[0]).toEqual("usa")
+            expect(parsedValues[1]).toEqual(undefined)
+        })
+
+        it("can filter error values", () => {
+            const table = new CoreTable(
+                [
+                    ["country", "value"],
+                    ["usa", null],
+                    ["usa", "1"],
+                ],
+                [
+                    { slug: "country", type: ColumnTypeNames.String },
+                    { slug: "value", type: ColumnTypeNames.Numeric },
+                ]
+            )
+            expect(
+                table.columnFilter(
+                    "value",
+                    (v) => isNotErrorValue(v),
+                    "filter out error values"
+                ).numRows
+            ).toEqual(1)
+        })
+
+        it("can filter all", () => {
+            const table = new CoreTable(`country,pop
+            usa,123
+            can,333`)
+            const allFiltered = table.columnFilter(
+                "pop",
+                () => false,
+                "filter all"
+            )
+            expect(allFiltered.get("pop").values).toEqual([])
+        })
     })
 })
 

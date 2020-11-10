@@ -394,7 +394,8 @@ export class CoreTable<
         )
     }
 
-    has(columnSlug: ColumnSlug) {
+    has(columnSlug: ColumnSlug | undefined) {
+        if (columnSlug === undefined) return false
         return this._columns.has(columnSlug)
     }
 
@@ -598,7 +599,7 @@ export class CoreTable<
             TransformType.FilterRows,
             new FilterMask(
                 this.numRows,
-                this.get(columnSlug).values.map(predicate)
+                this.get(columnSlug).valuesIncludingErrorValues.map(predicate)
             )
         )
     }

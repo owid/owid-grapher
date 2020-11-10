@@ -318,10 +318,6 @@ export class SlopeChart
 
     defaultBaseColorScheme = ColorSchemeName.continents
 
-    @computed get categoricalValues() {
-        return this.colorColumn?.sortedUniqNonEmptyStringVals
-    }
-
     @computed private get yColumn() {
         return this.transformedTable.get(this.yColumnSlug)
     }

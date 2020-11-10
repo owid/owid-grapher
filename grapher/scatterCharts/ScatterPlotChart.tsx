@@ -14,6 +14,9 @@ import {
     relativeMinAndMax,
     exposeInstanceOnWindow,
     groupBy,
+    first,
+    cagr,
+    dropWhile,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -25,7 +28,7 @@ import {
     ScatterPointLabelStrategy,
     SeriesName,
 } from "grapher/core/GrapherConstants"
-import { Color } from "coreTable/CoreTableConstants"
+import { Color, Time } from "coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -79,28 +82,38 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable) {
+        if (this.manager.excludedEntities) {
+            const excludedEntityIdsSet = new Set(this.manager.excludedEntities)
+            table = table.columnFilter(
+                OwidTableSlugs.entityId,
+                (entityId) => !excludedEntityIdsSet.has(entityId as number),
+                `Excluded entity ids specified by author: ${this.manager.excludedEntities.join(
+                    ", "
+                )}`
+            )
+        }
+
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
-        if (this.colorColumnSlug) {
-            table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
-                Infinity
-            )
-        }
-
         // To avoid injecting unnecessary rows in the interpolateColumnWithTolerance() transform,
         // we drop any rows which are blank for both X and Y values.
         // The common case is that the Population data goes back to 10,000 BCE and in almost every
         // case we don't have that data for X and Y.
         // -@danielgavrilov, 2020-10-22
-        table = table.dropRowsWithErrorValuesForAllColumns([
-            this.xColumnSlug,
-            this.yColumnSlug,
-        ])
+        //
+        // UPDATE: We cannot drop rows here, because it may lead to missing color/size data - those
+        // columns usually have Infinity tolerance. Leaving this note as we'll probably try to
+        // optimize this later.
+        // -@danielgavrilov, 2020-10-30
+        //
+        // table = table.dropRowsWithErrorValuesForAllColumns([
+        //     this.xColumnSlug,
+        //     this.yColumnSlug,
+        // ])
 
         if (this.xColumnSlug) {
             table = table.interpolateColumnWithTolerance(this.xColumnSlug)
@@ -110,18 +123,41 @@ export class ScatterPlotChart
             table = table.interpolateColumnWithTolerance(this.yColumnSlug)
         }
 
-        // Drop any rows which have an ErrorValues for either X or Y.
+        if (this.sizeColumnSlug) {
+            // The tolerance on the size column is ignored. If we want to change this in the future
+            // we need to check all charts for regressions.
+            table = table.interpolateColumnWithTolerance(
+                this.sizeColumnSlug,
+                Infinity
+            )
+        }
+
+        if (this.colorColumnSlug) {
+            const tolerance =
+                table.get(this.colorColumnSlug)?.display.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.colorColumnSlug,
+                tolerance
+            )
+            if (this.manager.matchingEntitiesOnly) {
+                table = table.dropRowsWithErrorValuesForColumn(
+                    this.colorColumnSlug
+                )
+            }
+        }
+
+        // Drop any rows which have an invalid cell for either X or Y.
         // This needs to be done after the tolerance, because the tolerance may fill in some gaps.
         table = table
             .columnFilter(
                 this.xColumnSlug,
                 isNumber,
-                "Filter non-number values from X column"
+                "Drop rows with non-number values in X column"
             )
             .columnFilter(
                 this.yColumnSlug,
                 isNumber,
-                "Filter non-number values from Y column"
+                "Drop rows with non-number values in Y column"
             )
 
         return table
@@ -159,13 +195,22 @@ export class ScatterPlotChart
         if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
     }
 
-    // Only want to show colors on legend that are actually on the chart right now
-    @computed private get colorsInUse() {
+    // Returns the colors that are used by all points, *across the whole timeline*.
+    // This is why we need the table before the timeline filter is applied.
+    @computed private get colorsInUse(): Color[] {
+        const allValues =
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
+                this.colorColumnSlug
+            )?.valuesIncludingErrorValues ?? []
+        // Need to convert InvalidCell to undefined for color scale to assign correct color
+        const colorValues = uniq(
+            allValues.map((value) =>
+                isNotErrorValue(value) ? value : undefined
+            )
+        ) as (string | number)[]
         return excludeUndefined(
-            uniq(
-                this.allPoints.map((point) =>
-                    this.colorScale.getColor(point.color)
-                )
+            colorValues.map((colorValue) =>
+                this.colorScale.getColor(colorValue)
             )
         )
     }
@@ -328,7 +373,8 @@ export class ScatterPlotChart
     }
 
     @action.bound private onToggleEndpoints() {
-        this.compareEndPointsOnly = !this.compareEndPointsOnly
+        this.manager.compareEndPointsOnly =
+            !this.compareEndPointsOnly || undefined
     }
 
     // Colors currently on the chart and not greyed out
@@ -364,7 +410,6 @@ export class ScatterPlotChart
             sizeDomain,
             colorScale,
             colorColumn,
-            transformedTable,
         } = this
 
         return (
@@ -492,7 +537,10 @@ export class ScatterPlotChart
     colorScale = new ColorScale(this)
 
     @computed get colorScaleColumn() {
-        return this.colorColumn
+        // We need to use inputTable in order to get consistent coloring for a variable across
+        // charts, e.g. each continent being assigned to the same color.
+        // inputTable is unfiltered, so it contains every value that exists in the variable.
+        return this.inputTable.get(this.colorColumnSlug)
     }
 
     @computed get colorScaleConfig() {
@@ -503,14 +551,10 @@ export class ScatterPlotChart
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {
-        if (this.colorColumn.isMissing) return true
-        return this.transformedTable
-            .get(this.colorColumn.slug)
-            .values.some((value) => !isNotErrorValue(value))
-    }
-
-    @computed get categoricalValues() {
-        return this.colorColumn?.sortedUniqNonEmptyStringVals
+        if (this.colorColumn.isMissing) return false
+        return this.colorColumn.valuesIncludingErrorValues.some(
+            (value) => !isNotErrorValue(value)
+        )
     }
 
     @computed private get yAxisConfig() {
@@ -542,8 +586,12 @@ export class ScatterPlotChart
         return this.transformedTable.get(this.xColumnSlug)
     }
 
+    @computed private get sizeColumnSlug() {
+        return this.manager.sizeColumnSlug
+    }
+
     @computed private get sizeColumn() {
-        return this.transformedTable.get(this.manager.sizeColumnSlug)
+        return this.transformedTable.get(this.sizeColumnSlug)
     }
 
     @computed get failMessage() {
@@ -595,53 +643,12 @@ export class ScatterPlotChart
         return new Set(seriesNames)
     }
 
-    @computed private get compareEndPointsOnly() {
+    @computed get compareEndPointsOnly() {
         return !!this.manager.compareEndPointsOnly
     }
 
-    private set compareEndPointsOnly(value: boolean) {
-        this.manager.compareEndPointsOnly = value ?? undefined
-    }
-
-    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
-        // The exclusion of points happens as a last step in order to avoid artefacts due to
-        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
-        // domains before creating the points, the tolerance may lead to different X-Y
-        // values being joined.
-        // -@danielgavrilov, 2020-04-29
-        const { yAxisConfig, xAxisConfig } = this
-        return points.filter((point) => {
-            return (
-                !xAxisConfig.shouldRemovePoint(point.x) &&
-                !yAxisConfig.shouldRemovePoint(point.y)
-            )
-        })
-    }
-
     @computed get allPoints(): SeriesPoint[] {
-        const entityNameSlug = this.transformedTable.entityNameSlug
-        return this.removePointsOutsidePlane(
-            this.transformedTable.rows.map((row) => {
-                row = replaceErrorValuesWithUndefined(row)
-                return {
-                    x: row[this.xColumnSlug],
-                    y: row[this.yColumnSlug],
-                    size: !this.sizeColumn.isMissing
-                        ? row[this.sizeColumn.slug]
-                        : 0,
-                    color: !this.colorColumn.isMissing
-                        ? row[this.colorColumn.slug]
-                        : undefined,
-                    entityName: row[entityNameSlug],
-                    label: this.getPointLabel(row) ?? "",
-                    timeValue: row[OwidTableSlugs.time],
-                    time: {
-                        x: row[this.xColumn!.originalTimeColumnSlug!],
-                        y: row[this.yColumn!.originalTimeColumnSlug!],
-                    },
-                }
-            })
-        )
+        return flatten(this.series.map((series) => series.points))
     }
 
     // domains across the entire timeline
@@ -769,7 +776,7 @@ export class ScatterPlotChart
         let label
         if (strat === ScatterPointLabelStrategy.year) {
             label = this.transformedTable.timeColumnFormatFunction(
-                row[OwidTableSlugs.time]
+                row[this.transformedTable.timeColumn.slug]
             )
         } else if (strat === ScatterPointLabelStrategy.x) {
             label = this.xColumn?.formatValue(row[this.xColumnSlug])
@@ -779,38 +786,156 @@ export class ScatterPlotChart
         return label
     }
 
+    private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
+        // The exclusion of points happens as a last step in order to avoid artefacts due to
+        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
+        // domains before creating the points, the tolerance may lead to different X-Y
+        // values being joined.
+        // -@danielgavrilov, 2020-04-29
+        const { yAxisConfig, xAxisConfig } = this
+        return points.filter((point) => {
+            return (
+                !xAxisConfig.shouldRemovePoint(point.x) &&
+                !yAxisConfig.shouldRemovePoint(point.y)
+            )
+        })
+    }
+
+    @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
+        const { entityNameSlug, timeColumn } = this.transformedTable
+        return this.removePointsOutsidePlane(
+            this.transformedTable.rows.map((row) => {
+                row = replaceErrorValuesWithUndefined(row)
+                return {
+                    x: row[this.xColumnSlug],
+                    y: row[this.yColumnSlug],
+                    size: !this.sizeColumn.isMissing
+                        ? row[this.sizeColumn.slug]
+                        : 0,
+                    color: !this.colorColumn.isMissing
+                        ? row[this.colorColumn.slug]
+                        : undefined,
+                    entityName: row[entityNameSlug],
+                    label: this.getPointLabel(row) ?? "",
+                    timeValue: row[timeColumn.slug],
+                    time: {
+                        x: row[this.xColumn!.originalTimeColumnSlug!],
+                        y: row[this.yColumn!.originalTimeColumnSlug!],
+                    },
+                }
+            })
+        )
+    }
+
     // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
-        const { transformedTable } = this
-        return Object.entries(groupBy(this.allPoints, (p) => p.entityName))
-            .map(([entityName, points]) => {
-                const series: ScatterSeries = {
-                    seriesName: entityName,
-                    label: entityName,
-                    color: "#932834", // Default color, used when no color dimension is present
-                    size: last(points.map((p) => p.size).filter(isNumber)) ?? 0,
-                    points,
+        let seriesArr = Object.entries(
+            groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
+        ).map(([entityName, points]) => {
+            if (this.compareEndPointsOnly) {
+                points = this.extractEndpoints(points)
+            }
+            const series: ScatterSeries = {
+                seriesName: entityName,
+                label: entityName,
+                color: "#932834", // Default color, used when no color dimension is present
+                size: this.getSizeFromPoints(points),
+                points,
+            }
+            this.assignColorToSeries(entityName, series)
+            return series
+        })
+
+        if (
+            this.manager.hideLinesOutsideTolerance &&
+            this.manager.startTime !== undefined &&
+            this.manager.endTime !== undefined
+        ) {
+            seriesArr = this.dropSeriesNotCoveringTimespan(seriesArr, [
+                this.manager.startTime,
+                this.manager.endTime,
+            ])
+        }
+
+        // We need to apply the relative transform after hideLinesOutsideTolerance, because the
+        // original timespan info gets dropped and we cannot infer it after this.
+        // There is a timespan, but it's for the original times, pre-interpolation.
+        if (this.manager.isRelativeMode) {
+            seriesArr = seriesArr.map((series) => {
+                return {
+                    ...series,
+                    points: excludeUndefined([
+                        this.getAverageAnnualChangePoint(series.points),
+                    ]),
                 }
-                if (points.length) {
-                    const keyColor = transformedTable.getColorForEntityName(
-                        entityName
-                    )
-                    if (keyColor !== undefined) series.color = keyColor
-                    else if (!this.colorColumn.isMissing) {
-                        const colorValue = last(
-                            series.points.map((point) => point.color)
-                        )
-                        const color = this.colorScale.getColor(colorValue)
-                        if (color !== undefined) {
-                            series.color = color
-                            series.isScaleColor = true
-                        }
-                    }
-                    const sizes = series.points.map((v) => v.size)
-                    series.size = last(sizes.filter(isNumber)) ?? 0
-                }
-                return series
             })
-            .filter((series) => series.points.length > 0)
+        }
+
+        return seriesArr.filter((series) => series.points.length > 0)
+    }
+
+    private extractEndpoints(points: SeriesPoint[]): SeriesPoint[] {
+        return uniq(excludeUndefined([first(points), last(points)]))
+    }
+
+    private getAverageAnnualChangePoint(
+        points: SeriesPoint[]
+    ): SeriesPoint | undefined {
+        // Drop initial points which start with 0, to avoid a DivideByZero error.
+        points = dropWhile(points, (p) => p.x === 0 || p.y === 0)
+        const [startPoint, endPoint] = this.extractEndpoints(points)
+        if (!startPoint || !endPoint) return undefined
+        return {
+            ...endPoint,
+            x: cagr(startPoint, endPoint, "x"),
+            y: cagr(startPoint, endPoint, "y"),
+            time: {
+                y: endPoint.time.y,
+                x: endPoint.time.x,
+                span: [startPoint.time.y, endPoint.time.y],
+            },
+        }
+    }
+
+    private dropSeriesNotCoveringTimespan(
+        seriesArr: ScatterSeries[],
+        timespan: [Time, Time]
+    ): ScatterSeries[] {
+        const [startTime, endTime] = timespan
+        return seriesArr.filter((series) => {
+            // Since the timeline filter is already applied,
+            // we only need to look at first & last points
+            return (
+                first(series.points)?.timeValue === startTime &&
+                last(series.points)?.timeValue === endTime
+            )
+        })
+    }
+
+    private assignColorToSeries(
+        entityName: EntityName,
+        series: ScatterSeries
+    ): void {
+        if (series.points.length) {
+            const keyColor = this.transformedTable.getColorForEntityName(
+                entityName
+            )
+            if (keyColor !== undefined) series.color = keyColor
+            else if (!this.colorColumn.isMissing) {
+                const colorValue = last(
+                    series.points.map((point) => point.color)
+                )
+                const color = this.colorScale.getColor(colorValue)
+                if (color !== undefined) {
+                    series.color = color
+                    series.isScaleColor = true
+                }
+            }
+        }
+    }
+
+    private getSizeFromPoints(points: SeriesPoint[]): number {
+        const size = last(points.map((v) => v.size).filter(isNumber))
+        return size ?? 0
     }
 }
