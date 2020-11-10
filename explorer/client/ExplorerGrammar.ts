@@ -9,15 +9,20 @@ import {
     ErrorCellTypeClass,
     MatrixLine,
     MatrixProgram,
-    SlugDeclarationCellTypeDefinition,
+    SubtableSlugDeclarationCellTypeDefinition,
     StringCellTypeDefinition,
     UrlCellTypeDefinition,
+    NothingGoesThereDefinition,
 } from "./GridGrammarConstants"
 
 export enum ExplorerKeywordList {
-    switcher = "switcher",
-    table = "table",
-    columns = "columns",
+    // Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
+    keyword = "keyword",
+    wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
+    nothingGoesThere = "nothingGoesThere",
+    delimitedUrl = "delimitedUrl",
+
+    // Tuples
     isPublished = "isPublished",
     title = "title",
     subNavId = "subNavId",
@@ -28,25 +33,43 @@ export enum ExplorerKeywordList {
     defaultView = "defaultView",
     wpBlockId = "wpBlockId",
     googleSheet = "googleSheet",
-    keyword = "keyword",
-    wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
     entityType = "entityType",
+
+    // Subtables
+    switcher = "switcher",
+    table = "table",
+    columns = "columns",
 }
 
-const KeywordEnum = Object.values(ExplorerKeywordList).filter(
-    (word) =>
-        word !== ExplorerKeywordList.wip && word !== ExplorerKeywordList.keyword
+const AbstractKeywords = new Set([
+    ExplorerKeywordList.keyword,
+    ExplorerKeywordList.wip,
+    ExplorerKeywordList.nothingGoesThere,
+    ExplorerKeywordList.delimitedUrl,
+])
+
+const ConcreteKeywords = Object.values(ExplorerKeywordList).filter(
+    (word) => !AbstractKeywords.has(word)
 )
+
+const DelimitedUrlDefinition = {
+    ...UrlCellTypeDefinition,
+    description: "A link to a CSV or TSV",
+}
 
 const CellTypeDefinitions: {
     [key in ExplorerKeywordList]: CellTypeDefinition
 } = {
+    // Abstract keywords
     keyword: {
-        options: KeywordEnum,
+        options: ConcreteKeywords,
         cssClass: "KeywordCellType",
         description: "Keyword",
     },
     wip: { cssClass: "WipCellType", description: "A comment" },
+    delimitedUrl: DelimitedUrlDefinition,
+    nothingGoesThere: NothingGoesThereDefinition,
+    // Tuples
     isPublished: {
         ...BooleanCellTypeDefinition,
         description: "Set to true to make this Explorer public.",
@@ -84,21 +107,6 @@ const CellTypeDefinitions: {
         cssClass: "EnumCellType",
         description: "The current page in the subnav.",
     },
-    table: {
-        ...SlugDeclarationCellTypeDefinition,
-        description:
-            "Give your table a slug and include a link to a CSV or put data inline.",
-    },
-    columns: {
-        ...SlugDeclarationCellTypeDefinition,
-        headerKeywordOptions: Object.values(CoreColumnDefKeyword),
-        description:
-            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
-    },
-    switcher: {
-        ...SlugDeclarationCellTypeDefinition,
-        description: "The decision matrix for your Explorer goes here.",
-    },
     thumbnail: {
         ...UrlCellTypeDefinition,
         description: "URL to the social sharing thumbnail.",
@@ -112,6 +120,24 @@ const CellTypeDefinitions: {
         ...StringCellTypeDefinition,
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
+    },
+
+    // Subtables
+    table: {
+        ...SubtableSlugDeclarationCellTypeDefinition,
+        description:
+            "Give your table a slug and include a link to a CSV or put data inline.",
+        rest: [DelimitedUrlDefinition],
+    },
+    columns: {
+        ...SubtableSlugDeclarationCellTypeDefinition,
+        headerKeywordOptions: Object.values(CoreColumnDefKeyword),
+        description:
+            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
+    },
+    switcher: {
+        ...SubtableSlugDeclarationCellTypeDefinition,
+        description: "The decision matrix for your Explorer goes here.",
     },
 }
 
@@ -137,18 +163,25 @@ export class ExplorerProgramCell {
         return this.matrix[this.row]
     }
 
-    private get cellTypeName() {
-        if (this.column === 0) return ExplorerKeywordList.keyword
-        if (this.column === 1) {
-            const firstWord = this.line ? this.line[0] : undefined
-            if (ExplorerKeywordList[firstWord as ExplorerKeywordList])
-                return firstWord as ExplorerKeywordList
-        }
-        return this.horizontalCellTypeName ?? ExplorerKeywordList.wip
-    }
-
     private get cellTypeDefinition() {
-        return CellTypeDefinitions[this.cellTypeName]
+        if (this.column === 0)
+            return CellTypeDefinitions[ExplorerKeywordList.keyword]
+        const firstWord = this.line ? this.line[0] : undefined
+        const firstWordAsKeyword =
+            ExplorerKeywordList[firstWord as ExplorerKeywordList]
+        if (this.column === 1 && firstWordAsKeyword)
+            return CellTypeDefinitions[firstWordAsKeyword]
+
+        if (firstWordAsKeyword) {
+            // It has a keyword but it is column 2+
+            const def = CellTypeDefinitions[firstWordAsKeyword]
+            const cellTypeDef = def.rest && def.rest[this.column - 2]
+            if (cellTypeDef) return cellTypeDef
+            return CellTypeDefinitions[ExplorerKeywordList.nothingGoesThere]
+        }
+        return CellTypeDefinitions[
+            this.horizontalCellTypeName ?? ExplorerKeywordList.wip
+        ]
     }
 
     private get isFirstBlankRow() {
@@ -201,15 +234,7 @@ export class ExplorerProgramCell {
     get comment() {
         const { value, errorMessage } = this
         if (value === undefined || value === "") return undefined
-
         if (errorMessage) return errorMessage
-
-        if (this.cellTypeName === ExplorerKeywordList.keyword)
-            return [
-                this.value,
-                CellTypeDefinitions[this.value as ExplorerKeywordList]
-                    .description,
-            ].join(": ")
 
         return [this.cellTypeDefinition.description].join("\n")
     }

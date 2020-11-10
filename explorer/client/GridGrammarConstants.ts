@@ -14,6 +14,7 @@ export interface CellTypeDefinition {
     headerKeywordOptions?: string[]
     regex?: RegExp // A validation regex a value must pass
     requirements?: string
+    rest?: CellTypeDefinition[] // Additional cell types as positional arguments.
 }
 
 export interface CellLink {
@@ -37,8 +38,13 @@ export const UrlCellTypeDefinition: CellTypeDefinition = {
     description: "",
 }
 
-export const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
-    cssClass: "SlugDeclarationCellTypeDefinition",
+export const NothingGoesThereDefinition: CellTypeDefinition = {
+    cssClass: "NothingGoesThereType",
+    description: "Nothing should be here.",
+}
+
+export const SubtableSlugDeclarationCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SubtableSlugDeclarationType",
     description: "A unique URL-friendly name.",
     regex: /^[a-zA-Z0-9-_]+$/,
     requirements: `Can only contain the characters a-zA-Z0-9-_`,

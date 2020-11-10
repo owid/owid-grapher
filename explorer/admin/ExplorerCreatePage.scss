@@ -36,18 +36,19 @@
     }
 
     .StringCellType {
-        color: #6d3e91;
+        color: #0f739c;
     }
 
     .UrlCellType {
-        color: #883039;
-    }
-
-    .SlugDeclarationCellTypeDefinition {
         color: #00823f;
     }
 
-    .ErrorCellType {
+    .SubtableSlugDeclarationType {
+        color: #00823f;
+    }
+
+    .ErrorCellType,
+    .NothingGoesThereType {
         color: #b13507;
         text-decoration: underline;
         text-decoration-style: wavy;
@@ -64,13 +65,11 @@
 }
 
 // Unused colors from Owid Default Color Scheme:
-// "#00823F",
 // "#4C6A9C",
 // "#C05917",
 // "#D73C50",
 // "#287669",
 // "#CD2285",
-// "#0F739C",
 // "#9A5129",
 // "#C45267",
 // "#008860",
