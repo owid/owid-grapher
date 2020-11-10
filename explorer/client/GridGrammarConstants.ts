@@ -7,6 +7,15 @@ export enum GridBoolean {
 
 export type CellCoordinate = number // An integer >= 0
 
+export interface CellTypeDefinition {
+    options?: string[]
+    cssClass: string
+    description: string
+    headerKeywordOptions?: string[]
+    regex?: RegExp // A validation regex a value must pass
+    requirements?: string
+}
+
 export interface CellLink {
     row: CellCoordinate
     column: CellCoordinate
@@ -31,13 +40,8 @@ export const UrlCellTypeDefinition: CellTypeDefinition = {
 export const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
     cssClass: "SlugDeclarationCellTypeDefinition",
     description: "A unique URL-friendly name.",
-}
-
-export interface CellTypeDefinition {
-    options?: string[]
-    cssClass: string
-    description: string
-    headerKeywordOptions?: string[]
+    regex: /^[a-zA-Z0-9-_]+$/,
+    requirements: `Can only contain the characters a-zA-Z0-9-_`,
 }
 
 export type MatrixLine = string[]

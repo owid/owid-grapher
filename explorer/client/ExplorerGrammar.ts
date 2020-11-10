@@ -168,19 +168,35 @@ export class ExplorerProgramCell {
         return []
     }
 
-    get isValid() {
-        if (!this.line) return true
+    get errorMessage() {
+        if (!this.line) return ""
+        const { cellTypeDefinition, value } = this
+        const { options, regex, requirements } = cellTypeDefinition
+        if (regex) {
+            if (typeof value !== "string") return ""
+            if (!regex.test(value))
+                return `Error: ${
+                    requirements
+                        ? requirements
+                        : `'${value}' did not validate against ${regex}`
+                }`
+            return ""
+        }
 
-        const { options } = this
-        if (!options) return true
-        const value = this.value
-        if (value === undefined || value === "") return true
+        if (!options) return ""
+        if (value === undefined || value === "") return ""
         return options.includes(value)
+            ? ""
+            : `Error: '${value}' is not a valid option. Valid options are ${options
+                  .map((opt) => `'${opt}'`)
+                  .join(", ")}`
     }
 
     get comment() {
-        const { value } = this
+        const { value, errorMessage } = this
         if (value === undefined || value === "") return undefined
+
+        if (errorMessage) return errorMessage
 
         if (this.cellTypeName === ExplorerKeywordList.keyword)
             return [
@@ -193,7 +209,7 @@ export class ExplorerProgramCell {
     }
 
     get cssClasses() {
-        if (!this.isValid) return [ErrorCellTypeClass]
+        if (this.errorMessage) return [ErrorCellTypeClass]
         const isEmpty = this.value === undefined || this.value === ""
         const showArrow =
             isEmpty && this.isFirstBlankRow ? "ShowDropdownArrow" : undefined

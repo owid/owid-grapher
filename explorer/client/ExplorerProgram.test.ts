@@ -33,7 +33,7 @@ switcher
             0,
             0
         )
-        expect(results.isValid).toEqual(false)
+        expect(results.errorMessage).toEqual("")
         expect(results.options!.length).toBeGreaterThan(1)
     })
 })
