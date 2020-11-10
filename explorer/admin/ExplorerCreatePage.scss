@@ -1,64 +1,66 @@
 // Hide the noisy arrow in the autocomplete dropdown.
-.handsontable .htAutocompleteArrow {
-    font-size: 0 !important;
-}
-
-.handsontable .ShowDropdownArrow {
-    // But still show the autocomplete dropdown arrow on last cell.
-    .htAutocompleteArrow:before {
-        content: "+" !important;
-        color: green !important;
-        font-size: 14px !important;
-        font-weight: bold;
-        cursor: pointer;
+.handsontable {
+    .htAutocompleteArrow {
+        font-size: 0 !important;
     }
-}
 
-// Change the default dark top right corner comment arrow into a subtle checkmark.
-.handsontable .htCommentCell:after {
-    content: "✓" !important;
-    color: #ccc !important;
-    border: 0 !important;
-    font-size: 8px;
-}
-
-.handsontable .KeywordCellType {
-    color: #3c4e66;
-}
-
-.handsontable .BooleanCellType {
-    color: #00847e;
-}
-
-.handsontable .EnumCellType {
-    color: #00847e;
-}
-
-.handsontable .StringCellType {
-    color: #6d3e91;
-}
-
-.handsontable .UrlCellType {
-    color: #883039;
-}
-
-.handsontable .SlugDeclarationCellTypeDefinition {
-    color: #00823f;
-}
-
-.handsontable .ErrorCellType {
-    color: #b13507;
-    text-decoration: underline;
-    text-decoration-style: wavy;
-
-    &.htCommentCell:after {
-        content: "✗" !important;
-        color: #b13507 !important;
+    .ShowDropdownArrow {
+        // But still show the autocomplete dropdown arrow on last cell.
+        .htAutocompleteArrow:before {
+            content: "+" !important;
+            color: green !important;
+            font-size: 14px !important;
+            font-weight: bold;
+            cursor: pointer;
+        }
     }
-}
 
-.handsontable .WipCellType {
-    color: #777;
+    // Change the default dark top right corner comment arrow into a subtle checkmark.
+    .htCommentCell:after {
+        content: "✓" !important;
+        color: #ccc !important;
+        border: 0 !important;
+        font-size: 8px;
+    }
+
+    .KeywordCellType {
+        color: #3c4e66;
+    }
+
+    .BooleanCellType {
+        color: #00847e;
+    }
+
+    .EnumCellType {
+        color: #00847e;
+    }
+
+    .StringCellType {
+        color: #6d3e91;
+    }
+
+    .UrlCellType {
+        color: #883039;
+    }
+
+    .SlugDeclarationCellTypeDefinition {
+        color: #00823f;
+    }
+
+    .ErrorCellType {
+        color: #b13507;
+        text-decoration: underline;
+        text-decoration-style: wavy;
+
+        &.htCommentCell:after {
+            content: "✗" !important;
+            color: #b13507 !important;
+        }
+    }
+
+    .WipCellType {
+        color: #777;
+    }
 }
 
 // Unused colors from Owid Default Color Scheme:

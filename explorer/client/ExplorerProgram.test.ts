@@ -1,12 +1,9 @@
 #! /usr/bin/env yarn jest
 
-import {
-    CheckboxOption,
-    ExplorerProgram,
-    DecisionMatrix,
-} from "./ExplorerProgram"
+import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
 import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
 import { getRequiredChartIds } from "./ExplorerUtils"
+import { ExplorerBoolean } from "./ExplorerGrammar"
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)
@@ -43,12 +40,12 @@ switcher
 
 describe(DecisionMatrix, () => {
     const code = `chartId,country Radio,indicator Radio,interval Radio,perCapita Radio
-21,usa,GDP,annual,${CheckboxOption.false}
+21,usa,GDP,annual,${ExplorerBoolean.false}
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
 29,usa,Life expectancy,,
 33,france,Life expectancy,,
-55,spain,GDP,,${CheckboxOption.false}
+55,spain,GDP,,${ExplorerBoolean.false}
 56,spain,GDP,,Per million`
     const options = new DecisionMatrix(code)
 
@@ -77,19 +74,19 @@ describe(DecisionMatrix, () => {
         )
         expect(options.toConstrainedOptions().perCapita).toEqual(undefined)
         expect(options.toConstrainedOptions().interval).toEqual(undefined)
-        expect(options.toObject().perCapita).toEqual(CheckboxOption.false)
+        expect(options.toObject().perCapita).toEqual(ExplorerBoolean.false)
         expect(options.toObject().interval).toEqual("annual")
         expect(options.selectedRow.chartId).toEqual(33)
     })
 
     it("can handle boolean groups", () => {
         expect(
-            options.isOptionAvailable("perCapita", CheckboxOption.false)
+            options.isOptionAvailable("perCapita", ExplorerBoolean.false)
         ).toEqual(false)
         options.setValue("country", "usa")
         options.setValue("perCapita", "Per million")
         expect(
-            options.isOptionAvailable("perCapita", CheckboxOption.false)
+            options.isOptionAvailable("perCapita", ExplorerBoolean.false)
         ).toEqual(true)
         expect(options.selectedRow.chartId).toEqual(24)
     })
@@ -97,7 +94,7 @@ describe(DecisionMatrix, () => {
     it("can show available choices in a later group", () => {
         options.setValue("country", "spain")
         expect(
-            options.isOptionAvailable("perCapita", CheckboxOption.false)
+            options.isOptionAvailable("perCapita", ExplorerBoolean.false)
         ).toEqual(true)
         expect(options.isOptionAvailable("perCapita", "Per million")).toEqual(
             true

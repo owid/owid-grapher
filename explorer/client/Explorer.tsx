@@ -12,7 +12,7 @@ import {
     ObservableUrl,
     MultipleUrlBinder,
 } from "grapher/utils/UrlBinder"
-import { CheckboxOption, ExplorerProgram, TableDef } from "./ExplorerProgram"
+import { ExplorerProgram, TableDef } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
@@ -42,8 +42,8 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
-
 import classNames from "classnames"
+import { ExplorerBoolean } from "./ExplorerGrammar"
 
 export interface ExplorerProps {
     explorerProgramCode: string
@@ -216,9 +216,9 @@ export class Explorer
             manuallyProvideData: table ? true : false,
         }
 
-        if (selectedRow.yScaleToggle === CheckboxOption.true)
+        if (selectedRow.yScaleToggle === ExplorerBoolean.true)
             grapher.yAxis.canChangeScaleType = true
-        else if (selectedRow.yScaleToggle === CheckboxOption.false)
+        else if (selectedRow.yScaleToggle === ExplorerBoolean.false)
             grapher.yAxis.canChangeScaleType = false
 
         grapher.hasError = false

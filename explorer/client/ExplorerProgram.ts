@@ -23,6 +23,11 @@ import {
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
+import {
+    ExplorerKeywordList,
+    ExplorerBoolean,
+    ExplorerProgramCell,
+} from "./ExplorerGrammar"
 
 const CHART_ID_SYMBOL = "chartId"
 
@@ -35,122 +40,9 @@ interface Choice {
 
 export const explorerFileSuffix = ".explorer.tsv"
 
-export enum CheckboxOption {
-    true = "true",
-    false = "false",
-}
-
 const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
 const edgeDelimiter = "\t"
-
-export enum ExplorerKeywordList {
-    switcher = "switcher",
-    table = "table",
-    columns = "columns",
-    isPublished = "isPublished",
-    title = "title",
-    subNavId = "subNavId",
-    subNavCurrentId = "subNavCurrentId",
-    hideAlertBanner = "hideAlertBanner",
-    thumbnail = "thumbnail",
-    subtitle = "subtitle",
-    defaultView = "defaultView",
-    wpBlockId = "wpBlockId",
-    googleSheet = "googleSheet",
-}
-
-enum CellTypes {
-    keyword = "keyword",
-    wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
-    isPublished = "isPublished",
-    hideAlertBanner = "hideAlertBanner",
-    title = "title",
-    subtitle = "subtitle",
-    googleSheet = "googleSheet",
-    defaultView = "defaultView",
-    subNavId = "subNavId",
-    subNavCurrentId = "subNavCurrentId",
-    table = "table",
-    columns = "columns",
-}
-
-interface CellTypeDefinition {
-    options: string[]
-    cssClass: string
-    description: string
-}
-
-const BooleanCellTypeDefinition: CellTypeDefinition = {
-    options: Object.values(CheckboxOption),
-    cssClass: "BooleanCellType",
-    description: "Boolean",
-}
-
-const StringCellTypeDefinition: CellTypeDefinition = {
-    options: [],
-    cssClass: "StringCellType",
-    description: "",
-}
-
-const UrlCellTypeDefinition: CellTypeDefinition = {
-    ...StringCellTypeDefinition,
-    cssClass: "UrlCellType",
-}
-
-const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
-    cssClass: "SlugDeclarationCellTypeDefinition",
-    description: "A URL-friendly slug type name.",
-    options: [],
-}
-
-const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
-    keyword: {
-        options: Object.values(ExplorerKeywordList),
-        cssClass: "KeywordCellType",
-        description: "Keyword",
-    },
-    wip: { options: [], cssClass: "WipCellType", description: "A comment" },
-    isPublished: {
-        ...BooleanCellTypeDefinition,
-        description: "Set to true to make this Explorer public.",
-    },
-    hideAlertBanner: {
-        ...BooleanCellTypeDefinition,
-        description: "Set to true to hide the Covid alert banner.",
-    },
-    title: {
-        ...StringCellTypeDefinition,
-        description:
-            "The title will appear in the top left corner of the page.",
-    },
-    subtitle: {
-        ...StringCellTypeDefinition,
-        description: "The subtitle will appear under the title.",
-    },
-    googleSheet: {
-        ...UrlCellTypeDefinition,
-        description:
-            "Create a Google Sheet, share it with the OWID Group, then put the link here.",
-    },
-    defaultView: {
-        ...UrlCellTypeDefinition,
-        description:
-            "Use the Explorer, then copy the part of the url starting with ? here.",
-    },
-    subNavId: {
-        options: Object.values(SubNavId),
-        cssClass: "EnumCellType",
-        description: "A subnav to show, if any.",
-    },
-    subNavCurrentId: {
-        options: [], // todo: get options in here
-        cssClass: "EnumCellType",
-        description: "The current page in the subnav.",
-    },
-    table: SlugDeclarationCellTypeDefinition,
-    columns: SlugDeclarationCellTypeDefinition,
-}
 
 interface BlockLocation {
     start: number
@@ -170,140 +62,6 @@ export interface SerializedExplorerProgram {
     lastModifiedTime?: number
 }
 
-const ErrorCellTypeClass = "ErrorCellType"
-
-type CellCoordinate = number // An integer >= 0
-
-interface CellLink {
-    row: CellCoordinate
-    column: CellCoordinate
-}
-
-class ExplorerProgramCell {
-    private row: CellCoordinate
-    private column: CellCoordinate
-    private program: ExplorerProgram
-    constructor(
-        program: ExplorerProgram,
-        row: CellCoordinate,
-        column: CellCoordinate
-    ) {
-        this.row = row
-        this.column = column
-        this.program = program
-    }
-
-    get comment() {
-        const { cellTypeDefinition, value } = this
-        if (value === undefined || value === "") return undefined
-
-        const { options } = cellTypeDefinition
-        const optionsLine = options.length
-            ? `Options: ${options.join(", ")}`
-            : undefined
-        return [this.cellTypeDefinition.description, optionsLine]
-            .filter(isPresent)
-            .join("\n")
-    }
-
-    private get words() {
-        return this.line !== undefined
-            ? this.line.split(this.program.cellDelimiter)
-            : []
-    }
-
-    private get lineKeyword() {
-        return this.words[0]
-    }
-
-    private get value() {
-        return this.words[this.column]
-    }
-
-    private get line() {
-        return this.program.lines[this.row]
-    }
-
-    get isValid() {
-        if (!this.line) return true
-
-        const { options } = this
-        if (!options.length) return true
-        const value = this.value
-        if (value === undefined || value === "") return true
-        return options.includes(value)
-    }
-
-    private get cellTypeName() {
-        if (this.column === 0) return CellTypes.keyword
-        if (this.column === 1) {
-            const keyword = this.lineKeyword as CellTypes
-            if (CellTypeDefinitions[keyword]) return keyword
-        }
-        return CellTypes.wip
-    }
-
-    private get cellTypeDefinition() {
-        return CellTypeDefinitions[this.cellTypeName]
-    }
-
-    private get isNextRow() {
-        const { row } = this
-        const numRows = this.program.numRows
-        if (numRows === 1) return row === 0
-        return row === numRows
-    }
-
-    private get isEmpty() {
-        return this.value === undefined || this.value === ""
-    }
-
-    get cssClasses() {
-        if (!this.isValid) return [ErrorCellTypeClass]
-        const showArrow =
-            this.isEmpty && this.isNextRow ? "ShowDropdownArrow" : undefined
-        return [this.cellTypeDefinition.cssClass, showArrow].filter(isPresent)
-    }
-
-    private get secondaryNotations() {
-        return {
-            fontColor: "black",
-            fontSize: "12",
-            fontWeight: 400,
-            textDecoration: "underline",
-            backgroundColor: "white",
-            textTransform: "red",
-            rightEmoji: "red",
-            leftEmoji: "red",
-            backgroundEmoji: "icon",
-        }
-    }
-
-    get options() {
-        return this.cellTypeDefinition.options ?? []
-    }
-
-    private get errors() {
-        return []
-    }
-
-    private get examples() {
-        return []
-    }
-
-    private get suggestions() {
-        return []
-    }
-
-    private get definitionLinks(): CellLink[] {
-        return []
-    }
-
-    private get implementationLinks(): CellLink[] {
-        return []
-    }
-}
-
 export class ExplorerProgram {
     constructor(
         slug: string,
@@ -320,10 +78,6 @@ export class ExplorerProgram {
         )
         this.queryString = queryString
         this.lastModifiedTime = lastModifiedTime
-    }
-
-    get numRows() {
-        return this.lines.length
     }
 
     lastModifiedTime?: number
@@ -394,7 +148,11 @@ export class ExplorerProgram {
     }
 
     getCell(row: number, col: number) {
-        return new ExplorerProgramCell(this, row, col)
+        return new ExplorerProgramCell(this.matrix, row, col)
+    }
+
+    @computed private get matrix() {
+        return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
     private setLineValue(key: ExplorerKeywordList, value: string | undefined) {
@@ -498,7 +256,7 @@ export class ExplorerProgram {
     get hideAlertBanner() {
         return (
             this.getLineValue(ExplorerKeywordList.hideAlertBanner) ===
-            CheckboxOption.true
+            ExplorerBoolean.true
         )
     }
 
@@ -522,14 +280,14 @@ export class ExplorerProgram {
     get isPublished() {
         return (
             this.getLineValue(ExplorerKeywordList.isPublished) ===
-            CheckboxOption.true
+            ExplorerBoolean.true
         )
     }
 
     set isPublished(value: boolean) {
         this.setLineValue(
             ExplorerKeywordList.isPublished,
-            value ? CheckboxOption.true : CheckboxOption.false
+            value ? ExplorerBoolean.true : ExplorerBoolean.false
         )
     }
 
@@ -771,13 +529,13 @@ const makeCheckBoxOptions = (
 ) => {
     const checked = options.find(
         (option) =>
-            option.checked === true && option.label === CheckboxOption.true
+            option.checked === true && option.label === ExplorerBoolean.true
     )
     return [
         {
             label: choiceName,
             checked,
-            value: CheckboxOption.true,
+            value: ExplorerBoolean.true,
             available: options.length > 1,
         },
     ] as ExplorerControlOption[]

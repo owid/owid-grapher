@@ -1,12 +1,11 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
-import classNames from "classnames"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
-import { CheckboxOption } from "./ExplorerProgram"
+import { ExplorerBoolean } from "./ExplorerGrammar"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile: boolean
@@ -62,13 +61,13 @@ export class ExplorerControlPanel extends React.Component<{
         const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
             ? option.checked
-                ? CheckboxOption.false
-                : CheckboxOption.true
+                ? ExplorerBoolean.false
+                : ExplorerBoolean.true
             : option.value
         const currentValue = isCheckbox
             ? option.checked
-                ? CheckboxOption.true
-                : CheckboxOption.false
+                ? ExplorerBoolean.true
+                : ExplorerBoolean.false
             : value
         const checked = !!(option.available && option.checked)
         return (
