@@ -16,6 +16,7 @@ import {
     groupBy,
     first,
     cagr,
+    dropWhile,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -880,6 +881,8 @@ export class ScatterPlotChart
     private getAverageAnnualChangePoint(
         points: SeriesPoint[]
     ): SeriesPoint | undefined {
+        // Drop initial points which start with 0, to avoid a DivideByZero error.
+        points = dropWhile(points, (p) => p.x === 0 || p.y === 0)
         const [startPoint, endPoint] = this.extractEndpoints(points)
         if (!startPoint || !endPoint) return undefined
         return {
