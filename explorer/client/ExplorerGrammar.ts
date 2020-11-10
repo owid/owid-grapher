@@ -69,6 +69,8 @@ const DelimitedUrlDefinition = {
     description: "A link to a CSV or TSV",
 }
 
+const FrontierCellClass = "ShowDropdownArrow"
+
 const CellTypeDefinitions: {
     [key in ExplorerKeywordList]: CellTypeDefinition
 } = {
@@ -237,12 +239,18 @@ export class ExplorerProgramCell {
     }
 
     // If true show a +
-    private get isFrontierCell() {
-        const { row, value } = this
+    get isFirstCellOnFrontierRow() {
+        const { row, column, isBlankLine } = this
         const numRows = this.matrix.length
-        if (!isEmpty(value)) return false
-        if (numRows === 1) return row === 0
+        if (column) return false // Only first column should have a +
+        if (!isBlankLine) return false // Only blank lines can be frontier
+        if (numRows === 0) return row === 0
+        if (numRows === 1 && row === 0) return true
         return row === numRows
+    }
+
+    private get isBlankLine() {
+        return this.line ? this.line.join("") === "" : true
     }
 
     private get suggestions() {
@@ -302,8 +310,8 @@ export class ExplorerProgramCell {
         const { errorMessage, cellTypeDefinition } = this
         if (errorMessage) return [ErrorCellTypeClass]
         const showArrow =
-            this.isFrontierCell || this.isSubTableFrontierCell
-                ? "ShowDropdownArrow"
+            this.isFirstCellOnFrontierRow || this.isSubTableFrontierCell
+                ? FrontierCellClass
                 : undefined
         return [cellTypeDefinition.cssClass, showArrow].filter(isPresent)
     }
