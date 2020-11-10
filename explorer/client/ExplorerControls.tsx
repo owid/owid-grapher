@@ -5,7 +5,7 @@ import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
-import { ExplorerBoolean } from "./ExplorerGrammar"
+import { GridBoolean } from "./GridGrammarConstants"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile: boolean
@@ -61,13 +61,13 @@ export class ExplorerControlPanel extends React.Component<{
         const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
             ? option.checked
-                ? ExplorerBoolean.false
-                : ExplorerBoolean.true
+                ? GridBoolean.false
+                : GridBoolean.true
             : option.value
         const currentValue = isCheckbox
             ? option.checked
-                ? ExplorerBoolean.true
-                : ExplorerBoolean.false
+                ? GridBoolean.true
+                : GridBoolean.false
             : value
         const checked = !!(option.available && option.checked)
         return (

@@ -1,5 +1,16 @@
+import { CoreColumnDefKeyword } from "coreTable/CoreColumnDef"
 import { isPresent } from "grapher/utils/Util"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
+import {
+    BooleanCellTypeDefinition,
+    CellCoordinate,
+    CellLink,
+    CellTypeDefinition,
+    ErrorCellTypeClass,
+    SlugDeclarationCellTypeDefinition,
+    StringCellTypeDefinition,
+    UrlCellTypeDefinition,
+} from "./GridGrammarConstants"
 
 export enum ExplorerKeywordList {
     switcher = "switcher",
@@ -17,20 +28,6 @@ export enum ExplorerKeywordList {
     googleSheet = "googleSheet",
 }
 
-export enum ExplorerBoolean {
-    true = "true",
-    false = "false",
-}
-
-const ErrorCellTypeClass = "ErrorCellType"
-
-type CellCoordinate = number // An integer >= 0
-
-interface CellLink {
-    row: CellCoordinate
-    column: CellCoordinate
-}
-
 enum CellTypes {
     keyword = "keyword",
     wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
@@ -46,42 +43,13 @@ enum CellTypes {
     columns = "columns",
 }
 
-interface CellTypeDefinition {
-    options: string[]
-    cssClass: string
-    description: string
-}
-
-const BooleanCellTypeDefinition: CellTypeDefinition = {
-    options: Object.values(ExplorerBoolean),
-    cssClass: "BooleanCellType",
-    description: "Boolean",
-}
-
-const StringCellTypeDefinition: CellTypeDefinition = {
-    options: [],
-    cssClass: "StringCellType",
-    description: "",
-}
-
-const UrlCellTypeDefinition: CellTypeDefinition = {
-    ...StringCellTypeDefinition,
-    cssClass: "UrlCellType",
-}
-
-const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
-    cssClass: "SlugDeclarationCellTypeDefinition",
-    description: "A URL-friendly slug type name.",
-    options: [],
-}
-
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
     keyword: {
         options: Object.values(ExplorerKeywordList),
         cssClass: "KeywordCellType",
         description: "Keyword",
     },
-    wip: { options: [], cssClass: "WipCellType", description: "A comment" },
+    wip: { cssClass: "WipCellType", description: "A comment" },
     isPublished: {
         ...BooleanCellTypeDefinition,
         description: "Set to true to make this Explorer public.",
@@ -115,12 +83,17 @@ const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
         description: "A subnav to show, if any.",
     },
     subNavCurrentId: {
-        options: [], // todo: get options in here
+        // todo: add options here
         cssClass: "EnumCellType",
         description: "The current page in the subnav.",
     },
-    table: SlugDeclarationCellTypeDefinition,
-    columns: SlugDeclarationCellTypeDefinition,
+    table: {
+        ...SlugDeclarationCellTypeDefinition,
+    },
+    columns: {
+        ...SlugDeclarationCellTypeDefinition,
+        headerKeywordOptions: Object.values(CoreColumnDefKeyword),
+    },
 }
 
 type MatrixLine = string[]
@@ -140,23 +113,6 @@ export class ExplorerProgramCell {
         this.matrix = program
     }
 
-    get comment() {
-        const { cellTypeDefinition, value } = this
-        if (value === undefined || value === "") return undefined
-
-        const { options } = cellTypeDefinition
-        const optionsLine = options.length
-            ? `Options: ${options.join(", ")}`
-            : undefined
-        return [this.cellTypeDefinition.description, optionsLine]
-            .filter(isPresent)
-            .join("\n")
-    }
-
-    private get lineKeyword() {
-        return this.line ? this.line[0] : undefined
-    }
-
     private get value() {
         return this.line ? this.line[this.column] : undefined
     }
@@ -165,49 +121,25 @@ export class ExplorerProgramCell {
         return this.matrix[this.row]
     }
 
-    get isValid() {
-        if (!this.line) return true
-
-        const { options } = this
-        if (!options.length) return true
-        const value = this.value
-        if (value === undefined || value === "") return true
-        return options.includes(value)
-    }
-
     private get cellTypeName() {
         if (this.column === 0) return CellTypes.keyword
         if (this.column === 1) {
-            const keyword = this.lineKeyword as CellTypes
-            if (CellTypeDefinitions[keyword]) return keyword
+            const firstWord = this.line ? this.line[0] : undefined
+            if (CellTypeDefinitions[firstWord as CellTypes])
+                return firstWord as CellTypes
         }
-        return CellTypes.wip
+        return this.horizontalCellTypeName ?? CellTypes.wip
     }
 
     private get cellTypeDefinition() {
         return CellTypeDefinitions[this.cellTypeName]
     }
 
-    private get isNextRow() {
+    private get isFirstBlankRow() {
         const { row } = this
         const numRows = this.matrix.length
         if (numRows === 1) return row === 0
         return row === numRows
-    }
-
-    private get isEmpty() {
-        return this.value === undefined || this.value === ""
-    }
-
-    get cssClasses() {
-        if (!this.isValid) return [ErrorCellTypeClass]
-        const showArrow =
-            this.isEmpty && this.isNextRow ? "ShowDropdownArrow" : undefined
-        return [this.cellTypeDefinition.cssClass, showArrow].filter(isPresent)
-    }
-
-    get options() {
-        return this.cellTypeDefinition.options ?? []
     }
 
     private get errors() {
@@ -224,5 +156,51 @@ export class ExplorerProgramCell {
 
     private get implementationLinks(): CellLink[] {
         return []
+    }
+
+    get isValid() {
+        if (!this.line) return true
+
+        const { options } = this
+        if (!options) return true
+        const value = this.value
+        if (value === undefined || value === "") return true
+        return options.includes(value)
+    }
+
+    get comment() {
+        const { cellTypeDefinition, value } = this
+        if (value === undefined || value === "") return undefined
+
+        const { options } = cellTypeDefinition
+        const optionsLine = options
+            ? `Options: ${options.join(", ")}`
+            : undefined
+        return [this.cellTypeDefinition.description, optionsLine]
+            .filter(isPresent)
+            .join("\n")
+    }
+
+    get cssClasses() {
+        if (!this.isValid) return [ErrorCellTypeClass]
+        const isEmpty = this.value === undefined || this.value === ""
+        const showArrow =
+            isEmpty && this.isFirstBlankRow ? "ShowDropdownArrow" : undefined
+        return [this.cellTypeDefinition.cssClass, showArrow].filter(isPresent)
+    }
+
+    get options() {
+        return this.cellTypeDefinition.options
+    }
+
+    private get horizontalCellTypeName() {
+        const isHeaderRow = false
+        const headerOptions = []
+        const columnOptions = []
+        const rowType = ""
+        if (isHeaderRow) {
+        } else {
+        }
+        return undefined
     }
 }

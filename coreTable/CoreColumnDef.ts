@@ -57,6 +57,22 @@ export interface CoreColumnDef {
     additionalInfo?: string
 }
 
+export enum CoreColumnDefKeyword {
+    slug = "slug",
+    name = "name",
+    description = "description",
+    unit = "unit",
+    shortUnit = "shortUnit",
+    transform = "transform",
+    type = "type",
+    sourceName = "sourceName",
+    sourceLink = "sourceLink",
+    dataPublishedBy = "dataPublishedBy",
+    dataPublisherSource = "dataPublisherSource",
+    retrievedDate = "retrievedDate",
+    additionalInfo = "additionalInfo",
+}
+
 // todo: remove index param?
 // todo: improve typings on this
 export type ColumnFn = (row: CoreRow, index?: Integer) => any

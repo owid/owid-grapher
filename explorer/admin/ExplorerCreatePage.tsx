@@ -138,7 +138,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                 : undefined
             cellProperties.comment = comment ? { value: comment } : undefined
 
-            if (options.length) {
+            if (options) {
                 cellProperties.type = "autocomplete"
                 cellProperties.source = options
             }

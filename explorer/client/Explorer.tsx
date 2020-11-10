@@ -43,7 +43,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
-import { ExplorerBoolean } from "./ExplorerGrammar"
+import { GridBoolean } from "./GridGrammarConstants"
 
 export interface ExplorerProps {
     explorerProgramCode: string
@@ -216,9 +216,9 @@ export class Explorer
             manuallyProvideData: table ? true : false,
         }
 
-        if (selectedRow.yScaleToggle === ExplorerBoolean.true)
+        if (selectedRow.yScaleToggle === GridBoolean.true)
             grapher.yAxis.canChangeScaleType = true
-        else if (selectedRow.yScaleToggle === ExplorerBoolean.false)
+        else if (selectedRow.yScaleToggle === GridBoolean.false)
             grapher.yAxis.canChangeScaleType = false
 
         grapher.hasError = false

@@ -23,11 +23,8 @@ import {
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
-import {
-    ExplorerKeywordList,
-    ExplorerBoolean,
-    ExplorerProgramCell,
-} from "./ExplorerGrammar"
+import { ExplorerKeywordList, ExplorerProgramCell } from "./ExplorerGrammar"
+import { GridBoolean } from "./GridGrammarConstants"
 
 const CHART_ID_SYMBOL = "chartId"
 
@@ -256,7 +253,7 @@ export class ExplorerProgram {
     get hideAlertBanner() {
         return (
             this.getLineValue(ExplorerKeywordList.hideAlertBanner) ===
-            ExplorerBoolean.true
+            GridBoolean.true
         )
     }
 
@@ -280,14 +277,14 @@ export class ExplorerProgram {
     get isPublished() {
         return (
             this.getLineValue(ExplorerKeywordList.isPublished) ===
-            ExplorerBoolean.true
+            GridBoolean.true
         )
     }
 
     set isPublished(value: boolean) {
         this.setLineValue(
             ExplorerKeywordList.isPublished,
-            value ? ExplorerBoolean.true : ExplorerBoolean.false
+            value ? GridBoolean.true : GridBoolean.false
         )
     }
 
@@ -528,14 +525,13 @@ const makeCheckBoxOptions = (
     choiceName: string
 ) => {
     const checked = options.find(
-        (option) =>
-            option.checked === true && option.label === ExplorerBoolean.true
+        (option) => option.checked === true && option.label === GridBoolean.true
     )
     return [
         {
             label: choiceName,
             checked,
-            value: ExplorerBoolean.true,
+            value: GridBoolean.true,
             available: options.length > 1,
         },
     ] as ExplorerControlOption[]
