@@ -71,6 +71,8 @@ enum CellTypes {
     defaultView = "defaultView",
     subNavId = "subNavId",
     subNavCurrentId = "subNavCurrentId",
+    table = "table",
+    columns = "columns",
 }
 
 interface CellTypeDefinition {
@@ -94,6 +96,12 @@ const StringCellTypeDefinition: CellTypeDefinition = {
 const UrlCellTypeDefinition: CellTypeDefinition = {
     ...StringCellTypeDefinition,
     cssClass: "UrlCellType",
+}
+
+const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SlugDeclarationCellTypeDefinition",
+    description: "A URL-friendly slug type name.",
+    options: [],
 }
 
 const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
@@ -140,6 +148,8 @@ const CellTypeDefinitions: { [key in CellTypes]: CellTypeDefinition } = {
         cssClass: "EnumCellType",
         description: "The current page in the subnav.",
     },
+    table: SlugDeclarationCellTypeDefinition,
+    columns: SlugDeclarationCellTypeDefinition,
 }
 
 interface BlockLocation {
