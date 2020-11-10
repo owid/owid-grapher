@@ -263,7 +263,7 @@ describe("basic scatterplot", () => {
                         color: undefined,
                         entityName: "USA",
                         label: "1",
-                        size: undefined,
+                        size: 0,
                         time: {
                             x: 2000,
                             y: 2000,

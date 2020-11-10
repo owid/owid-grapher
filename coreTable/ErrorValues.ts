@@ -58,3 +58,8 @@ export const ErrorValueTypes = {
 // A predicate for filtering an array of valid and error values that returns the correct type
 export const isNotErrorValue = <TYPE>(item: TYPE | ErrorValue): item is TYPE =>
     !(item instanceof ErrorValue)
+
+export const defaultIfErrorValue = <TYPE>(
+    item: TYPE | ErrorValue,
+    defaultValue?: TYPE
+): TYPE | undefined => (isNotErrorValue(item) ? item : defaultValue)

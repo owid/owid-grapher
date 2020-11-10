@@ -62,8 +62,7 @@ import {
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { isNotErrorValue } from "coreTable/ErrorValues"
-import { replaceErrorValuesWithUndefined } from "coreTable/CoreTableUtils"
+import { defaultIfErrorValue, isNotErrorValue } from "coreTable/ErrorValues"
 
 @observer
 export class ScatterPlotChart
@@ -805,16 +804,14 @@ export class ScatterPlotChart
         const { entityNameSlug, timeColumn } = this.transformedTable
         return this.removePointsOutsidePlane(
             this.transformedTable.rows.map((row) => {
-                row = replaceErrorValuesWithUndefined(row)
                 return {
                     x: row[this.xColumnSlug],
                     y: row[this.yColumnSlug],
-                    size: !this.sizeColumn.isMissing
-                        ? row[this.sizeColumn.slug]
-                        : 0,
-                    color: !this.colorColumn.isMissing
-                        ? row[this.colorColumn.slug]
-                        : undefined,
+                    size: defaultIfErrorValue(row[this.sizeColumn.slug], 0),
+                    color: defaultIfErrorValue(
+                        row[this.colorColumn.slug],
+                        undefined
+                    ),
                     entityName: row[entityNameSlug],
                     label: this.getPointLabel(row) ?? "",
                     timeValue: row[timeColumn.slug],

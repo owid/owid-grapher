@@ -17,7 +17,7 @@ import {
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
+import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
@@ -613,14 +613,6 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
                 .reduce((subResults, result) => [...subResults, ...result], []),
         [[]]
     )
-}
-
-export const replaceErrorValuesWithUndefined = (row: CoreRow) => {
-    const result: CoreRow = {}
-    for (const key in row) {
-        result[key] = isNotErrorValue(row[key]) ? row[key] : undefined
-    }
-    return result
 }
 
 const applyNewSortOrder = (arr: any[], newOrder: number[]) =>
