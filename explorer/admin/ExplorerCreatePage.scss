@@ -3,6 +3,17 @@
     font-size: 0 !important;
 }
 
+.handsontable .ShowDropdownArrow {
+    // But still show the autocomplete dropdown arrow on last cell.
+    .htAutocompleteArrow:before {
+        content: "+" !important;
+        color: green !important;
+        font-size: 14px !important;
+        font-weight: bold;
+        cursor: pointer;
+    }
+}
+
 // Change the default dark top right corner comment arrow into a subtle checkmark.
 .handsontable .htCommentCell:after {
     content: "✓" !important;

@@ -237,10 +237,22 @@ class ExplorerProgramCell {
         return CellTypeDefinitions[this.cellTypeName]
     }
 
+    private get isNextRow() {
+        const { row } = this
+        const numRows = this.program.numRows
+        if (numRows === 1) return row === 0
+        return row === numRows
+    }
+
+    private get isEmpty() {
+        return this.value === undefined || this.value === ""
+    }
+
     get cssClasses() {
         if (!this.isValid) return [ErrorCellTypeClass]
-
-        return [this.cellTypeDefinition.cssClass]
+        const showArrow =
+            this.isEmpty && this.isNextRow ? "ShowDropdownArrow" : undefined
+        return [this.cellTypeDefinition.cssClass, showArrow].filter(isPresent)
     }
 
     private get secondaryNotations() {
@@ -298,6 +310,10 @@ export class ExplorerProgram {
         )
         this.queryString = queryString
         this.lastModifiedTime = lastModifiedTime
+    }
+
+    get numRows() {
+        return this.lines.length
     }
 
     lastModifiedTime?: number
