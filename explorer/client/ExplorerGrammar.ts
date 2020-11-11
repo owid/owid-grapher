@@ -269,6 +269,11 @@ export class ExplorerProgramCell {
         if (isEmpty(value)) return undefined
         if (errorMessage) return errorMessage
 
+        if (cellTypeDefinition === AbstractTypeDefinitions.keyword)
+            return `${value}: ${
+                (ExplorerTypeDefinitions as any)[value!].description
+            }`
+
         return [cellTypeDefinition.description].join("\n")
     }
 

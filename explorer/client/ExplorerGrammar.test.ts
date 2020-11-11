@@ -15,6 +15,15 @@ describe(ExplorerProgramCell, () => {
         expect(cell.cssClasses).toContain(`StringCellType`)
     })
 
+    it("uses the keyword definition for the first cell instead of abstract keyword", () => {
+        const cell = new ExplorerProgramCell(
+            tsvToMatrix(`title\tHello world`),
+            0,
+            0
+        )
+        expect(cell.comment).toContain(`title: `)
+    })
+
     it("can insert a css class to show the user a + button", () => {
         expect(
             new ExplorerProgramCell(tsvToMatrix(`title\tHello world`), 1, 0)
