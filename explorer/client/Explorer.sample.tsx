@@ -77,7 +77,7 @@ export const SampleExplorer = () => {
     return (
         <Explorer
             slug="test-slug"
-            explorerProgramCode={SampleExplorerProgram}
+            program={SampleExplorerProgram}
             chartConfigs={chartConfigs}
         />
     )

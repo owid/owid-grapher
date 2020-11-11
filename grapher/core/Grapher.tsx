@@ -103,7 +103,10 @@ import {
 import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
+import {
+    UrlBinder,
+    ObjectThatSerializesToQueryParams,
+} from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
@@ -200,7 +203,7 @@ export class Grapher
         DownloadTabManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
-        ObservableUrl,
+        ObjectThatSerializesToQueryParams,
         ShareMenuManager,
         SmallCountriesFilterManager,
         HighlightToggleManager,

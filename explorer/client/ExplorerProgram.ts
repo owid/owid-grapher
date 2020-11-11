@@ -6,7 +6,7 @@ import {
 } from "utils/client/url"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
-import { ObservableUrl } from "grapher/utils/UrlBinder"
+import { ObjectThatSerializesToQueryParams } from "grapher/utils/UrlBinder"
 import {
     ExplorerControlType,
     ExplorerControlOption,
@@ -36,7 +36,7 @@ interface Choice {
     type: ExplorerControlType
 }
 
-export const explorerFileSuffix = ".explorer.tsv"
+export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
 const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
@@ -58,6 +58,7 @@ export interface SerializedExplorerProgram {
     slug: string
     program: string
     lastModifiedTime?: number
+    shortHash?: string
 }
 
 export class ExplorerProgram {
@@ -65,19 +66,23 @@ export class ExplorerProgram {
         slug: string,
         tsv: string,
         queryString = "",
-        lastModifiedTime?: number
+        lastModifiedTime?: number,
+        shortHash?: string
     ) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         queryString = (queryString ? queryString : this.defaultView) ?? ""
         this.decisionMatrix = new DecisionMatrix(
             this.decisionMatrixCode || "",
-            queryString
+            queryString,
+            shortHash
         )
         this.queryString = queryString
         this.lastModifiedTime = lastModifiedTime
+        this.shortHash = shortHash
     }
 
+    shortHash?: string
     lastModifiedTime?: number
     slug: string
     queryString: string
@@ -88,6 +93,7 @@ export class ExplorerProgram {
             program: this.toString(),
             slug: this.slug,
             lastModifiedTime: this.lastModifiedTime,
+            shortHash: this.shortHash,
         }
     }
 
@@ -95,21 +101,22 @@ export class ExplorerProgram {
         return this.slug === DefaultNewExplorerSlug
     }
 
-    static fromJson(json: SerializedExplorerProgram) {
+    static fromJson(json: SerializedExplorerProgram, queryString?: string) {
         return new ExplorerProgram(
             json.slug,
             json.program,
-            undefined,
-            json.lastModifiedTime
+            queryString,
+            json.lastModifiedTime,
+            json.shortHash
         )
     }
 
     get filename() {
-        return this.slug + explorerFileSuffix
+        return this.slug + EXPLORER_FILE_SUFFIX
     }
 
     static fullPath(slug: string) {
-        return `explorers/${slug}${explorerFileSuffix}`
+        return `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
     }
 
     get fullPath() {
@@ -261,8 +268,11 @@ export class ExplorerProgram {
     }
 
     get defaultView() {
-        // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
         return this.getLineValue(ExplorerKeywords.defaultView.keyword)
+    }
+
+    get hideControls() {
+        return this.getLineValue(ExplorerKeywords.hideControls.keyword)
     }
 
     get isPublished() {
@@ -357,16 +367,17 @@ interface ChoiceMap {
 
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
-export class DecisionMatrix implements ObservableUrl {
+export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private table: CoreTable
     @observable private _settings: DecisionMatrixQuery = {}
-    constructor(delimited: string, queryString: string = "") {
+    constructor(delimited: string, queryString = "", shortHash = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
             { slug: CHART_ID_SYMBOL, type: ColumnTypeNames.Integer },
         ])
         this.setValuesFromQueryString(queryString)
+        this.shortHash = shortHash
     }
 
     allOptionsAsQueryStrings() {
@@ -380,13 +391,14 @@ export class DecisionMatrix implements ObservableUrl {
     }
 
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
+    private shortHash: string
 
     toObject(): DecisionMatrixQuery {
         return { ...this._settings }
     }
 
     @computed get params(): QueryParams {
-        return this.toObject()
+        return { ...this.toObject(), shortHash: this.shortHash }
     }
 
     toConstrainedOptions() {

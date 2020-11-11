@@ -1,6 +1,6 @@
 // Static utilities to bind the global window URL to a ChartUrl object.
 
-import { reaction, IReactionDisposer, computed } from "mobx"
+import { reaction, IReactionDisposer } from "mobx"
 import {
     setWindowQueryStr,
     queryParamsToStr,
@@ -9,46 +9,30 @@ import {
 
 import { debounce } from "grapher/utils/Util"
 
-export interface ObservableUrl {
+export interface ObjectThatSerializesToQueryParams {
     params: QueryParams
     debounceMode?: boolean
 }
 
 export class UrlBinder {
     private disposer?: IReactionDisposer
-    bindToWindow(url: ObservableUrl) {
+    bindToWindow(obj: ObjectThatSerializesToQueryParams) {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = () => setWindowQueryStr(queryParamsToStr(url.params))
+        const pushParams = () => {
+            const str = queryParamsToStr(obj.params)
+            console.log(str)
+            return setWindowQueryStr(str)
+        }
         const debouncedPushParams = debounce(pushParams, 100)
 
         this.disposer = reaction(
-            () => url.params,
-            () => (url.debounceMode ? debouncedPushParams() : pushParams())
+            () => obj.params,
+            () => (obj.debounceMode ? debouncedPushParams() : pushParams())
         )
     }
 
     unbindFromWindow() {
         this.disposer!()
-    }
-}
-
-export class MultipleUrlBinder implements ObservableUrl {
-    urls: ObservableUrl[]
-
-    constructor(urls: ObservableUrl[]) {
-        this.urls = urls
-    }
-
-    @computed get params() {
-        let obj: QueryParams = {}
-        this.urls.forEach((url) => {
-            obj = Object.assign(obj, url.params)
-        })
-        return obj
-    }
-
-    @computed get debounceMode(): boolean {
-        return this.urls.some((url) => url.debounceMode)
     }
 }

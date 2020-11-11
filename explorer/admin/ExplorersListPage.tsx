@@ -29,7 +29,10 @@ import {
 import { BAKED_BASE_URL } from "settings"
 import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
 import moment from "moment"
-import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
+import {
+    DefaultNewExplorerSlug,
+    ExplorersRoute,
+} from "explorer/client/ExplorerConstants"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -260,7 +263,7 @@ export class ExplorersIndexPage extends React.Component {
 
     async getData() {
         const { searchInput } = this
-        const json = await this.context.admin.getJSON("/api/explorers.json")
+        const json = await this.context.admin.getJSON(`/api/${ExplorersRoute}`)
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(

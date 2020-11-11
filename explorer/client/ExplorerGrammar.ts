@@ -188,6 +188,11 @@ export const ExplorerKeywords = {
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
     },
+    hideControls: {
+        ...BooleanCellTypeDefinition,
+        keyword: "hideControls",
+        description: "Whether to hide the controls. Default is false.",
+    },
     subNavId: {
         options: Object.values(SubNavId),
         keyword: "subNavId",

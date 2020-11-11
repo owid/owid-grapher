@@ -304,7 +304,7 @@ export class SiteBaker {
         for (const grapherToExplorerRedirect of grapherToExplorerRedirects) {
             const { slugs, explorerQueryStr } = grapherToExplorerRedirect
             // todo: restore functionality
-            const html = await renderExplorerPage("slug", "")
+            const html = await renderExplorerPage("slug", "", "")
             await Promise.all(
                 slugs.map((slug) =>
                     this.stageWrite(

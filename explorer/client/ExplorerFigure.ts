@@ -35,14 +35,16 @@ export class ExplorerFigure implements Figure {
     async load(loadProps: LoadProps) {
         if (!this._isLoaded) {
             this._isLoaded = true
-            Explorer.createExplorerAndRenderToDom({
-                containerNode: this.container,
-                isEmbed: true,
-                queryStr: this.props.queryStr,
-                globalEntitySelection: loadProps.globalEntitySelection,
-                slug: "",
-                explorerProgramCode: "",
-            })
+            Explorer.createExplorerAndRenderToDom(
+                {
+                    isEmbed: true,
+                    queryString: this.props.queryStr,
+                    globalEntitySelection: loadProps.globalEntitySelection,
+                    slug: "",
+                    program: "",
+                },
+                this.container
+            )
         }
     }
 

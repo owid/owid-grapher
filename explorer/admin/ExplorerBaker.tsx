@@ -5,7 +5,7 @@ import React from "react"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
 import {
-    explorerFileSuffix,
+    EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
@@ -16,18 +16,22 @@ import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
-import { getPublishedGraphersBySlug } from "baker/GrapherImageBaker"
 import moment from "moment"
-import { getGitBranchNameForDir, getLastModifiedTime } from "gitCms/GitUtils"
+import {
+    getGitBranchNameForDir,
+    getLastModifiedTime,
+    getShortHash,
+} from "gitCms/GitUtils"
+import { ExplorersRoute } from "explorer/client/ExplorerConstants"
 
-const storageFolder = `${GIT_CMS_DIR}/explorers/`
+const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/explorers/`
 
 export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // http://localhost:3030/admin/api/explorers.json
     // Download all explorers for the admin index page
-    app.get("/explorers.json", async () => {
+    app.get(`/${ExplorersRoute}`, async () => {
         const explorers = await getAllExplorers()
-        const gitCmsBranchName = await getGitBranchNameForDir(storageFolder)
+        const gitCmsBranchName = await getGitBranchNameForDir(EXPLORERS_FOLDER)
         return {
             gitCmsBranchName,
             explorers: explorers.map((explorer) => explorer.toJson()),
@@ -53,31 +57,46 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 }
 
 export const addExplorerAdminRoutes = (app: Router) => {
-    app.get(`/explorers/preview/mega`, async (req, res) => {
-        const code = await getMegaExplorerCode()
-        if (code === undefined) res.send(`File not found`)
-        else res.send(await renderExplorerPage(req.params.slug, code))
-    })
-
     // http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/explorers/preview/:slug`, async (req, res) => {
-        const code = await getExplorerCodeBySlug(req.params.slug)
-        if (code === undefined) res.send(`File not found`)
-        else res.send(await renderExplorerPage(req.params.slug, code))
+        const shortHash = await getShortHash(EXPLORERS_FOLDER)
+        const filename = req.params.slug + EXPLORER_FILE_SUFFIX
+        if (!fs.existsSync(EXPLORERS_FOLDER + filename))
+            return res.send(`File not found`)
+        const explorer = await getExplorerFromFile(
+            EXPLORERS_FOLDER,
+            filename,
+            shortHash
+        )
+        return res.send(
+            await renderExplorerPage(
+                explorer.slug,
+                explorer.toString(),
+                explorer.shortHash ?? ""
+            )
+        )
     })
 }
 
-const getExplorerCodeBySlug = async (
-    slug: string,
-    directory = storageFolder
+const getExplorerFromFile = async (
+    directory = EXPLORERS_FOLDER,
+    filename: string,
+    shortHash: string
 ) => {
-    const path = directory + "/" + slug + explorerFileSuffix
-    if (!fs.existsSync(path)) return undefined
-    return await fs.readFile(path, "utf8")
+    const fullPath = directory + "/" + filename
+    const content = await fs.readFile(fullPath, "utf8")
+    const lastModified = await getLastModifiedTime(directory, filename)
+    return new ExplorerProgram(
+        filename.replace(EXPLORER_FILE_SUFFIX, ""),
+        content,
+        undefined,
+        moment.utc(lastModified).unix(),
+        shortHash
+    )
 }
 
 export const bakeAllPublishedExplorers = async (
-    inputFolder = storageFolder,
+    inputFolder = EXPLORERS_FOLDER,
     outputFolder = `${BAKED_SITE_DIR}/explorers/`
 ) => {
     const explorers = await getAllExplorers(inputFolder)
@@ -85,25 +104,22 @@ export const bakeAllPublishedExplorers = async (
     await bakeExplorersToDir(outputFolder, published)
 }
 
-const getAllExplorers = async (directory = storageFolder) => {
+const getAllExplorers = async (directory = EXPLORERS_FOLDER) => {
     if (!fs.existsSync(directory)) return []
     const files = await fs.readdir(directory)
     const explorerFiles = files.filter((filename) =>
-        filename.endsWith(explorerFileSuffix)
+        filename.endsWith(EXPLORER_FILE_SUFFIX)
     )
+    const shortHash = await getShortHash(directory)
     const explorers: ExplorerProgram[] = []
     for (const filename of explorerFiles) {
-        const fullPath = directory + "/" + filename
-        const content = await fs.readFile(fullPath, "utf8")
-        const lastModified = await getLastModifiedTime(directory, filename)
-        explorers.push(
-            new ExplorerProgram(
-                filename.replace(explorerFileSuffix, ""),
-                content,
-                undefined,
-                moment.utc(lastModified).unix()
-            )
+        const explorer = await getExplorerFromFile(
+            directory,
+            filename,
+            shortHash
         )
+
+        explorers.push(explorer)
     }
     return explorers
 }
@@ -121,13 +137,44 @@ const bakeExplorersToDir = async (
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer.slug, explorer.toString())
+            await renderExplorerPage(
+                explorer.slug,
+                explorer.toString(),
+                explorer.shortHash ?? ""
+            )
         )
     }
 }
 
-export const renderExplorerPage = async (slug: string, code: string) => {
-    const program = new ExplorerProgram(slug, code)
+// todo: can we remove this sort of thing?
+const makeInlineJs = (program: ExplorerProgram, chartConfigs: any[]) => {
+    const props: ExplorerProps = {
+        bindToWindow: true,
+        slug: program.slug,
+        shortHash: program.shortHash,
+        program: program.toString(),
+        chartConfigs: chartConfigs.map((row) => {
+            const config = JSON.parse(row.config)
+            config.id = row.id // Ensure each grapher has an id
+            return config
+        }),
+    }
+
+    return `window.Explorer.bootstrap(${JSON.stringify(props, null, 2)})`
+}
+
+export const renderExplorerPage = async (
+    slug: string,
+    code: string,
+    shortHash: string
+) => {
+    const program = new ExplorerProgram(
+        slug,
+        code,
+        undefined,
+        undefined,
+        shortHash
+    )
     const { requiredChartIds } = program
     let chartConfigs: any[] = []
     if (requiredChartIds.length)
@@ -136,54 +183,21 @@ export const renderExplorerPage = async (slug: string, code: string) => {
             [requiredChartIds]
         )
 
-    const props: ExplorerProps = {
-        bindToWindow: true,
-        slug,
-        explorerProgramCode: program.toString(),
-        chartConfigs: chartConfigs.map((row) => {
-            const config = JSON.parse(row.config)
-            config.id = row.id // Ensure each grapher has an id
-            return config
-        }),
-    }
-
-    const script = `window.Explorer.bootstrap(${JSON.stringify(
-        props,
-        null,
-        2
-    )})`
-
     const wpContent = program.wpBlockId
         ? await getBlockContent(program.wpBlockId)
         : undefined
 
     return renderToHtmlPage(
         <ExplorerPage
-            title={program.title || ""}
-            slug={props.slug}
-            imagePath={program.thumbnail || ""}
+            title={program.title ?? ""}
+            slug={slug}
+            imagePath={program.thumbnail ?? ""}
             subnavId={program.subNavId}
             subnavCurrentId={program.subNavCurrentId}
             preloads={[]}
-            inlineJs={script}
+            inlineJs={makeInlineJs(program, chartConfigs)}
             hideAlertBanner={program.hideAlertBanner}
             wpContent={wpContent}
         />
     )
-}
-
-const getMegaExplorerCode = async () => {
-    const { graphersBySlug } = await getPublishedGraphersBySlug()
-    const lines = Array.from(graphersBySlug.values())
-        .map((grapher) => {
-            const { id, type, stackMode, title } = grapher
-            return "\t" + [id, type, stackMode, title].join("\t")
-        })
-        .join("\n")
-    return `title	Mega Explorer
-isPublished	false
-subtitle	All of our published charts
-switcher
-	chartId	Type Dropdown	StackMode Dropdown	Title Dropdown
-${lines}`
 }

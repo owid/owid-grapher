@@ -93,7 +93,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         const { explorerQueryStr } = grapherToExplorerRedirectsByGrapherSlug[
             req.params.slug
         ]
-        res.send(await renderExplorerPage(req.params.slug, ""))
+        res.send(await renderExplorerPage(req.params.slug, "", ""))
     } else res.send(await grapherSlugToHtmlPage(req.params.slug))
 })
 

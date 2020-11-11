@@ -18,6 +18,16 @@ export const getLastModifiedTime = async (dir: string, filename: string) => {
     return result.stdout.trim()
 }
 
+// todo: add tests, cleanup, and speed up all these git methods. is there a great npm package in this space?
+export const getShortHash = async (dir: string) => {
+    const result = await execFormatted(
+        `cd %s && git rev-parse --short HEAD`,
+        [dir],
+        false
+    )
+    return result.stdout.trim()
+}
+
 export const pullFromGit = async (dir: string) =>
     await execFormatted(`cd %s && git pull`, [dir], false)
 

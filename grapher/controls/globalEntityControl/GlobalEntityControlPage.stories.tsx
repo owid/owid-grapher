@@ -41,7 +41,7 @@ class GlobalEntityControlPage extends React.Component<{ explorers?: boolean }> {
         return (
             <div>
                 <GlobalEntityControl globalEntitySelection={selection} />
-                <Explorer slug="" explorerProgramCode="" />
+                <Explorer slug="" program="" />
             </div>
         )
     }

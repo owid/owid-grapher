@@ -2,7 +2,10 @@ import { observable, reaction, IReactionDisposer, computed } from "mobx"
 import { Country, countries } from "utils/countries"
 import { Grapher } from "grapher/core/Grapher"
 import { excludeUndefined } from "grapher/utils/Util"
-import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
+import {
+    UrlBinder,
+    ObjectThatSerializesToQueryParams,
+} from "grapher/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
@@ -83,7 +86,7 @@ type GlobalEntitySelectionQueryParams = {
     country?: string
 }
 
-class GlobalEntitySelectionUrl implements ObservableUrl {
+class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
     globalEntitySelection: GlobalEntitySelection
 
     constructor(globalEntitySelection: GlobalEntitySelection) {
