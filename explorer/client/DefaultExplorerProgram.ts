@@ -1,7 +1,7 @@
 // Note: the following sample program was actually made in a spreadsheet and copy/pasted. Easier that way.
 
 export const DefaultExplorerProgram = `title	New Data Explorer Template
-defaultView	?country=Canada~France
+defaultView	?selection=Canada~France
 isPublished	false
 switcher
 	chartId	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
