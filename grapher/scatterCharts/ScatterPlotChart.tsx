@@ -773,14 +773,14 @@ export class ScatterPlotChart
     getPointLabel(row: OwidRow): string | undefined {
         const strat = this.manager.scatterPointLabelStrategy
         let label
-        if (strat === ScatterPointLabelStrategy.year) {
-            label = this.transformedTable.timeColumnFormatFunction(
-                row[this.transformedTable.timeColumn.slug]
-            )
+        if (strat === ScatterPointLabelStrategy.y) {
+            label = this.yColumn?.formatValue(row[this.yColumnSlug])
         } else if (strat === ScatterPointLabelStrategy.x) {
             label = this.xColumn?.formatValue(row[this.xColumnSlug])
         } else {
-            label = this.yColumn?.formatValue(row[this.yColumnSlug])
+            label = this.transformedTable.timeColumnFormatFunction(
+                row[this.transformedTable.timeColumn.slug]
+            )
         }
         return label
     }
