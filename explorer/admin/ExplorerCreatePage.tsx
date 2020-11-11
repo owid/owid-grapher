@@ -10,7 +10,7 @@ import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { ExplorerKeywordList } from "explorer/client/ExplorerGrammar"
+import { SubTableTypeDefinitions } from "explorer/client/ExplorerGrammar"
 import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
@@ -122,7 +122,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
         // Highlight the active view
         const activeViewRowNumber =
-            program.getKeywordIndex(ExplorerKeywordList.switcher) +
+            program.getKeywordIndex(SubTableTypeDefinitions.switcher.keyword) +
             program.decisionMatrix.selectedRowIndex +
             3
 

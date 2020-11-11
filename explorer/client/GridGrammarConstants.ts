@@ -14,7 +14,11 @@ export interface CellTypeDefinition {
     headerKeywordOptions?: string[]
     regex?: RegExp // A validation regex a value must pass
     requirements?: string
-    rest?: CellTypeDefinition[] // Additional cell types as positional arguments.
+    rest?: readonly CellTypeDefinition[] // Additional cell types as positional arguments.
+}
+
+export interface CellTypeDefinitionWithKeyword extends CellTypeDefinition {
+    keyword: string
 }
 
 export interface CellLink {
@@ -51,6 +55,11 @@ export const UrlCellTypeDefinition: CellTypeDefinition = {
 export const NothingGoesThereDefinition: CellTypeDefinition = {
     cssClass: "NothingGoesThereType",
     description: "Nothing should be here.",
+}
+
+export const DelimitedUrlDefinition = {
+    ...UrlCellTypeDefinition,
+    description: "A link to a CSV or TSV",
 }
 
 export const SubtableSlugDeclarationCellTypeDefinition: CellTypeDefinition = {

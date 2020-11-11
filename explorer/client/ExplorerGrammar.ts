@@ -16,133 +16,80 @@ import {
     NothingGoesThereDefinition,
     SubTableHeaderCellTypeDefinition,
     SubTableWordCellTypeDefinition,
+    DelimitedUrlDefinition,
 } from "./GridGrammarConstants"
-
-export enum ExplorerKeywordList {
-    keyword = "keyword",
-    wip = "wip", // Not quite a comment, but not a valid typ. A "work in progress" cell.
-    nothingGoesThere = "nothingGoesThere",
-    delimitedUrl = "delimitedUrl",
-    subtableWord = "subtableWord",
-    subtableHeaderWord = "subtableHeaderWord",
-
-    isPublished = "isPublished",
-    title = "title",
-    subNavId = "subNavId",
-    subNavCurrentId = "subNavCurrentId",
-    hideAlertBanner = "hideAlertBanner",
-    thumbnail = "thumbnail",
-    subtitle = "subtitle",
-    defaultView = "defaultView",
-    wpBlockId = "wpBlockId",
-    googleSheet = "googleSheet",
-    entityType = "entityType",
-
-    switcher = "switcher",
-    table = "table",
-    columns = "columns",
-}
-
-// Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
-const AbstractKeywords = new Set([
-    ExplorerKeywordList.keyword,
-    ExplorerKeywordList.wip,
-    ExplorerKeywordList.nothingGoesThere,
-    ExplorerKeywordList.delimitedUrl,
-    ExplorerKeywordList.subtableWord,
-    ExplorerKeywordList.subtableHeaderWord,
-])
-
-// Keywords that also can have child tables
-const SubtableKeywords = new Set([
-    ExplorerKeywordList.switcher,
-    ExplorerKeywordList.table,
-    ExplorerKeywordList.columns,
-])
-
-const ConcreteKeywords = Object.values(ExplorerKeywordList).filter(
-    (word) => !AbstractKeywords.has(word)
-)
-
-const DelimitedUrlDefinition = {
-    ...UrlCellTypeDefinition,
-    description: "A link to a CSV or TSV",
-}
 
 const FrontierCellClass = "ShowDropdownArrow"
 
-const CellTypeDefinitions: {
-    [key in ExplorerKeywordList]: CellTypeDefinition
-} = {
-    // Abstract keywords
-    keyword: {
-        options: ConcreteKeywords,
-        cssClass: "KeywordCellType",
-        description: "Keyword",
-    },
-    wip: { cssClass: "WipCellType", description: "A comment" },
-    delimitedUrl: DelimitedUrlDefinition,
-    nothingGoesThere: NothingGoesThereDefinition,
-
-    subtableWord: SubTableWordCellTypeDefinition,
-    subtableHeaderWord: SubTableHeaderCellTypeDefinition,
-
-    // Tuples
+export const ExplorerProperties = {
     isPublished: {
         ...BooleanCellTypeDefinition,
+        keyword: "isPublished",
         description: "Set to true to make this Explorer public.",
     },
     hideAlertBanner: {
         ...BooleanCellTypeDefinition,
+        keyword: "hideAlertBanner",
         description: "Set to true to hide the Covid alert banner.",
     },
     title: {
         ...StringCellTypeDefinition,
+        keyword: "title",
         description:
             "The title will appear in the top left corner of the page.",
     },
     subtitle: {
         ...StringCellTypeDefinition,
+        keyword: "subtitle",
         description: "The subtitle will appear under the title.",
     },
     googleSheet: {
         ...UrlCellTypeDefinition,
+        keyword: "googleSheet",
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
     defaultView: {
         ...UrlCellTypeDefinition,
+        keyword: "defaultView",
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
     },
     subNavId: {
         options: Object.values(SubNavId),
+        keyword: "subNavId",
         cssClass: "EnumCellType",
         description: "A subnav to show, if any.",
     },
     subNavCurrentId: {
         // todo: add options here
         cssClass: "EnumCellType",
+        keyword: "subNavCurrentId",
         description: "The current page in the subnav.",
     },
     thumbnail: {
         ...UrlCellTypeDefinition,
+        keyword: "thumbnail",
         description: "URL to the social sharing thumbnail.",
     },
     wpBlockId: {
         ...StringCellTypeDefinition,
+        keyword: "wpBlockId",
         description:
             "If present will show the matching Wordpress block ID beneath the Explorer.",
     },
     entityType: {
         ...StringCellTypeDefinition,
+        keyword: "entityType",
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
+} as const
 
-    // Subtables
+export const SubTableTypeDefinitions = {
     table: {
         ...SubtableSlugDeclarationCellTypeDefinition,
+        keyword: "table",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
         rest: [DelimitedUrlDefinition],
@@ -150,14 +97,47 @@ const CellTypeDefinitions: {
     columns: {
         ...SubtableSlugDeclarationCellTypeDefinition,
         headerKeywordOptions: Object.values(CoreColumnDefKeyword),
+        keyword: "columns",
         description:
             "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
     },
     switcher: {
         ...SubtableSlugDeclarationCellTypeDefinition,
+        keyword: "switcher",
         description: "The decision matrix for your Explorer goes here.",
     },
-}
+} as const
+
+// Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
+const AbstractTypeDefinitions: {
+    [typeSlug: string]: CellTypeDefinition
+} = {
+    keyword: {
+        options: Object.keys(ExplorerProperties).concat(
+            Object.keys(SubTableTypeDefinitions)
+        ),
+        cssClass: "KeywordCellType",
+        description: "Keyword",
+    },
+    wip: {
+        cssClass: "WipCellType",
+        description:
+            "Not a recognized statement. Treating as a work in progress.",
+    },
+    delimitedUrl: DelimitedUrlDefinition,
+    nothingGoesThere: NothingGoesThereDefinition,
+
+    subtableWord: SubTableWordCellTypeDefinition,
+    subtableHeaderWord: SubTableHeaderCellTypeDefinition,
+} as const
+
+const ExplorerTypeDefinitions: {
+    [type: string]: CellTypeDefinition
+} = {
+    ...AbstractTypeDefinitions,
+    ...ExplorerProperties,
+    ...SubTableTypeDefinitions,
+} as const
 
 // Todo: figure out Matrix cell type and whether we need the double check
 const isEmpty = (value: any) => value === "" || value === undefined
@@ -185,21 +165,21 @@ export class ExplorerProgramCell {
     }
 
     private get cellTerminalTypeDefinition() {
-        if (this.column === 0)
-            return CellTypeDefinitions[ExplorerKeywordList.keyword]
-        const firstWord = this.line ? this.line[0] : undefined
-        const firstWordAsKeyword =
-            ExplorerKeywordList[firstWord as ExplorerKeywordList]
-        if (this.column === 1 && firstWordAsKeyword)
-            return CellTypeDefinitions[firstWordAsKeyword]
+        if (this.column === 0) return AbstractTypeDefinitions.keyword
+        const firstWordOnLine = this.line ? this.line[0] : undefined
+        const isFirstWordAKeyword =
+            firstWordOnLine &&
+            ExplorerTypeDefinitions[firstWordOnLine] !== undefined
+        if (this.column === 1 && firstWordOnLine && isFirstWordAKeyword)
+            return ExplorerTypeDefinitions[firstWordOnLine]
 
-        if (!firstWordAsKeyword) return undefined
+        if (!isFirstWordAKeyword) return undefined
 
         // It has a keyword but it is column 2+
-        const def = CellTypeDefinitions[firstWordAsKeyword]
+        const def = ExplorerTypeDefinitions[firstWordOnLine!]
         const cellTypeDef = def.rest && def.rest[this.column - 2]
         if (cellTypeDef) return cellTypeDef
-        return CellTypeDefinitions[ExplorerKeywordList.nothingGoesThere]
+        return AbstractTypeDefinitions.nothingGoesThere
     }
 
     @imemo private get cellTypeDefinition() {
@@ -209,7 +189,7 @@ export class ExplorerProgramCell {
         const subTable = this.subTableInfo
         if (subTable) return subTable.def
 
-        return CellTypeDefinitions[ExplorerKeywordList.wip]
+        return AbstractTypeDefinitions.wip
     }
 
     @imemo private get subTableInfo() {
@@ -219,18 +199,15 @@ export class ExplorerProgramCell {
         while (start) {
             const parentLine = this.matrix[start - 1]
             if (!parentLine) return undefined
-            const parentKeyword = parentLine[0] as ExplorerKeywordList
+            const parentKeyword = parentLine[0] as keyof typeof SubTableTypeDefinitions
             if (parentKeyword) {
-                if (!SubtableKeywords.has(parentKeyword)) return undefined
-                const subTableDef = CellTypeDefinitions[parentKeyword]
+                if (!SubTableTypeDefinitions[parentKeyword]) return undefined
                 const isHeaderRow = this.row === start && this.value
                 return {
                     isHeaderRow,
                     def: isHeaderRow
-                        ? CellTypeDefinitions[
-                              ExplorerKeywordList.subtableHeaderWord
-                          ]
-                        : CellTypeDefinitions[ExplorerKeywordList.subtableWord],
+                        ? AbstractTypeDefinitions.subtableHeaderWord
+                        : AbstractTypeDefinitions.subtableWord,
                 }
             }
             start--
@@ -240,17 +217,15 @@ export class ExplorerProgramCell {
 
     // If true show a +
     get isFirstCellOnFrontierRow() {
-        const { row, column, isBlankLine } = this
+        const { row, column } = this
         const numRows = this.matrix.length
         if (column) return false // Only first column should have a +
-        if (!isBlankLine) return false // Only blank lines can be frontier
-        if (numRows === 0) return row === 0
-        if (numRows === 1 && row === 0) return true
+        if (!isBlankLine(this.line)) return false // Only blank lines can be frontier
+        if (numRows === 1) {
+            if (row === 1) return !isBlankLine(this.matrix[0])
+            return row === 0
+        }
         return row === numRows
-    }
-
-    private get isBlankLine() {
-        return this.line ? this.line.join("") === "" : true
     }
 
     private get suggestions() {
@@ -290,11 +265,11 @@ export class ExplorerProgramCell {
     }
 
     get comment() {
-        const { value, errorMessage } = this
+        const { value, errorMessage, cellTypeDefinition } = this
         if (isEmpty(value)) return undefined
         if (errorMessage) return errorMessage
 
-        return [this.cellTypeDefinition.description].join("\n")
+        return [cellTypeDefinition.description].join("\n")
     }
 
     // If true show a +
@@ -320,3 +295,6 @@ export class ExplorerProgramCell {
         return this.cellTypeDefinition.options
     }
 }
+
+const isBlankLine = (line: string[] | undefined) =>
+    line === undefined ? true : line.join("") === ""

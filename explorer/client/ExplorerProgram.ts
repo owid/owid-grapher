@@ -23,7 +23,11 @@ import {
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
-import { ExplorerKeywordList, ExplorerProgramCell } from "./ExplorerGrammar"
+import {
+    ExplorerProgramCell,
+    ExplorerProperties,
+    SubTableTypeDefinitions,
+} from "./ExplorerGrammar"
 import { GridBoolean } from "./GridGrammarConstants"
 
 const CHART_ID_SYMBOL = "chartId"
@@ -127,7 +131,7 @@ export class ExplorerProgram {
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
 
-    getKeywordIndex(key: ExplorerKeywordList) {
+    getKeywordIndex(key: string) {
         return this.lines.findIndex(
             (line) => line.startsWith(key + this.cellDelimiter) || line === key
         )
@@ -152,7 +156,7 @@ export class ExplorerProgram {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
-    private setLineValue(key: ExplorerKeywordList, value: string | undefined) {
+    private setLineValue(key: string, value: string | undefined) {
         const index = this.getKeywordIndex(key)
         const newLine = `${key}${this.cellDelimiter}${value}`
         if (index === -1 && value !== undefined) this.lines.push(newLine)
@@ -207,111 +211,86 @@ export class ExplorerProgram {
         return { start: blockStart, end: blockStart + length, length }
     }
 
-    private setBlock(keyword: ExplorerKeywordList, value: string | undefined) {
-        if (!value) return this.deleteBlock(keyword)
-
-        const keywordIndex = this.getKeywordIndex(keyword)
-        if (keywordIndex === -1) return this.appendBlock(keyword, value)
-        const location = this.getBlockLocation(keywordIndex)
-
-        this.lines = this.lines.splice(
-            location.start,
-            location.length,
-            keyword,
-            ...value
-                .split(this.nodeDelimiter)
-                .map((line) => this.edgeDelimiter + line)
-        )
-    }
-
-    private appendBlock(key: string, value: string) {
-        this.lines.push(key)
-        value
-            .split(this.nodeDelimiter)
-            .forEach((line) => this.lines.push(this.edgeDelimiter + line))
-    }
-
-    private deleteBlock(keyword: ExplorerKeywordList) {
-        const keywordIndex = this.getKeywordIndex(keyword)
-        if (keywordIndex === -1) return
-        const location = this.getBlockLocation(keywordIndex)
-        this.lines = this.lines.splice(location.start, location.length)
-    }
-
     get title() {
-        return this.getLineValue(ExplorerKeywordList.title)
+        return this.getLineValue(ExplorerProperties.title.keyword)
     }
 
     get subNavId(): SubNavId | undefined {
-        return this.getLineValue(ExplorerKeywordList.subNavId) as SubNavId
+        return this.getLineValue(
+            ExplorerProperties.subNavId.keyword
+        ) as SubNavId
     }
 
     get googleSheet() {
-        return this.getLineValue(ExplorerKeywordList.googleSheet)
+        return this.getLineValue(ExplorerProperties.googleSheet.keyword)
     }
 
     get hideAlertBanner() {
         return (
-            this.getLineValue(ExplorerKeywordList.hideAlertBanner) ===
+            this.getLineValue(ExplorerProperties.hideAlertBanner.keyword) ===
             GridBoolean.true
         )
     }
 
     get subNavCurrentId() {
-        return this.getLineValue(ExplorerKeywordList.subNavCurrentId)
+        return this.getLineValue(ExplorerProperties.subNavCurrentId.keyword)
     }
 
     get thumbnail() {
-        return this.getLineValue(ExplorerKeywordList.thumbnail)
+        return this.getLineValue(ExplorerProperties.thumbnail.keyword)
     }
 
     get subtitle() {
-        return this.getLineValue(ExplorerKeywordList.subtitle)
+        return this.getLineValue(ExplorerProperties.subtitle.keyword)
     }
 
     get entityType() {
-        return this.getLineValue(ExplorerKeywordList.entityType)
+        return this.getLineValue(ExplorerProperties.entityType.keyword)
     }
 
     get defaultView() {
         // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
-        return this.getLineValue(ExplorerKeywordList.defaultView)
+        return this.getLineValue(ExplorerProperties.defaultView.keyword)
     }
 
     get isPublished() {
         return (
-            this.getLineValue(ExplorerKeywordList.isPublished) ===
+            this.getLineValue(ExplorerProperties.isPublished.keyword) ===
             GridBoolean.true
         )
     }
 
     set isPublished(value: boolean) {
         this.setLineValue(
-            ExplorerKeywordList.isPublished,
+            ExplorerProperties.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
     }
 
     get wpBlockId() {
-        const blockIdString = this.getLineValue(ExplorerKeywordList.wpBlockId)
+        const blockIdString = this.getLineValue(
+            ExplorerProperties.wpBlockId.keyword
+        )
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     get decisionMatrixCode() {
-        const keywordIndex = this.getKeywordIndex(ExplorerKeywordList.switcher)
+        const keywordIndex = this.getKeywordIndex(
+            SubTableTypeDefinitions.switcher.keyword
+        )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
     }
 
     getTableDef(tableSlug: string): TableDef | undefined {
         const matchingTableIndex = this.getKeywordIndexes([
-            ExplorerKeywordList.table,
+            SubTableTypeDefinitions.table.keyword,
             tableSlug,
         ])[0]
         if (matchingTableIndex === undefined) return undefined
 
         const matchingColumnsIndex = this.getKeywordIndexes([
-            ExplorerKeywordList.columns,
+            SubTableTypeDefinitions.columns.keyword,
             tableSlug,
         ])[0]
         return {

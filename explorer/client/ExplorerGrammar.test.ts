@@ -20,6 +20,9 @@ describe(ExplorerProgramCell, () => {
             new ExplorerProgramCell(tsvToMatrix(`title\tHello world`), 1, 0)
                 .cssClasses
         ).toContain(`ShowDropdownArrow`)
+        expect(
+            new ExplorerProgramCell(tsvToMatrix(``), 1, 0).cssClasses
+        ).not.toContain(`ShowDropdownArrow`)
     })
 
     it("can detect errors", () => {
