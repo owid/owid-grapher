@@ -476,9 +476,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         interpolation: InterpolationProvider<K>,
         context: K
     ) {
-        const groupBoundaries = withAllRows.groupBoundaries(
-            OwidTableSlugs.entityName
-        )
+        const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
         const newValues = withAllRows
             .get(columnSlug)
             .valuesIncludingErrorValues.slice() as number[]
@@ -529,9 +527,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         let columnStore: CoreColumnStore
         if (tolerance) {
             const withAllRows = this.complete([
-                OwidTableSlugs.entityName,
+                this.entityNameSlug,
                 timeColumnOfTable.slug,
-            ]).sortBy([OwidTableSlugs.entityName, timeColumnOfTable.slug])
+            ]).sortBy([this.entityNameSlug, timeColumnOfTable.slug])
 
             const interpolationResult = this.interpolate(
                 withAllRows,
@@ -585,9 +583,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         // todo: we can probably do this once early in the pipeline so we dont have to do it again since complete and sort can be expensive.
         const withAllRows = this.complete([
-            OwidTableSlugs.entityName,
+            this.entityNameSlug,
             timeColumn.slug,
-        ]).sortBy([OwidTableSlugs.entityName, timeColumn.slug])
+        ]).sortBy([this.entityNameSlug, timeColumn.slug])
 
         const interpolationResult = this.interpolate(
             withAllRows,
