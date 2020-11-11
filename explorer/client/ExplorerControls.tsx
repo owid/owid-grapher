@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
@@ -8,9 +8,9 @@ import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
 import { GridBoolean } from "./GridGrammarConstants"
 
 export class ExplorerControlBar extends React.Component<{
-    isMobile: boolean
-    showControls: boolean
-    closeControls: () => void
+    isMobile?: boolean
+    showControls?: boolean
+    closeControls?: () => void
 }> {
     render() {
         const { isMobile, showControls, closeControls } = this.props
@@ -43,14 +43,14 @@ export class ExplorerControlBar extends React.Component<{
 
 @observer
 export class ExplorerControlPanel extends React.Component<{
-    title: string
     name: string
-    explorerSlug: string
-    value?: string
-    options: ExplorerControlOption[]
     type: ExplorerControlType
+    options?: ExplorerControlOption[]
+    title?: string
+    onChange?: (value: string) => void
+    explorerSlug?: string
+    value?: string
     comment?: string
-    onChange: (value: string) => void
     hideTitle?: boolean
 }> {
     private renderCheckboxOrRadio(
@@ -79,10 +79,15 @@ export class ExplorerControlPanel extends React.Component<{
                             ? "AvailableOption"
                             : "UnavailableOption",
                     ].join(" ")}
-                    data-track-note={`${explorerSlug}-click-${title.toLowerCase()}`}
+                    data-track-note={`${explorerSlug ?? "explorer"}-click-${(
+                        title ?? name
+                    ).toLowerCase()}`}
                 >
                     <input
-                        onChange={() => this.props.onChange(onChangeValue)}
+                        onChange={() => {
+                            if (this.props.onChange)
+                                this.props.onChange(onChangeValue)
+                        }}
                         type={isCheckbox ? "checkbox" : "radio"}
                         disabled={!option.available}
                         name={name}
@@ -107,9 +112,13 @@ export class ExplorerControlPanel extends React.Component<{
         )
     }
 
+    @computed private get options() {
+        return this.props.options ?? []
+    }
+
     private renderDropdown() {
-        const options = this.props
-            .options!.filter((option) => option.available)
+        const options = this.options
+            .filter((option) => option.available)
             .map((option) => {
                 return {
                     label: option.label,
@@ -141,7 +150,7 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     @action.bound private customOnChange(value: string) {
-        this.props.onChange!(value)
+        if (this.props.onChange) this.props.onChange(value)
     }
 
     renderColumn(
@@ -162,7 +171,7 @@ export class ExplorerControlPanel extends React.Component<{
                 </div>
                 {type === ExplorerControlType.Dropdown
                     ? this.renderDropdown()
-                    : (options ?? this.props.options).map((option, index) =>
+                    : (options ?? this.options).map((option, index) =>
                           this.renderCheckboxOrRadio(option, index)
                       )}
             </div>
@@ -170,7 +179,8 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     render() {
-        const { name, type, options, hideTitle } = this.props
+        const { name, type, hideTitle } = this.props
+        const { options } = this
         if (type === ExplorerControlType.Radio && options.length > 3)
             return splitArrayIntoGroupsOfN(
                 options,
