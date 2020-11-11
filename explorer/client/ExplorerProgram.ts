@@ -26,6 +26,7 @@ import { getRequiredChartIds } from "./ExplorerUtils"
 import {
     ExplorerProgramCell,
     ExplorerProperties,
+    ParsedCell,
     SubTableTypeDefinitions,
 } from "./ExplorerGrammar"
 import { GridBoolean } from "./GridGrammarConstants"
@@ -148,8 +149,20 @@ export class ExplorerProgram {
             .filter(isPresent)
     }
 
-    getCell(row: number, col: number) {
+    getCell(row: number, col: number): ParsedCell {
         return new ExplorerProgramCell(this.matrix, row, col)
+        // todo: implement cacheing for perf
+        // const line = this.parsedCells[row]
+        // return line ? line[col] ?? {} : {}
+    }
+
+    @computed private get parsedCells() {
+        return this.matrix.map((line, lineIndex) =>
+            line.map(
+                (cell, cellIndex) =>
+                    new ExplorerProgramCell(this.matrix, lineIndex, cellIndex)
+            )
+        )
     }
 
     @computed private get matrix() {

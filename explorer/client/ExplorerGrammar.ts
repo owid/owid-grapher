@@ -142,18 +142,25 @@ const ExplorerTypeDefinitions: {
 // Todo: figure out Matrix cell type and whether we need the double check
 const isEmpty = (value: any) => value === "" || value === undefined
 
-export class ExplorerProgramCell {
+export interface ParsedCell {
+    errorMessage?: string
+    cssClasses?: string[]
+    options?: string[]
+    comment?: string
+}
+
+export class ExplorerProgramCell implements ParsedCell {
     private row: CellCoordinate
     private column: CellCoordinate
     private matrix: MatrixProgram
     constructor(
-        program: MatrixProgram,
+        matrix: MatrixProgram,
         row: CellCoordinate,
         column: CellCoordinate
     ) {
         this.row = row
         this.column = column
-        this.matrix = program
+        this.matrix = matrix
     }
 
     private get value() {
@@ -216,7 +223,7 @@ export class ExplorerProgramCell {
     }
 
     // If true show a +
-    get isFirstCellOnFrontierRow() {
+    private get isFirstCellOnFrontierRow() {
         const { row, column } = this
         const numRows = this.matrix.length
         if (column) return false // Only first column should have a +
@@ -238,6 +245,15 @@ export class ExplorerProgramCell {
 
     private get implementationLinks(): CellLink[] {
         return []
+    }
+
+    // If true show a +
+    // todo: not actually getting called by HOT.
+    private get isSubTableFrontierCell() {
+        const { subTableInfo, line, value, column } = this
+        if (!line || !isEmpty(value) || !subTableInfo) return false
+        if (column === 1) return true
+        return !isEmpty(line[column - 1]) && isEmpty(line[column + 1])
     }
 
     get errorMessage() {
@@ -275,15 +291,6 @@ export class ExplorerProgramCell {
             }`
 
         return [cellTypeDefinition.description].join("\n")
-    }
-
-    // If true show a +
-    // todo: not actually getting called by HOT.
-    private get isSubTableFrontierCell() {
-        const { subTableInfo, line, value, column } = this
-        if (!line || !isEmpty(value) || !subTableInfo) return false
-        if (column === 1) return true
-        return !isEmpty(line[column - 1]) && isEmpty(line[column + 1])
     }
 
     get cssClasses() {

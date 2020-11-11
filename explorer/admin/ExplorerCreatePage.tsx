@@ -133,7 +133,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             )
 
             const cellProperties: Partial<Handsontable.CellProperties> = {}
-            cellProperties.className = cssClasses.length
+            cellProperties.className = cssClasses?.length
                 ? cssClasses.join(" ")
                 : undefined
             cellProperties.comment = comment ? { value: comment } : undefined
