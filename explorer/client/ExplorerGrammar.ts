@@ -33,7 +33,9 @@ const SwitcherKeywordMap = {
     type: {
         ...StringCellTypeDefinition,
         keyword: "type",
-        description: "The type of chart to show.",
+        description: `The type of chart to show. Options are ${Object.values(
+            ChartTypeName
+        ).join(", ")}`,
         options: Object.values(ChartTypeName),
     },
     hasMapTab: {
