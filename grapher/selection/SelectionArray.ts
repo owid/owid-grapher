@@ -36,7 +36,7 @@ export class SelectionArray {
         return new Set(this.availableEntityNames)
     }
 
-    private mapBy(col: string, val: string) {
+    private mapBy(col: keyof Entity, val: keyof Entity) {
         return mapBy(this.availableEntities, col, val)
     }
 

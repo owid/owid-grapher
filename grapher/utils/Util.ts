@@ -1003,7 +1003,7 @@ export function sortNumeric<T>(
 export const isPresent = <T>(t: T | undefined | null | void): t is T =>
     t !== undefined && t !== null
 
-export const mapBy = (arr: any[], key: string, value: string) => {
+export const mapBy = <T>(arr: T[], key: keyof T, value: keyof T) => {
     const map = new Map()
     arr.forEach((val) => {
         map.set(val[key], val[value])
