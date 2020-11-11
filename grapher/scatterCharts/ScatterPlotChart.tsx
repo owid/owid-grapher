@@ -786,22 +786,25 @@ export class ScatterPlotChart
     }
 
     private removePointsOutsidePlane(points: SeriesPoint[]): SeriesPoint[] {
-        // The exclusion of points happens as a last step in order to avoid artefacts due to
-        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
-        // domains before creating the points, the tolerance may lead to different X-Y
-        // values being joined.
-        // -@danielgavrilov, 2020-04-29
         const { yAxisConfig, xAxisConfig } = this
-        return points.filter((point) => {
-            return (
-                !xAxisConfig.shouldRemovePoint(point.x) &&
-                !yAxisConfig.shouldRemovePoint(point.y)
-            )
-        })
+        if (
+            yAxisConfig.removePointsOutsideDomain ||
+            xAxisConfig.removePointsOutsideDomain
+        ) {
+            return points.filter((point) => {
+                return (
+                    !xAxisConfig.shouldRemovePoint(point.x) &&
+                    !yAxisConfig.shouldRemovePoint(point.y)
+                )
+            })
+        }
+        return points
     }
 
     @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
         const { entityNameSlug, timeColumn } = this.transformedTable
+        // We are running this filter first because it only depends on author-specified config, not
+        // on any user interaction.
         return this.removePointsOutsidePlane(
             this.transformedTable.rows.map((row) => {
                 return {
