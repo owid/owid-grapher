@@ -240,7 +240,7 @@ describe("basic scatterplot", () => {
                     {
                         color: "Europe",
                         entityName: "UK",
-                        label: "1",
+                        label: "2000",
                         size: 100,
                         time: {
                             x: 2000,
@@ -262,7 +262,7 @@ describe("basic scatterplot", () => {
                     {
                         color: undefined,
                         entityName: "USA",
-                        label: "1",
+                        label: "2000",
                         size: 0,
                         time: {
                             x: 2000,
