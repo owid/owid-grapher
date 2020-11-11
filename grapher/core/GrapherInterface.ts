@@ -21,6 +21,7 @@ import { omit } from "grapher/utils/Util"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { QueryParams } from "utils/client/url"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -92,7 +93,7 @@ export interface LegacyGrapherInterface extends GrapherInterface {
     data: any
 }
 
-export interface GrapherQueryParams {
+export interface GrapherQueryParams extends QueryParams {
     tab?: string
     overlay?: string
     stackMode?: string

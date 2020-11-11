@@ -320,7 +320,7 @@ export class Grapher
 
         this.populateFromQueryParams(
             legacyQueryParamsToCurrentQueryParams(
-                strToQueryParams(props.queryStr ?? "")
+                strToQueryParams(props.queryStr)
             )
         )
 
@@ -1932,9 +1932,7 @@ export class Grapher
                 originalSelectedEntityIds.length ||
             entityIdsThatTheUserDeselected.length
         )
-            return EntityUrlBuilder.entityNamesToQueryParam(
-                this.selection.selectedEntityNames
-            )
+            return this.selection.asParam
 
         return undefined
     }
@@ -1945,9 +1943,7 @@ export class Grapher
     @observable dropUnchangedUrlParams = true
 
     @computed get params() {
-        return (this.dropUnchangedUrlParams
-            ? this.changedParams
-            : this.allParams) as QueryParams
+        return this.dropUnchangedUrlParams ? this.changedParams : this.allParams
     }
 
     // If you want to compare current state against the published grapher.
@@ -1969,11 +1965,8 @@ export class Grapher
     }
 
     @computed get queryStr() {
-        return queryParamsToStr(this.params) + this.baseQueryString
+        return queryParamsToStr(this.params)
     }
-
-    // If you need to provide external query string params, like from an Explorer
-    @observable baseQueryString = ""
 
     @computed get baseUrl() {
         return this.isPublished

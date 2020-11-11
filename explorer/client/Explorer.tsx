@@ -16,7 +16,7 @@ import {
     SerializedExplorerProgram,
     TableDef,
 } from "./ExplorerProgram"
-import { QueryParams, strToQueryParams } from "utils/client/url"
+import { strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
@@ -57,6 +57,11 @@ export interface ExplorerProps extends SerializedExplorerProgram {
     globalEntitySelection?: GlobalEntitySelection // todo: use this
 }
 
+interface ExplorerQueryParams extends GrapherQueryParams {
+    pickerSort?: SortOrder
+    pickerMetric?: ColumnSlug
+}
+
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
@@ -81,22 +86,21 @@ export class Explorer
         const program =
             this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
         program.decisionMatrix.setValuesFromQueryString(
-            this.props.queryString ?? program.defaultView
+            this.props.queryString || program.defaultView
         )
         return program
     }
 
-    @observable entityPickerMetric?: ColumnSlug =
-        strToQueryParams(this.props.queryString ?? "").pickerMetric ?? undefined
-    @observable entityPickerSort?: SortOrder =
-        (strToQueryParams(this.props.queryString ?? "")
-            .pickerSort as SortOrder) ?? undefined
+    private initialQueryParams = strToQueryParams(
+        this.props.queryString || this.explorerProgram.defaultView
+    ) as ExplorerQueryParams
+
+    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
+    @observable entityPickerSort? = this.initialQueryParams.pickerSort
 
     selectionArray = new SelectionArray(
         EntityUrlBuilder.queryParamToEntityNames(
-            (strToQueryParams(
-                this.props.queryString ?? ""
-            ) as GrapherQueryParams).selection ?? ""
+            this.initialQueryParams.selection
         ),
         undefined,
         this.explorerProgram.entityType
@@ -167,9 +171,7 @@ export class Explorer
 
         if (hasChartId && grapher.id === chartId) return
 
-        const queryStr = grapher.id
-            ? grapher.queryStr
-            : this.explorerProgram.defaultView
+        const queryStr = grapher.id ? grapher.params : this.initialQueryParams
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
@@ -202,7 +204,7 @@ export class Explorer
         grapher.reset()
         grapher.updateFromObject(config)
         grapher.inputTable = this.getTable(table)
-        grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
+        grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
         if (!hasChartId) grapher.id = 0
     }
@@ -222,9 +224,10 @@ export class Explorer
 
     @computed get params() {
         if (!this.grapher) return {}
-        const obj: QueryParams = {
+        const obj: ExplorerQueryParams = {
             ...this.grapher.params,
             ...this.explorerProgram.decisionMatrix.params,
+            selection: this.selectionArray.asParam,
         }
         return obj
     }

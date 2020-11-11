@@ -351,7 +351,7 @@ type ChoiceName = string
 type ChoiceValue = string
 
 // A "query" here is just a map of choice names and values. Maps nicely to a query string.
-interface DecisionMatrixQuery {
+interface DecisionMatrixQueryParams extends QueryParams {
     [choiceName: string]: ChoiceValue
 }
 
@@ -363,7 +363,7 @@ interface ChoiceMap {
 // allow the user to navigate amongst charts.
 export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private table: CoreTable
-    @observable private _settings: DecisionMatrixQuery = {}
+    @observable private _settings: DecisionMatrixQueryParams = {}
     constructor(delimited: string, shortHash = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
@@ -376,7 +376,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
 
     allOptionsAsQueryStrings() {
         return this.table.rows.map((row) => {
-            const params: QueryParams = {}
+            const params: DecisionMatrixQueryParams = {}
             this.choiceNames.forEach((name) => {
                 params[name] = row[name]
             })
@@ -387,11 +387,11 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
     private shortHash: string
 
-    toObject(): DecisionMatrixQuery {
+    toObject(): DecisionMatrixQueryParams {
         return { ...this._settings }
     }
 
-    @computed get params(): QueryParams {
+    @computed get params(): DecisionMatrixQueryParams {
         return { ...this.toObject(), shortHash: this.shortHash }
     }
 
@@ -412,7 +412,9 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     @action.bound setValuesFromQueryString(queryString = "") {
-        const queryParams = strToQueryParams(decodeURIComponent(queryString))
+        const queryParams = strToQueryParams(
+            decodeURIComponent(queryString)
+        ) as DecisionMatrixQueryParams
         this.choiceNames.forEach((choiceName) => {
             if (queryParams[choiceName] === undefined)
                 this.setValue(
@@ -447,7 +449,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     isOptionAvailable(choiceName: ChoiceName, option: ChoiceValue) {
-        const query: DecisionMatrixQuery = {}
+        const query: DecisionMatrixQueryParams = {}
         this.choiceNames
             .slice(0, this.choiceNames.indexOf(choiceName))
             .forEach((name) => {
@@ -457,7 +459,10 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         return this.rowsWith(query, choiceName).length > 0
     }
 
-    private rowsWith(query: DecisionMatrixQuery, choiceName?: ChoiceName) {
+    private rowsWith(
+        query: DecisionMatrixQueryParams,
+        choiceName?: ChoiceName
+    ) {
         // We allow other options to be blank.
         const modifiedQuery: any = {}
         Object.keys(trimObject(query)).forEach((queryColumn) => {

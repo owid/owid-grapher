@@ -49,9 +49,7 @@ class ProminentLink extends React.Component<{
             !isEmpty(originalEntityQueryParam)
 
         return entityQueryParamExists
-            ? EntityUrlBuilder.queryParamToEntityNames(
-                  originalEntityQueryParam!
-              )
+            ? EntityUrlBuilder.queryParamToEntityNames(originalEntityQueryParam)
             : []
     }
 

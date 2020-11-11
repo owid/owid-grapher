@@ -14,7 +14,7 @@ export function getWindowQueryParams(): QueryParams {
     return strToQueryParams(getWindowQueryStr())
 }
 
-export function strToQueryParams(queryStr: string): QueryParams {
+export function strToQueryParams(queryStr = ""): QueryParams {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
     const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
