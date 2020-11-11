@@ -1,18 +1,21 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, computed, autorun } from "mobx"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+} from "grapher/core/GrapherInterface"
 import {
     ExplorerControlPanel,
     ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
+import { UrlBinder } from "grapher/utils/UrlBinder"
 import {
-    UrlBinder,
-    ObservableUrl,
-    MultipleUrlBinder,
-} from "grapher/utils/UrlBinder"
-import { ExplorerProgram, TableDef } from "./ExplorerProgram"
+    ExplorerProgram,
+    SerializedExplorerProgram,
+    TableDef,
+} from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
@@ -45,10 +48,8 @@ import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { GridBoolean } from "./GridGrammarConstants"
 
-export interface ExplorerProps {
-    explorerProgramCode: string
-    slug: string
-    explorerProgram?: ExplorerProgram
+export interface ExplorerProps extends SerializedExplorerProgram {
+    explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
     chartConfigs?: GrapherInterface[]
     bindToWindow?: boolean
     queryString?: string
@@ -56,20 +57,10 @@ export interface ExplorerProps {
     globalEntitySelection?: GlobalEntitySelection // todo: use this
 }
 
-interface BootstrapProps {
-    slug: string
-    explorerProgramCode: string
-    containerNode: HTMLElement
-    isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
-    queryStr?: string
-    globalEntitySelection?: GlobalEntitySelection
-    bindToWindow?: boolean
-}
-
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements ObservableUrl, SlideShowManager, EntityPickerManager {
+    implements SlideShowManager, EntityPickerManager {
     static bootstrap(props: ExplorerProps) {
         return ReactDOM.render(
             <Explorer {...props} queryString={window.location.search} />,
@@ -77,58 +68,39 @@ export class Explorer
         )
     }
 
-    static async createExplorerAndRenderToDom(props: BootstrapProps) {
-        return ReactDOM.render(
-            <Explorer
-                explorerProgramCode={props.explorerProgramCode}
-                slug={props.slug}
-                queryString={props.queryStr}
-                isEmbed={props.isEmbed}
-                globalEntitySelection={props.globalEntitySelection}
-                bindToWindow={props.bindToWindow}
-            />,
-            props.containerNode
-        )
+    static async createExplorerAndRenderToDom(
+        props: ExplorerProps,
+        containerNode: HTMLElement
+    ) {
+        return ReactDOM.render(<Explorer {...props} />, containerNode)
     }
 
     private urlBinding?: UrlBinder
 
     @computed private get explorerProgram() {
-        return (
-            this.props.explorerProgram ??
-            new ExplorerProgram(
-                this.props.slug,
-                this.props.explorerProgramCode,
-                this.props.queryString
-            )
+        const program =
+            this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
+        program.decisionMatrix.setValuesFromQueryString(
+            this.props.queryString ?? program.defaultView
         )
+        return program
     }
 
-    @observable hideControls = false
     @observable entityPickerMetric?: ColumnSlug =
-        strToQueryParams(this.explorerProgram.queryString ?? "").pickerMetric ??
-        undefined
+        strToQueryParams(this.props.queryString ?? "").pickerMetric ?? undefined
     @observable entityPickerSort?: SortOrder =
-        (strToQueryParams(this.explorerProgram.queryString ?? "")
+        (strToQueryParams(this.props.queryString ?? "")
             .pickerSort as SortOrder) ?? undefined
 
     selectionArray = new SelectionArray(
-        EntityUrlBuilder.queryParamToEntities(
-            strToQueryParams(this.explorerProgram.queryString ?? "").country ??
-                ""
+        EntityUrlBuilder.queryParamToEntityNames(
+            (strToQueryParams(
+                this.props.queryString ?? ""
+            ) as GrapherQueryParams).selection ?? ""
         ),
         undefined,
         this.explorerProgram.entityType
     )
-
-    @computed get params(): QueryParams {
-        const params: any = {}
-        params.hideControls = this.hideControls ? true : undefined
-        params.country = EntityUrlBuilder.entitiesToQueryParam(
-            this.selectionArray.selectedEntityNames
-        )
-        return params as QueryParams
-    }
 
     @computed get chartConfigs() {
         const arr = this.props.chartConfigs || []
@@ -179,6 +151,7 @@ export class Explorer
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
+        this.bindToWindow()
     }
 
     componentWillUnmount() {
@@ -196,7 +169,7 @@ export class Explorer
 
         const queryStr = grapher.id
             ? grapher.queryStr
-            : this.explorerProgram.queryString
+            : this.explorerProgram.defaultView
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
@@ -213,7 +186,7 @@ export class Explorer
         const config: GrapherProgrammaticInterface = {
             ...chartConfig,
             ...trimmedRow,
-            hideEntityControls: !this.hideControls && !this.props.isEmbed,
+            hideEntityControls: this.showExplorerControls,
             dropUnchangedUrlParams: false,
             manuallyProvideData: table ? true : false,
         }
@@ -232,7 +205,6 @@ export class Explorer
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         if (!hasChartId) grapher.id = 0
-        this.bindToWindow()
     }
 
     @action.bound setSlide(queryString: string) {
@@ -242,17 +214,23 @@ export class Explorer
     }
 
     bindToWindow() {
-        if (!this.props.bindToWindow || !this.grapher) return
+        if (!this.props.bindToWindow) return
 
-        if (this.urlBinding) this.urlBinding.unbindFromWindow()
-        else this.urlBinding = new UrlBinder()
-        this.urlBinding.bindToWindow(
-            new MultipleUrlBinder([
-                this.grapher,
-                this.explorerProgram.decisionMatrix,
-                this,
-            ])
-        )
+        this.urlBinding = new UrlBinder()
+        this.urlBinding.bindToWindow(this)
+    }
+
+    @computed get params() {
+        if (!this.grapher) return {}
+        const obj: QueryParams = {
+            ...this.grapher.params,
+            ...this.explorerProgram.decisionMatrix.params,
+        }
+        return obj
+    }
+
+    @computed get debounceMode() {
+        return this.grapher?.debounceMode
     }
 
     private get panels() {
@@ -304,7 +282,9 @@ export class Explorer
     @observable private isMobile = this._isMobile()
 
     @computed private get showExplorerControls() {
-        return !this.hideControls || !this.props.isEmbed
+        if (this.explorerProgram.hideControls) return false
+
+        return this.props.isEmbed ? false : true
     }
 
     @observable private grapherContainerRef: React.RefObject<

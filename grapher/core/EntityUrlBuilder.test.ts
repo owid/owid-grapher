@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { EntityUrlBuilder, ENTITY_V2_DELIMITER } from "./EntityUrlBuilder"
 
 const encodeTests = [
     { entities: ["USA", "GB"], queryString: "USA~GB" },
@@ -43,13 +43,13 @@ const encodeTests = [
 encodeTests.forEach((testCase) => {
     it(`correctly encodes url strings`, () => {
         expect(
-            EntityUrlBuilder.entitiesToQueryParam(testCase.entities)
+            EntityUrlBuilder.entityNamesToQueryParam(testCase.entities)
         ).toEqual(testCase.queryString)
     })
 
     it(`correctly decodes url strings`, () => {
         expect(
-            EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+            EntityUrlBuilder.queryParamToEntityNames(testCase.queryString)
         ).toEqual(testCase.entities)
     })
 })
@@ -67,7 +67,7 @@ describe("legacyLinks", () => {
     legacyLinks.forEach((testCase) => {
         it(`correctly decodes legacy url strings`, () => {
             expect(
-                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+                EntityUrlBuilder.queryParamToEntityNames(testCase.queryString)
             ).toEqual(testCase.entities)
         })
     })
@@ -84,27 +84,28 @@ describe("facebook", () => {
     facebookLinks.forEach((testCase) => {
         it(`correctly decodes Facebook altered links`, () => {
             expect(
-                EntityUrlBuilder.queryParamToEntities(testCase.queryString)
+                EntityUrlBuilder.queryParamToEntityNames(testCase.queryString)
             ).toEqual(testCase.entities)
         })
     })
 })
 
 describe("it can handle legacy urls with dimension in selection key", () => {
-    const map = {
-        USA: "United States",
-        GB: "Great Britain",
-        "1980-1989": "The eighties",
-    }
-    const {
-        foundEntities,
-        notFoundEntities,
-    } = EntityUrlBuilder.scanUrlForEntityNames(
-        ["USA", "GB-0", "1980-1989", "NotFound", "Nope-0"],
-        new Map(Object.entries(map)),
-        new Set(Object.values(map))
+    const results = EntityUrlBuilder.migrateLegacyCountryParam(
+        ["United States", "USA", "GBR-0", "1980-1989", "NotFound"].join(
+            ENTITY_V2_DELIMITER
+        )
     )
 
-    expect(notFoundEntities).toEqual(["NotFound", "Nope-0"])
-    expect(foundEntities).toEqual(Object.values(map))
+    expect(results).toEqual(
+        [
+            "United States",
+            "United States",
+            "United Kingdom",
+            "GBR-0",
+            "1980",
+            "1980-1989",
+            "NotFound",
+        ].join(ENTITY_V2_DELIMITER)
+    )
 })

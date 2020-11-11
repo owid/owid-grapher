@@ -40,10 +40,6 @@ export class SelectionArray {
         return mapBy(this.availableEntities, col, val)
     }
 
-    @computed get entityNameToCodeMap() {
-        return this.mapBy(OwidTableSlugs.entityName, OwidTableSlugs.entityCode)
-    }
-
     @computed get entityNameToIdMap() {
         return this.mapBy(OwidTableSlugs.entityName, OwidTableSlugs.entityId)
     }
@@ -70,18 +66,6 @@ export class SelectionArray {
 
     @computed get selectedSet() {
         return new Set<EntityName>(this.selectedEntityNames)
-    }
-
-    @computed get selectedEntityCodes(): EntityCode[] {
-        const map = this.entityNameToCodeMap
-        return this.selectedEntityNames
-            .map((name) => map.get(name))
-            .filter(isPresent)
-    }
-
-    @computed get selectedEntityCodesOrNames(): (EntityCode | EntityName)[] {
-        const map = this.entityNameToCodeMap
-        return this.selectedEntityNames.map((name) => map.get(name) ?? name)
     }
 
     @computed get allSelectedEntityIds(): EntityId[] {

@@ -2,7 +2,10 @@ import { observable, reaction, IReactionDisposer, computed } from "mobx"
 import { Country, countries } from "utils/countries"
 import { Grapher } from "grapher/core/Grapher"
 import { excludeUndefined } from "grapher/utils/Util"
-import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
+import {
+    UrlBinder,
+    ObjectThatSerializesToQueryParams,
+} from "grapher/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
@@ -83,7 +86,7 @@ type GlobalEntitySelectionQueryParams = {
     country?: string
 }
 
-class GlobalEntitySelectionUrl implements ObservableUrl {
+class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
     globalEntitySelection: GlobalEntitySelection
 
     constructor(globalEntitySelection: GlobalEntitySelection) {
@@ -95,7 +98,7 @@ class GlobalEntitySelectionUrl implements ObservableUrl {
         const entities = this.globalEntitySelection.selectedEntities
         // Do not add 'country' param unless at least one country is selected
         if (entities.length > 0) {
-            params.country = EntityUrlBuilder.entitiesToQueryParam(
+            params.country = EntityUrlBuilder.entityNamesToQueryParam(
                 entities.map((entity) => entity.code)
             )
         }
@@ -113,7 +116,7 @@ class GlobalEntitySelectionUrl implements ObservableUrl {
 
     private populateFromQueryParams(params: QueryParams) {
         if (params.country) {
-            const countryCodes = EntityUrlBuilder.queryParamToEntities(
+            const countryCodes = EntityUrlBuilder.queryParamToEntityNames(
                 params.country
             )
             this.globalEntitySelection.mode =

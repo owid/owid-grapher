@@ -18,3 +18,5 @@ export interface ExplorerControlOption {
 }
 
 export const ExplorerContainerId = "explorerContainer"
+
+export const ExplorersRoute = "explorers.json"

@@ -20,6 +20,7 @@ import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
 import { omit } from "grapher/utils/Util"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -101,13 +102,14 @@ export interface GrapherQueryParams {
     yScale?: string
     time?: string
     region?: string
-    country?: string
     shown?: string
     endpointsOnly?: string
+    selection?: string
 }
 
 export interface LegacyGrapherQueryParams extends GrapherQueryParams {
     year?: string
+    country?: string // deprecated
 }
 
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
@@ -167,7 +169,11 @@ export const grapherKeysToSerialize = [
 export const legacyQueryParamsToCurrentQueryParams = (
     params: LegacyGrapherQueryParams
 ) => {
-    const obj = omit(params, "year") as GrapherQueryParams
+    const obj = omit(params, "year", "country") as GrapherQueryParams
     if (params.year !== undefined) obj.time = obj.time ?? params.year
+    if (params.country !== undefined)
+        obj.selection = EntityUrlBuilder.migrateLegacyCountryParam(
+            params.country
+        )
     return obj
 }

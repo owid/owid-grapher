@@ -33,7 +33,9 @@ const SwitcherKeywordMap = {
     type: {
         ...StringCellTypeDefinition,
         keyword: "type",
-        description: "The type of chart to show.",
+        description: `The type of chart to show. Options are ${Object.values(
+            ChartTypeName
+        ).join(", ")}`,
         options: Object.values(ChartTypeName),
     },
     hasMapTab: {
@@ -185,6 +187,11 @@ export const ExplorerKeywords = {
         keyword: "defaultView",
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
+    },
+    hideControls: {
+        ...BooleanCellTypeDefinition,
+        keyword: "hideControls",
+        description: "Whether to hide the controls. Default is false.",
     },
     subNavId: {
         options: Object.values(SubNavId),

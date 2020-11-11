@@ -216,7 +216,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         <Explorer
                             chartConfigs={Object.values(this.chartConfigs)}
                             explorerProgram={program}
-                            explorerProgramCode={""}
+                            program={""}
                             slug={""}
                         />
                     </div>

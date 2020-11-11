@@ -117,7 +117,7 @@ it("can generate a url with country selection even if there is no entity code", 
     const grapher = new Grapher(config)
     expect(grapher.queryStr).toBe("")
     grapher.selection.selectAll()
-    expect(grapher.queryStr).toContain("AFG")
+    expect(grapher.queryStr).toContain("Afghanistan")
 
     const config2 = {
         ...legacyConfig,
