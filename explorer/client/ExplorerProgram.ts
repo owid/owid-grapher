@@ -23,13 +23,9 @@ import {
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
-import {
-    ExplorerProgramCell,
-    ExplorerProperties,
-    ParsedCell,
-    SubTableTypeDefinitions,
-} from "./ExplorerGrammar"
-import { GridBoolean } from "./GridGrammarConstants"
+import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
+import { GridCell } from "./GridCell"
+import { GridBoolean, ParsedCell } from "./GridGrammarConstants"
 
 const CHART_ID_SYMBOL = "chartId"
 
@@ -150,7 +146,7 @@ export class ExplorerProgram {
     }
 
     getCell(row: number, col: number): ParsedCell {
-        return new ExplorerProgramCell(this.matrix, row, col)
+        return new GridCell(this.matrix, row, col, ExplorerGrammar)
         // todo: implement cacheing for perf
         // const line = this.parsedCells[row]
         // return line ? line[col] ?? {} : {}
@@ -160,7 +156,12 @@ export class ExplorerProgram {
         return this.matrix.map((line, lineIndex) =>
             line.map(
                 (cell, cellIndex) =>
-                    new ExplorerProgramCell(this.matrix, lineIndex, cellIndex)
+                    new GridCell(
+                        this.matrix,
+                        lineIndex,
+                        cellIndex,
+                        ExplorerGrammar
+                    )
             )
         )
     }
@@ -225,71 +226,69 @@ export class ExplorerProgram {
     }
 
     get title() {
-        return this.getLineValue(ExplorerProperties.title.keyword)
+        return this.getLineValue(ExplorerKeywords.title.keyword)
     }
 
     get subNavId(): SubNavId | undefined {
-        return this.getLineValue(
-            ExplorerProperties.subNavId.keyword
-        ) as SubNavId
+        return this.getLineValue(ExplorerKeywords.subNavId.keyword) as SubNavId
     }
 
     get googleSheet() {
-        return this.getLineValue(ExplorerProperties.googleSheet.keyword)
+        return this.getLineValue(ExplorerKeywords.googleSheet.keyword)
     }
 
     get hideAlertBanner() {
         return (
-            this.getLineValue(ExplorerProperties.hideAlertBanner.keyword) ===
+            this.getLineValue(ExplorerKeywords.hideAlertBanner.keyword) ===
             GridBoolean.true
         )
     }
 
     get subNavCurrentId() {
-        return this.getLineValue(ExplorerProperties.subNavCurrentId.keyword)
+        return this.getLineValue(ExplorerKeywords.subNavCurrentId.keyword)
     }
 
     get thumbnail() {
-        return this.getLineValue(ExplorerProperties.thumbnail.keyword)
+        return this.getLineValue(ExplorerKeywords.thumbnail.keyword)
     }
 
     get subtitle() {
-        return this.getLineValue(ExplorerProperties.subtitle.keyword)
+        return this.getLineValue(ExplorerKeywords.subtitle.keyword)
     }
 
     get entityType() {
-        return this.getLineValue(ExplorerProperties.entityType.keyword)
+        return this.getLineValue(ExplorerKeywords.entityType.keyword)
     }
 
     get defaultView() {
         // Todo: to help authors, at least do a console log if defaultView is malformed (has invalid param names, for example).
-        return this.getLineValue(ExplorerProperties.defaultView.keyword)
+        return this.getLineValue(ExplorerKeywords.defaultView.keyword)
     }
 
     get isPublished() {
         return (
-            this.getLineValue(ExplorerProperties.isPublished.keyword) ===
+            this.getLineValue(ExplorerKeywords.isPublished.keyword) ===
             GridBoolean.true
         )
     }
 
     set isPublished(value: boolean) {
         this.setLineValue(
-            ExplorerProperties.isPublished.keyword,
+            ExplorerKeywords.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
     }
 
     get wpBlockId() {
         const blockIdString = this.getLineValue(
-            ExplorerProperties.wpBlockId.keyword
+            ExplorerKeywords.wpBlockId.keyword
         )
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(
-            SubTableTypeDefinitions.switcher.keyword
+            ExplorerKeywords.switcher.keyword
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
@@ -297,13 +296,13 @@ export class ExplorerProgram {
 
     getTableDef(tableSlug: string): TableDef | undefined {
         const matchingTableIndex = this.getKeywordIndexes([
-            SubTableTypeDefinitions.table.keyword,
+            ExplorerKeywords.table.keyword,
             tableSlug,
         ])[0]
         if (matchingTableIndex === undefined) return undefined
 
         const matchingColumnsIndex = this.getKeywordIndexes([
-            SubTableTypeDefinitions.columns.keyword,
+            ExplorerKeywords.columns.keyword,
             tableSlug,
         ])[0]
         return {

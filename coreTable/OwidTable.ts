@@ -9,7 +9,6 @@ import {
     uniq,
     sortNumeric,
     isPresent,
-    sortedIndexBy,
     last,
     keyBy,
     groupBy,
@@ -38,10 +37,6 @@ import {
     makeAnnotationsSlug,
 } from "./LegacyToOwidTable"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
-import {
-    AlignedTextTableOptions,
-    toAlignedTextTable,
-} from "./CoreTablePrinters"
 import { TimeBound } from "grapher/utils/TimeBounds"
 import {
     getOriginalTimeColumnSlug,
@@ -56,7 +51,6 @@ import {
     InterpolationProvider,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
-import { OwidSourceProps } from "./OwidSource"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -429,18 +423,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             ])
             .sortBy([this.entityNameSlug])
             .toCsvWithColumnNames()
-    }
-
-    // Pretty print all column sources (currently just used in debugging)
-    sourcesTable(options: AlignedTextTableOptions) {
-        const header = Object.values(OwidSourceProps)
-        return toAlignedTextTable(
-            [`slug`, ...header],
-            this.defs.map((def) => {
-                return { ...def.source, slug: def.slug }
-            }),
-            options
-        )
     }
 
     @imemo get entityNameColorIndex() {

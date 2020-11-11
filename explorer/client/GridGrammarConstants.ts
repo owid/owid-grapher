@@ -7,14 +7,25 @@ export enum GridBoolean {
 
 export type CellCoordinate = number // An integer >= 0
 
+export type KeywordMap = { [keywordSlug: string]: CellTypeDefinition }
+
 export interface CellTypeDefinition {
     options?: string[]
     cssClass: string
     description: string
-    headerKeywordOptions?: string[]
+    keywordMap?: KeywordMap
+    headerKeyword?: CellTypeDefinition
+    catchAllKeyword?: CellTypeDefinition
     regex?: RegExp // A validation regex a value must pass
     requirements?: string
     rest?: readonly CellTypeDefinition[] // Additional cell types as positional arguments.
+}
+
+export interface ParsedCell {
+    errorMessage?: string
+    cssClasses?: string[]
+    options?: string[]
+    comment?: string
 }
 
 export interface CellTypeDefinitionWithKeyword extends CellTypeDefinition {
@@ -35,6 +46,13 @@ export const BooleanCellTypeDefinition: CellTypeDefinition = {
 export const StringCellTypeDefinition: CellTypeDefinition = {
     cssClass: "StringCellType",
     description: "",
+}
+
+export const IntCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "IntCellType",
+    description: "",
+    regex: /^[0-9]+$/,
+    requirements: `Must be an integer`,
 }
 
 export const SubTableHeaderCellTypeDefinition: CellTypeDefinition = {
@@ -69,5 +87,28 @@ export const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
     requirements: `Can only contain the characters a-zA-Z0-9-_`,
 }
 
+export const FrontierCellClass = "ShowDropdownArrow"
+
+export const SlugsDeclarationCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SlugDeclarationType",
+    description: "Unique URL-friendly names.",
+    regex: /^[a-zA-Z0-9-_ ]+$/,
+    requirements: `Can only contain the characters a-zA-Z0-9-_ `,
+}
+
 export type MatrixLine = string[]
 export type MatrixProgram = MatrixLine[]
+
+// Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
+export const AbstractTypeDefinitions = {
+    wip: {
+        cssClass: "WipCellType",
+        description:
+            "Not a recognized statement. Treating as a work in progress.",
+    },
+    delimitedUrl: DelimitedUrlDefinition,
+    nothingGoesThere: NothingGoesThereDefinition,
+
+    subtableWord: SubTableWordCellTypeDefinition,
+    subtableHeaderWord: SubTableHeaderCellTypeDefinition,
+} as const

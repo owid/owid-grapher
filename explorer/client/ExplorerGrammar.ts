@@ -1,26 +1,158 @@
-import { imemo } from "coreTable/CoreTableUtils"
-import { isPresent } from "grapher/utils/Util"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
+import { AvailableTransforms } from "coreTable/Transforms"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import {
-    BooleanCellTypeDefinition,
-    CellCoordinate,
-    CellLink,
     CellTypeDefinition,
-    ErrorCellTypeClass,
-    MatrixLine,
-    MatrixProgram,
+    BooleanCellTypeDefinition,
     SlugDeclarationCellTypeDefinition,
     StringCellTypeDefinition,
     UrlCellTypeDefinition,
-    NothingGoesThereDefinition,
     SubTableHeaderCellTypeDefinition,
-    SubTableWordCellTypeDefinition,
     DelimitedUrlDefinition,
+    IntCellTypeDefinition,
+    SlugsDeclarationCellTypeDefinition,
 } from "./GridGrammarConstants"
 
-const FrontierCellClass = "ShowDropdownArrow"
+const SwitcherKeywordMap = {
+    chartId: {
+        ...IntCellTypeDefinition,
+        description: "ID of the Grapher to load",
+        keyword: "slug",
+    },
+    title: {
+        ...StringCellTypeDefinition,
+        keyword: "title",
+        description: "Chart title",
+    },
+    subtitle: {
+        ...StringCellTypeDefinition,
+        keyword: "subtitle",
+        description: "Chart subtitle",
+    },
+    type: {
+        ...StringCellTypeDefinition,
+        keyword: "type",
+        description: "The type of chart to show.",
+        options: Object.values(ChartTypeName),
+    },
+    hasMapTab: {
+        ...BooleanCellTypeDefinition,
+        keyword: "hasMapTab",
+        description: "Show the map tab?",
+    },
+    ySlugs: {
+        ...SlugsDeclarationCellTypeDefinition,
+        description: "ColumnSlug(s) for the yAxis",
+        keyword: "ySlugs",
+    },
+    xSlug: {
+        ...SlugDeclarationCellTypeDefinition,
+        description: "ColumnSlug for the xAxis",
+        keyword: "xSlug",
+    },
+    table: {
+        ...SlugDeclarationCellTypeDefinition,
+        description: "Slug of the table to use.",
+        keyword: "table",
+    },
+    yScaleToggle: {
+        ...BooleanCellTypeDefinition,
+        keyword: "yScaleToggle",
+        description: "Set to 'true' if the user can change the yAxis",
+    },
+} as const
 
-export const ExplorerProperties = {
+const ColumnsKeywordMap = {
+    slug: {
+        ...SlugDeclarationCellTypeDefinition,
+        keyword: "slug",
+    },
+    name: {
+        ...StringCellTypeDefinition,
+        keyword: "name",
+        description:
+            "This is the name that may appear on the y or x axis of a chart",
+    },
+    type: {
+        ...StringCellTypeDefinition,
+        keyword: "type",
+        description: `One of ${Object.keys(ColumnTypeNames).join(", ")}`,
+        options: ColumnTypeNames,
+    },
+    transform: {
+        ...StringCellTypeDefinition,
+        keyword: "transform",
+        description: `An advanced option. Available transforms are: ${AvailableTransforms.join(
+            ", "
+        )}`,
+    },
+    description: {
+        ...StringCellTypeDefinition,
+        keyword: "description",
+        description: "Describe the column",
+    },
+    unit: {
+        ...StringCellTypeDefinition,
+        keyword: "unit",
+        description: "Unit of measurement",
+    },
+    shortUnit: {
+        ...StringCellTypeDefinition,
+        keyword: "shortUnit",
+        description: "Short (axis) unit",
+    },
+    annotationsColumnSlug: {
+        ...StringCellTypeDefinition,
+        keyword: "annotationsColumnSlug",
+        description:
+            "Column that contains the annotations for this column, if any.",
+    },
+    sourceName: {
+        ...StringCellTypeDefinition,
+        keyword: "sourceName",
+        description:
+            "Source name displayed on charts using this dataset. For academic papers, the name of the source should be 'Authors (year)' e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be 'Institution, Project (year or vintage)' e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be 'Our World in Data based on Author (year)' e.g. Our World in Data based on Atkinson (2002) and Sen (2000).",
+    },
+    sourceLink: {
+        ...UrlCellTypeDefinition,
+        keyword: "sourceName",
+        description:
+            "Link to the publication from which we retrieved this data",
+    },
+    dataPublishedBy: {
+        ...StringCellTypeDefinition,
+        keyword: "dataPublishedBy",
+        description:
+            "For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.",
+    },
+    dataPublisherSource: {
+        ...StringCellTypeDefinition,
+        keyword: "dataPublisherSource",
+        description:
+            "Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should go in the dataset description.",
+    },
+    retrievedDate: {
+        ...StringCellTypeDefinition,
+        keyword: "retrievedDate",
+        description: "Date when this data was obtained by us",
+    },
+    additionalInfo: {
+        ...StringCellTypeDefinition,
+        keyword: "additionalInfo",
+        description:
+            "Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like.",
+    },
+} as const
+
+const SwitcherOptionDef = {
+    cssClass: "StringDeclarationType",
+    description: "A form input for the user.",
+    regex: /^.+ (Dropdown|Radio|Checkbox)$/,
+    requirements: `Must end with 'Dropdown', 'Radio', or 'Checkbox'`,
+}
+
+export const ExplorerKeywords = {
     isPublished: {
         ...BooleanCellTypeDefinition,
         keyword: "isPublished",
@@ -83,74 +215,28 @@ export const ExplorerProperties = {
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
-} as const
-
-const ColumnDefCellTypeDefinitions = {
-    slug: {
-        ...SlugDeclarationCellTypeDefinition,
-        keyword: "slug",
-    },
-    name: {
-        ...StringCellTypeDefinition,
-        keyword: "name",
-    },
-    type: {
-        ...StringCellTypeDefinition,
-        keyword: "type",
-    },
-    transform: {
-        ...StringCellTypeDefinition,
-        keyword: "transform",
-    },
-    description: {
-        ...StringCellTypeDefinition,
-        keyword: "description",
-    },
-    unit: {
-        ...StringCellTypeDefinition,
-        keyword: "unit",
-    },
-    shortUnit: {
-        ...StringCellTypeDefinition,
-        keyword: "shortUnit",
-    },
-    sourceName: {
-        ...StringCellTypeDefinition,
-        keyword: "sourceName",
-    },
-    sourceLink: {
-        ...UrlCellTypeDefinition,
-        keyword: "sourceName",
-    },
-    dataPublishedBy: {
-        ...StringCellTypeDefinition,
-        keyword: "dataPublishedBy",
-    },
-    dataPublisherSource: {
-        ...StringCellTypeDefinition,
-        keyword: "dataPublisherSource",
-    },
-    retrievedDate: {
-        ...StringCellTypeDefinition,
-        keyword: "retrievedDate",
-    },
-    additionalInfo: {
-        ...StringCellTypeDefinition,
-        keyword: "additionalInfo",
-    },
-} as const
-
-export const SubTableTypeDefinitions = {
     table: {
         ...SlugDeclarationCellTypeDefinition,
         keyword: "table",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
         rest: [DelimitedUrlDefinition],
+        headerKeyword: {
+            ...SlugDeclarationCellTypeDefinition,
+            cssClass: "SubTableHeaderCellType",
+            keywordMap: {},
+            catchAllKeyword: {
+                ...SlugDeclarationCellTypeDefinition,
+                description: "A column slug.",
+            },
+        },
     },
     columns: {
-        headerKeywordOptions: Object.values(CoreColumnDefKeyword),
         ...SlugDeclarationCellTypeDefinition,
+        headerKeyword: {
+            ...SubTableHeaderCellTypeDefinition,
+            keywordMap: ColumnsKeywordMap,
+        },
         keyword: "columns",
         description:
             "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
@@ -159,208 +245,16 @@ export const SubTableTypeDefinitions = {
         ...SlugDeclarationCellTypeDefinition,
         keyword: "switcher",
         description: "The decision matrix for your Explorer goes here.",
+        headerKeyword: {
+            ...SubTableHeaderCellTypeDefinition,
+            keywordMap: SwitcherKeywordMap,
+            catchAllKeyword: SwitcherOptionDef,
+        },
     },
 } as const
 
-// Abstract keywords: keywords not instantiated by actually typing the word but rather by position.
-const AbstractTypeDefinitions: {
-    [typeSlug: string]: CellTypeDefinition
-} = {
-    keyword: {
-        options: Object.keys(ExplorerProperties).concat(
-            Object.keys(SubTableTypeDefinitions)
-        ),
-        cssClass: "KeywordCellType",
-        description: "Keyword",
-    },
-    wip: {
-        cssClass: "WipCellType",
-        description:
-            "Not a recognized statement. Treating as a work in progress.",
-    },
-    delimitedUrl: DelimitedUrlDefinition,
-    nothingGoesThere: NothingGoesThereDefinition,
-
-    subtableWord: SubTableWordCellTypeDefinition,
-    subtableHeaderWord: SubTableHeaderCellTypeDefinition,
-} as const
-
-const ExplorerTypeDefinitions: {
-    [type: string]: CellTypeDefinition
-} = {
-    ...AbstractTypeDefinitions,
-    ...ExplorerProperties,
-    ...SubTableTypeDefinitions,
-} as const
-
-// Todo: figure out Matrix cell type and whether we need the double check
-const isEmpty = (value: any) => value === "" || value === undefined
-
-export interface ParsedCell {
-    errorMessage?: string
-    cssClasses?: string[]
-    options?: string[]
-    comment?: string
-}
-
-export class ExplorerProgramCell implements ParsedCell {
-    private row: CellCoordinate
-    private column: CellCoordinate
-    private matrix: MatrixProgram
-    constructor(
-        matrix: MatrixProgram,
-        row: CellCoordinate,
-        column: CellCoordinate
-    ) {
-        this.row = row
-        this.column = column
-        this.matrix = matrix
-    }
-
-    private get value() {
-        return this.line ? this.line[this.column] : undefined
-    }
-
-    private get line(): MatrixLine | undefined {
-        return this.matrix[this.row]
-    }
-
-    private get cellTerminalTypeDefinition() {
-        if (this.column === 0) return AbstractTypeDefinitions.keyword
-        const firstWordOnLine = this.line ? this.line[0] : undefined
-        const isFirstWordAKeyword =
-            firstWordOnLine &&
-            ExplorerTypeDefinitions[firstWordOnLine] !== undefined
-        if (this.column === 1 && firstWordOnLine && isFirstWordAKeyword)
-            return ExplorerTypeDefinitions[firstWordOnLine]
-
-        if (!isFirstWordAKeyword) return undefined
-
-        // It has a keyword but it is column 2+
-        const def = ExplorerTypeDefinitions[firstWordOnLine!]
-        const cellTypeDef = def.rest && def.rest[this.column - 2]
-        if (cellTypeDef) return cellTypeDef
-        return AbstractTypeDefinitions.nothingGoesThere
-    }
-
-    @imemo private get cellTypeDefinition() {
-        const def = this.cellTerminalTypeDefinition
-        if (def) return def
-
-        const subTable = this.subTableInfo
-        if (subTable) return subTable.def
-
-        return AbstractTypeDefinitions.wip
-    }
-
-    @imemo private get subTableInfo() {
-        if (this.cellTerminalTypeDefinition) return undefined
-
-        let start = this.row
-        while (start) {
-            const parentLine = this.matrix[start - 1]
-            if (!parentLine) return undefined
-            const parentKeyword = parentLine[0] as keyof typeof SubTableTypeDefinitions
-            if (parentKeyword) {
-                if (!SubTableTypeDefinitions[parentKeyword]) return undefined
-                const isHeaderRow = this.row === start && this.value
-                return {
-                    isHeaderRow,
-                    def: isHeaderRow
-                        ? AbstractTypeDefinitions.subtableHeaderWord
-                        : AbstractTypeDefinitions.subtableWord,
-                }
-            }
-            start--
-        }
-        return undefined
-    }
-
-    // If true show a +
-    private get isFirstCellOnFrontierRow() {
-        const { row, column } = this
-        const numRows = this.matrix.length
-        if (column) return false // Only first column should have a +
-        if (!isBlankLine(this.line)) return false // Only blank lines can be frontier
-        if (numRows === 1) {
-            if (row === 1) return !isBlankLine(this.matrix[0])
-            return row === 0
-        }
-        return row === numRows
-    }
-
-    private get suggestions() {
-        return []
-    }
-
-    private get definitionLinks(): CellLink[] {
-        return []
-    }
-
-    private get implementationLinks(): CellLink[] {
-        return []
-    }
-
-    // If true show a +
-    // todo: not actually getting called by HOT.
-    private get isSubTableFrontierCell() {
-        const { subTableInfo, line, value, column } = this
-        if (!line || !isEmpty(value) || !subTableInfo) return false
-        if (column === 1) return true
-        return !isEmpty(line[column - 1]) && isEmpty(line[column + 1])
-    }
-
-    get errorMessage() {
-        if (!this.line) return ""
-        const { cellTypeDefinition, value } = this
-        const { options, regex, requirements } = cellTypeDefinition
-        if (regex) {
-            if (typeof value !== "string") return ""
-            if (!regex.test(value))
-                return `Error: ${
-                    requirements
-                        ? requirements
-                        : `'${value}' did not validate against ${regex}`
-                }`
-            return ""
-        }
-
-        if (!options) return ""
-        if (value === undefined || value === "") return ""
-        return options.includes(value)
-            ? ""
-            : `Error: '${value}' is not a valid option. Valid options are ${options
-                  .map((opt) => `'${opt}'`)
-                  .join(", ")}`
-    }
-
-    get comment() {
-        const { value, errorMessage, cellTypeDefinition } = this
-        if (isEmpty(value)) return undefined
-        if (errorMessage) return errorMessage
-
-        if (cellTypeDefinition === AbstractTypeDefinitions.keyword)
-            return `${value}: ${
-                (ExplorerTypeDefinitions as any)[value!].description
-            }`
-
-        return [cellTypeDefinition.description].join("\n")
-    }
-
-    get cssClasses() {
-        const { errorMessage, cellTypeDefinition } = this
-        if (errorMessage) return [ErrorCellTypeClass]
-        const showArrow =
-            this.isFirstCellOnFrontierRow || this.isSubTableFrontierCell
-                ? FrontierCellClass
-                : undefined
-        return [cellTypeDefinition.cssClass, showArrow].filter(isPresent)
-    }
-
-    get options() {
-        return this.cellTypeDefinition.options
-    }
-}
-
-const isBlankLine = (line: string[] | undefined) =>
-    line === undefined ? true : line.join("") === ""
+export const ExplorerGrammar = ({
+    keywordMap: ExplorerKeywords,
+    cssClass: "KeywordCellType",
+    description: "Keyword",
+} as unknown) as CellTypeDefinition
