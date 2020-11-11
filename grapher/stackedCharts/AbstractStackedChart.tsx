@@ -170,13 +170,16 @@ export class AbstactStackedChart
         return axis
     }
 
-    @computed private get yColumnsInOrder() {
+    @computed private get yColumnsInSelectionOrder() {
         // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
-        return this.transformedTable.getColumns(this.yColumnSlugs).reverse()
+        const slugsInSelectionOrder = this.manager.selectedColumnSlugs?.length
+            ? this.manager.selectedColumnSlugs
+            : this.yColumnSlugs
+        return this.transformedTable.getColumns(slugsInSelectionOrder).reverse()
     }
 
     @computed private get columnsAsSeries() {
-        return this.yColumnsInOrder.map((col) => {
+        return this.yColumnsInSelectionOrder.map((col) => {
             return {
                 isProjection: col.isProjection,
                 seriesName: col.displayName,
