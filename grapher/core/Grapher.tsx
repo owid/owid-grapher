@@ -1112,6 +1112,8 @@ export class Grapher
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this
+        if (startTime === undefined || endTime === undefined) return ""
+
         const time =
             startTime === endTime
                 ? timeColumn.formatValue(startTime)
