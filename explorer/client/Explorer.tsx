@@ -1,7 +1,10 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, computed, autorun } from "mobx"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+} from "grapher/core/GrapherInterface"
 import {
     ExplorerControlPanel,
     ExplorerControlBar,
@@ -75,10 +78,12 @@ export class Explorer
     private urlBinding?: UrlBinder
 
     @computed private get explorerProgram() {
-        return (
-            this.props.explorerProgram ??
-            ExplorerProgram.fromJson(this.props, this.props.queryString)
+        const program =
+            this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
+        program.decisionMatrix.setValuesFromQueryString(
+            this.props.queryString ?? program.defaultView
         )
+        return program
     }
 
     @observable entityPickerMetric?: ColumnSlug =
@@ -88,8 +93,10 @@ export class Explorer
             .pickerSort as SortOrder) ?? undefined
 
     selectionArray = new SelectionArray(
-        EntityUrlBuilder.queryParamToEntities(
-            strToQueryParams(this.props.queryString ?? "").country ?? ""
+        EntityUrlBuilder.queryParamToEntityNames(
+            (strToQueryParams(
+                this.props.queryString ?? ""
+            ) as GrapherQueryParams).selection ?? ""
         ),
         undefined,
         this.explorerProgram.entityType
@@ -162,7 +169,7 @@ export class Explorer
 
         const queryStr = grapher.id
             ? grapher.queryStr
-            : this.explorerProgram.queryString
+            : this.explorerProgram.defaultView
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
@@ -218,9 +225,6 @@ export class Explorer
         const obj: QueryParams = {
             ...this.grapher.params,
             ...this.explorerProgram.decisionMatrix.params,
-            country: EntityUrlBuilder.entitiesToQueryParam(
-                this.selectionArray.selectedEntityCodesOrNames
-            ), // for now just manage country here
         }
         return obj
     }

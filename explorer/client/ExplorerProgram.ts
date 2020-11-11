@@ -65,19 +65,15 @@ export class ExplorerProgram {
     constructor(
         slug: string,
         tsv: string,
-        queryString = "",
         lastModifiedTime?: number,
         shortHash?: string
     ) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
-        queryString = (queryString ? queryString : this.defaultView) ?? ""
         this.decisionMatrix = new DecisionMatrix(
-            this.decisionMatrixCode || "",
-            queryString,
+            this.decisionMatrixCode ?? "",
             shortHash
         )
-        this.queryString = queryString
         this.lastModifiedTime = lastModifiedTime
         this.shortHash = shortHash
     }
@@ -85,7 +81,6 @@ export class ExplorerProgram {
     shortHash?: string
     lastModifiedTime?: number
     slug: string
-    queryString: string
     decisionMatrix: DecisionMatrix
 
     toJson(): SerializedExplorerProgram {
@@ -101,11 +96,10 @@ export class ExplorerProgram {
         return this.slug === DefaultNewExplorerSlug
     }
 
-    static fromJson(json: SerializedExplorerProgram, queryString?: string) {
+    static fromJson(json: SerializedExplorerProgram) {
         return new ExplorerProgram(
             json.slug,
             json.program,
-            queryString,
             json.lastModifiedTime,
             json.shortHash
         )
@@ -370,14 +364,14 @@ interface ChoiceMap {
 export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private table: CoreTable
     @observable private _settings: DecisionMatrixQuery = {}
-    constructor(delimited: string, queryString = "", shortHash = "") {
+    constructor(delimited: string, shortHash = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
             { slug: CHART_ID_SYMBOL, type: ColumnTypeNames.Integer },
         ])
-        this.setValuesFromQueryString(queryString)
         this.shortHash = shortHash
+        this.setValuesFromQueryString() // Initialize options
     }
 
     allOptionsAsQueryStrings() {
@@ -417,7 +411,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         else this._settings[choiceName] = value
     }
 
-    @action.bound setValuesFromQueryString(queryString: string) {
+    @action.bound setValuesFromQueryString(queryString = "") {
         const queryParams = strToQueryParams(decodeURIComponent(queryString))
         this.choiceNames.forEach((choiceName) => {
             if (queryParams[choiceName] === undefined)
@@ -427,6 +421,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
                 )
             else this.setValue(choiceName, queryParams[choiceName]!)
         })
+        return this
     }
 
     @computed private get choiceNames(): ChoiceName[] {

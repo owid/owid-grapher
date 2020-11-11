@@ -448,15 +448,11 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
-        if (params.country) {
-            // Selected countries -- we can't actually look these up until we have the data
-            this.selectedEntitiesInQueryParam = EntityUrlBuilder.queryParamToEntities(
-                params.country
+        if (params.selection)
+            this.selection.setSelectedEntities(
+                EntityUrlBuilder.queryParamToEntityNames(params.selection)
             )
-        }
     }
-
-    @observable private selectedEntitiesInQueryParam: string[] = []
 
     @action.bound private setTimeFromTimeQueryParam(time: string) {
         this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
@@ -649,9 +645,9 @@ export class Grapher
 
         if (this.props.selectionArray) {
             // Selection is managed externally, do nothing.
-        } else if (this.selectedEntitiesInQueryParam.length)
-            this._applySelectionFromQueryParams()
-        else this.applyOriginalSelectionAsAuthored()
+        } else if (this.selection.hasSelection) {
+            // User has changed the selection, use theris
+        } else this.applyOriginalSelectionAsAuthored()
     }
 
     @action.bound appendNewEntitySelectionOptions() {
@@ -661,21 +657,6 @@ export class Grapher
             (entity) => !currentEntities.has(entity.entityName)
         )
         selection.addAvailableEntityNames(missingEntities)
-    }
-
-    @action.bound private _applySelectionFromQueryParams() {
-        const {
-            notFoundEntities,
-            foundEntities,
-        } = EntityUrlBuilder.scanUrlForEntityNames(
-            this.selectedEntitiesInQueryParam,
-            this.inputTable.entityCodeToNameMap,
-            this.inputTable.availableEntityNameSet
-        )
-
-        this.selection.setSelectedEntities(foundEntities)
-        if (notFoundEntities.length)
-            this.analytics.logEntitiesNotFoundError(notFoundEntities)
     }
 
     @action.bound private applyOriginalSelectionAsAuthored() {
@@ -1928,9 +1909,34 @@ export class Grapher
         params.minPopulationFilter = this.minPopulationFilter?.toString()
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
-        params.country = this.countryParam
         params.region = this.map.projection
+        params.selection = this.selectedEntitiesParamIfDifferentThanAuthors
         return params
+    }
+
+    // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.
+    @computed private get selectedEntitiesParamIfDifferentThanAuthors() {
+        const authoredConfig = this.legacyConfigAsAuthored
+
+        const originalSelectedEntityIds =
+            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
+
+        const entityIdsThatTheUserDeselected = difference(
+            currentSelectedEntityIds,
+            originalSelectedEntityIds
+        )
+
+        if (
+            currentSelectedEntityIds.length !==
+                originalSelectedEntityIds.length ||
+            entityIdsThatTheUserDeselected.length
+        )
+            return EntityUrlBuilder.entityNamesToQueryParam(
+                this.selection.selectedEntityNames
+            )
+
+        return undefined
     }
 
     // If the user changes a param so that it matches the author's original param, we drop it.
@@ -2013,32 +2019,6 @@ export class Grapher
                   rightHandleTime,
                   formatAsDay
               )}`
-    }
-
-    @computed private get countryParam() {
-        if (!this.isReady) return undefined
-
-        const authoredConfig = this.legacyConfigAsAuthored
-
-        const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
-        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
-
-        const diff = difference(
-            currentSelectedEntityIds,
-            originalSelectedEntityIds
-        )
-
-        if (
-            currentSelectedEntityIds.length !==
-                originalSelectedEntityIds.length ||
-            diff.length
-        )
-            return EntityUrlBuilder.entitiesToQueryParam(
-                this.selection.selectedEntityCodesOrNames
-            )
-
-        return undefined
     }
 
     msPerTick = DEFAULT_MS_PER_TICK

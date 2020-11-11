@@ -89,7 +89,6 @@ const getExplorerFromFile = async (
     return new ExplorerProgram(
         filename.replace(EXPLORER_FILE_SUFFIX, ""),
         content,
-        undefined,
         moment.utc(lastModified).unix(),
         shortHash
     )
@@ -168,13 +167,7 @@ export const renderExplorerPage = async (
     code: string,
     shortHash: string
 ) => {
-    const program = new ExplorerProgram(
-        slug,
-        code,
-        undefined,
-        undefined,
-        shortHash
-    )
+    const program = new ExplorerProgram(slug, code, undefined, shortHash)
     const { requiredChartIds } = program
     let chartConfigs: any[] = []
     if (requiredChartIds.length)

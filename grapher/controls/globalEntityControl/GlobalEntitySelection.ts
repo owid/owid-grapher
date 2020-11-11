@@ -98,7 +98,7 @@ class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
         const entities = this.globalEntitySelection.selectedEntities
         // Do not add 'country' param unless at least one country is selected
         if (entities.length > 0) {
-            params.country = EntityUrlBuilder.entitiesToQueryParam(
+            params.country = EntityUrlBuilder.entityNamesToQueryParam(
                 entities.map((entity) => entity.code)
             )
         }
@@ -116,7 +116,7 @@ class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
 
     private populateFromQueryParams(params: QueryParams) {
         if (params.country) {
-            const countryCodes = EntityUrlBuilder.queryParamToEntities(
+            const countryCodes = EntityUrlBuilder.queryParamToEntityNames(
                 params.country
             )
             this.globalEntitySelection.mode =
