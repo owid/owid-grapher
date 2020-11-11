@@ -61,10 +61,11 @@ Generally we want to handle these errors gracefully. Therefore, instead of using
 
 ### OwidTable and OwidRow
 
-CoreTable is a general purpose class operating on any kind of table. OwidTable is a subclass of CoreTable, with the distinction that every OwidTable has an entity (aka country) column, a time integer ( year, day, quarter, etc) column, and one or more value columns. OwidTable also includes additional meta data like Source info, needed by our charts. Most of our charts are built for country changes over time, so take an OwidTable specifically.
+note: `OwidTable` should probably be renamed to `TimeSeriesTable`
 
-In our case all our tables have a common shape with an entityName column, a time column, and 1+ value columns of various types. (Our tables also have EntityCode and EntityId columns, but those can be deprecated).
-We also perform common transformations that make sense on tables with our shape but not on tables of other shapes. Thus we subclass CoreTable and CoreRow. OwidRow extends CoreRow and provides stronger typing on row level operations.
+CoreTable is a general purpose class operating on any kind of table. OwidTable is a subclass of CoreTable, with the distinction that every OwidTable has an entity column(usually a country or region), a time integer column ( year, day, quarter, etc), and one or more value columns (poverty rate, births, etc.). OwidTable also includes additional meta data like Source info, needed by our charts. Most of our charts are built for country changes over time, so take an OwidTable specifically. (Our tables also have EntityCode and EntityId columns, but those can be deprecated).
+
+We also perform common transformations that make sense on time series tables with this shape but not on tables of other shapes. Thus we subclass CoreTable and CoreRow. OwidRow extends CoreRow and provides stronger typing on row level operations.
 
 The split between CoreTable and OwidTable is also to ensure we minimize the delta between our data model and the common model in data science, with the bet that this may require use to maintain a lot less code in the long run.
 
