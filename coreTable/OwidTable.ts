@@ -13,6 +13,7 @@ import {
     keyBy,
     groupBy,
     isNumber,
+    isEmpty,
 } from "grapher/utils/Util"
 import {
     ColumnSlug,
@@ -135,9 +136,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
     getAnnotationColumnForColumn(columnSlug: ColumnSlug) {
         const def = this.get(columnSlug).def as OwidColumnDef
-        const slug =
-            (def && def.annotationsColumnSlug) ??
-            makeAnnotationsSlug(columnSlug)
+        const slug = isEmpty(def?.annotationsColumnSlug)
+            ? makeAnnotationsSlug(columnSlug)
+            : def.annotationsColumnSlug
         return this.get(slug)
     }
 
