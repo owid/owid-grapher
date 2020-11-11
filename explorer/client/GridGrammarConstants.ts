@@ -62,8 +62,8 @@ export const DelimitedUrlDefinition = {
     description: "A link to a CSV or TSV",
 }
 
-export const SubtableSlugDeclarationCellTypeDefinition: CellTypeDefinition = {
-    cssClass: "SubtableSlugDeclarationType",
+export const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "SlugDeclarationType",
     description: "A unique URL-friendly name.",
     regex: /^[a-zA-Z0-9-_]+$/,
     requirements: `Can only contain the characters a-zA-Z0-9-_`,

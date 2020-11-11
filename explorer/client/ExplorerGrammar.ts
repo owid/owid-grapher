@@ -1,4 +1,3 @@
-import { CoreColumnDefKeyword } from "coreTable/CoreColumnDef"
 import { imemo } from "coreTable/CoreTableUtils"
 import { isPresent } from "grapher/utils/Util"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
@@ -10,7 +9,7 @@ import {
     ErrorCellTypeClass,
     MatrixLine,
     MatrixProgram,
-    SubtableSlugDeclarationCellTypeDefinition,
+    SlugDeclarationCellTypeDefinition,
     StringCellTypeDefinition,
     UrlCellTypeDefinition,
     NothingGoesThereDefinition,
@@ -86,23 +85,78 @@ export const ExplorerProperties = {
     },
 } as const
 
+const ColumnDefCellTypeDefinitions = {
+    slug: {
+        ...SlugDeclarationCellTypeDefinition,
+        keyword: "slug",
+    },
+    name: {
+        ...StringCellTypeDefinition,
+        keyword: "name",
+    },
+    type: {
+        ...StringCellTypeDefinition,
+        keyword: "type",
+    },
+    transform: {
+        ...StringCellTypeDefinition,
+        keyword: "transform",
+    },
+    description: {
+        ...StringCellTypeDefinition,
+        keyword: "description",
+    },
+    unit: {
+        ...StringCellTypeDefinition,
+        keyword: "unit",
+    },
+    shortUnit: {
+        ...StringCellTypeDefinition,
+        keyword: "shortUnit",
+    },
+    sourceName: {
+        ...StringCellTypeDefinition,
+        keyword: "sourceName",
+    },
+    sourceLink: {
+        ...UrlCellTypeDefinition,
+        keyword: "sourceName",
+    },
+    dataPublishedBy: {
+        ...StringCellTypeDefinition,
+        keyword: "dataPublishedBy",
+    },
+    dataPublisherSource: {
+        ...StringCellTypeDefinition,
+        keyword: "dataPublisherSource",
+    },
+    retrievedDate: {
+        ...StringCellTypeDefinition,
+        keyword: "retrievedDate",
+    },
+    additionalInfo: {
+        ...StringCellTypeDefinition,
+        keyword: "additionalInfo",
+    },
+} as const
+
 export const SubTableTypeDefinitions = {
     table: {
-        ...SubtableSlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellTypeDefinition,
         keyword: "table",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
         rest: [DelimitedUrlDefinition],
     },
     columns: {
-        ...SubtableSlugDeclarationCellTypeDefinition,
         headerKeywordOptions: Object.values(CoreColumnDefKeyword),
+        ...SlugDeclarationCellTypeDefinition,
         keyword: "columns",
         description:
             "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
     },
     switcher: {
-        ...SubtableSlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellTypeDefinition,
         keyword: "switcher",
         description: "The decision matrix for your Explorer goes here.",
     },
