@@ -25,9 +25,12 @@ import {
     deleteRemoteFile,
     pullFromGithub,
     writeRemoteFile,
-} from "gitCms/client"
+} from "gitCms/GitCmsClient"
 import { BAKED_BASE_URL } from "settings"
-import { GIT_CMS_DEFAULT_BRANCH, GIT_CMS_REPO_URL } from "gitCms/constants"
+import {
+    GIT_CMS_DEFAULT_BRANCH,
+    GIT_CMS_REPO_URL,
+} from "gitCms/GitCmsConstants"
 import moment from "moment"
 import {
     DefaultNewExplorerSlug,

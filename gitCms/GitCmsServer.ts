@@ -13,7 +13,7 @@ import {
     DeleteRequest,
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
-} from "./constants"
+} from "./GitCmsConstants"
 import { getGitBranchNameForDir, pullFromGit } from "./GitUtils"
 const IS_PROD = ENV === "production"
 

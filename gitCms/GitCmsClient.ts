@@ -7,7 +7,7 @@ import {
     DeleteRequest,
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
-} from "./constants"
+} from "./GitCmsConstants"
 const adminPath = `/admin/api`
 const gitCmsApiPath = `${adminPath}${GIT_CMS_ROUTE}`
 
