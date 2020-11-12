@@ -7,24 +7,24 @@ import parseArgs from "minimist"
 import * as prompts from "prompts"
 import ProgressBar = require("progress")
 import { exec } from "utils/server/serverUtil"
-import {
-    getGitBranchNameForDir,
-    gitUserInfo,
-    pullAndRebaseFromGit,
-} from "gitCms/GitUtils"
 import { spawn } from "child_process"
+import simpleGit, { SimpleGit } from "simple-git"
 
 const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
 
-const runLiveSafetyChecks = async (dir: string) => {
-    const branch = await getGitBranchNameForDir(dir)
+const runLiveSafetyChecks = async (dir: string, git: SimpleGit) => {
+    const branches = await git.branchLocal()
+    const branch = await branches.current
     if (branch !== "master")
         printAndExit("To deploy to live please run from the master branch.")
 
     // Making sure we have the latest changes from the upstream
     // Also, will fail if working copy is not clean
-    const result = await pullAndRebaseFromGit(dir)
-    if (result.code !== 0) printAndExit(JSON.stringify(result))
+    try {
+        await git.pull("origin", undefined, { "--rebase": "true" })
+    } catch (err) {
+        printAndExit(JSON.stringify(err))
+    }
 
     const response = await prompts.prompt({
         type: "confirm",
@@ -84,11 +84,21 @@ const main = async () => {
         "roser",
     ])
 
+    const git = simpleGit({
+        baseDir: DIR,
+        binary: "git",
+        maxConcurrentProcesses: 1,
+    })
+    const gitStatus = await git.status()
+    const gitConfig = await git.listConfig()
+    const gitName = `${gitConfig.all["user.name"]}`
+    const gitEmail = `${gitConfig.all["user.email"]}`
+
     let HOST = ""
     if (stagingServers.has(NAME)) HOST = "owid@165.22.127.239"
     else if (NAME === LIVE_NAME) {
         HOST = "owid@209.97.185.49"
-        await runLiveSafetyChecks(DIR)
+        await runLiveSafetyChecks(DIR, git)
     } else printAndExit("Please select either live or a valid test target.")
 
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
@@ -124,8 +134,7 @@ const main = async () => {
     }
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
-    const gitInfo = await gitUserInfo(DIR)
-    fs.writeFileSync(DIR + "/public/head.txt", gitInfo.head, "utf8")
+    fs.writeFileSync(DIR + "/public/head.txt", gitStatus.current, "utf8")
     progressBar.tick({ name: "✅ write head.txt" })
 
     await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
@@ -142,8 +151,8 @@ const main = async () => {
         ),
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
-            gitInfo.email,
-            gitInfo.name,
+            gitEmail,
+            gitName,
             FINAL_TARGET
         ),
     }

@@ -4,7 +4,7 @@ This subproject contains simple express routes and methods for writing files to 
 
 ## Rationale
 
-While SQL DBs are great for our high volume, stable object types, they might be overkill for some small authored item types. For authored items like some of our constants files, or Explorers, where we don't gain too many benefits from a relational structure and would have between 1-100 rows, we _could_ setup a catch all documents table with timestamps and versions and all our own versioning logic, or just write to disk and put it in Git/GitHub.
+While SQL DBs are great for our high volume, stable object types, they might be overkill for some small authored item types, where the schemas change at a much faster clip.
 
 ## Goals
 
@@ -17,6 +17,6 @@ While SQL DBs are great for our high volume, stable object types, they might be 
 
 ## Implementation notes
 
-`server.ts` adds some routes to our API for writing, reading, and deleting files in the "GitCMS". The writes and deletes are committed and pushed.
+`GitCmsServer.ts` adds some routes to our API for writing, reading, and deleting files in the "GitCMS". The writes and deletes are committed and pushed.
 
-`client.ts` contains methods for the browser to call these API routes.
+`GitCmsClient.ts` contains methods for the browser to call these API routes.

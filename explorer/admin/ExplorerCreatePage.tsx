@@ -11,12 +11,12 @@ import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
-import { readRemoteFile, writeRemoteFile } from "gitCms/client"
+import { readRemoteFile, writeRemoteFile } from "gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
-import { exposeInstanceOnWindow } from "grapher/utils/Util"
+import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -80,7 +80,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
-    private async _save(slug: string, commitMessage: string) {
+    @action.bound private async _save(slug: string, commitMessage: string) {
         this.context.admin.loadingIndicatorSetting = "loading"
         this.program.slug = slug
         await writeRemoteFile({
@@ -90,14 +90,16 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.sourceOnDisk = this.program.toString()
+        this.setProgram(this.sourceOnDisk)
     }
 
     @action.bound private async saveAs() {
-        const slug = prompt(
+        let slug = prompt(
             "Create a slug (URL friendly name) for this explorer",
             this.program.slug
         )
         if (!slug) return
+        slug = slugify(slug)
         await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
         window.location.href = slug
     }

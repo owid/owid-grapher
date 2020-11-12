@@ -1,3 +1,5 @@
+import { SerializedExplorerProgram } from "./ExplorerProgram"
+
 export enum ExplorerControlType {
     Radio = "Radio",
     Checkbox = "Checkbox",
@@ -20,3 +22,11 @@ export interface ExplorerControlOption {
 export const ExplorerContainerId = "explorerContainer"
 
 export const ExplorersRoute = "explorers.json"
+
+export interface ExplorersRouteResponse {
+    success: boolean
+    errorMessage?: string
+    needsPull: boolean
+    gitCmsBranchName: string
+    explorers: SerializedExplorerProgram[]
+}
