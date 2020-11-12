@@ -50,22 +50,35 @@ class ExplorerRow extends React.Component<{
     context!: AdminAppContextType
 
     render() {
-        const { explorer, searchHighlight, gitCmsBranchName } = this.props
+        const {
+            explorer,
+            searchHighlight,
+            gitCmsBranchName,
+            indexPage,
+        } = this.props
+        const {
+            slug,
+            lastCommit,
+            filename,
+            googleSheet,
+            isPublished,
+            title,
+        } = explorer
 
-        const publishedUrl = `${BAKED_BASE_URL}/explorers/${explorer.slug}`
-
+        const publishedUrl = `${BAKED_BASE_URL}/explorers/${slug}`
         const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/explorers/`
+        const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
 
-        const fileHistory = (
-            <a key="explorers" href={repoPath + explorer.filename}>
-                File History
+        const fileHistoryButton = (
+            <a key="explorers" href={repoPath + filename}>
+                Full History
             </a>
         )
 
-        const googleSheet = explorer.googleSheet ? (
+        const googleSheetButton = googleSheet ? (
             <>
                 <span> | </span>
-                <a key="googleSheets" href={explorer.googleSheet}>
+                <a key="googleSheets" href={googleSheet}>
                     Google Sheet
                 </a>
             </>
@@ -74,27 +87,27 @@ class ExplorerRow extends React.Component<{
         return (
             <tr>
                 <td>
-                    {!explorer.isPublished ? (
-                        <span className="text-secondary">{explorer.slug}</span>
+                    {!isPublished ? (
+                        <span className="text-secondary">{slug}</span>
                     ) : (
-                        <a href={publishedUrl}>{explorer.slug}</a>
+                        <a href={publishedUrl}>{slug}</a>
                     )}
                 </td>
                 <td>
-                    {searchHighlight
-                        ? searchHighlight(explorer.title || "")
-                        : explorer.title}
+                    {searchHighlight ? searchHighlight(title || "") : title}
                 </td>
                 <td>
-                    {explorer.lastCommit
-                        ? moment(explorer.lastCommit.date).fromNow()
-                        : ""}
+                    <a href={lastCommitLink}>
+                        {lastCommit ? moment(lastCommit.date).fromNow() : ""}
+                    </a>{" "}
+                    by {lastCommit?.author_name} | {fileHistoryButton}
+                    {googleSheetButton}
                 </td>
 
                 <td>
                     <Link
                         target="preview"
-                        to={`/explorers/preview/${explorer.slug}`}
+                        to={`/explorers/preview/${slug}`}
                         className="btn btn-secondary"
                     >
                         Preview
@@ -102,10 +115,7 @@ class ExplorerRow extends React.Component<{
                 </td>
 
                 <td>
-                    <Link
-                        to={`/explorers/${explorer.slug}`}
-                        className="btn btn-primary"
-                    >
+                    <Link to={`/explorers/${slug}`} className="btn btn-primary">
                         Edit
                     </Link>
                 </td>
@@ -113,27 +123,19 @@ class ExplorerRow extends React.Component<{
                     <button
                         className="btn btn-danger"
                         onClick={() =>
-                            this.props.indexPage.togglePublishedStatus(
-                                explorer.filename
-                            )
+                            indexPage.togglePublishedStatus(filename)
                         }
                     >
-                        {explorer.isPublished ? "Unpublish" : "Publish"}
+                        {isPublished ? "Unpublish" : "Publish"}
                     </button>
                 </td>
                 <td>
                     <button
                         className="btn btn-danger"
-                        onClick={() =>
-                            this.props.indexPage.deleteFile(explorer.filename)
-                        }
+                        onClick={() => indexPage.deleteFile(filename)}
                     >
                         Delete{" "}
                     </button>
-                </td>
-                <td>
-                    {fileHistory}
-                    {googleSheet}
                 </td>
             </tr>
         )
@@ -159,7 +161,6 @@ class ExplorerList extends React.Component<{
                         <th>Slug</th>
                         <th>Title</th>
                         <th>Updated</th>
-                        <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -195,7 +196,11 @@ export class ExplorersIndexPage extends React.Component {
     @observable highlightSearch?: string
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return orderBy(this.explorers, ["lastModifiedTime"], ["desc"])
+        return orderBy(
+            this.explorers,
+            (program) => moment(program.lastCommit?.date).unix(),
+            ["desc"]
+        )
     }
 
     @action.bound onShowMore() {
@@ -204,7 +209,7 @@ export class ExplorersIndexPage extends React.Component {
 
     @action.bound private async pullFromGithub() {
         const result = await pullFromGithub()
-        alert([result.stdout, result.errorMessage].filter((i) => i).join("\n"))
+        alert(JSON.stringify(result))
         window.location.reload()
     }
 
@@ -235,11 +240,12 @@ export class ExplorersIndexPage extends React.Component {
             this.explorersToShow.map((exp) => exp.slug)
         )
 
-        const pullButton = this.needsPull && (
+        const needsPull = true // todo: implement needsPull on server side and then use this.needsPull
+        const pullButton = needsPull && (
             <span>
                 |{" "}
                 <a href="#" onClick={this.pullFromGithub}>
-                    Pull any changes from GitHub
+                    Check for new commits from GitHub
                 </a>{" "}
             </span>
         )
@@ -258,7 +264,8 @@ export class ExplorersIndexPage extends React.Component {
                             <a
                                 href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
                             >
-                                See all commits on {this.gitCmsBranchName}
+                                See branch '{this.gitCmsBranchName}' history on
+                                GitHub
                             </a>
                         </span>
                     </FieldsRow>

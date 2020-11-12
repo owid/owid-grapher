@@ -16,7 +16,7 @@ import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
-import { exposeInstanceOnWindow } from "grapher/utils/Util"
+import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -93,11 +93,12 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound private async saveAs() {
-        const slug = prompt(
+        let slug = prompt(
             "Create a slug (URL friendly name) for this explorer",
             this.program.slug
         )
         if (!slug) return
+        slug = slugify(slug)
         await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
         window.location.href = slug
     }
