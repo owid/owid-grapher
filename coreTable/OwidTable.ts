@@ -448,7 +448,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // This assumes the table is sorted where the times for entity names go in asc order.
     // The whole table does not have to be sorted by time.
     getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
-        const indices = this.rowIndicesByEntityName.get(entityName)!
+        const indices = this.rowIndicesByEntityName.get(entityName)
+        if (!indices) return undefined
         const values = this.get(columnSlug).valuesIncludingErrorValues
         const descending = indices.slice().reverse()
         const index = descending.find(

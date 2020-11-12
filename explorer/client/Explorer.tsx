@@ -47,6 +47,7 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { GridBoolean } from "./GridGrammarConstants"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 
 export interface ExplorerProps extends SerializedExplorerProgram {
     explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
@@ -397,7 +398,18 @@ export class Explorer
     }
 
     @computed get pickerColumnSlugs() {
-        return this.grapher?.table.columnSlugs ?? []
+        const doNotShowThese = new Set([
+            ColumnTypeNames.Year,
+            ColumnTypeNames.Date,
+            ColumnTypeNames.Day,
+            ColumnTypeNames.EntityId,
+            ColumnTypeNames.EntityCode,
+        ])
+        return this.grapher?.table.columnsAsArray
+            .filter(
+                (col) => !doNotShowThese.has(col.def.type as ColumnTypeNames)
+            )
+            .map((col) => col.slug)
     }
 
     @computed get requiredColumnSlugs() {

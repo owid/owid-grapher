@@ -221,6 +221,9 @@ usa,usa,1,4,2002,`
     const table = new OwidTable(csv)
     expect(table.getLatestValueForEntity("usa", "coal")).toBe(10)
     expect(table.getLatestValueForEntity("usa", "pop")).toBe(4)
+    expect(table.getLatestValueForEntity("does not exit", "pop")).toBe(
+        undefined
+    )
 })
 
 it("can synth numerics", () => {
