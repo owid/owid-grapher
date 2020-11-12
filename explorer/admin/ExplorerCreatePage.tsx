@@ -80,7 +80,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
-    private async _save(slug: string, commitMessage: string) {
+    @action.bound private async _save(slug: string, commitMessage: string) {
         this.context.admin.loadingIndicatorSetting = "loading"
         this.program.slug = slug
         await writeRemoteFile({
@@ -90,6 +90,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.sourceOnDisk = this.program.toString()
+        this.setProgram(this.sourceOnDisk)
     }
 
     @action.bound private async saveAs() {
