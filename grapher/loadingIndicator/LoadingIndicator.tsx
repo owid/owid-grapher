@@ -7,10 +7,12 @@ export const LoadingIndicator = (props: {
     backgroundColor?: string
     bounds?: Bounds
     color?: string
+    title?: string
 }) => {
     return (
         <div
             className="loading-indicator"
+            title={props.title}
             style={{
                 backgroundColor: props.backgroundColor,
                 ...props.bounds?.toCSS(),

@@ -680,13 +680,22 @@ export class Grapher
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady() {
-        return this.newSlugs.length
-            ? this.tableIsLoaded
-            : this.dimensions.length > 0 && this.loadingDimensions.length === 0
+        return this.whatAreWeWaitingFor === ""
     }
 
-    @computed private get tableIsLoaded() {
-        return this.inputTable.hasColumns(this.newSlugs)
+    @computed get whatAreWeWaitingFor() {
+        const { newSlugs, inputTable } = this
+        if (newSlugs.length) {
+            const missingColumns = newSlugs.filter(
+                (slug) => !inputTable.has(slug)
+            )
+            return missingColumns.length
+                ? `Waiting for ${missingColumns.join(",")}.`
+                : ""
+        }
+        if (this.dimensions.length > 0 && this.loadingDimensions.length === 0)
+            return ""
+        return `Waiting for ${this.loadingDimensions.join(",")}.`
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.

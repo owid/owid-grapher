@@ -48,6 +48,7 @@ export interface CaptionedChartManager
     type?: ChartTypeName
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
+    whatAreWeWaitingFor?: string
     isStaticSvg?: boolean
     entityType?: string
     entityTypePlural?: string
@@ -254,7 +255,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     private renderLoadingIndicator() {
         return (
             <foreignObject {...this.boundsForChart.toProps()}>
-                <LoadingIndicator />
+                <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
             </foreignObject>
         )
     }
