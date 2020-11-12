@@ -89,6 +89,10 @@ const main = async () => {
         binary: "git",
         maxConcurrentProcesses: 1,
     })
+    const gitStatus = await git.status()
+    const gitConfig = await git.listConfig()
+    const gitName = `${gitConfig.all["user.name"]}`
+    const gitEmail = `${gitConfig.all["user.email"]}`
 
     let HOST = ""
     if (stagingServers.has(NAME)) HOST = "owid@165.22.127.239"
@@ -128,12 +132,8 @@ const main = async () => {
         await runAndTick(`yarn typecheck`, progressBar)
         await runAndTick(`yarn test`, progressBar)
     }
-    // Write the current commit SHA to public/head.txt so we always know which commit is deployed
-    const gitStatus = await git.status()
-    const gitConfig = await git.listConfig()
-    const gitName = gitConfig.values["name"][0] as string
-    const gitEmail = gitConfig.values["email"][0] as string
 
+    // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     fs.writeFileSync(DIR + "/public/head.txt", gitStatus.current, "utf8")
     progressBar.tick({ name: "✅ write head.txt" })
 
