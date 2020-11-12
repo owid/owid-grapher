@@ -229,6 +229,8 @@ export class Explorer
             ...this.grapher.params,
             ...this.explorerProgram.decisionMatrix.params,
             selection: this.selectionArray.asParam,
+            pickerSort: this.entityPickerSort,
+            pickerMetric: this.entityPickerMetric,
         }
         return obj
     }
