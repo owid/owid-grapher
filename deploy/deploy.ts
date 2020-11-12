@@ -8,16 +8,11 @@ import * as prompts from "prompts"
 import ProgressBar = require("progress")
 import { exec } from "utils/server/serverUtil"
 import { spawn } from "child_process"
-import simpleGit from "simple-git"
+import simpleGit, { SimpleGit } from "simple-git"
 
 const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
 
-const runLiveSafetyChecks = async (dir: string) => {
-    const git = simpleGit({
-        baseDir: dir,
-        binary: "git",
-        maxConcurrentProcesses: 1,
-    })
+const runLiveSafetyChecks = async (dir: string, git: SimpleGit) => {
     const branches = await git.branchLocal()
     const branch = await branches.current
     if (branch !== "master")
@@ -89,11 +84,17 @@ const main = async () => {
         "roser",
     ])
 
+    const git = simpleGit({
+        baseDir: DIR,
+        binary: "git",
+        maxConcurrentProcesses: 1,
+    })
+
     let HOST = ""
     if (stagingServers.has(NAME)) HOST = "owid@165.22.127.239"
     else if (NAME === LIVE_NAME) {
         HOST = "owid@209.97.185.49"
-        await runLiveSafetyChecks(DIR)
+        await runLiveSafetyChecks(DIR, git)
     } else printAndExit("Please select either live or a valid test target.")
 
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
@@ -127,12 +128,6 @@ const main = async () => {
         await runAndTick(`yarn typecheck`, progressBar)
         await runAndTick(`yarn test`, progressBar)
     }
-
-    const git = simpleGit({
-        baseDir: DIR,
-        binary: "git",
-        maxConcurrentProcesses: 1,
-    })
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     const gitStatus = await git.status()
     const gitConfig = await git.listConfig()
