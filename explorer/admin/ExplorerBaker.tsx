@@ -8,7 +8,7 @@ import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
-import { Request, Response } from "adminSite/server/utils/authentication"
+import { Request } from "adminSite/server/utils/authentication"
 import { ExplorerProps } from "explorer/client/Explorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
@@ -16,13 +16,18 @@ import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
-import moment from "moment"
 import {
-    getGitBranchNameForDir,
-    getLastModifiedTime,
-    getShortHash,
-} from "gitCms/GitUtils"
-import { ExplorersRoute } from "explorer/client/ExplorerConstants"
+    ExplorersRoute,
+    ExplorersRouteResponse,
+} from "explorer/client/ExplorerConstants"
+import simpleGit from "simple-git"
+import { GitCommit } from "gitCms/GitTypes"
+
+const git = simpleGit({
+    baseDir: GIT_CMS_DIR,
+    binary: "git",
+    maxConcurrentProcesses: 1,
+})
 
 const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/explorers/`
 
@@ -30,49 +35,54 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // http://localhost:3030/admin/api/explorers.json
     // Download all explorers for the admin index page
     app.get(`/${ExplorersRoute}`, async () => {
-        const explorers = await getAllExplorers()
-        const gitCmsBranchName = await getGitBranchNameForDir(EXPLORERS_FOLDER)
-        return {
-            gitCmsBranchName,
-            explorers: explorers.map((explorer) => explorer.toJson()),
+        try {
+            const explorers = await getAllExplorers()
+            const branches = await git.branchLocal()
+            const gitCmsBranchName = await branches.current
+            const needsPull = false // todo: add
+
+            return {
+                success: true,
+                gitCmsBranchName,
+                needsPull,
+                explorers: explorers.map((explorer) => explorer.toJson()),
+            } as ExplorersRouteResponse
+        } catch (err) {
+            console.log(err)
+            return {
+                success: false,
+                errorMessage: err,
+            } as ExplorersRouteResponse
         }
     })
 
     // Download all chart configs for Explorer create page
-    app.get(
-        "/charts/explorer-charts.json",
-        async (req: Request, res: Response) => {
-            const chartIds = req.query.chartIds.split("~")
-            const configs = []
-            for (const chartId of chartIds) {
-                try {
-                    configs.push(await getGrapherById(chartId))
-                } catch (err) {
-                    console.log(`Error with chartId '${chartId}'`)
-                }
+    app.get("/charts/explorer-charts.json", async (req: Request) => {
+        const chartIds = req.query.chartIds.split("~")
+        const configs = []
+        for (const chartId of chartIds) {
+            try {
+                configs.push(await getGrapherById(chartId))
+            } catch (err) {
+                console.log(`Error with chartId '${chartId}'`)
             }
-            return configs
         }
-    )
+        return configs
+    })
 }
 
 export const addExplorerAdminRoutes = (app: Router) => {
     // http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/explorers/preview/:slug`, async (req, res) => {
-        const shortHash = await getShortHash(EXPLORERS_FOLDER)
         const filename = req.params.slug + EXPLORER_FILE_SUFFIX
         if (!fs.existsSync(EXPLORERS_FOLDER + filename))
             return res.send(`File not found`)
-        const explorer = await getExplorerFromFile(
-            EXPLORERS_FOLDER,
-            filename,
-            shortHash
-        )
+        const explorer = await getExplorerFromFile(EXPLORERS_FOLDER, filename)
         return res.send(
             await renderExplorerPage(
                 explorer.slug,
                 explorer.toString(),
-                explorer.shortHash ?? ""
+                explorer.lastCommit
             )
         )
     })
@@ -80,17 +90,15 @@ export const addExplorerAdminRoutes = (app: Router) => {
 
 const getExplorerFromFile = async (
     directory = EXPLORERS_FOLDER,
-    filename: string,
-    shortHash: string
+    filename: string
 ) => {
     const fullPath = directory + "/" + filename
     const content = await fs.readFile(fullPath, "utf8")
-    const lastModified = await getLastModifiedTime(directory, filename)
+    const commits = await git.log({ file: fullPath, n: 1 })
     return new ExplorerProgram(
         filename.replace(EXPLORER_FILE_SUFFIX, ""),
         content,
-        moment.utc(lastModified).unix(),
-        shortHash
+        commits.latest as GitCommit
     )
 }
 
@@ -109,14 +117,10 @@ const getAllExplorers = async (directory = EXPLORERS_FOLDER) => {
     const explorerFiles = files.filter((filename) =>
         filename.endsWith(EXPLORER_FILE_SUFFIX)
     )
-    const shortHash = await getShortHash(directory)
+
     const explorers: ExplorerProgram[] = []
     for (const filename of explorerFiles) {
-        const explorer = await getExplorerFromFile(
-            directory,
-            filename,
-            shortHash
-        )
+        const explorer = await getExplorerFromFile(directory, filename)
 
         explorers.push(explorer)
     }
@@ -139,7 +143,7 @@ const bakeExplorersToDir = async (
             await renderExplorerPage(
                 explorer.slug,
                 explorer.toString(),
-                explorer.shortHash ?? ""
+                explorer.lastCommit
             )
         )
     }
@@ -150,7 +154,7 @@ const makeInlineJs = (program: ExplorerProgram, chartConfigs: any[]) => {
     const props: ExplorerProps = {
         bindToWindow: true,
         slug: program.slug,
-        shortHash: program.shortHash,
+        lastCommit: program.lastCommit,
         program: program.toString(),
         chartConfigs: chartConfigs.map((row) => {
             const config = JSON.parse(row.config)
@@ -165,9 +169,9 @@ const makeInlineJs = (program: ExplorerProgram, chartConfigs: any[]) => {
 export const renderExplorerPage = async (
     slug: string,
     code: string,
-    shortHash: string
+    lastCommit?: GitCommit
 ) => {
-    const program = new ExplorerProgram(slug, code, undefined, shortHash)
+    const program = new ExplorerProgram(slug, code, lastCommit)
     const { requiredChartIds } = program
     let chartConfigs: any[] = []
     if (requiredChartIds.length)

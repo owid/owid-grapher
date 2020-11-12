@@ -1,8 +1,8 @@
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { Request, Response } from "adminSite/server/utils/authentication"
 import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, ENV } from "settings"
+import simpleGit, { SimpleGit } from "simple-git"
 import * as fs from "fs-extra"
-import { execFormatted } from "utils/server/serverUtil"
 import {
     GIT_CMS_DIR,
     GIT_CMS_ROUTE,
@@ -14,25 +14,26 @@ import {
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
 } from "./GitCmsConstants"
-import { getGitBranchNameForDir, pullFromGit } from "./GitUtils"
 const IS_PROD = ENV === "production"
 
-const isFolderOnStagingBranch = async (dir: string) => {
-    const result = await getGitBranchNameForDir(dir)
-    return result === "staging"
+const isFolderOnStagingBranch = async (git: SimpleGit) => {
+    const branches = await git.branchLocal()
+    const gitCmsBranchName = await branches.current
+    return gitCmsBranchName === "staging"
 }
 
-// Push if on owid.cloud, or if on a development branch
-const shouldPush = async () =>
-    IS_PROD ? true : await isFolderOnStagingBranch(GIT_CMS_DIR)
+// Push if on owid.cloud or staging. Do not push if on a differen branch (so you can set your local dev branch to something else to not push changes automatically)
+const shouldPush = async (git: SimpleGit) =>
+    IS_PROD ? true : await isFolderOnStagingBranch(git)
 
-async function saveFileToGitContentDirectory(
+const saveFileToGitContentDirectory = async (
+    git: SimpleGit,
     filename: string,
     content: string,
-    commitName: string,
-    commitEmail: string,
+    authorName = GIT_DEFAULT_USERNAME,
+    authorEmail = GIT_DEFAULT_EMAIL,
     commitMsg?: string
-) {
+) => {
     const path = GIT_CMS_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
 
@@ -41,37 +42,48 @@ async function saveFileToGitContentDirectory(
         : fs.existsSync(path)
         ? `Updating ${filename}`
         : `Adding ${filename}`
-    const push = await shouldPush()
-    const pushCommand = push ? `&& git push` : ""
 
-    await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
-            commitName || GIT_DEFAULT_USERNAME
-        } <${commitEmail || GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
-        [GIT_CMS_DIR, commitMsg]
-    )
-    return ""
+    return commitFile(git, filename, commitMsg, authorName, authorEmail)
 }
 
-async function deleteFileFromGitContentDirectory(
+const commitFile = async (
+    git: SimpleGit,
     filename: string,
-    commitName: string,
-    commitEmail: string
-) {
+    commitMsg: string,
+    authorName: string,
+    authorEmail: string
+) => {
+    await git.add(filename)
+    return await git.commit(commitMsg, filename, {
+        "--author": `${authorName} <${authorEmail}>`,
+    })
+}
+
+const deleteFileFromGitContentDirectory = async (
+    git: SimpleGit,
+    filename: string,
+    authorName = GIT_DEFAULT_USERNAME,
+    authorEmail = GIT_DEFAULT_EMAIL
+) => {
     const path = GIT_CMS_DIR + "/" + filename
-    const push = await shouldPush()
-    const pushCommand = push ? `&& git push` : ""
     await fs.unlink(path)
-    await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
-            commitName || GIT_DEFAULT_USERNAME
-        } <${commitEmail || GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
-        [GIT_CMS_DIR, `Deleted ${filename}`]
+    return commitFile(
+        git,
+        filename,
+        `Deleted ${filename}`,
+        authorName,
+        authorEmail
     )
-    return ""
 }
 
 export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
+    const git = simpleGit({
+        baseDir: GIT_CMS_DIR,
+        binary: "git",
+        maxConcurrentProcesses: 1,
+    })
+
+    // Update/create file, commit, and push(unless on local dev brach)
     app.post(
         GIT_CMS_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
@@ -82,29 +94,43 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                     success: false,
                     errorMessage: `Invalid filepath: ${filename}`,
                 }
-            const errorMessage = await saveFileToGitContentDirectory(
-                filename,
-                request.content,
-                res.locals.user.fullName,
-                res.locals.user.email,
-                request.commitMessage
-            )
-            return { success: errorMessage ? false : true }
+            try {
+                await saveFileToGitContentDirectory(
+                    git,
+                    filename,
+                    request.content,
+                    res.locals.user.fullName,
+                    res.locals.user.email,
+                    request.commitMessage
+                )
+
+                if (await shouldPush(git)) await git.push()
+                return { success: true }
+            } catch (err) {
+                console.log(err)
+                return { success: false, errorMessage: err }
+            }
         }
     )
 
-    app.post(GIT_CMS_PULL_ROUTE, async (req: Request, res: Response) => {
-        const result = await pullFromGit(GIT_CMS_DIR)
-        return {
-            success: result.stderr ? false : true,
-            stdout: result.stdout,
-            errorMessage: result.stderr,
-        } as GitPullResponse
+    // Pull latest from remote
+    app.post(GIT_CMS_PULL_ROUTE, async () => {
+        try {
+            const res = await git.pull()
+            return {
+                success: true,
+                stdout: JSON.stringify(res.summary, null, 2),
+            } as GitPullResponse
+        } catch (err) {
+            console.log(err)
+            return { success: false, errorMessage: err }
+        }
     })
 
+    // Get file contents
     app.get(
         GIT_CMS_ROUTE,
-        async (req: Request, res: Response): Promise<GitCmsReadResponse> => {
+        async (req: Request): Promise<GitCmsReadResponse> => {
             const request = req.query as ReadRequest
             const filepath = `/${request.filepath.replace(/\~/g, "/")}`
             if (filepath.includes(".."))
@@ -126,6 +152,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
         }
     )
 
+    // Delete file, commit, and and push(unless on local dev brach)
     app.delete(
         GIT_CMS_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
@@ -136,12 +163,19 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                     success: false,
                     errorMessage: `Invalid filepath: ${filepath}`,
                 }
-            const errorMessage = await deleteFileFromGitContentDirectory(
-                filepath,
-                res.locals.user.fullName,
-                res.locals.user.email
-            )
-            return { success: errorMessage ? false : true }
+            try {
+                await deleteFileFromGitContentDirectory(
+                    git,
+                    filepath,
+                    res.locals.user.fullName,
+                    res.locals.user.email
+                )
+                if (await shouldPush(git)) await git.push()
+                return { success: true }
+            } catch (err) {
+                console.log(err)
+                return { success: false, errorMessage: err }
+            }
         }
     )
 }

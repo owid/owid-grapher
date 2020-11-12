@@ -26,6 +26,7 @@ import { getRequiredChartIds } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
 import { GridCell } from "./GridCell"
 import { GridBoolean, ParsedCell } from "./GridGrammarConstants"
+import { GitCommit } from "gitCms/GitTypes"
 
 const CHART_ID_SYMBOL = "chartId"
 
@@ -57,29 +58,21 @@ export interface TableDef {
 export interface SerializedExplorerProgram {
     slug: string
     program: string
-    lastModifiedTime?: number
-    shortHash?: string
+    lastCommit?: GitCommit
 }
 
 export class ExplorerProgram {
-    constructor(
-        slug: string,
-        tsv: string,
-        lastModifiedTime?: number,
-        shortHash?: string
-    ) {
+    constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         this.decisionMatrix = new DecisionMatrix(
             this.decisionMatrixCode ?? "",
-            shortHash
+            lastCommit?.hash
         )
-        this.lastModifiedTime = lastModifiedTime
-        this.shortHash = shortHash
+        this.lastCommit = lastCommit
     }
 
-    shortHash?: string
-    lastModifiedTime?: number
+    lastCommit?: GitCommit
     slug: string
     decisionMatrix: DecisionMatrix
 
@@ -87,8 +80,7 @@ export class ExplorerProgram {
         return {
             program: this.toString(),
             slug: this.slug,
-            lastModifiedTime: this.lastModifiedTime,
-            shortHash: this.shortHash,
+            lastCommit: this.lastCommit,
         }
     }
 
@@ -97,12 +89,7 @@ export class ExplorerProgram {
     }
 
     static fromJson(json: SerializedExplorerProgram) {
-        return new ExplorerProgram(
-            json.slug,
-            json.program,
-            json.lastModifiedTime,
-            json.shortHash
-        )
+        return new ExplorerProgram(json.slug, json.program, json.lastCommit)
     }
 
     get filename() {
@@ -364,13 +351,13 @@ interface ChoiceMap {
 export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private table: CoreTable
     @observable private _settings: DecisionMatrixQueryParams = {}
-    constructor(delimited: string, shortHash = "") {
+    constructor(delimited: string, hash = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
             { slug: CHART_ID_SYMBOL, type: ColumnTypeNames.Integer },
         ])
-        this.shortHash = shortHash
+        this.hash = hash
         this.setValuesFromQueryString() // Initialize options
     }
 
@@ -385,14 +372,14 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
-    private shortHash: string
+    private hash: string
 
     toObject(): DecisionMatrixQueryParams {
         return { ...this._settings }
     }
 
     @computed get params(): DecisionMatrixQueryParams {
-        return { ...this.toObject(), shortHash: this.shortHash }
+        return { ...this.toObject(), hash: this.hash.substring(0, 8) }
     }
 
     toConstrainedOptions() {

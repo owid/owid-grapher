@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync, isPresent, orderBy } from "grapher/utils/Util"
+import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
 import {
     ExplorerProgram,
     SerializedExplorerProgram,
@@ -35,7 +35,9 @@ import moment from "moment"
 import {
     DefaultNewExplorerSlug,
     ExplorersRoute,
+    ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
+import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -84,8 +86,8 @@ class ExplorerRow extends React.Component<{
                         : explorer.title}
                 </td>
                 <td>
-                    {explorer.lastModifiedTime
-                        ? moment(explorer.lastModifiedTime * 1000).fromNow()
+                    {explorer.lastCommit
+                        ? moment(explorer.lastCommit.date).fromNow()
                         : ""}
                 </td>
 
@@ -186,6 +188,7 @@ export class ExplorersIndexPage extends React.Component {
     context!: AdminAppContextType
 
     @observable explorers: ExplorerProgram[] = []
+    @observable needsPull = false
     @observable maxVisibleRows = 50
     @observable numTotalRows?: number
     @observable searchInput?: string
@@ -206,6 +209,9 @@ export class ExplorersIndexPage extends React.Component {
     }
 
     render() {
+        if (!this.isReady)
+            return <LoadingIndicator title="Loading explorer list" />
+
         const { explorersToShow, numTotalRows } = this
 
         const highlight = (text: string) => {
@@ -229,6 +235,15 @@ export class ExplorersIndexPage extends React.Component {
             this.explorersToShow.map((exp) => exp.slug)
         )
 
+        const pullButton = this.needsPull && (
+            <span>
+                |{" "}
+                <a href="#" onClick={this.pullFromGithub}>
+                    Pull any changes from GitHub
+                </a>{" "}
+            </span>
+        )
+
         return (
             <AdminLayout title="Explorers">
                 <main className="DatasetsIndexPage">
@@ -239,15 +254,11 @@ export class ExplorersIndexPage extends React.Component {
                             <Link to={`/explorers/${nextAvailableSlug}`}>
                                 New
                             </Link>{" "}
-                            |{" "}
-                            <a href="#" onClick={this.pullFromGithub}>
-                                Pull from GitHub
-                            </a>{" "}
-                            |{" "}
+                            {pullButton}|{" "}
                             <a
                                 href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
                             >
-                                All activity
+                                See all commits on {this.gitCmsBranchName}
                             </a>
                         </span>
                     </FieldsRow>
@@ -264,9 +275,16 @@ export class ExplorersIndexPage extends React.Component {
 
     @observable gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH
 
-    async getData() {
+    @observable isReady = false
+
+    private async getData() {
         const { searchInput } = this
-        const json = await this.context.admin.getJSON(`/api/${ExplorersRoute}`)
+        const json = (await this.context.admin.getJSON(
+            `/api/${ExplorersRoute}`
+        )) as ExplorersRouteResponse
+        if (!json.success) alert(JSON.stringify(json.errorMessage))
+        this.needsPull = json.needsPull
+        this.isReady = true
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(
