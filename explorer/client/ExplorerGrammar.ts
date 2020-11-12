@@ -53,6 +53,16 @@ const SwitcherKeywordMap = {
         description: "ColumnSlug for the xAxis",
         keyword: "xSlug",
     },
+    colorSlug: {
+        ...SlugDeclarationCellTypeDefinition,
+        description: "ColumnSlug for the color",
+        keyword: "colorSlug",
+    },
+    sizeSlug: {
+        ...SlugDeclarationCellTypeDefinition,
+        description: "ColumnSlug for the size of points on scatters",
+        keyword: "sizeSlug",
+    },
     table: {
         ...SlugDeclarationCellTypeDefinition,
         description: "Slug of the table to use.",
