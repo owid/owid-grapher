@@ -136,8 +136,8 @@ const main = async () => {
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     const gitStatus = await git.status()
     const gitConfig = await git.listConfig()
-    const gitName = gitConfig.values["name"][0]
-    const gitEmail = gitConfig.values["email"][0]
+    const gitName = gitConfig.values["name"][0] as string
+    const gitEmail = gitConfig.values["email"][0] as string
 
     fs.writeFileSync(DIR + "/public/head.txt", gitStatus.current, "utf8")
     progressBar.tick({ name: "✅ write head.txt" })
