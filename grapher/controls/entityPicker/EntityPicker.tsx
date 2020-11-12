@@ -106,17 +106,14 @@ export class EntityPicker extends React.Component<{
 
     @computed private get availablePickerColumns() {
         if (!this.manager.pickerColumnSlugs || !this.table) return []
-        const slugsToShow = new Set(this.manager.pickerColumnSlugs)
-        return this.table.columnsAsArray.filter((col) =>
-            slugsToShow.has(col.slug)
-        )
+        return this.table.getColumns(this.manager.pickerColumnSlugs)
     }
 
     @computed private get metricOptions() {
         return sortBy(
             this.availablePickerColumns.map((col) => {
                 return {
-                    label: col.name,
+                    label: col.name || col.slug,
                     value: col.slug,
                 }
             }),
