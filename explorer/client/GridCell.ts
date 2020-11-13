@@ -12,6 +12,7 @@ import {
     FrontierCellClass,
     ParsedCell,
     AbstractTypeDefinitions,
+    CommentDefinition,
 } from "./GridGrammarConstants"
 
 export class GridCell implements ParsedCell {
@@ -39,8 +40,14 @@ export class GridCell implements ParsedCell {
         return this.matrix[this.row]
     }
 
+    private get isCommentCellType() {
+        const { value } = this
+        return value && CommentDefinition.regex!.test(value)
+    }
+
     private get cellTerminalTypeDefinition(): CellTypeDefinition | undefined {
         const { rootDefinition } = this
+        if (this.isCommentCellType) return CommentDefinition
         const keywordMap = (rootDefinition.keywordMap as unknown) as KeywordMap
         if (this.column === 0)
             return (rootDefinition as unknown) as CellTypeDefinition

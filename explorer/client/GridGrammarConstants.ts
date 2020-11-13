@@ -70,9 +70,15 @@ export const UrlCellTypeDefinition: CellTypeDefinition = {
     description: "",
 }
 
-export const NothingGoesThereDefinition: CellTypeDefinition = {
+const NothingGoesThereDefinition: CellTypeDefinition = {
     cssClass: "NothingGoesThereType",
     description: "Nothing should be here.",
+}
+
+export const CommentDefinition: CellTypeDefinition = {
+    cssClass: "CommentType",
+    description: "Just a comment.",
+    regex: /^(\#|💬)/,
 }
 
 export const DelimitedUrlDefinition = {
@@ -108,6 +114,7 @@ export const AbstractTypeDefinitions = {
     },
     delimitedUrl: DelimitedUrlDefinition,
     nothingGoesThere: NothingGoesThereDefinition,
+    comment: CommentDefinition,
 
     subtableWord: SubTableWordCellTypeDefinition,
     subtableHeaderWord: SubTableHeaderCellTypeDefinition,
