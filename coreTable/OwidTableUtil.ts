@@ -15,6 +15,6 @@ export function getOriginalTimeColumnSlug(
     slug: ColumnSlug
 ): ColumnSlug | undefined {
     const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(slug)
-    if (table.columnSlugs.includes(originalTimeSlug)) return originalTimeSlug
+    if (table.has(originalTimeSlug)) return originalTimeSlug
     return table.timeColumn?.slug
 }
