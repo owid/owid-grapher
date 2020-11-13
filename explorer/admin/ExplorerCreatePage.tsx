@@ -18,6 +18,9 @@ import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
 import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
+
+const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -104,6 +107,14 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         )
         if (!slug) return
         slug = slugify(slug)
+        if (new Set(RESERVED_NAMES).has(slug.toLowerCase())) {
+            alert(
+                `Cannot save as '${slug}' because that is one of the reserved names: ${RESERVED_NAMES.join(
+                    ", "
+                )}`
+            )
+            return
+        }
         await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
         window.location.href = slug
     }
