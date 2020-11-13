@@ -101,15 +101,19 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound private async saveAs() {
-        let slug = prompt(
+        const userSlug = prompt(
             "Create a slug (URL friendly name) for this explorer",
             this.program.slug
         )
-        if (!slug) return
-        slug = slugify(slug)
+        if (!userSlug) return
+        const slug = slugify(userSlug)
+        if (!slug) {
+            alert(`'${slug}' is not a valid slug`)
+            return
+        }
         if (new Set(RESERVED_NAMES).has(slug.toLowerCase())) {
             alert(
-                `Cannot save as '${slug}' because that is one of the reserved names: ${RESERVED_NAMES.join(
+                `Cannot save '${userSlug}' because that is one of the reserved names: ${RESERVED_NAMES.join(
                     ", "
                 )}`
             )

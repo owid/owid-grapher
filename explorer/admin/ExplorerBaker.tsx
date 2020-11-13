@@ -22,6 +22,7 @@ import {
 } from "explorer/client/ExplorerConstants"
 import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
+import { slugify } from "grapher/utils/Util"
 
 const git = simpleGit({
     baseDir: GIT_CMS_DIR,
@@ -74,8 +75,9 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 export const addExplorerAdminRoutes = (app: Router) => {
     // http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/explorers/preview/:slug`, async (req, res) => {
-        const filename = req.params.slug + EXPLORER_FILE_SUFFIX
-        if (!fs.existsSync(EXPLORERS_FOLDER + filename))
+        const slug = slugify(req.params.slug)
+        const filename = slug + EXPLORER_FILE_SUFFIX
+        if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))
             return res.send(`File not found`)
         const explorer = await getExplorerFromFile(EXPLORERS_FOLDER, filename)
         return res.send(
