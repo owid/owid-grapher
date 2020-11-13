@@ -177,7 +177,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
-    dropUnchangedUrlParams?: boolean
     queryStr?: string
     isEmbed?: boolean
     enableKeyboardShortcuts?: boolean
@@ -1916,7 +1915,7 @@ export class Grapher
 
     debounceMode = false
 
-    @computed.struct private get allParams() {
+    @computed.struct get allParams() {
         const params: GrapherQueryParams = {}
         params.tab = this.tab
         params.xScale = this.xAxis.scaleType
@@ -1954,13 +1953,8 @@ export class Grapher
         return undefined
     }
 
-    // If the user changes a param so that it matches the author's original param, we drop it.
-    // However, in the case of explorers, the user might switch graphers, and so we never want to drop
-    // params. This flag turns off dropping of params.
-    @observable dropUnchangedUrlParams = true
-
     @computed get params() {
-        return this.dropUnchangedUrlParams ? this.changedParams : this.allParams
+        return this.changedParams
     }
 
     // If you want to compare current state against the published grapher.

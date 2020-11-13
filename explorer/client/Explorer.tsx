@@ -167,6 +167,7 @@ export class Explorer
 
         if (hasChartId && grapher.id === chartId) return
 
+        this.currentParams = this.paramsForThisGrapher
         const queryStr = grapher.id ? grapher.params : this.initialQueryParams
 
         if (!grapher.slideShow)
@@ -185,7 +186,6 @@ export class Explorer
             ...chartConfig,
             ...trimmedRow,
             hideEntityControls: this.showExplorerControls,
-            dropUnchangedUrlParams: false,
             manuallyProvideData: table ? true : false,
         }
 
@@ -218,16 +218,39 @@ export class Explorer
         this.urlBinding.bindToWindow(this)
     }
 
+    /**
+     * The complicated "currentParams" code here is for situations like the below:
+     *
+     * 1. User lands on page and is shown line chart
+     * 2. User clicks map tab.
+     * 3. User clicks a radio that takes them to a chart where the default tab is map tab.
+     * 4. tab=map should still be in URL, even though the default in #3 is map tab.
+     * 5. So if user clicks a radio to go back to #2, it should bring them back to map tab.
+     *
+     * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
+     */
+    private currentParams: ExplorerQueryParams = {}
     @computed get params() {
         if (!this.grapher) return {}
-        const obj: ExplorerQueryParams = {
+
+        const { currentParams, paramsForThisGrapher } = this
+        return {
+            ...currentParams,
+            ...paramsForThisGrapher,
+        }
+    }
+
+    @computed private get paramsForThisGrapher() {
+        if (!this.grapher) return {}
+
+        return {
+            ...this.currentParams,
             ...this.grapher.params,
             ...this.explorerProgram.decisionMatrix.params,
             selection: this.selectionArray.asParam,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
-        }
-        return obj
+        } as ExplorerQueryParams
     }
 
     @computed get debounceMode() {

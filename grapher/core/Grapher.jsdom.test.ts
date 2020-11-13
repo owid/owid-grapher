@@ -350,19 +350,6 @@ describe("time domain tests", () => {
     })
 })
 
-describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
-    const grapher = new Grapher({
-        xAxis: {
-            scaleType: ScaleType.linear,
-            canChangeScaleType: true,
-        },
-        queryStr: "scaleType=linear",
-    })
-    expect(grapher.params.xScale).toEqual(undefined)
-    grapher.dropUnchangedUrlParams = false
-    expect(grapher.params.xScale).toEqual(ScaleType.linear)
-})
-
 describe("time parameter", () => {
     describe("with years", () => {
         const tests: {
