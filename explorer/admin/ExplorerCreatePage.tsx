@@ -17,6 +17,7 @@ import { Link } from "adminSite/client/Link"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
 import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
+import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -29,6 +30,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         exposeInstanceOnWindow(this, "explorerEditor")
     }
 
+    @observable isReady = false
+
     @action componentWillUnmount() {
         this.context.admin.loadingIndicatorSetting = "default"
     }
@@ -39,6 +42,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         })
         this.sourceOnDisk = response.content || DefaultExplorerProgram
         this.setProgram(this.sourceOnDisk)
+        this.isReady = true
     }
 
     @action.bound private setProgram(code: string) {
@@ -118,6 +122,14 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     render() {
+        if (!this.isReady)
+            return (
+                <AdminLayout title="Create Explorer">
+                    {" "}
+                    <LoadingIndicator />
+                </AdminLayout>
+            )
+
         const { program } = this
         const data = program.toArrays()
 
@@ -188,7 +200,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                                 }
                                 title="Saves file to disk, commits and pushes to GitHub"
                             >
-                                Save
+                                Save and Push
                             </button>
                         ) : (
                             <button className="btn btn-secondary">
@@ -210,7 +222,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             onClick={this.saveAs}
                             title="Saves file to disk, commits and pushes to GitHub"
                         >
-                            Save as
+                            Save As and Push
                         </button>
                         <br />
                     </div>
