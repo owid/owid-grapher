@@ -244,6 +244,13 @@ export class ExplorerProgram {
         return this.getLineValue(ExplorerKeywords.entityType.keyword)
     }
 
+    get pickerColumnSlugs() {
+        const slugs = this.getLineValue(
+            ExplorerKeywords.pickerColumnSlugs.keyword
+        )
+        return slugs ? slugs.split(" ") : undefined
+    }
+
     get defaultView() {
         return this.getLineValue(ExplorerKeywords.defaultView.keyword)
     }

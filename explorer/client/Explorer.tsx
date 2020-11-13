@@ -395,6 +395,8 @@ export class Explorer
     }
 
     @computed get pickerColumnSlugs() {
+        if (this.explorerProgram.pickerColumnSlugs)
+            return this.explorerProgram.pickerColumnSlugs
         const doNotShowThese = new Set([
             ColumnTypeNames.Year,
             ColumnTypeNames.Date,

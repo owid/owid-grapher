@@ -232,6 +232,12 @@ export const ExplorerKeywords = {
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
+    pickerColumnSlugs: {
+        ...SlugsDeclarationCellTypeDefinition,
+        keyword: "pickerColumnSlugs",
+        description:
+            "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
+    },
     table: {
         ...SlugDeclarationCellTypeDefinition,
         keyword: "table",
