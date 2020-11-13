@@ -21,6 +21,7 @@ import {
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
+    imemo,
 } from "coreTable/CoreTableUtils"
 import { getRequiredChartIds } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
@@ -96,12 +97,8 @@ export class ExplorerProgram {
         return this.slug + EXPLORER_FILE_SUFFIX
     }
 
-    static fullPath(slug: string) {
-        return `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
-    }
-
     get fullPath() {
-        return ExplorerProgram.fullPath(this.slug)
+        return makeFullPath(this.slug)
     }
 
     private nodeDelimiter = nodeDelimiter
@@ -135,35 +132,24 @@ export class ExplorerProgram {
 
     getCell(row: number, col: number): ParsedCell {
         return new GridCell(this.matrix, row, col, ExplorerGrammar)
-        // todo: implement cacheing for perf
-        // const line = this.parsedCells[row]
-        // return line ? line[col] ?? {} : {}
     }
 
-    @computed private get parsedCells() {
-        return this.matrix.map((line, lineIndex) =>
-            line.map(
-                (cell, cellIndex) =>
-                    new GridCell(
-                        this.matrix,
-                        lineIndex,
-                        cellIndex,
-                        ExplorerGrammar
-                    )
-            )
-        )
-    }
-
-    @computed private get matrix() {
+    @imemo private get matrix() {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
+    private get clone() {
+        return ExplorerProgram.fromJson(this.toJson())
+    }
+
     private setLineValue(key: string, value: string | undefined) {
-        const index = this.getKeywordIndex(key)
-        const newLine = `${key}${this.cellDelimiter}${value}`
-        if (index === -1 && value !== undefined) this.lines.push(newLine)
-        else if (value === undefined) this.lines = this.lines.splice(index, 1)
-        else this.lines[index] = newLine
+        const { clone } = this
+        const index = clone.getKeywordIndex(key)
+        const newLine = `${key}${clone.cellDelimiter}${value}`
+        if (index === -1 && value !== undefined) clone.lines.push(newLine)
+        else if (value === undefined) clone.lines = clone.lines.splice(index, 1)
+        else clone.lines[index] = newLine
+        return clone
     }
 
     private getBlock(keywordIndex: number) {
@@ -263,8 +249,8 @@ export class ExplorerProgram {
         )
     }
 
-    set isPublished(value: boolean) {
-        this.setLineValue(
+    setPublished(value: boolean) {
+        return this.setLineValue(
             ExplorerKeywords.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
@@ -530,3 +516,6 @@ const makeCheckBoxOptions = (
         },
     ] as ExplorerControlOption[]
 }
+
+export const makeFullPath = (slug: string) =>
+    `explorers/${slug}${EXPLORER_FILE_SUFFIX}`

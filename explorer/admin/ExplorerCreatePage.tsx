@@ -9,7 +9,7 @@ import { Explorer } from "explorer/client/Explorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { ExplorerProgram, makeFullPath } from "explorer/client/ExplorerProgram"
 import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
@@ -41,7 +41,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @action.bound private async fetchExplorerProgramOnLoad() {
         const response = await readRemoteFile({
-            filepath: ExplorerProgram.fullPath(this.props.slug),
+            filepath: makeFullPath(this.props.slug),
         })
         this.sourceOnDisk = response.content || DefaultExplorerProgram
         this.setProgram(this.sourceOnDisk)

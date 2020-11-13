@@ -309,13 +309,13 @@ export class ExplorersIndexPage extends React.Component {
         const explorer = this.explorers.find(
             (exp) => exp.filename === filename
         )!
-        explorer.isPublished = !explorer.isPublished
+        const newVersion = explorer.setPublished(!explorer.isPublished)
 
         this.context.admin.loadingIndicatorSetting = "loading"
         await writeRemoteFile({
-            filepath: explorer.fullPath,
-            content: explorer.toString(),
-            commitMessage: `Setting publish status of ${filename} to ${explorer.isPublished}`,
+            filepath: newVersion.fullPath,
+            content: newVersion.toString(),
+            commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
         })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()
