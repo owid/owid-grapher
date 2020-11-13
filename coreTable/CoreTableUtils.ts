@@ -271,7 +271,7 @@ export function toleranceInterpolation(
         ) {
             nextNonBlankIndex = findIndexFast(
                 valuesSortedByTimeAsc,
-                (val) => isNotErrorValueOrEmptyCell(val),
+                isNotErrorValueOrEmptyCell,
                 index + 1,
                 end
             )
