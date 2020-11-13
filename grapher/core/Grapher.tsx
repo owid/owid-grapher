@@ -745,16 +745,25 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get timeDomain(): TimeBounds {
-        return [
-            // Handle `undefined` values in minTime/maxTime
-            minTimeFromJSON(this.minTime),
-            maxTimeFromJSON(this.maxTime),
-        ]
+        if (this.tab === "map") {
+            const time = maxTimeFromJSON(this.map.time)
+            return [time, time]
+        } else {
+            return [
+                // Handle `undefined` values in minTime/maxTime
+                minTimeFromJSON(this.minTime),
+                maxTimeFromJSON(this.maxTime),
+            ]
+        }
     }
 
     set timeDomain(value: TimeBounds) {
-        this.minTime = value[0]
-        this.maxTime = value[1]
+        if (this.tab === "map") {
+            this.map.time = value[1]
+        } else {
+            this.minTime = value[0]
+            this.maxTime = value[1]
+        }
     }
 
     // Get the dimension slots appropriate for this type of chart
