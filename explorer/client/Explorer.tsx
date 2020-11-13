@@ -167,7 +167,10 @@ export class Explorer
 
         if (hasChartId && grapher.id === chartId) return
 
-        this.currentParams = this.paramsForThisGrapher
+        this.grapherParamsChangedThisSession = {
+            ...this.grapherParamsChangedThisSession,
+            ...grapher.params,
+        }
         const queryStr = grapher.id ? grapher.params : this.initialQueryParams
 
         if (!grapher.slideShow)
@@ -218,8 +221,21 @@ export class Explorer
         this.urlBinding.bindToWindow(this)
     }
 
+    @computed get params() {
+        if (!this.grapher) return {}
+
+        return {
+            ...this.grapherParamsChangedThisSession,
+            ...this.grapher.params,
+            ...this.explorerProgram.decisionMatrix.params,
+            selection: this.selectionArray.asParam,
+            pickerSort: this.entityPickerSort,
+            pickerMetric: this.entityPickerMetric,
+        }
+    }
+
     /**
-     * The complicated "currentParams" code here is for situations like the below:
+     * The complicated code here is for situations like the below:
      *
      * 1. User lands on page and is shown line chart
      * 2. User clicks map tab.
@@ -229,29 +245,7 @@ export class Explorer
      *
      * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
      */
-    private currentParams: ExplorerQueryParams = {}
-    @computed get params() {
-        if (!this.grapher) return {}
-
-        const { currentParams, paramsForThisGrapher } = this
-        return {
-            ...currentParams,
-            ...paramsForThisGrapher,
-        }
-    }
-
-    @computed private get paramsForThisGrapher() {
-        if (!this.grapher) return {}
-
-        return {
-            ...this.currentParams,
-            ...this.grapher.params,
-            ...this.explorerProgram.decisionMatrix.params,
-            selection: this.selectionArray.asParam,
-            pickerSort: this.entityPickerSort,
-            pickerMetric: this.entityPickerMetric,
-        } as ExplorerQueryParams
-    }
+    private grapherParamsChangedThisSession: ExplorerQueryParams = {}
 
     @computed get debounceMode() {
         return this.grapher?.debounceMode
