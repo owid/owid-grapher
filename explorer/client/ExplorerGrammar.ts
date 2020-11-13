@@ -43,6 +43,11 @@ const SwitcherKeywordMap = {
         keyword: "hasMapTab",
         description: "Show the map tab?",
     },
+    hasChartTab: {
+        ...BooleanCellTypeDefinition,
+        keyword: "hasChartTab",
+        description: "Show the chart tab?",
+    },
     ySlugs: {
         ...SlugsDeclarationCellTypeDefinition,
         description: "ColumnSlug(s) for the yAxis",

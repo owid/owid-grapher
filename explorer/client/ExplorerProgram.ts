@@ -23,7 +23,7 @@ import {
     isCellEmpty,
     imemo,
 } from "coreTable/CoreTableUtils"
-import { getRequiredChartIds } from "./ExplorerUtils"
+import { getRequiredGrapherIds } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
 import { GridCell } from "./GridCell"
 import { GridBoolean, ParsedCell } from "./GridGrammarConstants"
@@ -170,8 +170,8 @@ export class ExplorerProgram {
             .join(this.nodeDelimiter)
     }
 
-    get requiredChartIds() {
-        return getRequiredChartIds(this.decisionMatrixCode ?? "")
+    get requiredGrapherIds() {
+        return getRequiredGrapherIds(this.decisionMatrixCode ?? "")
     }
 
     static fromMatrix(slug: string, matrix: CoreMatrix) {
@@ -468,14 +468,26 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         return this.rowsWith(this.toConstrainedOptions())[0]
     }
 
-    @computed get selectedRowIndex() {
+    @computed private get selectedRowIndex() {
         return this.firstMatch === undefined
             ? 0
             : this.table.indexOf(this.firstMatch)
     }
 
     @computed get selectedRow() {
-        return this.table.rowsAt([this.selectedRowIndex])[0]
+        const selectedRow = this.table.rowsAt([this.selectedRowIndex])[0]
+
+        // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
+        const trimmedRow = trimObject(selectedRow, true)
+
+        // parse boolean
+        Object.keys(trimmedRow).forEach((key) => {
+            const value = trimmedRow[key]
+            if (value === GridBoolean.true) trimmedRow[key] = true
+            else if (value === GridBoolean.false) trimmedRow[key] = false
+        })
+
+        return trimmedRow
     }
 
     private toControlOption(

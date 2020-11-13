@@ -53,24 +53,24 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action.bound private setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
-        this.fetchChartConfigs(this.program.requiredChartIds)
+        this.fetchGrapherConfigs(this.program.requiredGrapherIds)
     }
 
-    @action.bound private async fetchChartConfigs(chartIds: number[]) {
-        const missing = chartIds.filter((id) => !this.chartConfigs.has(id))
+    @action.bound private async fetchGrapherConfigs(grapherIds: number[]) {
+        const missing = grapherIds.filter((id) => !this.grapherConfigs.has(id))
         if (!missing.length) return
         const response = await fetch(
-            `/admin/api/charts/explorer-charts.json?chartIds=${chartIds.join(
+            `/admin/api/charts/explorer-charts.json?chartIds=${grapherIds.join(
                 "~"
             )}`
         )
         const configs = await response.json()
         configs.forEach((config: any) =>
-            this.chartConfigs.set(config.id, config)
+            this.grapherConfigs.set(config.id, config)
         )
     }
 
-    @observable chartConfigs: Map<number, GrapherInterface> = new Map()
+    @observable grapherConfigs: Map<number, GrapherInterface> = new Map()
 
     hotTableComponent = React.createRef<HotTable>()
 
@@ -249,7 +249,7 @@ export class ExplorerCreatePage extends React.Component<{
                     </div>
                     <div style={{ height: "300px", overflow: "scroll" }}>
                         <Explorer
-                            chartConfigs={Object.values(this.chartConfigs)}
+                            grapherConfigs={Object.values(this.grapherConfigs)}
                             explorerProgram={program}
                             /**
                              * This ensure a new Explorer is rendered everytime the code changes (more immutable/RAII this way).

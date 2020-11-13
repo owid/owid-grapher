@@ -2,13 +2,13 @@
 
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
 import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
-import { getRequiredChartIds } from "./ExplorerUtils"
+import { getRequiredGrapherIds } from "./ExplorerUtils"
 import { CommentDefinition, GridBoolean } from "./GridGrammarConstants"
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)
     it("gets the required chart ids", () => {
-        expect(program.requiredChartIds).toEqual([35])
+        expect(program.requiredGrapherIds).toEqual([35])
     })
 
     it("gets code", () => {
@@ -22,7 +22,7 @@ switcher
 \t35\tInternet
 
 \t46\tMobile`
-        expect(new ExplorerProgram("test", code).requiredChartIds).toEqual([
+        expect(new ExplorerProgram("test", code).requiredGrapherIds).toEqual([
             35,
             46,
         ])
@@ -72,12 +72,24 @@ describe(DecisionMatrix, () => {
         expect(options.toObject().indicator).toEqual("GDP")
     })
 
+    it("parses booleans", () => {
+        expect(options.selectedRow.perCapita).toEqual(false)
+    })
+
     it("it can get all options", () => {
         expect(options.allOptionsAsQueryStrings().length).toBe(7)
     })
 
     it("can detect needed chart configs", () => {
-        expect(getRequiredChartIds(code)).toEqual([21, 24, 26, 29, 33, 55, 56])
+        expect(getRequiredGrapherIds(code)).toEqual([
+            21,
+            24,
+            26,
+            29,
+            33,
+            55,
+            56,
+        ])
     })
 
     it("can detect unavailable options", () => {

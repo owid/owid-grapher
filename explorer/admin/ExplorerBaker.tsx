@@ -152,13 +152,13 @@ const bakeExplorersToDir = async (
 }
 
 // todo: can we remove this sort of thing?
-const makeInlineJs = (program: ExplorerProgram, chartConfigs: any[]) => {
+const makeInlineJs = (program: ExplorerProgram, grapherConfigs: any[]) => {
     const props: ExplorerProps = {
         bindToWindow: true,
         slug: program.slug,
         lastCommit: program.lastCommit,
         program: program.toString(),
-        chartConfigs: chartConfigs.map((row) => {
+        grapherConfigs: grapherConfigs.map((row) => {
             const config = JSON.parse(row.config)
             config.id = row.id // Ensure each grapher has an id
             return config
@@ -174,12 +174,12 @@ export const renderExplorerPage = async (
     lastCommit?: GitCommit
 ) => {
     const program = new ExplorerProgram(slug, code, lastCommit)
-    const { requiredChartIds } = program
-    let chartConfigs: any[] = []
-    if (requiredChartIds.length)
-        chartConfigs = await db.query(
+    const { requiredGrapherIds } = program
+    let grapherConfigs: any[] = []
+    if (requiredGrapherIds.length)
+        grapherConfigs = await db.query(
             `SELECT id, config FROM charts WHERE id IN (?)`,
-            [requiredChartIds]
+            [requiredGrapherIds]
         )
 
     const wpContent = program.wpBlockId
@@ -194,7 +194,7 @@ export const renderExplorerPage = async (
             subnavId={program.subNavId}
             subnavCurrentId={program.subNavCurrentId}
             preloads={[]}
-            inlineJs={makeInlineJs(program, chartConfigs)}
+            inlineJs={makeInlineJs(program, grapherConfigs)}
             hideAlertBanner={program.hideAlertBanner}
             wpContent={wpContent}
         />

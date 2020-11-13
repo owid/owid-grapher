@@ -66,7 +66,7 @@ export const SampleExplorer = () => {
             },
         },
     }
-    const chartConfigs: GrapherProgrammaticInterface[] = [
+    const grapherConfigs: GrapherProgrammaticInterface[] = [
         first,
         {
             ...first,
@@ -78,7 +78,7 @@ export const SampleExplorer = () => {
         <Explorer
             slug="test-slug"
             program={SampleExplorerProgram}
-            chartConfigs={chartConfigs}
+            grapherConfigs={grapherConfigs}
         />
     )
 }

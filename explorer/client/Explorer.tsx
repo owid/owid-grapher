@@ -51,7 +51,7 @@ import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 
 export interface ExplorerProps extends SerializedExplorerProgram {
     explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
-    chartConfigs?: GrapherInterface[]
+    grapherConfigs?: GrapherInterface[]
     bindToWindow?: boolean
     queryString?: string
     isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
@@ -102,11 +102,11 @@ export class Explorer
         this.explorerProgram.entityType
     )
 
-    @computed get chartConfigs() {
-        const arr = this.props.chartConfigs || []
-        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
-        arr.forEach((config) => chartConfigsMap.set(config.id!, config))
-        return chartConfigsMap
+    @computed get grapherConfigs() {
+        const arr = this.props.grapherConfigs || []
+        const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
+        arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
+        return grapherConfigsMap
     }
 
     @observable.ref grapher?: Grapher
@@ -162,10 +162,11 @@ export class Explorer
     @action.bound private updateGrapher(selectedRow: CoreRow) {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
-        const { chartId, table } = selectedRow
-        const hasChartId = isNotErrorValue(chartId)
+        // todo: rename chartId to grapherId
+        const { chartId, table, yScaleToggle } = selectedRow
+        const hasGrapherId = chartId && isNotErrorValue(chartId)
 
-        if (hasChartId && grapher.id === chartId) return
+        if (hasGrapherId && grapher.id === chartId) return
 
         this.grapherParamsChangedThisSession = {
             ...this.grapherParamsChangedThisSession,
@@ -180,22 +181,21 @@ export class Explorer
                 this
             )
 
-        const chartConfig = hasChartId ? this.chartConfigs.get(chartId)! : {}
-
-        // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
-        const trimmedRow = trimObject(selectedRow, true)
+        const grapherConfig = hasGrapherId
+            ? this.grapherConfigs.get(chartId)!
+            : {}
 
         const config: GrapherProgrammaticInterface = {
-            ...chartConfig,
-            ...trimmedRow,
+            ...grapherConfig,
+            ...selectedRow,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: table ? true : false,
         }
 
-        if (selectedRow.yScaleToggle === GridBoolean.true)
-            grapher.yAxis.canChangeScaleType = true
-        else if (selectedRow.yScaleToggle === GridBoolean.false)
-            grapher.yAxis.canChangeScaleType = false
+        grapher.yAxis.canChangeScaleType = trueFalseOrDefault(
+            yScaleToggle,
+            grapher.yAxis.canChangeScaleType
+        )
 
         grapher.hasError = false
 
@@ -205,7 +205,7 @@ export class Explorer
         grapher.inputTable = this.getTable(table)
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
-        if (!hasChartId) grapher.id = 0
+        if (!hasGrapherId) grapher.id = 0
     }
 
     @action.bound setSlide(queryString: string) {
@@ -432,3 +432,10 @@ export class Explorer
         return this.grapher?.newSlugs ?? []
     }
 }
+
+const trueFalseOrDefault = (val: any, defaultValue: any) =>
+    val === GridBoolean.true
+        ? true
+        : val === GridBoolean.false
+        ? false
+        : defaultValue
