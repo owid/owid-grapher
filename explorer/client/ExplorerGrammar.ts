@@ -10,13 +10,13 @@ import {
     UrlCellTypeDefinition,
     SubTableHeaderCellTypeDefinition,
     DelimitedUrlDefinition,
-    IntCellTypeDefinition,
+    IntegerCellTypeDefinition,
     SlugsDeclarationCellTypeDefinition,
 } from "./GridGrammarConstants"
 
 const SwitcherKeywordMap = {
     chartId: {
-        ...IntCellTypeDefinition,
+        ...IntegerCellTypeDefinition,
         description: "ID of the Grapher to load",
         keyword: "slug",
     },
@@ -68,6 +68,12 @@ const SwitcherKeywordMap = {
         description:
             "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
+    },
+    backgroundSeriesLimit: {
+        ...IntegerCellTypeDefinition,
+        description:
+            "Set this to limit the number of background series shown on ScatterPlots.",
+        keyword: "backgroundSeriesLimit",
     },
     table: {
         ...SlugDeclarationCellTypeDefinition,

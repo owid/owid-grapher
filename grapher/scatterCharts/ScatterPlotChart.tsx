@@ -17,6 +17,7 @@ import {
     first,
     cagr,
     dropWhile,
+    sampleFrom,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -81,14 +82,39 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable) {
-        if (this.manager.excludedEntities) {
-            const excludedEntityIdsSet = new Set(this.manager.excludedEntities)
+        const { backgroundSeriesLimit, excludedEntities } = this.manager
+        if (excludedEntities) {
+            const excludedEntityIdsSet = new Set(excludedEntities)
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
                 (entityId) => !excludedEntityIdsSet.has(entityId as number),
-                `Excluded entity ids specified by author: ${this.manager.excludedEntities.join(
+                `Excluded entity ids specified by author: ${excludedEntities.join(
                     ", "
                 )}`
+            )
+        }
+
+        // Allow authors to limit the # of background entities to get better perf and clearer charts.
+        if (backgroundSeriesLimit) {
+            const selectedSeriesNames = new Set<SeriesName>(
+                this.selectionArray.selectedEntityNames
+            )
+            // Todo: implement a better strategy for picking the entities to show for context. Maybe a couple per decile?
+            const backgroundSeriesNames = new Set<SeriesName>(
+                sampleFrom(
+                    table.availableEntityNames.filter(
+                        (name) => !selectedSeriesNames.has(name)
+                    ),
+                    backgroundSeriesLimit,
+                    123
+                )
+            )
+            table = table.columnFilter(
+                table.entityNameSlug,
+                (name) =>
+                    selectedSeriesNames.has(name as string) ||
+                    backgroundSeriesNames.has(name as string),
+                `Capped background series at ${backgroundSeriesLimit}`
             )
         }
 

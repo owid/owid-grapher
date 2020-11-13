@@ -23,6 +23,7 @@ export interface ScatterPlotManager extends ChartManager {
     xOverrideTime?: Time | undefined
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
     excludedEntities?: EntityId[]
+    backgroundSeriesLimit?: number
     hideLinesOutsideTolerance?: boolean
     startTime?: Time
     endTime?: Time

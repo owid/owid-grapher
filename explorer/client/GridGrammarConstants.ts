@@ -48,8 +48,8 @@ export const StringCellTypeDefinition: CellTypeDefinition = {
     description: "",
 }
 
-export const IntCellTypeDefinition: CellTypeDefinition = {
-    cssClass: "IntCellType",
+export const IntegerCellTypeDefinition: CellTypeDefinition = {
+    cssClass: "IntegerCellType",
     description: "",
     regex: /^[0-9]+$/,
     requirements: `Must be an integer`,

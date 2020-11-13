@@ -267,6 +267,7 @@ export class Grapher
     @observable colorSlug?: ColumnSlug = undefined
     @observable sizeSlug?: ColumnSlug = undefined
     @observable tableSlugs?: ColumnSlugs = undefined
+    @observable backgroundSeriesLimit?: number = undefined
 
     @observable selectedEntityNames: EntityName[] = []
     @observable selectedEntityIds: EntityId[] = []
