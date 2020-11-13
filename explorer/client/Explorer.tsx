@@ -221,7 +221,7 @@ export class Explorer
         this.urlBinding.bindToWindow(this)
     }
 
-    @computed get params() {
+    @computed get params(): ExplorerQueryParams {
         if (!this.grapher) return {}
 
         return {
