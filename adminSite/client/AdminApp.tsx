@@ -85,13 +85,16 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 }
 
 @observer
-export class AdminApp extends React.Component<{ admin: Admin }> {
+export class AdminApp extends React.Component<{
+    admin: Admin
+    gitCmsBranchName: string
+}> {
     get childContext() {
         return { admin: this.props.admin }
     }
 
     render() {
-        const { admin } = this.props
+        const { admin, gitCmsBranchName } = this.props
 
         return (
             <AdminAppContext.Provider value={this.childContext}>
@@ -138,6 +141,7 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 render={({ match }) => (
                                     <ExplorerCreatePage
                                         slug={match.params.slug}
+                                        gitCmsBranchName={gitCmsBranchName}
                                     />
                                 )}
                             />

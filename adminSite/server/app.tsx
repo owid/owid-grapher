@@ -24,6 +24,8 @@ import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 import * as React from "react"
 import { publicApiRouter } from "./publicApiRouter"
 import { mockSiteRouter } from "./mockSiteRouter"
+import simpleGit from "simple-git"
+import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 
 const app = express()
 
@@ -53,13 +55,27 @@ app.use("/admin/build", express.static("dist/webpack"))
 app.use("/admin/storybook", express.static(".storybook/build"))
 app.use("/admin", adminRouter)
 
+const getGitCmsBranchName = async () => {
+    const git = simpleGit({
+        baseDir: GIT_CMS_DIR,
+        binary: "git",
+        maxConcurrentProcesses: 1,
+    })
+    const branches = await git.branchLocal()
+    const gitCmsBranchName = await branches.current
+    return gitCmsBranchName
+}
+
+let gitCmsBranchName: string
 // Default route: single page admin app
-app.get("/admin/*", (req, res) => {
+app.get("/admin/*", async (req, res) => {
+    if (!gitCmsBranchName) gitCmsBranchName = await getGitCmsBranchName()
     res.send(
         renderToHtmlPage(
             <IndexPage
                 username={res.locals.user.fullName}
                 isSuperuser={res.locals.user.isSuperuser}
+                gitCmsBranchName={gitCmsBranchName}
             />
         )
     )

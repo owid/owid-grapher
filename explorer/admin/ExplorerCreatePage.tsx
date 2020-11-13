@@ -23,7 +23,10 @@ import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
 @observer
-export class ExplorerCreatePage extends React.Component<{ slug: string }> {
+export class ExplorerCreatePage extends React.Component<{
+    slug: string
+    gitCmsBranchName: string
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -136,6 +139,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         return this.sourceOnDisk !== this.program.toString()
     }
 
+    @observable gitCmsBranchName = this.props.gitCmsBranchName
+
     render() {
         if (!this.isReady)
             return (
@@ -216,7 +221,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                                 title="Saves file to disk, commits and pushes to GitHub"
                             >
                                 {program.isNewFile ? `Save New File` : `Save`}{" "}
-                                and Push
+                                and Push to {this.props.gitCmsBranchName}
                             </button>
                         ) : (
                             <button className="btn btn-secondary">
@@ -238,7 +243,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             onClick={this.saveAs}
                             title="Saves file to disk, commits and pushes to GitHub"
                         >
-                            Save As and Push
+                            Save As and Push to {this.props.gitCmsBranchName}
                         </button>
                         <br />
                     </div>
