@@ -205,7 +205,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             zIndex: 2,
                         }}
                     >
-                        {this.isModified ? (
+                        {this.isModified || program.isNewFile ? (
                             <button
                                 className="btn btn-primary"
                                 onClick={() =>
@@ -215,7 +215,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                                 }
                                 title="Saves file to disk, commits and pushes to GitHub"
                             >
-                                Save and Push
+                                {program.isNewFile ? `Save New File` : `Save`}{" "}
+                                and Push
                             </button>
                         ) : (
                             <button className="btn btn-secondary">
