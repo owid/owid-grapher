@@ -181,6 +181,12 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
         explorerQueryStr:
             "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
     },
+    {
+        id: 4490,
+        slugs: ["daily-covid-cases-7-day", "daily-covid-cases-7-day-average"],
+        explorerQueryStr:
+            "zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc",
+    },
 ].map((redirect) => ({
     ...redirect,
     // Ensure all have hideControls=true, unless specified otherwise.
