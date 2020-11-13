@@ -1,6 +1,6 @@
 import { imemo } from "coreTable/CoreTableUtils"
 import { isPresent } from "grapher/utils/Util"
-import { isBlankLine, isEmpty } from "./GrammarUtils"
+import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
     CellCoordinate,
     CellLink,
@@ -134,18 +134,24 @@ export class GridCell implements ParsedCell {
         if (!this.line) return ""
         const { cellTypeDefinition, value, options } = this
         const { regex, requirements, catchAllKeyword } = cellTypeDefinition
+        const catchAllKeywordRegex = catchAllKeyword?.regex
 
         if (value === undefined || value === "") return ""
 
-        if (options && options.includes(value)) return ""
+        if (options) {
+            if (options.includes(value)) return ""
+
+            const guess = didYouMean(value, options)
+            if (guess) return `Did you mean '${guess}'?`
+        }
 
         if (regex) return validate(value, regex, requirements)
 
-        if (catchAllKeyword?.regex)
+        if (catchAllKeywordRegex)
             return validate(
                 value,
-                catchAllKeyword.regex,
-                catchAllKeyword.requirements
+                catchAllKeywordRegex,
+                catchAllKeyword!.requirements
             )
 
         if (options)
