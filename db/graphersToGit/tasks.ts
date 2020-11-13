@@ -13,6 +13,7 @@ import { ChartTypeName } from "grapher/core/GrapherConstants"
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
 const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"
+const GRAPHER_COLOR_SCALES_LOCATION = __dirname + "/graphers-colorscales.json"
 
 const rawGraphers = () =>
     Object.values(
@@ -88,6 +89,25 @@ const graphersWithMapVariableIdsButNoMatchingDimension = async () => {
         }
     }, trimmedGraphers())
     console.log(JSON.stringify(hits, null, 2), hits.length)
+}
+
+const dumpColorScales = async () => {
+    const hits: any[] = []
+    eachGrapher((config) => {
+        const { colorScale, map } = config
+
+        hits.push({
+            link: `https://ourworldindata.org/grapher/${config.slug}`,
+            id: config.id,
+            colorScale,
+            mapColorScale: map?.colorScale,
+        })
+    }, trimmedGraphers())
+    fs.writeFileSync(
+        GRAPHER_COLOR_SCALES_LOCATION,
+        JSON.stringify(hits, null, 2),
+        "utf8"
+    )
 }
 
 // This spits out a report with the graphers where an entity is selected in one variable but not the other.
@@ -174,6 +194,7 @@ const tasks = [
     dumpGraphers,
     dumpComplexSelections,
     graphersWithMapVariableIdsButNoMatchingDimension,
+    dumpColorScales,
 ]
 
 main()
