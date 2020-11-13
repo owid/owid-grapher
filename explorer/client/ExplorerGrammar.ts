@@ -63,6 +63,12 @@ const SwitcherKeywordMap = {
         description: "ColumnSlug for the size of points on scatters",
         keyword: "sizeSlug",
     },
+    tableSlugs: {
+        ...SlugsDeclarationCellTypeDefinition,
+        description:
+            "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
+        keyword: "tableSlugs",
+    },
     table: {
         ...SlugDeclarationCellTypeDefinition,
         description: "Slug of the table to use.",

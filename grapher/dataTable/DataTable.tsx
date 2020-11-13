@@ -63,7 +63,7 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     minPopulationFilter?: number
-    dataTableColumnSlugsToShow?: ColumnSlug[]
+    dataTableSlugs?: ColumnSlug[]
 }
 
 @observer
@@ -428,15 +428,15 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get columnsToShow() {
-        if (this.manager.dataTableColumnSlugsToShow?.length) {
-            return this.manager.dataTableColumnSlugsToShow
-                .map((slug) => {
+        const slugs = this.manager.dataTableSlugs ?? []
+        if (slugs.length)
+            return slugs
+                .map((slug: string) => {
                     const col = this.table.get(slug)
                     if (!col) console.log(`Warning: column '${slug}' not found`)
                     return col
                 })
                 .filter((col) => col)
-        }
 
         const skips = new Set(Object.keys(OwidTableSlugs))
         return this.table.columnsAsArray.filter(

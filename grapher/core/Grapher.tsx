@@ -266,6 +266,7 @@ export class Grapher
     @observable xSlug?: ColumnSlug = undefined
     @observable colorSlug?: ColumnSlug = undefined
     @observable sizeSlug?: ColumnSlug = undefined
+    @observable tableSlugs?: ColumnSlugs = undefined
 
     @observable selectedEntityNames: EntityName[] = []
     @observable selectedEntityIds: EntityId[] = []
@@ -290,6 +291,10 @@ export class Grapher
     @observable.ref private legacyConfigAsAuthored: Partial<
         LegacyGrapherInterface
     > = {}
+
+    @computed get dataTableSlugs(): ColumnSlug[] {
+        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    }
 
     /**
      * todo: factor this out and make more RAII.
@@ -885,8 +890,6 @@ export class Grapher
     @computed get overlayTab() {
         return this.overlay
     }
-
-    @observable.ref dataTableColumnSlugsToShow: ColumnSlug[] = []
 
     @computed get currentTab() {
         return this.overlay ? this.overlay : this.tab
