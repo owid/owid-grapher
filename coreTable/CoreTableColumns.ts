@@ -639,7 +639,7 @@ class RelativePercentageColumn extends PercentageColumn {}
 
 class PercentChangeOverTimeColumn extends PercentageColumn {
     formatValue(value: number) {
-        return "+" + super.formatValue(value)
+        return `${value > 0 ? "+" : ""}${super.formatValue(value)}`
     }
 }
 
