@@ -73,6 +73,9 @@ export class ExplorerProgram {
         this.lastCommit = lastCommit
     }
 
+    private static guids = 0
+    guid = ++ExplorerProgram.guids
+
     lastCommit?: GitCommit
     slug: string
     decisionMatrix: DecisionMatrix
@@ -95,6 +98,13 @@ export class ExplorerProgram {
 
     get filename() {
         return this.slug + EXPLORER_FILE_SUFFIX
+    }
+
+    initDecisionMatrix(queryStr = "") {
+        this.decisionMatrix.setValuesFromQueryString(
+            queryStr || this.defaultView
+        )
+        return this
     }
 
     get fullPath() {

@@ -83,14 +83,9 @@ export class Explorer
 
     private urlBinding?: UrlBinder
 
-    @computed private get explorerProgram() {
-        const program =
-            this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
-        program.decisionMatrix.setValuesFromQueryString(
-            this.props.queryString || program.defaultView
-        )
-        return program
-    }
+    explorerProgram = (
+        this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
+    ).initDecisionMatrix(this.props.queryString)
 
     private initialQueryParams = strToQueryParams(
         this.props.queryString || this.explorerProgram.defaultView

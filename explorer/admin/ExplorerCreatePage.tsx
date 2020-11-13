@@ -246,6 +246,15 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         <Explorer
                             chartConfigs={Object.values(this.chartConfigs)}
                             explorerProgram={program}
+                            /**
+                             * This ensure a new Explorer is rendered everytime the code changes (more immutable/RAII this way).
+                             *
+                             * Perf isn't so critical here in the editor, and when guid changes that means we are changing the very code that makes this Explorer, so
+                             * throwing out the old one and forcing React to re-render a completely new one is probably the right design anyway.
+                             *
+                             * We may want to revisit later but for now seems to work.
+                             * */
+                            key={program.guid}
                             program={""}
                             slug={""}
                         />
