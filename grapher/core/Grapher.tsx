@@ -1301,7 +1301,11 @@ export class Grapher
 
     @computed get canToggleRelativeMode() {
         if (this.isLineChart)
-            return !this.hideRelativeToggle && !this.areHandlesOnSameTime
+            return (
+                !this.hideRelativeToggle &&
+                !this.areHandlesOnSameTime &&
+                this.yScaleType !== ScaleType.log
+            )
         return !this.hideRelativeToggle
     }
 
