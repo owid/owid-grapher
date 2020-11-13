@@ -143,6 +143,32 @@ france,Life expectancy`
         expect(options.choicesWithAvailability.length).toEqual(0)
     })
 
+    describe("checkboxes", () => {
+        it("supports checkboxes with available options", () => {
+            const options = new DecisionMatrix(`chartId,PerCapita Checkbox
+488,true
+4331,false`)
+            expect(
+                options.choicesWithAvailability[0].options[0].available
+            ).toEqual(true)
+            expect(
+                options.choicesWithAvailability[0].options[0].checked
+            ).toEqual(true)
+        })
+
+        it("supports checkboxes with no available options", () => {
+            const options = new DecisionMatrix(`chartId,PerCapita Checkbox
+488,true
+4331,true`)
+            expect(
+                options.choicesWithAvailability[0].options[0].available
+            ).toEqual(false)
+            expect(
+                options.choicesWithAvailability[0].options[0].checked
+            ).toEqual(true)
+        })
+    })
+
     it("marks a radio as checked if its the only option", () => {
         const options = new DecisionMatrix(
             `chartId,Gas Radio,Accounting Radio

@@ -58,26 +58,25 @@ export class ExplorerControlPanel extends React.Component<{
         index: number
     ) {
         const { title, name, comment, explorerSlug, type, value } = this.props
+        const { available, label, checked } = option
         const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
-            ? option.checked
+            ? checked
                 ? GridBoolean.false
                 : GridBoolean.true
             : option.value
         const currentValue = isCheckbox
-            ? option.checked
+            ? checked
                 ? GridBoolean.true
                 : GridBoolean.false
             : value
-        const checked = !!(option.available && option.checked)
+        const isChecked = !!(available && checked)
         return (
             <div key={index} className="ControlOption">
                 <label
                     className={[
-                        option.checked ? "SelectedOption" : "Option",
-                        option.available
-                            ? "AvailableOption"
-                            : "UnavailableOption",
+                        checked ? "SelectedOption" : "Option",
+                        available ? "AvailableOption" : "UnavailableOption",
                     ].join(" ")}
                     data-track-note={`${explorerSlug ?? "explorer"}-click-${(
                         title ?? name
@@ -89,17 +88,17 @@ export class ExplorerControlPanel extends React.Component<{
                                 this.props.onChange(onChangeValue)
                         }}
                         type={isCheckbox ? "checkbox" : "radio"}
-                        disabled={!option.available}
+                        disabled={!available}
                         name={name}
-                        checked={checked}
+                        checked={isChecked}
                         value={currentValue}
                     />{" "}
-                    {option.label}
+                    {label}
                     {comment && (
                         <div
                             className={[
                                 "comment",
-                                option.available
+                                available
                                     ? "AvailableOption"
                                     : "UnavailableOption",
                             ].join(" ")}

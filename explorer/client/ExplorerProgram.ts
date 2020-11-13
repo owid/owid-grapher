@@ -506,7 +506,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
                 value,
                 options:
                     type === ExplorerControlType.Checkbox
-                        ? makeCheckBoxOptions(options, title)
+                        ? makeCheckBoxOption(options, title)
                         : options,
             }
         })
@@ -517,21 +517,24 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 }
 
-const makeCheckBoxOptions = (
+const makeCheckBoxOption = (
     options: ExplorerControlOption[],
     choiceName: string
 ) => {
-    const checked = options.find(
+    const checked = options.some(
         (option) => option.checked === true && option.label === GridBoolean.true
     )
+    const available =
+        new Set(options.filter((opt) => opt.available).map((opt) => opt.label))
+            .size === 2
     return [
         {
             label: choiceName,
             checked,
             value: GridBoolean.true,
-            available: options.length > 1,
-        },
-    ] as ExplorerControlOption[]
+            available,
+        } as ExplorerControlOption,
+    ]
 }
 
 export const makeFullPath = (slug: string) =>
