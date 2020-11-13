@@ -72,7 +72,6 @@ const OUTSIDE_PADDING = 15
 const PADDING_BELOW_HEADER = 18
 const CONTROLS_ROW_HEIGHT = 36
 const PADDING_ABOVE_FOOTER = 25
-const EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART = 15 // Todo: should this be in SlopeChart class?
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
@@ -124,14 +123,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
-        const paddingBelowHeader = this.isMapTab ? 0 : PADDING_BELOW_HEADER
-        const bounds = new Bounds(0, 0, this.bounds.width, this.chartHeight)
+        return new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
-            .padTop(paddingBelowHeader)
+            .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
             .padBottom(OUTSIDE_PADDING)
-        if (this.manager.type === ChartTypeName.SlopeChart)
-            return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
-        return bounds
     }
 
     renderChart() {
@@ -318,14 +313,10 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
-        const paddingBelowHeader = this.isMapTab ? 0 : PADDING_BELOW_HEADER
-        const bounds = this.paddedBounds
+        return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
-            .padTop(paddingBelowHeader)
-        if (this.manager.type === ChartTypeName.SlopeChart)
-            return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
-        return bounds
+            .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
     }
 
     render() {
