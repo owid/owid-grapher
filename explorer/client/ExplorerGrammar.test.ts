@@ -2,7 +2,7 @@
 
 import { GridCell } from "./GridCell"
 import { tsvToMatrix } from "./ExplorerUtils"
-import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
+import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
 import { FrontierCellClass } from "./GridGrammarConstants"
 
 describe(GridCell, () => {
@@ -25,7 +25,7 @@ describe(GridCell, () => {
             0,
             ExplorerGrammar
         )
-        expect(cell.comment).toContain(ExplorerKeywords.title.description)
+        expect(cell.comment).toContain(ExplorerRootKeywordMap.title.description)
     })
 
     it("can insert a css class to show the user a + button", () => {

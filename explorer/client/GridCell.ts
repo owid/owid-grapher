@@ -4,27 +4,30 @@ import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
     CellCoordinate,
     CellLink,
-    CellTypeDefinition,
+    CellDef,
     ErrorCellTypeClass,
     MatrixLine,
     MatrixProgram,
     KeywordMap,
     FrontierCellClass,
     ParsedCell,
-    AbstractTypeDefinitions,
-    CommentDefinition,
+    CommentCellDef,
+    SubTableHeaderCellDef,
+    SubTableValueCellDef,
+    WorkInProgressCellDef,
+    NothingGoesThereCellDef,
 } from "./GridGrammarConstants"
 
 export class GridCell implements ParsedCell {
     private row: CellCoordinate
     private column: CellCoordinate
     private matrix: MatrixProgram
-    private rootDefinition: CellTypeDefinition
+    private rootDefinition: CellDef
     constructor(
         matrix: MatrixProgram,
         row: CellCoordinate,
         column: CellCoordinate,
-        rootDefinition: CellTypeDefinition
+        rootDefinition: CellDef
     ) {
         this.row = row
         this.column = column
@@ -42,15 +45,14 @@ export class GridCell implements ParsedCell {
 
     private get isCommentCellType() {
         const { value } = this
-        return value && CommentDefinition.regex!.test(value)
+        return value && CommentCellDef.regex!.test(value)
     }
 
-    private get cellTerminalTypeDefinition(): CellTypeDefinition | undefined {
+    private get cellTerminalTypeDefinition(): CellDef | undefined {
         const { rootDefinition } = this
-        if (this.isCommentCellType) return CommentDefinition
+        if (this.isCommentCellType) return CommentCellDef
         const keywordMap = (rootDefinition.keywordMap as unknown) as KeywordMap
-        if (this.column === 0)
-            return (rootDefinition as unknown) as CellTypeDefinition
+        if (this.column === 0) return (rootDefinition as unknown) as CellDef
         const firstWordOnLine = this.line ? this.line[0] : undefined
         const isFirstWordAKeyword =
             firstWordOnLine && keywordMap[firstWordOnLine] !== undefined
@@ -63,17 +65,17 @@ export class GridCell implements ParsedCell {
         const def = keywordMap[firstWordOnLine!]
         const cellTypeDef = def.rest && def.rest[this.column - 2]
         if (cellTypeDef) return cellTypeDef
-        return AbstractTypeDefinitions.nothingGoesThere
+        return NothingGoesThereCellDef
     }
 
-    @imemo private get cellTypeDefinition(): CellTypeDefinition {
+    @imemo private get cellTypeDefinition(): CellDef {
         const def = this.cellTerminalTypeDefinition
         if (def) return def
 
         const subTable = this.subTableParseResults?.def
-        if (subTable) return (subTable as unknown) as CellTypeDefinition
+        if (subTable) return (subTable as unknown) as CellDef
 
-        return AbstractTypeDefinitions.wip
+        return WorkInProgressCellDef
     }
 
     @imemo private get subTableParseResults() {
@@ -87,9 +89,8 @@ export class GridCell implements ParsedCell {
             if (parentKeyword) {
                 const subTableDef = (this.rootDefinition.keywordMap as any)[
                     parentKeyword
-                ] as CellTypeDefinition
-                if (!subTableDef || !subTableDef.headerCellType)
-                    return undefined
+                ] as CellDef
+                if (!subTableDef || !subTableDef.headerCellDef) return undefined
                 const isHeaderValue = this.row === start && this.value
                 const isFrontierCell = this.isSubtTableFrontierCell(
                     start,
@@ -100,9 +101,8 @@ export class GridCell implements ParsedCell {
                     isHeaderValue,
                     def:
                         isHeaderValue || isFrontierCell
-                            ? subTableDef.headerCellType ??
-                              AbstractTypeDefinitions.subtableHeaderWord
-                            : AbstractTypeDefinitions.subtableWord,
+                            ? subTableDef.headerCellDef ?? SubTableHeaderCellDef
+                            : SubTableValueCellDef,
                 }
             }
             start--
@@ -119,12 +119,9 @@ export class GridCell implements ParsedCell {
      * Then consider is a "frontier cell"
      *
      */
-    private isSubtTableFrontierCell(
-        start: number,
-        subTableDef: CellTypeDefinition
-    ) {
+    private isSubtTableFrontierCell(start: number, subTableDef: CellDef) {
         const { line, column, row } = this
-        const keywordMap = subTableDef.headerCellType!.keywordMap
+        const keywordMap = subTableDef.headerCellDef!.keywordMap
         const isToTheImmediateRightOfLastFullCell =
             line && trimArray(line).length === column
         return (
@@ -221,11 +218,11 @@ export class GridCell implements ParsedCell {
 
     get options() {
         const { cellTypeDefinition } = this
-        const { keywordMap, headerCellType } = cellTypeDefinition
+        const { keywordMap, headerCellDef } = cellTypeDefinition
         return keywordMap
             ? Object.keys(keywordMap)
-            : headerCellType
-            ? Object.keys(headerCellType.keywordMap!)
+            : headerCellDef
+            ? Object.keys(headerCellDef.keywordMap!)
             : cellTypeDefinition.options
     }
 }

@@ -3,7 +3,7 @@
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
 import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
-import { CommentDefinition, GridBoolean } from "./GridGrammarConstants"
+import { CommentCellDef, GridBoolean } from "./GridGrammarConstants"
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)
@@ -35,13 +35,13 @@ switcher
 \t\t💬 another comment starting with a 💬 `
         )
         expect(program.getCell(0, 0).cssClasses).toContain(
-            CommentDefinition.cssClass
+            CommentCellDef.cssClass
         )
         expect(program.getCell(1, 1).cssClasses).not.toContain(
-            CommentDefinition.cssClass
+            CommentCellDef.cssClass
         )
         expect(program.getCell(1, 2).cssClasses).toContain(
-            CommentDefinition.cssClass
+            CommentCellDef.cssClass
         )
     })
 

@@ -3,35 +3,37 @@ import { AvailableTransforms } from "coreTable/Transforms"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import {
-    CellTypeDefinition,
-    BooleanCellTypeDefinition,
-    SlugDeclarationCellTypeDefinition,
-    StringCellTypeDefinition,
-    UrlCellTypeDefinition,
-    SubTableHeaderCellTypeDefinition,
-    DelimitedUrlDefinition,
-    IntegerCellTypeDefinition,
-    SlugsDeclarationCellTypeDefinition,
+    CellDef,
+    BooleanCellDef,
+    SlugDeclarationCellDef,
+    StringCellDef,
+    UrlCellDef,
+    SubTableHeaderCellDef,
+    DelimitedUrlCellDef,
+    IntegerCellDef,
+    SlugsDeclarationCellDef,
+    KeywordMap,
 } from "./GridGrammarConstants"
+import { OwidDatasets } from "./OwidDatasets"
 
-const SwitcherKeywordMap = {
+const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
     chartId: {
-        ...IntegerCellTypeDefinition,
+        ...IntegerCellDef,
         description: "ID of the Grapher to load",
         keyword: "slug",
     },
     title: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "title",
         description: "Chart title",
     },
     subtitle: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "subtitle",
         description: "Chart subtitle",
     },
     type: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "type",
         description: `The type of chart to show. Options are ${Object.values(
             ChartTypeName
@@ -39,184 +41,185 @@ const SwitcherKeywordMap = {
         options: Object.values(ChartTypeName),
     },
     hasMapTab: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "hasMapTab",
         description: "Show the map tab?",
     },
     hasChartTab: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "hasChartTab",
         description: "Show the chart tab?",
     },
     ySlugs: {
-        ...SlugsDeclarationCellTypeDefinition,
+        ...SlugsDeclarationCellDef,
         description: "ColumnSlug(s) for the yAxis",
         keyword: "ySlugs",
     },
     xSlug: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         description: "ColumnSlug for the xAxis",
         keyword: "xSlug",
     },
     colorSlug: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         description: "ColumnSlug for the color",
         keyword: "colorSlug",
     },
     sizeSlug: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         description: "ColumnSlug for the size of points on scatters",
         keyword: "sizeSlug",
     },
     tableSlugs: {
-        ...SlugsDeclarationCellTypeDefinition,
+        ...SlugsDeclarationCellDef,
         description:
             "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
     },
     backgroundSeriesLimit: {
-        ...IntegerCellTypeDefinition,
+        ...IntegerCellDef,
         description:
             "Set this to limit the number of background series shown on ScatterPlots.",
         keyword: "backgroundSeriesLimit",
     },
     table: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         description: "Slug of the table to use.",
         keyword: "table",
     },
     yScaleToggle: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "yScaleToggle",
         description: "Set to 'true' if the user can change the yAxis",
     },
 } as const
 
-const ColumnsKeywordMap = {
+const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
     slug: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         keyword: "slug",
     },
     name: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "name",
         description:
             "This is the name that may appear on the y or x axis of a chart",
     },
     type: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "type",
         description: `One of ${Object.keys(ColumnTypeNames).join(", ")}`,
-        options: ColumnTypeNames,
+        options: Object.values(ColumnTypeNames),
     },
     transform: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "transform",
         description: `An advanced option. Available transforms are: ${AvailableTransforms.join(
             ", "
         )}`,
     },
     description: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "description",
         description: "Describe the column",
     },
     unit: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "unit",
         description: "Unit of measurement",
     },
     shortUnit: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "shortUnit",
         description: "Short (axis) unit",
     },
     annotationsColumnSlug: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "annotationsColumnSlug",
         description:
             "Column that contains the annotations for this column, if any.",
     },
     sourceName: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "sourceName",
         description:
             "Source name displayed on charts using this dataset. For academic papers, the name of the source should be 'Authors (year)' e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be 'Institution, Project (year or vintage)' e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be 'Our World in Data based on Author (year)' e.g. Our World in Data based on Atkinson (2002) and Sen (2000).",
     },
     sourceLink: {
-        ...UrlCellTypeDefinition,
+        ...UrlCellDef,
         keyword: "sourceName",
         description:
             "Link to the publication from which we retrieved this data",
     },
     dataPublishedBy: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "dataPublishedBy",
         description:
             "For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.",
     },
     dataPublisherSource: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "dataPublisherSource",
         description:
             "Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should go in the dataset description.",
     },
     retrievedDate: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "retrievedDate",
         description: "Date when this data was obtained by us",
     },
     additionalInfo: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "additionalInfo",
         description:
             "Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like.",
     },
 } as const
 
-const SwitcherOptionDef = {
+const SwitcherFormControlCellDeff: CellDef = {
+    keyword: "",
     cssClass: "StringDeclarationType",
     description: "A form input for the user.",
     regex: /^.+ (Dropdown|Radio|Checkbox)$/,
     requirements: `Must end with 'Dropdown', 'Radio', or 'Checkbox'`,
 }
 
-export const ExplorerKeywords = {
+export const ExplorerRootKeywordMap: KeywordMap = {
     isPublished: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "isPublished",
         description: "Set to true to make this Explorer public.",
     },
     hideAlertBanner: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "hideAlertBanner",
         description: "Set to true to hide the Covid alert banner.",
     },
     title: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "title",
         description:
             "The title will appear in the top left corner of the page.",
     },
     subtitle: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "subtitle",
         description: "The subtitle will appear under the title.",
     },
     googleSheet: {
-        ...UrlCellTypeDefinition,
+        ...UrlCellDef,
         keyword: "googleSheet",
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
     defaultView: {
-        ...UrlCellTypeDefinition,
+        ...UrlCellDef,
         keyword: "defaultView",
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
     },
     hideControls: {
-        ...BooleanCellTypeDefinition,
+        ...BooleanCellDef,
         keyword: "hideControls",
         description: "Whether to hide the controls. Default is false.",
     },
@@ -233,68 +236,68 @@ export const ExplorerKeywords = {
         description: "The current page in the subnav.",
     },
     thumbnail: {
-        ...UrlCellTypeDefinition,
+        ...UrlCellDef,
         keyword: "thumbnail",
         description: "URL to the social sharing thumbnail.",
     },
     wpBlockId: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "wpBlockId",
         description:
             "If present will show the matching Wordpress block ID beneath the Explorer.",
     },
     entityType: {
-        ...StringCellTypeDefinition,
+        ...StringCellDef,
         keyword: "entityType",
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
     pickerColumnSlugs: {
-        ...SlugsDeclarationCellTypeDefinition,
+        ...SlugsDeclarationCellDef,
         keyword: "pickerColumnSlugs",
         description:
             "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
     },
     table: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         keyword: "table",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
-        rest: [DelimitedUrlDefinition],
-        headerCellType: {
-            ...SlugDeclarationCellTypeDefinition,
+        rest: [{ ...DelimitedUrlCellDef, options: OwidDatasets }],
+        headerCellDef: {
+            ...SlugDeclarationCellDef,
             cssClass: "SubTableHeaderCellType",
             keywordMap: {},
             catchAllKeyword: {
-                ...SlugDeclarationCellTypeDefinition,
+                ...SlugDeclarationCellDef,
                 description: "A column slug.",
             },
         },
     },
     columns: {
-        ...SlugDeclarationCellTypeDefinition,
-        headerCellType: {
-            ...SubTableHeaderCellTypeDefinition,
-            keywordMap: ColumnsKeywordMap,
+        ...SlugDeclarationCellDef,
+        headerCellDef: {
+            ...SubTableHeaderCellDef,
+            keywordMap: ColumnsSubTableHeaderKeywordMap,
         },
         keyword: "columns",
         description:
             "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
     },
     switcher: {
-        ...SlugDeclarationCellTypeDefinition,
+        ...SlugDeclarationCellDef,
         keyword: "switcher",
         description: "The decision matrix for your Explorer goes here.",
-        headerCellType: {
-            ...SubTableHeaderCellTypeDefinition,
-            keywordMap: SwitcherKeywordMap,
-            catchAllKeyword: SwitcherOptionDef,
+        headerCellDef: {
+            ...SubTableHeaderCellDef,
+            keywordMap: SwitcherSubTableHeaderKeywordMap,
+            catchAllKeyword: SwitcherFormControlCellDeff,
         },
     },
 } as const
 
 export const ExplorerGrammar = ({
-    keywordMap: ExplorerKeywords,
+    keywordMap: ExplorerRootKeywordMap,
     cssClass: "KeywordCellType",
     description: "Keyword",
-} as unknown) as CellTypeDefinition
+} as unknown) as CellDef

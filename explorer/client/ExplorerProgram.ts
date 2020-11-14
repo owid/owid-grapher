@@ -24,7 +24,7 @@ import {
     imemo,
 } from "coreTable/CoreTableUtils"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
-import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
+import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
 import { GridCell } from "./GridCell"
 import { GridBoolean, ParsedCell } from "./GridGrammarConstants"
 import { GitCommit } from "gitCms/GitTypes"
@@ -210,79 +210,82 @@ export class ExplorerProgram {
     }
 
     get title() {
-        return this.getLineValue(ExplorerKeywords.title.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.title.keyword)
     }
 
     get subNavId(): SubNavId | undefined {
-        return this.getLineValue(ExplorerKeywords.subNavId.keyword) as SubNavId
+        return this.getLineValue(
+            ExplorerRootKeywordMap.subNavId.keyword
+        ) as SubNavId
     }
 
     get googleSheet() {
-        return this.getLineValue(ExplorerKeywords.googleSheet.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.googleSheet.keyword)
     }
 
     get hideAlertBanner() {
         return (
-            this.getLineValue(ExplorerKeywords.hideAlertBanner.keyword) ===
-            GridBoolean.true
+            this.getLineValue(
+                ExplorerRootKeywordMap.hideAlertBanner.keyword
+            ) === GridBoolean.true
         )
     }
 
     get subNavCurrentId() {
-        return this.getLineValue(ExplorerKeywords.subNavCurrentId.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.subNavCurrentId.keyword)
     }
 
     get thumbnail() {
-        return this.getLineValue(ExplorerKeywords.thumbnail.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.thumbnail.keyword)
     }
 
     get subtitle() {
-        return this.getLineValue(ExplorerKeywords.subtitle.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.subtitle.keyword)
     }
 
     get entityType() {
-        return this.getLineValue(ExplorerKeywords.entityType.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.entityType.keyword)
     }
 
     get pickerColumnSlugs() {
         const slugs = this.getLineValue(
-            ExplorerKeywords.pickerColumnSlugs.keyword
+            ExplorerRootKeywordMap.pickerColumnSlugs.keyword
         )
         return slugs ? slugs.split(" ") : undefined
     }
 
     get defaultView() {
-        return this.getLineValue(ExplorerKeywords.defaultView.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.defaultView.keyword)
     }
 
     get hideControls() {
-        return this.getLineValue(ExplorerKeywords.hideControls.keyword)
+        return this.getLineValue(ExplorerRootKeywordMap.hideControls.keyword)
     }
 
     get isPublished() {
         return (
-            this.getLineValue(ExplorerKeywords.isPublished.keyword) ===
+            this.getLineValue(ExplorerRootKeywordMap.isPublished.keyword) ===
             GridBoolean.true
         )
     }
 
     setPublished(value: boolean) {
         return this.setLineValue(
-            ExplorerKeywords.isPublished.keyword,
+            ExplorerRootKeywordMap.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
     }
 
     get wpBlockId() {
         const blockIdString = this.getLineValue(
-            ExplorerKeywords.wpBlockId.keyword
+            ExplorerRootKeywordMap.wpBlockId.keyword
         )
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(
-            ExplorerKeywords.switcher.keyword
+            ExplorerRootKeywordMap.switcher.keyword
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
@@ -290,13 +293,13 @@ export class ExplorerProgram {
 
     getTableDef(tableSlug: string): TableDef | undefined {
         const matchingTableIndex = this.getKeywordIndexes([
-            ExplorerKeywords.table.keyword,
+            ExplorerRootKeywordMap.table.keyword,
             tableSlug,
         ])[0]
         if (matchingTableIndex === undefined) return undefined
 
         const matchingColumnsIndex = this.getKeywordIndexes([
-            ExplorerKeywords.columns.keyword,
+            ExplorerRootKeywordMap.columns.keyword,
             tableSlug,
         ])[0]
         return {
