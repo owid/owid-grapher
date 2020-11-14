@@ -14,6 +14,8 @@ const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
 const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"
 const GRAPHER_COLOR_SCALES_LOCATION = __dirname + "/graphers-colorscales.json"
+const GRAPHER_MAP_COLOR_SCALES_LOCATION =
+    __dirname + "/graphers-mapcolorscales.json"
 
 const rawGraphers = () =>
     Object.values(
@@ -93,19 +95,33 @@ const graphersWithMapVariableIdsButNoMatchingDimension = async () => {
 
 const dumpColorScales = async () => {
     const hits: any[] = []
+    const mapHits: any[] = []
     eachGrapher((config) => {
-        const { colorScale, map } = config
+        const { colorScale, map, id } = config
+        const link = `https://ourworldindata.org/grapher/${config.slug}`
 
-        hits.push({
-            link: `https://ourworldindata.org/grapher/${config.slug}`,
-            id: config.id,
-            colorScale,
-            mapColorScale: map?.colorScale,
-        })
+        if (map?.colorScale)
+            mapHits.push({
+                link,
+                id,
+                colorScale: map.colorScale,
+            })
+
+        if (colorScale)
+            hits.push({
+                link,
+                id,
+                colorScale,
+            })
     }, trimmedGraphers())
     fs.writeFileSync(
         GRAPHER_COLOR_SCALES_LOCATION,
         JSON.stringify(hits, null, 2),
+        "utf8"
+    )
+    fs.writeFileSync(
+        GRAPHER_MAP_COLOR_SCALES_LOCATION,
+        JSON.stringify(mapHits, null, 2),
         "utf8"
     )
 }
