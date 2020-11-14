@@ -70,13 +70,13 @@ export class GridCell implements ParsedCell {
         const def = this.cellTerminalTypeDefinition
         if (def) return def
 
-        const subTable = this.subTableInfo
-        if (subTable) return (subTable.def as unknown) as CellTypeDefinition
+        const subTable = this.subTableParseResults?.def
+        if (subTable) return (subTable as unknown) as CellTypeDefinition
 
         return AbstractTypeDefinitions.wip
     }
 
-    @imemo private get subTableInfo() {
+    @imemo private get subTableParseResults() {
         if (this.cellTerminalTypeDefinition) return undefined
 
         let start = this.row
@@ -91,12 +91,13 @@ export class GridCell implements ParsedCell {
                 if (!subTableDef || !subTableDef.headerCellType)
                     return undefined
                 const isHeaderValue = this.row === start && this.value
-                const isFrontierCell = this.isSubHeadFrontierCell(
+                const isFrontierCell = this.isSubtTableFrontierCell(
                     start,
                     subTableDef
                 )
                 return {
-                    isHeaderRow: isHeaderValue || isFrontierCell,
+                    isFrontierCell,
+                    isHeaderValue,
                     def:
                         isHeaderValue || isFrontierCell
                             ? subTableDef.headerCellType ??
@@ -109,7 +110,16 @@ export class GridCell implements ParsedCell {
         return undefined
     }
 
-    private isSubHeadFrontierCell(
+    /**
+     * If a cell is:
+     *  - to the right of the last filled cell in a line
+     *  - and that line is indented to be part of a subtable, with options
+     *  - and it is the first non-blank line in the subtabel
+     *
+     * Then consider is a "frontier cell"
+     *
+     */
+    private isSubtTableFrontierCell(
         start: number,
         subTableDef: CellTypeDefinition
     ) {
@@ -149,15 +159,6 @@ export class GridCell implements ParsedCell {
 
     private get implementationLinks(): CellLink[] {
         return []
-    }
-
-    // If true show a +
-    // todo: not actually getting called by HOT.
-    private get isSubTableFrontierCell() {
-        const { subTableInfo, line, value, column } = this
-        if (!line || !isEmpty(value) || !subTableInfo) return false
-        if (column === 1) return true
-        return !isEmpty(line[column - 1]) && isEmpty(line[column + 1])
     }
 
     get errorMessage() {
@@ -211,7 +212,8 @@ export class GridCell implements ParsedCell {
         const { errorMessage, cellTypeDefinition } = this
         if (errorMessage) return [ErrorCellTypeClass]
         const showArrow =
-            this.isFirstCellOnFrontierRow || this.isSubTableFrontierCell
+            this.isFirstCellOnFrontierRow ||
+            this.subTableParseResults?.isFrontierCell
                 ? FrontierCellClass
                 : undefined
         return [cellTypeDefinition.cssClass, showArrow].filter(isPresent)
