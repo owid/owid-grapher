@@ -39,7 +39,6 @@ export const CountriesIndexPage = (props: { countries: Country[] }) => {
                     </ul>
                 </main>
                 <SiteFooter />
-                {/* <script>{`window.runChartsIndexPage()`}</script> */}
             </body>
         </html>
     )

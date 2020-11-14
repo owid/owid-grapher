@@ -76,7 +76,6 @@ import {
 import {
     strToQueryParams,
     queryParamsToStr,
-    QueryParams,
 } from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {

@@ -37,22 +37,29 @@ window.GrapherPageUtils = GrapherPageUtils
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.runChartsIndexPage = runChartsIndexPage
-window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
-window.runSiteTools = runSiteTools
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
-window.runCookiePreferencesManager = runCookiePreferencesManager
-window.runBlocks = runBlocks
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
-window.runLightbox = runLightbox
-window.runCovid = runCovid
-window.runGlobalEntityControl = runGlobalEntityControl
-window.runFootnotes = runFootnotes
+
+window.siteFooterMain = () => {
+    runHeaderMenus()
+    runBlocks()
+    runLightbox()
+    runSiteTools()
+    runCookiePreferencesManager()
+    runCovid()
+    runFootnotes()
+
+    if (!document.querySelector(".ChartPage")) {
+        GrapherPageUtils.embedAll()
+        runGlobalEntityControl(GrapherPageUtils.globalEntitySelection)
+    }
+}
 
 const analytics = new Analytics(ENV)
 analytics.logPageLoad()
