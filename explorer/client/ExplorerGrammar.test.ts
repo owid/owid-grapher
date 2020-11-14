@@ -3,6 +3,7 @@
 import { GridCell } from "./GridCell"
 import { tsvToMatrix } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerKeywords } from "./ExplorerGrammar"
+import { FrontierCellClass } from "./GridGrammarConstants"
 
 describe(GridCell, () => {
     it("can parse a cell", () => {
@@ -35,10 +36,10 @@ describe(GridCell, () => {
                 0,
                 ExplorerGrammar
             ).cssClasses
-        ).toContain(`ShowDropdownArrow`)
+        ).toContain(FrontierCellClass)
         expect(
             new GridCell(tsvToMatrix(``), 1, 0, ExplorerGrammar).cssClasses
-        ).not.toContain(`ShowDropdownArrow`)
+        ).not.toContain(FrontierCellClass)
     })
 
     it("can detect errors", () => {
@@ -62,9 +63,7 @@ describe(GridCell, () => {
                 ExplorerGrammar
             )
             expect(subtableFrontierCell.errorMessage).toEqual(``)
-            expect(subtableFrontierCell.cssClasses).toContain(
-                `ShowDropdownArrow`
-            )
+            expect(subtableFrontierCell.cssClasses).toContain(FrontierCellClass)
         })
 
         it("can detect invalid slugs", () => {

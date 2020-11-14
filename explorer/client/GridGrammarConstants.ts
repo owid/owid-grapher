@@ -72,7 +72,8 @@ export const UrlCellTypeDefinition: CellTypeDefinition = {
 
 const NothingGoesThereDefinition: CellTypeDefinition = {
     cssClass: "NothingGoesThereType",
-    description: "Nothing should be here.",
+    description:
+        "Nothing should be here. You can make this a comment by prepending a #",
 }
 
 export const CommentDefinition: CellTypeDefinition = {
@@ -93,6 +94,7 @@ export const SlugDeclarationCellTypeDefinition: CellTypeDefinition = {
     requirements: `Can only contain the characters a-zA-Z0-9-_`,
 }
 
+// This is the name for a cell that is on the "frontier", where the next user input is expected to go. Okay to rename if you have a better word.
 export const FrontierCellClass = "ShowDropdownArrow"
 
 export const SlugsDeclarationCellTypeDefinition: CellTypeDefinition = {
