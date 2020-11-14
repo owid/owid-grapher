@@ -203,6 +203,7 @@ export class Explorer
         grapher.reset()
         grapher.updateFromObject(config)
         grapher.inputTable = this.getTable(table)
+        grapher.appendNewEntitySelectionOptions()
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
         if (!hasGrapherId) grapher.id = 0
