@@ -266,7 +266,14 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         keyword: "table",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
-        rest: [{ ...DelimitedUrlCellDef, options: OwidDatasets }],
+        rest: [
+            {
+                ...DelimitedUrlCellDef,
+                options: OwidDatasets,
+                description:
+                    "A link to a CSV or TSV or the name of an OWID dataset.",
+            },
+        ],
         headerCellDef: {
             ...SlugDeclarationCellDef,
             cssClass: "SubTableHeaderCellDef",

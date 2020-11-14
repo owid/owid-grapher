@@ -68,16 +68,6 @@ export class GridCell implements ParsedCell {
         return NothingGoesThereCellDef
     }
 
-    @imemo private get cellTypeDefinition(): CellDef {
-        const def = this.cellTerminalTypeDefinition
-        if (def) return def
-
-        const subTable = this.subTableParseResults?.def
-        if (subTable) return (subTable as unknown) as CellDef
-
-        return WorkInProgressCellDef
-    }
-
     @imemo private get subTableParseResults() {
         if (this.cellTerminalTypeDefinition) return undefined
 
@@ -158,10 +148,20 @@ export class GridCell implements ParsedCell {
         return []
     }
 
+    @imemo get cellDef(): CellDef {
+        const def = this.cellTerminalTypeDefinition
+        if (def) return def
+
+        const subTable = this.subTableParseResults?.def
+        if (subTable) return (subTable as unknown) as CellDef
+
+        return WorkInProgressCellDef
+    }
+
     get errorMessage() {
         if (!this.line) return ""
-        const { cellTypeDefinition, value, options } = this
-        const { regex, requirements, catchAllKeyword } = cellTypeDefinition
+        const { cellDef, value, options } = this
+        const { regex, requirements, catchAllKeyword } = cellDef
         const catchAllKeywordRegex = catchAllKeyword?.regex
 
         if (value === undefined || value === "") return ""
@@ -191,39 +191,37 @@ export class GridCell implements ParsedCell {
     }
 
     get comment() {
-        const { value, errorMessage, cellTypeDefinition } = this
+        const { value, errorMessage, cellDef } = this
         if (isEmpty(value)) return undefined
         if (errorMessage) return errorMessage
 
-        if (cellTypeDefinition.keywordMap) {
-            const def =
-                cellTypeDefinition.keywordMap[value!] ??
-                cellTypeDefinition.catchAllKeyword
+        if (cellDef.keywordMap) {
+            const def = cellDef.keywordMap[value!] ?? cellDef.catchAllKeyword
             return def.description
         }
 
-        return [cellTypeDefinition.description].join("\n")
+        return [cellDef.description].join("\n")
     }
 
     get cssClasses() {
-        const { errorMessage, cellTypeDefinition } = this
+        const { errorMessage, cellDef } = this
         if (errorMessage) return [CellHasErrorsClass]
         const showArrow =
             this.isFirstCellOnFrontierRow ||
             this.subTableParseResults?.isFrontierCell
                 ? FrontierCellClass
                 : undefined
-        return [cellTypeDefinition.cssClass, showArrow].filter(isPresent)
+        return [cellDef.cssClass, showArrow].filter(isPresent)
     }
 
     get options() {
-        const { cellTypeDefinition } = this
-        const { keywordMap, headerCellDef } = cellTypeDefinition
+        const { cellDef } = this
+        const { keywordMap, headerCellDef } = cellDef
         return keywordMap
             ? Object.keys(keywordMap)
             : headerCellDef
             ? Object.keys(headerCellDef.keywordMap!)
-            : cellTypeDefinition.options
+            : cellDef.options
     }
 }
 

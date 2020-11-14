@@ -27,6 +27,7 @@ export interface ParsedCell {
     cssClasses?: string[]
     options?: string[]
     comment?: string
+    cellDef?: CellDef
 }
 
 export interface CellLink {

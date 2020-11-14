@@ -302,8 +302,16 @@ export class ExplorerProgram {
             ExplorerRootKeywordMap.columns.keyword,
             tableSlug,
         ])[0]
+
+        let url = this.lines[matchingTableIndex].split(this.cellDelimiter)[2]
+
+        if (url && !url.startsWith("http")) {
+            const owidDatasetSlug = encodeURIComponent(url)
+            url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
+        }
+
         return {
-            url: this.lines[matchingTableIndex].split(this.cellDelimiter)[2],
+            url,
             columnDefinitions: matchingColumnsIndex
                 ? this.getBlock(matchingColumnsIndex)
                 : undefined,

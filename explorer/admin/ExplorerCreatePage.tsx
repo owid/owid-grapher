@@ -181,7 +181,37 @@ export class ExplorerCreatePage extends React.Component<{
             cells,
             colHeaders: true,
             comments: true,
-            contextMenu: true,
+            contextMenu: {
+                items: {
+                    autofillColumns: {
+                        name: "Autofill missing column definitions",
+                        callback: function () {
+                            alert("Coming soon")
+                        },
+                        disabled: function () {
+                            const coordinates = this.getSelectedLast()
+                            if (coordinates === undefined) return true
+                            const cell = program.getCell(
+                                coordinates[0],
+                                coordinates[1]
+                            )
+                            return cell.cellDef?.keyword !== "table"
+                        },
+                    },
+                    sp0: { name: "---------" },
+                    row_above: {},
+                    row_below: {},
+                    sp1: { name: "---------" },
+                    remove_row: {},
+                    remove_col: {},
+                    sp2: { name: "---------" },
+                    undo: {},
+                    redo: {},
+                    sp3: { name: "---------" },
+                    copy: {},
+                    paste: {},
+                },
+            },
             data,
             manualColumnResize: true,
             manualRowMove: true,
