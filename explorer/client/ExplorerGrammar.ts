@@ -13,6 +13,10 @@ import {
     IntegerCellDef,
     SlugsDeclarationCellDef,
     KeywordMap,
+    QueryStringCellDef,
+    RootKeywordCellDef,
+    EnumCellDef,
+    StringDeclarationDef,
 } from "./GridGrammarConstants"
 import { OwidDatasets } from "./OwidDatasets"
 
@@ -177,8 +181,7 @@ const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
 } as const
 
 const SwitcherFormControlCellDeff: CellDef = {
-    keyword: "",
-    cssClass: "StringDeclarationType",
+    ...StringDeclarationDef,
     description: "A form input for the user.",
     regex: /^.+ (Dropdown|Radio|Checkbox)$/,
     requirements: `Must end with 'Dropdown', 'Radio', or 'Checkbox'`,
@@ -213,7 +216,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
     defaultView: {
-        ...UrlCellDef,
+        ...QueryStringCellDef,
         keyword: "defaultView",
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
@@ -224,14 +227,14 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         description: "Whether to hide the controls. Default is false.",
     },
     subNavId: {
+        ...EnumCellDef,
         options: Object.values(SubNavId),
         keyword: "subNavId",
-        cssClass: "EnumCellType",
         description: "A subnav to show, if any.",
     },
     subNavCurrentId: {
         // todo: add options here
-        cssClass: "EnumCellType",
+        ...EnumCellDef,
         keyword: "subNavCurrentId",
         description: "The current page in the subnav.",
     },
@@ -266,7 +269,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         rest: [{ ...DelimitedUrlCellDef, options: OwidDatasets }],
         headerCellDef: {
             ...SlugDeclarationCellDef,
-            cssClass: "SubTableHeaderCellType",
+            cssClass: "SubTableHeaderCellDef",
             keywordMap: {},
             catchAllKeyword: {
                 ...SlugDeclarationCellDef,
@@ -296,8 +299,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     },
 } as const
 
-export const ExplorerGrammar = ({
+export const ExplorerGrammar: CellDef = {
+    ...RootKeywordCellDef,
     keywordMap: ExplorerRootKeywordMap,
-    cssClass: "KeywordCellType",
-    description: "Keyword",
-} as unknown) as CellDef
+}

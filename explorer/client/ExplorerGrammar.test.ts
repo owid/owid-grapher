@@ -3,7 +3,11 @@
 import { GridCell } from "./GridCell"
 import { tsvToMatrix } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
-import { FrontierCellClass } from "./GridGrammarConstants"
+import {
+    CellHasErrorsClass,
+    FrontierCellClass,
+    StringCellDef,
+} from "./GridGrammarConstants"
 
 describe(GridCell, () => {
     it("can parse a cell", () => {
@@ -15,7 +19,7 @@ describe(GridCell, () => {
         )
         expect(cell.errorMessage).toEqual(``)
         expect(cell.comment).toContain(`title`)
-        expect(cell.cssClasses).toContain(`StringCellType`)
+        expect(cell.cssClasses).toContain(StringCellDef.cssClass)
     })
 
     it("uses the keyword definition for the first cell instead of abstract keyword", () => {
@@ -50,7 +54,7 @@ describe(GridCell, () => {
             ExplorerGrammar
         )
         expect(cell.errorMessage).not.toEqual(``)
-        expect(cell.cssClasses).toContain(`ErrorCellType`)
+        expect(cell.cssClasses).toContain(CellHasErrorsClass)
     })
 
     describe("subtables", () => {

@@ -23,36 +23,37 @@
         font-size: 8px;
     }
 
-    .KeywordCellType {
+    .KeywordCellDef {
         color: #3c4e66;
     }
 
-    .BooleanCellType {
+    .BooleanCellDef {
         color: #00847e;
     }
 
-    .EnumCellType {
+    .EnumCellDef {
         color: #00847e;
     }
 
-    .StringCellType {
+    .StringCellDef {
         color: #0f739c;
     }
 
-    .IntegerCellType {
+    .IntegerCellDef {
         color: #578145;
     }
 
-    .SubTableHeaderCellType {
+    .SubTableHeaderCellDef {
         color: #4c6a9c;
         border-bottom: 1px solid #4c6a9c;
     }
 
-    .SubTableWordCellType {
+    .SubTableValueCellDef {
         color: #287669;
     }
 
-    .UrlCellType {
+    .UrlCellDef,
+    .QueryStringCellDef {
         color: #00823f;
     }
 
@@ -65,7 +66,7 @@
         font-style: italic;
     }
 
-    .ErrorCellType,
+    .CellHasErrorsClass,
     .NothingGoesThereType {
         color: #b13507;
         text-decoration: underline;
@@ -77,7 +78,7 @@
         }
     }
 
-    .WipCellType {
+    .WorkInProgressCellDef {
         color: #777;
     }
 }

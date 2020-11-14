@@ -5,7 +5,7 @@ import {
     CellCoordinate,
     CellLink,
     CellDef,
-    ErrorCellTypeClass,
+    CellHasErrorsClass,
     MatrixLine,
     MatrixProgram,
     KeywordMap,
@@ -43,14 +43,14 @@ export class GridCell implements ParsedCell {
         return this.matrix[this.row]
     }
 
-    private get isCommentCellType() {
+    private get isCommentCell() {
         const { value } = this
         return value && CommentCellDef.regex!.test(value)
     }
 
     private get cellTerminalTypeDefinition(): CellDef | undefined {
         const { rootDefinition } = this
-        if (this.isCommentCellType) return CommentCellDef
+        if (this.isCommentCell) return CommentCellDef
         const keywordMap = (rootDefinition.keywordMap as unknown) as KeywordMap
         if (this.column === 0) return (rootDefinition as unknown) as CellDef
         const firstWordOnLine = this.line ? this.line[0] : undefined
@@ -207,7 +207,7 @@ export class GridCell implements ParsedCell {
 
     get cssClasses() {
         const { errorMessage, cellTypeDefinition } = this
-        if (errorMessage) return [ErrorCellTypeClass]
+        if (errorMessage) return [CellHasErrorsClass]
         const showArrow =
             this.isFirstCellOnFrontierRow ||
             this.subTableParseResults?.isFrontierCell

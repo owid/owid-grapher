@@ -1,4 +1,4 @@
-export const ErrorCellTypeClass = "ErrorCellType"
+export const CellHasErrorsClass = "CellHasErrorsClass"
 
 export enum GridBoolean {
     true = "true",
@@ -37,19 +37,37 @@ export interface CellLink {
 export const BooleanCellDef: CellDef = {
     keyword: "",
     options: Object.values(GridBoolean),
-    cssClass: "BooleanCellType",
+    cssClass: "BooleanCellDef",
     description: "Boolean",
 }
 
 export const StringCellDef: CellDef = {
     keyword: "",
-    cssClass: "StringCellType",
+    cssClass: "StringCellDef",
     description: "",
+}
+
+export const StringDeclarationDef: CellDef = {
+    keyword: "",
+    cssClass: "StringDeclarationDef",
+    description: "",
+}
+
+export const EnumCellDef: CellDef = {
+    keyword: "",
+    cssClass: "EnumCellDef",
+    description: "",
+}
+
+export const RootKeywordCellDef: CellDef = {
+    keyword: "",
+    cssClass: "KeywordCellDef",
+    description: "Keyword",
 }
 
 export const IntegerCellDef: CellDef = {
     keyword: "",
-    cssClass: "IntegerCellType",
+    cssClass: "IntegerCellDef",
     description: "",
     regex: /^[0-9]+$/,
     requirements: `Must be an integer`,
@@ -57,19 +75,28 @@ export const IntegerCellDef: CellDef = {
 
 export const SubTableHeaderCellDef: CellDef = {
     keyword: "",
-    cssClass: "SubTableHeaderCellType",
+    cssClass: "SubTableHeaderCellDef",
     description: "",
 }
 
 export const SubTableValueCellDef: CellDef = {
     keyword: "",
-    cssClass: "SubTableWordCellType",
+    cssClass: "SubTableValueCellDef",
     description: "",
 }
 
+const MatchUrlsOnlyRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/
+
 export const UrlCellDef: CellDef = {
     keyword: "",
-    cssClass: "UrlCellType",
+    cssClass: "UrlCellDef",
+    description: "",
+    regex: MatchUrlsOnlyRegex,
+}
+
+export const QueryStringCellDef: CellDef = {
+    keyword: "",
+    cssClass: "QueryStringCellDef",
     description: "",
 }
 
@@ -94,7 +121,7 @@ export const DelimitedUrlCellDef: CellDef = {
 
 export const WorkInProgressCellDef: CellDef = {
     keyword: "",
-    cssClass: "WipCellType",
+    cssClass: "WorkInProgressCellDef",
     description: "Not a recognized statement. Treating as a work in progress.",
 }
 
