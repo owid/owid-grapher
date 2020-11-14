@@ -261,7 +261,7 @@ export const ExplorerKeywords = {
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
         rest: [DelimitedUrlDefinition],
-        headerKeyword: {
+        headerCellType: {
             ...SlugDeclarationCellTypeDefinition,
             cssClass: "SubTableHeaderCellType",
             keywordMap: {},
@@ -273,7 +273,7 @@ export const ExplorerKeywords = {
     },
     columns: {
         ...SlugDeclarationCellTypeDefinition,
-        headerKeyword: {
+        headerCellType: {
             ...SubTableHeaderCellTypeDefinition,
             keywordMap: ColumnsKeywordMap,
         },
@@ -285,7 +285,7 @@ export const ExplorerKeywords = {
         ...SlugDeclarationCellTypeDefinition,
         keyword: "switcher",
         description: "The decision matrix for your Explorer goes here.",
-        headerKeyword: {
+        headerCellType: {
             ...SubTableHeaderCellTypeDefinition,
             keywordMap: SwitcherKeywordMap,
             catchAllKeyword: SwitcherOptionDef,

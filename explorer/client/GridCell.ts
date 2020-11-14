@@ -1,4 +1,4 @@
-import { imemo } from "coreTable/CoreTableUtils"
+import { imemo, trimArray } from "coreTable/CoreTableUtils"
 import { isPresent } from "grapher/utils/Util"
 import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
@@ -88,19 +88,42 @@ export class GridCell implements ParsedCell {
                 const subTableDef = (this.rootDefinition.keywordMap as any)[
                     parentKeyword
                 ] as CellTypeDefinition
-                if (!subTableDef || !subTableDef.headerKeyword) return undefined
-                const isHeaderRow = this.row === start && this.value
+                if (!subTableDef || !subTableDef.headerCellType)
+                    return undefined
+                const isHeaderValue = this.row === start && this.value
+                const isFrontierCell = this.isSubHeadFrontierCell(
+                    start,
+                    subTableDef
+                )
                 return {
-                    isHeaderRow,
-                    def: isHeaderRow
-                        ? subTableDef.headerKeyword ??
-                          AbstractTypeDefinitions.subtableHeaderWord
-                        : AbstractTypeDefinitions.subtableWord,
+                    isHeaderRow: isHeaderValue || isFrontierCell,
+                    def:
+                        isHeaderValue || isFrontierCell
+                            ? subTableDef.headerCellType ??
+                              AbstractTypeDefinitions.subtableHeaderWord
+                            : AbstractTypeDefinitions.subtableWord,
                 }
             }
             start--
         }
         return undefined
+    }
+
+    private isSubHeadFrontierCell(
+        start: number,
+        subTableDef: CellTypeDefinition
+    ) {
+        const { line, column, row } = this
+        const keywordMap = subTableDef.headerCellType!.keywordMap
+        const isToTheImmediateRightOfLastFullCell =
+            line && trimArray(line).length === column
+        return (
+            row === start &&
+            !isBlankLine(line) &&
+            isToTheImmediateRightOfLastFullCell &&
+            keywordMap &&
+            Object.keys(keywordMap).length
+        )
     }
 
     // If true show a +
@@ -196,11 +219,11 @@ export class GridCell implements ParsedCell {
 
     get options() {
         const { cellTypeDefinition } = this
-        const { keywordMap, headerKeyword } = cellTypeDefinition
+        const { keywordMap, headerCellType } = cellTypeDefinition
         return keywordMap
             ? Object.keys(keywordMap)
-            : headerKeyword
-            ? Object.keys(headerKeyword.keywordMap!)
+            : headerCellType
+            ? Object.keys(headerCellType.keywordMap!)
             : cellTypeDefinition.options
     }
 }

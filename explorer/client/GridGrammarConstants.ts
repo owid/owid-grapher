@@ -14,7 +14,7 @@ export interface CellTypeDefinition {
     cssClass: string
     description: string
     keywordMap?: KeywordMap
-    headerKeyword?: CellTypeDefinition
+    headerCellType?: CellTypeDefinition
     catchAllKeyword?: CellTypeDefinition
     regex?: RegExp // A validation regex a value must pass
     requirements?: string
