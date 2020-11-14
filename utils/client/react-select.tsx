@@ -39,6 +39,7 @@ export function getStylesForTargetHeight(
             ...base,
             height: `${targetHeight - 1 - 1}px`,
             padding: "0 4px",
+            flexWrap: "nowrap",
             ...valueContainer,
         }),
         singleValue: (base: React.CSSProperties) => ({
