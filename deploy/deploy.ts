@@ -89,7 +89,7 @@ const main = async () => {
         binary: "git",
         maxConcurrentProcesses: 1,
     })
-    const gitStatus = await git.status()
+    const gitCommitSHA = await git.revparse("HEAD")
     const gitConfig = await git.listConfig()
     const gitName = `${gitConfig.all["user.name"]}`
     const gitEmail = `${gitConfig.all["user.email"]}`
@@ -134,7 +134,7 @@ const main = async () => {
     }
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
-    fs.writeFileSync(DIR + "/public/head.txt", gitStatus.current, "utf8")
+    fs.writeFileSync(DIR + "/public/head.txt", gitCommitSHA, "utf8")
     progressBar.tick({ name: "✅ write head.txt" })
 
     await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
