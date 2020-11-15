@@ -77,7 +77,7 @@ export class CoreTable<
 > {
     private _columns: Map<ColumnSlug, CoreColumn> = new Map()
     protected parent?: this
-    private tableDescription: string
+    protected tableDescription: string
     private timeToLoad = 0
     private initTime = Date.now()
 

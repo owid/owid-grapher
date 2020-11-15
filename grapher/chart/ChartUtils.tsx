@@ -10,6 +10,15 @@ export const autoDetectYColumnSlugs = (manager: ChartManager) => {
     return manager.table.numericColumnSlugs
 }
 
+export const getDefaultFailMessage = (manager: ChartManager) => {
+    if (manager.table.isBlank) return `No table loaded yet.`
+    const yColumnSlugs = autoDetectYColumnSlugs(manager)
+    if (!yColumnSlugs.length) return "Missing Y axis column"
+    const selection = makeSelectionArray(manager)
+    if (!selection.hasSelection) return `No ${selection.entityType} selected`
+    return ""
+}
+
 export const autoDetectSeriesStrategy = (manager: ChartManager) => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 

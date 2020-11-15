@@ -46,6 +46,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getDefaultFailMessage,
     makeClipPath,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
@@ -577,10 +578,8 @@ export class LineChart
     }
 
     @computed get failMessage() {
-        const { yColumnSlugs } = this
-        if (!yColumnSlugs.length) return "Missing Y axis column"
-        if (!this.selectionArray.hasSelection)
-            return `No ${this.selectionArray.entityType} selected`
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return message
         if (!this.series.length) return "No matching data"
         return ""
     }
