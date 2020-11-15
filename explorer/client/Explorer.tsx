@@ -356,11 +356,12 @@ export class Explorer
         this.showMobileControlsPopup = false
     }
 
+    // todo: add tests for this and better tests for this class in general
     @computed private get showHeaderElement() {
         return (
             this.showExplorerControls &&
             this.explorerProgram.explorerTitle &&
-            this.panels.length
+            this.panels.length > 0
         )
     }
 
