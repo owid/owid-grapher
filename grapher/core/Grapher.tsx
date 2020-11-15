@@ -153,6 +153,7 @@ import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 declare const window: any
 
@@ -690,17 +691,17 @@ export class Grapher
 
     @computed get whatAreWeWaitingFor() {
         const { newSlugs, inputTable } = this
-        if (newSlugs.length) {
+        if (newSlugs.length || this.dimensions.length === 0) {
             const missingColumns = newSlugs.filter(
                 (slug) => !inputTable.has(slug)
             )
             return missingColumns.length
-                ? `Waiting for ${missingColumns.join(",")}.`
+                ? `Waiting for columns ${missingColumns.join(",")}.`
                 : ""
         }
         if (this.dimensions.length > 0 && this.loadingDimensions.length === 0)
             return ""
-        return `Waiting for ${this.loadingDimensions.join(",")}.`
+        return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.
@@ -1165,11 +1166,19 @@ export class Grapher
         )
     }
 
+    // todo: remove when we remove dimensions
+    @computed private get yColumnsFromDimensionsOrSlugsOrAuto() {
+        return this.yColumns.length
+            ? this.yColumns
+            : this.table.getColumns(autoDetectYColumnSlugs(this))
+    }
+
     @computed private get defaultTitle() {
-        const { yColumns } = this
+        const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
+
         if (this.isScatter)
             return this.axisDimensions
-                .map((d) => d.column.displayName)
+                .map((dimension) => dimension.column.displayName)
                 .join(" vs. ")
 
         if (

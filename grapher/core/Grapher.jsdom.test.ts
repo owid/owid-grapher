@@ -230,6 +230,18 @@ describe("currentTitle", () => {
         expect(grapher.currentTitle).not.toContain("2000")
         expect(grapher.currentTitle).toContain("2009")
     })
+
+    it("can generate a title when all you have is a table", () => {
+        const table = SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        )
+        const grapher = new Grapher({
+            table,
+        })
+
+        expect(grapher.currentTitle).toContain("GDP")
+    })
 })
 
 describe("authors can use maxTime", () => {

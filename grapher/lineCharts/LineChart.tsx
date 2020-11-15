@@ -579,6 +579,8 @@ export class LineChart
     @computed get failMessage() {
         const { yColumnSlugs } = this
         if (!yColumnSlugs.length) return "Missing Y axis column"
+        if (!this.selectionArray.hasSelection)
+            return `No ${this.selectionArray.entityType} selected`
         if (!this.series.length) return "No matching data"
         return ""
     }
