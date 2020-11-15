@@ -854,6 +854,10 @@ export class CoreTable<
         return toDelimited(delimiter, columnSlugs, rows)
     }
 
+    toTsv() {
+        return this.toDelimited("\t")
+    }
+
     toCsvWithColumnNames() {
         const delimiter = ","
         const header =
