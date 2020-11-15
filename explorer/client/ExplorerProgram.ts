@@ -208,7 +208,7 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    getTableForSlug(tableSlug: TableSlug) {
+    getTableForSlug(tableSlug?: TableSlug) {
         const tableDef = this.getTableDef(tableSlug)
         if (!tableDef) return BlankOwidTable()
         if (tableDef.url) {
@@ -222,7 +222,7 @@ export class ExplorerProgram extends GridProgram {
     }
 
     private static fetchedTableCache = new Map<string, OwidTable>()
-    async fetchTableAndStoreInCache(tableSlug: TableSlug) {
+    async fetchTableAndStoreInCache(tableSlug?: TableSlug) {
         const tableDef = this.getTableDef(tableSlug)
         if (!tableDef || !tableDef.url) return false
         const path = tableDef.url
@@ -234,21 +234,23 @@ export class ExplorerProgram extends GridProgram {
         return true
     }
 
-    private getColumnDefinitionsRowForTableSlug(tableSlug: TableSlug) {
-        return this.getRowNumbersStartingWithWords([
-            ExplorerRootKeywordMap.columns.keyword,
-            tableSlug,
-        ])[0]
+    private getColumnDefinitionsRowForTableSlug(tableSlug?: TableSlug) {
+        return this.getRowNumbersStartingWith(
+            `${ExplorerRootKeywordMap.columns.keyword}${
+                tableSlug ? this.cellDelimiter + tableSlug : ""
+            }`
+        )[0]
     }
 
-    getTableDef(tableSlug: TableSlug): TableDef | undefined {
-        const matchingTableIndex = this.getRowNumbersStartingWithWords([
-            ExplorerRootKeywordMap.table.keyword,
-            tableSlug,
-        ])[0]
+    getTableDef(tableSlug?: TableSlug): TableDef | undefined {
+        const matchingTableIndex = this.getRowNumbersStartingWith(
+            `${ExplorerRootKeywordMap.table.keyword}${
+                tableSlug ? this.cellDelimiter + tableSlug : ""
+            }`
+        )[0]
         if (matchingTableIndex === undefined) return undefined
 
-        let url = this.lines[matchingTableIndex].split(this.cellDelimiter)[2]
+        let url = this.lines[matchingTableIndex].split(this.cellDelimiter)[1]
 
         if (url && !url.startsWith("http")) {
             const owidDatasetSlug = encodeURIComponent(url)

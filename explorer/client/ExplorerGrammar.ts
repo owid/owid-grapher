@@ -9,7 +9,6 @@ import {
     StringCellDef,
     UrlCellDef,
     SubTableHeaderCellDef,
-    DelimitedUrlCellDef,
     IntegerCellDef,
     SlugsDeclarationCellDef,
     KeywordMap,
@@ -190,6 +189,31 @@ const SwitcherFormControlCellDeff: CellDef = {
 }
 
 export const ExplorerRootKeywordMap: KeywordMap = {
+    table: {
+        ...UrlCellDef,
+        keyword: "table",
+        options: OwidDatasets,
+        placeholder:
+            'http://example.com/data.csv" or "Tax Revenue - World Bank',
+        description: "A link to a CSV or TSV or the name of an OWID dataset.",
+        rest: [
+            {
+                ...SlugDeclarationCellDef,
+                placeholder: "life_expectancy_dataset",
+                description:
+                    "If you have multiple tables, give each one a unique slug.",
+            },
+        ],
+        headerCellDef: {
+            ...SlugDeclarationCellDef,
+            cssClass: "SubTableHeaderCellDef",
+            keywordMap: {},
+            catchAllKeyword: {
+                ...SlugDeclarationCellDef,
+                description: "A column slug.",
+            },
+        },
+    },
     title: {
         ...StringCellDef,
         keyword: "title",
@@ -203,32 +227,6 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         placeholder: "All our data from various sources.",
         description: "The subtitle will appear under the title.",
     },
-    table: {
-        ...SlugDeclarationCellDef,
-        keyword: "table",
-        placeholder: "life_expectancy_dataset",
-        description:
-            "Give your table a slug and include a link to a CSV or put data inline.",
-        rest: [
-            {
-                ...DelimitedUrlCellDef,
-                options: OwidDatasets,
-                placeholder:
-                    'http://example.com/data.csv" or "Tax Revenue - World Bank',
-                description:
-                    "A link to a CSV or TSV or the name of an OWID dataset.",
-            },
-        ],
-        headerCellDef: {
-            ...SlugDeclarationCellDef,
-            cssClass: "SubTableHeaderCellDef",
-            keywordMap: {},
-            catchAllKeyword: {
-                ...SlugDeclarationCellDef,
-                description: "A column slug.",
-            },
-        },
-    },
     columns: {
         ...SlugDeclarationCellDef,
         placeholder: "life_expectancy_dataset",
@@ -238,7 +236,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         },
         keyword: "columns",
         description:
-            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (often times, incorrectly).",
+            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (sometimes times incorrectly).",
     },
     switcher: {
         ...SlugDeclarationCellDef,

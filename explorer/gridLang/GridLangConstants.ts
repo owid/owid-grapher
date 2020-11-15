@@ -123,11 +123,6 @@ export const CommentCellDef: CellDef = {
     regex: /^(\#|💬)/,
 }
 
-export const DelimitedUrlCellDef: CellDef = {
-    ...UrlCellDef,
-    description: "A link to a CSV or TSV",
-}
-
 export const WorkInProgressCellDef: CellDef = {
     keyword: "",
     cssClass: "WorkInProgressCellDef",

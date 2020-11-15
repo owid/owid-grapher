@@ -225,12 +225,14 @@ export class GridCell implements ParsedCell {
 
     get options() {
         const { cellDef } = this
-        const { keywordMap, headerCellDef } = cellDef
-        return keywordMap
+        const { keywordMap, headerCellDef, options } = cellDef
+        return options
+            ? options
+            : keywordMap
             ? Object.keys(keywordMap)
             : headerCellDef
             ? Object.keys(headerCellDef.keywordMap!)
-            : cellDef.options
+            : undefined
     }
 }
 

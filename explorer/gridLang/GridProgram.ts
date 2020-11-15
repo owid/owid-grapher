@@ -123,11 +123,11 @@ export class GridProgram {
             .forEach((line) => this.lines.push(this.edgeDelimiter + line))
     }
 
-    protected getRowNumbersStartingWithWords(words: string[]) {
-        const key = words.join(this.cellDelimiter)
+    getRowNumbersStartingWith(startsWith: string) {
         return this.lines
             .map((line, index) =>
-                line.startsWith(key + this.cellDelimiter) || line === key
+                line.startsWith(startsWith + this.cellDelimiter) ||
+                line === startsWith
                     ? index
                     : null
             )

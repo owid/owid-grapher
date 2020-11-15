@@ -174,13 +174,13 @@ export class Explorer
         if (!hasGrapherId) grapher.id = 0
     }
 
-    @action.bound private setTable(tableSlug: TableSlug) {
+    @action.bound private setTable(tableSlug?: TableSlug) {
         const grapher = this.grapher!
         grapher.inputTable = this.explorerProgram.getTableForSlug(tableSlug)
         grapher.appendNewEntitySelectionOptions()
     }
 
-    @action.bound private async fetchTable(tableSlug: TableSlug) {
+    @action.bound private async fetchTable(tableSlug?: TableSlug) {
         const res = await this.explorerProgram.fetchTableAndStoreInCache(
             tableSlug
         )

@@ -17,6 +17,15 @@ describe(GridProgram, () => {
         ).toEqual("good morning")
     })
 
+    it("can find rows", () => {
+        expect(
+            new GridProgram(
+                "test",
+                `table\ntableName\ntable\tall\n`
+            ).getRowNumbersStartingWith("table")
+        ).toEqual([0, 2])
+    })
+
     describe("blocks", () => {
         const program = new GridProgram(
             "test",
