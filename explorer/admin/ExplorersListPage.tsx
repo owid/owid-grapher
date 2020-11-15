@@ -95,11 +95,16 @@ class ExplorerRow extends React.Component<{
                     {searchHighlight ? searchHighlight(title || "") : title}
                 </td>
                 <td>
-                    <a href={lastCommitLink}>
-                        {lastCommit ? moment(lastCommit.date).fromNow() : ""}
-                    </a>{" "}
-                    by {lastCommit?.author_name} | {fileHistoryButton}
-                    {googleSheetButton}
+                    <div>{lastCommit?.message}</div>
+                    <div style={{ fontSize: "80%", opacity: 0.8 }}>
+                        <a href={lastCommitLink}>
+                            {lastCommit
+                                ? moment(lastCommit.date).fromNow()
+                                : ""}
+                        </a>{" "}
+                        by {lastCommit?.author_name} | {fileHistoryButton}
+                        {googleSheetButton}
+                    </div>
                 </td>
 
                 <td>
