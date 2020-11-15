@@ -378,8 +378,16 @@ export class Explorer
         this.showMobileControlsPopup = false
     }
 
+    @computed private get showHeaderElement() {
+        return (
+            this.showExplorerControls &&
+            this.explorerProgram.title &&
+            this.panels.length
+        )
+    }
+
     render() {
-        const { showExplorerControls } = this
+        const { showExplorerControls, showHeaderElement } = this
         return (
             <div
                 className={classNames({
@@ -389,8 +397,8 @@ export class Explorer
                     "is-embed": this.props.isEmbed,
                 })}
             >
-                {showExplorerControls && this.renderHeaderElement()}
-                {showExplorerControls && this.renderControlBar()}
+                {showHeaderElement && this.renderHeaderElement()}
+                {showHeaderElement && this.renderControlBar()}
                 {showExplorerControls && this.renderEntityPicker()}
                 {showExplorerControls &&
                     this.isMobile &&
