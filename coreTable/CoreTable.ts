@@ -1325,9 +1325,13 @@ export class CoreTable<
     concat(tables: CoreTable[], message = `Combined tables`) {
         const all = [this, ...tables] as CoreTable[]
         const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
+        const uniqDefs = uniqBy(defs, (def) => def.slug)
         return this.transform(
-            concatColumnStores(all.map((table) => table.columnStore)),
-            uniqBy(defs, (def) => def.slug),
+            concatColumnStores(
+                all.map((table) => table.columnStore),
+                uniqDefs.map((def) => def.slug)
+            ),
+            uniqDefs,
             message,
             TransformType.Concat
         )
