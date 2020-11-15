@@ -89,7 +89,7 @@ const main = async () => {
         binary: "git",
         maxConcurrentProcesses: 1,
     })
-    const gitCommitSHA = await git.revparse("HEAD")
+    const gitCommitSHA = await git.revparse(["HEAD"])
     const gitConfig = await git.listConfig()
     const gitName = `${gitConfig.all["user.name"]}`
     const gitEmail = `${gitConfig.all["user.email"]}`
