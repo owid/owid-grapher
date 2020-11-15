@@ -144,9 +144,9 @@ export class ExplorerCreatePage extends React.Component<{
         row: number,
         col: number
     ) {
-        const cell = this.program.getCell(row, col)
+        const tableSlugCell = this.program.getCell(row, col + 1)
         const newProgram = await this.program.autofillMissingColumnDefinitionsForTable(
-            cell.value
+            tableSlugCell.value
         )
         this.setProgram(newProgram.toString())
     }
