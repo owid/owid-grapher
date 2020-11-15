@@ -134,6 +134,12 @@ export class GridProgram {
             .filter(isPresent)
     }
 
+    protected getRowForKeywordAndSlug(keyword: string, slug?: string) {
+        return this.getRowNumbersStartingWith(
+            `${keyword}${slug ? this.cellDelimiter + slug : ""}`
+        )[0]
+    }
+
     toArrays() {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }

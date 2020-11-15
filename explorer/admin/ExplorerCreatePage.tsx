@@ -18,7 +18,7 @@ import { CoreMatrix } from "coreTable/CoreTableConstants"
 import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
-import { autofillMissingColumnDefinitionsCommand } from "./ExplorerCommands"
+import { makeTableContextMenuCommand } from "./ExplorerCommands"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -180,7 +180,15 @@ export class ExplorerCreatePage extends React.Component<{
             comments: true,
             contextMenu: {
                 items: {
-                    autofillMissingColumnDefinitionsCommand: autofillMissingColumnDefinitionsCommand(
+                    autofillMissingColumnDefinitionsCommand: makeTableContextMenuCommand(
+                        "⚡ Autofill missing column definitions",
+                        "autofillMissingColumnDefinitionsForTableCommand",
+                        program,
+                        (newProgram) => this.setProgram(newProgram)
+                    ),
+                    inlineTableCommand: makeTableContextMenuCommand(
+                        "⚡ Inline data",
+                        "inlineTableCommand",
                         program,
                         (newProgram) => this.setProgram(newProgram)
                     ),

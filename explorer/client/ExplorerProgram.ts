@@ -187,7 +187,20 @@ export class ExplorerProgram extends GridProgram {
         return this.getBlock(keywordIndex)
     }
 
-    async autofillMissingColumnDefinitionsForTable(tableSlug?: string) {
+    async inlineTableCommand(tableSlug?: string) {
+        const clone = this.clone
+        await clone.fetchTableAndStoreInCache(tableSlug)
+        const table = clone.getTableForSlug(tableSlug)
+        const tableDefsRow = this.getRowForKeywordAndSlug(
+            ExplorerRootKeywordMap.table.keyword,
+            tableSlug
+        )
+
+        clone.updateBlock(tableDefsRow, table.toTsv())
+        return clone
+    }
+
+    async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
         await clone.fetchTableAndStoreInCache(tableSlug)
         const table = clone.getTableForSlug(tableSlug)
@@ -208,12 +221,17 @@ export class ExplorerProgram extends GridProgram {
                 ColumnsSubTableHeaderKeywordMap.notes.keyword,
             ] as string[])
 
-        const cdRow = this.getColumnDefinitionsRowForTableSlug(tableSlug)
+        const colDefsRow = this.getRowForKeywordAndSlug(
+            ExplorerRootKeywordMap.columns.keyword,
+            tableSlug
+        )
 
-        if (cdRow !== undefined)
+        if (colDefsRow !== undefined)
             clone.updateBlock(
-                cdRow,
-                new CoreTable(clone.getBlock(cdRow)).concat([missing]).toTsv()
+                colDefsRow,
+                new CoreTable(clone.getBlock(colDefsRow))
+                    .concat([missing])
+                    .toTsv()
             )
         else
             clone.appendBlock(
@@ -251,36 +269,32 @@ export class ExplorerProgram extends GridProgram {
         return true
     }
 
-    private getColumnDefinitionsRowForTableSlug(tableSlug?: TableSlug) {
-        return this.getRowNumbersStartingWith(
-            `${ExplorerRootKeywordMap.columns.keyword}${
-                tableSlug ? this.cellDelimiter + tableSlug : ""
-            }`
-        )[0]
-    }
-
     getTableDef(tableSlug?: TableSlug): TableDef | undefined {
-        const matchingTableIndex = this.getRowNumbersStartingWith(
-            `${ExplorerRootKeywordMap.table.keyword}${
-                tableSlug ? this.cellDelimiter + tableSlug : ""
-            }`
-        )[0]
-        if (matchingTableIndex === undefined) return undefined
+        const tableDefRow = this.getRowForKeywordAndSlug(
+            ExplorerRootKeywordMap.table.keyword,
+            tableSlug
+        )
+        if (tableDefRow === undefined) return undefined
 
-        let url = this.lines[matchingTableIndex].split(this.cellDelimiter)[1]
+        let url = this.lines[tableDefRow].split(this.cellDelimiter)[1]
 
         if (url && !url.startsWith("http")) {
             const owidDatasetSlug = encodeURIComponent(url)
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
-        const colRow = this.getColumnDefinitionsRowForTableSlug(tableSlug)
+        const colDefsRow = this.getRowForKeywordAndSlug(
+            ExplorerRootKeywordMap.columns.keyword,
+            tableSlug
+        )
 
         return {
             url,
             columnDefinitions:
-                colRow !== undefined ? this.getBlock(colRow) : undefined,
-            inlineData: this.getBlock(matchingTableIndex),
+                colDefsRow !== undefined
+                    ? this.getBlock(colDefsRow)
+                    : undefined,
+            inlineData: this.getBlock(tableDefRow),
         }
     }
 }

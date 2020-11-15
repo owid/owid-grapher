@@ -1,12 +1,16 @@
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import Handsontable from "handsontable"
 
-export const autofillMissingColumnDefinitionsCommand = (
+export const makeTableContextMenuCommand = (
+    name: string,
+    commandName:
+        | "autofillMissingColumnDefinitionsForTableCommand"
+        | "inlineTableCommand",
     program: ExplorerProgram,
     callback: (newProgram: string) => void
 ) => {
     const command: Handsontable.contextMenu.MenuItemConfig = {
-        name: "⚡ Autofill missing column definitions",
+        name,
         callback: async function () {
             const coordinates = this.getSelectedLast()
             if (!coordinates) return
@@ -14,9 +18,7 @@ export const autofillMissingColumnDefinitionsCommand = (
                 coordinates[0],
                 coordinates[1] + 1
             )
-            const newProgram = await program.autofillMissingColumnDefinitionsForTable(
-                tableSlugCell.value
-            )
+            const newProgram = await program[commandName](tableSlugCell.value)
             callback(newProgram.toString())
         },
         hidden: function () {
