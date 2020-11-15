@@ -214,6 +214,13 @@ export class GridCell implements ParsedCell {
         return [cellDef.cssClass, showArrow].filter(isPresent)
     }
 
+    get placeholder() {
+        const { value, cellDef } = this
+        const placeholder =
+            cellDef.placeholder ?? (cellDef.options && cellDef.options[0])
+        return isEmpty(value) && placeholder ? `eg "${placeholder}"` : undefined
+    }
+
     get options() {
         const { cellDef } = this
         const { keywordMap, headerCellDef } = cellDef

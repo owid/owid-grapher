@@ -201,23 +201,27 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     title: {
         ...StringCellDef,
         keyword: "title",
+        placeholder: "Change in Life Expectancy",
         description:
             "The title will appear in the top left corner of the page.",
     },
     subtitle: {
         ...StringCellDef,
         keyword: "subtitle",
+        placeholder: "Life Expectancy has risen over time.",
         description: "The subtitle will appear under the title.",
     },
     googleSheet: {
         ...UrlCellDef,
         keyword: "googleSheet",
+        placeholder: "https://docs.google.com/spreadsheets/d/1qeX...",
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
     defaultView: {
         ...QueryStringCellDef,
         keyword: "defaultView",
+        placeholder: "selection=Canada",
         description:
             "Use the Explorer, then copy the part of the url starting with ? here.",
     },
@@ -244,7 +248,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         description: "URL to the social sharing thumbnail.",
     },
     wpBlockId: {
-        ...StringCellDef,
+        ...IntegerCellDef,
         keyword: "wpBlockId",
         description:
             "If present will show the matching Wordpress block ID beneath the Explorer.",
@@ -252,24 +256,29 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     entityType: {
         ...StringCellDef,
         keyword: "entityType",
+        placeholder: "region",
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
     pickerColumnSlugs: {
         ...SlugsDeclarationCellDef,
         keyword: "pickerColumnSlugs",
+        placeholder: "gdp population gdp_per_capita",
         description:
             "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
     },
     table: {
         ...SlugDeclarationCellDef,
         keyword: "table",
+        placeholder: "life_expectancy_dataset",
         description:
             "Give your table a slug and include a link to a CSV or put data inline.",
         rest: [
             {
                 ...DelimitedUrlCellDef,
                 options: OwidDatasets,
+                placeholder:
+                    'http://example.com/data.csv" or "Tax Revenue - World Bank',
                 description:
                     "A link to a CSV or TSV or the name of an OWID dataset.",
             },
@@ -286,6 +295,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     },
     columns: {
         ...SlugDeclarationCellDef,
+        placeholder: "life_expectancy_dataset",
         headerCellDef: {
             ...SubTableHeaderCellDef,
             keywordMap: ColumnsSubTableHeaderKeywordMap,

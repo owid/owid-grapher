@@ -19,6 +19,7 @@ export interface CellDef {
     catchAllKeyword?: CellDef
     regex?: RegExp // A validation regex a value must pass
     requirements?: string
+    placeholder?: string
     rest?: readonly CellDef[] // Additional cell types as positional arguments.
 }
 
@@ -28,6 +29,7 @@ export interface ParsedCell {
     options?: string[]
     comment?: string
     cellDef?: CellDef
+    placeholder?: string
 }
 
 export interface CellLink {
@@ -72,6 +74,7 @@ export const IntegerCellDef: CellDef = {
     description: "",
     regex: /^[0-9]+$/,
     requirements: `Must be an integer`,
+    placeholder: "12345",
 }
 
 export const SubTableHeaderCellDef: CellDef = {

@@ -20,6 +20,12 @@ describe(GridCell, () => {
         expect(cell.errorMessage).toEqual(``)
         expect(cell.comment).toContain(`title`)
         expect(cell.cssClasses).toContain(StringCellDef.cssClass)
+        expect(cell.placeholder).toBeFalsy()
+    })
+
+    it("can show a placeholder", () => {
+        const cell = new GridCell(tsvToMatrix(`title`), 0, 1, ExplorerGrammar)
+        expect(cell.placeholder).toBeTruthy()
     })
 
     it("uses the keyword definition for the first cell instead of abstract keyword", () => {

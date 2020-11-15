@@ -4,6 +4,11 @@
         font-size: 0 !important;
     }
 
+    .htPlaceholder {
+        font-size: 10px;
+        font-style: italic;
+    }
+
     .ShowDropdownArrow {
         // But still show the autocomplete dropdown arrow on last cell.
         .htAutocompleteArrow:before {
