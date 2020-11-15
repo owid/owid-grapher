@@ -213,7 +213,7 @@ export class ExplorerCreatePage extends React.Component<{
                     redo: {},
                     sp3: { name: "---------" },
                     copy: {},
-                    paste: {},
+                    cut: {},
                 },
             },
             data,
