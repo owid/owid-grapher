@@ -21,20 +21,22 @@ import {
 import { OwidDatasets } from "./OwidDatasets"
 
 const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
-    chartId: {
-        ...IntegerCellDef,
-        description: "ID of the Grapher to load",
-        keyword: "slug",
-    },
     title: {
         ...StringCellDef,
         keyword: "title",
         description: "Chart title",
+        placeholder: "Life Expectancy around the world.",
     },
     subtitle: {
         ...StringCellDef,
         keyword: "subtitle",
         description: "Chart subtitle",
+        placeholder: "Life Expectancy has risen over time.",
+    },
+    ySlugs: {
+        ...SlugsDeclarationCellDef,
+        description: "ColumnSlug(s) for the yAxis",
+        keyword: "ySlugs",
     },
     type: {
         ...StringCellDef,
@@ -43,6 +45,16 @@ const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
             ChartTypeName
         ).join(", ")}`,
         options: Object.values(ChartTypeName),
+    },
+    chartId: {
+        ...IntegerCellDef,
+        description: "ID of the Grapher to load",
+        keyword: "slug",
+    },
+    table: {
+        ...SlugDeclarationCellDef,
+        description: "Slug of the table to use.",
+        keyword: "table",
     },
     hasMapTab: {
         ...BooleanCellDef,
@@ -53,11 +65,6 @@ const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
         ...BooleanCellDef,
         keyword: "hasChartTab",
         description: "Show the chart tab?",
-    },
-    ySlugs: {
-        ...SlugsDeclarationCellDef,
-        description: "ColumnSlug(s) for the yAxis",
-        keyword: "ySlugs",
     },
     xSlug: {
         ...SlugDeclarationCellDef,
@@ -85,11 +92,6 @@ const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
         description:
             "Set this to limit the number of background series shown on ScatterPlots.",
         keyword: "backgroundSeriesLimit",
-    },
-    table: {
-        ...SlugDeclarationCellDef,
-        description: "Slug of the table to use.",
-        keyword: "table",
     },
     yScaleToggle: {
         ...BooleanCellDef,
@@ -188,84 +190,18 @@ const SwitcherFormControlCellDeff: CellDef = {
 }
 
 export const ExplorerRootKeywordMap: KeywordMap = {
-    isPublished: {
-        ...BooleanCellDef,
-        keyword: "isPublished",
-        description: "Set to true to make this Explorer public.",
-    },
-    hideAlertBanner: {
-        ...BooleanCellDef,
-        keyword: "hideAlertBanner",
-        description: "Set to true to hide the Covid alert banner.",
-    },
     title: {
         ...StringCellDef,
         keyword: "title",
-        placeholder: "Change in Life Expectancy",
+        placeholder: "Life Expectancy Data Explorer",
         description:
             "The title will appear in the top left corner of the page.",
     },
     subtitle: {
         ...StringCellDef,
         keyword: "subtitle",
-        placeholder: "Life Expectancy has risen over time.",
+        placeholder: "All our data from various sources.",
         description: "The subtitle will appear under the title.",
-    },
-    googleSheet: {
-        ...UrlCellDef,
-        keyword: "googleSheet",
-        placeholder: "https://docs.google.com/spreadsheets/d/1qeX...",
-        description:
-            "Create a Google Sheet, share it with the OWID Group, then put the link here.",
-    },
-    defaultView: {
-        ...QueryStringCellDef,
-        keyword: "defaultView",
-        placeholder: "selection=Canada",
-        description:
-            "Use the Explorer, then copy the part of the url starting with ? here.",
-    },
-    hideControls: {
-        ...BooleanCellDef,
-        keyword: "hideControls",
-        description: "Whether to hide the controls. Default is false.",
-    },
-    subNavId: {
-        ...EnumCellDef,
-        options: Object.values(SubNavId),
-        keyword: "subNavId",
-        description: "A subnav to show, if any.",
-    },
-    subNavCurrentId: {
-        // todo: add options here
-        ...EnumCellDef,
-        keyword: "subNavCurrentId",
-        description: "The current page in the subnav.",
-    },
-    thumbnail: {
-        ...UrlCellDef,
-        keyword: "thumbnail",
-        description: "URL to the social sharing thumbnail.",
-    },
-    wpBlockId: {
-        ...IntegerCellDef,
-        keyword: "wpBlockId",
-        description:
-            "If present will show the matching Wordpress block ID beneath the Explorer.",
-    },
-    entityType: {
-        ...StringCellDef,
-        keyword: "entityType",
-        placeholder: "region",
-        description:
-            "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
-    },
-    pickerColumnSlugs: {
-        ...SlugsDeclarationCellDef,
-        keyword: "pickerColumnSlugs",
-        placeholder: "gdp population gdp_per_capita",
-        description:
-            "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
     },
     table: {
         ...SlugDeclarationCellDef,
@@ -313,6 +249,72 @@ export const ExplorerRootKeywordMap: KeywordMap = {
             keywordMap: SwitcherSubTableHeaderKeywordMap,
             catchAllKeyword: SwitcherFormControlCellDeff,
         },
+    },
+    googleSheet: {
+        ...UrlCellDef,
+        keyword: "googleSheet",
+        placeholder: "https://docs.google.com/spreadsheets/d/1qeX...",
+        description:
+            "Create a Google Sheet, share it with the OWID Group, then put the link here.",
+    },
+    defaultView: {
+        ...QueryStringCellDef,
+        keyword: "defaultView",
+        placeholder: "selection=Canada",
+        description:
+            "Use the Explorer, then copy the part of the url starting with ? here.",
+    },
+    isPublished: {
+        ...BooleanCellDef,
+        keyword: "isPublished",
+        description: "Set to true to make this Explorer public.",
+    },
+    wpBlockId: {
+        ...IntegerCellDef,
+        keyword: "wpBlockId",
+        description:
+            "If present will show the matching Wordpress block ID beneath the Explorer.",
+    },
+    hideControls: {
+        ...BooleanCellDef,
+        keyword: "hideControls",
+        description: "Whether to hide the controls. Default is false.",
+    },
+    subNavId: {
+        ...EnumCellDef,
+        options: Object.values(SubNavId),
+        keyword: "subNavId",
+        description: "A subnav to show, if any.",
+    },
+    subNavCurrentId: {
+        // todo: add options here
+        ...EnumCellDef,
+        keyword: "subNavCurrentId",
+        description: "The current page in the subnav.",
+    },
+    thumbnail: {
+        ...UrlCellDef,
+        keyword: "thumbnail",
+        description: "URL to the social sharing thumbnail.",
+    },
+    entityType: {
+        ...StringCellDef,
+        keyword: "entityType",
+        placeholder: "region",
+        description:
+            "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
+    },
+    pickerColumnSlugs: {
+        ...SlugsDeclarationCellDef,
+        keyword: "pickerColumnSlugs",
+        placeholder: "gdp population gdp_per_capita",
+        description:
+            "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
+    },
+    hideAlertBanner: {
+        ...BooleanCellDef,
+        keyword: "hideAlertBanner",
+        description: "Set to true to hide the Covid alert banner.",
     },
 } as const
 
