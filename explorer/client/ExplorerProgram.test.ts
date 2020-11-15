@@ -1,12 +1,17 @@
 #! /usr/bin/env yarn jest
 
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
-import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
 import {
     CommentCellDef,
     GridBoolean,
 } from "explorer/gridLang/GridLangConstants"
+
+const DefaultExplorerProgram = `switcher
+	chartId	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
+	35	Load A Grapher Demo
+		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
+		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME`
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)

@@ -10,7 +10,6 @@ import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerProgram, makeFullPath } from "explorer/client/ExplorerProgram"
-import { DefaultExplorerProgram } from "explorer/client/DefaultExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
@@ -46,7 +45,7 @@ export class ExplorerCreatePage extends React.Component<{
         const response = await readRemoteFile({
             filepath: makeFullPath(this.props.slug),
         })
-        this.sourceOnDisk = response.content || DefaultExplorerProgram
+        this.sourceOnDisk = response.content ?? ""
         this.setProgram(this.sourceOnDisk)
         this.isReady = true
     }
@@ -86,7 +85,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.setProgram(newProgram.toString())
     }
 
-    @observable sourceOnDisk = DefaultExplorerProgram
+    @observable sourceOnDisk = ""
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
