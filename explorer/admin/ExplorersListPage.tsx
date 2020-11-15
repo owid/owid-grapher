@@ -165,7 +165,7 @@ class ExplorerList extends React.Component<{
                     <tr>
                         <th>Slug</th>
                         <th>Title</th>
-                        <th>Updated</th>
+                        <th>Last Updated</th>
                         <th></th>
                         <th></th>
                         <th></th>
