@@ -22,7 +22,11 @@ import {
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
-import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
+import {
+    ColumnsSubTableHeaderKeywordMap,
+    ExplorerGrammar,
+    ExplorerRootKeywordMap,
+} from "./ExplorerGrammar"
 import {
     GridBoolean,
     GRID_CELL_DELIMITER,
@@ -181,29 +185,40 @@ export class ExplorerProgram extends GridProgram {
         return this.getBlock(keywordIndex)
     }
 
-    async autofillMissingColumnDefinitionsForTable(tableSlug: string) {
+    async autofillMissingColumnDefinitionsForTable(tableSlug?: string) {
         const clone = this.clone
         await clone.fetchTableAndStoreInCache(tableSlug)
         const table = clone.getTableForSlug(tableSlug)
-        const missing = table.autodetectedColumnDefs.select([
-            "slug",
-            "name",
-            "type",
-        ])
+        const newCols = table.autodetectedColumnDefs
+        const missing = newCols
+            .appendColumns([
+                {
+                    slug: ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                    values: newCols.indices.map(() => `Unreviewed`),
+                },
+            ])
+            .select([
+                ColumnsSubTableHeaderKeywordMap.slug.keyword,
+                ,
+                ColumnsSubTableHeaderKeywordMap.name.keyword,
+                ,
+                ColumnsSubTableHeaderKeywordMap.type.keyword,
+                ColumnsSubTableHeaderKeywordMap.notes.keyword,
+            ] as string[])
 
         const cdRow = this.getColumnDefinitionsRowForTableSlug(tableSlug)
 
         if (cdRow !== undefined)
             clone.updateBlock(
                 cdRow,
-                clone.getBlock(cdRow) + "\n" + missing.toDelimited("\t")
+                new CoreTable(clone.getBlock(cdRow)).concat([missing]).toTsv()
             )
         else
             clone.appendBlock(
-                [ExplorerRootKeywordMap.columns.keyword, tableSlug].join(
-                    clone.cellDelimiter
-                ),
-                missing.toDelimited("\t")
+                `${ExplorerRootKeywordMap.columns.keyword}${
+                    tableSlug ? this.cellDelimiter + tableSlug : ""
+                }`,
+                missing.toTsv()
             )
         return clone
     }
