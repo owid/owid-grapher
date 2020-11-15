@@ -188,7 +188,7 @@ export const renderExplorerPage = async (
 
     return renderToHtmlPage(
         <ExplorerPage
-            title={program.title ?? ""}
+            title={program.explorerTitle ?? ""}
             slug={slug}
             imagePath={program.thumbnail ?? ""}
             subnavId={program.subNavId}

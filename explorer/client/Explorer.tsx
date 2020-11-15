@@ -257,12 +257,12 @@ export class Explorer
             <div className="ExplorerHeaderBox">
                 <div></div>
                 <div className="ExplorerTitle">
-                    {this.explorerProgram.title}
+                    {this.explorerProgram.explorerTitle}
                 </div>
                 <div
                     className="ExplorerSubtitle"
                     dangerouslySetInnerHTML={{
-                        __html: this.explorerProgram.subtitle || "",
+                        __html: this.explorerProgram.explorerSubtitle || "",
                     }}
                 ></div>
             </div>
@@ -359,7 +359,7 @@ export class Explorer
     @computed private get showHeaderElement() {
         return (
             this.showExplorerControls &&
-            this.explorerProgram.title &&
+            this.explorerProgram.explorerTitle &&
             this.panels.length
         )
     }

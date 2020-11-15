@@ -110,3 +110,11 @@ const getEditDistance = (stringA: string, stringB: string, maxInt: number) => {
     // If we made it this far without running into the max, then return the final matrix value.
     return matrix[bLength][aLength]
 }
+
+const delimitedToMatrix = (
+    delimited: string,
+    rowDelimiter = "\n",
+    columnDelimiter = "\t"
+) => delimited.split(rowDelimiter).map((line) => line.split(columnDelimiter))
+
+export const tsvToMatrix = delimitedToMatrix

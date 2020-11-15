@@ -4,8 +4,10 @@ import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
 import {
     CommentCellDef,
+    FrontierCellClass,
     GridBoolean,
 } from "explorer/gridLang/GridLangConstants"
+import { ExplorerRootKeywordMap } from "./ExplorerGrammar"
 
 const DefaultExplorerProgram = `switcher
 	chartId	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
@@ -24,8 +26,8 @@ describe(ExplorerProgram, () => {
     })
 
     it("allows blank lines in blocks", () => {
-        const code = `title\tData Explorer
-switcher
+        const code = `${ExplorerRootKeywordMap.explorerTitle.keyword}\tData Explorer
+${ExplorerRootKeywordMap.switcher.keyword}
 \tchartId\tDevice Radio
 \t35\tInternet
 
@@ -229,5 +231,41 @@ france,Life expectancy`
         expect(options.choicesWithAvailability[1].options[0].checked).toEqual(
             true
         )
+    })
+
+    describe("subtables", () => {
+        it("can detect header frontier", () => {
+            const subtableFrontierCell = new ExplorerProgram(
+                "test",
+                `columns\tsome_slug\n\tslug\tname`
+            ).getCell(1, 3)
+            expect(subtableFrontierCell.errorMessage).toEqual(``)
+            expect(subtableFrontierCell.cssClasses).toContain(FrontierCellClass)
+        })
+
+        it("can detect invalid slugs", () => {
+            const cell = new ExplorerProgram(
+                "test",
+                `columns\tBag slug`
+            ).getCell(0, 1)
+            expect(cell.errorMessage).not.toEqual(``)
+        })
+
+        it("can detect header frontier", () => {
+            const subtableFrontierCell = new ExplorerProgram(
+                "test",
+                `columns\tsome_slug\n\tslug\tname`
+            ).getCell(1, 3)
+            expect(subtableFrontierCell.errorMessage).toEqual(``)
+            expect(subtableFrontierCell.cssClasses).toContain(FrontierCellClass)
+        })
+
+        it("can detect invalid slugs", () => {
+            const cell = new ExplorerProgram(
+                "test",
+                `columns\tBag slug`
+            ).getCell(0, 1)
+            expect(cell.errorMessage).not.toEqual(``)
+        })
     })
 })

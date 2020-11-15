@@ -60,7 +60,7 @@ class ExplorerRow extends React.Component<{
             filename,
             googleSheet,
             isPublished,
-            title,
+            explorerTitle,
         } = explorer
 
         const publishedUrl = `${BAKED_BASE_URL}/explorers/${slug}`
@@ -92,7 +92,9 @@ class ExplorerRow extends React.Component<{
                     )}
                 </td>
                 <td>
-                    {searchHighlight ? searchHighlight(title || "") : title}
+                    {searchHighlight
+                        ? searchHighlight(explorerTitle || "")
+                        : explorerTitle}
                 </td>
                 <td>
                     <div>{lastCommit?.message}</div>

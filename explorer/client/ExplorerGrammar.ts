@@ -219,18 +219,18 @@ export const ExplorerRootKeywordMap: KeywordMap = {
             },
         },
     },
-    title: {
+    explorerTitle: {
         ...StringCellDef,
-        keyword: "title",
+        keyword: "explorerTitle",
         placeholder: "Life Expectancy Data Explorer",
         description:
-            "The title will appear in the top left corner of the page.",
+            "The title will appear in the top left corner of the Explorer.",
     },
-    subtitle: {
+    explorerSubtitle: {
         ...StringCellDef,
-        keyword: "subtitle",
+        keyword: "explorerSubtitle",
         placeholder: "All our data from various sources.",
-        description: "The subtitle will appear under the title.",
+        description: "The subtitle will appear under the explorerTitle.",
     },
     columns: {
         ...SlugDeclarationCellDef,

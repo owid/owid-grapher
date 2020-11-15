@@ -103,8 +103,8 @@ export class ExplorerProgram extends GridProgram {
         return new ExplorerProgram(slug, str)
     }
 
-    get title() {
-        return this.getLineValue(ExplorerRootKeywordMap.title.keyword)
+    get explorerTitle() {
+        return this.getLineValue(ExplorerRootKeywordMap.explorerTitle.keyword)
     }
 
     get subNavId(): SubNavId | undefined {
@@ -133,8 +133,10 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerRootKeywordMap.thumbnail.keyword)
     }
 
-    get subtitle() {
-        return this.getLineValue(ExplorerRootKeywordMap.subtitle.keyword)
+    get explorerSubtitle() {
+        return this.getLineValue(
+            ExplorerRootKeywordMap.explorerSubtitle.keyword
+        )
     }
 
     get entityType() {
