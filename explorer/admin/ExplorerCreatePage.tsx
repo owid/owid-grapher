@@ -141,15 +141,18 @@ export class ExplorerCreatePage extends React.Component<{
 
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
-    render() {
-        if (!this.isReady)
-            return (
-                <AdminLayout title="Create Explorer">
-                    {" "}
-                    <LoadingIndicator />
-                </AdminLayout>
-            )
+    @action.bound private async autofillMissingColumnDefinitions(
+        row: number,
+        col: number
+    ) {
+        const cell = this.program.getCell(row, col)
+        const newProgram = await this.program.autofillMissingColumnDefinitionsForTable(
+            cell.value
+        )
+        this.setProgram(newProgram.toString())
+    }
 
+    private get hotSettings() {
         const { program } = this
         const data = program.toArrays()
 
@@ -176,6 +179,7 @@ export class ExplorerCreatePage extends React.Component<{
             return cellProperties
         }
 
+        const that = this
         const hotSettings: Handsontable.GridSettings = {
             afterChange: () => this.updateProgramFromHot(),
             afterRemoveRow: () => this.updateProgramFromHot(),
@@ -188,12 +192,17 @@ export class ExplorerCreatePage extends React.Component<{
             comments: true,
             contextMenu: {
                 items: {
-                    autofillColumns: {
-                        name: "Autofill missing column definitions",
+                    autofillMissingColumnDefinitions: {
+                        name: "⚡ Autofill missing column definitions",
                         callback: function () {
-                            alert("Coming soon")
+                            const coordinates = this.getSelectedLast()
+                            if (coordinates)
+                                that.autofillMissingColumnDefinitions(
+                                    coordinates[0],
+                                    coordinates[1]
+                                )
                         },
-                        disabled: function () {
+                        hidden: function () {
                             const coordinates = this.getSelectedLast()
                             if (coordinates === undefined) return true
                             const cell = program.getCell(
@@ -229,6 +238,20 @@ export class ExplorerCreatePage extends React.Component<{
             width: "100%",
             wordWrap: false,
         }
+
+        return hotSettings
+    }
+
+    render() {
+        if (!this.isReady)
+            return (
+                <AdminLayout title="Create Explorer">
+                    {" "}
+                    <LoadingIndicator />
+                </AdminLayout>
+            )
+
+        const { program } = this
 
         return (
             <AdminLayout title="Create Explorer">
@@ -307,7 +330,7 @@ export class ExplorerCreatePage extends React.Component<{
                         }}
                     >
                         <HotTable
-                            settings={hotSettings}
+                            settings={this.hotSettings}
                             ref={this.hotTableComponent as any}
                             licenseKey={"non-commercial-and-evaluation"}
                         />

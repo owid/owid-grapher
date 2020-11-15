@@ -17,7 +17,7 @@ import {
     RootKeywordCellDef,
     EnumCellDef,
     StringDeclarationDef,
-} from "./GridGrammarConstants"
+} from "explorer/gridLang/GridLangConstants"
 import { OwidDatasets } from "./OwidDatasets"
 
 const SwitcherSubTableHeaderKeywordMap: KeywordMap = {

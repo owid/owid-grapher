@@ -28,6 +28,10 @@
         font-size: 8px;
     }
 
+    .htCommentCell.HasSuggestions:after {
+        content: "⚡✓" !important;
+    }
+
     .KeywordCellDef {
         color: #3c4e66;
     }

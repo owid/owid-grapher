@@ -3,7 +3,10 @@
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
 import { DefaultExplorerProgram } from "./DefaultExplorerProgram"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
-import { CommentCellDef, GridBoolean } from "./GridGrammarConstants"
+import {
+    CommentCellDef,
+    GridBoolean,
+} from "explorer/gridLang/GridLangConstants"
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)

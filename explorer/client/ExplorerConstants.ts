@@ -1,4 +1,4 @@
-import { SerializedExplorerProgram } from "./ExplorerProgram"
+import { SerializedGridProgram } from "../gridLang/SerializedGridProgram"
 
 export enum ExplorerControlType {
     Radio = "Radio",
@@ -28,5 +28,5 @@ export interface ExplorersRouteResponse {
     errorMessage?: string
     needsPull: boolean
     gitCmsBranchName: string
-    explorers: SerializedExplorerProgram[]
+    explorers: SerializedGridProgram[]
 }

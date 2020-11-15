@@ -5,7 +5,7 @@ import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
-import { GridBoolean } from "./GridGrammarConstants"
+import { GridBoolean } from "explorer/gridLang/GridLangConstants"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile?: boolean

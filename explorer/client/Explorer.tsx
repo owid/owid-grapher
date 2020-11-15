@@ -11,21 +11,12 @@ import {
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
-import {
-    ExplorerProgram,
-    SerializedExplorerProgram,
-    TableDef,
-} from "./ExplorerProgram"
+import { ExplorerProgram } from "./ExplorerProgram"
+import { SerializedGridProgram } from "../gridLang/SerializedGridProgram"
 import { strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import {
-    exposeInstanceOnWindow,
-    fetchText,
-    trimObject,
-    throttle,
-} from "grapher/utils/Util"
+import { exposeInstanceOnWindow, throttle } from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -46,10 +37,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
-import { GridBoolean } from "./GridGrammarConstants"
+import { GridBoolean } from "explorer/gridLang/GridLangConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 
-export interface ExplorerProps extends SerializedExplorerProgram {
+export interface ExplorerProps extends SerializedGridProgram {
     explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
     grapherConfigs?: GrapherInterface[]
     bindToWindow?: boolean
@@ -110,32 +101,6 @@ export class Explorer
     }
 
     @observable.ref grapher?: Grapher
-
-    private getTable(tableSlug: TableSlug) {
-        const table = this.explorerProgram.getTableDef(tableSlug)
-        if (!table) return BlankOwidTable()
-        if (table.url) {
-            const cached = this.tableCache.get(table.url)
-            if (cached) return cached
-            this.fetchTable(table)
-            return BlankOwidTable()
-        }
-        return new OwidTable(table.inlineData, table.columnDefinitions, {
-            tableDescription: `Loaded from inline data`,
-        }).dropEmptyRows()
-    }
-
-    private tableCache = new Map<string, OwidTable>()
-    @action.bound private async fetchTable(table: TableDef) {
-        const path = table.url!
-        const csv = await fetchText(path)
-        const grapher = this.grapher!
-        grapher.inputTable = new OwidTable(csv, table.columnDefinitions, {
-            tableDescription: `Loaded from ${path}`,
-        })
-        grapher.appendNewEntitySelectionOptions()
-        this.tableCache.set(path, grapher.inputTable)
-    }
 
     @action.bound setGrapher(grapher: Grapher) {
         this.grapher = grapher
@@ -202,11 +167,24 @@ export class Explorer
         grapher.setAuthoredVersion(config)
         grapher.reset()
         grapher.updateFromObject(config)
-        grapher.inputTable = this.getTable(table)
-        grapher.appendNewEntitySelectionOptions()
+        this.setTable(table) // Set a table immediately, even if a BlankTable
+        this.fetchTable(table) // Fetch a remote table in the background, if any.
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
         if (!hasGrapherId) grapher.id = 0
+    }
+
+    @action.bound private setTable(tableSlug: TableSlug) {
+        const grapher = this.grapher!
+        grapher.inputTable = this.explorerProgram.getTableForSlug(tableSlug)
+        grapher.appendNewEntitySelectionOptions()
+    }
+
+    @action.bound private async fetchTable(tableSlug: TableSlug) {
+        const res = await this.explorerProgram.fetchTableAndStoreInCache(
+            tableSlug
+        )
+        if (res) this.setTable(tableSlug)
     }
 
     @action.bound setSlide(queryString: string) {

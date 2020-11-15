@@ -1,13 +1,13 @@
 #! /usr/bin/env yarn jest
 
-import { GridCell } from "./GridCell"
+import { GridCell } from "explorer/gridLang/GridCell"
 import { tsvToMatrix } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
 import {
     CellHasErrorsClass,
     FrontierCellClass,
     StringCellDef,
-} from "./GridGrammarConstants"
+} from "explorer/gridLang/GridLangConstants"
 
 describe(GridCell, () => {
     it("can parse a cell", () => {

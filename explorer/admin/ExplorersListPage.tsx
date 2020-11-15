@@ -17,10 +17,8 @@ import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
 import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
-import {
-    ExplorerProgram,
-    SerializedExplorerProgram,
-} from "explorer/client/ExplorerProgram"
+import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import {
     deleteRemoteFile,
     pullFromGithub,
@@ -295,7 +293,7 @@ export class ExplorersIndexPage extends React.Component {
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(
-                    (exp: SerializedExplorerProgram) =>
+                    (exp: SerializedGridProgram) =>
                         ExplorerProgram.fromJson(exp)
                 )
                 this.numTotalRows = json.explorers.length

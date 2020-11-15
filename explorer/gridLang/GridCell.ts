@@ -16,7 +16,7 @@ import {
     SubTableValueCellDef,
     WorkInProgressCellDef,
     NothingGoesThereCellDef,
-} from "./GridGrammarConstants"
+} from "./GridLangConstants"
 
 export class GridCell implements ParsedCell {
     private row: CellCoordinate
@@ -33,10 +33,6 @@ export class GridCell implements ParsedCell {
         this.column = column
         this.matrix = matrix
         this.rootDefinition = rootDefinition
-    }
-
-    private get value() {
-        return this.line ? this.line[this.column] : undefined
     }
 
     private get line(): MatrixLine | undefined {
@@ -190,6 +186,10 @@ export class GridCell implements ParsedCell {
         return ""
     }
 
+    get value() {
+        return this.line ? this.line[this.column] : undefined
+    }
+
     get comment() {
         const { value, errorMessage, cellDef } = this
         if (isEmpty(value)) return undefined
@@ -211,7 +211,9 @@ export class GridCell implements ParsedCell {
             this.subTableParseResults?.isFrontierCell
                 ? FrontierCellClass
                 : undefined
-        return [cellDef.cssClass, showArrow].filter(isPresent)
+        const hasSuggestions =
+            this.cellDef.keyword === "table" ? "HasSuggestions" : null
+        return [cellDef.cssClass, hasSuggestions, showArrow].filter(isPresent)
     }
 
     get placeholder() {

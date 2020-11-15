@@ -1,4 +1,4 @@
-import { isPresent, trimObject } from "grapher/utils/Util"
+import { fetchText, trimObject } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -14,20 +14,24 @@ import {
     DefaultNewExplorerSlug,
 } from "./ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
-import { CoreMatrix } from "coreTable/CoreTableConstants"
+import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import {
-    trimMatrix,
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
-    imemo,
 } from "coreTable/CoreTableUtils"
 import { getRequiredGrapherIds } from "./ExplorerUtils"
 import { ExplorerGrammar, ExplorerRootKeywordMap } from "./ExplorerGrammar"
-import { GridCell } from "./GridCell"
-import { GridBoolean, ParsedCell } from "./GridGrammarConstants"
+import {
+    GridBoolean,
+    GRID_CELL_DELIMITER,
+    GRID_NODE_DELIMITER,
+} from "explorer/gridLang/GridLangConstants"
 import { GitCommit } from "gitCms/GitTypes"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
+import { GridProgram } from "explorer/gridLang/GridProgram"
+import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 
 const CHART_ID_SYMBOL = "chartId"
 
@@ -40,60 +44,33 @@ interface Choice {
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
-const nodeDelimiter = "\n"
-const cellDelimiter = "\t"
-const edgeDelimiter = "\t"
-
-interface BlockLocation {
-    start: number
-    end: number
-    length: number
-}
-
 export interface TableDef {
     url?: string
     columnDefinitions?: string
     inlineData?: string
 }
 
-export interface SerializedExplorerProgram {
-    slug: string
-    program: string
-    lastCommit?: GitCommit
-}
-
-export class ExplorerProgram {
+export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
-        this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
-        this.slug = slug
+        super(slug, tsv, lastCommit, ExplorerGrammar)
         this.decisionMatrix = new DecisionMatrix(
             this.decisionMatrixCode ?? "",
             lastCommit?.hash
         )
-        this.lastCommit = lastCommit
     }
 
-    private static guids = 0
-    guid = ++ExplorerProgram.guids
-
-    lastCommit?: GitCommit
-    slug: string
     decisionMatrix: DecisionMatrix
 
-    toJson(): SerializedExplorerProgram {
-        return {
-            program: this.toString(),
-            slug: this.slug,
-            lastCommit: this.lastCommit,
-        }
+    static fromJson(json: SerializedGridProgram) {
+        return new ExplorerProgram(json.slug, json.program, json.lastCommit)
+    }
+
+    private get clone() {
+        return ExplorerProgram.fromJson(this.toJson())
     }
 
     get isNewFile() {
         return this.slug === DefaultNewExplorerSlug
-    }
-
-    static fromJson(json: SerializedExplorerProgram) {
-        return new ExplorerProgram(json.slug, json.program, json.lastCommit)
     }
 
     get filename() {
@@ -111,102 +88,15 @@ export class ExplorerProgram {
         return makeFullPath(this.slug)
     }
 
-    private nodeDelimiter = nodeDelimiter
-    cellDelimiter = cellDelimiter
-    private edgeDelimiter = edgeDelimiter
-    lines: string[]
-
-    private getLineValue(keyword: string) {
-        const line = this.lines.find((line) =>
-            line.startsWith(keyword + this.cellDelimiter)
-        )
-        return line ? line.split(this.cellDelimiter)[1] : undefined
-    }
-
-    getKeywordIndex(key: string) {
-        return this.lines.findIndex(
-            (line) => line.startsWith(key + this.cellDelimiter) || line === key
-        )
-    }
-
-    getKeywordIndexes(words: string[]) {
-        const key = words.join(this.cellDelimiter)
-        return this.lines
-            .map((line, index) =>
-                line.startsWith(key + this.cellDelimiter) || line === key
-                    ? index
-                    : null
-            )
-            .filter(isPresent)
-    }
-
-    getCell(row: number, col: number): ParsedCell {
-        return new GridCell(this.matrix, row, col, ExplorerGrammar)
-    }
-
-    @imemo private get matrix() {
-        return this.lines.map((line) => line.split(this.cellDelimiter))
-    }
-
-    private get clone() {
-        return ExplorerProgram.fromJson(this.toJson())
-    }
-
-    private setLineValue(key: string, value: string | undefined) {
-        const { clone } = this
-        const index = clone.getKeywordIndex(key)
-        const newLine = `${key}${clone.cellDelimiter}${value}`
-        if (index === -1 && value !== undefined) clone.lines.push(newLine)
-        else if (value === undefined) clone.lines = clone.lines.splice(index, 1)
-        else clone.lines[index] = newLine
-        return clone
-    }
-
-    private getBlock(keywordIndex: number) {
-        const location = this.getBlockLocation(keywordIndex)
-        return this.lines
-            .slice(location.start, location.end)
-            .map((line) => line.substr(1))
-            .join(this.nodeDelimiter)
-    }
-
     get requiredGrapherIds() {
         return getRequiredGrapherIds(this.decisionMatrixCode ?? "")
     }
 
     static fromMatrix(slug: string, matrix: CoreMatrix) {
         const str = matrix
-            .map((row) => row.join(cellDelimiter))
-            .join(nodeDelimiter)
+            .map((row) => row.join(GRID_CELL_DELIMITER))
+            .join(GRID_NODE_DELIMITER)
         return new ExplorerProgram(slug, str)
-    }
-
-    toArrays() {
-        return this.lines.map((line) => line.split(this.cellDelimiter))
-    }
-
-    // The max number of columns in any row when you view a program as a spreadsheet
-    get width() {
-        return Math.max(...this.toArrays().map((arr) => arr.length))
-    }
-
-    toString() {
-        return this.prettify()
-    }
-
-    private prettify() {
-        return trimMatrix(this.toArrays())
-            .map((line) => line.join(this.cellDelimiter))
-            .join(this.nodeDelimiter)
-    }
-
-    private getBlockLocation(blockStartLine: number): BlockLocation {
-        const blockStart = blockStartLine + 1
-        let length = this.lines
-            .slice(blockStart)
-            .findIndex((line) => line && !line.startsWith(this.edgeDelimiter))
-        if (length === -1) length = this.lines.slice(blockStart).length
-        return { start: blockStart, end: blockStart + length, length }
     }
 
     get title() {
@@ -270,7 +160,7 @@ export class ExplorerProgram {
     }
 
     setPublished(value: boolean) {
-        return this.setLineValue(
+        return this.clone.setLineValue(
             ExplorerRootKeywordMap.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
@@ -291,17 +181,72 @@ export class ExplorerProgram {
         return this.getBlock(keywordIndex)
     }
 
-    getTableDef(tableSlug: string): TableDef | undefined {
-        const matchingTableIndex = this.getKeywordIndexes([
+    async autofillMissingColumnDefinitionsForTable(tableSlug: string) {
+        const clone = this.clone
+        await clone.fetchTableAndStoreInCache(tableSlug)
+        const table = clone.getTableForSlug(tableSlug)
+        const missing = table.autodetectedColumnDefs.select([
+            "slug",
+            "name",
+            "type",
+        ])
+
+        const cdRow = this.getColumnDefinitionsRowForTableSlug(tableSlug)
+
+        if (cdRow !== undefined)
+            clone.updateBlock(
+                cdRow,
+                clone.getBlock(cdRow) + "\n" + missing.toDelimited("\t")
+            )
+        else
+            clone.appendBlock(
+                [ExplorerRootKeywordMap.columns.keyword, tableSlug].join(
+                    clone.cellDelimiter
+                ),
+                missing.toDelimited("\t")
+            )
+        return clone
+    }
+
+    getTableForSlug(tableSlug: TableSlug) {
+        const tableDef = this.getTableDef(tableSlug)
+        if (!tableDef) return BlankOwidTable()
+        if (tableDef.url) {
+            const cached = ExplorerProgram.fetchedTableCache.get(tableDef.url)
+            if (cached) return cached
+            return BlankOwidTable()
+        }
+        return new OwidTable(tableDef.inlineData, tableDef.columnDefinitions, {
+            tableDescription: `Loaded from inline data`,
+        }).dropEmptyRows()
+    }
+
+    private static fetchedTableCache = new Map<string, OwidTable>()
+    async fetchTableAndStoreInCache(tableSlug: TableSlug) {
+        const tableDef = this.getTableDef(tableSlug)
+        if (!tableDef || !tableDef.url) return false
+        const path = tableDef.url
+        const csv = await fetchText(path)
+        const table = new OwidTable(csv, tableDef.columnDefinitions, {
+            tableDescription: `Loaded from ${path}`,
+        })
+        ExplorerProgram.fetchedTableCache.set(path, table)
+        return true
+    }
+
+    private getColumnDefinitionsRowForTableSlug(tableSlug: TableSlug) {
+        return this.getRowNumbersStartingWithWords([
+            ExplorerRootKeywordMap.columns.keyword,
+            tableSlug,
+        ])[0]
+    }
+
+    getTableDef(tableSlug: TableSlug): TableDef | undefined {
+        const matchingTableIndex = this.getRowNumbersStartingWithWords([
             ExplorerRootKeywordMap.table.keyword,
             tableSlug,
         ])[0]
         if (matchingTableIndex === undefined) return undefined
-
-        const matchingColumnsIndex = this.getKeywordIndexes([
-            ExplorerRootKeywordMap.columns.keyword,
-            tableSlug,
-        ])[0]
 
         let url = this.lines[matchingTableIndex].split(this.cellDelimiter)[2]
 
@@ -310,11 +255,12 @@ export class ExplorerProgram {
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
+        const colRow = this.getColumnDefinitionsRowForTableSlug(tableSlug)
+
         return {
             url,
-            columnDefinitions: matchingColumnsIndex
-                ? this.getBlock(matchingColumnsIndex)
-                : undefined,
+            columnDefinitions:
+                colRow !== undefined ? this.getBlock(colRow) : undefined,
             inlineData: this.getBlock(matchingTableIndex),
         }
     }
