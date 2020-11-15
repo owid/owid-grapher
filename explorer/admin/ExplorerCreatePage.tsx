@@ -179,6 +179,7 @@ export class ExplorerCreatePage extends React.Component<{
         const hotSettings: Handsontable.GridSettings = {
             afterChange: () => this.updateProgramFromHot(),
             afterRemoveRow: () => this.updateProgramFromHot(),
+            afterRemoveCol: () => this.updateProgramFromHot(),
             allowInsertColumn: false,
             allowInsertRow: true,
             autoColumnSize: false,
