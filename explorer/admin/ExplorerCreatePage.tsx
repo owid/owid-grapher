@@ -18,6 +18,7 @@ import { CoreMatrix } from "coreTable/CoreTableConstants"
 import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
+import { autofillMissingColumnDefinitionsCommand } from "./ExplorerCommands"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -140,17 +141,6 @@ export class ExplorerCreatePage extends React.Component<{
 
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
-    @action.bound private async autofillMissingColumnDefinitions(
-        row: number,
-        col: number
-    ) {
-        const tableSlugCell = this.program.getCell(row, col + 1)
-        const newProgram = await this.program.autofillMissingColumnDefinitionsForTable(
-            tableSlugCell.value
-        )
-        this.setProgram(newProgram.toString())
-    }
-
     private get hotSettings() {
         const { program } = this
         const data = program.toArrays()
@@ -178,7 +168,6 @@ export class ExplorerCreatePage extends React.Component<{
             return cellProperties
         }
 
-        const that = this
         const hotSettings: Handsontable.GridSettings = {
             afterChange: () => this.updateProgramFromHot(),
             afterRemoveRow: () => this.updateProgramFromHot(),
@@ -191,26 +180,10 @@ export class ExplorerCreatePage extends React.Component<{
             comments: true,
             contextMenu: {
                 items: {
-                    autofillMissingColumnDefinitions: {
-                        name: "⚡ Autofill missing column definitions",
-                        callback: function () {
-                            const coordinates = this.getSelectedLast()
-                            if (coordinates)
-                                that.autofillMissingColumnDefinitions(
-                                    coordinates[0],
-                                    coordinates[1]
-                                )
-                        },
-                        hidden: function () {
-                            const coordinates = this.getSelectedLast()
-                            if (coordinates === undefined) return true
-                            const cell = program.getCell(
-                                coordinates[0],
-                                coordinates[1]
-                            )
-                            return cell.cellDef?.keyword !== "table"
-                        },
-                    },
+                    autofillMissingColumnDefinitionsCommand: autofillMissingColumnDefinitionsCommand(
+                        program,
+                        (newProgram) => this.setProgram(newProgram)
+                    ),
                     sp0: { name: "---------" },
                     row_above: {},
                     row_below: {},
