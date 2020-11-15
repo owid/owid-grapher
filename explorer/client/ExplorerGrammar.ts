@@ -99,7 +99,7 @@ const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
     },
 } as const
 
-const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
+export const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
     slug: {
         ...SlugDeclarationCellDef,
         keyword: "slug",
@@ -137,6 +137,11 @@ const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
         ...StringCellDef,
         keyword: "shortUnit",
         description: "Short (axis) unit",
+    },
+    notes: {
+        ...StringCellDef,
+        keyword: "notes",
+        description: "Any internal notes.",
     },
     annotationsColumnSlug: {
         ...StringCellDef,
