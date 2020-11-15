@@ -31,6 +31,10 @@ const encodeTests = [
         queryString: "~North%20America",
     },
     {
+        entities: [],
+        queryString: "",
+    },
+    {
         entities: [
             "Men and Women Ages 65+",
             "Australia & New Zealand + (Total)",

@@ -19,6 +19,7 @@ export class EntityUrlBuilder {
         // First preserve handling of the old v1 country=USA+FRA style links. If a link does not
         // include a v2Delimiter and includes a + we assume it's a v1 link. Unfortunately link sharing
         // with v1 links did not work on Facebook because FB would replace %20 with "+".
+        if (queryParam === "") return []
         return this.isV1Link(queryParam)
             ? this.decodeV1Link(queryParam)
             : this.decodeV2Link(queryParam)
