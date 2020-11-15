@@ -1,5 +1,6 @@
 #! /usr/bin/env yarn jest
 
+import { ColumnTypeNames } from "./CoreColumnDef"
 import { CoreMatrix } from "./CoreTableConstants"
 import {
     emptyColumnsInFirstRowInDelimited,
@@ -16,6 +17,7 @@ import {
     trimMatrix,
     linearInterpolation,
     concatColumnStores,
+    guessColumnDefFromSlugAndRow,
 } from "./CoreTableUtils"
 import { ErrorValueTypes } from "./ErrorValues"
 
@@ -222,6 +224,18 @@ describe(parseDelimited, () => {
         expect(parseDelimited(str)).toEqual(
             parseDelimited(str.replace(/,/g, "\t"))
         )
+    })
+})
+
+describe(guessColumnDefFromSlugAndRow, () => {
+    it("can guess column defs", () => {
+        const tests = [{ slug: "Entity", example: "USA" }]
+        tests.forEach((testCase) => {
+            expect(
+                guessColumnDefFromSlugAndRow(testCase.slug, testCase.example)
+                    .type
+            ).toEqual(ColumnTypeNames.EntityName)
+        })
     })
 })
 

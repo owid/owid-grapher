@@ -109,16 +109,23 @@ export const guessColumnDefFromSlugAndRow = (
 ): CoreColumnDef => {
     const valueType = typeof sampleValue
 
+    if (slug === "Entity")
+        return {
+            slug,
+            type: ColumnTypeNames.EntityName,
+            name: slug,
+        }
+
     if (slug === "day")
         return {
-            slug: "day",
+            slug,
             type: ColumnTypeNames.Day,
             name: "Day",
         }
 
-    if (slug === "year")
+    if (slug === "year" || slug === "Year")
         return {
-            slug: "year",
+            slug,
             type: ColumnTypeNames.Year,
             name: "Year",
         }
@@ -129,7 +136,7 @@ export const guessColumnDefFromSlugAndRow = (
 
     if (slug === "date")
         return {
-            slug: "date",
+            slug,
             type: ColumnTypeNames.Date,
             name: "Date",
         }
