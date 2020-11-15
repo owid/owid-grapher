@@ -12,7 +12,7 @@ import {
 import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerProgram } from "./ExplorerProgram"
-import { SerializedGridProgram } from "../gridLang/SerializedGridProgram"
+import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
