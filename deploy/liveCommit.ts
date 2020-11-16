@@ -1,4 +1,4 @@
-import { keyBy, mapValues, sortBy } from "lodash"
+import { keyBy, mapValues, sortBy, memoize } from "lodash"
 import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
@@ -38,82 +38,80 @@ const showTree = args["tree"]
 const showCommit = args["show"]
 const openInBrowser = args["open"] || !(showCommit || showTree)
 
-function getServerUrl(server: string): string {
+const getServerUrl = (server: string) => {
     if (server === "live") return "https://ourworldindata.org"
     else return `https://${server}-owid.netlify.com`
 }
 
-async function fetchCommitSha(server: string): Promise<string> {
-    return fetch(`${getServerUrl(server)}/head.txt`)
+const fetchCommitSha = async (server: string) =>
+    fetch(`${getServerUrl(server)}/head.txt`)
         .then((res) => {
             if (res.ok) return res
             else throw Error(`Request rejected with status ${res.status}`)
         })
-        .then((resp) => resp.text())
-}
+        .then(async (resp) => ({
+            commitSha: await resp.text(),
+        }))
 
 interface ServerCommitInformation {
     serverName: string
     commitSha: string | undefined
-    commitDate: string | undefined
+    commitDate: Date | undefined
     commitAuthor: string | undefined
     commitMessage: string | undefined
 }
 
-async function fetchAll(): Promise<Array<ServerCommitInformation>> {
+const fetchAll = async () => {
     const commits = await Promise.all(
         servers.map(async (serverName) => {
-            let commitSha = undefined
+            let commitInformation = undefined
             try {
-                commitSha = await fetchCommitSha(serverName)
+                commitInformation = await fetchCommitSha(serverName)
             } catch {
-                commitSha = undefined
+                commitInformation = undefined
             }
 
             return {
                 serverName,
-                commitSha,
+                ...commitInformation,
                 commitDate: undefined,
                 commitAuthor: undefined,
                 commitMessage: undefined,
-            }
+            } as ServerCommitInformation
         })
     )
+
+    const _fetchGithubCommitInfo = async (commitSha: string) =>
+        await fetch(
+            `https://api.github.com/repos/owid/owid-grapher/git/commits/${commitSha}`,
+            {
+                headers: {
+                    Accept: "application/vnd.github.v3",
+                },
+            }
+        ).then((response) => response.json())
+
+    // Memoize so as to not fetch information about the same commit twice
+    const fetchGithubCommitInfo = memoize(_fetchGithubCommitInfo)
 
     const commitsWithInformation = await Promise.all(
         commits.map(async (commit) => {
             if (!commit.commitSha) return commit
 
-            const apiResponse = (await fetch(
-                `https://api.github.com/repos/owid/owid-grapher/git/commits/${commit.commitSha}`,
-                {
-                    headers: {
-                        Accept: "application/vnd.github.v3",
-                    },
-                }
-            )) as any
-
-            const response = await apiResponse.json()
+            const response = await fetchGithubCommitInfo(commit.commitSha)
 
             return {
                 ...commit,
                 commitSha: commit.commitSha.substr(0, 7),
                 commitDate:
-                    response?.author?.date && new Date(response?.author?.date),
+                    response?.author?.date && new Date(response.author.date),
                 commitAuthor: response?.author?.name,
                 commitMessage: response?.message?.split("\n")?.[0],
-            }
+            } as ServerCommitInformation
         })
     )
 
-    return sortBy(commitsWithInformation, (c) => c.commitDate ?? 0)
-        .reverse()
-        .map((commitInformation) => ({
-            ...commitInformation,
-            commitDate:
-                commitInformation.commitDate &&
-                timeago.format(commitInformation.commitDate),
-        }))
+    return sortBy(commitsWithInformation, (c) => c.commitDate ?? 0).reverse()
 }
 
 if (args._[0]) {
@@ -159,7 +157,7 @@ if (args._[0]) {
 
                 return {
                     commitSha,
-                    commitDate,
+                    commitDate: commitDate && timeago.format(commitDate),
                     commitAuthor,
                     commitMessage:
                         // truncate to 50 characters
