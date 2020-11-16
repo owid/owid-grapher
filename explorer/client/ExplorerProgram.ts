@@ -222,21 +222,26 @@ export class ExplorerProgram extends GridProgram {
     ) {
         const clone = this.clone
 
-        const colDefRow = clone.getRowForKeywordAndSlug(
+        const colDefRow = clone.getRowMatchingWords(
             ExplorerRootKeywordMap.columns.keyword,
             tableSlug
         )
-        clone.deleteBlock(colDefRow)
-        clone.deleteLine(colDefRow)
+        if (colDefRow > -1) {
+            clone.deleteBlock(colDefRow)
+            clone.deleteLine(colDefRow)
+        }
 
         const table = await clone.fetchTableForTableSlugIfItHasUrl(tableSlug)
 
-        const tableDefRow = clone.getRowForKeywordAndSlug(
+        const tableDefRow = clone.getRowMatchingWords(
             ExplorerRootKeywordMap.table.keyword,
+            undefined,
             tableSlug
         )
-        clone.deleteBlock(tableDefRow)
-        clone.deleteLine(tableDefRow)
+        if (tableDefRow > -1) {
+            clone.deleteBlock(tableDefRow)
+            clone.deleteLine(tableDefRow)
+        }
 
         const newCols = table!.autodetectedColumnDefs
         const missing = newCols
@@ -283,12 +288,12 @@ export class ExplorerProgram extends GridProgram {
                 ColumnsSubTableHeaderKeywordMap.notes.keyword,
             ] as string[])
 
-        const colDefsRow = this.getRowForKeywordAndSlug(
+        const colDefsRow = this.getRowMatchingWords(
             ExplorerRootKeywordMap.columns.keyword,
             tableSlug
         )
 
-        if (colDefsRow !== undefined)
+        if (colDefsRow !== -1)
             clone.updateBlock(
                 colDefsRow,
                 new CoreTable(clone.getBlock(colDefsRow))
@@ -321,23 +326,24 @@ export class ExplorerProgram extends GridProgram {
     }
 
     getTableDef(tableSlug?: TableSlug): TableDef | undefined {
-        const tableDefRow = this.getRowForKeywordAndSlug(
+        const tableDefRow = this.getRowMatchingWords(
             ExplorerRootKeywordMap.table.keyword,
+            undefined,
             tableSlug
         )
-        if (tableDefRow === undefined) return undefined
-
-        const rawUrl = this.lines[tableDefRow].split(this.cellDelimiter)[1]
-        let url: string | undefined = undefined
+        if (tableDefRow === -1) return undefined
 
         const inlineData = this.getBlock(tableDefRow)
+        let url = inlineData
+            ? undefined
+            : this.lines[tableDefRow].split(this.cellDelimiter)[1]
 
-        if (rawUrl && !rawUrl.startsWith("http") && !inlineData) {
-            const owidDatasetSlug = encodeURIComponent(rawUrl)
+        if (url && !url.startsWith("http")) {
+            const owidDatasetSlug = encodeURIComponent(url)
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
-        const colDefsRow = this.getRowForKeywordAndSlug(
+        const colDefsRow = this.getRowMatchingWords(
             ExplorerRootKeywordMap.columns.keyword,
             tableSlug
         )
@@ -345,9 +351,7 @@ export class ExplorerProgram extends GridProgram {
         return {
             url,
             columnDefinitions:
-                colDefsRow !== undefined
-                    ? this.getBlock(colDefsRow)
-                    : undefined,
+                colDefsRow !== -1 ? this.getBlock(colDefsRow) : undefined,
             inlineData,
         }
     }

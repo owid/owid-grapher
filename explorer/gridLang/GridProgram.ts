@@ -173,19 +173,21 @@ export class GridProgram {
             .filter(isPresent)
     }
 
-    protected getRowForKeywordAndSlug(keyword: string, slug?: string) {
-        return this.getRowNumbersStartingWith(
-            `${keyword}${slug ? this.cellDelimiter + slug : ""}`
-        )[0]
+    getRowMatchingWords(...words: (string | undefined)[]) {
+        const matches = (line: string[]) =>
+            words.every(
+                (word, index) => word === undefined || line[index] === word
+            )
+        return this.asArrays.findIndex(matches)
     }
 
-    toArrays() {
+    get asArrays() {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
     // The max number of columns in any row when you view a program as a spreadsheet
     get width() {
-        return Math.max(...this.toArrays().map((arr) => arr.length))
+        return Math.max(...this.asArrays.map((arr) => arr.length))
     }
 
     toString() {
@@ -193,7 +195,7 @@ export class GridProgram {
     }
 
     protected prettify() {
-        return trimMatrix(this.toArrays())
+        return trimMatrix(this.asArrays)
             .map((line) => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
     }

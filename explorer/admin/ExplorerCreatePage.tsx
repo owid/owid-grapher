@@ -147,7 +147,7 @@ export class ExplorerCreatePage extends React.Component<{
 
     private get hotSettings() {
         const { program } = this
-        const data = program.toArrays()
+        const data = program.asArrays
 
         const { currentlySelectedGrapherRow } = program
 

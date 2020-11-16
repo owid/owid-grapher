@@ -11,7 +11,7 @@ export const autoDetectYColumnSlugs = (manager: ChartManager) => {
 }
 
 export const getDefaultFailMessage = (manager: ChartManager) => {
-    if (manager.table.isBlank) return `No table loaded yet.`
+    if (manager.table.rootTable.isBlank) return `No table loaded yet.`
     const yColumnSlugs = autoDetectYColumnSlugs(manager)
     if (!yColumnSlugs.length) return "Missing Y axis column"
     const selection = makeSelectionArray(manager)

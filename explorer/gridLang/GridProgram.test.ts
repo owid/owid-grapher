@@ -38,6 +38,11 @@ describe(GridProgram, () => {
             expect(program.getBlock(0)).toEqual(`slug\ncountry`)
         })
 
+        it("can search", () => {
+            expect(program.getRowMatchingWords(undefined, "country")).toEqual(2)
+            expect(program.getRowMatchingWords(undefined, "nada")).toEqual(-1)
+        })
+
         it("can update blocks", () => {
             const newBlock = `slug\tname
 country\tCountry`

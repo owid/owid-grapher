@@ -192,7 +192,11 @@ export class Explorer
 
     private getTableForSlug(tableSlug?: TableSlug) {
         const tableDef = this.explorerProgram.getTableDef(tableSlug)
-        if (!tableDef) return BlankOwidTable(tableSlug, `TableDef not found.`)
+        if (!tableDef)
+            return BlankOwidTable(
+                tableSlug,
+                `TableDef not found for '${tableSlug}'.`
+            )
         if (tableDef.url)
             return (
                 Explorer.fetchedTableCache.get(tableDef.url) ??
