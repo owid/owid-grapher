@@ -212,7 +212,7 @@ export class GridCell implements ParsedCell {
                 ? FrontierCellClass
                 : undefined
         const hasSuggestions =
-            this.cellDef.keyword === "table" ? "HasSuggestions" : null
+            this.cellDef.keyword === "table" ? "HasSuggestions" : null // todo: switch from strings to constants
         return [cellDef.cssClass, hasSuggestions, showArrow].filter(isPresent)
     }
 

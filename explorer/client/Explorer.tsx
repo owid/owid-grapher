@@ -24,12 +24,7 @@ import {
 import { ExplorerContainerId } from "./ExplorerConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import {
-    ColumnSlug,
-    CoreRow,
-    SortOrder,
-    TableSlug,
-} from "coreTable/CoreTableConstants"
+import { ColumnSlug, SortOrder, TableSlug } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
 import { GlobalEntitySelection } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -52,6 +47,12 @@ export interface ExplorerProps extends SerializedGridProgram {
 interface ExplorerQueryParams extends GrapherQueryParams {
     pickerSort?: SortOrder
     pickerMetric?: ColumnSlug
+}
+
+interface ExplorerGrapherInterface extends GrapherInterface {
+    grapherId?: number
+    tableSlug?: string
+    yScaleToggle?: string
 }
 
 @observer
@@ -124,10 +125,12 @@ export class Explorer
             window.removeEventListener("resize", this.onResizeThrottled)
     }
 
-    @action.bound private updateGrapher(selectedRow: CoreRow) {
+    @action.bound private updateGrapher(
+        selectedGrapherRow: ExplorerGrapherInterface
+    ) {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
-        const { grapherId, table, yScaleToggle } = selectedRow
+        const { grapherId, tableSlug, yScaleToggle } = selectedGrapherRow
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
         if (hasGrapherId && grapher.id === grapherId) return
@@ -145,15 +148,14 @@ export class Explorer
                 this
             )
 
-        const grapherConfig = hasGrapherId
-            ? this.grapherConfigs.get(grapherId)!
-            : {}
+        const grapherConfig =
+            grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
-            ...selectedRow,
+            ...selectedGrapherRow,
             hideEntityControls: this.showExplorerControls,
-            manuallyProvideData: table ? true : false,
+            manuallyProvideData: tableSlug ? true : false,
         }
 
         grapher.yAxis.canChangeScaleType = trueFalseOrDefault(
@@ -166,8 +168,8 @@ export class Explorer
         grapher.setAuthoredVersion(config)
         grapher.reset()
         grapher.updateFromObject(config)
-        this.setTable(table) // Set a table immediately, even if a BlankTable
-        this.fetchTable(table) // Fetch a remote table in the background, if any.
+        this.setTable(tableSlug) // Set a table immediately, even if a BlankTable
+        this.fetchTable(tableSlug) // Fetch a remote table in the background, if any.
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
         if (!hasGrapherId) grapher.id = 0

@@ -1,3 +1,4 @@
+import { ExplorerRootKeywordMap } from "explorer/client/ExplorerGrammar"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import Handsontable from "handsontable"
 
@@ -25,7 +26,9 @@ export const makeTableContextMenuCommand = (
             const coordinates = this.getSelectedLast()
             if (coordinates === undefined) return true
             const cell = program.getCell(coordinates[0], coordinates[1])
-            return cell.cellDef?.keyword !== "table"
+            return (
+                cell.cellDef?.keyword !== ExplorerRootKeywordMap.table.keyword
+            )
         },
     }
     return command

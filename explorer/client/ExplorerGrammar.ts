@@ -50,10 +50,10 @@ export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
         description: "ID of the Grapher to load",
         keyword: "grapherId",
     },
-    table: {
+    tableSlug: {
         ...SlugDeclarationCellDef,
         description: "Slug of the table to use.",
-        keyword: "table",
+        keyword: "tableSlug",
     },
     hasMapTab: {
         ...BooleanCellDef,

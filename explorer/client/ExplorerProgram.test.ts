@@ -13,10 +13,11 @@ import {
 } from "./ExplorerGrammar"
 
 const grapherIdKeyword = GrapherSubTableHeaderKeywordMap.grapherId.keyword
+const tableSlugKeyword = GrapherSubTableHeaderKeywordMap.tableSlug.keyword
 
 describe(ExplorerProgram, () => {
     const testProgram = `${ExplorerRootKeywordMap.graphers.keyword}
-	${grapherIdKeyword}	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
+	${grapherIdKeyword}	Examples Radio	title	subtitle	${tableSlugKeyword}	type	ySlugs	hasMapTab
 	35	Load A Grapher Demo
 		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
 		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME`
