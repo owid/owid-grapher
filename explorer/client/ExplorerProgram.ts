@@ -95,6 +95,15 @@ export class ExplorerProgram extends GridProgram {
         return getRequiredGrapherIds(this.decisionMatrixCode ?? "")
     }
 
+    get currentlySelectedGrapherRow() {
+        const row = this.getKeywordIndex(
+            ExplorerRootKeywordMap.graphers.keyword
+        )
+        return row === -1
+            ? undefined
+            : row + this.decisionMatrix.selectedRowIndex + 2
+    }
+
     static fromMatrix(slug: string, matrix: CoreMatrix) {
         const str = matrix
             .map((row) => row.join(GRID_CELL_DELIMITER))
@@ -500,7 +509,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         return this.rowsWith(this.toConstrainedOptions())[0]
     }
 
-    @computed private get selectedRowIndex() {
+    @computed get selectedRowIndex() {
         return this.firstMatch === undefined
             ? 0
             : this.table.indexOf(this.firstMatch)

@@ -20,6 +20,10 @@
         }
     }
 
+    .currentlySelectedGrapherRow {
+        background: #ddd;
+    }
+
     // Change the default dark top right corner comment arrow into a subtle checkmark.
     .htCommentCell:after {
         content: "✓" !important;

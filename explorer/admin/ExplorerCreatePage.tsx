@@ -149,6 +149,8 @@ export class ExplorerCreatePage extends React.Component<{
         const { program } = this
         const data = program.toArrays()
 
+        const { currentlySelectedGrapherRow } = program
+
         const cells = function (row: number, column: number) {
             const {
                 comment,
@@ -158,9 +160,16 @@ export class ExplorerCreatePage extends React.Component<{
             } = program.getCell(row, column)
 
             const cellProperties: Partial<Handsontable.CellProperties> = {}
-            cellProperties.className = cssClasses?.length
-                ? cssClasses.join(" ")
-                : undefined
+
+            const allClasses = cssClasses?.slice() ?? []
+
+            if (
+                currentlySelectedGrapherRow &&
+                currentlySelectedGrapherRow === row
+            )
+                allClasses.push(`currentlySelectedGrapherRow`)
+
+            cellProperties.className = allClasses.join(" ")
             cellProperties.comment = comment ? { value: comment } : undefined
             cellProperties.placeholder = placeholder
 
