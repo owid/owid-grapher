@@ -34,7 +34,7 @@ import {
     GRID_NODE_DELIMITER,
 } from "explorer/gridLang/GridLangConstants"
 import { GitCommit } from "gitCms/GitTypes"
-import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "explorer/gridLang/GridProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 
@@ -207,8 +207,7 @@ export class ExplorerProgram extends GridProgram {
         clone.deleteBlock(colDefRow)
         clone.deleteLine(colDefRow)
 
-        const result = await clone.fetchTable(tableSlug)
-        const table = result.table!
+        const table = await clone.fetchTableForTableSlugIfItHasUrl(tableSlug)
 
         const tableDefRow = clone.getRowForKeywordAndSlug(
             ExplorerRootKeywordMap.table.keyword,
@@ -217,7 +216,7 @@ export class ExplorerProgram extends GridProgram {
         clone.deleteBlock(tableDefRow)
         clone.deleteLine(tableDefRow)
 
-        const newCols = table.autodetectedColumnDefs
+        const newCols = table!.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
                 {
@@ -234,7 +233,7 @@ export class ExplorerProgram extends GridProgram {
                 ColumnsSubTableHeaderKeywordMap.notes.keyword,
             ] as string[])
 
-        clone.appendBlock(ExplorerRootKeywordMap.table.keyword, table.toTsv())
+        clone.appendBlock(ExplorerRootKeywordMap.table.keyword, table!.toTsv())
         clone.appendBlock(
             ExplorerRootKeywordMap.columns.keyword,
             missing.toTsv()
@@ -244,9 +243,8 @@ export class ExplorerProgram extends GridProgram {
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
-        const result = await clone.fetchTable(tableSlug)
-        const table = result.table!
-        const newCols = table.autodetectedColumnDefs
+        const table = await clone.fetchTableForTableSlugIfItHasUrl(tableSlug)
+        const newCols = table!.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
                 {
@@ -285,36 +283,19 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    getTableForSlug(tableSlug?: TableSlug) {
-        const tableDef = this.getTableDef(tableSlug)
-        if (!tableDef) return BlankOwidTable()
-        if (tableDef.url) {
-            const cached = ExplorerProgram.fetchedTableCache.get(tableDef.url)
-            if (cached) return cached
-            return BlankOwidTable()
-        }
-        return new OwidTable(tableDef.inlineData, tableDef.columnDefinitions, {
-            tableDescription: `Loaded from inline data`,
-        }).dropEmptyRows()
+    getUrlForTableSlug(tableSlug?: TableSlug) {
+        return this.getTableDef(tableSlug)?.url
     }
 
-    private async fetchTable(tableSlug?: TableSlug) {
-        const tableDef = this.getTableDef(tableSlug)
-        if (!tableDef || !tableDef.url) return {}
-        const path = tableDef.url
-        const delimited = await fetchText(path)
+    async fetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
+        const url = this.getUrlForTableSlug(tableSlug)
+        if (!url) return undefined
+        const tableDef = this.getTableDef(tableSlug)!
+        const delimited = await fetchText(url)
         const table = new OwidTable(delimited, tableDef.columnDefinitions, {
-            tableDescription: `Loaded from ${path}`,
+            tableDescription: `Loaded from ${url}`,
         })
-        return { table, path }
-    }
-
-    private static fetchedTableCache = new Map<string, OwidTable>()
-    async fetchTableAndStoreInCache(tableSlug?: TableSlug) {
-        const result = await this.fetchTable(tableSlug)
-        if (!result.table) return false
-        ExplorerProgram.fetchedTableCache.set(result.path, result.table)
-        return true
+        return table
     }
 
     getTableDef(tableSlug?: TableSlug): TableDef | undefined {

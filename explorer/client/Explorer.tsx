@@ -34,6 +34,7 @@ import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { GridBoolean } from "explorer/gridLang/GridLangConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
+import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
 export interface ExplorerProps extends SerializedGridProgram {
     explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
@@ -176,24 +177,46 @@ export class Explorer
         grapher.setAuthoredVersion(config)
         grapher.reset()
         grapher.updateFromObject(config)
-        this.setTable(tableSlug) // Set a table immediately, even if a BlankTable
-        this.fetchTable(tableSlug) // Fetch a remote table in the background, if any.
+        this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
+        this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
         if (!hasGrapherId) grapher.id = 0
     }
 
-    @action.bound private setTable(tableSlug?: TableSlug) {
+    @action.bound private setTableBySlug(tableSlug?: TableSlug) {
         const grapher = this.grapher!
-        grapher.inputTable = this.explorerProgram.getTableForSlug(tableSlug)
+        grapher.inputTable = this.getTableForSlug(tableSlug)
         grapher.appendNewEntitySelectionOptions()
     }
 
-    @action.bound private async fetchTable(tableSlug?: TableSlug) {
-        const res = await this.explorerProgram.fetchTableAndStoreInCache(
+    private getTableForSlug(tableSlug?: TableSlug) {
+        const tableDef = this.explorerProgram.getTableDef(tableSlug)
+        if (!tableDef) return BlankOwidTable(tableSlug, `TableDef not found.`)
+        if (tableDef.url)
+            return (
+                Explorer.fetchedTableCache.get(tableDef.url) ??
+                BlankOwidTable(tableSlug, `Loading from ${tableDef.url}.`)
+            )
+        return new OwidTable(tableDef.inlineData, tableDef.columnDefinitions, {
+            tableDescription: `Loaded '${tableSlug}' from inline data`,
+            tableSlug: tableSlug,
+        }).dropEmptyRows()
+    }
+
+    private static fetchedTableCache = new Map<string, OwidTable>()
+    @action.bound private async fetchTableAndStoreInCache(
+        tableSlug?: TableSlug
+    ) {
+        const url = this.explorerProgram.getUrlForTableSlug(tableSlug)
+        if (!url || Explorer.fetchedTableCache.has(url)) return
+
+        const table = await this.explorerProgram.fetchTableForTableSlugIfItHasUrl(
             tableSlug
         )
-        if (res) this.setTable(tableSlug)
+        if (!table) return
+        Explorer.fetchedTableCache.set(url, table)
+        this.setTableBySlug(tableSlug)
     }
 
     @action.bound setSlide(queryString: string) {
