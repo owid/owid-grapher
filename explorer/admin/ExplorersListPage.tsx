@@ -61,6 +61,8 @@ class ExplorerRow extends React.Component<{
             googleSheet,
             isPublished,
             explorerTitle,
+            grapherCount,
+            tableCount,
         } = explorer
 
         const publishedUrl = `${BAKED_BASE_URL}/explorers/${slug}`
@@ -95,6 +97,11 @@ class ExplorerRow extends React.Component<{
                     {searchHighlight
                         ? searchHighlight(explorerTitle || "")
                         : explorerTitle}
+                    <div style={{ fontSize: "80%", opacity: 0.8 }}>
+                        {`${grapherCount} grapher${
+                            grapherCount > 1 ? "s" : ""
+                        }. ${tableCount} table${tableCount === 1 ? "" : "s"}.`}
+                    </div>
                 </td>
                 <td>
                     <div>{lastCommit?.message}</div>

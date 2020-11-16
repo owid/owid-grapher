@@ -195,6 +195,16 @@ export class ExplorerProgram extends GridProgram {
         return this.getBlock(keywordIndex)
     }
 
+    get grapherCount() {
+        return this.decisionMatrix.numRows || 1
+    }
+
+    get tableCount() {
+        return this.lines.filter((line) =>
+            line.startsWith(ExplorerRootKeywordMap.table.keyword)
+        ).length
+    }
+
     async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
         tableSlug?: string
     ) {
@@ -394,6 +404,10 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
             })
             return queryParamsToStr(params)
         })
+    }
+
+    get numRows() {
+        return this.table.numRows
     }
 
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
