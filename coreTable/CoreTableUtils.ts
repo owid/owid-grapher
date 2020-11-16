@@ -83,7 +83,8 @@ export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
 // Removes whitespace and non-word characters from column slugs if any exist.
 // The original names are moved to the name property on the column def.
 export const standardizeSlugs = (rows: CoreRow[]) => {
-    const colsToRename = Object.keys(rows[0])
+    const firstRow = rows[0] ?? {}
+    const colsToRename = Object.keys(firstRow)
         .map((name) => {
             return {
                 name,

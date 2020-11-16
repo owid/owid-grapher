@@ -18,6 +18,7 @@ import {
     linearInterpolation,
     concatColumnStores,
     guessColumnDefFromSlugAndRow,
+    standardizeSlugs,
 } from "./CoreTableUtils"
 import { ErrorValueTypes } from "./ErrorValues"
 
@@ -236,6 +237,12 @@ describe(guessColumnDefFromSlugAndRow, () => {
                     .type
             ).toEqual(ColumnTypeNames.EntityName)
         })
+    })
+})
+
+describe(standardizeSlugs, () => {
+    it("can handle empty rows", () => {
+        expect(standardizeSlugs([])).toEqual(undefined)
     })
 })
 
