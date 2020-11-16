@@ -30,6 +30,7 @@ import {
     difference,
     exposeInstanceOnWindow,
     findClosestTime,
+    excludeUndefined,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -1688,9 +1689,22 @@ export class Grapher
     @computed get selectedColumnSlugs(): ColumnSlug[] {
         const { selectedData } = this.legacyConfigAsAuthored
         const dimensions = this.filledDimensions
-        return selectedData
-            ? selectedData.map((item) => dimensions[item.index].columnSlug)
-            : []
+
+        if (selectedData) {
+            const columnSlugs = selectedData.map((item) => {
+                const columnSlug = dimensions[item.index]?.columnSlug
+
+                if (!columnSlug)
+                    console.warn(
+                        `Couldn't find specified dimension in chart config`,
+                        item
+                    )
+                return columnSlug
+            })
+            return excludeUndefined(columnSlugs)
+        }
+
+        return []
     }
 
     @computed private get availableFacetStrategies() {
