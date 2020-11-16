@@ -23,6 +23,7 @@ import {
     findClosestTimeIndex,
     intersection,
     splitArrayIntoGroupsOfN,
+    getClosestTimePairs,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder } from "coreTable/CoreTableConstants"
@@ -402,5 +403,79 @@ describe(splitArrayIntoGroupsOfN, () => {
         expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 5).length).toBe(2)
         expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 7).length).toBe(1)
         expect(splitArrayIntoGroupsOfN([0, 1, 2, 3, 4, 5, 6], 9).length).toBe(1)
+    })
+})
+
+describe(getClosestTimePairs, () => {
+    it("case 1", () => {
+        expect(getClosestTimePairs([0, 4], [3, 4])).toEqual(
+            expect.arrayContaining([
+                [0, 3],
+                [4, 4],
+            ])
+        )
+    })
+
+    it("case 2", () => {
+        expect(getClosestTimePairs([0, 5, 6, 8], [3, 7])).toEqual(
+            expect.arrayContaining([
+                [5, 3],
+                [6, 7],
+            ])
+        )
+    })
+
+    it("case 3", () => {
+        expect(getClosestTimePairs([0, 1, 2], [2])).toEqual(
+            expect.arrayContaining([[2, 2]])
+        )
+    })
+
+    it("case 4", () => {
+        expect(getClosestTimePairs([0, 1], [2])).toEqual(
+            expect.arrayContaining([[1, 2]])
+        )
+    })
+
+    it("case 5", () => {
+        expect(getClosestTimePairs([5, 6], [1])).toEqual(
+            expect.arrayContaining([[5, 1]])
+        )
+    })
+
+    it("case 6", () => {
+        expect(getClosestTimePairs([0, 1], [2, 3])).toEqual(
+            expect.arrayContaining([[1, 2]])
+        )
+    })
+
+    it("case 7", () => {
+        expect(getClosestTimePairs([2, 3], [0, 1])).toEqual(
+            expect.arrayContaining([[2, 1]])
+        )
+    })
+
+    it("case 8", () => {
+        expect(getClosestTimePairs([0, 4], [3])).toEqual(
+            expect.arrayContaining([[4, 3]])
+        )
+    })
+
+    describe("with maxDiff", () => {
+        it("case 1", () => {
+            expect(getClosestTimePairs([0, 1], [2, 3], 1)).toEqual([[1, 2]])
+        })
+
+        it("case 2", () => {
+            expect(getClosestTimePairs([0, 1], [3, 4], 1)).toEqual([])
+        })
+
+        it("case 3", () => {
+            expect(getClosestTimePairs([2, 3], [0], 2)).toEqual([[2, 0]])
+        })
+
+        it("case 4", () => {
+            expect(getClosestTimePairs([2, 3], [0], 1)).toEqual([])
+        })
     })
 })

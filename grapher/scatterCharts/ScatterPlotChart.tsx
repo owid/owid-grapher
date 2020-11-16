@@ -124,30 +124,6 @@ export class ScatterPlotChart
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
-        // To avoid injecting unnecessary rows in the interpolateColumnWithTolerance() transform,
-        // we drop any rows which are blank for both X and Y values.
-        // The common case is that the Population data goes back to 10,000 BCE and in almost every
-        // case we don't have that data for X and Y.
-        // -@danielgavrilov, 2020-10-22
-        //
-        // UPDATE: We cannot drop rows here, because it may lead to missing color/size data - those
-        // columns usually have Infinity tolerance. Leaving this note as we'll probably try to
-        // optimize this later.
-        // -@danielgavrilov, 2020-10-30
-        //
-        // table = table.dropRowsWithErrorValuesForAllColumns([
-        //     this.xColumnSlug,
-        //     this.yColumnSlug,
-        // ])
-
-        if (this.xColumnSlug) {
-            table = table.interpolateColumnWithTolerance(this.xColumnSlug)
-        }
-
-        if (this.yColumnSlug) {
-            table = table.interpolateColumnWithTolerance(this.yColumnSlug)
-        }
-
         if (this.sizeColumnSlug) {
             // The tolerance on the size column is ignored. If we want to change this in the future
             // we need to check all charts for regressions.
@@ -171,7 +147,30 @@ export class ScatterPlotChart
             }
         }
 
-        // Drop any rows which have an invalid cell for either X or Y.
+        // We want to "chop off" any rows outside the time domain for X and Y to avoid creating
+        // leading and trailing timeline times that don't really exist in the dataset.
+        const [
+            timeDomainStart,
+            timeDomainEnd,
+        ] = table.timeDomainForIntersection([
+            this.xColumnSlug,
+            this.yColumnSlug,
+        ])
+        table = table.filterByTimeRange(
+            timeDomainStart ?? -Infinity,
+            timeDomainEnd ?? Infinity
+        )
+
+        if (this.xOverrideTime !== undefined) {
+            table = table.interpolateColumnWithTolerance(this.yColumnSlug)
+        } else {
+            table = table.interpolateColumnsByClosestTimeMatch(
+                this.xColumnSlug,
+                this.yColumnSlug
+            )
+        }
+
+        // Drop any rows which have non-number values for X or Y.
         // This needs to be done after the tolerance, because the tolerance may fill in some gaps.
         table = table
             .columnFilter(
