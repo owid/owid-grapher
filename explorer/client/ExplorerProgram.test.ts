@@ -76,6 +76,17 @@ ${ExplorerRootKeywordMap.graphers.keyword}
         ).tuplesObject
         expect(grapherConfig).toEqual({ title: "Foo", ySlugs: "gdp" })
     })
+
+    it("prefers inline data to url if it has both", () => {
+        const program = new ExplorerProgram(
+            "test",
+            `table\thttp://url
+\tinlineData`
+        )
+        const def = program.getTableDef()!
+        expect(def.url).toBeFalsy()
+        expect(def.inlineData).toBeTruthy
+    })
 })
 
 describe(DecisionMatrix, () => {

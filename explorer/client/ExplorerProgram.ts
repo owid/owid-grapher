@@ -327,10 +327,13 @@ export class ExplorerProgram extends GridProgram {
         )
         if (tableDefRow === undefined) return undefined
 
-        let url = this.lines[tableDefRow].split(this.cellDelimiter)[1]
+        const rawUrl = this.lines[tableDefRow].split(this.cellDelimiter)[1]
+        let url: string | undefined = undefined
 
-        if (url && !url.startsWith("http")) {
-            const owidDatasetSlug = encodeURIComponent(url)
+        const inlineData = this.getBlock(tableDefRow)
+
+        if (rawUrl && !rawUrl.startsWith("http") && !inlineData) {
+            const owidDatasetSlug = encodeURIComponent(rawUrl)
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
@@ -345,7 +348,7 @@ export class ExplorerProgram extends GridProgram {
                 colDefsRow !== undefined
                     ? this.getBlock(colDefsRow)
                     : undefined,
-            inlineData: this.getBlock(tableDefRow),
+            inlineData,
         }
     }
 }
