@@ -24,7 +24,7 @@ import {
 } from "explorer/client/ExplorerConstants"
 import { makeTableContextMenuCommand } from "./ExplorerCommands"
 
-const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
+const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
 @observer
 export class ExplorerCreatePage extends React.Component<{
