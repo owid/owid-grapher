@@ -38,7 +38,11 @@ export class SelectionArray {
     }
 
     private mapBy(col: keyof Entity, val: keyof Entity) {
-        return mapBy(this.availableEntities, col, val)
+        return mapBy(
+            this.availableEntities,
+            (v) => v[col],
+            (v) => v[val]
+        )
     }
 
     @computed get entityNameToIdMap() {
