@@ -85,7 +85,7 @@ export interface LegacyEntityMeta {
     code: string
 }
 
-declare interface LegacyEntityKey {
+export declare interface LegacyEntityKey {
     [id: string]: LegacyEntityMeta
 }
 

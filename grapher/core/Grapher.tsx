@@ -50,6 +50,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
+    LegacyVariableConfig,
     LegacyVariablesAndEntityKey,
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
@@ -641,12 +642,13 @@ export class Grapher
         this._receiveLegacyDataAndApplySelection(json)
     }
 
-    @action.bound private _receiveLegacyDataAndApplySelection(
-        json: LegacyVariablesAndEntityKey
+    @action.bound private _setInputTable(
+        json: LegacyVariablesAndEntityKey,
+        legacyConfig: Partial<LegacyGrapherInterface>
     ) {
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
-            this.legacyConfigAsAuthored
+            legacyConfig
         )
 
         this.inputTable = table
@@ -661,6 +663,35 @@ export class Grapher
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
         } else this.applyOriginalSelectionAsAuthored()
+    }
+
+    @action.bound _updateOwidTableLegacyVariable(
+        legacyVariableId: number,
+        updatedConfig: Partial<LegacyVariableConfig>
+    ) {
+        if (!this.legacyVariableDataJson) return
+
+        const newDimensions: LegacyChartDimensionInterface[] =
+            this.legacyConfigAsAuthored.dimensions
+                ?.filter((dim) => (dim.variableId = legacyVariableId))
+                .map((dim) => ({ ...dim, ...updatedConfig })) ?? []
+
+        const newConfig = {
+            ...this.legacyConfigAsAuthored,
+            dimensions: newDimensions,
+        }
+
+        this._setInputTable(this.legacyVariableDataJson, newConfig)
+    }
+
+    @observable private legacyVariableDataJson?: LegacyVariablesAndEntityKey
+
+    @action.bound private _receiveLegacyDataAndApplySelection(
+        json: LegacyVariablesAndEntityKey
+    ) {
+        this.legacyVariableDataJson = json
+
+        this._setInputTable(json, this.legacyConfigAsAuthored)
     }
 
     @action.bound appendNewEntitySelectionOptions() {
