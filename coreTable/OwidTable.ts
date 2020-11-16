@@ -697,12 +697,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 const BLANK_TABLE_MESSAGE = `Loaded Blank OwidTable`
 
 // This just assures that even an emtpty OwidTable will have an entityName column. Probably a cleaner way to do this pattern (add a defaultColumns prop??)
-export const BlankOwidTable = () =>
+export const BlankOwidTable = (
+    tableSlug = `blankOwidTable`,
+    tableDescription = BLANK_TABLE_MESSAGE
+) =>
     new OwidTable(
         undefined,
         [
             { slug: OwidTableSlugs.entityName },
             { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
         ],
-        { tableDescription: BLANK_TABLE_MESSAGE }
+        { tableDescription, tableSlug }
     )

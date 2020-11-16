@@ -316,7 +316,7 @@ export class Grapher
 
         const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
-        this.inputTable = props.table ?? BlankOwidTable()
+        this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         if (props) this.setAuthoredVersion(props)
@@ -691,16 +691,18 @@ export class Grapher
     }
 
     @computed get whatAreWeWaitingFor() {
-        const { newSlugs, inputTable } = this
-        if (newSlugs.length || this.dimensions.length === 0) {
+        const { newSlugs, inputTable, dimensions } = this
+        if (newSlugs.length || dimensions.length === 0) {
             const missingColumns = newSlugs.filter(
                 (slug) => !inputTable.has(slug)
             )
             return missingColumns.length
-                ? `Waiting for columns ${missingColumns.join(",")}.`
+                ? `Waiting for columns ${missingColumns.join(",")} in table '${
+                      inputTable.tableSlug
+                  }'. ${inputTable.tableDescription}`
                 : ""
         }
-        if (this.dimensions.length > 0 && this.loadingDimensions.length === 0)
+        if (dimensions.length > 0 && this.loadingDimensions.length === 0)
             return ""
         return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
     }

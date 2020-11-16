@@ -27,6 +27,7 @@ import {
     CoreValueType,
     InputType,
     CoreMatrix,
+    TableSlug,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import {
@@ -67,6 +68,7 @@ interface AdvancedOptions {
     transformCategory?: TransformType
     parent?: CoreTable
     filterMask?: FilterMask
+    tableSlug?: TableSlug
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -77,7 +79,7 @@ export class CoreTable<
 > {
     private _columns: Map<ColumnSlug, CoreColumn> = new Map()
     protected parent?: this
-    protected tableDescription: string
+    tableDescription: string
     private timeToLoad = 0
     private initTime = Date.now()
 
@@ -230,6 +232,10 @@ export class CoreTable<
 
         const renamedRows = standardizeSlugs(parsed) // todo: pass renamed defs back in.
         return rowsToColumnStore(renamedRows ? renamedRows.rows : parsed)
+    }
+
+    get tableSlug() {
+        return this.advancedOptions.tableSlug
     }
 
     private get inputColumnsToParsedColumnStore() {
