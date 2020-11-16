@@ -26,7 +26,7 @@ import {
     ColumnsSubTableHeaderKeywordMap,
     ExplorerGrammar,
     ExplorerRootKeywordMap,
-    SwitcherSubTableHeaderKeywordMap,
+    GrapherSubTableHeaderKeywordMap,
 } from "./ExplorerGrammar"
 import {
     GridBoolean,
@@ -180,7 +180,7 @@ export class ExplorerProgram extends GridProgram {
 
     get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(
-            ExplorerRootKeywordMap.switcher.keyword
+            ExplorerRootKeywordMap.graphers.keyword
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
@@ -388,7 +388,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
             {
-                slug: SwitcherSubTableHeaderKeywordMap.grapherId.keyword,
+                slug: GrapherSubTableHeaderKeywordMap.grapherId.keyword,
                 type: ColumnTypeNames.Integer,
             },
         ])

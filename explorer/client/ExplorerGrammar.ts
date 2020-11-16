@@ -19,7 +19,7 @@ import {
 } from "explorer/gridLang/GridLangConstants"
 import { OwidDatasets } from "./OwidDatasets"
 
-export const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
+export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
     title: {
         ...StringCellDef,
         keyword: "title",
@@ -186,7 +186,7 @@ export const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
     },
 } as const
 
-const SwitcherFormControlCellDeff: CellDef = {
+const ExplorerFormControlCellDeff: CellDef = {
     ...StringDeclarationDef,
     description: "A form input for the user.",
     regex: /^.+ (Dropdown|Radio|Checkbox)$/,
@@ -243,14 +243,14 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         description:
             "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (sometimes times incorrectly).",
     },
-    switcher: {
+    graphers: {
         ...SlugDeclarationCellDef,
-        keyword: "switcher",
+        keyword: "graphers",
         description: "The decision matrix for your Explorer goes here.",
         headerCellDef: {
             ...SubTableHeaderCellDef,
-            keywordMap: SwitcherSubTableHeaderKeywordMap,
-            catchAllKeyword: SwitcherFormControlCellDeff,
+            keywordMap: GrapherSubTableHeaderKeywordMap,
+            catchAllKeyword: ExplorerFormControlCellDeff,
         },
     },
     googleSheet: {

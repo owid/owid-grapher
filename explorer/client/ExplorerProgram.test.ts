@@ -9,19 +9,18 @@ import {
 } from "explorer/gridLang/GridLangConstants"
 import {
     ExplorerRootKeywordMap,
-    SwitcherSubTableHeaderKeywordMap,
+    GrapherSubTableHeaderKeywordMap,
 } from "./ExplorerGrammar"
 
-const grapherIdKeyword = SwitcherSubTableHeaderKeywordMap.grapherId.keyword
+const grapherIdKeyword = GrapherSubTableHeaderKeywordMap.grapherId.keyword
 
-const DefaultExplorerProgram = `switcher
+describe(ExplorerProgram, () => {
+    const testProgram = `${ExplorerRootKeywordMap.graphers.keyword}
 	${grapherIdKeyword}	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
 	35	Load A Grapher Demo
 		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
 		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME`
-
-describe(ExplorerProgram, () => {
-    const program = new ExplorerProgram("test", DefaultExplorerProgram)
+    const program = new ExplorerProgram("test", testProgram)
     it("gets the required grapher ids", () => {
         expect(program.requiredGrapherIds).toEqual([35])
     })
@@ -32,7 +31,7 @@ describe(ExplorerProgram, () => {
 
     it("allows blank lines in blocks", () => {
         const code = `${ExplorerRootKeywordMap.explorerTitle.keyword}\tData Explorer
-${ExplorerRootKeywordMap.switcher.keyword}
+${ExplorerRootKeywordMap.graphers.keyword}
 \t${grapherIdKeyword}\tDevice Radio
 \t35\tInternet
 
