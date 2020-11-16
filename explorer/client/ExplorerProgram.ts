@@ -205,6 +205,18 @@ export class ExplorerProgram extends GridProgram {
         ).length
     }
 
+    get inlineTableCount() {
+        return this.lines
+            .filter((line) =>
+                line.startsWith(ExplorerRootKeywordMap.table.keyword)
+            )
+            .filter((line) => {
+                const data = this.getTableDef(line.split(this.cellDelimiter)[1])
+                    ?.inlineData
+                return data ? data.trim() : false
+            }).length
+    }
+
     async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
         tableSlug?: string
     ) {
