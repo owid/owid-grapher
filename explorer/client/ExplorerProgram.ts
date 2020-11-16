@@ -26,6 +26,7 @@ import {
     ColumnsSubTableHeaderKeywordMap,
     ExplorerGrammar,
     ExplorerRootKeywordMap,
+    SwitcherSubTableHeaderKeywordMap,
 } from "./ExplorerGrammar"
 import {
     GridBoolean,
@@ -36,8 +37,6 @@ import { GitCommit } from "gitCms/GitTypes"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "explorer/gridLang/GridProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
-
-const CHART_ID_SYMBOL = "chartId"
 
 interface Choice {
     title: string
@@ -388,7 +387,10 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
-            { slug: CHART_ID_SYMBOL, type: ColumnTypeNames.Integer },
+            {
+                slug: SwitcherSubTableHeaderKeywordMap.grapherId.keyword,
+                type: ColumnTypeNames.Integer,
+            },
         ])
         this.hash = hash
         this.setValuesFromQueryString() // Initialize options

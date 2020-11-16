@@ -21,7 +21,10 @@ export interface ExplorerControlOption {
 
 export const ExplorerContainerId = "explorerContainer"
 
-export const ExplorersRoute = "explorers.json"
+export const ExplorersRoute = "allExplorersForAdminListPage.json"
+export const ExplorersRouteGrapherConfigs =
+    "allGrapherConfigsNeedForThisExplorer.json"
+export const ExplorersRouteQueryParam = "grapherIds"
 
 export interface ExplorersRouteResponse {
     success: boolean

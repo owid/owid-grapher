@@ -18,6 +18,8 @@ import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import {
     ExplorersRoute,
+    ExplorersRouteGrapherConfigs,
+    ExplorersRouteQueryParam,
     ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
 import simpleGit from "simple-git"
@@ -58,14 +60,14 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     })
 
     // Download all chart configs for Explorer create page
-    app.get("/charts/explorer-charts.json", async (req: Request) => {
-        const chartIds = req.query.chartIds.split("~")
+    app.get(`/${ExplorersRouteGrapherConfigs}`, async (req: Request) => {
+        const grapherIds = req.query[ExplorersRouteQueryParam].split("~")
         const configs = []
-        for (const chartId of chartIds) {
+        for (const grapherId of grapherIds) {
             try {
-                configs.push(await getGrapherById(chartId))
+                configs.push(await getGrapherById(grapherId))
             } catch (err) {
-                console.log(`Error with chartId '${chartId}'`)
+                console.log(`Error with grapherId '${grapherId}'`)
             }
         }
         return configs

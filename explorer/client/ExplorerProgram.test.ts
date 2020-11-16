@@ -7,28 +7,33 @@ import {
     FrontierCellClass,
     GridBoolean,
 } from "explorer/gridLang/GridLangConstants"
-import { ExplorerRootKeywordMap } from "./ExplorerGrammar"
+import {
+    ExplorerRootKeywordMap,
+    SwitcherSubTableHeaderKeywordMap,
+} from "./ExplorerGrammar"
+
+const grapherIdKeyword = SwitcherSubTableHeaderKeywordMap.grapherId.keyword
 
 const DefaultExplorerProgram = `switcher
-	chartId	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
+	${grapherIdKeyword}	Examples Radio	title	subtitle	table	type	ySlugs	hasMapTab
 	35	Load A Grapher Demo
 		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
 		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME`
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram("test", DefaultExplorerProgram)
-    it("gets the required chart ids", () => {
+    it("gets the required grapher ids", () => {
         expect(program.requiredGrapherIds).toEqual([35])
     })
 
     it("gets code", () => {
-        expect(program.decisionMatrixCode).toContain("chartId")
+        expect(program.decisionMatrixCode).toContain(grapherIdKeyword)
     })
 
     it("allows blank lines in blocks", () => {
         const code = `${ExplorerRootKeywordMap.explorerTitle.keyword}\tData Explorer
 ${ExplorerRootKeywordMap.switcher.keyword}
-\tchartId\tDevice Radio
+\t${grapherIdKeyword}\tDevice Radio
 \t35\tInternet
 
 \t46\tMobile`
@@ -66,7 +71,7 @@ ${ExplorerRootKeywordMap.switcher.keyword}
 })
 
 describe(DecisionMatrix, () => {
-    const code = `chartId,country Radio,indicator Radio,interval Radio,perCapita Radio
+    const code = `${grapherIdKeyword},country Radio,indicator Radio,interval Radio,perCapita Radio
 21,usa,GDP,annual,${GridBoolean.false}
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
@@ -77,7 +82,7 @@ describe(DecisionMatrix, () => {
     const options = new DecisionMatrix(code)
 
     it("starts with a selected chart", () => {
-        expect(options.selectedRow.chartId).toEqual(21)
+        expect(options.selectedRow.grapherId).toEqual(21)
         expect(options.toObject().country).toEqual("usa")
         expect(options.toObject().indicator).toEqual("GDP")
     })
@@ -115,7 +120,7 @@ describe(DecisionMatrix, () => {
         expect(options.toConstrainedOptions().interval).toEqual(undefined)
         expect(options.toObject().perCapita).toEqual(GridBoolean.false)
         expect(options.toObject().interval).toEqual("annual")
-        expect(options.selectedRow.chartId).toEqual(33)
+        expect(options.selectedRow.grapherId).toEqual(33)
     })
 
     it("can handle boolean groups", () => {
@@ -127,7 +132,7 @@ describe(DecisionMatrix, () => {
         expect(
             options.isOptionAvailable("perCapita", GridBoolean.false)
         ).toEqual(true)
-        expect(options.selectedRow.chartId).toEqual(24)
+        expect(options.selectedRow.grapherId).toEqual(24)
     })
 
     it("can show available choices in a later group", () => {
@@ -139,7 +144,7 @@ describe(DecisionMatrix, () => {
             true
         )
         expect(options.isOptionAvailable("interval", "annual")).toEqual(false)
-        expect(options.selectedRow.chartId).toEqual(56)
+        expect(options.selectedRow.grapherId).toEqual(56)
     })
 
     it("returns groups with undefined values if invalid value is selected", () => {
@@ -152,7 +157,7 @@ describe(DecisionMatrix, () => {
         expect(options.choicesWithAvailability[2].value).toEqual(undefined)
     })
 
-    it("fails if no chartId column is provided", () => {
+    it("fails if no grapherId column is provided", () => {
         try {
             new DecisionMatrix(
                 `country Radio,indicator Radio
@@ -168,12 +173,12 @@ france,Life expectancy`
 
     it("handles columns without options", () => {
         const options = new DecisionMatrix(
-            `chartId,country Radio,indicator Radio
+            `${grapherIdKeyword},country Radio,indicator Radio
 123,usa,
 32,usa,
 23,france,`
         )
-        expect(options.selectedRow.chartId).toEqual(123)
+        expect(options.selectedRow.grapherId).toEqual(123)
         expect(options.choicesWithAvailability.length).toBeGreaterThan(0)
     })
 
@@ -184,7 +189,7 @@ france,Life expectancy`
 
     describe("checkboxes", () => {
         it("supports checkboxes with available options", () => {
-            const options = new DecisionMatrix(`chartId,PerCapita Checkbox
+            const options = new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
 488,true
 4331,false`)
             expect(
@@ -196,7 +201,7 @@ france,Life expectancy`
         })
 
         it("supports checkboxes with no available options", () => {
-            const options = new DecisionMatrix(`chartId,PerCapita Checkbox
+            const options = new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
 488,true
 4331,true`)
             expect(
@@ -210,7 +215,7 @@ france,Life expectancy`
 
     it("marks a radio as checked if its the only option", () => {
         const options = new DecisionMatrix(
-            `chartId,Gas Radio,Accounting Radio
+            `${grapherIdKeyword},Gas Radio,Accounting Radio
 488,CO₂,Production-based
 4331,CO₂,Consumption-based
 4147,GHGs,Production-based`
@@ -218,7 +223,7 @@ france,Life expectancy`
         options.setValue("Gas", "CO₂")
         options.setValue("Accounting", "Consumption-based")
         options.setValue("Gas", "GHGs")
-        expect(options.selectedRow.chartId).toEqual(4147)
+        expect(options.selectedRow.grapherId).toEqual(4147)
         expect(options.toConstrainedOptions()["Accounting"]).toEqual(
             "Production-based"
         )

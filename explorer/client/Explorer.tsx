@@ -127,11 +127,10 @@ export class Explorer
     @action.bound private updateGrapher(selectedRow: CoreRow) {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
-        // todo: rename chartId to grapherId
-        const { chartId, table, yScaleToggle } = selectedRow
-        const hasGrapherId = chartId && isNotErrorValue(chartId)
+        const { grapherId, table, yScaleToggle } = selectedRow
+        const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
-        if (hasGrapherId && grapher.id === chartId) return
+        if (hasGrapherId && grapher.id === grapherId) return
 
         this.grapherParamsChangedThisSession = {
             ...this.grapherParamsChangedThisSession,
@@ -147,7 +146,7 @@ export class Explorer
             )
 
         const grapherConfig = hasGrapherId
-            ? this.grapherConfigs.get(chartId)!
+            ? this.grapherConfigs.get(grapherId)!
             : {}
 
         const config: GrapherProgrammaticInterface = {

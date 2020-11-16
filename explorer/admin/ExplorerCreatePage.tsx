@@ -17,7 +17,11 @@ import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
 import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
+import {
+    DefaultNewExplorerSlug,
+    ExplorersRouteGrapherConfigs,
+    ExplorersRouteQueryParam,
+} from "explorer/client/ExplorerConstants"
 import { makeTableContextMenuCommand } from "./ExplorerCommands"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
@@ -60,7 +64,7 @@ export class ExplorerCreatePage extends React.Component<{
         const missing = grapherIds.filter((id) => !this.grapherConfigs.has(id))
         if (!missing.length) return
         const response = await fetch(
-            `/admin/api/charts/explorer-charts.json?chartIds=${grapherIds.join(
+            `/admin/api/${ExplorersRouteGrapherConfigs}?${ExplorersRouteQueryParam}=${grapherIds.join(
                 "~"
             )}`
         )

@@ -19,7 +19,7 @@ import {
 } from "explorer/gridLang/GridLangConstants"
 import { OwidDatasets } from "./OwidDatasets"
 
-const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
+export const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
     title: {
         ...StringCellDef,
         keyword: "title",
@@ -45,10 +45,10 @@ const SwitcherSubTableHeaderKeywordMap: KeywordMap = {
         ).join(", ")}`,
         options: Object.values(ChartTypeName),
     },
-    chartId: {
+    grapherId: {
         ...IntegerCellDef,
         description: "ID of the Grapher to load",
-        keyword: "slug",
+        keyword: "grapherId",
     },
     table: {
         ...SlugDeclarationCellDef,
