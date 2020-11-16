@@ -87,11 +87,35 @@ export class GridProgram {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
+    deleteBlock(row?: number) {
+        if (row === undefined) return this
+        const location = this.getBlockLocation(row)
+        if (!location) return this
+
+        this.lines.splice(location.startRow, location.numRows)
+        return this
+    }
+
+    deleteLine(row?: number) {
+        if (row === undefined) return this
+        this.lines.splice(row, 1)
+        return this
+    }
+
+    // todo: make immutable and return a new copy
+    setCell(row: number, col: number, value: string) {
+        const line = this.lines[row]
+        const words = line.split(this.cellDelimiter)
+        words[col] = value
+        this.lines[row] = words.join(this.cellDelimiter)
+        return this
+    }
+
     setLineValue(key: string, value: string | undefined) {
         const index = this.getKeywordIndex(key)
         const newLine = `${key}${this.cellDelimiter}${value}`
         if (index === -1 && value !== undefined) this.lines.push(newLine)
-        else if (value === undefined) this.lines = this.lines.splice(index, 1)
+        else if (value === undefined) this.deleteLine(index)
         else this.lines[index] = newLine
         return this
     }

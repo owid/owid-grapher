@@ -187,23 +187,57 @@ export class ExplorerProgram extends GridProgram {
         return this.getBlock(keywordIndex)
     }
 
-    async inlineTableCommand(tableSlug?: string) {
+    async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
+        tableSlug?: string
+    ) {
         const clone = this.clone
-        await clone.fetchTableAndStoreInCache(tableSlug)
-        const table = clone.getTableForSlug(tableSlug)
-        const tableDefsRow = this.getRowForKeywordAndSlug(
+
+        const colDefRow = clone.getRowForKeywordAndSlug(
+            ExplorerRootKeywordMap.columns.keyword,
+            tableSlug
+        )
+        clone.deleteBlock(colDefRow)
+        clone.deleteLine(colDefRow)
+
+        const result = await clone.fetchTable(tableSlug)
+        const table = result.table!
+
+        const tableDefRow = clone.getRowForKeywordAndSlug(
             ExplorerRootKeywordMap.table.keyword,
             tableSlug
         )
+        clone.deleteBlock(tableDefRow)
+        clone.deleteLine(tableDefRow)
 
-        clone.updateBlock(tableDefsRow, table.toTsv())
+        const newCols = table.autodetectedColumnDefs
+        const missing = newCols
+            .appendColumns([
+                {
+                    slug: ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                    values: newCols.indices.map(() => `Unreviewed`),
+                },
+            ])
+            .select([
+                ColumnsSubTableHeaderKeywordMap.slug.keyword,
+                ,
+                ColumnsSubTableHeaderKeywordMap.name.keyword,
+                ,
+                ColumnsSubTableHeaderKeywordMap.type.keyword,
+                ColumnsSubTableHeaderKeywordMap.notes.keyword,
+            ] as string[])
+
+        clone.appendBlock(ExplorerRootKeywordMap.table.keyword, table.toTsv())
+        clone.appendBlock(
+            ExplorerRootKeywordMap.columns.keyword,
+            missing.toTsv()
+        )
         return clone
     }
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
-        await clone.fetchTableAndStoreInCache(tableSlug)
-        const table = clone.getTableForSlug(tableSlug)
+        const result = await clone.fetchTable(tableSlug)
+        const table = result.table!
         const newCols = table.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
@@ -256,16 +290,22 @@ export class ExplorerProgram extends GridProgram {
         }).dropEmptyRows()
     }
 
-    private static fetchedTableCache = new Map<string, OwidTable>()
-    async fetchTableAndStoreInCache(tableSlug?: TableSlug) {
+    private async fetchTable(tableSlug?: TableSlug) {
         const tableDef = this.getTableDef(tableSlug)
-        if (!tableDef || !tableDef.url) return false
+        if (!tableDef || !tableDef.url) return {}
         const path = tableDef.url
-        const csv = await fetchText(path)
-        const table = new OwidTable(csv, tableDef.columnDefinitions, {
+        const delimited = await fetchText(path)
+        const table = new OwidTable(delimited, tableDef.columnDefinitions, {
             tableDescription: `Loaded from ${path}`,
         })
-        ExplorerProgram.fetchedTableCache.set(path, table)
+        return { table, path }
+    }
+
+    private static fetchedTableCache = new Map<string, OwidTable>()
+    async fetchTableAndStoreInCache(tableSlug?: TableSlug) {
+        const result = await this.fetchTable(tableSlug)
+        if (!result.table) return false
+        ExplorerProgram.fetchedTableCache.set(result.path, result.table)
         return true
     }
 

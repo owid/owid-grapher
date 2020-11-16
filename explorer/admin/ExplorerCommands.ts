@@ -5,7 +5,7 @@ export const makeTableContextMenuCommand = (
     name: string,
     commandName:
         | "autofillMissingColumnDefinitionsForTableCommand"
-        | "inlineTableCommand",
+        | "replaceTableWithInlineDataAndAutofilledColumnDefsCommand",
     program: ExplorerProgram,
     callback: (newProgram: string) => void
 ) => {

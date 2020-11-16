@@ -44,5 +44,23 @@ country\tCountry`
             const newProgram = program.updateBlock(0, newBlock)
             expect(newProgram.getBlock(0)).toEqual(newBlock)
         })
+
+        it("can delete blocks", () => {
+            expect(program.deleteBlock(0).toString()).toEqual(`table`)
+
+            const program2 = new GridProgram(
+                "test",
+                `table
+\tslug
+\tcountry
+columns
+\tone`
+            )
+
+            expect(program2.deleteBlock(3).toString()).toEqual(`table
+\tslug
+\tcountry
+columns`)
+        })
     })
 })

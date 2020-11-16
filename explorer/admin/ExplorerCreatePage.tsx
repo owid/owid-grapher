@@ -186,9 +186,9 @@ export class ExplorerCreatePage extends React.Component<{
                         program,
                         (newProgram) => this.setProgram(newProgram)
                     ),
-                    inlineTableCommand: makeTableContextMenuCommand(
-                        "⚡ Inline data",
-                        "inlineTableCommand",
+                    replaceTableWithInlineDataAndAutofilledColumnDefsCommand: makeTableContextMenuCommand(
+                        "⚡ Inline data and autofill columns",
+                        "replaceTableWithInlineDataAndAutofilledColumnDefsCommand",
                         program,
                         (newProgram) => this.setProgram(newProgram)
                     ),
