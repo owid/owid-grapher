@@ -109,6 +109,7 @@ export class Explorer
 
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
+        this.updateGrapher()
         // Whenever the selected row changes, update Grapher.
         autorun(() =>
             this.updateGrapher(this.explorerProgram.decisionMatrix.selectedRow)
@@ -126,11 +127,18 @@ export class Explorer
     }
 
     @action.bound private updateGrapher(
-        selectedGrapherRow: ExplorerGrapherInterface
+        selectedGrapherRow?: ExplorerGrapherInterface
     ) {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
-        const { grapherId, tableSlug, yScaleToggle } = selectedGrapherRow
+
+        const grapherConfigFromExplorer =
+            selectedGrapherRow && Object.keys(selectedGrapherRow).length
+                ? selectedGrapherRow
+                : this.explorerProgram.tuplesObject
+
+        const { grapherId, tableSlug, yScaleToggle } = grapherConfigFromExplorer
+
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
         if (hasGrapherId && grapher.id === grapherId) return
@@ -153,7 +161,7 @@ export class Explorer
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
-            ...selectedGrapherRow,
+            ...grapherConfigFromExplorer,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: tableSlug ? true : false,
         }

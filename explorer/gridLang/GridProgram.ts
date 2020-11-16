@@ -57,6 +57,21 @@ export class GridProgram {
         }
     }
 
+    /**
+     * Returns all non-blocks as an object literal
+     */
+    get tuplesObject() {
+        const obj: { [key: string]: any } = {}
+        this.lines
+            .filter((line) => !line.startsWith(this.edgeDelimiter))
+            .forEach((line) => {
+                const words = line.split(this.cellDelimiter)
+                const key = words.shift()
+                if (key) obj[key.trim()] = words.join(this.cellDelimiter).trim()
+            })
+        return obj
+    }
+
     getLineValue(keyword: string) {
         const line = this.lines.find((line) =>
             line.startsWith(keyword + this.cellDelimiter)

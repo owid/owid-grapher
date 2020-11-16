@@ -68,6 +68,14 @@ ${ExplorerRootKeywordMap.graphers.keyword}
         expect(results.errorMessage).not.toEqual("")
         expect(results.options!.length).toBeGreaterThan(1)
     })
+
+    it("can power a grapher", () => {
+        const grapherConfig = new ExplorerProgram(
+            "test",
+            `title\tFoo\nySlugs\tgdp`
+        ).tuplesObject
+        expect(grapherConfig).toEqual({ title: "Foo", ySlugs: "gdp" })
+    })
 })
 
 describe(DecisionMatrix, () => {

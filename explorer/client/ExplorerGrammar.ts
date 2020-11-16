@@ -319,6 +319,7 @@ export const ExplorerRootKeywordMap: KeywordMap = {
         keyword: "hideAlertBanner",
         description: "Set to true to hide the Covid alert banner.",
     },
+    ...GrapherSubTableHeaderKeywordMap,
 } as const
 
 export const ExplorerGrammar: CellDef = {
