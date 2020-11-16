@@ -255,6 +255,8 @@ canada,,`
             "new_cases",
             "new_tests",
         ])
+
+        expect(emptyColumnsInFirstRowInDelimited("")).toEqual([])
     })
 })
 
