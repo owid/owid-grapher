@@ -458,7 +458,7 @@ export class Explorer
 }
 
 const trueFalseOrDefault = (val: any, defaultValue: any) =>
-    val === GridBoolean.true
+    val === GridBoolean.true || val === true
         ? true
         : val === GridBoolean.false
         ? false
