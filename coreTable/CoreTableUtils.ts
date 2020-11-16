@@ -109,11 +109,13 @@ export const guessColumnDefFromSlugAndRow = (
 ): CoreColumnDef => {
     const valueType = typeof sampleValue
 
+    const name = slug
+
     if (slug === "Entity")
         return {
             slug,
             type: ColumnTypeNames.EntityName,
-            name: slug,
+            name,
         }
 
     if (slug === "day")
@@ -145,6 +147,7 @@ export const guessColumnDefFromSlugAndRow = (
         return {
             slug,
             type: ColumnTypeNames.Numeric,
+            name,
         }
 
     if (valueType === "string") {
@@ -152,10 +155,11 @@ export const guessColumnDefFromSlugAndRow = (
             return {
                 slug,
                 type: ColumnTypeNames.Numeric,
+                name,
             }
     }
 
-    return { slug, type: ColumnTypeNames.String }
+    return { slug, type: ColumnTypeNames.String, name }
 }
 
 export const makeRowFromColumnStore = (
