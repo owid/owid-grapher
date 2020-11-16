@@ -48,7 +48,7 @@ export class VerticalColorLegend extends React.Component<{
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
     @computed private get rectSize() {
-        return Math.round(this.fontSize / 1.5)
+        return Math.round(this.fontSize / 1.4)
     }
 
     private rectPadding = 5
@@ -58,7 +58,7 @@ export class VerticalColorLegend extends React.Component<{
         if (!this.manager.title) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
-            fontSize: 0.75 * this.fontSize,
+            fontSize: this.fontSize,
             fontWeight: 700,
             text: this.manager.title,
         })
