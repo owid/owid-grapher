@@ -165,7 +165,8 @@ export class ExplorerCreatePage extends React.Component<{
 
             if (
                 currentlySelectedGrapherRow &&
-                currentlySelectedGrapherRow === row
+                currentlySelectedGrapherRow === row &&
+                column
             )
                 allClasses.push(`currentlySelectedGrapherRow`)
 

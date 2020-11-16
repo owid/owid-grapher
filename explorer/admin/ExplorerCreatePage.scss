@@ -21,7 +21,7 @@
     }
 
     .currentlySelectedGrapherRow {
-        background: #ddd;
+        background: #ccc !important;
     }
 
     // Change the default dark top right corner comment arrow into a subtle checkmark.
@@ -59,10 +59,12 @@
     .SubTableHeaderCellDef {
         color: #4c6a9c;
         border-bottom: 1px solid #4c6a9c;
+        background-color: #eee;
     }
 
     .SubTableValueCellDef {
         color: #287669;
+        background-color: #eee;
     }
 
     .UrlCellDef,
