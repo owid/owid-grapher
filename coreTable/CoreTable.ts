@@ -309,7 +309,7 @@ export class CoreTable<
 
     private setColumn(def: COL_DEF_TYPE) {
         const { type, slug } = def
-        const ColumnType = (type && ColumnTypeMap[type]) ?? ColumnTypeMap.String
+        const ColumnType = (type && ColumnTypeMap[type]) || ColumnTypeMap.String
         this._columns.set(slug, new ColumnType(this, def))
     }
 

@@ -127,6 +127,12 @@ popChange,Pop change,percentChange time country population 2`
         expect(table.columnJsTypes).toEqual(["string", "number"])
     })
 
+    it("can handle when a blank column type is provided", () => {
+        expect(
+            new CoreTable("", [{ slug: "gdp", type: "" as any }]).numRows
+        ).toEqual(0)
+    })
+
     it("always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {
         const rows = [
             { country: "USA", gdp: 2000 },
