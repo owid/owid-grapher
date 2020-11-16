@@ -469,15 +469,21 @@ export function pointsToPath(points: Array<[number, number]>) {
 // Based on https://stackoverflow.com/a/30245398/1983739
 // In case of tie returns higher value
 // todo: add unit tests
-export function sortedFindClosestIndex(array: number[], value: number) {
-    if (array.length === 0) return -1
+export function sortedFindClosestIndex(
+    array: number[],
+    value: number,
+    startIndex: number = 0,
+    // non-inclusive end
+    endIndex: number = array.length
+) {
+    if (startIndex >= endIndex) return -1
 
-    if (value < array[0]) return 0
+    if (value < array[startIndex]) return startIndex
 
-    if (value > array[array.length - 1]) return array.length - 1
+    if (value > array[endIndex - 1]) return endIndex - 1
 
-    let lo = 0
-    let hi = array.length - 1
+    let lo = startIndex
+    let hi = endIndex - 1
 
     while (lo <= hi) {
         const mid = Math.round((hi + lo) / 2)
