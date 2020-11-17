@@ -8,7 +8,10 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
+import {
+    ChartComponentClassMap,
+    DefaultChartClass,
+} from "grapher/chart/ChartTypeMap"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { ChartTypeSwitcher } from "grapher/chart/ChartTypeSwitcher"
 
@@ -57,7 +60,8 @@ class Editor extends React.Component {
     }
 
     render() {
-        const ChartClass = ChartComponentClassMap.get(this.chartTypeName)!
+        const ChartClass =
+            ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
 
         // Due to a bug with postcss (or maybe autoprefixer, or storybook, or webpack) we can't load the simple handsontable.css from the node_modules folder.
         // So for this story to work, just load it from the web.

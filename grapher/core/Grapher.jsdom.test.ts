@@ -53,6 +53,10 @@ it("an empty Grapher serializes to an empty object", () => {
     expect(new Grapher().toObject()).toEqual({})
 })
 
+it("a bad chart type does not crash grapher", () => {
+    expect(new Grapher({ type: "fff" as any }).toObject()).toEqual({})
+})
+
 it("does not preserve defaults in the object", () => {
     expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({})
 })

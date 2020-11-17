@@ -35,3 +35,5 @@ export const ChartComponentClassMap = new Map<
     [ChartTypeName.TimeScatter, TimeScatterChart],
     [ChartTypeName.WorldMap, MapChart],
 ])
+
+export const DefaultChartClass = LineChart as ChartComponentClass

@@ -149,12 +149,16 @@ import {
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
-import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
+import {
+    ChartComponentClassMap,
+    DefaultChartClass,
+} from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { LineChart } from "grapher/lineCharts/LineChart"
 
 declare const window: any
 
@@ -512,7 +516,8 @@ export class Grapher
             ? ChartTypeName.WorldMap
             : this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
-        const ChartClass = ChartComponentClassMap.get(chartTypeName)!
+        const ChartClass =
+            ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
         return new ChartClass({ manager: this })
     }
 
