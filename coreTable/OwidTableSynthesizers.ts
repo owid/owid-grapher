@@ -106,7 +106,7 @@ export const SynthesizeGDPTable = (
             columnDefs: [
                 {
                     slug: SampleColumnSlugs.Population,
-                    type: ColumnTypeNames.Population,
+                    type: ColumnTypeNames.Numeric,
                     source: SynthSource(SampleColumnSlugs.Population),
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
                     growthRateGenerator: getRandomNumberGenerator(-5, 5, seed),
@@ -126,7 +126,7 @@ export const SynthesizeGDPTable = (
                 },
                 {
                     slug: SampleColumnSlugs.LifeExpectancy,
-                    type: ColumnTypeNames.Age,
+                    type: ColumnTypeNames.Numeric,
                     source: SynthSource(SampleColumnSlugs.LifeExpectancy),
                     generator: getRandomNumberGenerator(60, 90, seed),
                     growthRateGenerator: getRandomNumberGenerator(-2, 2, seed),

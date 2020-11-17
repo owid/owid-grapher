@@ -13,6 +13,7 @@ import {
     range,
     union,
     dateDiffInDays,
+    isNumber,
 } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import {
@@ -505,10 +506,13 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
     formatValue(value: number, options?: TickFormattingOptions) {
-        return formatValue(value, {
-            numDecimalPlaces: this.numDecimalPlaces,
-            ...options,
-        })
+        if (isNumber(value)) {
+            return formatValue(value, {
+                numDecimalPlaces: this.numDecimalPlaces,
+                ...options,
+            })
+        }
+        return ""
     }
 
     formatValueShort(value: number, options?: TickFormattingOptions) {
