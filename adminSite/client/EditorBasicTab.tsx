@@ -109,7 +109,7 @@ class DimensionSlotView extends React.Component<{
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
-                                    key={dim.variableId}
+                                    key={dim.columnSlug}
                                     dimension={dim}
                                     editor={editor}
                                     onEdit={
