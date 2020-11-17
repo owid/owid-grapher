@@ -68,7 +68,7 @@ export class DimensionCard extends React.Component<{
         )
     }
 
-    @action.bound onBlur() {
+    @action.bound updateTables() {
         const { grapher } = this.props.editor
 
         grapher.updateAuthoredVersion({
@@ -137,7 +137,7 @@ export class DimensionCard extends React.Component<{
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
-                            onBlur={this.onBlur}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoString
                             label="Unit of measurement"
@@ -145,12 +145,14 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unit}
                             helpText={`Original database unit: ${column.unit}`}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
                             auto={column.shortUnit}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
@@ -158,6 +160,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
@@ -165,6 +168,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
+                            onBlur={this.updateTables}
                         />
                         {this.tableDisplaySettings}
                         {(grapher.isScatter ||
@@ -174,6 +178,7 @@ export class DimensionCard extends React.Component<{
                                 field="tolerance"
                                 store={dimension.display}
                                 auto={column.tolerance}
+                                onBlur={this.updateTables}
                             />
                         )}
                         {grapher.isLineChart && (
