@@ -575,9 +575,11 @@ describe("series transformations", () => {
             {
                 slug: "x",
                 type: ColumnTypeNames.Numeric,
-                display: { tolerance: 1 },
             },
-            { slug: "y", type: ColumnTypeNames.Numeric },
+            {
+                slug: "y",
+                type: ColumnTypeNames.Numeric,
+            },
             { slug: "color", type: ColumnTypeNames.String },
             {
                 slug: "size",
@@ -599,7 +601,6 @@ describe("series transformations", () => {
         const ukSeries = chart.series.find((s) => s.seriesName === "UK")!
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([
             2001,
-            2002,
             2003,
             2004,
         ])
