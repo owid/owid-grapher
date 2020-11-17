@@ -68,4 +68,41 @@ columns
 columns`)
         })
     })
+
+    describe("scan", () => {
+        const program = new GridProgram(
+            "test",
+            `table
+\tslug
+columns
+\tslug`
+        )
+
+        it("can loop", () => {
+            expect(Array.from(program.valuesFrom())).toEqual([
+                "table",
+                "",
+                "slug",
+                "columns",
+                "",
+                "slug",
+            ])
+            expect(
+                Array.from(program.valuesFrom({ row: 1, column: 2 }))
+            ).toEqual(["columns", "", "slug", "table", "", "slug"])
+        })
+
+        it("can grep", () => {
+            expect(program.grepFirst("columns")).toEqual({ row: 2, column: 0 })
+            expect(program.grepFirst("columns222")).toEqual(undefined)
+        })
+
+        it("can find next", () => {
+            expect(program.findNext({ row: 1, column: 1 })).toEqual({
+                row: 3,
+                column: 1,
+            })
+            expect(program.findNext({ row: 0, column: 1 })).toEqual(undefined)
+        })
+    })
 })

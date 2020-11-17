@@ -29,8 +29,7 @@ describe(GridCell, () => {
     it("can parse a cell", () => {
         const cell = new GridCell(
             tsvToMatrix(`title\tHello world`),
-            0,
-            1,
+            { row: 0, column: 1 },
             TestGrammar
         )
         expect(cell.errorMessage).toEqual(``)
@@ -42,15 +41,18 @@ describe(GridCell, () => {
     })
 
     it("can show a placeholder", () => {
-        const cell = new GridCell(tsvToMatrix(`title`), 0, 1, TestGrammar)
+        const cell = new GridCell(
+            tsvToMatrix(`title`),
+            { row: 0, column: 1 },
+            TestGrammar
+        )
         expect(cell.placeholder).toBeTruthy()
     })
 
     it("uses the keyword definition for the first cell instead of abstract keyword", () => {
         const cell = new GridCell(
             tsvToMatrix(`title\tHello world`),
-            0,
-            0,
+            { row: 0, column: 0 },
             TestGrammar
         )
         expect(cell.comment).toContain(
@@ -60,19 +62,22 @@ describe(GridCell, () => {
 
     it("can insert a css class to show the user a + button", () => {
         expect(
-            new GridCell(tsvToMatrix(`title\tHello world`), 1, 0, TestGrammar)
-                .cssClasses
+            new GridCell(
+                tsvToMatrix(`title\tHello world`),
+                { row: 1, column: 0 },
+                TestGrammar
+            ).cssClasses
         ).toContain(FrontierCellClass)
         expect(
-            new GridCell(tsvToMatrix(``), 1, 0, TestGrammar).cssClasses
+            new GridCell(tsvToMatrix(``), { row: 1, column: 0 }, TestGrammar)
+                .cssClasses
         ).not.toContain(FrontierCellClass)
     })
 
     it("can detect errors", () => {
         const cell = new GridCell(
             tsvToMatrix(`tile\tHello world`),
-            0,
-            0,
+            { row: 0, column: 0 },
             TestGrammar
         )
         expect(cell.errorMessage).not.toEqual(``)

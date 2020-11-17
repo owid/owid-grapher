@@ -37,9 +37,14 @@ export interface ParsedCell {
     value?: any
 }
 
-export interface CellLink {
+export interface CellPosition {
     row: CellCoordinate
     column: CellCoordinate
+}
+
+export const Origin: CellPosition = {
+    row: 0,
+    column: 0,
 }
 
 export const BooleanCellDef: CellDef = {

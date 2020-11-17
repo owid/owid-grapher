@@ -22,7 +22,10 @@ import {
     ExplorersRouteGrapherConfigs,
     ExplorersRouteQueryParam,
 } from "explorer/client/ExplorerConstants"
-import { makeTableContextMenuCommand } from "./ExplorerCommands"
+import {
+    selectAllWithThisValue,
+    makeTableContextMenuCommand,
+} from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
@@ -180,7 +183,7 @@ export class ExplorerCreatePage extends React.Component<{
                 options,
                 placeholder,
                 value,
-            } = program.getCell(row, column)
+            } = program.getCell({ row, column })
 
             const diskValue = programOnDisk.getCellValue(row, column)
 
@@ -240,6 +243,7 @@ export class ExplorerCreatePage extends React.Component<{
                         program,
                         (newProgram) => this.setProgram(newProgram)
                     ),
+                    selectAllWithThisValue: selectAllWithThisValue(program),
                     sp0: { name: "---------" },
                     row_above: {},
                     row_below: {},
@@ -262,6 +266,7 @@ export class ExplorerCreatePage extends React.Component<{
             minRows: 20,
             minSpareRows: 20,
             rowHeaders: true,
+            search: true,
             stretchH: "all",
             width: "100%",
             wordWrap: false,

@@ -4,9 +4,11 @@ import { isPresent } from "grapher/utils/Util"
 import { GridCell } from "./GridCell"
 import {
     CellDef,
+    CellPosition,
     GRID_CELL_DELIMITER,
     GRID_EDGE_DELIMITER,
     GRID_NODE_DELIMITER,
+    Origin,
     ParsedCell,
 } from "./GridLangConstants"
 import { SerializedGridProgram } from "./SerializedGridProgram"
@@ -57,6 +59,92 @@ export class GridProgram {
         }
     }
 
+    findNext(position: CellPosition) {
+        const cell = this.getCell(position)
+        const { value } = cell
+        return this.grepFirst(value, {
+            ...position,
+            column: position.column + 1,
+        })
+    }
+
+    findAll(position: CellPosition) {
+        const cell = this.getCell(position)
+        const { value } = cell
+        return this.grep(value, {
+            ...position,
+            column: position.column + 1,
+        })
+    }
+
+    ring(position: CellPosition) {
+        const matrix = this.asArrays
+        const numRows = matrix.length
+        const pointer = {
+            ...position,
+            started: false,
+            endRow: position.row,
+            endCol: position.column,
+        }
+        if (pointer.row > numRows) pointer.endRow = numRows - 1
+
+        const lastLine = matrix[pointer.endRow]
+        pointer.endCol =
+            lastLine[pointer.endCol] === undefined
+                ? lastLine.length
+                : pointer.endCol
+        function* generator() {
+            while (true) {
+                if (
+                    pointer.started &&
+                    pointer.row === pointer.endRow &&
+                    pointer.column === pointer.endCol
+                )
+                    return
+                pointer.started = true
+
+                if (matrix[pointer.row][pointer.column] === undefined) {
+                    pointer.row++
+                    pointer.column = 0
+                    if (pointer.row === numRows) {
+                        pointer.row = 0
+                        continue
+                    }
+                }
+
+                yield [
+                    matrix[pointer.row][pointer.column],
+                    {
+                        row: pointer.row,
+                        column: pointer.column,
+                    } as CellPosition,
+                ]
+                pointer.column++
+            }
+        }
+
+        return generator()
+    }
+
+    valuesFrom(position = Origin) {
+        return Array.from(this.ring(position)).map((res) => res[0])
+    }
+
+    grepFirst(key: string, position = Origin) {
+        for (const value of this.ring(position)) {
+            if (value[0] === key) return value[1] as CellPosition
+        }
+        return undefined
+    }
+
+    grep(key: string, position = Origin) {
+        const hits: CellPosition[] = []
+        for (const value of this.ring(position)) {
+            if (value[0] === key) hits.push(value[1] as CellPosition)
+        }
+        return hits
+    }
+
     /**
      * Returns all non-blocks as an object literal
      */
@@ -94,8 +182,8 @@ export class GridProgram {
         )
     }
 
-    getCell(row: number, col: number): ParsedCell {
-        return new GridCell(this.matrix, row, col, this.grammar!)
+    getCell(position: CellPosition): ParsedCell {
+        return new GridCell(this.matrix, position, this.grammar!)
     }
 
     getCellValue(row: number, col: number) {

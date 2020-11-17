@@ -49,22 +49,22 @@ ${ExplorerRootKeywordMap.graphers.keyword}
             `# a comment
 \t\t💬 another comment starting with a 💬 `
         )
-        expect(program.getCell(0, 0).cssClasses).toContain(
+        expect(program.getCell({ row: 0, column: 0 }).cssClasses).toContain(
             CommentCellDef.cssClass
         )
-        expect(program.getCell(1, 1).cssClasses).not.toContain(
+        expect(program.getCell({ row: 1, column: 1 }).cssClasses).not.toContain(
             CommentCellDef.cssClass
         )
-        expect(program.getCell(1, 2).cssClasses).toContain(
+        expect(program.getCell({ row: 1, column: 2 }).cssClasses).toContain(
             CommentCellDef.cssClass
         )
     })
 
     it("can detect errors", () => {
-        const results = new ExplorerProgram("test", `titleTypo Foo`).getCell(
-            0,
-            0
-        )
+        const results = new ExplorerProgram("test", `titleTypo Foo`).getCell({
+            row: 0,
+            column: 0,
+        })
         expect(results.errorMessage).not.toEqual("")
         expect(results.options!.length).toBeGreaterThan(1)
     })
@@ -290,7 +290,7 @@ france,Life expectancy`
             const subtableFrontierCell = new ExplorerProgram(
                 "test",
                 `columns\tsome_slug\n\tslug\tname`
-            ).getCell(1, 3)
+            ).getCell({ row: 1, column: 3 })
             expect(subtableFrontierCell.errorMessage).toEqual(``)
             expect(subtableFrontierCell.cssClasses).toContain(FrontierCellClass)
         })
@@ -299,7 +299,7 @@ france,Life expectancy`
             const cell = new ExplorerProgram(
                 "test",
                 `columns\tBag slug`
-            ).getCell(0, 1)
+            ).getCell({ row: 0, column: 1 })
             expect(cell.errorMessage).not.toEqual(``)
         })
 
@@ -307,7 +307,7 @@ france,Life expectancy`
             const subtableFrontierCell = new ExplorerProgram(
                 "test",
                 `columns\tsome_slug\n\tslug\tname`
-            ).getCell(1, 3)
+            ).getCell({ row: 1, column: 3 })
             expect(subtableFrontierCell.errorMessage).toEqual(``)
             expect(subtableFrontierCell.cssClasses).toContain(FrontierCellClass)
         })
@@ -316,7 +316,7 @@ france,Life expectancy`
             const cell = new ExplorerProgram(
                 "test",
                 `columns\tBag slug`
-            ).getCell(0, 1)
+            ).getCell({ row: 0, column: 1 })
             expect(cell.errorMessage).not.toEqual(``)
         })
     })

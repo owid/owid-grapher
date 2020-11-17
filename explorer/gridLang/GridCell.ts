@@ -2,8 +2,7 @@ import { imemo, trimArray } from "coreTable/CoreTableUtils"
 import { isPresent } from "grapher/utils/Util"
 import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
-    CellCoordinate,
-    CellLink,
+    CellPosition,
     CellDef,
     CellHasErrorsClass,
     MatrixLine,
@@ -19,20 +18,25 @@ import {
 } from "./GridLangConstants"
 
 export class GridCell implements ParsedCell {
-    private row: CellCoordinate
-    private column: CellCoordinate
+    private position: CellPosition
     private matrix: MatrixProgram
     private rootDefinition: CellDef
     constructor(
         matrix: MatrixProgram,
-        row: CellCoordinate,
-        column: CellCoordinate,
+        position: CellPosition,
         rootDefinition: CellDef
     ) {
-        this.row = row
-        this.column = column
+        this.position = position
         this.matrix = matrix
         this.rootDefinition = rootDefinition
+    }
+
+    private get row() {
+        return this.position.row
+    }
+
+    private get column() {
+        return this.position.column
     }
 
     private get line(): MatrixLine | undefined {
@@ -136,11 +140,11 @@ export class GridCell implements ParsedCell {
         return []
     }
 
-    private get definitionLinks(): CellLink[] {
+    private get definitionLinks(): CellPosition[] {
         return []
     }
 
-    private get implementationLinks(): CellLink[] {
+    private get implementationLinks(): CellPosition[] {
         return []
     }
 
