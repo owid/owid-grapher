@@ -14,6 +14,8 @@ export const getDefaultFailMessage = (manager: ChartManager) => {
     if (manager.table.rootTable.isBlank) return `No table loaded yet.`
     if (manager.table.rootTable.entityNameColumn.isMissing)
         return `Table is missing an EntityName column.`
+    if (manager.table.rootTable.timeColumn.isMissing)
+        return `Table is missing a Time column.`
     const yColumnSlugs = autoDetectYColumnSlugs(manager)
     if (!yColumnSlugs.length) return "Missing Y axis column"
     const selection = makeSelectionArray(manager)
