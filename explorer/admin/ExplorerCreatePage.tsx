@@ -23,6 +23,7 @@ import {
     ExplorersRouteQueryParam,
 } from "explorer/client/ExplorerConstants"
 import { makeTableContextMenuCommand } from "./ExplorerCommands"
+import { isEmpty } from "explorer/gridLang/GrammarUtils"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -50,8 +51,8 @@ export class ExplorerCreatePage extends React.Component<{
         const response = await readRemoteFile({
             filepath: makeFullPath(this.props.slug),
         })
-        this.sourceOnDisk = response.content ?? ""
-        this.setProgram(this.sourceOnDisk)
+        this.programOnDisk = new ExplorerProgram("", response.content ?? "")
+        this.setProgram(this.programOnDisk.toString())
         this.isReady = true
     }
 
@@ -90,7 +91,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.setProgram(newProgram.toString())
     }
 
-    @observable sourceOnDisk = ""
+    @observable.ref private programOnDisk = new ExplorerProgram("", "")
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
@@ -103,8 +104,8 @@ export class ExplorerCreatePage extends React.Component<{
             commitMessage,
         })
         this.context.admin.loadingIndicatorSetting = "off"
-        this.sourceOnDisk = this.program.toString()
-        this.setProgram(this.sourceOnDisk)
+        this.programOnDisk = new ExplorerProgram("", this.program.toString())
+        this.setProgram(this.programOnDisk.toString())
     }
 
     @action.bound private async saveAs() {
@@ -140,13 +141,13 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @computed get isModified() {
-        return this.sourceOnDisk !== this.program.toString()
+        return this.programOnDisk.toString() !== this.program.toString()
     }
 
     @observable gitCmsBranchName = this.props.gitCmsBranchName
 
     private get hotSettings() {
-        const { program } = this
+        const { program, programOnDisk } = this
         const data = program.asArrays
 
         const { currentlySelectedGrapherRow } = program
@@ -157,11 +158,22 @@ export class ExplorerCreatePage extends React.Component<{
                 cssClasses,
                 options,
                 placeholder,
+                value,
             } = program.getCell(row, column)
+
+            const diskValue = programOnDisk.getCellValue(row, column)
 
             const cellProperties: Partial<Handsontable.CellProperties> = {}
 
             const allClasses = cssClasses?.slice() ?? []
+
+            if (diskValue !== value) {
+                if (value === "" && diskValue === undefined)
+                    allClasses.push("cellCreated")
+                else if (isEmpty(value)) allClasses.push("cellDeleted")
+                else if (isEmpty(diskValue)) allClasses.push("cellCreated")
+                else allClasses.push("cellChanged")
+            }
 
             if (
                 currentlySelectedGrapherRow &&
@@ -188,6 +200,7 @@ export class ExplorerCreatePage extends React.Component<{
             afterRemoveCol: () => this.updateProgramFromHot(),
             allowInsertColumn: false,
             allowInsertRow: true,
+            autoRowSize: false,
             autoColumnSize: false,
             cells,
             colHeaders: true,

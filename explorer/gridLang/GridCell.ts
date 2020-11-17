@@ -162,26 +162,33 @@ export class GridCell implements ParsedCell {
 
         if (value === undefined || value === "") return ""
 
+        const regexResult = regex
+            ? validate(value, regex, requirements)
+            : undefined
+        const catchAllRegexResult = catchAllKeywordRegex
+            ? validate(
+                  value,
+                  catchAllKeywordRegex,
+                  catchAllKeyword!.requirements
+              )
+            : undefined
+
         if (options) {
             if (options.includes(value)) return ""
 
+            if (regex) return regexResult
+            if (catchAllKeywordRegex) return catchAllRegexResult
+
             const guess = didYouMean(value, options)
             if (guess) return `Did you mean '${guess}'?`
-        }
 
-        if (regex) return validate(value, regex, requirements)
-
-        if (catchAllKeywordRegex)
-            return validate(
-                value,
-                catchAllKeywordRegex,
-                catchAllKeyword!.requirements
-            )
-
-        if (options)
             return `Error: '${value}' is not a valid option. Valid options are ${options
                 .map((opt) => `'${opt}'`)
                 .join(", ")}`
+        }
+
+        if (regex) return regexResult
+        if (catchAllKeywordRegex) return catchAllRegexResult
 
         return ""
     }

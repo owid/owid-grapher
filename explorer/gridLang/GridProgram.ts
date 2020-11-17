@@ -98,6 +98,11 @@ export class GridProgram {
         return new GridCell(this.matrix, row, col, this.grammar!)
     }
 
+    getCellValue(row: number, col: number) {
+        const line = this.matrix[row]
+        return line ? line[col] : undefined
+    }
+
     @imemo private get matrix() {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }

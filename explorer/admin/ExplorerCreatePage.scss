@@ -24,6 +24,16 @@
         background: #ccc !important;
     }
 
+    .cellCreated {
+        outline: 3px solid rgba(0, 150, 0, 0.5);
+    }
+    .cellChanged {
+        outline: 3px solid rgba(0, 186, 43, 0.3);
+    }
+    .cellDeleted {
+        background-color: rgba(150, 0, 0, 0.3) !important;
+    }
+
     // Change the default dark top right corner comment arrow into a subtle checkmark.
     .htCommentCell:after {
         content: "✓" !important;
