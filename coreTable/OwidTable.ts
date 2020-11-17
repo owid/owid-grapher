@@ -165,26 +165,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return [min(mins), max(maxes)]
     }
 
-    // TO-DISCUSS
-    // Do we want to have two separate functions, or possibly a parameter: "any" | "all"?
-    // Do we want to access the column methods, or do it like this through the columnStore?
-    timeDomainForIntersection(
+    originalTimeDomainFor(
         slugs: ColumnSlug[]
     ): [Time | undefined, Time | undefined] {
-        let minTime: Time | undefined = undefined
-        let maxTime: Time | undefined = undefined
-        const { columnStore, timeColumn } = this
-        for (let index = 0; index < this.numRows; index++) {
-            if (
-                // The difference between above and this is .every() vs .some()
-                slugs.every((slug) => isNotErrorValue(columnStore[slug][index]))
-            ) {
-                const time = columnStore[timeColumn.slug][index] as Time
-                if (minTime === undefined || minTime > time) minTime = time
-                if (maxTime === undefined || maxTime < time) maxTime = time
-            }
-        }
-        return [minTime, maxTime]
+        const cols = this.getColumns(slugs)
+        const mins = cols.map((col) => min(col.originalTimes))
+        const maxes = cols.map((col) => max(col.originalTimes))
+        return [min(mins), max(maxes)]
     }
 
     filterByEntityNames(names: EntityName[]) {
@@ -716,7 +703,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 maxDiff
             )
             const timeAtoTimeB = new Map(timePairs)
-            const pairedTimesInA = Array.from(timeAtoTimeB.keys()) as Time[]
+            const pairedTimesInA = sortNumeric(
+                Array.from(timeAtoTimeB.keys())
+            ) as Time[]
 
             for (let index = startIndex; index < endIndex; index++) {
                 const currentTime = times[index]

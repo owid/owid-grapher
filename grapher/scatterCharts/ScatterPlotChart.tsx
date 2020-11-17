@@ -149,10 +149,7 @@ export class ScatterPlotChart
 
         // We want to "chop off" any rows outside the time domain for X and Y to avoid creating
         // leading and trailing timeline times that don't really exist in the dataset.
-        const [
-            timeDomainStart,
-            timeDomainEnd,
-        ] = table.timeDomainForIntersection([
+        const [timeDomainStart, timeDomainEnd] = table.timeDomainFor([
             this.xColumnSlug,
             this.yColumnSlug,
         ])
@@ -183,6 +180,15 @@ export class ScatterPlotChart
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
+
+        const [
+            originalTimeDomainStart,
+            originalTimeDomainEnd,
+        ] = table.originalTimeDomainFor([this.xColumnSlug, this.yColumnSlug])
+        table = table.filterByTimeRange(
+            originalTimeDomainStart ?? -Infinity,
+            originalTimeDomainEnd ?? Infinity
+        )
 
         return table
     }
