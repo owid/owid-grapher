@@ -32,7 +32,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
-import { GridBoolean } from "explorer/gridLang/GridLangConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
@@ -48,12 +47,6 @@ export interface ExplorerProps extends SerializedGridProgram {
 interface ExplorerQueryParams extends GrapherQueryParams {
     pickerSort?: SortOrder
     pickerMetric?: ColumnSlug
-}
-
-interface ExplorerGrapherInterface extends GrapherInterface {
-    grapherId?: number
-    tableSlug?: string
-    yScaleToggle?: string
 }
 
 @observer
@@ -112,9 +105,11 @@ export class Explorer
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapher()
         // Whenever the selected row changes, update Grapher.
-        autorun(() =>
-            this.updateGrapher(this.explorerProgram.decisionMatrix.selectedRow)
-        )
+        autorun(() => {
+            this.explorerProgram.decisionMatrix.selectedRow
+            this.updateGrapher()
+        })
+
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
@@ -127,16 +122,12 @@ export class Explorer
             window.removeEventListener("resize", this.onResizeThrottled)
     }
 
-    @action.bound private updateGrapher(
-        selectedGrapherRow?: ExplorerGrapherInterface
-    ) {
+    // todo: break this method up and unit test more
+    @action.bound private updateGrapher() {
         const grapher = this.grapher
         if (!grapher) return // todo: can we remove this?
 
-        const grapherConfigFromExplorer =
-            selectedGrapherRow && Object.keys(selectedGrapherRow).length
-                ? selectedGrapherRow
-                : this.explorerProgram.tuplesObject
+        const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
 
         const { grapherId, tableSlug, yScaleToggle } = grapherConfigFromExplorer
 
@@ -144,11 +135,15 @@ export class Explorer
 
         if (hasGrapherId && grapher.id === grapherId) return
 
-        this.grapherParamsChangedThisSession = {
-            ...this.grapherParamsChangedThisSession,
-            ...grapher.params,
+        if (grapher.id !== undefined) {
+            // only start storing after first grapher load
+            this.grapherParamsChangedThisSession = {
+                ...this.grapherParamsChangedThisSession,
+                ...grapher.params,
+            }
         }
-        const queryStr = grapher.id ? grapher.params : this.initialQueryParams
+        const queryStr =
+            grapher.id !== undefined ? grapher.params : this.initialQueryParams
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
@@ -167,12 +162,7 @@ export class Explorer
             manuallyProvideData: tableSlug ? true : false,
         }
 
-        grapher.yAxis.canChangeScaleType = trueFalseOrDefault(
-            yScaleToggle,
-            grapher.yAxis.canChangeScaleType
-        )
-
-        grapher.hasError = false
+        grapher.yAxis.canChangeScaleType = yScaleToggle
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
@@ -456,10 +446,3 @@ export class Explorer
         return this.grapher?.newSlugs ?? []
     }
 }
-
-const trueFalseOrDefault = (val: any, defaultValue: any) =>
-    val === GridBoolean.true || val === true
-        ? true
-        : val === GridBoolean.false
-        ? false
-        : defaultValue

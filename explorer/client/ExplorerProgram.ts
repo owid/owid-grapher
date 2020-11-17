@@ -37,6 +37,7 @@ import { GitCommit } from "gitCms/GitTypes"
 import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "explorer/gridLang/GridProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 interface Choice {
     title: string
@@ -51,6 +52,12 @@ export interface TableDef {
     url?: string
     columnDefinitions?: string
     inlineData?: string
+}
+
+interface ExplorerGrapherInterface extends GrapherInterface {
+    grapherId?: number
+    tableSlug?: string
+    yScaleToggle?: boolean
 }
 
 export class ExplorerProgram extends GridProgram {
@@ -312,6 +319,19 @@ export class ExplorerProgram extends GridProgram {
 
     getUrlForTableSlug(tableSlug?: TableSlug) {
         return this.getTableDef(tableSlug)?.url
+    }
+
+    get grapherConfig(): ExplorerGrapherInterface {
+        const selectedGrapherRow = this.decisionMatrix.selectedRow
+        const obj: any =
+            selectedGrapherRow && Object.keys(selectedGrapherRow).length
+                ? selectedGrapherRow
+                : this.tuplesObject
+
+        const grapherConfig: ExplorerGrapherInterface = { ...obj }
+        grapherConfig.yScaleToggle = obj.yScaleToggle === "true"
+
+        return grapherConfig
     }
 
     async fetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
