@@ -169,8 +169,6 @@ export class DimensionCard extends React.Component<{
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
                             onBlur={this.updateTables}
-                            grapher={grapher}
-                            dim={dimension}
                         />
                         {this.tableDisplaySettings}
                         {(grapher.isScatter ||
