@@ -27,7 +27,6 @@ import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { extent } from "d3-array"
-import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import {
     BASE_FONT_SIZE,
     SeriesName,

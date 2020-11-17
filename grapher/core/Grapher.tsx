@@ -74,11 +74,7 @@ import {
     GlobalEntitySelection,
     subscribeGrapherToGlobalEntitySelection,
 } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
-import {
-    strToQueryParams,
-    queryParamsToStr,
-    QueryParams,
-} from "utils/client/url"
+import { strToQueryParams, queryParamsToStr } from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
