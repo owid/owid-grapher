@@ -277,7 +277,18 @@ export class ExplorerProgram extends GridProgram {
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
-        const table = await clone.fetchTableForTableSlugIfItHasUrl(tableSlug)
+        const remoteTable = await clone.fetchTableForTableSlugIfItHasUrl(
+            tableSlug
+        )
+        const existingTableDef = this.getTableDef(tableSlug)
+        const table =
+            remoteTable ||
+            (existingTableDef
+                ? new CoreTable(
+                      existingTableDef.inlineData,
+                      existingTableDef.columnDefinitions
+                  )
+                : undefined)
         const newCols = table!.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
