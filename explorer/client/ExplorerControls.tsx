@@ -180,7 +180,7 @@ export class ExplorerControlPanel extends React.Component<{
     render() {
         const { name, type, hideTitle } = this.props
         const { options } = this
-        if (type === ExplorerControlType.Radio && options.length > 3)
+        if (type === ExplorerControlType.Radio && options.length > 4)
             return splitArrayIntoGroupsOfN(
                 options,
                 3
