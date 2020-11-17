@@ -40,6 +40,7 @@ export class DimensionCard extends React.Component<{
 
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
+        this.updateTables()
     }
 
     private get tableDisplaySettings() {
@@ -52,16 +53,18 @@ export class DimensionCard extends React.Component<{
                 <Toggle
                     label="Hide absolute change column"
                     value={!!tableDisplay.hideAbsoluteChange}
-                    onValue={(value) =>
-                        (tableDisplay.hideAbsoluteChange = value)
-                    }
+                    onValue={(value) => {
+                        tableDisplay.hideAbsoluteChange = value
+                        this.updateTables()
+                    }}
                 />
                 <Toggle
                     label="Hide relative change column"
                     value={!!tableDisplay.hideRelativeChange}
-                    onValue={(value) =>
-                        (tableDisplay.hideRelativeChange = value)
-                    }
+                    onValue={(value) => {
+                        tableDisplay.hideRelativeChange = value
+                        this.updateTables()
+                    }}
                 />
                 <hr className="ui divider" />
             </React.Fragment>
