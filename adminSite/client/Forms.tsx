@@ -528,6 +528,7 @@ interface AutoTextFieldProps {
     onValue: (value: string) => void
     onToggleAuto: (value: boolean) => void
     softCharacterLimit?: number
+    onBlur?: () => void
 }
 
 const ErrorMessage = ({ message }: { message: string }) => (
@@ -577,6 +578,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                         value={props.value}
                         placeholder={props.placeholder}
                         onChange={(e) => props.onValue(e.currentTarget.value)}
+                        onBlur={props.onBlur}
                     />
                     <div
                         className="input-group-addon"
@@ -665,6 +667,7 @@ export class BindAutoString<
     label?: string
     helpText?: string
     softCharacterLimit?: number
+    onBlur?: () => void
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value as any

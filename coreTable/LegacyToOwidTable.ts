@@ -128,7 +128,6 @@ export const legacyToOwidTableAndDimensions = (
                 isNumber(value) ? value * conversionFactor : value
             )
         }
-        debugger
 
         const columnStore: { [key: string]: any[] } = {
             [OwidTableSlugs.entityId]: entityIds,

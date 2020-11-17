@@ -310,6 +310,15 @@ export class Grapher
         this.legacyConfigAsAuthored = config
     }
 
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ) {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
+        }
+    }
+
     constructor(
         propsWithGrapherInstanceGetter: GrapherProgrammaticInterface = {}
     ) {
@@ -663,6 +672,14 @@ export class Grapher
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
         } else this.applyOriginalSelectionAsAuthored()
+    }
+
+    @action rebuildTable() {
+        if (!this.legacyVariableDataJson) return
+        this._setInputTable(
+            this.legacyVariableDataJson,
+            this.legacyConfigAsAuthored
+        )
     }
 
     @action.bound _updateOwidTableLegacyVariable(

@@ -68,6 +68,16 @@ export class DimensionCard extends React.Component<{
         )
     }
 
+    @action.bound onBlur() {
+        const { grapher } = this.props.editor
+
+        grapher.updateAuthoredVersion({
+            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
+        })
+
+        grapher.rebuildTable()
+    }
+
     render() {
         const { dimension, editor } = this.props
         const { grapher } = editor
@@ -127,6 +137,7 @@ export class DimensionCard extends React.Component<{
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
+                            onBlur={this.onBlur}
                         />
                         <BindAutoString
                             label="Unit of measurement"
