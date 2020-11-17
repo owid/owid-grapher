@@ -682,25 +682,6 @@ export class Grapher
         )
     }
 
-    @action.bound _updateOwidTableLegacyVariable(
-        legacyVariableId: number,
-        updatedConfig: Partial<LegacyVariableConfig>
-    ) {
-        if (!this.legacyVariableDataJson) return
-
-        const newDimensions: LegacyChartDimensionInterface[] =
-            this.legacyConfigAsAuthored.dimensions
-                ?.filter((dim) => (dim.variableId = legacyVariableId))
-                .map((dim) => ({ ...dim, ...updatedConfig })) ?? []
-
-        const newConfig = {
-            ...this.legacyConfigAsAuthored,
-            dimensions: newDimensions,
-        }
-
-        this._setInputTable(this.legacyVariableDataJson, newConfig)
-    }
-
     @observable private legacyVariableDataJson?: LegacyVariablesAndEntityKey
 
     @action.bound private _receiveLegacyDataAndApplySelection(
