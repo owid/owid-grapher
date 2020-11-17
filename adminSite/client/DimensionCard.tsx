@@ -75,7 +75,7 @@ export class DimensionCard extends React.Component<{
             dimensions: grapher.filledDimensions.map((dim) => dim.toObject()),
         })
 
-        grapher.rebuildTable()
+        grapher.rebuildInputOwidTable()
     }
 
     render() {

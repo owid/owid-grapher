@@ -674,7 +674,7 @@ export class Grapher
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    @action rebuildTable() {
+    @action rebuildInputOwidTable() {
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
@@ -689,7 +689,7 @@ export class Grapher
     ) {
         this.legacyVariableDataJson = json
 
-        this._setInputTable(json, this.legacyConfigAsAuthored)
+        this.rebuildInputOwidTable()
     }
 
     @action.bound appendNewEntitySelectionOptions() {
