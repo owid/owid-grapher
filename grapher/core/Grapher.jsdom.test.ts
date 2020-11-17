@@ -54,7 +54,8 @@ it("an empty Grapher serializes to an empty object", () => {
 })
 
 it("a bad chart type does not crash grapher", () => {
-    expect(new Grapher({ type: "fff" as any }).toObject()).toEqual({})
+    const input = { type: "fff" as any }
+    expect(new Grapher(input).toObject()).toEqual(input)
 })
 
 it("does not preserve defaults in the object", () => {
