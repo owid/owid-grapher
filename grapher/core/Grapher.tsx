@@ -50,7 +50,6 @@ import {
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
-    LegacyVariableConfig,
     LegacyVariablesAndEntityKey,
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
@@ -155,7 +154,6 @@ import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { LineChart } from "grapher/lineCharts/LineChart"
 
 declare const window: any
 
