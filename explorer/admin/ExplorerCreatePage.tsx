@@ -26,6 +26,7 @@ import { makeTableContextMenuCommand } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
+const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{
@@ -52,13 +53,15 @@ export class ExplorerCreatePage extends React.Component<{
             filepath: makeFullPath(this.props.slug),
         })
         this.programOnDisk = new ExplorerProgram("", response.content ?? "")
-        this.setProgram(this.programOnDisk.toString())
+        this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
         this.isReady = true
     }
 
     @action.bound private setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
         this.fetchGrapherConfigs(this.program.requiredGrapherIds)
+
+        this.saveDraft(code)
     }
 
     @action.bound private async fetchGrapherConfigs(grapherIds: number[]) {
@@ -91,6 +94,18 @@ export class ExplorerCreatePage extends React.Component<{
         this.setProgram(newProgram.toString())
     }
 
+    private saveDraft(code: string) {
+        localStorage.setItem(UNSAVED_EXPLORER_DRAFT + this.program.slug, code)
+    }
+
+    get draftIfAny() {
+        return localStorage.getItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
+    }
+
+    private clearDraft() {
+        localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
+    }
+
     @observable.ref private programOnDisk = new ExplorerProgram("", "")
 
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
@@ -105,6 +120,7 @@ export class ExplorerCreatePage extends React.Component<{
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
+        this.clearDraft()
         this.setProgram(this.programOnDisk.toString())
     }
 
@@ -129,6 +145,11 @@ export class ExplorerCreatePage extends React.Component<{
         }
         await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
         window.location.href = slug
+    }
+
+    @action.bound private clearChanges() {
+        if (confirm("Are you sure you want to clear changes?"))
+            this.setProgram(this.programOnDisk.toString())
     }
 
     @action.bound private async save() {
@@ -264,7 +285,7 @@ export class ExplorerCreatePage extends React.Component<{
             <AdminLayout title="Create Explorer">
                 <Prompt
                     when={this.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                    message="Are you sure you want to leave? You have unsaved changes."
                 />
                 <main style={{ padding: 0, position: "relative" }}>
                     <div
@@ -311,6 +332,13 @@ export class ExplorerCreatePage extends React.Component<{
                             Save As and Push to {this.props.gitCmsBranchName}
                         </button>
                         <br />
+                        <br />
+                        <button
+                            className="btn btn-secondary"
+                            onClick={this.clearChanges}
+                        >
+                            Clear changes
+                        </button>
                     </div>
                     <div style={{ height: "300px", overflow: "scroll" }}>
                         <Explorer
