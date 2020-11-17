@@ -205,12 +205,23 @@ export class Explorer
         const url = this.explorerProgram.getUrlForTableSlug(tableSlug)
         if (!url || Explorer.fetchedTableCache.has(url)) return
 
-        const table = await this.explorerProgram.fetchTableForTableSlugIfItHasUrl(
-            tableSlug
-        )
-        if (!table) return
-        Explorer.fetchedTableCache.set(url, table)
-        this.setTableBySlug(tableSlug)
+        try {
+            const table = await this.explorerProgram.tryFetchTableForTableSlugIfItHasUrl(
+                tableSlug
+            )
+
+            if (!table) return
+            Explorer.fetchedTableCache.set(url, table)
+            this.setTableBySlug(tableSlug)
+        } catch (err) {
+            if (this.grapher)
+                this.grapher.setError(
+                    err,
+                    <p>
+                        Failed to fetch <a href={url}>{url}</a>
+                    </p>
+                )
+        }
     }
 
     @action.bound setSlide(queryString: string) {

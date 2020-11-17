@@ -1457,7 +1457,21 @@ export class Grapher
     }
 
     @observable private hasBeenVisible = false
-    @observable hasError = false
+    @observable private uncaughtError?: Error
+    @observable private userFacingErrorSuggestion?: JSX.Element // optionally provide the user with something helpful to self-troubleshoot
+
+    @action.bound setError(
+        err: Error,
+        userFacingErrorSuggestion?: JSX.Element
+    ) {
+        this.uncaughtError = err
+        this.userFacingErrorSuggestion = userFacingErrorSuggestion
+    }
+
+    @action.bound private clearErrors() {
+        this.uncaughtError = undefined
+        this.userFacingErrorSuggestion = undefined
+    }
 
     @computed private get classNames() {
         const classNames = [
@@ -1628,7 +1642,7 @@ export class Grapher
             },
             {
                 combo: "esc",
-                fn: () => (this.hasError = false),
+                fn: () => this.clearErrors(),
             },
             {
                 combo: "z",
@@ -1763,7 +1777,7 @@ export class Grapher
 
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
-        this.hasError = false
+        this.clearErrors()
         const currentSelection = this.selection.selectedEntityNames.length
         const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
         this.selection.setSelectedEntities(
@@ -1774,6 +1788,7 @@ export class Grapher
     private renderError() {
         return (
             <div
+                title={this.uncaughtError?.message}
                 style={{
                     width: "100%",
                     height: "100%",
@@ -1801,6 +1816,7 @@ export class Grapher
                     </a>
                     .
                 </p>
+                {this.userFacingErrorSuggestion}
             </div>
         )
     }
@@ -1821,7 +1837,7 @@ export class Grapher
         return (
             <div ref={this.base} className={this.classNames} style={style}>
                 {this.commandPalette}
-                {this.hasError ? this.renderError() : this.renderReady()}
+                {this.uncaughtError ? this.renderError() : this.renderReady()}
             </div>
         )
     }
@@ -1889,8 +1905,8 @@ export class Grapher
         if (this.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
-    componentDidCatch(error: any, info: any) {
-        this.hasError = true
+    componentDidCatch(error: Error, info: any) {
+        this.setError(error)
         this.analytics.logChartError(error, info)
     }
 

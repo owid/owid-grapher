@@ -1,4 +1,4 @@
-import { fetchText, trimObject } from "grapher/utils/Util"
+import { trimObject } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -238,7 +238,7 @@ export class ExplorerProgram extends GridProgram {
             clone.deleteLine(colDefRow)
         }
 
-        const table = await clone.fetchTableForTableSlugIfItHasUrl(tableSlug)
+        const table = await clone.tryFetchTableForTableSlugIfItHasUrl(tableSlug)
 
         const tableDefRow = clone.getRowMatchingWords(
             ExplorerRootKeywordMap.table.keyword,
@@ -277,7 +277,7 @@ export class ExplorerProgram extends GridProgram {
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
-        const remoteTable = await clone.fetchTableForTableSlugIfItHasUrl(
+        const remoteTable = await clone.tryFetchTableForTableSlugIfItHasUrl(
             tableSlug
         )
         const existingTableDef = this.getTableDef(tableSlug)
@@ -340,12 +340,13 @@ export class ExplorerProgram extends GridProgram {
             : rootObject
     }
 
-    async fetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
+    async tryFetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
         const url = this.getUrlForTableSlug(tableSlug)
         if (!url) return undefined
         const tableDef = this.getTableDef(tableSlug)!
-        const delimited = await fetchText(url)
-        const table = new OwidTable(delimited, tableDef.columnDefinitions, {
+        const delimited = await fetch(url)
+        const text = await delimited.text()
+        const table = new OwidTable(text, tableDef.columnDefinitions, {
             tableDescription: `Loaded from ${url}`,
         })
         return table
