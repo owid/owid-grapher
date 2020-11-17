@@ -493,6 +493,11 @@ export class Grapher
         )
     }
 
+    // Convenience method for debugging
+    windowQueryParams(str = location.search) {
+        return strToQueryParams(str)
+    }
+
     @computed
     private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
