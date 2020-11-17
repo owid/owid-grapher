@@ -69,6 +69,21 @@ ${ExplorerRootKeywordMap.graphers.keyword}
         expect(results.options!.length).toBeGreaterThan(1)
     })
 
+    it("can return a grapher config", () => {
+        expect(
+            new ExplorerProgram("test", `yScaleToggle\ttrue`).grapherConfig
+                .yScaleToggle
+        ).toEqual(true)
+        const program = new ExplorerProgram(
+            "test",
+            `graphers
+\tyScaleToggle\tLine Checkbox
+\ttrue\tLine`
+        )
+        expect(program.currentlySelectedGrapherRow).toEqual(2)
+        expect(program.grapherConfig.yScaleToggle).toEqual(true)
+    })
+
     it("can power a grapher", () => {
         const grapherConfig = new ExplorerProgram(
             "test",

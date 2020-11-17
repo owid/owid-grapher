@@ -323,15 +323,9 @@ export class ExplorerProgram extends GridProgram {
 
     get grapherConfig(): ExplorerGrapherInterface {
         const selectedGrapherRow = this.decisionMatrix.selectedRow
-        const obj: any =
-            selectedGrapherRow && Object.keys(selectedGrapherRow).length
-                ? selectedGrapherRow
-                : this.tuplesObject
-
-        const grapherConfig: ExplorerGrapherInterface = { ...obj }
-        grapherConfig.yScaleToggle = obj.yScaleToggle === "true"
-
-        return grapherConfig
+        return selectedGrapherRow && Object.keys(selectedGrapherRow).length
+            ? selectedGrapherRow
+            : trimAndParseGrapherConfig(this.tuplesObject)
     }
 
     async fetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
@@ -550,19 +544,9 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     @computed get selectedRow() {
-        const selectedRow = this.table.rowsAt([this.selectedRowIndex])[0]
-
-        // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
-        const trimmedRow = trimObject(selectedRow, true)
-
-        // parse boolean
-        Object.keys(trimmedRow).forEach((key) => {
-            const value = trimmedRow[key]
-            if (value === GridBoolean.true) trimmedRow[key] = true
-            else if (value === GridBoolean.false) trimmedRow[key] = false
-        })
-
-        return trimmedRow
+        return trimAndParseGrapherConfig(
+            this.table.rowsAt([this.selectedRowIndex])[0]
+        )
     }
 
     private toControlOption(
@@ -626,3 +610,17 @@ const makeCheckBoxOption = (
 
 export const makeFullPath = (slug: string) =>
     `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
+
+const trimAndParseGrapherConfig = (config: any) => {
+    // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
+    const trimmedRow = trimObject(config, true)
+
+    // parse boolean
+    Object.keys(trimmedRow).forEach((key) => {
+        const value = trimmedRow[key]
+        if (value === GridBoolean.true) trimmedRow[key] = true
+        else if (value === GridBoolean.false) trimmedRow[key] = false
+    })
+
+    return trimmedRow
+}
