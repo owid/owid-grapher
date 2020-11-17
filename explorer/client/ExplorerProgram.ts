@@ -322,10 +322,11 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get grapherConfig(): ExplorerGrapherInterface {
+        const rootObject = trimAndParseGrapherConfig(this.tuplesObject)
         const selectedGrapherRow = this.decisionMatrix.selectedRow
         return selectedGrapherRow && Object.keys(selectedGrapherRow).length
-            ? selectedGrapherRow
-            : trimAndParseGrapherConfig(this.tuplesObject)
+            ? { ...rootObject, ...selectedGrapherRow }
+            : rootObject
     }
 
     async fetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {

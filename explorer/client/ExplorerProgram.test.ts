@@ -69,19 +69,32 @@ ${ExplorerRootKeywordMap.graphers.keyword}
         expect(results.options!.length).toBeGreaterThan(1)
     })
 
-    it("can return a grapher config", () => {
-        expect(
-            new ExplorerProgram("test", `yScaleToggle\ttrue`).grapherConfig
-                .yScaleToggle
-        ).toEqual(true)
-        const program = new ExplorerProgram(
-            "test",
-            `graphers
+    describe("grapherconfig", () => {
+        it("can return a grapher config", () => {
+            expect(
+                new ExplorerProgram("test", `yScaleToggle\ttrue`).grapherConfig
+                    .yScaleToggle
+            ).toEqual(true)
+            const program = new ExplorerProgram(
+                "test",
+                `graphers
 \tyScaleToggle\tLine Checkbox
 \ttrue\tLine`
-        )
-        expect(program.currentlySelectedGrapherRow).toEqual(2)
-        expect(program.grapherConfig.yScaleToggle).toEqual(true)
+            )
+            expect(program.currentlySelectedGrapherRow).toEqual(2)
+            expect(program.grapherConfig.yScaleToggle).toEqual(true)
+        })
+
+        it("can cascade default grapher config props", () => {
+            const program = new ExplorerProgram(
+                "test",
+                `hasMapTab\ttrue
+graphers
+\tyScaleToggle\tLine Checkbox
+\ttrue\tLine`
+            )
+            expect(program.grapherConfig.hasMapTab).toEqual(true)
+        })
     })
 
     it("can power a grapher", () => {
