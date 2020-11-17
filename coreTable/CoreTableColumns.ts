@@ -66,10 +66,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this instanceof MissingColumn
     }
 
-    @imemo get unit() {
-        return this.def.unit || this.display?.unit || ""
-    }
-
     get sum() {
         return this.summary.sum
     }
@@ -170,31 +166,38 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.display || new LegacyVariableDisplayConfig()
     }
 
-    formatValue(value: any) {
-        return anyToString(value)
+    abstract formatValue(value: any, options?: TickFormattingOptions): string
+
+    formatValueForMobile(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueForMobile(value: any) {
-        return this.formatValue(value)
+    formatValueShort(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueShort(value: any, options?: TickFormattingOptions) {
-        return this.formatValue(value)
+    formatValueLong(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueLong(value: any) {
-        return this.formatValue(value)
-    }
-
-    formatForTick(value: any, options?: TickFormattingOptions) {
+    formatForTick(value: any, options?: TickFormattingOptions): string {
         return this.formatValueShort(value, options)
     }
 
-    @imemo get numDecimalPlaces() {
+    // A method for formatting for CSV
+    formatForCsv(value: JS_TYPE): string {
+        return csvEscape(this.formatValue(value))
+    }
+
+    @imemo get numDecimalPlaces(): number {
         return this.display.numDecimalPlaces ?? 2
     }
 
-    @imemo get shortUnit() {
+    @imemo get unit(): string {
+        return this.def.unit || this.display?.unit || ""
+    }
+
+    @imemo get shortUnit(): string {
         const shortUnit =
             this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
@@ -207,11 +210,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
 
         return ""
-    }
-
-    // A method for formatting for CSV
-    formatForCsv(value: JS_TYPE) {
-        return csvEscape(this.formatValue(value))
     }
 
     // Returns a map where the key is a series slug such as "name" and the value is a set
@@ -467,10 +465,18 @@ export type CoreColumn = AbstractCoreColumn<any>
 
 export class MissingColumn extends AbstractCoreColumn<any> {
     jsType = JsTypes.string
+
+    formatValue() {
+        return ""
+    }
 }
 
 class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
+
+    formatValue(value: any) {
+        return anyToString(value)
+    }
 
     parse(val: any) {
         if (val === null) return ErrorValueTypes.NullButShouldBeString
@@ -487,31 +493,40 @@ class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn<boolean> {
     jsType = JsTypes.boolean
 
+    formatValue(value: any) {
+        return value ? "true" : "false"
+    }
+
     parse(val: any) {
         return !!val
     }
 }
 abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
-    formatValueShort(value: number, options?: TickFormattingOptions) {
-        const numDecimalPlaces = this.numDecimalPlaces
+
+    formatValue(value: number, options?: TickFormattingOptions) {
         return formatValue(value, {
+            numDecimalPlaces: this.numDecimalPlaces,
+            ...options,
+        })
+    }
+
+    formatValueShort(value: number, options?: TickFormattingOptions) {
+        return this.formatValue(value, {
             unit: this.shortUnit,
-            numDecimalPlaces,
+            ...options,
+        })
+    }
+
+    formatValueLong(value: number, options?: TickFormattingOptions) {
+        return this.formatValue(value, {
+            unit: this.unit,
             ...options,
         })
     }
 
     @imemo get isAllIntegers() {
         return this.values.every((val) => val % 1 === 0)
-    }
-
-    formatValueLong(value: number) {
-        const { unit, numDecimalPlaces } = this
-        return formatValue(value, {
-            unit,
-            numDecimalPlaces,
-        })
     }
 
     parse(val: any): number | ErrorValue {
@@ -537,20 +552,89 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    formatValue(value: number) {
-        if (value === undefined) return ""
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: true,
-            shortNumberPrefixes: true,
-        })
+    get numDecimalPlaces() {
+        return 0
     }
 
     protected _parse(val: any) {
         return parseInt(val)
     }
 }
+
+class CurrencyColumn extends NumericColumn {
+    get numDecimalPlaces() {
+        return 0
+    }
+
+    get unit() {
+        return "$"
+    }
+
+    get shortUnit() {
+        return "$"
+    }
+}
+// Expects 50% to be 50
+class PercentageColumn extends NumericColumn {
+    get unit() {
+        return "%"
+    }
+
+    get shortUnit() {
+        return "%"
+    }
+
+    formatValue(value: number, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            numberPrefixes: false,
+            ...options,
+        })
+    }
+
+    formatValueShort(value: number, options?: TickFormattingOptions) {
+        return super.formatValueShort(value, {
+            numDecimalPlaces: 0,
+            ...options,
+        })
+    }
+
+    formatValueLong(value: number, options?: TickFormattingOptions) {
+        return super.formatValueLong(value, {
+            numDecimalPlaces: 2,
+            ...options,
+        })
+    }
+}
+
+// Same as %, but indicates it's part of a group of columns that add up to 100%.
+// Might not need this.
+class RelativePercentageColumn extends PercentageColumn {}
+
+class PercentChangeOverTimeColumn extends PercentageColumn {
+    formatValue(value: number, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            showPlus: true,
+            ...options,
+        })
+    }
+}
+
+// Expects 50% to be .5
+class DecimalPercentageColumn extends PercentageColumn {
+    formatValue(value: number, options?: TickFormattingOptions) {
+        return super.formatValue(value * 100, options)
+    }
+}
+class RatioColumn extends NumericColumn {
+    get numDecimalPlaces() {
+        return 1
+    }
+}
+
+// todo: remove. should not be in coretable
+class EntityIdColumn extends NumericCategoricalColumn {}
+class EntityCodeColumn extends CategoricalColumn {}
+class EntityNameColumn extends CategoricalColumn {}
 
 // todo: cleanup time columns. current schema is a little incorrect.
 abstract class TimeColumn extends AbstractCoreColumn<number> {
@@ -602,96 +686,6 @@ class DateColumn extends DayColumn {
     }
 }
 
-class CurrencyColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "$",
-        })
-    }
-}
-// Expects 50% to be 50
-class PercentageColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-
-    formatValueLong(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 2,
-            noTrailingZeroes: true,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-
-    formatValueShort(value: any) {
-        return this.formatValue(value)
-    }
-}
-
-// Same as %, but indicates it's part of a group of columns that add up to 100%.
-// Might not need this.
-class RelativePercentageColumn extends PercentageColumn {}
-
-class PercentChangeOverTimeColumn extends PercentageColumn {
-    formatValue(value: number) {
-        return `${value > 0 ? "+" : ""}${super.formatValue(value)}`
-    }
-}
-
-// Expects 50% to be .5
-class DecimalPercentageColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value * 100, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-}
-class PopulationColumn extends IntegerColumn {}
-class PopulationDensityColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-        })
-    }
-}
-class AgeColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 1,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-        })
-    }
-}
-class RatioColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 1,
-            noTrailingZeroes: false,
-            numberPrefixes: true,
-        })
-    }
-}
-
-// todo: remove. should not be in coretable
-class EntityIdColumn extends NumericCategoricalColumn {}
-class EntityCodeColumn extends CategoricalColumn {}
-class EntityNameColumn extends CategoricalColumn {}
-
 export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,
     SeriesAnnotation: SeriesAnnotationColumn,
@@ -708,9 +702,6 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     RelativePercentage: RelativePercentageColumn,
     Integer: IntegerColumn,
     DecimalPercentage: DecimalPercentageColumn,
-    Population: PopulationColumn,
-    PopulationDensity: PopulationDensityColumn,
-    Age: AgeColumn,
     PercentChangeOverTime: PercentChangeOverTimeColumn,
     Ratio: RatioColumn,
     Color: ColorColumn,
