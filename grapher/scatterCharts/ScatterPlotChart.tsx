@@ -181,6 +181,12 @@ export class ScatterPlotChart
                 "Drop rows with non-number values in Y column"
             )
 
+        // The tolerance application might lead to some data being dropped for some years.
+        // For example, if X times are [2000, 2005, 2010], and Y times are [2005], then for all 3
+        // rows we have the same match [[2005, 2005], [2005, 2005], [2005, 2005]].
+        // This means we can drop 2000 and 2010 from the timeline.
+        // It might not make a huge difference here, but it makes a difference when there are more
+        // entities covering different time periods.
         const [
             originalTimeDomainStart,
             originalTimeDomainEnd,
