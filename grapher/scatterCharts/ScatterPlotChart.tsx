@@ -18,6 +18,7 @@ import {
     cagr,
     dropWhile,
     sampleFrom,
+    intersectionOfSets,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -29,7 +30,7 @@ import {
     ScatterPointLabelStrategy,
     SeriesName,
 } from "grapher/core/GrapherConstants"
-import { Color, Time } from "coreTable/CoreTableConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -203,11 +204,32 @@ export class ScatterPlotChart
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed private get transformedTableFromGrapher() {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
+    }
+
+    @computed get transformedTable() {
+        let table = this.transformedTableFromGrapher
+        if (
+            this.manager.hideLinesOutsideTolerance &&
+            this.manager.startTime !== undefined &&
+            this.manager.endTime !== undefined
+        ) {
+            const entityNames = Array.from(
+                intersectionOfSets(
+                    [this.manager.startTime, this.manager.endTime].map(
+                        (targetTime) =>
+                            table.filterByTargetTimes([targetTime], 0)
+                                .availableEntityNameSet
+                    )
+                )
+            )
+            table = table.filterByEntityNames(entityNames)
+        }
+        return table
     }
 
     @computed private get manager() {
@@ -883,17 +905,6 @@ export class ScatterPlotChart
             return series
         })
 
-        if (
-            this.manager.hideLinesOutsideTolerance &&
-            this.manager.startTime !== undefined &&
-            this.manager.endTime !== undefined
-        ) {
-            seriesArr = this.dropSeriesNotCoveringTimespan(seriesArr, [
-                this.manager.startTime,
-                this.manager.endTime,
-            ])
-        }
-
         // We need to apply the relative transform after hideLinesOutsideTolerance, because the
         // original timespan info gets dropped and we cannot infer it after this.
         // There is a timespan, but it's for the original times, pre-interpolation.
@@ -932,21 +943,6 @@ export class ScatterPlotChart
                 span: [startPoint.time.y, endPoint.time.y],
             },
         }
-    }
-
-    private dropSeriesNotCoveringTimespan(
-        seriesArr: ScatterSeries[],
-        timespan: [Time, Time]
-    ): ScatterSeries[] {
-        const [startTime, endTime] = timespan
-        return seriesArr.filter((series) => {
-            // Since the timeline filter is already applied,
-            // we only need to look at first & last points
-            return (
-                first(series.points)?.timeValue === startTime &&
-                last(series.points)?.timeValue === endTime
-            )
-        })
     }
 
     private assignColorToSeries(
