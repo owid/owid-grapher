@@ -35,8 +35,13 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
+export interface ExplorerManager {
+    grapherConfigs?: GrapherInterface[]
+}
+
 export interface ExplorerProps extends SerializedGridProgram {
     explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
+    manager?: ExplorerManager
     grapherConfigs?: GrapherInterface[]
     bindToWindow?: boolean
     queryString?: string
@@ -89,7 +94,10 @@ export class Explorer
     )
 
     @computed get grapherConfigs() {
-        const arr = this.props.grapherConfigs || []
+        const arr =
+            this.props.manager?.grapherConfigs ||
+            this.props.grapherConfigs ||
+            []
         const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
         arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
         return grapherConfigsMap

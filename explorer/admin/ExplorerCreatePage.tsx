@@ -5,7 +5,7 @@ import {
     AdminAppContextType,
     AdminAppContext,
 } from "adminSite/client/AdminAppContext"
-import { Explorer } from "explorer/client/Explorer"
+import { Explorer, ExplorerManager } from "explorer/client/Explorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
@@ -32,10 +32,12 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
 
 @observer
-export class ExplorerCreatePage extends React.Component<{
-    slug: string
-    gitCmsBranchName: string
-}> {
+export class ExplorerCreatePage
+    extends React.Component<{
+        slug: string
+        gitCmsBranchName: string
+    }>
+    implements ExplorerManager {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -68,7 +70,9 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private async fetchGrapherConfigs(grapherIds: number[]) {
-        const missing = grapherIds.filter((id) => !this.grapherConfigs.has(id))
+        const missing = grapherIds.filter(
+            (id) => !this.grapherConfigsMap.has(id)
+        )
         if (!missing.length) return
         const response = await fetch(
             `/admin/api/${ExplorersRouteGrapherConfigs}?${ExplorersRouteQueryParam}=${grapherIds.join(
@@ -77,11 +81,18 @@ export class ExplorerCreatePage extends React.Component<{
         )
         const configs = await response.json()
         configs.forEach((config: any) =>
-            this.grapherConfigs.set(config.id, config)
+            this.grapherConfigsMap.set(config.id, config)
         )
     }
 
-    @observable grapherConfigs: Map<number, GrapherInterface> = new Map()
+    @observable private grapherConfigsMap: Map<
+        number,
+        GrapherInterface
+    > = new Map()
+
+    @computed get grapherConfigs() {
+        return Array.from(this.grapherConfigsMap.values())
+    }
 
     hotTableComponent = React.createRef<HotTable>()
 
@@ -353,7 +364,7 @@ export class ExplorerCreatePage extends React.Component<{
                         }}
                     >
                         <Explorer
-                            grapherConfigs={Object.values(this.grapherConfigs)}
+                            manager={this}
                             explorerProgram={program}
                             /**
                              * This ensure a new Explorer is rendered everytime the code changes (more immutable/RAII this way).
