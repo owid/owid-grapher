@@ -18,6 +18,7 @@ import {
     cagr,
     dropWhile,
     sampleFrom,
+    formatValue,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -753,11 +754,16 @@ export class ScatterPlotChart
         const axisConfig = this.yAxisConfig
 
         const axis = axisConfig.toVerticalAxis()
-        axis.formatColumn = this.yColumn
         const label = axisConfig.label || this.yColumn?.displayName || ""
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
+            axis.tickFormatter = (value, options) =>
+                formatValue(value, {
+                    unit: "%",
+                    showPlus: true,
+                    ...options,
+                })
             axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -765,6 +771,7 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
+            axis.tickFormatter = this.yColumn.formatForTick
             axis.updateDomainPreservingUserSettings(yDomainDefault)
             axis.label = label
         }
@@ -789,9 +796,14 @@ export class ScatterPlotChart
         const { xDomainDefault, manager, xAxisLabelBase } = this
         const { xAxisConfig } = this
         const axis = xAxisConfig.toHorizontalAxis()
-        axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
+            axis.tickFormatter = (value, options) =>
+                formatValue(value, {
+                    unit: "%",
+                    showPlus: true,
+                    ...options,
+                })
             axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {
@@ -800,6 +812,7 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
+            axis.tickFormatter = this.xColumn.formatForTick
             axis.updateDomainPreservingUserSettings(xDomainDefault)
             const label = xAxisConfig.label || xAxisLabelBase
             if (label) axis.label = label

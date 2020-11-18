@@ -31,6 +31,7 @@ import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "./OwidSource"
+import { bind } from "decko"
 
 interface ColumnSummary {
     numErrorValues: number
@@ -186,7 +187,8 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.formatValue(value)
     }
 
-    formatForTick(value: any, options?: TickFormattingOptions) {
+    // Needs to be bound to instance to pass it to Axis without creating an intermediate function
+    @bind formatForTick(value: any, options?: TickFormattingOptions) {
         return this.formatValueShort(value, options)
     }
 

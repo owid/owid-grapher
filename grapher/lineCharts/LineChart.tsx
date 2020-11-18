@@ -712,7 +712,7 @@ export class LineChart
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
         axis.scaleType = ScaleType.linear
-        axis.formatColumn = this.inputTable.timeColumn
+        axis.tickFormatter = this.inputTable.timeColumn.formatForTick
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -737,7 +737,7 @@ export class LineChart
         ])
         axis.hideFractionalTicks = yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.formatColumn = yColumn
+        axis.tickFormatter = yColumn.formatForTick
         return axis
     }
 }

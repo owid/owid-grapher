@@ -185,7 +185,7 @@ export class DiscreteBarChart
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
+        axis.tickFormatter = first(this.yColumns)?.formatForTick
         axis.range = this.xRange
         axis.label = ""
         return axis

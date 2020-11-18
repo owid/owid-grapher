@@ -147,7 +147,7 @@ export class AbstactStackedChart
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
-        axis.formatColumn = this.inputTable.timeColumn
+        axis.tickFormatter = this.inputTable.timeColumn.formatForTick
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -166,7 +166,7 @@ export class AbstactStackedChart
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
         else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
-        axis.formatColumn = this.yColumns[0]
+        axis.tickFormatter = this.yColumns[0].formatForTick
         return axis
     }
 

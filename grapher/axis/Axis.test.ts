@@ -27,7 +27,7 @@ it("can assign a column to an axis", () => {
     })
     const table = SynthesizeGDPTable()
     const axis = new HorizontalAxis(axisConfig)
-    axis.formatColumn = table.get("GDP")
+    axis.tickFormatter = table.get("GDP").formatForTick
     axis.clone()
 
     const ticks = axis.getTickValues()

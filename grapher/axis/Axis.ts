@@ -7,12 +7,12 @@ import {
     uniq,
     sortBy,
     maxBy,
+    anyToString,
 } from "grapher/utils/Util"
 import { TickFormattingOptions, ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
-import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ValueRange } from "coreTable/CoreTableConstants"
 
 interface Tickmark {
@@ -26,7 +26,10 @@ interface Tickmark {
 abstract class AbstractAxis {
     config: AxisConfig
     @observable.ref domain: ValueRange
-    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
+    @observable tickFormatter?: (
+        value: any,
+        options?: TickFormattingOptions
+    ) => string = anyToString
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]
@@ -86,7 +89,7 @@ abstract class AbstractAxis {
 
     // todo: refactor. switch to a parent pattern?
     _update(parentAxis: AbstractAxis) {
-        this.formatColumn = parentAxis.formatColumn
+        this.tickFormatter = parentAxis.tickFormatter
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
         this.hideGridlines = parentAxis.hideGridlines
@@ -288,10 +291,9 @@ abstract class AbstractAxis {
             ...this.getTickFormattingOptions(),
             ...formattingOptionsOverride,
         }
-        return (
-            this.formatColumn?.formatForTick(tick, tickFormattingOptions) ??
-            tick.toString()
-        )
+        return this.tickFormatter
+            ? this.tickFormatter(tick, tickFormattingOptions)
+            : tick.toString()
     }
 
     // calculates coordinates for ticks, sorted by priority
