@@ -79,14 +79,11 @@ columns
         )
 
         it("can loop", () => {
-            expect(Array.from(program.valuesFrom())).toEqual([
-                "table",
-                "",
-                "slug",
-                "columns",
-                "",
-                "slug",
-            ])
+            const expected = ["table", "", "slug", "columns", "", "slug"]
+            expect(Array.from(program.valuesFrom())).toEqual(expected)
+            expect(
+                Array.from(program.valuesFrom({ row: 100, column: 10 }))
+            ).toEqual(expected)
             expect(
                 Array.from(program.valuesFrom({ row: 1, column: 2 }))
             ).toEqual(["columns", "", "slug", "table", "", "slug"])

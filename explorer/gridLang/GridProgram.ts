@@ -77,7 +77,7 @@ export class GridProgram {
         })
     }
 
-    ring(position: CellPosition) {
+    private ring(position: CellPosition) {
         const matrix = this.asArrays
         const numRows = matrix.length
         const pointer = {
@@ -103,10 +103,13 @@ export class GridProgram {
                     return
                 pointer.started = true
 
-                if (matrix[pointer.row][pointer.column] === undefined) {
+                if (
+                    matrix[pointer.row] === undefined ||
+                    matrix[pointer.row][pointer.column] === undefined
+                ) {
                     pointer.row++
                     pointer.column = 0
-                    if (pointer.row === numRows) {
+                    if (pointer.row >= numRows) {
                         pointer.row = 0
                         continue
                     }
