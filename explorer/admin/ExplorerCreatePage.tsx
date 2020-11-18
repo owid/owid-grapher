@@ -192,7 +192,7 @@ export class ExplorerCreatePage
             const {
                 comment,
                 cssClasses,
-                options,
+                optionKeywords,
                 placeholder,
                 value,
             } = program.getCell({ row, column })
@@ -222,9 +222,9 @@ export class ExplorerCreatePage
             cellProperties.comment = comment ? { value: comment } : undefined
             cellProperties.placeholder = placeholder
 
-            if (options && options.length) {
+            if (optionKeywords && optionKeywords.length) {
                 cellProperties.type = "autocomplete"
-                cellProperties.source = options
+                cellProperties.source = optionKeywords
             }
 
             return cellProperties

@@ -68,36 +68,68 @@ export class GridCell implements ParsedCell {
         return NothingGoesThereCellDef
     }
 
-    @imemo private get subTableParseResults() {
-        if (this.cellTerminalTypeDefinition) return undefined
-
-        let start = this.row
-        while (start) {
-            const parentLine = this.matrix[start - 1]
-            if (!parentLine) return undefined
-            const parentKeyword = parentLine[0]
+    private get parentSubTableInfo() {
+        const { row, matrix } = this
+        let pointerRow = row
+        let subTableHeaderRow = -1
+        while (pointerRow >= 0) {
+            const line = matrix[pointerRow]
+            if (!line) break
+            const parentKeyword = line[0]
             if (parentKeyword) {
-                const subTableDef = (this.rootDefinition.keywordMap as any)[
-                    parentKeyword
-                ] as CellDef
-                if (!subTableDef || !subTableDef.headerCellDef) return undefined
-                const isHeaderValue = this.row === start && this.value
-                const isFrontierCell = this.isSubtTableFrontierCell(
-                    start,
-                    subTableDef
-                )
+                if (subTableHeaderRow === -1) return undefined
                 return {
-                    isFrontierCell,
-                    isHeaderValue,
-                    def:
-                        isHeaderValue || isFrontierCell
-                            ? subTableDef.headerCellDef ?? SubTableHeaderCellDef
-                            : SubTableValueCellDef,
+                    parentKeyword,
+                    parentRow: pointerRow,
+                    subTableHeaderRow,
+                    isCellInHeader: row === subTableHeaderRow,
+                    headerKeyword: matrix[subTableHeaderRow][this.column],
                 }
             }
-            start--
+
+            if (!isBlankLine(line)) subTableHeaderRow = pointerRow
+            pointerRow--
         }
+
         return undefined
+    }
+
+    @imemo private get subTableParseResults() {
+        const { cellTerminalTypeDefinition } = this
+        if (cellTerminalTypeDefinition) return undefined
+
+        const info = this.parentSubTableInfo
+
+        if (!info) return undefined
+
+        const {
+            parentKeyword,
+            isCellInHeader,
+            subTableHeaderRow,
+            headerKeyword,
+        } = info
+
+        const subTableDef = this.rootDefinition.keywordMap![parentKeyword]
+
+        const headerCellDef = subTableDef && subTableDef.headerCellDef
+
+        if (!headerCellDef) return undefined
+
+        const headerKeywordMap = headerCellDef.keywordMap
+        const valueCellDef =
+            !isCellInHeader && headerKeywordMap
+                ? headerKeywordMap[headerKeyword]
+                : undefined
+
+        return {
+            isFrontierCell: this.isSubTableFrontierCell(
+                subTableHeaderRow,
+                subTableDef
+            ),
+            def: isCellInHeader
+                ? headerCellDef
+                : valueCellDef ?? SubTableValueCellDef,
+        }
     }
 
     /**
@@ -109,13 +141,13 @@ export class GridCell implements ParsedCell {
      * Then consider is a "frontier cell"
      *
      */
-    private isSubtTableFrontierCell(start: number, subTableDef: CellDef) {
+    private isSubTableFrontierCell(headerRow: number, subTableDef: CellDef) {
         const { line, column, row } = this
         const keywordMap = subTableDef.headerCellDef!.keywordMap
         const isToTheImmediateRightOfLastFullCell =
             line && trimArray(line).length === column
         return (
-            row === start &&
+            row === headerRow &&
             !isBlankLine(line) &&
             isToTheImmediateRightOfLastFullCell &&
             keywordMap &&
@@ -160,7 +192,7 @@ export class GridCell implements ParsedCell {
 
     get errorMessage() {
         if (!this.line) return ""
-        const { cellDef, value, options } = this
+        const { cellDef, value, optionKeywords } = this
         const { regex, requirements, catchAllKeyword } = cellDef
         const catchAllKeywordRegex = catchAllKeyword?.regex
 
@@ -177,16 +209,16 @@ export class GridCell implements ParsedCell {
               )
             : undefined
 
-        if (options) {
-            if (options.includes(value)) return ""
+        if (optionKeywords) {
+            if (optionKeywords.includes(value)) return ""
 
             if (regex) return regexResult
             if (catchAllKeywordRegex) return catchAllRegexResult
 
-            const guess = didYouMean(value, options)
+            const guess = didYouMean(value, optionKeywords)
             if (guess) return `Did you mean '${guess}'?`
 
-            return `Error: '${value}' is not a valid option. Valid options are ${options
+            return `Error: '${value}' is not a valid option. Valid options are ${optionKeywords
                 .map((opt) => `'${opt}'`)
                 .join(", ")}`
         }
@@ -229,16 +261,18 @@ export class GridCell implements ParsedCell {
 
     get placeholder() {
         const { value, cellDef } = this
-        const placeholder =
-            cellDef.placeholder ?? (cellDef.options && cellDef.options[0])
+        const { terminalOptions } = cellDef
+        const firstOption = terminalOptions && terminalOptions[0]
+        const firstOptionName = firstOption && firstOption.keyword
+        const placeholder = cellDef.placeholder ?? firstOptionName
         return isEmpty(value) && placeholder ? `eg "${placeholder}"` : undefined
     }
 
-    get options() {
+    get optionKeywords() {
         const { cellDef } = this
-        const { keywordMap, headerCellDef, options } = cellDef
-        return options
-            ? options
+        const { keywordMap, headerCellDef, terminalOptions } = cellDef
+        return terminalOptions
+            ? terminalOptions.map((def) => def.keyword)
             : keywordMap
             ? Object.keys(keywordMap)
             : headerCellDef

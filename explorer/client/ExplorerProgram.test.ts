@@ -66,7 +66,19 @@ ${ExplorerRootKeywordMap.graphers.keyword}
             column: 0,
         })
         expect(results.errorMessage).not.toEqual("")
-        expect(results.options!.length).toBeGreaterThan(1)
+        expect(results.optionKeywords!.length).toBeGreaterThan(1)
+    })
+
+    it("can detect errors in subtables", () => {
+        const results = new ExplorerProgram(
+            "test",
+            `columns\n\ttype\n\tBadNumericType`
+        ).getCell({
+            row: 2,
+            column: 1,
+        })
+        expect(results.errorMessage).not.toEqual("")
+        expect(results.optionKeywords!.length).toBeGreaterThan(1)
     })
 
     describe("grapherconfig", () => {

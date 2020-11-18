@@ -40,10 +40,12 @@ export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
     type: {
         ...StringCellDef,
         keyword: "type",
-        description: `The type of chart to show. Options are ${Object.values(
-            ChartTypeName
-        ).join(", ")}`,
-        options: Object.values(ChartTypeName),
+        description: `The type of chart to show such as LineChart or ScatterPlot.`,
+        terminalOptions: Object.values(ChartTypeName).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
     grapherId: {
         ...IntegerCellDef,
@@ -90,7 +92,11 @@ export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
         ...EnumCellDef,
         description: "Facet by column or entities",
         keyword: "facet",
-        options: Object.values(FacetStrategy),
+        terminalOptions: Object.values(FacetStrategy).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
     backgroundSeriesLimit: {
         ...IntegerCellDef,
@@ -119,8 +125,12 @@ export const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
     type: {
         ...StringCellDef,
         keyword: "type",
-        description: `One of ${Object.keys(ColumnTypeNames).join(", ")}`,
-        options: Object.values(ColumnTypeNames),
+        description: `The column type reveals how to interpret the data, whether as a string or number for example, and how to display it, like whether to show a % or $.`,
+        terminalOptions: Object.values(ColumnTypeNames).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
     transform: {
         ...StringCellDef,
@@ -209,7 +219,11 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     table: {
         ...UrlCellDef,
         keyword: "table",
-        options: OwidDatasets,
+        terminalOptions: OwidDatasets.map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
         placeholder:
             'http://example.com/data.csv" or "Tax Revenue - World Bank',
         description: "A link to a CSV or TSV or the name of an OWID dataset.",
@@ -297,7 +311,11 @@ export const ExplorerRootKeywordMap: KeywordMap = {
     },
     subNavId: {
         ...EnumCellDef,
-        options: Object.values(SubNavId),
+        terminalOptions: Object.values(SubNavId).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
         keyword: "subNavId",
         description: "A subnav to show, if any.",
     },

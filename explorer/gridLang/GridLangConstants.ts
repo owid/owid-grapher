@@ -14,7 +14,7 @@ export type CellCoordinate = number // An integer >= 0
 export type KeywordMap = { [keywordSlug: string]: CellDef }
 
 export interface CellDef {
-    options?: string[]
+    terminalOptions?: CellDef[]
     cssClass: string
     description: string
     keyword: string
@@ -31,7 +31,7 @@ export interface CellDef {
 export interface ParsedCell {
     errorMessage?: string
     cssClasses?: string[]
-    options?: string[]
+    optionKeywords?: string[]
     comment?: string
     cellDef?: CellDef
     placeholder?: string
@@ -50,7 +50,10 @@ export const Origin: CellPosition = {
 
 export const BooleanCellDef: CellDef = {
     keyword: "",
-    options: Object.values(GridBoolean),
+    terminalOptions: [
+        { keyword: GridBoolean.true, cssClass: "", description: "" },
+        { keyword: GridBoolean.false, cssClass: "", description: "" },
+    ],
     cssClass: "BooleanCellDef",
     description: "Boolean",
     parse: (value: any) => value === GridBoolean.true,
