@@ -151,7 +151,7 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private clearChanges() {
-        if (confirm("Are you sure you want to clear changes?"))
+        if (confirm("Are you sure you want to clear your local changes?"))
             this.setProgram(this.programOnDisk.toString())
     }
 

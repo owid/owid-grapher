@@ -260,7 +260,6 @@ export class ExplorersIndexPage extends React.Component {
         const needsPull = true // todo: implement needsPull on server side and then use this.needsPull
         const pullButton = needsPull && (
             <span>
-                |{" "}
                 <a href="#" onClick={this.pullFromGithub}>
                     Check for new commits from GitHub
                 </a>{" "}
@@ -276,14 +275,7 @@ export class ExplorersIndexPage extends React.Component {
                             explorers |{" "}
                             <Link to={`/explorers/${nextAvailableSlug}`}>
                                 New
-                            </Link>{" "}
-                            {pullButton}|{" "}
-                            <a
-                                href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
-                            >
-                                See branch '{this.gitCmsBranchName}' history on
-                                GitHub
-                            </a>
+                            </Link>
                         </span>
                     </FieldsRow>
                     <ExplorerList
@@ -292,6 +284,14 @@ export class ExplorersIndexPage extends React.Component {
                         indexPage={this}
                         gitCmsBranchName={this.gitCmsBranchName}
                     />
+                    {pullButton} |{" "}
+                    <a
+                        href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
+                    >
+                        See branch '{this.gitCmsBranchName}' history on GitHub
+                    </a>
+                    <br />
+                    <br />
                 </main>
             </AdminLayout>
         )
