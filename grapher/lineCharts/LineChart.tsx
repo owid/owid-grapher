@@ -229,7 +229,7 @@ export class LineChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        table = table.filterBySelectedOnly(
+        table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
 

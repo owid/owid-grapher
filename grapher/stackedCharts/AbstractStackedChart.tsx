@@ -32,7 +32,7 @@ export class AbstactStackedChart
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable) {
-        table = table.filterBySelectedOnly(
+        table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
 

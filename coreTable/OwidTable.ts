@@ -829,15 +829,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterBySelectedOnly(selectedEntityNames: string[]) {
-        const set = new Set(selectedEntityNames)
-        return this.columnFilter(
-            this.entityNameSlug,
-            (name) => set.has(name as string),
-            `Keep selected rows only`
-        )
-    }
-
     @imemo get availableEntities() {
         const { entityNameToCodeMap, entityNameToIdMap } = this
         return this.availableEntityNames.map((entityName) => {

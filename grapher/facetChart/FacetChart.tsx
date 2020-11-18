@@ -112,7 +112,7 @@ export class FacetChart
     }
 
     @computed private get countryFacets(): FacetSeries[] {
-        const table = this.inputTable.filterBySelectedOnly(
+        const table = this.inputTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
         const yDomain = table.domainFor(this.yColumnSlugs)

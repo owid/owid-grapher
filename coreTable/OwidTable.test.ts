@@ -344,7 +344,7 @@ usa,1,usa,-5,1`
 
         expect(
             table
-                .filterBySelectedOnly(table.sampleEntityName(1))
+                .filterByEntityNames(table.sampleEntityName(1))
                 .filterByTargetTimes([2010], 20).numRows
         ).toBe(1)
 
@@ -370,7 +370,7 @@ usa,1,usa,-5,1`
 
         expect(
             table
-                .filterBySelectedOnly(table.sampleEntityName(1))
+                .filterByEntityNames(table.sampleEntityName(1))
                 .filterByTargetTimes([2000, 2003], 1).numRows
         ).toBe(2)
 

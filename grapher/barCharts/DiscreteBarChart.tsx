@@ -52,7 +52,7 @@ export class DiscreteBarChart
     transformTable(table: OwidTable) {
         if (!this.yColumnSlugs.length) return table
 
-        table = table.filterBySelectedOnly(
+        table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
 
