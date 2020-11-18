@@ -229,6 +229,11 @@ export class ScatterPlotChart
             )
             table = table.filterByEntityNames(entityNames)
         }
+        // We don't want to apply this transform when relative mode is also enabled, it has a
+        // sligthly different endpoints logic that drops initial zeroes to avoid DivideByZero error.
+        if (this.compareEndPointsOnly && !this.manager.isRelativeMode) {
+            table = table.keepMinTimeAndMaxTimeForEachEntityOnly()
+        }
         return table
     }
 
@@ -891,9 +896,6 @@ export class ScatterPlotChart
         let seriesArr = Object.entries(
             groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
         ).map(([entityName, points]) => {
-            if (this.compareEndPointsOnly) {
-                points = this.extractEndpoints(points)
-            }
             const series: ScatterSeries = {
                 seriesName: entityName,
                 label: entityName,

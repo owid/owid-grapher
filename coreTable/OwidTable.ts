@@ -17,6 +17,8 @@ import {
     getClosestTimePairs,
     sortedFindClosest,
     pairs,
+    maxBy,
+    minBy,
 } from "grapher/utils/Util"
 import {
     ColumnSlug,
@@ -417,6 +419,29 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             )} `,
             TransformType.UpdateColumnDefs
         )
+    }
+
+    keepMinTimeAndMaxTimeForEachEntityOnly(): this {
+        const indexMap = this.rowIndicesByEntityName
+        const timeColumn = this.timeColumn
+        if (timeColumn.isMissing) return this
+        const timeValues = timeColumn.valuesIncludingErrorValues
+        const matchingIndices = new Set<number>()
+        indexMap.forEach((indices) =>
+            [minBy, maxBy]
+                .map((f) => f(indices, (index) => timeValues[index]))
+                .filter(isPresent)
+                .forEach((index) => matchingIndices.add(index))
+        )
+        return this.columnFilter(
+            timeColumn.slug,
+            (row, index) => matchingIndices.has(index),
+            `Keep minTime & maxTime rows only for each entity`
+        )
+    }
+
+    toAverageAnnualChange(columnSlugs: ColumnSlug[]): this {
+        return this
     }
 
     // Return slugs that would be good to chart
