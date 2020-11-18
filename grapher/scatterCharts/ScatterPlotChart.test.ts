@@ -660,6 +660,10 @@ describe("average annual change", () => {
             // ignore all zero values, instead of start-only zeroes.
             ["UK", 2002, null, 0, null, null],
             ["UK", 2004, 16, null, null, null],
+            // intentionally creating two partial rows for USA that after
+            // interpolation turn into one duplicated row
+            ["USA", 2000, 1, null, null, null],
+            ["USA", 2001, null, 1, null, null],
         ],
         [
             {
@@ -693,9 +697,14 @@ describe("average annual change", () => {
     }
     const chart = new ScatterPlotChart({ manager })
 
+    it("drops series with a single point", () => {
+        expect(chart.series.length).toEqual(1)
+    })
+
     it("calculates average annual change based on originalTime", () => {
-        expect(chart.series[0].points[0].x).toEqual(100)
-        expect(Math.abs(chart.series[0].points[0].y)).toEqual(0)
+        const point = chart.series[0].points[0]
+        expect(point.x).toEqual(100)
+        expect(Math.abs(point.y)).toEqual(0)
     })
 
     it("formats axes with %", () => {

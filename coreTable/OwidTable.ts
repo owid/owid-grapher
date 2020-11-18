@@ -444,9 +444,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     private getAverageAnnualChangeIndicesByEntity(
         columnSlugs: ColumnSlug[]
     ): Map<EntityName, [number, number]> {
-        const columnStore = this.columnStore
+        const columns = columnSlugs.map((slug) => this.get(slug))
         const indexMap = this.rowIndicesByEntityName
-        const timeValues = columnStore[this.timeColumn.slug]
+        const timeValues = this.timeColumn.valuesIncludingErrorValues
 
         // Find indices of min & max rows
         const entityNameToIndices = new Map<EntityName, [number, number]>()
@@ -455,8 +455,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             // Technically, to be more correct, we should support distinct min/max indices for each
             // columnSlug, but that only makes a tiny difference in a tiny subset of charts.
             const nonZeroValueIndices = indices.filter((index) =>
-                columnSlugs.every((slug) => {
-                    const value = columnStore[slug][index]
+                columns.every((col) => {
+                    const value = col.valuesIncludingErrorValues[index]
                     return isNumber(value) && value !== 0
                 })
             )
@@ -465,7 +465,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 (index) => timeValues[index]
             )
             const maxIndex = maxBy(indices, (index) => timeValues[index])
-            if (minIndex !== undefined && maxIndex !== undefined)
+            if (minIndex === undefined || maxIndex === undefined) return
+
+            const allValuePairsHaveDistinctTime = columns.every((col) => {
+                const originalTimes = this.columnStore[
+                    col.originalTimeColumnSlug
+                ]
+                return originalTimes[minIndex] !== originalTimes[maxIndex]
+            })
+            if (allValuePairsHaveDistinctTime)
                 entityNameToIndices.set(entityName, [minIndex, maxIndex])
         })
 
