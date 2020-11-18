@@ -1,6 +1,6 @@
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { AvailableTransforms } from "coreTable/Transforms"
-import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import {
     CellDef,
@@ -85,6 +85,12 @@ export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
         description:
             "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
+    },
+    facet: {
+        ...EnumCellDef,
+        description: "Facet by column or entities",
+        keyword: "facet",
+        options: Object.values(FacetStrategy),
     },
     backgroundSeriesLimit: {
         ...IntegerCellDef,

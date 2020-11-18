@@ -1949,6 +1949,7 @@ export class Grapher
         this.ySlugs = grapher.ySlugs
         this.xSlug = grapher.xSlug
         this.hasMapTab = grapher.hasMapTab
+        this.facet = undefined
     }
 
     debounceMode = false
