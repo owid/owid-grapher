@@ -1,11 +1,5 @@
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
-import {
-    ColumnSlug,
-    CoreValueType,
-    Color,
-    CoreRow,
-    Integer,
-} from "./CoreTableConstants"
+import { ColumnSlug, CoreValueType, Color } from "./CoreTableConstants"
 
 export enum ColumnTypeNames {
     Numeric = "Numeric",
@@ -35,31 +29,35 @@ export enum ColumnTypeNames {
 }
 
 export interface CoreColumnDef {
+    // Core
     slug: ColumnSlug
-    name?: string
-    description?: string
-    unit?: string
-    shortUnit?: string
-    transform?: string // Code that maps to a CoreTable transform
-    values?: CoreValueType[] // Similar to Fn, but the already computed values.
     type?: ColumnTypeNames
-    generator?: () => number // A function for generating synthetic data for testing
-    growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
-    display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
-    color?: Color // A column can have a color for use in charts.
-    note?: string // Any internal notes
 
+    // Computational
+    transform?: string // Code that maps to a CoreTable transform
+    color?: Color // A column can have a color for use in charts.
     tolerance?: number // If set, some charts can use this for an interpolation strategy.
 
-    // Source information:
+    // Column information used for display only
+    name?: string // The display name for the column
+    description?: string
+    note?: string // Any internal notes the author wants to record for display in admin interfaces
+
+    // Source information used for display only
     sourceName?: string
     sourceLink?: string
     dataPublishedBy?: string
     dataPublisherSource?: string
     retrievedDate?: string
     additionalInfo?: string
-}
 
-// todo: remove index param?
-// todo: improve typings on this
-export type ColumnFn = (row: CoreRow, index?: Integer) => any
+    // For developer internal use only.
+    values?: CoreValueType[]
+    generator?: () => number // A function for generating synthetic data for testing
+    growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
+
+    // DEPRECATED
+    unit?: string // DEPRECATED: use an existing column type or create a new one instead.
+    shortUnit?: string // DEPRECATED: use an existing column type or create a new one instead.
+    display?: LegacyVariableDisplayConfigInterface // DEPRECATED: use an existing column type or create a new one instead, or migrate any properties you need onto this interface.
+}
