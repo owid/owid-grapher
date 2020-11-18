@@ -509,7 +509,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.defs,
             columns.map((col) => ({
                 ...col.def,
-                type: ColumnTypeNames.Percentage,
+                type: ColumnTypeNames.PercentChangeOverTime,
             }))
         )
 

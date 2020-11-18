@@ -650,7 +650,7 @@ describe("series transformations", () => {
     })
 })
 
-it("calculates average annual change based on originalTime", () => {
+describe("average annual change", () => {
     const table = new OwidTable(
         [
             ["entityName", "year", "x", "y", "color", "size"],
@@ -693,8 +693,15 @@ it("calculates average annual change based on originalTime", () => {
     }
     const chart = new ScatterPlotChart({ manager })
 
-    expect(chart.series[0].points[0].x).toEqual(100)
-    expect(Math.abs(chart.series[0].points[0].y)).toEqual(0)
+    it("calculates average annual change based on originalTime", () => {
+        expect(chart.series[0].points[0].x).toEqual(100)
+        expect(Math.abs(chart.series[0].points[0].y)).toEqual(0)
+    })
+
+    it("formats axes with %", () => {
+        expect(chart.dualAxis.verticalAxis.formatTick(0)).toEqual("0%")
+        expect(chart.dualAxis.horizontalAxis.formatTick(0)).toEqual("0%")
+    })
 })
 
 describe("scatter plot with xOverrideTime", () => {
