@@ -674,7 +674,8 @@ export function findClosestTimeIndex(
 ): Time | undefined {
     let closest: Time | undefined
     let closestIndex: number | undefined
-    for (const [index, time] of times.entries()) {
+    for (let index = 0; index < times.length; index++) {
+        const time = times[index]
         const currentTimeDist = Math.abs(time - targetTime)
         if (!currentTimeDist) return index // Found the winner, stop searching.
         if (tolerance !== undefined && currentTimeDist > tolerance) continue
