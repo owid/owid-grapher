@@ -323,6 +323,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return getOriginalTimeColumnSlug(this.table, this.slug)
     }
 
+    @imemo get originalTimeColumn() {
+        return this.table.get(this.originalTimeColumnSlug)
+    }
+
     @imemo get originalTimes() {
         const { originalTimeColumnSlug } = this
         if (!originalTimeColumnSlug) return []

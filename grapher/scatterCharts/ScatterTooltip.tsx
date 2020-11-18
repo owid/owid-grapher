@@ -13,7 +13,7 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueX(value: SeriesPoint) {
         let s = `X Axis: ${this.props.xColumn.formatValueLong(value.x)}`
         if (!value.time.span && value.time.y !== value.time.x)
-            s += ` (data from ${this.props.xColumn.table.formatTime(
+            s += ` (data from ${this.props.xColumn.originalTimeColumn.formatValue(
                 value.time.x
             )})`
         return s
@@ -54,8 +54,10 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                     text: v.time.span
                         ? `${yColumn.table.formatTime(
                               v.time.span[0]
-                          )} to ${yColumn.table.formatTime(v.time.span[1])}`
-                        : yColumn.table.formatTime(v.time.y),
+                          )} to ${yColumn.originalTimeColumn.formatValue(
+                              v.time.span[1]
+                          )}`
+                        : yColumn.originalTimeColumn.formatValue(v.time.y),
                 }),
             }
             offset += year.wrap.height
