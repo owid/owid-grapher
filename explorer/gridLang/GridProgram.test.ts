@@ -92,6 +92,15 @@ columns
             ).toEqual([""])
 
             expect(
+                Array.from(
+                    new GridProgram("est", "a\nb").valuesFrom({
+                        row: 3,
+                        column: 1,
+                    })
+                )
+            ).toEqual(["a", "b"])
+
+            expect(
                 Array.from(program.valuesFrom({ row: 1, column: 2 }))
             ).toEqual(["columns", "", "slug", "table", "", "slug"])
         })

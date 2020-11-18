@@ -23,8 +23,9 @@ import {
     ExplorersRouteQueryParam,
 } from "explorer/client/ExplorerConstants"
 import {
-    selectAllWithThisValue,
-    makeTableContextMenuCommand,
+    AutofillColDefCommand,
+    InlineDataCommand,
+    SelectAllHitsCommand,
 } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 
@@ -242,19 +243,17 @@ export class ExplorerCreatePage
             comments: true,
             contextMenu: {
                 items: {
-                    autofillMissingColumnDefinitionsCommand: makeTableContextMenuCommand(
-                        "⚡ Autofill missing column definitions",
-                        "autofillMissingColumnDefinitionsForTableCommand",
+                    AutofillColDefCommand: new AutofillColDefCommand(
                         program,
-                        (newProgram) => this.setProgram(newProgram)
-                    ),
-                    replaceTableWithInlineDataAndAutofilledColumnDefsCommand: makeTableContextMenuCommand(
-                        "⚡ Inline data and autofill columns",
-                        "replaceTableWithInlineDataAndAutofilledColumnDefsCommand",
+                        (newProgram: string) => this.setProgram(newProgram)
+                    ).toHotCommand(),
+                    InlineDataCommand: new InlineDataCommand(
                         program,
-                        (newProgram) => this.setProgram(newProgram)
-                    ),
-                    selectAllWithThisValue: selectAllWithThisValue(program),
+                        (newProgram: string) => this.setProgram(newProgram)
+                    ).toHotCommand(),
+                    SelectAllHitsCommand: new SelectAllHitsCommand(
+                        program
+                    ).toHotCommand(),
                     sp0: { name: "---------" },
                     row_above: {},
                     row_below: {},
