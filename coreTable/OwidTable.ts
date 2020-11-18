@@ -192,7 +192,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
+    filterByTargetTimes(targetTimes: Time[], tolerance = 0) {
         const timeColumn = this.timeColumn!
         const timeValues = timeColumn.valuesIncludingErrorValues
         const entityNameToIndices = this.rowIndicesByEntityName
@@ -513,7 +513,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const column = this.get(columnSlug)
         const columnDef = column.def as OwidColumnDef
-        const tolerance = toleranceOverride ?? column.display.tolerance ?? 0
+        const tolerance = toleranceOverride ?? column.tolerance ?? 0
 
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn

@@ -25,6 +25,7 @@ export interface CellDef {
     requirements?: string
     placeholder?: string
     rest?: readonly CellDef[] // Additional cell types as positional arguments.
+    parse?: (value: any) => any
 }
 
 export interface ParsedCell {
@@ -52,6 +53,7 @@ export const BooleanCellDef: CellDef = {
     options: Object.values(GridBoolean),
     cssClass: "BooleanCellDef",
     description: "Boolean",
+    parse: (value: any) => value === GridBoolean.true,
 }
 
 export const StringCellDef: CellDef = {
@@ -85,6 +87,7 @@ export const IntegerCellDef: CellDef = {
     regex: /^[0-9]+$/,
     requirements: `Must be an integer`,
     placeholder: "12345",
+    parse: (value: any) => parseInt(value),
 }
 
 export const SubTableHeaderCellDef: CellDef = {

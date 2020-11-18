@@ -49,6 +49,8 @@ export interface CoreColumnDef {
     color?: Color // A column can have a color for use in charts.
     note?: string // Any internal notes
 
+    tolerance?: number // If set, some charts can use this for an interpolation strategy.
+
     // Source information:
     sourceName?: string
     sourceLink?: string

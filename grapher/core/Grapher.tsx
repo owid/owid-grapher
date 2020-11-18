@@ -542,16 +542,17 @@ export class Grapher
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (
-            this.isOnMapTab ||
-            this.isDiscreteBar ||
-            this.isLineChartThatTurnedIntoDiscreteBar
-        ) {
-            return table.filterByTargetTimes([endTime])
-        }
-        if (this.isSlopeChart) {
+        if (this.isOnMapTab) return table.filterByTargetTimes([endTime])
+
+        if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)
+            return table.filterByTargetTimes(
+                [endTime],
+                table.get(this.yColumnSlugs[0]).tolerance
+            )
+
+        if (this.isSlopeChart)
             return table.filterByTargetTimes([startTime, endTime])
-        }
+
         return table.filterByTimeRange(startTime, endTime)
     }
 

@@ -56,7 +56,6 @@ import {
     cartesianProduct,
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
-    columnDefinitionsFromDelimited,
     truncate,
 } from "./CoreTableUtils"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
@@ -1467,3 +1466,16 @@ class FilterMask {
         return columnsObject
     }
 }
+
+/**
+ * Allows you to store your column definitions in CSV/TSV like:
+ * slug,name,type etc.
+ *
+ * todo: define all column def property types
+ */
+const columnDefinitionsFromDelimited = (delimited: string) =>
+    new CoreTable(delimited.trim()).columnFilter(
+        "slug",
+        (value) => !!value,
+        "Keep only column defs with a slug"
+    ).rows

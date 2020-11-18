@@ -32,6 +32,7 @@ import {
     GridBoolean,
     GRID_CELL_DELIMITER,
     GRID_NODE_DELIMITER,
+    KeywordMap,
 } from "explorer/gridLang/GridLangConstants"
 import { GitCommit } from "gitCms/GitTypes"
 import { OwidTable } from "coreTable/OwidTable"
@@ -333,7 +334,10 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get grapherConfig(): ExplorerGrapherInterface {
-        const rootObject = trimAndParseGrapherConfig(this.tuplesObject)
+        const rootObject = trimAndParseObject(
+            this.tuplesObject,
+            GrapherSubTableHeaderKeywordMap
+        )
         const selectedGrapherRow = this.decisionMatrix.selectedRow
         return selectedGrapherRow && Object.keys(selectedGrapherRow).length
             ? { ...rootObject, ...selectedGrapherRow }
@@ -557,8 +561,9 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     @computed get selectedRow() {
-        return trimAndParseGrapherConfig(
-            this.table.rowsAt([this.selectedRowIndex])[0]
+        return trimAndParseObject(
+            this.table.rowsAt([this.selectedRowIndex])[0],
+            GrapherSubTableHeaderKeywordMap
         )
     }
 
@@ -624,16 +629,20 @@ const makeCheckBoxOption = (
 export const makeFullPath = (slug: string) =>
     `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
 
-const trimAndParseGrapherConfig = (config: any) => {
+const trimAndParseObject = (config: any, keywordMap: KeywordMap) => {
     // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
     const trimmedRow = trimObject(config, true)
 
-    // parse boolean
+    // parse types
     Object.keys(trimmedRow).forEach((key) => {
-        const value = trimmedRow[key]
-        if (value === GridBoolean.true) trimmedRow[key] = true
-        else if (value === GridBoolean.false) trimmedRow[key] = false
+        const def = keywordMap[key]
+        if (def && def.parse) trimmedRow[key] = def.parse(trimmedRow[key])
+        // If there no definition but it is a boolean, parse it (todo: always have a def)
+        else if (!def) {
+            const value = trimmedRow[key]
+            if (value === GridBoolean.true) trimmedRow[key] = true
+            else if (value === GridBoolean.false) trimmedRow[key] = false
+        }
     })
-
     return trimmedRow
 }

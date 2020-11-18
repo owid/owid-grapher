@@ -123,6 +123,12 @@ export const ColumnsSubTableHeaderKeywordMap: KeywordMap = {
             ", "
         )}`,
     },
+    tolerance: {
+        ...IntegerCellDef,
+        keyword: "tolerance",
+        description:
+            "Set this to interpolate missing values as long as they are within this range of an actual value.",
+    },
     description: {
         ...StringCellDef,
         keyword: "description",

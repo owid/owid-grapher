@@ -158,7 +158,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get tolerance() {
-        return this.display.tolerance ?? 0
+        return this.def.tolerance ?? this.display.tolerance ?? 0
         // (this.property === "color" ? Infinity : 0) ... todo: figure out where color was being used
     }
 
