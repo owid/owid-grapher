@@ -98,7 +98,7 @@ columns
                         column: 0,
                     })
                 )
-            ).toEqual(["a", "", "b"])
+            ).toEqual(["b", "a"])
 
             expect(
                 Array.from(program.valuesFrom({ row: 1, column: 2 }))
