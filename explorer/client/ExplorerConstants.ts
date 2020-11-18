@@ -19,12 +19,17 @@ export interface ExplorerControlOption {
     checked?: boolean
 }
 
+export const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
+export const UNSAVED_EXPLORER_PREVIEW_QUERY_STRING =
+    "UNSAVED_EXPLORER_PREVIEW_PARAMS"
+
 export const ExplorerContainerId = "explorerContainer"
 
 export const ExplorersRoute = "allExplorersForAdminListPage.json"
 export const ExplorersRouteGrapherConfigs =
     "allGrapherConfigsNeedForThisExplorer.json"
 export const ExplorersRouteQueryParam = "grapherIds"
+export const ExplorersPreviewRoute = "explorers/preview"
 
 export interface ExplorersRouteResponse {
     success: boolean

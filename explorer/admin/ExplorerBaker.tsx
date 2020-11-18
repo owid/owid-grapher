@@ -17,6 +17,7 @@ import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import {
+    ExplorersPreviewRoute,
     ExplorersRoute,
     ExplorersRouteGrapherConfigs,
     ExplorersRouteQueryParam,
@@ -76,7 +77,7 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 
 export const addExplorerAdminRoutes = (app: Router) => {
     // http://localhost:3030/admin/explorers/preview/some-slug
-    app.get(`/explorers/preview/:slug`, async (req, res) => {
+    app.get(`/${ExplorersPreviewRoute}/:slug`, async (req, res) => {
         const slug = slugify(req.params.slug)
         const filename = slug + EXPLORER_FILE_SUFFIX
         if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))

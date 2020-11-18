@@ -32,6 +32,7 @@ import {
 import moment from "moment"
 import {
     DefaultNewExplorerSlug,
+    ExplorersPreviewRoute,
     ExplorersRoute,
     ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
@@ -124,7 +125,7 @@ class ExplorerRow extends React.Component<{
                 <td>
                     <Link
                         target="preview"
-                        to={`/explorers/preview/${slug}`}
+                        to={`/${ExplorersPreviewRoute}/${slug}`}
                         className="btn btn-secondary"
                     >
                         Preview

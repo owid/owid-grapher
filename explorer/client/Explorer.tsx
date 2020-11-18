@@ -13,7 +13,7 @@ import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
-import { strToQueryParams } from "utils/client/url"
+import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow, throttle } from "grapher/utils/Util"
@@ -21,7 +21,12 @@ import {
     SlideShowController,
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
-import { ExplorerContainerId } from "./ExplorerConstants"
+import {
+    ExplorerContainerId,
+    ExplorersPreviewRoute,
+    UNSAVED_EXPLORER_DRAFT,
+    UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
+} from "./ExplorerConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { ColumnSlug, SortOrder, TableSlug } from "coreTable/CoreTableConstants"
@@ -35,13 +40,7 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
-export interface ExplorerManager {
-    grapherConfigs?: GrapherInterface[]
-}
-
 export interface ExplorerProps extends SerializedGridProgram {
-    explorerProgram?: ExplorerProgram // todo: why do we need this? IIRC it had something to do with speeding up the create page
-    manager?: ExplorerManager
     grapherConfigs?: GrapherInterface[]
     bindToWindow?: boolean
     queryString?: string
@@ -59,10 +58,30 @@ export class Explorer
     extends React.Component<ExplorerProps>
     implements SlideShowManager, EntityPickerManager {
     static bootstrap(props: ExplorerProps) {
-        return ReactDOM.render(
-            <Explorer {...props} queryString={window.location.search} />,
-            document.getElementById(ExplorerContainerId)
-        )
+        if (!window.location.href.includes(ExplorersPreviewRoute))
+            return ReactDOM.render(
+                <Explorer {...props} queryString={window.location.search} />,
+                document.getElementById(ExplorerContainerId)
+            )
+
+        let renderedVersion: string
+        setInterval(() => {
+            const versionToRender =
+                localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug) ??
+                props.program
+            if (versionToRender === renderedVersion) return
+
+            const newProps = { ...props, program: versionToRender }
+            ReactDOM.render(
+                <Explorer
+                    {...newProps}
+                    queryString={window.location.search}
+                    key={Date.now()}
+                />,
+                document.getElementById(ExplorerContainerId)
+            )
+            renderedVersion = versionToRender
+        }, 1000)
     }
 
     static async createExplorerAndRenderToDom(
@@ -74,9 +93,9 @@ export class Explorer
 
     private urlBinding?: UrlBinder
 
-    explorerProgram = (
-        this.props.explorerProgram ?? ExplorerProgram.fromJson(this.props)
-    ).initDecisionMatrix(this.props.queryString)
+    explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
+        this.props.queryString
+    )
 
     private initialQueryParams = strToQueryParams(
         this.props.queryString || this.explorerProgram.defaultView
@@ -94,10 +113,7 @@ export class Explorer
     )
 
     @computed get grapherConfigs() {
-        const arr =
-            this.props.manager?.grapherConfigs ||
-            this.props.grapherConfigs ||
-            []
+        const arr = this.props.grapherConfigs || []
         const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
         arr.forEach((config) => grapherConfigsMap.set(config.id!, config))
         return grapherConfigsMap
@@ -247,6 +263,13 @@ export class Explorer
 
     @computed get params(): ExplorerQueryParams {
         if (!this.grapher) return {}
+
+        if (window.location.href.includes(ExplorersPreviewRoute))
+            localStorage.setItem(
+                UNSAVED_EXPLORER_PREVIEW_QUERY_STRING +
+                    this.explorerProgram.slug,
+                queryParamsToStr(this.explorerProgram.decisionMatrix.params)
+            )
 
         return {
             ...this.grapherParamsChangedThisSession,

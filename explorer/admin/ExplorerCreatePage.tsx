@@ -5,10 +5,8 @@ import {
     AdminAppContextType,
     AdminAppContext,
 } from "adminSite/client/AdminAppContext"
-import { Explorer, ExplorerManager } from "explorer/client/Explorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerProgram, makeFullPath } from "explorer/client/ExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
@@ -19,8 +17,9 @@ import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,
-    ExplorersRouteGrapherConfigs,
-    ExplorersRouteQueryParam,
+    ExplorersPreviewRoute,
+    UNSAVED_EXPLORER_DRAFT,
+    UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
 } from "explorer/client/ExplorerConstants"
 import {
     AutofillColDefCommand,
@@ -30,15 +29,12 @@ import {
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
-const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
 
 @observer
-export class ExplorerCreatePage
-    extends React.Component<{
-        slug: string
-        gitCmsBranchName: string
-    }>
-    implements ExplorerManager {
+export class ExplorerCreatePage extends React.Component<{
+    slug: string
+    gitCmsBranchName: string
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -46,6 +42,14 @@ export class ExplorerCreatePage
         this.context.admin.loadingIndicatorSetting = "off"
         this.fetchExplorerProgramOnLoad()
         exposeInstanceOnWindow(this, "explorerEditor")
+
+        setInterval(() => {
+            const queryStr = localStorage.getItem(
+                UNSAVED_EXPLORER_PREVIEW_QUERY_STRING + this.program.slug
+            )
+            if (queryStr)
+                this.program.decisionMatrix.setValuesFromQueryString(queryStr)
+        }, 1000)
     }
 
     @observable isReady = false
@@ -65,34 +69,7 @@ export class ExplorerCreatePage
 
     @action.bound private setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
-        this.fetchGrapherConfigs(this.program.requiredGrapherIds)
-
         this.saveDraft(code)
-    }
-
-    @action.bound private async fetchGrapherConfigs(grapherIds: number[]) {
-        const missing = grapherIds.filter(
-            (id) => !this.grapherConfigsMap.has(id)
-        )
-        if (!missing.length) return
-        const response = await fetch(
-            `/admin/api/${ExplorersRouteGrapherConfigs}?${ExplorersRouteQueryParam}=${grapherIds.join(
-                "~"
-            )}`
-        )
-        const configs = await response.json()
-        configs.forEach((config: any) =>
-            this.grapherConfigsMap.set(config.id, config)
-        )
-    }
-
-    @observable private grapherConfigsMap: Map<
-        number,
-        GrapherInterface
-    > = new Map()
-
-    @computed get grapherConfigs() {
-        return Array.from(this.grapherConfigsMap.values())
     }
 
     hotTableComponent = React.createRef<HotTable>()
@@ -269,11 +246,12 @@ export class ExplorerCreatePage
                 },
             },
             data,
+            height: "100%",
             manualColumnResize: true,
             manualRowMove: true,
             minCols: program.width + 3,
             minSpareCols: 2,
-            minRows: 20,
+            minRows: 40,
             minSpareRows: 20,
             rowHeaders: true,
             search: true,
@@ -302,13 +280,16 @@ export class ExplorerCreatePage
                     when={this.isModified}
                     message="Are you sure you want to leave? You have unsaved changes."
                 />
-                <main style={{ padding: 0, position: "relative" }}>
+                <main
+                    style={{
+                        padding: 0,
+                        position: "relative",
+                    }}
+                >
                     <div
                         style={{
-                            right: "15px",
-                            top: "5px",
-                            position: "absolute",
-                            zIndex: 2,
+                            padding: "10px",
+                            textAlign: "right",
                         }}
                     >
                         {this.isModified || program.isNewFile ? (
@@ -329,11 +310,10 @@ export class ExplorerCreatePage
                                 Unmodified
                             </button>
                         )}
-                        <br />
-                        <br />
+                        &nbsp;
                         <Link
                             target="preview"
-                            to={`/explorers/preview/${program.slug}`}
+                            to={`/${ExplorersPreviewRoute}/${program.slug}`}
                             className="btn btn-secondary"
                         >
                             Preview
@@ -346,8 +326,7 @@ export class ExplorerCreatePage
                         >
                             Save As and Push to {this.props.gitCmsBranchName}
                         </button>
-                        <br />
-                        <br />
+                        &nbsp;
                         <button
                             className="btn btn-secondary"
                             onClick={this.clearChanges}
@@ -355,42 +334,11 @@ export class ExplorerCreatePage
                             Clear changes
                         </button>
                     </div>
-                    <div
-                        style={{
-                            height: "300px",
-                            overflow: "scroll",
-                            resize: "vertical",
-                        }}
-                    >
-                        <Explorer
-                            manager={this}
-                            explorerProgram={program}
-                            /**
-                             * This ensure a new Explorer is rendered everytime the code changes (more immutable/RAII this way).
-                             *
-                             * Perf isn't so critical here in the editor, and when guid changes that means we are changing the very code that makes this Explorer, so
-                             * throwing out the old one and forcing React to re-render a completely new one is probably the right design anyway.
-                             *
-                             * We may want to revisit later but for now seems to work.
-                             * */
-                            key={program.guid}
-                            program={""}
-                            slug={""}
-                        />
-                    </div>
-                    <div
-                        style={{
-                            height: "calc(100% - 300px)",
-                            width: "100%",
-                            overflow: "scroll",
-                        }}
-                    >
-                        <HotTable
-                            settings={this.hotSettings}
-                            ref={this.hotTableComponent as any}
-                            licenseKey={"non-commercial-and-evaluation"}
-                        />
-                    </div>
+                    <HotTable
+                        settings={this.hotSettings}
+                        ref={this.hotTableComponent as any}
+                        licenseKey={"non-commercial-and-evaluation"}
+                    />
                 </main>
             </AdminLayout>
         )
