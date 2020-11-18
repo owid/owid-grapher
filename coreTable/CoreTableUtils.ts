@@ -167,7 +167,7 @@ export const makeRowFromColumnStore = (
     rowIndex: number,
     columnStore: CoreColumnStore
 ) => {
-    const row: any = {}
+    const row: CoreRow = {}
     const columns = Object.values(columnStore)
     Object.keys(columnStore).forEach((slug, colIndex) => {
         row[slug] = columns[colIndex][rowIndex]

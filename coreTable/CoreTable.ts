@@ -885,10 +885,10 @@ export class CoreTable<
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
-    rowsAt(indices: number[]) {
+    rowsAt(indices: number[]): ROW_TYPE[] {
         const { columnStore } = this
-        return indices.map((index) =>
-            makeRowFromColumnStore(index, columnStore)
+        return indices.map(
+            (index) => makeRowFromColumnStore(index, columnStore) as ROW_TYPE
         )
     }
 

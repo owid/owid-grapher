@@ -648,7 +648,53 @@ describe("series transformations", () => {
         expect(germany.x.toFixed(1)).toEqual("26.0")
         expect(germany.y.toFixed(1)).toEqual("26.0")
     })
-    // it.todo("average annual change: drop zero value points")
+})
+
+it("calculates average annual change based on originalTime", () => {
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "x", "y", "color", "size"],
+            ["UK", 2000, 1, 1, null, null],
+            ["UK", 2001, null, 2, null, null],
+            // Using a 0 end value for Y to make sure we don't naively
+            // ignore all zero values, instead of start-only zeroes.
+            ["UK", 2002, null, 0, null, null],
+            ["UK", 2004, 16, null, null, null],
+        ],
+        [
+            {
+                slug: "x",
+                type: ColumnTypeNames.Numeric,
+                display: { tolerance: 3 },
+            },
+            {
+                slug: "y",
+                type: ColumnTypeNames.Numeric,
+                display: { tolerance: 3 },
+            },
+            { slug: "color", type: ColumnTypeNames.String },
+            {
+                slug: "size",
+                type: ColumnTypeNames.Numeric,
+                display: { tolerance: 1 },
+            },
+        ]
+    )
+    const manager: ScatterPlotManager = {
+        xColumnSlug: "x",
+        yColumnSlug: "y",
+        colorColumnSlug: "color",
+        sizeColumnSlug: "size",
+        isRelativeMode: true,
+        // intentionally setting compareEndPointsOnly to make sure it's
+        // ignored in relative mode
+        compareEndPointsOnly: true,
+        table,
+    }
+    const chart = new ScatterPlotChart({ manager })
+
+    expect(chart.series[0].points[0].x).toEqual(100)
+    expect(Math.abs(chart.series[0].points[0].y)).toEqual(0)
 })
 
 describe("scatter plot with xOverrideTime", () => {

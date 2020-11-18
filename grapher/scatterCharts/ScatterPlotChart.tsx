@@ -14,9 +14,6 @@ import {
     relativeMinAndMax,
     exposeInstanceOnWindow,
     groupBy,
-    first,
-    cagr,
-    dropWhile,
     sampleFrom,
     intersectionOfSets,
 } from "grapher/utils/Util"
@@ -211,6 +208,7 @@ export class ScatterPlotChart
         )
     }
 
+    // TODO chunk this up into multiple computeds for better performance?
     @computed get transformedTable() {
         let table = this.transformedTableFromGrapher
         if (
@@ -233,6 +231,12 @@ export class ScatterPlotChart
         // sligthly different endpoints logic that drops initial zeroes to avoid DivideByZero error.
         if (this.compareEndPointsOnly && !this.manager.isRelativeMode) {
             table = table.keepMinTimeAndMaxTimeForEachEntityOnly()
+        }
+        if (this.manager.isRelativeMode) {
+            table = table.toAverageAnnualChangeForEachEntity([
+                this.xColumnSlug,
+                this.yColumnSlug,
+            ])
         }
         return table
     }
@@ -891,9 +895,8 @@ export class ScatterPlotChart
         )
     }
 
-    // todo: refactor/remove and/or add unit tests
     @computed get series(): ScatterSeries[] {
-        let seriesArr = Object.entries(
+        return Object.entries(
             groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
         ).map(([entityName, points]) => {
             const series: ScatterSeries = {
@@ -906,45 +909,6 @@ export class ScatterPlotChart
             this.assignColorToSeries(entityName, series)
             return series
         })
-
-        // We need to apply the relative transform after hideLinesOutsideTolerance, because the
-        // original timespan info gets dropped and we cannot infer it after this.
-        // There is a timespan, but it's for the original times, pre-interpolation.
-        if (this.manager.isRelativeMode) {
-            seriesArr = seriesArr.map((series) => {
-                return {
-                    ...series,
-                    points: excludeUndefined([
-                        this.getAverageAnnualChangePoint(series.points),
-                    ]),
-                }
-            })
-        }
-
-        return seriesArr.filter((series) => series.points.length > 0)
-    }
-
-    private extractEndpoints(points: SeriesPoint[]): SeriesPoint[] {
-        return uniq(excludeUndefined([first(points), last(points)]))
-    }
-
-    private getAverageAnnualChangePoint(
-        points: SeriesPoint[]
-    ): SeriesPoint | undefined {
-        // Drop initial points which start with 0, to avoid a DivideByZero error.
-        points = dropWhile(points, (p) => p.x === 0 || p.y === 0)
-        const [startPoint, endPoint] = this.extractEndpoints(points)
-        if (!startPoint || !endPoint) return undefined
-        return {
-            ...endPoint,
-            x: cagr(startPoint, endPoint, "x"),
-            y: cagr(startPoint, endPoint, "y"),
-            time: {
-                y: endPoint.time.y,
-                x: endPoint.time.x,
-                span: [startPoint.time.y, endPoint.time.y],
-            },
-        }
     }
 
     private assignColorToSeries(

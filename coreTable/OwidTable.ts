@@ -19,6 +19,7 @@ import {
     pairs,
     maxBy,
     minBy,
+    cagr,
 } from "grapher/utils/Util"
 import {
     ColumnSlug,
@@ -440,8 +441,84 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    toAverageAnnualChange(columnSlugs: ColumnSlug[]): this {
-        return this
+    private getAverageAnnualChangeIndicesByEntity(
+        columnSlugs: ColumnSlug[]
+    ): Map<EntityName, [number, number]> {
+        const columnStore = this.columnStore
+        const indexMap = this.rowIndicesByEntityName
+        const timeValues = columnStore[this.timeColumn.slug]
+
+        // Find indices of min & max rows
+        const entityNameToIndices = new Map<EntityName, [number, number]>()
+        indexMap.forEach((indices, entityName) => {
+            // We are discarding every row which contains a 0 for any columnSlug.
+            // Technically, to be more correct, we should support distinct min/max indices for each
+            // columnSlug, but that only makes a tiny difference in a tiny subset of charts.
+            const nonZeroValueIndices = indices.filter((index) =>
+                columnSlugs.every((slug) => {
+                    const value = columnStore[slug][index]
+                    return isNumber(value) && value !== 0
+                })
+            )
+            const minIndex = minBy(
+                nonZeroValueIndices,
+                (index) => timeValues[index]
+            )
+            const maxIndex = maxBy(indices, (index) => timeValues[index])
+            if (minIndex !== undefined && maxIndex !== undefined)
+                entityNameToIndices.set(entityName, [minIndex, maxIndex])
+        })
+
+        return entityNameToIndices
+    }
+
+    toAverageAnnualChangeForEachEntity(columnSlugs: ColumnSlug[]): this {
+        columnSlugs = columnSlugs.filter((slug) => this.has(slug))
+        if (
+            this.timeColumn.isMissing ||
+            !(this.timeColumn instanceof ColumnTypeMap.Year) ||
+            columnSlugs.length === 0
+        )
+            return this
+
+        const columns = columnSlugs.map((slug) => this.get(slug))
+        const entityNameToIndices = this.getAverageAnnualChangeIndicesByEntity(
+            columnSlugs
+        )
+
+        // Overwrite table rows
+        const rows: OwidRow[] = []
+        entityNameToIndices.forEach((indices) => {
+            const [startRow, endRow] = this.rowsAt(indices)
+            const newRow: OwidRow = {
+                ...endRow,
+            }
+            columns.forEach((col) => {
+                const timeSlug = col.originalTimeColumnSlug
+                const yearsElapsed = endRow[timeSlug] - startRow[timeSlug]
+                newRow[col.slug] = cagr(
+                    startRow[col.slug],
+                    endRow[col.slug],
+                    yearsElapsed
+                )
+            })
+            rows.push(newRow)
+        })
+
+        const newDefs = replaceDef(
+            this.defs,
+            columns.map((col) => ({
+                ...col.def,
+                type: ColumnTypeNames.Percentage,
+            }))
+        )
+
+        return this.transform(
+            rows,
+            newDefs,
+            `Average annual change for columns: ${columnSlugs.join(", ")}`,
+            TransformType.UpdateRows
+        )
     }
 
     // Return slugs that would be good to chart

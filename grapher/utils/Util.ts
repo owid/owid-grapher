@@ -397,12 +397,27 @@ interface Point {
     y?: number
 }
 // Todo: add unit tests
-export function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
-    const elapsed = endValue.timeValue - startValue.timeValue
+function cagrFromPoints(
+    startPoint: Point,
+    endPoint: Point,
+    property: "x" | "y"
+) {
+    const elapsed = endPoint.timeValue - startPoint.timeValue
     if (!elapsed) return 0
+    return cagr(startPoint[property]!, endPoint[property]!, elapsed)
+}
 
-    const frac = endValue[property]! / startValue[property]!
-    return Math.sign(frac) * (Math.pow(Math.abs(frac), 1 / elapsed) - 1) * 100
+export function cagr(
+    startValue: number,
+    endValue: number,
+    yearsElapsed: number
+) {
+    const ratio = endValue / startValue
+    return (
+        Math.sign(ratio) *
+        (Math.pow(Math.abs(ratio), 1 / yearsElapsed) - 1) *
+        100
+    )
 }
 
 // Todo: add unit tests
@@ -424,7 +439,7 @@ export const relativeMinAndMax = (
 
             if (targetValue.entityName !== indexValue.entityName) continue
 
-            const change = cagr(indexValue, targetValue, property)
+            const change = cagrFromPoints(indexValue, targetValue, property)
             if (change < minChange) minChange = change
             if (change > maxChange) maxChange = change
         }
