@@ -29,7 +29,7 @@ abstract class AbstractAxis {
     @observable tickFormatter?: (
         value: any,
         options?: TickFormattingOptions
-    ) => string = anyToString
+    ) => string
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]
@@ -291,9 +291,8 @@ abstract class AbstractAxis {
             ...this.getTickFormattingOptions(),
             ...formattingOptionsOverride,
         }
-        return this.tickFormatter
-            ? this.tickFormatter(tick, tickFormattingOptions)
-            : tick.toString()
+        const tickFormatter = this.tickFormatter ?? anyToString
+        return tickFormatter(tick, tickFormattingOptions)
     }
 
     // calculates coordinates for ticks, sorted by priority

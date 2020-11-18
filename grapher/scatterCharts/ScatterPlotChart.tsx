@@ -29,6 +29,7 @@ import {
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
+    TickFormattingOptions,
 } from "grapher/core/GrapherConstants"
 import { Color, Time } from "coreTable/CoreTableConstants"
 import {
@@ -749,6 +750,16 @@ export class ScatterPlotChart
         return this.domainDefault("y")
     }
 
+    readonly relativeAxisTickFormatter: (
+        value: any,
+        options?: TickFormattingOptions
+    ) => string = (value, options) =>
+        formatValue(value, {
+            unit: "%",
+            showPlus: true,
+            ...options,
+        })
+
     @computed private get verticalAxisPart() {
         const { manager, yDomainDefault } = this
         const axisConfig = this.yAxisConfig
@@ -758,12 +769,7 @@ export class ScatterPlotChart
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
-            axis.tickFormatter = (value, options) =>
-                formatValue(value, {
-                    unit: "%",
-                    showPlus: true,
-                    ...options,
-                })
+            axis.tickFormatter = this.relativeAxisTickFormatter
             axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -798,12 +804,7 @@ export class ScatterPlotChart
         const axis = xAxisConfig.toHorizontalAxis()
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
-            axis.tickFormatter = (value, options) =>
-                formatValue(value, {
-                    unit: "%",
-                    showPlus: true,
-                    ...options,
-                })
+            axis.tickFormatter = this.relativeAxisTickFormatter
             axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {
