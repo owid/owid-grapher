@@ -80,13 +80,14 @@ export class GridProgram {
     private ring(position: CellPosition) {
         const matrix = this.asArrays
         const numRows = matrix.length
+        if (!numRows) return (function* generator() {})()
         const pointer = {
             ...position,
             started: false,
             endRow: position.row,
             endCol: position.column,
         }
-        if (pointer.row > numRows) pointer.endRow = numRows - 1
+        if (pointer.row >= numRows) pointer.endRow = numRows - 1
 
         const lastLine = matrix[pointer.endRow]
         pointer.endCol =
@@ -115,13 +116,10 @@ export class GridProgram {
                     }
                 }
 
-                yield [
-                    matrix[pointer.row][pointer.column],
-                    {
-                        row: pointer.row,
-                        column: pointer.column,
-                    } as CellPosition,
-                ]
+                yield {
+                    row: pointer.row,
+                    column: pointer.column,
+                } as CellPosition
                 pointer.column++
             }
         }
@@ -130,20 +128,22 @@ export class GridProgram {
     }
 
     valuesFrom(position = Origin) {
-        return Array.from(this.ring(position)).map((res) => res[0])
+        return Array.from(this.ring(position)).map((next) =>
+            this.getCellValue(next)
+        )
     }
 
     grepFirst(key: string, position = Origin) {
-        for (const value of this.ring(position)) {
-            if (value[0] === key) return value[1] as CellPosition
+        for (const next of this.ring(position)) {
+            if (this.getCellValue(next) === key) return next
         }
         return undefined
     }
 
     grep(key: string, position = Origin) {
         const hits: CellPosition[] = []
-        for (const value of this.ring(position)) {
-            if (value[0] === key) hits.push(value[1] as CellPosition)
+        for (const next of this.ring(position)) {
+            if (this.getCellValue(next) === key) hits.push(next)
         }
         return hits
     }
@@ -189,9 +189,9 @@ export class GridProgram {
         return new GridCell(this.matrix, position, this.grammar!)
     }
 
-    getCellValue(row: number, col: number) {
-        const line = this.matrix[row]
-        return line ? line[col] : undefined
+    getCellValue(position: CellPosition) {
+        const line = this.matrix[position.row]
+        return line ? line[position.column] : undefined
     }
 
     @imemo private get matrix() {

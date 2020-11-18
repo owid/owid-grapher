@@ -196,7 +196,7 @@ export class ExplorerCreatePage
                 value,
             } = program.getCell({ row, column })
 
-            const diskValue = programOnDisk.getCellValue(row, column)
+            const diskValue = programOnDisk.getCellValue({ row, column })
 
             const cellProperties: Partial<Handsontable.CellProperties> = {}
 
