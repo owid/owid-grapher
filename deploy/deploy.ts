@@ -67,6 +67,7 @@ const main = async () => {
     const parsedArgs = parseArgs(process.argv.slice(2))
     const runChecksRemotely = parsedArgs["r"] === true
     const skipChecks = parsedArgs["skip-checks"] === true
+    const adminOnly = parsedArgs["admin-only"] === true
     const firstArg = parsedArgs["_"][0]
 
     const USER = os.userInfo().username
@@ -102,7 +103,7 @@ const main = async () => {
     } else printAndExit("Please select either live or a valid test target.")
 
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
-    const scriptSteps = 4
+    const scriptSteps = adminOnly ? 2 : 5
     const progressBar = new ProgressBar(
         `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
@@ -143,18 +144,28 @@ const main = async () => {
     const scripts: any = {
         file: makeScriptToDoFileStuff(ROOT, NAME, SYNC_TARGET, TMP_NEW),
         yarn: makeScriptToDoYarnStuff(TMP_NEW),
-        bake: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake(
+        adminServerStuff: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff(
             NAME,
             ROOT_TMP,
             TMP_NEW,
             FINAL_TARGET
         ),
+        bake: `pm2 stop ${NAME}-deploy-queue
+# Static build to update the public frontend code
+cd ${FINAL_TARGET}
+yarn tsn deploy/bakeSite.ts`,
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitEmail,
             gitName,
             FINAL_TARGET
         ),
+    }
+
+    if (adminOnly) {
+        delete scripts.yarn
+        delete scripts.bake
+        delete scripts.deploy
     }
 
     Object.keys(scripts).forEach((name) => {
@@ -253,7 +264,7 @@ yarn build
 yarn migrate
 yarn tsn algolia/configureAlgolia.ts`
 
-const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuffDoBake = (
+const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
     NAME: string,
     ROOT_TMP: string,
     TMP_NEW: string,
@@ -271,12 +282,7 @@ mv ${FINAL_TARGET} ${OLD_REPO_BACKUP} || true
 mv ${TMP_NEW} ${FINAL_TARGET}
 
 # Restart the admin
-pm2 restart ${NAME}
-pm2 stop ${NAME}-deploy-queue
-
-# Static build to update the public frontend code
-cd ${FINAL_TARGET}
-yarn tsn deploy/bakeSite.ts`
+pm2 restart ${NAME}`
 }
 
 const makeScriptToDeployToNetlifyDoQueue = (
