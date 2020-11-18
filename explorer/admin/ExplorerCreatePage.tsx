@@ -345,7 +345,13 @@ export class ExplorerCreatePage extends React.Component<{
                             Clear changes
                         </button>
                     </div>
-                    <div style={{ height: "300px", overflow: "scroll" }}>
+                    <div
+                        style={{
+                            height: "300px",
+                            overflow: "scroll",
+                            resize: "vertical",
+                        }}
+                    >
                         <Explorer
                             grapherConfigs={Object.values(this.grapherConfigs)}
                             explorerProgram={program}
