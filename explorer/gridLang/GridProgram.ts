@@ -110,10 +110,8 @@ export class GridProgram {
                 ) {
                     pointer.row++
                     pointer.column = 0
-                    if (pointer.row >= numRows) {
-                        pointer.row = 0
-                        continue
-                    }
+                    if (pointer.row >= numRows) pointer.row = 0
+                    continue
                 }
 
                 yield {

@@ -94,11 +94,11 @@ columns
             expect(
                 Array.from(
                     new GridProgram("est", "a\nb").valuesFrom({
-                        row: 3,
-                        column: 1,
+                        row: 1,
+                        column: 0,
                     })
                 )
-            ).toEqual(["a", "b"])
+            ).toEqual(["a", "", "b"])
 
             expect(
                 Array.from(program.valuesFrom({ row: 1, column: 2 }))
