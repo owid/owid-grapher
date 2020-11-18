@@ -14,7 +14,7 @@ import {
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-import { FacetSubtitle, getChartPadding, getFontSize } from "./FacetChartUtils"
+import { getChartPadding, getFontSize } from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
@@ -194,18 +194,32 @@ export class FacetChart
         return ""
     }
 
-    render() {
+    @computed private get subtitleFontSize() {
         const { placedSeries, manager } = this
-        const fontSize = getFontSize(placedSeries.length, manager.baseFontSize)
-        return placedSeries.map((smallChart, index: number) => {
+        return getFontSize(placedSeries.length, manager.baseFontSize)
+    }
+
+    render() {
+        const { subtitleFontSize } = this
+        return this.placedSeries.map((smallChart, index: number) => {
             const ChartClass =
                 ChartComponentClassMap.get(smallChart.chartTypeName) ??
                 DefaultChartClass
             const { bounds, seriesName } = smallChart
+            const shiftTop =
+                smallChart.chartTypeName === ChartTypeName.LineChart ? 6 : 10
             return (
                 <React.Fragment key={index}>
+                    <text
+                        x={bounds.x}
+                        y={bounds.top - shiftTop}
+                        fill={"#1d3d63"}
+                        fontSize={subtitleFontSize}
+                        style={{ fontWeight: 700 }}
+                    >
+                        {seriesName}
+                    </text>
                     <ChartClass bounds={bounds} manager={smallChart.manager} />
-                    {FacetSubtitle(seriesName, bounds, fontSize, index)}
                 </React.Fragment>
             )
         })

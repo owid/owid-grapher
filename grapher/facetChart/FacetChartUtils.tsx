@@ -1,7 +1,4 @@
-import React from "react"
-import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
-import { getElementWithHalo } from "grapher/scatterCharts/Halos"
-import { Bounds } from "grapher/utils/Bounds"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 // not sure if we want to do something more sophisticated
 export const getFontSize = (
@@ -32,23 +29,3 @@ export const getChartPadding = (count: number) => {
         outerPadding: 20,
     }
 }
-
-export const FacetSubtitle = (
-    seriesName: SeriesName,
-    bounds: Bounds,
-    fontSize: number,
-    index: number
-) =>
-    getElementWithHalo(
-        `title${index}halo`,
-        <text
-            x={bounds.centerX}
-            y={bounds.top + fontSize}
-            fill={"black"}
-            textAnchor="middle"
-            fontSize={fontSize}
-        >
-            {seriesName}
-        </text>,
-        { strokeWidth: ".2em" }
-    )
