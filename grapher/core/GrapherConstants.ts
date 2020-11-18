@@ -36,8 +36,6 @@ export const BASE_FONT_SIZE = 16
 export enum FacetStrategy {
     country = "country", // One chart for each country
     column = "column", // One chart for each Y column
-    columnWithMap = "columnWithMap", // One chart and one map for each Y column
-    countryWithMap = "countryWithMap", // One chart for each country. One map for each Y Column
 }
 
 export enum SeriesStrategy {

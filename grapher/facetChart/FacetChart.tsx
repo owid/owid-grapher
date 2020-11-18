@@ -167,19 +167,6 @@ export class FacetChart
         })
     }
 
-    @computed private get columnMapFacets(): FacetSeries[] {
-        return this.yColumns.map((col) => {
-            return {
-                chartTypeName: ChartTypeName.WorldMap,
-                color: facetBackgroundColor,
-                seriesName: col.displayName,
-                manager: {
-                    yColumnSlug: col.slug,
-                },
-            }
-        })
-    }
-
     @computed private get yColumns() {
         return this.yColumnSlugs.map((slug) => this.inputTable.get(slug))
     }
@@ -190,12 +177,9 @@ export class FacetChart
 
     @computed get series() {
         const { facetStrategy } = this.manager
-        if (facetStrategy === FacetStrategy.column) return this.columnFacets
-        if (facetStrategy === FacetStrategy.columnWithMap)
-            return [...this.columnFacets, ...this.columnMapFacets]
-        if (facetStrategy === FacetStrategy.countryWithMap)
-            return [...this.countryFacets, ...this.columnMapFacets]
-        return this.countryFacets
+        return facetStrategy === FacetStrategy.column
+            ? this.columnFacets
+            : this.countryFacets
     }
 
     @computed protected get bounds() {

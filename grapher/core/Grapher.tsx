@@ -1733,20 +1733,10 @@ export class Grapher
     @computed private get availableFacetStrategies() {
         const strategies: (FacetStrategy | undefined)[] = [undefined]
 
-        if (this.hasMultipleYColumns) {
-            strategies.push(FacetStrategy.column)
-            if (
-                this.selection.numAvailableEntityNames > 1 &&
-                this.hasMultipleCountriesOnTheMap
-            )
-                strategies.push(FacetStrategy.columnWithMap)
-        }
+        if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
 
-        if (this.selection.numSelectedEntities > 1) {
+        if (this.selection.numSelectedEntities > 1)
             strategies.push(FacetStrategy.country)
-            if (this.hasMultipleCountriesOnTheMap)
-                strategies.push(FacetStrategy.countryWithMap)
-        }
 
         return strategies
     }
