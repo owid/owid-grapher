@@ -14,6 +14,9 @@ import {
     groupBy,
     isNumber,
     isEmpty,
+    getClosestTimePairs,
+    sortedFindClosest,
+    pairs,
 } from "grapher/utils/Util"
 import {
     ColumnSlug,
@@ -162,6 +165,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return [min(mins), max(maxes)]
     }
 
+    originalTimeDomainFor(
+        slugs: ColumnSlug[]
+    ): [Time | undefined, Time | undefined] {
+        const cols = this.getColumns(slugs)
+        const mins = cols.map((col) => min(col.originalTimes))
+        const maxes = cols.map((col) => max(col.originalTimes))
+        return [min(mins), max(maxes)]
+    }
+
     filterByEntityNames(names: EntityName[]) {
         const namesSet = new Set(names)
         return this.columnFilter(
@@ -230,6 +242,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // TODO rewrite with column ops
+    // TODO move to CoreTable
     dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]) {
         return this.rowFilter(
             (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
@@ -239,6 +253,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    // TODO rewrite with column ops
+    // TODO move to CoreTable
     dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]) {
         return this.rowFilter(
             (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
@@ -611,6 +627,154 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 },
             ],
             `Interpolated values in column ${columnSlug} linearly`,
+            TransformType.UpdateColumnDefs
+        )
+    }
+
+    interpolateColumnsByClosestTimeMatch(
+        columnSlugA: ColumnSlug,
+        columnSlugB: ColumnSlug
+    ): this {
+        if (!this.has(columnSlugA) || !this.has(columnSlugB)) return this
+
+        const columnA = this.get(columnSlugA)
+        const columnB = this.get(columnSlugB)
+
+        const toleranceA = columnA.display.tolerance ?? 0
+        const toleranceB = columnB.display.tolerance ?? 0
+
+        // If the columns are of mismatching time types, then we can't do any time matching.
+        // This can happen when we have a ScatterPlot with days in one column, and a column with
+        // xOverrideYear.
+        // We also don't need to do any time matching when the tolerance of both columns is 0.
+        if (
+            this.timeColumn.isMissing ||
+            this.timeColumn.slug !== columnA.originalTimeColumnSlug ||
+            this.timeColumn.slug !== columnB.originalTimeColumnSlug ||
+            // Check for a non-zero, non-undefined tolerance
+            (toleranceA === 0 && toleranceB === 0)
+        ) {
+            return this
+        }
+
+        const maxDiff = Math.max(toleranceA, toleranceB)
+
+        const withAllRows = this.complete([
+            this.entityNameSlug,
+            this.timeColumn.slug,
+        ]).sortBy([this.entityNameSlug, this.timeColumn.slug])
+
+        // Existing columns
+        const valuesA = withAllRows.get(columnA.slug).valuesIncludingErrorValues
+        const valuesB = withAllRows.get(columnB.slug).valuesIncludingErrorValues
+        const times = withAllRows.timeColumn
+            .valuesIncludingErrorValues as Time[]
+
+        // New columns
+        const newValuesA = new Array(times.length).fill(
+            ErrorValueTypes.NoValueWithinTolerance
+        )
+        const newValuesB = new Array(times.length).fill(
+            ErrorValueTypes.NoValueWithinTolerance
+        )
+        const newTimesA = new Array(times.length).fill(
+            ErrorValueTypes.NoValueWithinTolerance
+        )
+        const newTimesB = new Array(times.length).fill(
+            ErrorValueTypes.NoValueWithinTolerance
+        )
+
+        const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
+
+        pairs(groupBoundaries).forEach(([startIndex, endIndex]) => {
+            const availableTimesA = []
+            const availableTimesB = []
+
+            for (let index = startIndex; index < endIndex; index++) {
+                if (isNotErrorValue(valuesA[index]))
+                    availableTimesA.push(times[index])
+                if (isNotErrorValue(valuesB[index]))
+                    availableTimesB.push(times[index])
+            }
+
+            const timePairs = getClosestTimePairs(
+                availableTimesA,
+                availableTimesB,
+                maxDiff
+            )
+            const timeAtoTimeB = new Map(timePairs)
+            const pairedTimesInA = sortNumeric(
+                Array.from(timeAtoTimeB.keys())
+            ) as Time[]
+
+            for (let index = startIndex; index < endIndex; index++) {
+                const currentTime = times[index]
+
+                const candidateTimeA = sortedFindClosest(
+                    pairedTimesInA,
+                    currentTime
+                )
+
+                if (candidateTimeA === undefined) continue
+
+                const candidateIndexA = times.indexOf(
+                    candidateTimeA,
+                    startIndex
+                )
+
+                if (Math.abs(currentTime - candidateTimeA) > toleranceA)
+                    continue
+
+                const candidateTimeB = timeAtoTimeB.get(candidateTimeA)
+
+                if (
+                    candidateTimeB === undefined ||
+                    Math.abs(currentTime - candidateTimeB) > toleranceB
+                ) {
+                    continue
+                }
+
+                const candidateIndexB = times.indexOf(
+                    candidateTimeB,
+                    startIndex
+                )
+
+                newValuesA[index] = valuesA[candidateIndexA]
+                newValuesB[index] = valuesB[candidateIndexB]
+                newTimesA[index] = times[candidateIndexA]
+                newTimesB[index] = times[candidateIndexB]
+            }
+        })
+
+        const originalTimeColumnASlug = makeOriginalTimeSlugFromColumnSlug(
+            columnA.slug
+        )
+        const originalTimeColumnBSlug = makeOriginalTimeSlugFromColumnSlug(
+            columnB.slug
+        )
+
+        const columnStore = {
+            ...withAllRows.columnStore,
+            [columnA.slug]: newValuesA,
+            [columnB.slug]: newValuesB,
+            [originalTimeColumnASlug]: newTimesA,
+            [originalTimeColumnBSlug]: newTimesB,
+        }
+
+        return withAllRows.transform(
+            columnStore,
+            [
+                ...withAllRows.defs,
+                {
+                    ...withAllRows.timeColumn.def,
+                    slug: originalTimeColumnASlug,
+                },
+                {
+                    ...withAllRows.timeColumn.def,
+                    slug: originalTimeColumnBSlug,
+                },
+            ],
+            `Interpolated values`,
             TransformType.UpdateColumnDefs
         )
     }

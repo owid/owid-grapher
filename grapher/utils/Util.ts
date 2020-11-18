@@ -114,9 +114,12 @@ export {
     xor,
 }
 
+import { extent, pairs } from "d3-array"
+
+export { pairs }
+
 import moment from "moment"
 import { formatLocale } from "d3-format"
-import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
@@ -469,15 +472,21 @@ export function pointsToPath(points: Array<[number, number]>) {
 // Based on https://stackoverflow.com/a/30245398/1983739
 // In case of tie returns higher value
 // todo: add unit tests
-export function sortedFindClosestIndex(array: number[], value: number) {
-    if (array.length === 0) return -1
+export function sortedFindClosestIndex(
+    array: number[],
+    value: number,
+    startIndex: number = 0,
+    // non-inclusive end
+    endIndex: number = array.length
+) {
+    if (startIndex >= endIndex) return -1
 
-    if (value < array[0]) return 0
+    if (value < array[startIndex]) return startIndex
 
-    if (value > array[array.length - 1]) return array.length - 1
+    if (value > array[endIndex - 1]) return endIndex - 1
 
-    let lo = 0
-    let hi = array.length - 1
+    let lo = startIndex
+    let hi = endIndex - 1
 
     while (lo <= hi) {
         const mid = Math.round((hi + lo) / 2)
@@ -493,6 +502,16 @@ export function sortedFindClosestIndex(array: number[], value: number) {
 
     // lo == hi + 1
     return array[lo] - value < value - array[hi] ? lo : hi
+}
+
+export function sortedFindClosest(
+    array: number[],
+    value: number,
+    startIndex?: number,
+    endIndex?: number
+): number | undefined {
+    const index = sortedFindClosestIndex(array, value, startIndex, endIndex)
+    return index !== -1 ? array[index] : undefined
 }
 
 export function isMobile() {
@@ -1003,10 +1022,14 @@ export function sortNumeric<T>(
 export const isPresent = <T>(t: T | undefined | null | void): t is T =>
     t !== undefined && t !== null
 
-export const mapBy = <T>(arr: T[], key: keyof T, value: keyof T) => {
+export const mapBy = <T>(
+    arr: T[],
+    keyAccessor: (t: T) => any,
+    valueAccessor: (t: T) => any
+) => {
     const map = new Map()
     arr.forEach((val) => {
-        map.set(val[key], val[value])
+        map.set(keyAccessor(val), valueAccessor(val))
     })
     return map
 }
@@ -1044,4 +1067,87 @@ export const splitArrayIntoGroupsOfN = (arr: any[], maxPerGroup: number) => {
     for (let index = 0; index < arr.length; index += maxPerGroup)
         result.push(arr.slice(index, index + maxPerGroup))
     return result
+}
+
+export function getClosestTimePairs(
+    sortedTimesA: Time[],
+    sortedTimesB: Time[],
+    maxDiff: Integer = Infinity
+) {
+    if (sortedTimesA.length === 0 || sortedTimesB.length === 0) return []
+
+    const decidedPairs: [Time, Time][] = []
+    const undecidedPairs: [Time, Time][] = []
+
+    let indexB = 0
+
+    for (let indexA = 0; indexA < sortedTimesA.length; indexA++) {
+        const timeA = sortedTimesA[indexA]
+
+        const closestIndexInB = sortedFindClosestIndex(
+            sortedTimesB,
+            timeA,
+            indexB
+        )
+
+        /**
+         * the index that holds the value that is definitely lower than timeA, the candidate time
+         */
+        const lowCandidateIndexB =
+            sortedTimesB[closestIndexInB] < timeA
+                ? closestIndexInB
+                : closestIndexInB > indexB
+                ? closestIndexInB - 1
+                : undefined
+
+        /**
+         * the index that holds the value that is definitely equal to or greater than timeA, the candidate time
+         */
+        const highCandidateIndexB =
+            sortedTimesB[closestIndexInB] >= timeA ? closestIndexInB : undefined
+
+        if (
+            lowCandidateIndexB !== undefined &&
+            highCandidateIndexB !== undefined &&
+            timeA - sortedTimesB[lowCandidateIndexB] <= maxDiff &&
+            timeA - sortedTimesB[lowCandidateIndexB] <
+                sortedTimesB[highCandidateIndexB] - timeA
+        ) {
+            decidedPairs.push([timeA, sortedTimesB[lowCandidateIndexB]])
+        } else if (
+            highCandidateIndexB !== undefined &&
+            timeA === sortedTimesB[highCandidateIndexB]
+        ) {
+            decidedPairs.push([timeA, sortedTimesB[highCandidateIndexB]])
+        } else {
+            if (
+                lowCandidateIndexB !== undefined &&
+                timeA - sortedTimesB[lowCandidateIndexB] <= maxDiff
+            ) {
+                undecidedPairs.push([timeA, sortedTimesB[lowCandidateIndexB]])
+            }
+            if (
+                highCandidateIndexB !== undefined &&
+                sortedTimesB[highCandidateIndexB] - timeA <= maxDiff
+            ) {
+                undecidedPairs.push([timeA, sortedTimesB[highCandidateIndexB]])
+            }
+        }
+
+        indexB = closestIndexInB
+    }
+
+    const seenTimes = new Set(flatten(decidedPairs))
+
+    sortBy(undecidedPairs, (pair) => Math.abs(pair[0] - pair[1])).forEach(
+        (pair) => {
+            if (!seenTimes.has(pair[0]) && !seenTimes.has(pair[1])) {
+                decidedPairs.push(pair)
+                seenTimes.add(pair[0])
+                seenTimes.add(pair[1])
+            }
+        }
+    )
+
+    return decidedPairs
 }

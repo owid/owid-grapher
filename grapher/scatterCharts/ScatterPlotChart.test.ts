@@ -19,7 +19,7 @@ import { ContinentColors } from "grapher/color/ColorConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { Color } from "coreTable/CoreTableConstants"
 import { makeOriginalTimeSlugFromColumnSlug } from "coreTable/OwidTableUtil"
-import { uniq } from "grapher/utils/Util"
+import { uniq, uniqBy } from "grapher/utils/Util"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -103,11 +103,6 @@ it("can filter points with negative values when using a log scale", () => {
     expect(logChart.series.length).toEqual(2)
     expect(logChart.allPoints.length).toEqual(180)
 })
-
-// it("default point color if no color column", () => {
-//     const chart = new ScatterPlotChart({ manager: { table: new OwidTable() } })
-//     expect(chart.colorScale.getColor("Italy")).toEqual("#959595")
-// })
 
 describe("interpolation defaults", () => {
     const table = new OwidTable(
@@ -580,9 +575,11 @@ describe("series transformations", () => {
             {
                 slug: "x",
                 type: ColumnTypeNames.Numeric,
-                display: { tolerance: 1 },
             },
-            { slug: "y", type: ColumnTypeNames.Numeric },
+            {
+                slug: "y",
+                type: ColumnTypeNames.Numeric,
+            },
             { slug: "color", type: ColumnTypeNames.String },
             {
                 slug: "size",
@@ -604,7 +601,6 @@ describe("series transformations", () => {
         const ukSeries = chart.series.find((s) => s.seriesName === "UK")!
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([
             2001,
-            2002,
             2003,
             2004,
         ])
@@ -706,5 +702,133 @@ describe("scatter plot with xOverrideTime", () => {
         expect(chart.allPoints.map((p) => p.time.x)).toEqual(
             expect.arrayContaining([2000, 2001, 2003])
         )
+    })
+})
+
+describe("x/y tolerance", () => {
+    const table = new OwidTable(
+        [
+            [
+                "entityId",
+                "entityName",
+                "entityCode",
+                "year",
+                "x",
+                "y",
+                "color",
+                "size",
+            ],
+            [1, "UK", "", 2000, 0, null, "Europe", 100],
+            [1, "UK", "", 2001, null, null, null, null],
+            [1, "UK", "", 2002, null, null, null, null],
+            [1, "UK", "", 2003, null, 3, null, null],
+            [1, "UK", "", 2004, null, null, null, null],
+            [1, "UK", "", 2005, 5, null, null, null],
+            [1, "UK", "", 2006, 6, 6, null, null],
+            [1, "UK", "", 2007, null, 7, null, null],
+            [1, "UK", "", 2008, 8, null, null, null],
+            [1, "UK", "", 2009, null, null, null, null],
+            [1, "UK", "", 2010, null, null, "Europe", 100],
+            // should be removed because it has no X/Y values
+            [2, "USA", "", 2020, null, null, "North America", 0],
+        ],
+        [
+            {
+                slug: "x",
+                type: ColumnTypeNames.Numeric,
+                display: { tolerance: 3 },
+            },
+            {
+                slug: "y",
+                type: ColumnTypeNames.Numeric,
+                display: { tolerance: 3 },
+            },
+            {
+                slug: "color",
+                type: ColumnTypeNames.String,
+                display: { tolerance: 10 },
+            },
+            {
+                slug: "size",
+                type: ColumnTypeNames.Numeric,
+            },
+        ]
+    )
+
+    const manager: ScatterPlotManager = {
+        xColumnSlug: "x",
+        yColumnSlug: "y",
+        colorColumnSlug: "color",
+        sizeColumnSlug: "size",
+        table,
+    }
+
+    const chart = new ScatterPlotChart({ manager })
+
+    const transformedTable = chart.transformedTable
+
+    it("removes rows without X or Y value", () => {
+        expect(transformedTable.get("year").values).toEqual([
+            2003,
+            2004,
+            2005,
+            2006,
+            2007,
+            2008,
+        ])
+    })
+
+    it("applies tolerance on color & size before filtering rows", () => {
+        expect(
+            uniq(transformedTable.get("color").valuesIncludingErrorValues)
+        ).toEqual(["Europe"])
+        expect(
+            uniq(transformedTable.get("size").valuesIncludingErrorValues)
+        ).toEqual([100])
+    })
+
+    it("matches rows correctly", () => {
+        const xTimeSlug = makeOriginalTimeSlugFromColumnSlug("x")
+        const yTimeSlug = makeOriginalTimeSlugFromColumnSlug("y")
+
+        const rows = transformedTable.rows
+        expect(rows.length).toEqual(6)
+
+        const uniqRows = uniqBy(
+            rows,
+            (row) => `${row[xTimeSlug]}-${row[yTimeSlug]}`
+        )
+        expect(uniqRows).toEqual([
+            expect.objectContaining({
+                color: "Europe",
+                entityName: "UK",
+                size: 100,
+                x: 5,
+                [xTimeSlug]: 2005,
+                y: 3,
+                [yTimeSlug]: 2003,
+                year: 2003,
+            }),
+            expect.objectContaining({
+                color: "Europe",
+                entityName: "UK",
+                size: 100,
+                x: 6,
+                [xTimeSlug]: 2006,
+                y: 6,
+                [yTimeSlug]: 2006,
+                year: 2006,
+            }),
+            expect.objectContaining({
+                color: "Europe",
+                entityName: "UK",
+                size: 100,
+                x: 8,
+                [xTimeSlug]: 2008,
+                y: 7,
+                [yTimeSlug]: 2007,
+                year: 2008,
+            }),
+        ])
     })
 })
