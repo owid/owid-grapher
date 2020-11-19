@@ -516,14 +516,14 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     }
 
     formatValueShort(value: number, options?: TickFormattingOptions) {
-        return this.formatValue(value, {
+        return super.formatValueShort(value, {
             unit: this.shortUnit,
             ...options,
         })
     }
 
     formatValueLong(value: number, options?: TickFormattingOptions) {
-        return this.formatValue(value, {
+        return super.formatValueLong(value, {
             unit: this.unit,
             ...options,
         })
