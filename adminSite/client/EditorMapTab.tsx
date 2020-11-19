@@ -147,11 +147,11 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { grapher } = this
         const mapConfig = grapher.map
+        const { mapColumnSlug } = grapher
         const mapChart = new MapChart({ manager: this.grapher })
         const colorScale = mapChart.colorScale
 
-        const isReady =
-            !!mapConfig.columnSlug && grapher.table.has(mapConfig.columnSlug)
+        const isReady = !!mapColumnSlug && grapher.table.has(mapColumnSlug)
 
         return (
             <div className="EditorMapTab tab-pane">
