@@ -26,6 +26,7 @@ class DimensionSlotView extends React.Component<{
 
     @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
+        const { grapher } = this.props.editor
 
         const dimensionConfigs = variableIds.map((id) => {
             const existingDimension = slot.dimensions.find(
@@ -39,10 +40,11 @@ class DimensionSlotView extends React.Component<{
             )
         })
 
-        this.props.editor.grapher.setDimensionsForProperty(
-            slot.property,
-            dimensionConfigs
-        )
+        grapher.setDimensionsForProperty(slot.property, dimensionConfigs)
+
+        grapher.updateAuthoredVersion({
+            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
+        })
 
         this.isSelectingVariables = false
         this.updateDefaults()
@@ -50,6 +52,7 @@ class DimensionSlotView extends React.Component<{
 
     @action.bound private onRemoveDimension(variableId: LegacyVariableId) {
         const { slot } = this.props
+        const { grapher } = this.props.editor
 
         this.props.editor.grapher.setDimensionsForProperty(
             slot.property,
@@ -57,6 +60,11 @@ class DimensionSlotView extends React.Component<{
                 (d) => d.variableId !== variableId
             )
         )
+
+        grapher.updateAuthoredVersion({
+            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
+        })
+        grapher.rebuildInputOwidTable()
 
         this.updateDefaults()
     }
