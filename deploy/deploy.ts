@@ -9,6 +9,7 @@ import ProgressBar = require("progress")
 import { exec } from "utils/server/serverUtil"
 import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"
+import { WriteStream } from "tty"
 
 const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
 
@@ -62,6 +63,40 @@ const runAndTick = async (command: string, progressBar: ProgressBar) => {
     progressBar.tick({ name: `✅ ${command}` })
 }
 
+// Wrap stderr before passing it to ProgressBar so we can save all writes
+// and replay them at the end of the bake
+class ProgressStream implements Partial<WriteStream> {
+    private wrappedStream: WriteStream
+    constructor(wrap: WriteStream) {
+        this.wrappedStream = wrap
+    }
+
+    isTTY = true
+
+    private allWrites: string[] = []
+
+    replay() {
+        console.log(this.allWrites.join(""))
+    }
+
+    write(buffer: string) {
+        this.allWrites.push(buffer)
+        return this.wrappedStream.write(buffer)
+    }
+
+    cursorTo(index: number) {
+        return this.wrappedStream.cursorTo(index)
+    }
+
+    clearLine(direction: 1) {
+        return this.wrappedStream.clearLine(direction)
+    }
+
+    get columns() {
+        return this.wrappedStream.columns
+    }
+}
+
 // 📡 indicates that a task is running/ran on the remote server
 const main = async () => {
     const parsedArgs = parseArgs(process.argv.slice(2))
@@ -102,13 +137,17 @@ const main = async () => {
         await runLiveSafetyChecks(DIR, git)
     } else printAndExit("Please select either live or a valid test target.")
 
+    // todo: a smarter way to precompute out the number of steps?
     const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
     const scriptSteps = adminOnly ? 2 : 5
+
+    const stream = new ProgressStream(process.stderr)
     const progressBar = new ProgressBar(
         `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
             total: 5 + scriptSteps + testSteps,
             renderThrottle: 0, // print on every tick
+            stream: (stream as unknown) as WriteStream,
         }
     )
 
@@ -190,6 +229,8 @@ yarn tsn deploy/bakeSite.ts`,
             name: `✅ 📡${DIR} ${remoteScriptPath}`,
         })
     }
+
+    stream.replay()
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT_TMP: string) => {
