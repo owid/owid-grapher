@@ -229,7 +229,6 @@ export class AbstactStackedChart
             ? this.selectionArray.numSelectedEntities
             : this.yColumns.length
         const baseColors = scheme.getColors(seriesCount)
-        if (!this.isEntitySeries) baseColors.reverse() // I don't know why
         if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
     }
