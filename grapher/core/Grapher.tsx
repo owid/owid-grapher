@@ -154,7 +154,6 @@ import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { LineChart } from "grapher/lineCharts/LineChart"
 
 declare const window: any
 
@@ -307,6 +306,15 @@ export class Grapher
      */
     @action.bound setAuthoredVersion(config: Partial<LegacyGrapherInterface>) {
         this.legacyConfigAsAuthored = config
+    }
+
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ) {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
+        }
     }
 
     constructor(
@@ -642,12 +650,13 @@ export class Grapher
         this._receiveLegacyDataAndApplySelection(json)
     }
 
-    @action.bound private _receiveLegacyDataAndApplySelection(
-        json: LegacyVariablesAndEntityKey
+    @action.bound private _setInputTable(
+        json: LegacyVariablesAndEntityKey,
+        legacyConfig: Partial<LegacyGrapherInterface>
     ) {
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
-            this.legacyConfigAsAuthored
+            legacyConfig
         )
 
         this.inputTable = table
@@ -662,6 +671,24 @@ export class Grapher
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
         } else this.applyOriginalSelectionAsAuthored()
+    }
+
+    @action rebuildInputOwidTable() {
+        if (!this.legacyVariableDataJson) return
+        this._setInputTable(
+            this.legacyVariableDataJson,
+            this.legacyConfigAsAuthored
+        )
+    }
+
+    @observable private legacyVariableDataJson?: LegacyVariablesAndEntityKey
+
+    @action.bound private _receiveLegacyDataAndApplySelection(
+        json: LegacyVariablesAndEntityKey
+    ) {
+        this.legacyVariableDataJson = json
+
+        this.rebuildInputOwidTable()
     }
 
     @action.bound appendNewEntitySelectionOptions() {

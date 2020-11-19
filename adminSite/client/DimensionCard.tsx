@@ -40,6 +40,7 @@ export class DimensionCard extends React.Component<{
 
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
+        this.updateTables()
     }
 
     private get tableDisplaySettings() {
@@ -52,20 +53,32 @@ export class DimensionCard extends React.Component<{
                 <Toggle
                     label="Hide absolute change column"
                     value={!!tableDisplay.hideAbsoluteChange}
-                    onValue={(value) =>
-                        (tableDisplay.hideAbsoluteChange = value)
-                    }
+                    onValue={(value) => {
+                        tableDisplay.hideAbsoluteChange = value
+                        this.updateTables()
+                    }}
                 />
                 <Toggle
                     label="Hide relative change column"
                     value={!!tableDisplay.hideRelativeChange}
-                    onValue={(value) =>
-                        (tableDisplay.hideRelativeChange = value)
-                    }
+                    onValue={(value) => {
+                        tableDisplay.hideRelativeChange = value
+                        this.updateTables()
+                    }}
                 />
                 <hr className="ui divider" />
             </React.Fragment>
         )
+    }
+
+    @action.bound updateTables() {
+        const { grapher } = this.props.editor
+
+        grapher.updateAuthoredVersion({
+            dimensions: grapher.filledDimensions.map((dim) => dim.toObject()),
+        })
+
+        grapher.rebuildInputOwidTable()
     }
 
     render() {
@@ -127,6 +140,7 @@ export class DimensionCard extends React.Component<{
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoString
                             label="Unit of measurement"
@@ -134,12 +148,14 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unit}
                             helpText={`Original database unit: ${column.unit}`}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
                             auto={column.shortUnit}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
@@ -147,6 +163,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
+                            onBlur={this.updateTables}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
@@ -154,6 +171,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
+                            onBlur={this.updateTables}
                         />
                         {this.tableDisplaySettings}
                         {(grapher.isScatter ||
@@ -163,6 +181,7 @@ export class DimensionCard extends React.Component<{
                                 field="tolerance"
                                 store={dimension.display}
                                 auto={column.tolerance}
+                                onBlur={this.updateTables}
                             />
                         )}
                         {grapher.isLineChart && (
