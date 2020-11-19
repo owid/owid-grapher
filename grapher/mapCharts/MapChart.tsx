@@ -248,15 +248,16 @@ export class MapChart
         return this.props.manager
     }
 
+    @computed private get entityNamesWithData(): Set<EntityName> {
+        // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
+        // available in the map view for the current year, but data might still be available for other chart types
+        return this.inputTable.entitiesWith([this.mapColumnSlug])
+    }
+
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(entityName?: EntityName) {
         if (!this.manager.mapIsClickable || !entityName) return false
-
-        // We intentionally use `inputTable` here instead of `transformedTable`, because of countries where there is no data
-        // available in the map view for the current year, but data might still be available for other chart types
-        return this.inputTable
-            .entitiesWith([this.mapColumnSlug])
-            .has(entityName)
+        return this.entityNamesWithData.has(entityName)
     }
 
     @computed private get selectionArray() {
