@@ -173,6 +173,13 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.formatValue(value, options)
     }
 
+    formatValueShortWithAbbreviations(
+        value: any,
+        options?: TickFormattingOptions
+    ): string {
+        return this.formatValue(value, options)
+    }
+
     formatValueShort(value: any, options?: TickFormattingOptions): string {
         return this.formatValue(value, options)
     }
@@ -515,8 +522,11 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         return ""
     }
 
-    formatValueForMobile(value: number, options?: TickFormattingOptions) {
-        return super.formatValueForMobile(value, {
+    formatValueShortWithAbbreviations(
+        value: number,
+        options?: TickFormattingOptions
+    ) {
+        return super.formatValueShortWithAbbreviations(value, {
             shortNumberPrefixes: true,
             // do not set a unit
             ...options,
