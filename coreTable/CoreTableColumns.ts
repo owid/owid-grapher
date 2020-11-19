@@ -586,20 +586,6 @@ class PercentageColumn extends NumericColumn {
             ...options,
         })
     }
-
-    formatValueShort(value: number, options?: TickFormattingOptions) {
-        return super.formatValueShort(value, {
-            numDecimalPlaces: 0,
-            ...options,
-        })
-    }
-
-    formatValueLong(value: number, options?: TickFormattingOptions) {
-        return super.formatValueLong(value, {
-            numDecimalPlaces: 2,
-            ...options,
-        })
-    }
 }
 
 // Same as %, but indicates it's part of a group of columns that add up to 100%.
