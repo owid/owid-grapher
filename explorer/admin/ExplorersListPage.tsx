@@ -32,7 +32,6 @@ import {
 import moment from "moment"
 import {
     DefaultNewExplorerSlug,
-    ExplorersPreviewRoute,
     ExplorersRoute,
     ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
@@ -123,16 +122,6 @@ class ExplorerRow extends React.Component<{
                 </td>
 
                 <td>
-                    <Link
-                        target="preview"
-                        to={`/${ExplorersPreviewRoute}/${slug}`}
-                        className="btn btn-secondary"
-                    >
-                        Preview
-                    </Link>
-                </td>
-
-                <td>
                     <Link to={`/explorers/${slug}`} className="btn btn-primary">
                         Edit
                     </Link>
@@ -179,7 +168,6 @@ class ExplorerList extends React.Component<{
                         <th>Slug</th>
                         <th>Title</th>
                         <th>Last Updated</th>
-                        <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
