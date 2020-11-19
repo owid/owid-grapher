@@ -338,6 +338,11 @@ export class ExplorerProgram extends GridProgram {
             this.tuplesObject,
             GrapherSubTableHeaderKeywordMap
         )
+
+        Object.keys(rootObject).forEach((key) => {
+            if (!GrapherSubTableHeaderKeywordMap[key]) delete rootObject[key]
+        })
+
         const selectedGrapherRow = this.decisionMatrix.selectedRow
         return selectedGrapherRow && Object.keys(selectedGrapherRow).length
             ? { ...rootObject, ...selectedGrapherRow }

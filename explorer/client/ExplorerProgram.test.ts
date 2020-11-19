@@ -101,11 +101,14 @@ ${ExplorerRootKeywordMap.graphers.keyword}
             const program = new ExplorerProgram(
                 "test",
                 `hasMapTab\ttrue
+table\tfoo
 graphers
 \tyScaleToggle\tLine Checkbox
 \ttrue\tLine`
             )
             expect(program.grapherConfig.hasMapTab).toEqual(true)
+            // Only parse white listed grapher props
+            expect((program.grapherConfig as any).table).toEqual(undefined)
         })
     })
 
