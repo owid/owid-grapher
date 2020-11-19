@@ -156,7 +156,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get tolerance() {
-        return this.def.tolerance ?? this.display.tolerance ?? 0
+        return this.display.tolerance ?? this.def.tolerance ?? 0
     }
 
     @imemo get domain() {
@@ -195,7 +195,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get unit(): string | undefined {
-        return this.def.unit || this.display?.unit
+        return this.display?.unit ?? this.def.unit
     }
 
     @imemo get shortUnit(): string | undefined {
@@ -203,7 +203,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
-        const unit = this.display?.unit || this.def.unit || ""
+        const unit = this.unit
 
         if (!unit) return undefined
 
