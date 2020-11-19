@@ -98,6 +98,12 @@ export const GrapherSubTableHeaderKeywordMap: KeywordMap = {
             cssClass: "",
         })),
     },
+
+    hideTitleAnnotation: {
+        ...BooleanCellDef,
+        description: "Hide automatic time/entity",
+        keyword: "hideTitleAnnotation",
+    },
     backgroundSeriesLimit: {
         ...IntegerCellDef,
         description:
