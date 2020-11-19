@@ -550,7 +550,11 @@ export class Grapher
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (this.isOnMapTab) return table.filterByTargetTimes([endTime])
+        if (this.isOnMapTab)
+            return table.filterByTargetTimes(
+                [endTime],
+                table.get(this.mapColumnSlug).tolerance
+            )
 
         if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)
             return table.filterByTargetTimes(
