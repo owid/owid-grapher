@@ -1167,12 +1167,12 @@ export class Grapher
     }
 
     @computed get columnsWithSources() {
-        return this.inputTable.columnsAsArray.filter((column) => {
+        return this.inputTable.getColumns(this.newSlugs).filter((column) => {
             if (
                 column.name === "Countries Continents" ||
                 column.name === "Total population (Gapminder)"
             )
-                return false
+                return false // todo: this sort of conditional we could do in a smarter editor, and not at runtime
             return !!column.source.name
         })
     }
@@ -1182,7 +1182,7 @@ export class Grapher
             (column) => column.source.name ?? ""
         )
 
-        // Shorten automatic source names for certain major sources
+        // Shorten automatic source names for certain major sources: todo: this sort of thing we could do in a smarter editor, and not at runtime
         sourceNames = sourceNames.map((sourceName) => {
             for (const majorSource of [
                 "World Bank – WDI",
