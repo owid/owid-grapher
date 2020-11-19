@@ -14,6 +14,7 @@ import {
     union,
     dateDiffInDays,
     isNumber,
+    omitUndefinedValues,
 } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import {
@@ -193,23 +194,23 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.display.numDecimalPlaces ?? 2
     }
 
-    @imemo get unit(): string {
-        return this.def.unit || this.display?.unit || ""
+    @imemo get unit(): string | undefined {
+        return this.def.unit || this.display?.unit
     }
 
-    @imemo get shortUnit(): string {
+    @imemo get shortUnit(): string | undefined {
         const shortUnit =
             this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
         const unit = this.display?.unit || this.def.unit || ""
 
-        if (!unit) return ""
+        if (!unit) return undefined
 
         if (unit.length < 3) return unit
         if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
 
-        return ""
+        return undefined
     }
 
     // Returns a map where the key is a series slug such as "name" and the value is a set
@@ -524,14 +525,18 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
 
     formatValueShort(value: number, options?: TickFormattingOptions) {
         return super.formatValueShort(value, {
-            unit: this.shortUnit,
+            ...omitUndefinedValues({
+                unit: this.shortUnit,
+            }),
             ...options,
         })
     }
 
     formatValueLong(value: number, options?: TickFormattingOptions) {
         return super.formatValueLong(value, {
-            unit: this.unit,
+            ...omitUndefinedValues({
+                unit: this.unit,
+            }),
             ...options,
         })
     }
