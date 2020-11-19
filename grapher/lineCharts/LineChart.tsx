@@ -735,7 +735,9 @@ export class LineChart
             Math.min(domain[0], yDomain[0]),
             Math.max(domain[1], yDomain[1]),
         ])
-        axis.hideFractionalTicks = yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = this.yColumns.every(
+            (yColumn) => yColumn.isAllIntegers
+        ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
         axis.formatColumn = yColumn
         return axis
