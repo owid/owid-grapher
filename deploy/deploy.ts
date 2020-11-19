@@ -60,7 +60,7 @@ const printAndExit = (message: string) => {
 
 const runAndTick = async (command: string, progressBar: ProgressBar) => {
     await exec(command)
-    progressBar.tick({ name: `✅ ${command}` })
+    progressBar.tick({ name: `✅  finished ${command}` })
 }
 
 // Wrap stderr before passing it to ProgressBar so we can save all writes
@@ -145,13 +145,13 @@ const main = async () => {
     const progressBar = new ProgressBar(
         `Baking and deploying to ${NAME} [:bar] :current/:total :elapseds :name\n`,
         {
-            total: 5 + scriptSteps + testSteps,
+            total: 6 + scriptSteps + testSteps,
             renderThrottle: 0, // print on every tick
             stream: (stream as unknown) as WriteStream,
         }
     )
 
-    progressBar.tick({ name: "✅ set params and run checks" })
+    progressBar.tick({ name: "✅ finished checking arguments" })
 
     const ROOT = "/home/owid"
     const ROOT_TMP = `${ROOT}/tmp`
@@ -162,11 +162,13 @@ const main = async () => {
 
     if (runChecksRemotely) {
         await runPreDeployChecksRemotely(DIR, HOST, SYNC_TARGET_TESTS)
-        progressBar.tick({ name: "✅📡 runPreDeployChecksRemotely" })
+        progressBar.tick({
+            name: "✅📡 finished running predeploy checks remotely",
+        })
     } else if (skipChecks) {
         if (NAME === LIVE_NAME)
             printAndExit(`Cannot skip checks when deploying to live`)
-        progressBar.tick({ name: "✅ skip checks" })
+        progressBar.tick({ name: "✅ finished checks because we skipped them" })
     } else {
         await runAndTick(`yarn prettify:check`, progressBar)
         await runAndTick(`yarn typecheck`, progressBar)
@@ -175,10 +177,12 @@ const main = async () => {
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed
     fs.writeFileSync(DIR + "/public/head.txt", gitCommitSHA, "utf8")
-    progressBar.tick({ name: "✅ write head.txt" })
+    progressBar.tick({ name: "✅ finished writing head.txt" })
 
     await ensureTmpDirExistsOnServer(HOST, ROOT_TMP)
-    progressBar.tick({ name: `✅ 📡${ROOT_TMP} exists on ${HOST}` })
+    progressBar.tick({
+        name: `✅ 📡 finished ensuring ${ROOT_TMP} exists on ${HOST}`,
+    })
 
     const scripts: any = {
         file: makeScriptToDoFileStuff(ROOT, NAME, SYNC_TARGET, TMP_NEW),
@@ -216,7 +220,7 @@ yarn tsn deploy/bakeSite.ts`,
 
     await copyLocalRepoToServerTmpDirectory(HOST, DIR, SYNC_TARGET)
     progressBar.tick({
-        name: `✅ 📡${DIR} repo rsynced to ${HOST} ${SYNC_TARGET}`,
+        name: `✅ 📡 finished rsync of ${DIR} to ${HOST} ${SYNC_TARGET}`,
     })
 
     for await (const name of Object.keys(scripts)) {
@@ -226,10 +230,13 @@ yarn tsn deploy/bakeSite.ts`,
         console.log(`📡 Running ${remoteScriptPath} on ${HOST}`)
         await runAndStreamScriptOnRemoteServerViaSSH(HOST, remoteScriptPath)
         progressBar.tick({
-            name: `✅ 📡${DIR} ${remoteScriptPath}`,
+            name: `✅ 📡 finished running ${remoteScriptPath}`,
         })
     }
 
+    progressBar.tick({
+        name: `✅ 📡 finished everything`,
+    })
     stream.replay()
 }
 
