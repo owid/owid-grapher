@@ -78,6 +78,11 @@ export const GrapherGrammar: Grammar = {
             "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
     },
+    sourceDesc: {
+        ...StringCellDef,
+        keyword: "sourceDesc",
+        description: "Short comma-separated list of source names",
+    },
     facet: {
         ...EnumCellDef,
         description: "Facet by column or entities",
@@ -88,7 +93,6 @@ export const GrapherGrammar: Grammar = {
             cssClass: "",
         })),
     },
-
     hideTitleAnnotation: {
         ...BooleanCellDef,
         description: "Hide automatic time/entity",
