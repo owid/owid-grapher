@@ -17,15 +17,15 @@ export enum ColumnTypeNames {
     RelativePercentage = "RelativePercentage",
     DecimalPercentage = "DecimalPercentage",
     Integer = "Integer",
-    Population = "Population",
-    PopulationDensity = "PopulationDensity",
     PercentChangeOverTime = "PercentChangeOverTime",
-    Age = "Age",
     Ratio = "Ratio",
     Year = "Year",
     Day = "Day",
     Date = "Date",
     Color = "Color",
+    Population = "Population",
+    PopulationDensity = "PopulationDensity",
+    Age = "Age",
 }
 
 export interface CoreColumnDef {

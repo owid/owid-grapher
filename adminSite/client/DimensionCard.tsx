@@ -146,15 +146,14 @@ export class DimensionCard extends React.Component<{
                             label="Unit of measurement"
                             field="unit"
                             store={dimension.display}
-                            auto={column.unit}
-                            helpText={`Original database unit: ${column.unit}`}
+                            auto={column.unit ?? ""}
                             onBlur={this.updateTables}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
-                            auto={column.shortUnit}
+                            auto={column.shortUnit ?? ""}
                             onBlur={this.updateTables}
                         />
                         <BindAutoFloat

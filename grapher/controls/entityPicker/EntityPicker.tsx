@@ -148,7 +148,7 @@ export class EntityPicker extends React.Component<{
 
             const formattedValue =
                 plotValue !== undefined
-                    ? col?.formatValue(plotValue)
+                    ? col?.formatValueShortWithAbbreviations(plotValue)
                     : undefined
             return {
                 entityName,

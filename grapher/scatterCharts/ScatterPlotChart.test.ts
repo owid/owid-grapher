@@ -708,8 +708,8 @@ describe("average annual change", () => {
     })
 
     it("formats axes with %", () => {
-        expect(chart.dualAxis.verticalAxis.formatTick(0)).toEqual("0%")
-        expect(chart.dualAxis.horizontalAxis.formatTick(0)).toEqual("0%")
+        expect(chart.dualAxis.verticalAxis.formatTick(0)).toEqual("+0%")
+        expect(chart.dualAxis.horizontalAxis.formatTick(0)).toEqual("+0%")
     })
 })
 

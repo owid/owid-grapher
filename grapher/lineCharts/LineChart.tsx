@@ -295,7 +295,7 @@ export class LineChart
     }
 
     @computed private get tooltip() {
-        const { hoverX, dualAxis, inputTable } = this
+        const { hoverX, dualAxis, inputTable, formatColumn } = this
 
         if (hoverX === undefined) return undefined
 
@@ -411,7 +411,7 @@ export class LineChart
                                     >
                                         {!value
                                             ? "No data"
-                                            : dualAxis.verticalAxis.formatTick(
+                                            : formatColumn.formatValueShort(
                                                   value.y,
                                                   { noTrailingZeroes: false }
                                               )}
@@ -591,6 +591,10 @@ export class LineChart
         return autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed private get formatColumn() {
+        return this.yColumns[0]
+    }
+
     // todo: for now just works with 1 y column
     @computed private get annotationsMap() {
         return this.inputTable
@@ -727,7 +731,6 @@ export class LineChart
         const { manager } = this
         const axisConfig = this.yAxisConfig
         if (manager.hideYAxis) axisConfig.hideAxis = true
-        const yColumn = this.yColumns[0]
         const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()
@@ -739,7 +742,7 @@ export class LineChart
             (yColumn) => yColumn.isAllIntegers
         ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.formatColumn = yColumn
+        axis.formatColumn = this.formatColumn
         return axis
     }
 }

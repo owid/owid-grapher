@@ -1146,3 +1146,11 @@ export function getClosestTimePairs(
 
     return decidedPairs
 }
+
+export const omitUndefinedValues = <T>(object: T): Partial<T> => {
+    const result: Partial<T> = {}
+    for (const key in object) {
+        if (object[key] !== undefined) result[key] = object[key]
+    }
+    return result
+}

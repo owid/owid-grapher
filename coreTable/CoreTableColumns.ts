@@ -13,6 +13,8 @@ import {
     range,
     union,
     dateDiffInDays,
+    isNumber,
+    omitUndefinedValues,
 } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import {
@@ -64,10 +66,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get isMissing(): boolean {
         return this instanceof MissingColumn
-    }
-
-    @imemo get unit() {
-        return this.def.unit || this.display?.unit || ""
     }
 
     get sum() {
@@ -158,8 +156,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get tolerance() {
-        return this.def.tolerance ?? this.display.tolerance ?? 0
-        // (this.property === "color" ? Infinity : 0) ... todo: figure out where color was being used
+        return this.display.tolerance ?? this.def.tolerance ?? 0
     }
 
     @imemo get domain() {
@@ -170,48 +167,57 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.display || new LegacyVariableDisplayConfig()
     }
 
-    formatValue(value: any) {
-        return anyToString(value)
+    abstract formatValue(value: any, options?: TickFormattingOptions): string
+
+    formatValueForMobile(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueForMobile(value: any) {
-        return this.formatValue(value)
+    formatValueShortWithAbbreviations(
+        value: any,
+        options?: TickFormattingOptions
+    ): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueShort(value: any, options?: TickFormattingOptions) {
-        return this.formatValue(value)
+    formatValueShort(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatValueLong(value: any) {
-        return this.formatValue(value)
+    formatValueLong(value: any, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
     }
 
-    formatForTick(value: any, options?: TickFormattingOptions) {
+    formatForTick(value: any, options?: TickFormattingOptions): string {
         return this.formatValueShort(value, options)
     }
 
-    @imemo get numDecimalPlaces() {
+    // A method for formatting for CSV
+    formatForCsv(value: JS_TYPE): string {
+        return csvEscape(this.formatValue(value))
+    }
+
+    @imemo get numDecimalPlaces(): number {
         return this.display.numDecimalPlaces ?? 2
     }
 
-    @imemo get shortUnit() {
+    @imemo get unit(): string | undefined {
+        return this.display?.unit ?? this.def.unit
+    }
+
+    @imemo get shortUnit(): string | undefined {
         const shortUnit =
             this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
-        const unit = this.display?.unit || this.def.unit || ""
+        const unit = this.unit
 
-        if (!unit) return ""
+        if (!unit) return undefined
 
         if (unit.length < 3) return unit
         if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
 
-        return ""
-    }
-
-    // A method for formatting for CSV
-    formatForCsv(value: JS_TYPE) {
-        return csvEscape(this.formatValue(value))
+        return undefined
     }
 
     // Returns a map where the key is a series slug such as "name" and the value is a set
@@ -467,10 +473,18 @@ export type CoreColumn = AbstractCoreColumn<any>
 
 export class MissingColumn extends AbstractCoreColumn<any> {
     jsType = JsTypes.string
+
+    formatValue() {
+        return ""
+    }
 }
 
 class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
+
+    formatValue(value: any) {
+        return anyToString(value)
+    }
 
     parse(val: any) {
         if (val === null) return ErrorValueTypes.NullButShouldBeString
@@ -487,31 +501,58 @@ class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn<boolean> {
     jsType = JsTypes.boolean
 
+    formatValue(value: any) {
+        return value ? "true" : "false"
+    }
+
     parse(val: any) {
         return !!val
     }
 }
 abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
+
+    formatValue(value: number, options?: TickFormattingOptions) {
+        if (isNumber(value)) {
+            return formatValue(value, {
+                numDecimalPlaces: this.numDecimalPlaces,
+                ...options,
+            })
+        }
+        return ""
+    }
+
+    formatValueShortWithAbbreviations(
+        value: number,
+        options?: TickFormattingOptions
+    ) {
+        return super.formatValueShortWithAbbreviations(value, {
+            shortNumberPrefixes: true,
+            // do not set a unit
+            ...options,
+        })
+    }
+
     formatValueShort(value: number, options?: TickFormattingOptions) {
-        const numDecimalPlaces = this.numDecimalPlaces
-        return formatValue(value, {
-            unit: this.shortUnit,
-            numDecimalPlaces,
+        return super.formatValueShort(value, {
+            ...omitUndefinedValues({
+                unit: this.shortUnit,
+            }),
+            ...options,
+        })
+    }
+
+    formatValueLong(value: number, options?: TickFormattingOptions) {
+        return super.formatValueLong(value, {
+            ...omitUndefinedValues({
+                unit: this.unit,
+            }),
             ...options,
         })
     }
 
     @imemo get isAllIntegers() {
         return this.values.every((val) => val % 1 === 0)
-    }
-
-    formatValueLong(value: number) {
-        const { unit, numDecimalPlaces } = this
-        return formatValue(value, {
-            unit,
-            numDecimalPlaces,
-        })
     }
 
     parse(val: any): number | ErrorValue {
@@ -537,13 +578,10 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    formatValue(value: number) {
-        if (value === undefined) return ""
-        return formatValue(value, {
+    formatValue(value: any, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
             numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: true,
-            shortNumberPrefixes: true,
+            ...options,
         })
     }
 
@@ -551,6 +589,47 @@ class IntegerColumn extends NumericColumn {
         return parseInt(val)
     }
 }
+
+class CurrencyColumn extends NumericColumn {
+    formatValue(value: any, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            numDecimalPlaces: 0,
+            unit: "$",
+            ...options,
+        })
+    }
+}
+// Expects 50% to be 50
+class PercentageColumn extends NumericColumn {
+    formatValue(value: number, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            numberPrefixes: false,
+            unit: "%",
+            ...options,
+        })
+    }
+}
+
+// Same as %, but indicates it's part of a group of columns that add up to 100%.
+// Might not need this.
+class RelativePercentageColumn extends PercentageColumn {}
+
+class PercentChangeOverTimeColumn extends PercentageColumn {
+    formatValue(value: number, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            showPlus: true,
+            ...options,
+        })
+    }
+}
+
+class DecimalPercentageColumn extends PercentageColumn {}
+class RatioColumn extends NumericColumn {}
+
+// todo: remove. should not be in coretable
+class EntityIdColumn extends NumericCategoricalColumn {}
+class EntityCodeColumn extends CategoricalColumn {}
+class EntityNameColumn extends CategoricalColumn {}
 
 // todo: cleanup time columns. current schema is a little incorrect.
 abstract class TimeColumn extends AbstractCoreColumn<number> {
@@ -602,95 +681,10 @@ class DateColumn extends DayColumn {
     }
 }
 
-class CurrencyColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "$",
-        })
-    }
-}
-// Expects 50% to be 50
-class PercentageColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-
-    formatValueLong(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 2,
-            noTrailingZeroes: true,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-
-    formatValueShort(value: any) {
-        return this.formatValue(value)
-    }
-}
-
-// Same as %, but indicates it's part of a group of columns that add up to 100%.
-// Might not need this.
-class RelativePercentageColumn extends PercentageColumn {}
-
-class PercentChangeOverTimeColumn extends PercentageColumn {
-    formatValue(value: number) {
-        return `${value > 0 ? "+" : ""}${super.formatValue(value)}`
-    }
-}
-
-// Expects 50% to be .5
-class DecimalPercentageColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value * 100, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-            unit: "%",
-        })
-    }
-}
 class PopulationColumn extends IntegerColumn {}
-class PopulationDensityColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 0,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-        })
-    }
-}
-class AgeColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 1,
-            noTrailingZeroes: false,
-            numberPrefixes: false,
-        })
-    }
-}
-class RatioColumn extends NumericColumn {
-    formatValue(value: number) {
-        return formatValue(value, {
-            numDecimalPlaces: 1,
-            noTrailingZeroes: false,
-            numberPrefixes: true,
-        })
-    }
-}
+class PopulationDensityColumn extends NumericColumn {}
 
-// todo: remove. should not be in coretable
-class EntityIdColumn extends NumericCategoricalColumn {}
-class EntityCodeColumn extends CategoricalColumn {}
-class EntityNameColumn extends CategoricalColumn {}
+class AgeColumn extends NumericColumn {}
 
 export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,
@@ -708,13 +702,13 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     RelativePercentage: RelativePercentageColumn,
     Integer: IntegerColumn,
     DecimalPercentage: DecimalPercentageColumn,
-    Population: PopulationColumn,
-    PopulationDensity: PopulationDensityColumn,
-    Age: AgeColumn,
     PercentChangeOverTime: PercentChangeOverTimeColumn,
     Ratio: RatioColumn,
     Color: ColorColumn,
     EntityCode: EntityCodeColumn,
     EntityId: EntityIdColumn,
     EntityName: EntityNameColumn,
+    Population: PopulationColumn,
+    PopulationDensity: PopulationDensityColumn,
+    Age: AgeColumn,
 }
