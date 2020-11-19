@@ -556,8 +556,11 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    get numDecimalPlaces() {
-        return 0
+    formatValue(value: any, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            numDecimalPlaces: 0,
+            ...options,
+        })
     }
 
     protected _parse(val: any) {
@@ -566,31 +569,20 @@ class IntegerColumn extends NumericColumn {
 }
 
 class CurrencyColumn extends NumericColumn {
-    get numDecimalPlaces() {
-        return 0
-    }
-
-    get unit() {
-        return "$"
-    }
-
-    get shortUnit() {
-        return "$"
+    formatValue(value: any, options?: TickFormattingOptions) {
+        return super.formatValue(value, {
+            numDecimalPlaces: 0,
+            unit: "$",
+            ...options,
+        })
     }
 }
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
-    get unit() {
-        return "%"
-    }
-
-    get shortUnit() {
-        return "%"
-    }
-
     formatValue(value: number, options?: TickFormattingOptions) {
         return super.formatValue(value, {
             numberPrefixes: false,
+            unit: "%",
             ...options,
         })
     }
@@ -629,11 +621,7 @@ class DecimalPercentageColumn extends PercentageColumn {
         return super.formatValue(value * 100, options)
     }
 }
-class RatioColumn extends NumericColumn {
-    get numDecimalPlaces() {
-        return 1
-    }
-}
+class RatioColumn extends NumericColumn {}
 
 // todo: remove. should not be in coretable
 class EntityIdColumn extends NumericCategoricalColumn {}
