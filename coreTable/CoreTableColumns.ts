@@ -514,6 +514,14 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         return ""
     }
 
+    formatValueForMobile(value: number, options?: TickFormattingOptions) {
+        return super.formatValueForMobile(value, {
+            shortNumberPrefixes: true,
+            // do not set a unit
+            ...options,
+        })
+    }
+
     formatValueShort(value: number, options?: TickFormattingOptions) {
         return super.formatValueShort(value, {
             unit: this.shortUnit,
