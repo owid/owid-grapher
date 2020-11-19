@@ -300,14 +300,20 @@ export const applyTransforms = (
             return
         }
         const params = words.filter((word) => word !== transformName)
+        const fn = availableTransforms[transformName]
         try {
-            columnStore[def.slug] = availableTransforms[transformName](
-                columnStore,
-                ...params
-            )
+            columnStore[def.slug] = fn(columnStore, ...params)
         } catch (err) {
-            console.log(err)
-            console.log(`Error performing transform ${def.transform}`)
+            console.error(
+                `Error performing transform '${def.transform}' for column '${
+                    def.slug
+                }'. Expected args: ${fn.length}. Provided args: ${
+                    1 + params.length
+                }. Ran as ${transformName}(columnStore, ${params
+                    .map((param) => `"${param}"`)
+                    .join(",")}).`
+            )
+            console.error(err)
         }
     })
     return columnStore
