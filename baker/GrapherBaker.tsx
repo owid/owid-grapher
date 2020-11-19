@@ -16,6 +16,7 @@ import { OPTIMIZE_SVG_EXPORTS } from "settings"
 import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
+import { redirectedGrapherIdsToExplorer } from "explorer/legacyCovidExplorerRedirects"
 
 export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -131,7 +132,7 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers = async (
     bakedSiteDir: string
 ) => {
-    const rows = await db.query(
+    const rows: { id: number; config: any }[] = await db.query(
         `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
     )
 
@@ -148,10 +149,11 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         const grapher: GrapherInterface = JSON.parse(row.config)
         grapher.id = row.id
         newSlugs.push(grapher.slug)
-        await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
-            bakedSiteDir,
-            grapher
-        )
+        if (!redirectedGrapherIdsToExplorer.has(row.id))
+            await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
+                bakedSiteDir,
+                grapher
+            )
         progressBar.tick({ name: `✅ ${grapher.slug}` })
     }
 

@@ -15,7 +15,6 @@ interface GrapherToExplorerRedirect {
 }
 
 /**
- * The grapher IDs are not used anywhere, they are here just for reference.
  * We need to include any slug changes below that may happen after deploying this.
  * We are manually tracking the slugs because deleting/unpublishing a grapher automatically
  * deletes all grapher redirects (old slugs).
@@ -206,6 +205,10 @@ export const grapherToExplorerRedirectsByGrapherSlug: Record<
             redirect.slugs.map((slug) => [slug, redirect])
         )
     )
+)
+
+export const redirectedGrapherIdsToExplorer = new Set<number>(
+    grapherToExplorerRedirects.map((redirect) => redirect.id)
 )
 
 export function replaceGrapherIframesWithExplorerIframes($: CheerioStatic) {
