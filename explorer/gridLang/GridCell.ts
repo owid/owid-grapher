@@ -7,7 +7,7 @@ import {
     CellHasErrorsClass,
     MatrixLine,
     MatrixProgram,
-    KeywordMap,
+    Grammar,
     FrontierCellClass,
     ParsedCell,
     CommentCellDef,
@@ -51,18 +51,18 @@ export class GridCell implements ParsedCell {
     private get cellTerminalTypeDefinition(): CellDef | undefined {
         const { rootDefinition } = this
         if (this.isCommentCell) return CommentCellDef
-        const keywordMap = (rootDefinition.keywordMap as unknown) as KeywordMap
+        const grammar = (rootDefinition.grammar as unknown) as Grammar
         if (this.column === 0) return (rootDefinition as unknown) as CellDef
         const firstWordOnLine = this.line ? this.line[0] : undefined
         const isFirstWordAKeyword =
-            firstWordOnLine && keywordMap[firstWordOnLine] !== undefined
+            firstWordOnLine && grammar[firstWordOnLine] !== undefined
         if (this.column === 1 && firstWordOnLine && isFirstWordAKeyword)
-            return keywordMap[firstWordOnLine]
+            return grammar[firstWordOnLine]
 
         if (!isFirstWordAKeyword) return undefined
 
         // It has a keyword but it is column 2+
-        const def = keywordMap[firstWordOnLine!]
+        const def = grammar[firstWordOnLine!]
         const cellTypeDef = def.rest && def.rest[this.column - 2]
         if (cellTypeDef) return cellTypeDef
         return NothingGoesThereCellDef
@@ -109,16 +109,16 @@ export class GridCell implements ParsedCell {
             headerKeyword,
         } = info
 
-        const subTableDef = this.rootDefinition.keywordMap![parentKeyword]
+        const subTableDef = this.rootDefinition.grammar![parentKeyword]
 
         const headerCellDef = subTableDef && subTableDef.headerCellDef
 
         if (!headerCellDef) return undefined
 
-        const headerKeywordMap = headerCellDef.keywordMap
+        const headerGrammar = headerCellDef.grammar
         const valueCellDef =
-            !isCellInHeader && headerKeywordMap
-                ? headerKeywordMap[headerKeyword]
+            !isCellInHeader && headerGrammar
+                ? headerGrammar[headerKeyword]
                 : undefined
 
         return {
@@ -143,15 +143,15 @@ export class GridCell implements ParsedCell {
      */
     private isSubTableFrontierCell(headerRow: number, subTableDef: CellDef) {
         const { line, column, row } = this
-        const keywordMap = subTableDef.headerCellDef!.keywordMap
+        const grammar = subTableDef.headerCellDef!.grammar
         const isToTheImmediateRightOfLastFullCell =
             line && trimArray(line).length === column
         return (
             row === headerRow &&
             !isBlankLine(line) &&
             isToTheImmediateRightOfLastFullCell &&
-            keywordMap &&
-            Object.keys(keywordMap).length
+            grammar &&
+            Object.keys(grammar).length
         )
     }
 
@@ -238,8 +238,8 @@ export class GridCell implements ParsedCell {
         if (isEmpty(value)) return undefined
         if (errorMessage) return errorMessage
 
-        if (cellDef.keywordMap) {
-            const def = cellDef.keywordMap[value!] ?? cellDef.catchAllKeyword
+        if (cellDef.grammar) {
+            const def = cellDef.grammar[value!] ?? cellDef.catchAllKeyword
             return def.description
         }
 
@@ -270,13 +270,13 @@ export class GridCell implements ParsedCell {
 
     get optionKeywords() {
         const { cellDef } = this
-        const { keywordMap, headerCellDef, terminalOptions } = cellDef
+        const { grammar, headerCellDef, terminalOptions } = cellDef
         return terminalOptions
             ? terminalOptions.map((def) => def.keyword)
-            : keywordMap
-            ? Object.keys(keywordMap)
+            : grammar
+            ? Object.keys(grammar)
             : headerCellDef
-            ? Object.keys(headerCellDef.keywordMap!)
+            ? Object.keys(headerCellDef.grammar!)
             : undefined
     }
 }

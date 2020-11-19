@@ -1,22 +1,20 @@
 #! /usr/bin/env yarn jest
 
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
-import { getRequiredGrapherIds } from "./ExplorerUtils"
+import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
 import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
 } from "explorer/gridLang/GridLangConstants"
-import {
-    ExplorerRootKeywordMap,
-    GrapherSubTableHeaderKeywordMap,
-} from "./ExplorerGrammar"
+import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
+import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 
-const grapherIdKeyword = GrapherSubTableHeaderKeywordMap.grapherId.keyword
-const tableSlugKeyword = GrapherSubTableHeaderKeywordMap.tableSlug.keyword
+const grapherIdKeyword = GrapherGrammar.grapherId.keyword
+const tableSlugKeyword = GrapherGrammar.tableSlug.keyword
 
 describe(ExplorerProgram, () => {
-    const testProgram = `${ExplorerRootKeywordMap.graphers.keyword}
+    const testProgram = `${ExplorerGrammar.graphers.keyword}
 	${grapherIdKeyword}	Examples Radio	title	subtitle	${tableSlugKeyword}	type	ySlugs	hasMapTab
 	35	Load A Grapher Demo
 		Create A Grapher Demo	Hello world	This is a subtitle	demo	DiscreteBar	gdp	true
@@ -31,8 +29,8 @@ describe(ExplorerProgram, () => {
     })
 
     it("allows blank lines in blocks", () => {
-        const code = `${ExplorerRootKeywordMap.explorerTitle.keyword}\tData Explorer
-${ExplorerRootKeywordMap.graphers.keyword}
+        const code = `${ExplorerGrammar.explorerTitle.keyword}\tData Explorer
+${ExplorerGrammar.graphers.keyword}
 \t${grapherIdKeyword}\tDevice Radio
 \t35\tInternet
 

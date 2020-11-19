@@ -11,7 +11,7 @@ import {
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
-import { ExplorerProgram } from "./ExplorerProgram"
+import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"

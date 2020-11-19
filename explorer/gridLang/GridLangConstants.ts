@@ -11,14 +11,14 @@ export const GRID_EDGE_DELIMITER = "\t"
 
 export type CellCoordinate = number // An integer >= 0
 
-export type KeywordMap = { [keywordSlug: string]: CellDef }
+export type Grammar = { [keywordSlug: string]: CellDef }
 
 export interface CellDef {
     terminalOptions?: CellDef[]
     cssClass: string
     description: string
     keyword: string
-    keywordMap?: KeywordMap
+    grammar?: Grammar
     headerCellDef?: CellDef
     catchAllKeyword?: CellDef
     regex?: RegExp // A validation regex a value must pass

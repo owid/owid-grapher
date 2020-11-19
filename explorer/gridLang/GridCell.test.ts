@@ -5,13 +5,13 @@ import {
     CellDef,
     CellHasErrorsClass,
     FrontierCellClass,
-    KeywordMap,
+    Grammar,
     RootKeywordCellDef,
     StringCellDef,
 } from "explorer/gridLang/GridLangConstants"
 import { tsvToMatrix } from "./GrammarUtils"
 
-const TestGrammarRootKeywordMap: KeywordMap = {
+const TestGrammar: Grammar = {
     title: {
         ...StringCellDef,
         keyword: "title",
@@ -20,9 +20,9 @@ const TestGrammarRootKeywordMap: KeywordMap = {
     },
 } as const
 
-const TestGrammar: CellDef = {
+const TestGrammarRootDef: CellDef = {
     ...RootKeywordCellDef,
-    keywordMap: TestGrammarRootKeywordMap,
+    grammar: TestGrammar,
 }
 
 describe(GridCell, () => {
@@ -30,12 +30,10 @@ describe(GridCell, () => {
         const cell = new GridCell(
             tsvToMatrix(`title\tHello world`),
             { row: 0, column: 1 },
-            TestGrammar
+            TestGrammarRootDef
         )
         expect(cell.errorMessage).toEqual(``)
-        expect(cell.comment).toContain(
-            TestGrammarRootKeywordMap.title.description
-        )
+        expect(cell.comment).toContain(TestGrammar.title.description)
         expect(cell.cssClasses).toContain(StringCellDef.cssClass)
         expect(cell.placeholder).toBeFalsy()
     })
@@ -44,7 +42,7 @@ describe(GridCell, () => {
         const cell = new GridCell(
             tsvToMatrix(`title`),
             { row: 0, column: 1 },
-            TestGrammar
+            TestGrammarRootDef
         )
         expect(cell.placeholder).toBeTruthy()
     })
@@ -53,11 +51,9 @@ describe(GridCell, () => {
         const cell = new GridCell(
             tsvToMatrix(`title\tHello world`),
             { row: 0, column: 0 },
-            TestGrammar
+            TestGrammarRootDef
         )
-        expect(cell.comment).toContain(
-            TestGrammarRootKeywordMap.title.description
-        )
+        expect(cell.comment).toContain(TestGrammar.title.description)
     })
 
     it("can insert a css class to show the user a + button", () => {
@@ -65,12 +61,15 @@ describe(GridCell, () => {
             new GridCell(
                 tsvToMatrix(`title\tHello world`),
                 { row: 1, column: 0 },
-                TestGrammar
+                TestGrammarRootDef
             ).cssClasses
         ).toContain(FrontierCellClass)
         expect(
-            new GridCell(tsvToMatrix(``), { row: 1, column: 0 }, TestGrammar)
-                .cssClasses
+            new GridCell(
+                tsvToMatrix(``),
+                { row: 1, column: 0 },
+                TestGrammarRootDef
+            ).cssClasses
         ).not.toContain(FrontierCellClass)
     })
 
@@ -78,7 +77,7 @@ describe(GridCell, () => {
         const cell = new GridCell(
             tsvToMatrix(`tile\tHello world`),
             { row: 0, column: 0 },
-            TestGrammar
+            TestGrammarRootDef
         )
         expect(cell.errorMessage).not.toEqual(``)
         expect(cell.cssClasses).toContain(CellHasErrorsClass)

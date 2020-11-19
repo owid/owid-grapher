@@ -1,4 +1,4 @@
-import { ExplorerRootKeywordMap } from "explorer/client/ExplorerGrammar"
+import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { CellPosition } from "explorer/gridLang/GridLangConstants"
 import Handsontable from "handsontable"
@@ -120,7 +120,7 @@ export class AutofillColDefCommand extends HotCommand {
     hidden(hot: Handsontable) {
         const cell = this.cell(hot)
         return cell
-            ? cell.cellDef?.keyword !== ExplorerRootKeywordMap.table.keyword
+            ? cell.cellDef?.keyword !== ExplorerGrammar.table.keyword
             : true
     }
 }

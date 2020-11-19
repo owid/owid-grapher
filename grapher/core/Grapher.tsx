@@ -1163,9 +1163,7 @@ export class Grapher
     }
 
     @computed get sourcesLine() {
-        return this.sourceDesc !== undefined
-            ? this.sourceDesc
-            : this.defaultSourcesLine
+        return this.sourceDesc ?? this.defaultSourcesLine
     }
 
     @computed get columnsWithSources() {

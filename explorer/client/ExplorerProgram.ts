@@ -12,7 +12,7 @@ import {
     ExplorerControlOption,
     ExplorerControlTypeRegex,
     DefaultNewExplorerSlug,
-} from "./ExplorerConstants"
+} from "explorer/client/ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
@@ -21,24 +21,23 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
-import { getRequiredGrapherIds } from "./ExplorerUtils"
+import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
+import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import {
-    ColumnsSubTableHeaderKeywordMap,
-    ExplorerGrammar,
-    ExplorerRootKeywordMap,
-    GrapherSubTableHeaderKeywordMap,
-} from "./ExplorerGrammar"
-import {
+    CellDef,
     GridBoolean,
     GRID_CELL_DELIMITER,
     GRID_NODE_DELIMITER,
-    KeywordMap,
+    Grammar,
+    RootKeywordCellDef,
 } from "explorer/gridLang/GridLangConstants"
 import { GitCommit } from "gitCms/GitTypes"
 import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "explorer/gridLang/GridProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
+import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"
 
 interface Choice {
     title: string
@@ -61,9 +60,14 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     yScaleToggle?: boolean
 }
 
+const ExplorerRootDef: CellDef = {
+    ...RootKeywordCellDef,
+    grammar: ExplorerGrammar,
+}
+
 export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
-        super(slug, tsv, lastCommit, ExplorerGrammar)
+        super(slug, tsv, lastCommit, ExplorerRootDef)
         this.decisionMatrix = new DecisionMatrix(
             this.decisionMatrixCode ?? "",
             lastCommit?.hash
@@ -104,9 +108,7 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get currentlySelectedGrapherRow() {
-        const row = this.getKeywordIndex(
-            ExplorerRootKeywordMap.graphers.keyword
-        )
+        const row = this.getKeywordIndex(ExplorerGrammar.graphers.keyword)
         return row === -1
             ? undefined
             : row + this.decisionMatrix.selectedRowIndex + 2
@@ -120,84 +122,79 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get explorerTitle() {
-        return this.getLineValue(ExplorerRootKeywordMap.explorerTitle.keyword)
+        return this.getLineValue(ExplorerGrammar.explorerTitle.keyword)
     }
 
     get subNavId(): SubNavId | undefined {
-        return this.getLineValue(
-            ExplorerRootKeywordMap.subNavId.keyword
-        ) as SubNavId
+        return this.getLineValue(ExplorerGrammar.subNavId.keyword) as SubNavId
     }
 
     get googleSheet() {
-        return this.getLineValue(ExplorerRootKeywordMap.googleSheet.keyword)
+        return this.getLineValue(ExplorerGrammar.googleSheet.keyword)
     }
 
     get hideAlertBanner() {
         return (
-            this.getLineValue(
-                ExplorerRootKeywordMap.hideAlertBanner.keyword
-            ) === GridBoolean.true
+            this.getLineValue(ExplorerGrammar.hideAlertBanner.keyword) ===
+            GridBoolean.true
         )
     }
 
     get subNavCurrentId() {
-        return this.getLineValue(ExplorerRootKeywordMap.subNavCurrentId.keyword)
+        return this.getLineValue(ExplorerGrammar.subNavCurrentId.keyword)
     }
 
     get thumbnail() {
-        return this.getLineValue(ExplorerRootKeywordMap.thumbnail.keyword)
+        return this.getLineValue(ExplorerGrammar.thumbnail.keyword)
     }
 
     get explorerSubtitle() {
-        return this.getLineValue(
-            ExplorerRootKeywordMap.explorerSubtitle.keyword
-        )
+        return this.getLineValue(ExplorerGrammar.explorerSubtitle.keyword)
     }
 
     get entityType() {
-        return this.getLineValue(ExplorerRootKeywordMap.entityType.keyword)
+        return this.getLineValue(ExplorerGrammar.entityType.keyword)
     }
 
     get pickerColumnSlugs() {
         const slugs = this.getLineValue(
-            ExplorerRootKeywordMap.pickerColumnSlugs.keyword
+            ExplorerGrammar.pickerColumnSlugs.keyword
         )
         return slugs ? slugs.split(" ") : undefined
     }
 
     get defaultView() {
-        return this.getLineValue(ExplorerRootKeywordMap.defaultView.keyword)
+        return this.getLineValue(ExplorerGrammar.defaultView.keyword)
     }
 
     get hideControls() {
-        return this.getLineValue(ExplorerRootKeywordMap.hideControls.keyword)
+        return this.getLineValue(ExplorerGrammar.hideControls.keyword)
     }
 
     get isPublished() {
         return (
-            this.getLineValue(ExplorerRootKeywordMap.isPublished.keyword) ===
+            this.getLineValue(ExplorerGrammar.isPublished.keyword) ===
             GridBoolean.true
         )
     }
 
     setPublished(value: boolean) {
         return this.clone.setLineValue(
-            ExplorerRootKeywordMap.isPublished.keyword,
+            ExplorerGrammar.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
         )
     }
 
     get wpBlockId() {
         const blockIdString = this.getLineValue(
-            ExplorerRootKeywordMap.wpBlockId.keyword
+            ExplorerGrammar.wpBlockId.keyword
         )
         return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     get decisionMatrixCode() {
         const keywordIndex = this.getKeywordIndex(
-            ExplorerRootKeywordMap.graphers.keyword
+            ExplorerGrammar.graphers.keyword
         )
         if (keywordIndex === -1) return undefined
         return this.getBlock(keywordIndex)
@@ -209,15 +206,13 @@ export class ExplorerProgram extends GridProgram {
 
     get tableCount() {
         return this.lines.filter((line) =>
-            line.startsWith(ExplorerRootKeywordMap.table.keyword)
+            line.startsWith(ExplorerGrammar.table.keyword)
         ).length
     }
 
     get inlineTableCount() {
         return this.lines
-            .filter((line) =>
-                line.startsWith(ExplorerRootKeywordMap.table.keyword)
-            )
+            .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
             .filter((line) => {
                 const data = this.getTableDef(line.split(this.cellDelimiter)[1])
                     ?.inlineData
@@ -231,7 +226,7 @@ export class ExplorerProgram extends GridProgram {
         const clone = this.clone
 
         const colDefRow = clone.getRowMatchingWords(
-            ExplorerRootKeywordMap.columns.keyword,
+            ExplorerGrammar.columns.keyword,
             tableSlug
         )
         if (colDefRow > -1) {
@@ -242,7 +237,7 @@ export class ExplorerProgram extends GridProgram {
         const table = await clone.tryFetchTableForTableSlugIfItHasUrl(tableSlug)
 
         const tableDefRow = clone.getRowMatchingWords(
-            ExplorerRootKeywordMap.table.keyword,
+            ExplorerGrammar.table.keyword,
             undefined,
             tableSlug
         )
@@ -255,24 +250,21 @@ export class ExplorerProgram extends GridProgram {
         const missing = newCols
             .appendColumns([
                 {
-                    slug: ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                    slug: ColumnGrammar.notes.keyword,
                     values: newCols.indices.map(() => `Unreviewed`),
                 },
             ])
             .select([
-                ColumnsSubTableHeaderKeywordMap.slug.keyword,
+                ColumnGrammar.slug.keyword,
                 ,
-                ColumnsSubTableHeaderKeywordMap.name.keyword,
+                ColumnGrammar.name.keyword,
                 ,
-                ColumnsSubTableHeaderKeywordMap.type.keyword,
-                ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                ColumnGrammar.type.keyword,
+                ColumnGrammar.notes.keyword,
             ] as string[])
 
-        clone.appendBlock(ExplorerRootKeywordMap.table.keyword, table!.toTsv())
-        clone.appendBlock(
-            ExplorerRootKeywordMap.columns.keyword,
-            missing.toTsv()
-        )
+        clone.appendBlock(ExplorerGrammar.table.keyword, table!.toTsv())
+        clone.appendBlock(ExplorerGrammar.columns.keyword, missing.toTsv())
         return clone
     }
 
@@ -294,21 +286,21 @@ export class ExplorerProgram extends GridProgram {
         const missing = newCols
             .appendColumns([
                 {
-                    slug: ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                    slug: ColumnGrammar.notes.keyword,
                     values: newCols.indices.map(() => `Unreviewed`),
                 },
             ])
             .select([
-                ColumnsSubTableHeaderKeywordMap.slug.keyword,
+                ColumnGrammar.slug.keyword,
                 ,
-                ColumnsSubTableHeaderKeywordMap.name.keyword,
+                ColumnGrammar.name.keyword,
                 ,
-                ColumnsSubTableHeaderKeywordMap.type.keyword,
-                ColumnsSubTableHeaderKeywordMap.notes.keyword,
+                ColumnGrammar.type.keyword,
+                ColumnGrammar.notes.keyword,
             ] as string[])
 
         const colDefsRow = this.getRowMatchingWords(
-            ExplorerRootKeywordMap.columns.keyword,
+            ExplorerGrammar.columns.keyword,
             tableSlug
         )
 
@@ -321,7 +313,7 @@ export class ExplorerProgram extends GridProgram {
             )
         else
             clone.appendBlock(
-                `${ExplorerRootKeywordMap.columns.keyword}${
+                `${ExplorerGrammar.columns.keyword}${
                     tableSlug ? this.cellDelimiter + tableSlug : ""
                 }`,
                 missing.toTsv()
@@ -334,13 +326,10 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get grapherConfig(): ExplorerGrapherInterface {
-        const rootObject = trimAndParseObject(
-            this.tuplesObject,
-            GrapherSubTableHeaderKeywordMap
-        )
+        const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
 
         Object.keys(rootObject).forEach((key) => {
-            if (!GrapherSubTableHeaderKeywordMap[key]) delete rootObject[key]
+            if (!GrapherGrammar[key]) delete rootObject[key]
         })
 
         const selectedGrapherRow = this.decisionMatrix.selectedRow
@@ -363,7 +352,7 @@ export class ExplorerProgram extends GridProgram {
 
     getTableDef(tableSlug?: TableSlug): TableDef | undefined {
         const tableDefRow = this.getRowMatchingWords(
-            ExplorerRootKeywordMap.table.keyword,
+            ExplorerGrammar.table.keyword,
             undefined,
             tableSlug
         )
@@ -380,7 +369,7 @@ export class ExplorerProgram extends GridProgram {
         }
 
         const colDefsRow = this.getRowMatchingWords(
-            ExplorerRootKeywordMap.columns.keyword,
+            ExplorerGrammar.columns.keyword,
             tableSlug
         )
 
@@ -443,7 +432,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         delimited = removeChoiceControlTypeInfo(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
             {
-                slug: GrapherSubTableHeaderKeywordMap.grapherId.keyword,
+                slug: GrapherGrammar.grapherId.keyword,
                 type: ColumnTypeNames.Integer,
             },
         ])
@@ -568,7 +557,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     @computed get selectedRow() {
         return trimAndParseObject(
             this.table.rowsAt([this.selectedRowIndex])[0],
-            GrapherSubTableHeaderKeywordMap
+            GrapherGrammar
         )
     }
 
@@ -634,13 +623,13 @@ const makeCheckBoxOption = (
 export const makeFullPath = (slug: string) =>
     `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
 
-const trimAndParseObject = (config: any, keywordMap: KeywordMap) => {
+const trimAndParseObject = (config: any, grammar: Grammar) => {
     // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
     const trimmedRow = trimObject(config, true)
 
     // parse types
     Object.keys(trimmedRow).forEach((key) => {
-        const def = keywordMap[key]
+        const def = grammar[key]
         if (def && def.parse) trimmedRow[key] = def.parse(trimmedRow[key])
         // If there no definition but it is a boolean, parse it (todo: always have a def)
         else if (!def) {
