@@ -23,6 +23,9 @@ export enum ColumnTypeNames {
     Day = "Day",
     Date = "Date",
     Color = "Color",
+    Population = "Population",
+    PopulationDensity = "PopulationDensity",
+    Age = "Age",
 }
 
 export interface CoreColumnDef {

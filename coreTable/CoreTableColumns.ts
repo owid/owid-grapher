@@ -678,6 +678,11 @@ class DateColumn extends DayColumn {
     }
 }
 
+class PopulationColumn extends IntegerColumn {}
+class PopulationDensityColumn extends NumericColumn {}
+
+class AgeColumn extends NumericColumn {}
+
 export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,
     SeriesAnnotation: SeriesAnnotationColumn,
@@ -700,4 +705,7 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     EntityCode: EntityCodeColumn,
     EntityId: EntityIdColumn,
     EntityName: EntityNameColumn,
+    Population: PopulationColumn,
+    PopulationDensity: PopulationDensityColumn,
+    Age: AgeColumn,
 }
