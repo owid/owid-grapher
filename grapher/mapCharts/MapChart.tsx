@@ -17,6 +17,7 @@ import {
     minBy,
     difference,
     isPresent,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
@@ -61,6 +62,7 @@ import {
     makeClipPath,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -366,6 +368,7 @@ export class MapChart
             .attr("data-fill", function () {
                 return (this as SVGPathElement).getAttribute("fill")
             })
+        exposeInstanceOnWindow(this)
     }
 
     @computed get projectionChooserBounds() {
@@ -526,6 +529,15 @@ export class MapChart
     }
 
     render() {
+        if (this.failMessage)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.failMessage}
+                />
+            )
+
         const {
             focusBracket,
             focusEntity,

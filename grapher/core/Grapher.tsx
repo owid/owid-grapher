@@ -1978,6 +1978,7 @@ export class Grapher
         this.hasMapTab = grapher.hasMapTab
         this.facet = undefined
         this.hasChartTab = grapher.hasChartTab
+        this.map = grapher.map
     }
 
     debounceMode = false
