@@ -14,6 +14,7 @@ import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 import { parseIntOrUndefined } from "grapher/utils/Util"
 import { grapherToSVG } from "baker/GrapherImageBaker"
+import { EntitySelectionMode } from "grapher/core/GrapherConstants"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
@@ -208,7 +209,7 @@ testPageRouter.get("/embeds", async (req, res) => {
     }
 
     if (req.query.mixedTimeTypes) {
-        query.andWhere(
+        query = query.andWhere(
             `
             (
                 SELECT COUNT(DISTINCT CASE
@@ -222,6 +223,26 @@ testPageRouter.get("/embeds", async (req, res) => {
             ) >= 2
         `
         )
+    }
+
+    if (req.query.addCountryMode) {
+        const mode = req.query.addCountryMode
+        if (mode === "multiple") {
+            query = query.andWhere(
+                `config->'$.addCountryMode' IS NULL OR config->'$.addCountryMode' = :mode`,
+                {
+                    mode: EntitySelectionMode.MultipleEntities,
+                }
+            )
+        } else if (mode === "single") {
+            query = query.andWhere(`config->'$.addCountryMode' = :mode`, {
+                mode: EntitySelectionMode.SingleEntity,
+            })
+        } else if (mode === "disabled") {
+            query = query.andWhere(`config->'$.addCountryMode' = :mode`, {
+                mode: EntitySelectionMode.Disabled,
+            })
+        }
     }
 
     if (req.query.ids) {
