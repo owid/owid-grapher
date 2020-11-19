@@ -12,6 +12,7 @@ import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesVal
 import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { Time } from "coreTable/CoreTableConstants"
+import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 
 interface MapTooltipProps {
     tooltipDatum?: ChoroplethSeries
@@ -119,9 +120,17 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render() {
-        const { tooltipDatum, isEntityClickable, targetTime } = this.props
+        const {
+            tooltipDatum,
+            isEntityClickable,
+            targetTime,
+            manager,
+        } = this.props
 
-        const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
+        const clickToSelectMessage =
+            manager.type === ChartTypeName.LineChart
+                ? "Click for change over time"
+                : "Click to select"
 
         const { timeColumn } = this.inputTable
         const { renderSparkBars, barColor, tooltipTarget } = this
@@ -205,7 +214,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 opacity: 0.6,
                             }}
                         >
-                            {tooltipMessage}
+                            {clickToSelectMessage}
                         </p>
                     </div>
                 )}

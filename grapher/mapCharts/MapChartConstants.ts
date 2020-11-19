@@ -5,7 +5,7 @@ import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { Color, ColumnSlug, Time } from "coreTable/CoreTableConstants"
-import { SeriesName } from "grapher/core/GrapherConstants"
+import { ChartTypeName, SeriesName } from "grapher/core/GrapherConstants"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
@@ -52,6 +52,7 @@ export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
+    type?: ChartTypeName // Used to determine the "Click to select" text in MapTooltip
     mapConfig?: MapConfig
     endTime?: Time
 }
