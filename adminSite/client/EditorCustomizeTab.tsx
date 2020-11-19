@@ -35,10 +35,15 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.baseColorScheme = (selected.value === "default"
             ? undefined
             : selected.value) as ColorSchemeName
+
+        // clear out saved, pre-computed colors so the color scheme change is immediately visible
+        this.props.grapher.seriesColorMap?.clear()
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
         this.props.grapher.invertColorScheme = value || undefined
+
+        this.props.grapher.seriesColorMap?.clear()
     }
 
     render() {
