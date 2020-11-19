@@ -146,7 +146,6 @@ export class DimensionCard extends React.Component<{
                             label="Unit of measurement"
                             field="unit"
                             store={dimension.display}
-                            helpText={`Original database unit: ${column.unit}`}
                             auto={column.unit ?? ""}
                             onBlur={this.updateTables}
                         />
