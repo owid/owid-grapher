@@ -15,8 +15,8 @@ import {
     VerticalColorLegendManager,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
-import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { ColorScaleManager } from "grapher/color/ColorScale"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
@@ -467,16 +467,6 @@ export class StackedBarChart
 
     @computed private get xValues() {
         return uniq(this.allStackedPoints.map((bar) => bar.x))
-    }
-
-    colorScale = new ColorScale(this)
-
-    getColorForSeries(seriesName: SeriesName) {
-        const table = this.transformedTable
-        const color = this.isEntitySeries
-            ? table.getColorForEntityName(seriesName)
-            : table.getColorForColumnByDisplayName(seriesName)
-        return color ?? this.colorScale.getColor(seriesName) ?? "#ddd"
     }
 
     @computed get colorScaleConfig() {

@@ -19,7 +19,8 @@ import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
-import { easeLinear, select } from "d3"
+import { easeLinear, scaleOrdinal, select } from "d3"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -219,8 +220,26 @@ export class AbstactStackedChart
         return ""
     }
 
+    @computed private get colorScheme() {
+        const scheme =
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : null) ?? ColorSchemes.stackedAreaDefault
+        const seriesCount = this.isEntitySeries
+            ? this.selectionArray.numSelectedEntities
+            : this.yColumns.length
+        const baseColors = scheme.getColors(seriesCount)
+        if (!this.isEntitySeries) baseColors.reverse() // I don't know why
+        if (this.manager.invertColorScheme) baseColors.reverse()
+        return scaleOrdinal(baseColors)
+    }
+
     getColorForSeries(seriesName: SeriesName) {
-        return "#ddd"
+        const table = this.transformedTable
+        const color = this.isEntitySeries
+            ? table.getColorForEntityName(seriesName)
+            : table.getColorForColumnByDisplayName(seriesName)
+        return color ?? this.colorScheme(seriesName) ?? "#ddd"
     }
 
     @computed protected get selectionArray() {

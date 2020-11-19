@@ -9,9 +9,7 @@ import {
     minBy,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { scaleOrdinal } from "d3-scale"
 import { SeriesName } from "grapher/core/GrapherConstants"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
@@ -457,28 +455,6 @@ export class StackedAreaChart
         return this.legendDimensions
             ? this.bounds.right - this.legendDimensions.width
             : 0
-    }
-
-    @computed private get colorScheme() {
-        const scheme =
-            (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes.stackedAreaDefault
-        const seriesCount = this.isEntitySeries
-            ? this.selectionArray.numSelectedEntities
-            : this.yColumns.length
-        const baseColors = scheme.getColors(seriesCount)
-        if (!this.isEntitySeries) baseColors.reverse() // I don't know why
-        if (this.manager.invertColorScheme) baseColors.reverse()
-        return scaleOrdinal(baseColors)
-    }
-
-    getColorForSeries(seriesName: SeriesName) {
-        const table = this.transformedTable
-        const color = this.isEntitySeries
-            ? table.getColorForEntityName(seriesName)
-            : table.getColorForColumnByDisplayName(seriesName)
-        return color ?? this.colorScheme(seriesName) ?? "#ddd"
     }
 
     @computed get series() {
