@@ -80,7 +80,18 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable) {
-        const { backgroundSeriesLimit, excludedEntities } = this.manager
+        const {
+            backgroundSeriesLimit,
+            excludedEntities,
+            addCountryMode,
+        } = this.manager
+
+        if (addCountryMode === EntitySelectionMode.Disabled) {
+            table = table.filterByEntityNames(
+                this.selectionArray.selectedEntityNames
+            )
+        }
+
         if (excludedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
             table = table.columnFilter(
