@@ -623,12 +623,7 @@ class PercentChangeOverTimeColumn extends PercentageColumn {
     }
 }
 
-// Expects 50% to be .5
-class DecimalPercentageColumn extends PercentageColumn {
-    formatValue(value: number, options?: TickFormattingOptions) {
-        return super.formatValue(value * 100, options)
-    }
-}
+class DecimalPercentageColumn extends PercentageColumn {}
 class RatioColumn extends NumericColumn {}
 
 // todo: remove. should not be in coretable
