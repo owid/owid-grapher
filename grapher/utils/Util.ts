@@ -993,27 +993,6 @@ export const lowerCaseFirstLetterUnlessAbbreviation = (str: string) =>
         ? str
         : str.charAt(0).toLowerCase() + str.slice(1)
 
-export const getAvailableSlugSync = (
-    desiredSlugName: string,
-    existingSlugs: string[] | Set<string>
-) => {
-    existingSlugs = Array.isArray(existingSlugs)
-        ? new Set(existingSlugs)
-        : existingSlugs
-    const originalSlug = desiredSlugName
-    let num = 2
-    let suffix = ""
-    let slug = `${originalSlug}${suffix}`
-
-    while (existingSlugs.has(slug)) {
-        slug = `${originalSlug}${suffix}`
-        suffix = "-" + num
-        num++
-    }
-
-    return slug
-}
-
 /**
  * Use with caution - please note that this sort function only sorts on numeric data, and that sorts
  * **in-place** and **not stable**.

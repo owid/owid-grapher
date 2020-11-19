@@ -14,7 +14,6 @@ import {
     previous,
     intersectionOfSets,
     roundSigFig,
-    getAvailableSlugSync,
     anyToString,
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
@@ -348,15 +347,6 @@ describe(roundSigFig, () => {
 
     it("leaves zero unchanged", () => {
         expect(roundSigFig(0, 2)).toEqual(0)
-    })
-})
-
-describe(getAvailableSlugSync, () => {
-    it("can generate a unique slug", () => {
-        expect(getAvailableSlugSync("untitled", ["untitled"])).toEqual(
-            "untitled-2"
-        )
-        expect(getAvailableSlugSync("new", ["untitled"])).toEqual("new")
     })
 })
 

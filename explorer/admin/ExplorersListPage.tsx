@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync, orderBy } from "grapher/utils/Util"
+import { orderBy } from "grapher/utils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import {
@@ -31,7 +31,6 @@ import {
 } from "gitCms/GitCmsConstants"
 import moment from "moment"
 import {
-    DefaultNewExplorerSlug,
     ExplorersRoute,
     ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
@@ -241,11 +240,6 @@ export class ExplorersIndexPage extends React.Component {
             } else return text
         }
 
-        const nextAvailableSlug = getAvailableSlugSync(
-            DefaultNewExplorerSlug,
-            this.explorersToShow.map((exp) => exp.slug)
-        )
-
         const needsPull = true // todo: implement needsPull on server side and then use this.needsPull
         const pullButton = needsPull && (
             <span>
@@ -261,10 +255,7 @@ export class ExplorersIndexPage extends React.Component {
                     <FieldsRow>
                         <span>
                             Showing {explorersToShow.length} of {numTotalRows}{" "}
-                            explorers |{" "}
-                            <Link to={`/explorers/${nextAvailableSlug}`}>
-                                New
-                            </Link>
+                            explorers
                         </span>
                     </FieldsRow>
                     <ExplorerList
