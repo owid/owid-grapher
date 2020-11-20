@@ -17,7 +17,6 @@ import * as CommandPalette from "grapher/controls/CommandPalette.stories"
 import * as EntityPicker from "grapher/controls/entityPicker/EntityPicker.stories"
 import * as ScaleSelector from "grapher/controls/ScaleSelector.stories"
 import * as GlobalEntityControl from "grapher/controls/globalEntityControl/GlobalEntityControl.stories"
-import * as GlobalEntityControlPage from "grapher/controls/globalEntityControl/GlobalEntityControlPage.stories"
 import * as Grapher from "grapher/core/Grapher.stories"
 import * as DataTable from "grapher/dataTable/DataTable.stories"
 import * as FacetChart from "grapher/facetChart/FacetChart.stories"
@@ -78,6 +77,5 @@ runTests(MapChart)
 runTests(MapTooltip)
 runTests(SourcesTab)
 runTests(GlobalEntityControl)
-runTests(GlobalEntityControlPage)
 runTests(Spreadsheet)
 runTests(VerticalColorLegend)

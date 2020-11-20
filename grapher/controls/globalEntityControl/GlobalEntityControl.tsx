@@ -124,23 +124,20 @@ function SelectedItems<T>(props: {
     )
 }
 
-interface GlobalEntityControlProps {
-    globalEntitySelection: GlobalEntitySelection
-}
-
 @observer
-export class GlobalEntityControl extends React.Component<
-    GlobalEntityControlProps
-> {
+export class GlobalEntityControl extends React.Component<{
+    globalEntitySelection: GlobalEntitySelection
+}> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
-    @observable private isNarrow: boolean = true
-    @observable private isOpen: boolean = false
+    @observable private isNarrow = true
+    @observable private isOpen = false
     @observable private localEntity: GlobalEntitySelectionEntity | undefined
 
-    @observable.ref
-    private selectOptions: GroupedOptionsType<GlobalEntitySelectionEntity> = []
+    @observable.ref private selectOptions: GroupedOptionsType<
+        GlobalEntitySelectionEntity
+    > = []
 
     componentDidMount() {
         this.onResize()
@@ -162,9 +159,7 @@ export class GlobalEntityControl extends React.Component<
     private onResizeThrottled = throttle(this.onResize, 200)
     @action.bound private onResize() {
         const container = this.refContainer.current
-        if (container) {
-            this.isNarrow = container.offsetWidth <= 640
-        }
+        if (container) this.isNarrow = container.offsetWidth <= 640
     }
 
     @action.bound async populateLocalEntity() {
@@ -172,16 +167,14 @@ export class GlobalEntityControl extends React.Component<
             const localCountryCode = await getCountryCodeFromNetlifyRedirect()
             if (localCountryCode) {
                 const [country] = allEntities.filter(
-                    (c) => c.code === localCountryCode
+                    (entity) => entity.code === localCountryCode
                 )
-                if (country) {
-                    this.localEntity = country
-                }
+                if (country) this.localEntity = country
             }
         } catch (e) {}
     }
 
-    @computed private get selectedEntities(): GlobalEntitySelectionEntity[] {
+    @computed private get selectedEntities() {
         return this.props.globalEntitySelection.selectedEntities
     }
 
@@ -201,9 +194,7 @@ export class GlobalEntityControl extends React.Component<
         return entity.name
     }
 
-    @action.bound private prepareSelectOptions(): GroupedOptionsType<
-        GlobalEntitySelectionEntity
-    > {
+    @action.bound private prepareSelectOptions() {
         let optionGroups: GroupedOptionsType<GlobalEntitySelectionEntity> = []
         // We want to include the local country, but not if it's already selected, it adds
         // unnecessary duplication.
@@ -289,7 +280,7 @@ export class GlobalEntityControl extends React.Component<
 
     renderNarrow() {
         return (
-            <React.Fragment>
+            <>
                 <div
                     className={classnames("narrow-summary", {
                         "narrow-summary-selected-items": !this.isOpen,
@@ -306,7 +297,7 @@ export class GlobalEntityControl extends React.Component<
                             autoFocus={true}
                         />
                     ) : (
-                        <React.Fragment>
+                        <>
                             {this.selectedEntities.length === 0
                                 ? "None selected"
                                 : this.selectedEntities
@@ -325,7 +316,7 @@ export class GlobalEntityControl extends React.Component<
                                                   : [...acc, ", ", item],
                                           [] as (JSX.Element | string)[]
                                       )}
-                        </React.Fragment>
+                        </>
                     )}
                 </div>
                 <div className="narrow-actions">
@@ -341,7 +332,7 @@ export class GlobalEntityControl extends React.Component<
                         </button>
                     )}
                 </div>
-            </React.Fragment>
+            </>
         )
     }
 
@@ -391,24 +382,19 @@ export function runGlobalEntityControl(
     globalEntitySelection: GlobalEntitySelection
 ) {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
-    if (element) {
-        ReactDOM.hydrate(
-            <GlobalEntityControl
-                globalEntitySelection={globalEntitySelection}
-            />,
-            element
-        )
-        // We only want to bind the URL if a global control element exists
-        globalEntitySelection.bindUrlParamsToWindow()
-        // Load default set of countries if none are selected
-        const countryAttr = element.getAttribute("data-default-country")
-        if (
-            countryAttr &&
-            globalEntitySelection.selectedEntities.length === 0
-        ) {
-            const countryCodes = countryAttr.split(/[+,]/g)
-            globalEntitySelection.selectByCountryCodes(countryCodes)
-            globalEntitySelection.mode = GlobalEntitySelectionModes.override
-        }
+    if (!element) return
+
+    ReactDOM.hydrate(
+        <GlobalEntityControl globalEntitySelection={globalEntitySelection} />,
+        element
+    )
+    // We only want to bind the URL if a global control element exists
+    globalEntitySelection.bindUrlParamsToWindow()
+    // Load default set of countries if none are selected
+    const countryAttr = element.getAttribute("data-default-country")
+    if (countryAttr && globalEntitySelection.selectedEntities.length === 0) {
+        const countryCodes = countryAttr.split(/[+,]/g)
+        globalEntitySelection.selectByCountryCodes(countryCodes)
+        globalEntitySelection.mode = GlobalEntitySelectionModes.override
     }
 }

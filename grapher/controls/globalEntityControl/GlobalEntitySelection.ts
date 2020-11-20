@@ -24,12 +24,10 @@ export type GlobalEntitySelectionEntity = Country
 
 export class GlobalEntitySelection {
     private url?: GlobalEntitySelectionUrl
-    private isBoundToWindow: boolean = false
+    private isBoundToWindow = false
 
-    @observable mode: GlobalEntitySelectionModes =
-        GlobalEntitySelectionModes.none
-    @observable
-    selectedEntities: GlobalEntitySelectionEntity[] = []
+    @observable mode = GlobalEntitySelectionModes.none
+    @observable selectedEntities: GlobalEntitySelectionEntity[] = []
 
     selectByCountryCodes(codes: string[]) {
         // We want to preserve the order, because order matters – the first entity is the "primary"
@@ -42,19 +40,19 @@ export class GlobalEntitySelection {
     }
 
     bindUrlParamsToWindow() {
-        if (!this.isBoundToWindow) {
-            this.url = new GlobalEntitySelectionUrl(this)
-            this.url.populateFromQueryStr(window.location.search)
-            new UrlBinder().bindToWindow(this.url)
-        }
+        if (this.isBoundToWindow) return
+
+        this.url = new GlobalEntitySelectionUrl(this)
+        this.url.populateFromQueryStr(window.location.search)
+        new UrlBinder().bindToWindow(this.url)
     }
 }
 
-export function subscribeGrapherToGlobalEntitySelection(
+export const subscribeGrapherToGlobalEntitySelection = (
     grapher: Grapher,
     globalSelection: GlobalEntitySelection
-): IReactionDisposer {
-    return reaction(
+): IReactionDisposer =>
+    reaction(
         () => [
             grapher.isReady,
             globalSelection.mode,
@@ -76,11 +74,9 @@ export function subscribeGrapherToGlobalEntitySelection(
         },
         { fireImmediately: true }
     )
-}
 
-export function pageContainsGlobalEntityControl() {
-    return document.querySelector("[data-global-entity-control]") !== null
-}
+export const pageContainsGlobalEntityControl =
+    document.querySelector("[data-global-entity-control]") !== null
 
 type GlobalEntitySelectionQueryParams = {
     country?: string
@@ -93,7 +89,7 @@ class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
         this.globalEntitySelection = globalEntitySelection
     }
 
-    @computed get params(): GlobalEntitySelectionQueryParams {
+    @computed get params() {
         const params: GlobalEntitySelectionQueryParams = {}
         const entities = this.globalEntitySelection.selectedEntities
         // Do not add 'country' param unless at least one country is selected
@@ -105,9 +101,7 @@ class GlobalEntitySelectionUrl implements ObjectThatSerializesToQueryParams {
         return params
     }
 
-    @computed get debounceMode(): boolean {
-        return false
-    }
+    debounceMode = false
 
     populateFromQueryStr(queryStr?: string) {
         if (queryStr === undefined) return
