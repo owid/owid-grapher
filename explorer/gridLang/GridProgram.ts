@@ -263,7 +263,7 @@ export class GridProgram {
         return this
     }
 
-    protected appendBlock(key: string, value: string) {
+    appendBlock(key: string, value: string) {
         this.lines.push(key)
         value
             .split(this.nodeDelimiter)

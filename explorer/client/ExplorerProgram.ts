@@ -74,7 +74,7 @@ export class ExplorerProgram extends GridProgram {
         return new ExplorerProgram(json.slug, json.program, json.lastCommit)
     }
 
-    private get clone() {
+    get clone() {
         return ExplorerProgram.fromJson(this.toJson())
     }
 
@@ -257,26 +257,26 @@ export class ExplorerProgram extends GridProgram {
                 ColumnGrammar.notes.keyword,
             ] as string[])
 
-        clone.appendBlock(ExplorerGrammar.table.keyword, table!.toTsv())
         clone.appendBlock(ExplorerGrammar.columns.keyword, missing.toTsv())
+        clone.appendBlock(ExplorerGrammar.table.keyword, table!.toTsv())
         return clone
     }
 
-    async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
-        const clone = this.clone
-        const remoteTable = await clone.tryFetchTableForTableSlugIfItHasUrl(
-            tableSlug
-        )
+    autofillMissingColumnDefinitionsForTableCommand(
+        tableSlug?: string,
+        table?: CoreTable,
+        newCols?: CoreTable
+    ) {
         const existingTableDef = this.getTableDef(tableSlug)
-        const table =
-            remoteTable ||
+        table =
+            table ||
             (existingTableDef
                 ? new CoreTable(
                       existingTableDef.inlineData,
                       existingTableDef.columnDefinitions
                   )
-                : undefined)
-        const newCols = table!.autodetectedColumnDefs
+                : new CoreTable())
+        newCols = newCols ?? table!.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
                 {
@@ -299,20 +299,20 @@ export class ExplorerProgram extends GridProgram {
         )
 
         if (colDefsRow !== -1)
-            clone.updateBlock(
+            this.updateBlock(
                 colDefsRow,
-                new CoreTable(clone.getBlock(colDefsRow))
+                new CoreTable(this.getBlock(colDefsRow))
                     .concat([missing])
                     .toTsv()
             )
         else
-            clone.appendBlock(
+            this.appendBlock(
                 `${ExplorerGrammar.columns.keyword}${
                     tableSlug ? this.cellDelimiter + tableSlug : ""
                 }`,
                 missing.toTsv()
             )
-        return clone
+        return this
     }
 
     getUrlForTableSlug(tableSlug?: TableSlug) {

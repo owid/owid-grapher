@@ -24,6 +24,7 @@ import {
 import {
     AutofillColDefCommand,
     InlineDataCommand,
+    InlineGrapherCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
@@ -220,6 +221,10 @@ export class ExplorerCreatePage extends React.Component<{
             comments: true,
             contextMenu: {
                 items: {
+                    InlineGraphersCommand: new InlineGrapherCommand(
+                        program,
+                        (newProgram: string) => this.setProgram(newProgram)
+                    ).toHotCommand(),
                     AutofillColDefCommand: new AutofillColDefCommand(
                         program,
                         (newProgram: string) => this.setProgram(newProgram)

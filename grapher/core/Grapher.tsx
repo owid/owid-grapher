@@ -608,7 +608,7 @@ export class Grapher
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @action.bound private async downloadLegacyDataFromUrl(url: string) {
+    @action.bound async downloadLegacyDataFromUrl(url: string) {
         const json = await fetchJSON(url)
         this._receiveLegacyDataAndApplySelection(json)
     }

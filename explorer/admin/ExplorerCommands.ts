@@ -1,7 +1,17 @@
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { CellPosition } from "explorer/gridLang/GridLangConstants"
+import { CellPosition, ParsedCell } from "explorer/gridLang/GridLangConstants"
 import Handsontable from "handsontable"
+import {
+    ExplorersRouteGrapherConfigs,
+    ExplorersRouteQueryParam,
+} from "explorer/client/ExplorerConstants"
+import { Grapher } from "grapher/core/Grapher"
+import { CoreTable } from "coreTable/CoreTable"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
+import { pick } from "grapher/utils/Util"
+import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"
 
 abstract class HotCommand {
     protected program: ExplorerProgram
@@ -89,28 +99,87 @@ export class SelectAllHitsCommand extends HotCommand {
     }
 }
 
+// todo: remove post Graphers to Git
+export class InlineGrapherCommand extends HotCommand {
+    name(hot: Handsontable) {
+        const cell = this.cell(hot)
+        return `⚡ Inline Grapher config and column defs for ${cell?.value}`
+    }
+
+    async callback(hot: Handsontable) {
+        const cell = this.cell(hot)
+
+        if (!cell) return
+
+        const delimited = await fetch(
+            `/admin/api/${ExplorersRouteGrapherConfigs}?${ExplorersRouteQueryParam}=${cell.value}`
+        )
+        const configs: GrapherInterface[] = await delimited.json()
+        const keysToKeep = Object.keys(GrapherGrammar) // todo: slugs, yscale, colorscale
+
+        const clone = this.program.clone
+        for await (const config of configs) {
+            const grapher = new Grapher(config)
+            await grapher.downloadLegacyDataFromUrl(grapher.dataUrl)
+            clone.patch(pick(grapher.toObject(), keysToKeep))
+            clone.appendLine(`table`)
+            const colorScale = grapher.colorScale.toDSL()
+            const defs = grapher.inputTable.defs.map((def) =>
+                Object.assign({}, def, colorScale)
+            )
+
+            const colTable = new CoreTable(
+                defs,
+                Object.keys(ColumnGrammar).map((key) => ({ slug: key }))
+            )
+
+            clone.appendBlock(
+                `${ExplorerGrammar.columns.keyword}`,
+                colTable.toTsv()
+            )
+        }
+
+        this.setProgramCallback!(clone.toString())
+    }
+
+    disabled() {
+        return false
+    }
+
+    hidden(hot: Handsontable) {
+        const cell = this.cell(hot)
+        return cell
+            ? cell.cellDef?.keyword !== ExplorerGrammar.grapherId.keyword
+            : true
+    }
+}
+
 export class AutofillColDefCommand extends HotCommand {
     name() {
         return "⚡ Autofill missing column definitions"
     }
-    commandName: keyof ExplorerProgram =
-        "autofillMissingColumnDefinitionsForTableCommand"
 
     async callback(hot: Handsontable) {
         const selectedPosition = this.selectedPosition(hot)
-        const { program, commandName } = this
-
         if (!selectedPosition) return
-        const tableSlugCell = program.getCell({
+        const tableSlugCell = this.program.getCell({
             ...selectedPosition,
             column: selectedPosition.column + 1,
         })
 
-        // todo: figure out typings. we need keyof ExplorerProgram but only if key is to a callable method.
-        const newProgram = await (program as any)[commandName](
+        const newProgram = await this.getNewProgram(tableSlugCell)
+        this.setProgramCallback!(newProgram.toString())
+    }
+
+    protected async getNewProgram(tableSlugCell: ParsedCell) {
+        const remoteTable = await this.program.tryFetchTableForTableSlugIfItHasUrl(
             tableSlugCell.value
         )
-        this.setProgramCallback!(newProgram.toString())
+
+        return this.program.autofillMissingColumnDefinitionsForTableCommand(
+            tableSlugCell.value,
+            remoteTable
+        )
     }
 
     disabled() {
@@ -129,6 +198,10 @@ export class InlineDataCommand extends AutofillColDefCommand {
     name() {
         return "⚡ Inline data and autofill columns"
     }
-    commandName: keyof ExplorerProgram =
-        "replaceTableWithInlineDataAndAutofilledColumnDefsCommand"
+
+    protected async getNewProgram(tableSlugCell: ParsedCell) {
+        return await this.program.replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
+            tableSlugCell.value
+        )
+    }
 }
