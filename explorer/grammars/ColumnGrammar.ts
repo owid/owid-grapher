@@ -6,7 +6,11 @@ import {
     StringCellDef,
     IntegerCellDef,
     UrlCellDef,
+    EnumCellDef,
+    BooleanCellDef,
 } from "explorer/gridLang/GridLangConstants"
+import { BinningStrategy } from "grapher/color/BinningStrategy"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 export const ColumnGrammar: Grammar = {
     slug: {
@@ -102,5 +106,40 @@ export const ColumnGrammar: Grammar = {
         keyword: "additionalInfo",
         description:
             "Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like.",
+    },
+    colorScaleScheme: {
+        ...EnumCellDef,
+        keyword: "colorScaleScheme",
+        terminalOptions: Object.values(ColorSchemeName).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+        description: "The color scheme to use",
+    },
+    colorScaleInvert: {
+        ...BooleanCellDef,
+        keyword: "colorScaleInvert",
+        description: "Invert the color scale?",
+    },
+    colorScaleBinningStrategy: {
+        ...EnumCellDef,
+        keyword: "colorScaleBinningStrategy",
+        terminalOptions: Object.values(BinningStrategy).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+        description: "The binning strategy to use",
+    },
+    colorScaleNumericBins: {
+        ...StringCellDef,
+        keyword: "colorScaleNumericBins",
+        description: "Custom numeric bins",
+    },
+    colorScaleCategoricalBins: {
+        ...StringCellDef,
+        keyword: "colorScaleCategoricalBins",
+        description: "Custom categorical bins",
     },
 } as const

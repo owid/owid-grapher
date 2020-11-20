@@ -1,14 +1,15 @@
 import { observable } from "mobx"
 import { Color } from "coreTable/CoreTableConstants"
-import { BinningStrategy } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 import {
     deleteRuntimeAndUnchangedProps,
     objectWithPersistablesToObject,
     Persistable,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { extend, trimObject } from "grapher/utils/Util"
+import { extend, isEmpty, trimObject } from "grapher/utils/Util"
 import { ColorSchemeName } from "./ColorConstants"
+import { ColumnColorScale } from "coreTable/CoreColumnDef"
 
 class ColorScaleConfigDefaults {
     // Color scheme
@@ -95,4 +96,82 @@ export class ColorScaleConfig
         super()
         updatePersistables(this, obj)
     }
+
+    static fromDSL(scale: ColumnColorScale) {
+        const colorSchemeInvert = scale.colorScaleInvert
+        const baseColorScheme = scale.colorScaleScheme as ColorSchemeName
+
+        const customNumericValues: number[] = []
+        const customNumericLabels: string[] = []
+        const customNumericColors: Color[] = []
+        scale.colorScaleNumericBins?.split(INTER_BIN_DELIMITER).map((bin) => {
+            const [color, value, ...label] = bin.split(INTRA_BIN_DELIMITER)
+            customNumericValues.push(parseFloat(value))
+            customNumericLabels.push(label.join(INTRA_BIN_DELIMITER))
+            customNumericColors.push(color)
+        })
+
+        const customCategoryColors: {
+            [key: string]: string | undefined
+        } = {}
+
+        const customCategoryLabels: {
+            [key: string]: string | undefined
+        } = {}
+        scale.colorScaleCategoricalBins
+            ?.split(INTER_BIN_DELIMITER)
+            .map((bin) => {
+                const [color, value, ...label] = bin.split(INTRA_BIN_DELIMITER)
+                customCategoryColors[value] = color
+                customCategoryLabels[value] = label.join(INTRA_BIN_DELIMITER)
+            })
+        const trimmed = trimObject({
+            colorSchemeInvert,
+            baseColorScheme,
+            customNumericColors,
+            customNumericLabels,
+            customNumericValues,
+        })
+        return isEmpty(trimmed) ? undefined : trimmed
+    }
+
+    toDSL(): ColumnColorScale {
+        const {
+            baseColorScheme,
+            binningStrategy,
+            colorSchemeInvert,
+            customNumericValues,
+            customNumericColors,
+            customNumericLabels,
+            customCategoryLabels,
+            customCategoryColors,
+        } = this.toObject()
+
+        return trimObject({
+            colorScaleScheme: baseColorScheme,
+            colorScaleInvert: colorSchemeInvert,
+            colorScaleBinningStrategy: binningStrategy,
+            colorScaleNumericBins: (customNumericValues ?? [])
+                .map((value: any, index: number) =>
+                    [
+                        customNumericColors[index] ?? "",
+                        value,
+                        customNumericLabels[index],
+                    ].join(INTRA_BIN_DELIMITER)
+                )
+                .join(INTER_BIN_DELIMITER),
+            colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
+                .map((value) =>
+                    [
+                        customCategoryColors[value],
+                        value,
+                        customCategoryLabels[value],
+                    ].join(INTRA_BIN_DELIMITER)
+                )
+                .join(INTER_BIN_DELIMITER),
+        })
+    }
 }
+
+const INTER_BIN_DELIMITER = ";"
+const INTRA_BIN_DELIMITER = ";"

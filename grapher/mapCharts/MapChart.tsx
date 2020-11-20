@@ -63,6 +63,7 @@ import {
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -351,7 +352,10 @@ export class MapChart
     colorScale = new ColorScale(this)
 
     @computed get colorScaleConfig() {
-        return this.mapConfig.colorScale
+        return (
+            ColorScaleConfig.fromDSL(this.mapColumn.def) ??
+            this.mapConfig.colorScale
+        )
     }
 
     defaultBaseColorScheme = ColorSchemeName.BuGn

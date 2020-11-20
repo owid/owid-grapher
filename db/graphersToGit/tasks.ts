@@ -9,11 +9,14 @@ import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import { CoreTable } from "coreTable/CoreTable"
 import parseArgs from "minimist"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
 const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"
 const GRAPHER_COLOR_SCALES_LOCATION = __dirname + "/graphers-colorscales.json"
+const GRAPHER_ALL_COLOR_SCALES_LOCATION =
+    __dirname + "/graphers-colorscales.tsv"
 const GRAPHER_MAP_COLOR_SCALES_LOCATION =
     __dirname + "/graphers-mapcolorscales.json"
 
@@ -96,23 +99,38 @@ const graphersWithMapVariableIdsButNoMatchingDimension = async () => {
 const dumpColorScales = async () => {
     const hits: any[] = []
     const mapHits: any[] = []
+    const allColorScales: any[] = []
     eachGrapher((config) => {
         const { colorScale, map, id } = config
         const link = `https://ourworldindata.org/grapher/${config.slug}`
 
-        if (map?.colorScale)
+        if (map?.colorScale) {
             mapHits.push({
                 link,
                 id,
                 colorScale: map.colorScale,
             })
+            allColorScales.push({
+                id,
+                link,
+                notes: "From map",
+                ...new ColorScaleConfig(map.colorScale).toDSL(),
+            })
+        }
 
-        if (colorScale)
+        if (colorScale && colorScale.binningStrategy !== "equalInterval") {
             hits.push({
                 link,
                 id,
                 colorScale,
             })
+            allColorScales.push({
+                id,
+                link,
+                notes: "",
+                ...new ColorScaleConfig(colorScale).toDSL(),
+            })
+        }
     }, trimmedGraphers())
     fs.writeFileSync(
         GRAPHER_COLOR_SCALES_LOCATION,
@@ -122,6 +140,12 @@ const dumpColorScales = async () => {
     fs.writeFileSync(
         GRAPHER_MAP_COLOR_SCALES_LOCATION,
         JSON.stringify(mapHits, null, 2),
+        "utf8"
+    )
+
+    fs.writeFileSync(
+        GRAPHER_ALL_COLOR_SCALES_LOCATION,
+        new CoreTable(allColorScales).toTsv(),
         "utf8"
     )
 }

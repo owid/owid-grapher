@@ -62,6 +62,7 @@ import {
 } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { defaultIfErrorValue, isNotErrorValue } from "coreTable/ErrorValues"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 @observer
 export class ScatterPlotChart
@@ -622,7 +623,10 @@ export class ScatterPlotChart
     }
 
     @computed get colorScaleConfig() {
-        return this.manager.colorScale
+        return (
+            ColorScaleConfig.fromDSL(this.yColumn.def) ??
+            this.manager.colorScale
+        )
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents

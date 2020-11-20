@@ -1,3 +1,5 @@
+import { CoreColumn } from "coreTable/CoreTableColumns"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { Box, SeriesStrategy } from "grapher/core/GrapherConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import React from "react"

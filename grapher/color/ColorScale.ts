@@ -13,7 +13,8 @@ import {
 import { Color } from "coreTable/CoreTableConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
+import { getBinMaximums } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ColorSchemeName } from "./ColorConstants"
 

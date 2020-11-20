@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "coreTable/CoreTable"
-import { BinningStrategy } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 import { ColorScale } from "./ColorScale"
 import { ColorScaleConfigInterface } from "./ColorScaleConfig"
 

@@ -28,20 +28,31 @@ export enum ColumnTypeNames {
     Age = "Age",
 }
 
-export interface CoreColumnDef {
+export interface ColumnColorScale {
+    // Color scales
+    colorScaleScheme?: string
+    colorScaleInvert?: boolean
+    colorScaleBinningStrategy?: string
+    colorScaleNumericBins?: string
+    colorScaleCategoricalBins?: string
+}
+
+export interface CoreColumnDef extends ColumnColorScale {
     // Core
     slug: ColumnSlug
     type?: ColumnTypeNames
 
     // Computational
     transform?: string // Code that maps to a CoreTable transform
-    color?: Color // A column can have a color for use in charts.
     tolerance?: number // If set, some charts can use this for an interpolation strategy.
 
     // Column information used for display only
     name?: string // The display name for the column
     description?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
+
+    // Color
+    color?: Color // A column can have a fixed color for use in charts where the columns are series
 
     // Source information used for display only
     sourceName?: string
