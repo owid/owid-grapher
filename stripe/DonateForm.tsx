@@ -333,7 +333,7 @@ export class DonateForm extends React.Component {
                             />
                             <label htmlFor="showOnList">
                                 Include me on the public{" "}
-                                <a href="/supporters" target="_blank">
+                                <a href="/funding" target="_blank">
                                     list of donors
                                 </a>
                             </label>
