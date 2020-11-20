@@ -630,11 +630,11 @@ export class SiteBaker {
 
         if (authorEmail && authorName && commitMsg) {
             await this.silentExec(
-                `cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
+                `cd ${BAKED_SITE_DIR} && git add -A . && git commit --allow-empty --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
             )
         } else {
             await this.silentExec(
-                `cd ${BAKED_SITE_DIR} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`
+                `cd ${BAKED_SITE_DIR} && git add -A . && git commit --allow-empty -a -m '${commitMsg}' && git push origin master`
             )
         }
     }
