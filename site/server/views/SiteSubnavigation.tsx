@@ -26,7 +26,7 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             href: "/history-of-our-world-in-data",
             id: "history",
         },
-        { label: "Supporters", href: "/supporters", id: "supporters" },
+        { label: "Funding", href: "/supporters", id: "supporters" },
         { label: "FAQs", href: "/faqs", id: "faqs" },
         {
             label: "How-Tos",
