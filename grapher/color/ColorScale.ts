@@ -13,9 +13,10 @@ import {
 import { Color } from "../../coreTable/CoreTableConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ColorSchemeName } from "./ColorConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { getBinMaximums } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 
 const NO_DATA_LABEL = "No data"
 
