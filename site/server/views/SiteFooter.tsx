@@ -239,7 +239,7 @@ export const SiteFooter = ({
                 <script src={webpack("owid.js", "site")} />
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window.runSiteFooterScripts()`,
+                        __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
                     }}
                 />
             </footer>

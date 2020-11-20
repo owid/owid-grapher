@@ -28,9 +28,7 @@ import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
-
-export const GLOBAL_ENTITY_CONTROL_DATA_ATTR = "data-global-entity-control"
-export const GLOBAL_ENTITY_CONTROL_SELECTOR = `*[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`
+import { GLOBAL_ENTITY_CONTROL_SELECTOR } from "./GlobalEntityControlConstants"
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -378,7 +376,7 @@ export class GlobalEntityControl extends React.Component<{
     }
 }
 
-export function runGlobalEntityControl(
+export function hydrateGlobalEntityControlIfAny(
     globalEntitySelection: GlobalEntitySelection
 ) {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)

@@ -93,24 +93,23 @@ class MultiEmbedder {
         return this
     }
 
-    private watchingScroll: boolean = false
+    private watchingScroll = false
 
     @bind public watchScroll() {
-        if (!this.watchingScroll) {
-            window.addEventListener("scroll", this.loadVisibleFiguresThrottled)
-            this.watchingScroll = true
-        }
+        if (this.watchingScroll) return this
+
+        window.addEventListener("scroll", this.loadVisibleFiguresThrottled)
+        this.watchingScroll = true
+
         return this
     }
 
     @bind public unwatchScroll() {
-        if (this.watchingScroll) {
-            window.removeEventListener(
-                "scroll",
-                this.loadVisibleFiguresThrottled
-            )
-            this.watchingScroll = false
-        }
+        if (!this.watchingScroll) return this
+
+        window.removeEventListener("scroll", this.loadVisibleFiguresThrottled)
+        this.watchingScroll = false
+
         return this
     }
 }
@@ -126,24 +125,17 @@ export class GrapherPageUtils {
     // Since this static class can be imported as well as loaded in a hardcoded script through
     // `window.GrapherPageUtils`, we need to ensure an identical instance is used across all contexts.
     private static getInstance(): GrapherPageUtilsSingleton {
-        const instance = (window as any).GrapherPageUtilsSingleton as
-            | GrapherPageUtilsSingleton
-            | undefined
-
-        if (instance) {
-            return instance
-        } else {
-            const instance = new GrapherPageUtilsSingleton()
-            ;(window as any).GrapherPageUtilsSingleton = instance
-            return instance
-        }
+        const win = window as any
+        if (!win.GrapherPageUtilsSingleton)
+            win.GrapherPageUtilsSingleton = new GrapherPageUtilsSingleton()
+        return win.GrapherPageUtilsSingleton
     }
 
-    public static get globalEntitySelection(): GlobalEntitySelection {
+    public static get globalEntitySelection() {
         return this.getInstance().globalEntitySelection
     }
 
-    public static get embedder(): MultiEmbedder {
+    public static get embedder() {
         return this.getInstance().embedder
     }
 

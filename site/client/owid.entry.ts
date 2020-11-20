@@ -25,7 +25,7 @@ import { runRelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
-import { runGlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
+import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "site/client/Footnote"
 import { Explorer } from "explorer/client/Explorer"
 import { ENV } from "settings"
@@ -39,7 +39,6 @@ window.Explorer = Explorer
 window.runChartsIndexPage = runChartsIndexPage
 window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
-window.runSiteTools = runSiteTools
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
@@ -58,7 +57,7 @@ window.runSiteFooterScripts = () => {
     runFootnotes()
     if (!document.querySelector(".ChartPage")) {
         GrapherPageUtils.embedAll()
-        runGlobalEntityControl(GrapherPageUtils.globalEntitySelection)
+        hydrateGlobalEntityControlIfAny(GrapherPageUtils.globalEntitySelection)
     }
 }
 

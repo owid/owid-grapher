@@ -8,6 +8,7 @@ import {
 } from "grapher/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "./GlobalEntityControlConstants"
 
 export enum GlobalEntitySelectionModes {
     none = "none",
@@ -75,8 +76,8 @@ export const subscribeGrapherToGlobalEntitySelection = (
         { fireImmediately: true }
     )
 
-export const pageContainsGlobalEntityControl =
-    document.querySelector("[data-global-entity-control]") !== null
+export const pageContainsGlobalEntityControl = () =>
+    document.querySelector(`[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`) !== null
 
 type GlobalEntitySelectionQueryParams = {
     country?: string
