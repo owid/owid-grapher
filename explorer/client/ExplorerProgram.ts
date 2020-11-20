@@ -1,4 +1,4 @@
-import { trimObject } from "grapher/utils/Util"
+import { isEqual, trimObject } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -470,24 +470,58 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         return settings
     }
 
+    @computed private get diffBetweenUserSettingsAndConstrained() {
+        const obj = this.toConstrainedOptions()
+        Object.keys(obj).forEach((key) => {
+            if (this._settings[key] === obj[key]) delete obj[key]
+        })
+        return obj
+    }
+
     @action.bound setValue(choiceName: ChoiceName, value: ChoiceValue) {
+        const currentInvalidState = this.diffBetweenUserSettingsAndConstrained
+        this._setValue(choiceName, value)
+        const newInvalidState = this.diffBetweenUserSettingsAndConstrained
+        if (Object.keys(newInvalidState).length) {
+            Object.keys(currentInvalidState).forEach((key) => {
+                /**
+                 * The user navigated to an invalid state. Then they made a change in the new state, but the old invalid props were still set. At this
+                 * point, we should delete the old invalid props. We only want to allow the user to go back 1, not a full undo/redo history.
+                 */
+                if (currentInvalidState[key] === newInvalidState[key])
+                    this._setValue(key, currentInvalidState[key])
+            })
+        }
+    }
+
+    @action.bound private _setValue(
+        choiceName: ChoiceName,
+        value: ChoiceValue
+    ) {
         if (value === "") delete this._settings[choiceName]
         else this._settings[choiceName] = value
     }
 
-    @action.bound setValuesFromQueryString(queryString = "") {
-        const queryParams = strToQueryParams(
-            decodeURIComponent(queryString)
-        ) as DecisionMatrixQueryParams
+    @action.bound private setValuesFromQueryParams(
+        queryParams: DecisionMatrixQueryParams
+    ) {
         this.choiceNames.forEach((choiceName) => {
             if (queryParams[choiceName] === undefined)
-                this.setValue(
+                this._setValue(
                     choiceName,
                     this.firstAvailableOptionForChoice(choiceName)!
                 )
-            else this.setValue(choiceName, queryParams[choiceName]!)
+            else this._setValue(choiceName, queryParams[choiceName]!)
         })
         return this
+    }
+
+    @action.bound setValuesFromQueryString(queryString = "") {
+        return this.setValuesFromQueryParams(
+            strToQueryParams(
+                decodeURIComponent(queryString)
+            ) as DecisionMatrixQueryParams
+        )
     }
 
     @computed private get choiceNames(): ChoiceName[] {
@@ -512,12 +546,30 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         )
     }
 
-    isOptionAvailable(choiceName: ChoiceName, option: ChoiceValue) {
+    /**
+     * Note: there is a rare bug in here + rowsWith when an author has a complex decision matrix. If the user vists a url
+     * with invalid options like Metric="Tests", Interval="Weekly", Aligned="false"
+     * we will return first match, which is B1, even though B2 is a better match.
+     *
+     * graphers
+     * title	Metric Radio	Interval Radio	Aligned Checkbox
+     * A1	Cases	Cumulative	true
+     * A2	Cases	Cumulative	false
+     * A3	Cases	Weekly	false
+     *
+     * B1	Tests	Cumulative	true
+     * B2	Tests	Cumulative	false
+     */
+    isOptionAvailable(
+        choiceName: ChoiceName,
+        option: ChoiceValue,
+        currentState = this._settings
+    ) {
         const query: DecisionMatrixQueryParams = {}
         this.choiceNames
             .slice(0, this.choiceNames.indexOf(choiceName))
             .forEach((name) => {
-                query[name] = this._settings[name]
+                query[name] = currentState[name]
             })
         query[choiceName] = option
         return this.rowsWith(query, choiceName).length > 0
@@ -539,7 +591,9 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     @computed private get firstMatch() {
-        return this.rowsWith(this.toConstrainedOptions())[0]
+        const query = this.toConstrainedOptions()
+        const hits = this.rowsWith(query)
+        return hits[0]
     }
 
     @computed get selectedRowIndex() {
@@ -558,22 +612,37 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     private toControlOption(
         choiceName: ChoiceName,
         optionName: string,
-        value: ChoiceValue
+        currentValue: ChoiceValue,
+        constrainedOptions: DecisionMatrixQueryParams
     ): ExplorerControlOption {
+        const available = this.isOptionAvailable(
+            choiceName,
+            optionName,
+            constrainedOptions
+        )
         return {
             label: optionName,
-            checked: value === optionName,
             value: optionName,
-            available: this.isOptionAvailable(choiceName, optionName),
+            available,
+            checked: currentValue === optionName,
         }
     }
 
     @computed get choicesWithAvailability(): ExplorerChoice[] {
+        const selectedRow = this.selectedRow
         const constrainedOptions = this.toConstrainedOptions()
         return this.choiceNames.map((title) => {
-            const value = constrainedOptions[title]
+            const value =
+                selectedRow[title] !== undefined
+                    ? selectedRow[title].toString()
+                    : selectedRow[title]
             const options = this.allChoiceOptions[title].map((optionName) =>
-                this.toControlOption(title, optionName, value)
+                this.toControlOption(
+                    title,
+                    optionName,
+                    value,
+                    constrainedOptions
+                )
             )
             const type = this.choiceControlTypes.get(title)!
 
@@ -599,8 +668,9 @@ const makeCheckBoxOption = (
     choiceName: string
 ) => {
     const checked = options.some(
-        (option) => option.checked === true && option.label === GridBoolean.true
+        (option) => option.checked === true && option.value === GridBoolean.true
     )
+
     const available =
         new Set(options.filter((opt) => opt.available).map((opt) => opt.label))
             .size === 2
