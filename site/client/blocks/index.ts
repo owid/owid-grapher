@@ -7,6 +7,7 @@ import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { shouldProgressiveEmbed } from "site/client/GrapherPageUtils"
 import { runSearchCountry } from "site/client/SearchCountry"
 import { runExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
+import { runDataTokens } from "site/client/runDataTokens"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
@@ -20,8 +21,9 @@ export const runBlocks = () => {
             .getElementsByTagName("body")[0]
             .classList.add("is-not-chart-interactive")
     }
-    hydrateAdditionalInformation()
+    runDataTokens()
     renderProminentLink()
-    runSearchCountry()
     runExpandableInlineBlock()
+    runSearchCountry()
+    hydrateAdditionalInformation()
 }

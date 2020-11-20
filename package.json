@@ -119,6 +119,7 @@
         "csv-parse": "^4.4.3",
         "d3": "^6.1.1",
         "d3-geo-projection": "^3.0.0",
+        "dayjs": "^1.9.6",
         "decko": "^1.2.0",
         "dotenv": "^8.2.0",
         "dotenv-webpack": "^2.0.0",
