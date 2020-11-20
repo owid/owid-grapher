@@ -131,6 +131,15 @@ export class GridProgram {
         )
     }
 
+    get numRows() {
+        return this.lines.length
+    }
+
+    patch(obj: any) {
+        Object.keys(obj).forEach((key) => this.setLineValue(key, obj[key]))
+        return this
+    }
+
     grepFirst(key: string, position = Origin) {
         for (const next of this.ring(position)) {
             if (this.getCellContents(next) === key) return next
@@ -212,6 +221,11 @@ export class GridProgram {
     deleteLine(row?: number) {
         if (row === undefined) return this
         this.lines.splice(row, 1)
+        return this
+    }
+
+    appendLine(line: string) {
+        this.lines.push(line)
         return this
     }
 
