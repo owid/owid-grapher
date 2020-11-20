@@ -6,7 +6,7 @@ import {
     pageContainsGlobalEntityControl,
 } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
-import { ChartFigure } from "./figures/ChartFigure"
+import { GrapherFigure } from "./figures/GrapherFigure"
 import { ExplorerFigure } from "explorer/client/ExplorerFigure"
 
 // Determine whether this device is powerful enough to handle
@@ -86,7 +86,7 @@ class MultiEmbedder {
     @bind public addFiguresFromDOM(
         container: HTMLElement | Document = document
     ) {
-        ChartFigure.figuresFromDOM(container).forEach(this.addFigure)
+        GrapherFigure.figuresFromDOM(container).forEach(this.addFigure)
         ExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
         // Trigger load for any added figures
         this.loadVisibleFiguresThrottled()

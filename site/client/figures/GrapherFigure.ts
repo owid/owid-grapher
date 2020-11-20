@@ -3,20 +3,21 @@ import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 import { Grapher } from "grapher/core/Grapher"
 import { deserializeJSONFromHTML } from "utils/serializers"
+import { GRAPHER_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 
-interface ChartFigureProps {
+interface GrapherFigureProps {
     configUrl: string
     queryStr?: string
     container: HTMLElement // TODO rename to container
 }
 
-export class ChartFigure implements Figure {
-    private props: ChartFigureProps
-    constructor(props: ChartFigureProps) {
+export class GrapherFigure implements Figure {
+    private props: GrapherFigureProps
+    constructor(props: GrapherFigureProps) {
         this.props = props
     }
 
-    private _isLoaded: boolean = false
+    private _isLoaded = false
     private jsonConfig?: any
 
     get isLoaded() {
@@ -53,18 +54,18 @@ export class ChartFigure implements Figure {
 
     static figuresFromDOM(
         container: HTMLElement | Document = document
-    ): ChartFigure[] {
+    ): GrapherFigure[] {
         const elements = Array.from(
-            container.querySelectorAll<HTMLElement>("*[data-grapher-src]")
+            container.querySelectorAll<HTMLElement>(`*[${GRAPHER_FIGURE_ATTR}]`)
         )
         return excludeUndefined(
             elements.map((element) => {
-                const dataSrc = element.getAttribute("data-grapher-src")
+                const dataSrc = element.getAttribute(GRAPHER_FIGURE_ATTR)
                 if (!dataSrc) return undefined
                 const { path, queryString } = splitURLintoPathAndQueryString(
                     dataSrc
                 )
-                return new ChartFigure({
+                return new GrapherFigure({
                     configUrl: path,
                     queryStr: queryString,
                     container: element,

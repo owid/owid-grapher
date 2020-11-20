@@ -28,7 +28,10 @@ import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
-import { GLOBAL_ENTITY_CONTROL_SELECTOR } from "./GlobalEntityControlConstants"
+import {
+    GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_CONTROL_SELECTOR,
+} from "./GlobalEntityControlConstants"
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -389,7 +392,9 @@ export function hydrateGlobalEntityControlIfAny(
     // We only want to bind the URL if a global control element exists
     globalEntitySelection.bindUrlParamsToWindow()
     // Load default set of countries if none are selected
-    const countryAttr = element.getAttribute("data-default-country")
+    const countryAttr = element.getAttribute(
+        GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
+    )
     if (countryAttr && globalEntitySelection.selectedEntities.length === 0) {
         const countryCodes = countryAttr.split(/[+,]/g)
         globalEntitySelection.selectByCountryCodes(countryCodes)
