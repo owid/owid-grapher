@@ -15,6 +15,10 @@ describe(GridProgram, () => {
         expect(
             program.setLineValue("title", "good morning").getLineValue("title")
         ).toEqual("good morning")
+
+        const rows = program.numRows
+        expect(program.appendLine("foo\tbar").numRows).toEqual(rows + 1)
+        expect(program.patch({ foo: "bat" }).getLineValue("foo")).toEqual("bat")
     })
 
     it("can find rows", () => {
