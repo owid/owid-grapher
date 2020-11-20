@@ -6,6 +6,14 @@ import { getStylesForTargetHeight } from "utils/client/react-select"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
 import { GridBoolean } from "explorer/gridLang/GridLangConstants"
+import { ExplorerChoice } from "./ExplorerChoice"
+import classNames from "classnames"
+
+const AVAILABLE_OPTION_CLASS = "AvailableOption"
+const UNAVAILABLE_OPTION_CLASS = "UnavailableOption"
+const SELECTED_OPTION_CLASS = "SelectedOption"
+const EXPLORER_DROPDOWN_CLASS = "ExplorerDropdown"
+const HIDDEN_CONTROL_HEADER_CLASS = "HiddenControlHeader"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile?: boolean
@@ -26,13 +34,14 @@ export class ExplorerControlBar extends React.Component<{
         const showMobileControls = isMobile && showControls
         return (
             <form
-                className={`ExplorerControlBar${
+                className={classNames(
+                    "ExplorerControlBar",
                     showMobileControls
-                        ? ` show-controls-popup`
+                        ? `show-controls-popup`
                         : isMobile
-                        ? ` hide-controls-popup`
-                        : ""
-                }`}
+                        ? `hide-controls-popup`
+                        : false
+                )}
             >
                 {this.props.children}
                 {mobileCloseButton}
@@ -43,21 +52,17 @@ export class ExplorerControlBar extends React.Component<{
 
 @observer
 export class ExplorerControlPanel extends React.Component<{
-    name: string
-    type: ExplorerControlType
-    options?: ExplorerControlOption[]
-    title?: string
-    onChange?: (value: string) => void
+    choice: ExplorerChoice
     explorerSlug?: string
-    value?: string
     comment?: string
-    hideTitle?: boolean
+    onChange?: (value: string) => void
 }> {
     private renderCheckboxOrRadio(
         option: ExplorerControlOption,
         index: number
     ) {
-        const { title, name, comment, explorerSlug, type, value } = this.props
+        const { comment, explorerSlug, choice } = this.props
+        const { title, type, value } = choice
         const { available, label, checked } = option
         const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
@@ -70,38 +75,39 @@ export class ExplorerControlPanel extends React.Component<{
                 ? GridBoolean.true
                 : GridBoolean.false
             : value
-        const isChecked = !!(available && checked)
+
         return (
             <div key={index} className="ControlOption">
                 <label
-                    className={[
-                        checked ? "SelectedOption" : "Option",
-                        available ? "AvailableOption" : "UnavailableOption",
-                    ].join(" ")}
-                    data-track-note={`${explorerSlug ?? "explorer"}-click-${(
-                        title ?? name
-                    ).toLowerCase()}`}
+                    className={classNames(
+                        {
+                            [SELECTED_OPTION_CLASS]: checked,
+                        },
+                        available
+                            ? AVAILABLE_OPTION_CLASS
+                            : UNAVAILABLE_OPTION_CLASS
+                    )}
+                    data-track-note={`${
+                        explorerSlug ?? "explorer"
+                    }-click-${title.toLowerCase()}`}
                 >
                     <input
-                        onChange={() => {
-                            if (this.props.onChange)
-                                this.props.onChange(onChangeValue)
-                        }}
+                        onChange={() => this.customOnChange(onChangeValue)}
                         type={isCheckbox ? "checkbox" : "radio"}
                         disabled={!available}
-                        name={name}
-                        checked={isChecked}
+                        name={title}
+                        checked={checked}
                         value={currentValue}
                     />{" "}
                     {label}
                     {comment && (
                         <div
-                            className={[
+                            className={classNames(
                                 "comment",
                                 available
-                                    ? "AvailableOption"
-                                    : "UnavailableOption",
-                            ].join(" ")}
+                                    ? AVAILABLE_OPTION_CLASS
+                                    : UNAVAILABLE_OPTION_CLASS
+                            )}
                         >
                             {comment}
                         </div>
@@ -112,7 +118,7 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     @computed private get options() {
-        return this.props.options ?? []
+        return this.props.choice.options ?? []
     }
 
     private renderDropdown() {
@@ -125,15 +131,15 @@ export class ExplorerControlPanel extends React.Component<{
                 }
             })
         const value = options.find(
-            (option) => option.value === this.props.value
+            (option) => option.value === this.props.choice.value
         ) ?? { label: "-", value: "-" }
 
         const styles = getStylesForTargetHeight(16)
 
         return (
             <Select
-                className="intervalDropdown"
-                classNamePrefix="intervalDropdown"
+                className={EXPLORER_DROPDOWN_CLASS}
+                classNamePrefix={EXPLORER_DROPDOWN_CLASS}
                 isDisabled={options.length < 2}
                 menuPlacement="auto"
                 options={options}
@@ -157,14 +163,13 @@ export class ExplorerControlPanel extends React.Component<{
         hideTitle: boolean,
         options?: ExplorerControlOption[]
     ) {
-        const { title, type } = this.props
+        const { title, type } = this.props.choice
         return (
             <div key={key} className="ExplorerControl">
                 <div
-                    className={
-                        "ControlHeader" +
-                        (hideTitle === true ? " HiddenControlHeader" : "")
-                    }
+                    className={classNames("ControlHeader", {
+                        [HIDDEN_CONTROL_HEADER_CLASS]: hideTitle === true,
+                    })}
                 >
                     {title}
                 </div>
@@ -178,22 +183,16 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     render() {
-        const { name, type, hideTitle } = this.props
+        const { choice } = this.props
+        const { title, type } = choice
         const { options } = this
         if (type === ExplorerControlType.Radio && options.length > 4)
             return splitArrayIntoGroupsOfN(
                 options,
                 3
-            ).map((optionsGroup, index) =>
-                this.renderColumn(
-                    `${name}${index}`,
-                    hideTitle || index > 0,
-                    optionsGroup
-                )
+            ).map((optionsGroup, column) =>
+                this.renderColumn(`${title}${column}`, column > 0, optionsGroup)
             )
-        return this.renderColumn(
-            name,
-            hideTitle || type === ExplorerControlType.Checkbox
-        )
+        return this.renderColumn(title, type === ExplorerControlType.Checkbox)
     }
 }

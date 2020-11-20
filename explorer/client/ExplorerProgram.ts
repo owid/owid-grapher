@@ -38,13 +38,7 @@ import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"
-
-interface Choice {
-    title: string
-    options: ExplorerControlOption[]
-    value: string
-    type: ExplorerControlType
-}
+import { ExplorerChoice } from "./ExplorerChoice"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -574,7 +568,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         }
     }
 
-    @computed get choicesWithAvailability(): Choice[] {
+    @computed get choicesWithAvailability(): ExplorerChoice[] {
         const constrainedOptions = this.toConstrainedOptions()
         return this.choiceNames.map((title) => {
             const value = constrainedOptions[title]

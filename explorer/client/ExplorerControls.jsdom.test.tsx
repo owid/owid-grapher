@@ -21,11 +21,13 @@ describe(ExplorerControlPanel, () => {
 
     const element = mount(
         <ExplorerControlPanel
-            title="Some decision"
-            name="decision"
+            choice={{
+                title: "Some decision",
+                value: "",
+                options,
+                type: ExplorerControlType.Radio,
+            }}
             explorerSlug="explorer_slug"
-            type={ExplorerControlType.Radio}
-            options={options}
         />
     )
 

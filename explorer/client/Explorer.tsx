@@ -303,12 +303,8 @@ export class Explorer
             (choice) => (
                 <ExplorerControlPanel
                     key={choice.title}
-                    value={choice.value}
-                    title={choice.title}
                     explorerSlug={this.explorerProgram.slug}
-                    name={choice.title}
-                    options={choice.options}
-                    type={choice.type}
+                    choice={choice}
                     onChange={(value) => {
                         this.explorerProgram.decisionMatrix.setValue(
                             choice.title,
