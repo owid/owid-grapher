@@ -48,7 +48,7 @@ jobs:
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile
+              run: yarn --frozen-lockfile --network-concurrency 1
 
             # Note: running these two build steps subsequently means that if either `build-storybook` or `coverage` fails,
             # neither of them is deployed :(
@@ -69,7 +69,7 @@ jobs:
             # force-pushes, and if we have two deploys running at the same time that might lead to missing update situations.
 
             - name: Deploy Storybook 🚀
-              uses: JamesIves/github-pages-deploy-action@3.6.1
+              uses: JamesIves/github-pages-deploy-action@3.7.1
               with:
                   ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
                   BRANCH: master
@@ -83,7 +83,7 @@ jobs:
                   GIT_CONFIG_EMAIL: tech@ourworldindata.org
 
             - name: Deploy Coverage Report 🚀
-              uses: JamesIves/github-pages-deploy-action@3.6.1
+              uses: JamesIves/github-pages-deploy-action@3.7.1
               with:
                   ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
                   BRANCH: master
@@ -97,7 +97,7 @@ jobs:
                   GIT_CONFIG_EMAIL: tech@ourworldindata.org
 
             - name: Deploy Badges 🚀
-              uses: JamesIves/github-pages-deploy-action@3.6.1
+              uses: JamesIves/github-pages-deploy-action@3.7.1
               with:
                   ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
                   BRANCH: master
