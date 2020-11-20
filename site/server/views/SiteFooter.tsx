@@ -239,19 +239,7 @@ export const SiteFooter = ({
                 <script src={webpack("owid.js", "site")} />
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `
-                runHeaderMenus();
-                runBlocks();
-                runLightbox();
-                runSiteTools();
-                runCookiePreferencesManager();
-                runCovid();
-                runFootnotes();
-                if (!document.querySelector(".ChartPage")) {
-                    GrapherPageUtils.embedAll();
-                    runGlobalEntityControl(GrapherPageUtils.globalEntitySelection);
-                }
-            `,
+                        __html: `window.runSiteFooterScripts()`,
                     }}
                 />
             </footer>
