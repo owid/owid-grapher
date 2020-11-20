@@ -33,6 +33,7 @@ import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "explorer/admin/ExplorerCreatePage"
 import { ExplorersIndexPage } from "explorer/admin/ExplorersListPage"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -137,7 +138,7 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
-                                path="/explorers/:slug"
+                                path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
                                 render={({ match }) => (
                                     <ExplorerCreatePage
                                         slug={match.params.slug}
@@ -147,7 +148,7 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
-                                path="/explorers"
+                                path={`/${EXPLORERS_ROUTE_FOLDER}`}
                                 component={ExplorersIndexPage}
                             />
                             <Route

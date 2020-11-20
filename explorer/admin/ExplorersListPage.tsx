@@ -31,7 +31,9 @@ import {
 } from "gitCms/GitCmsConstants"
 import moment from "moment"
 import {
+    EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRoute,
+    EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteResponse,
 } from "explorer/client/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
@@ -65,8 +67,8 @@ class ExplorerRow extends React.Component<{
             inlineTableCount,
         } = explorer
 
-        const publishedUrl = `${BAKED_BASE_URL}/explorers/${slug}`
-        const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/explorers/`
+        const publishedUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
+        const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/${EXPLORERS_GIT_CMS_FOLDER}/`
         const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
 
         const fileHistoryButton = (
@@ -121,7 +123,10 @@ class ExplorerRow extends React.Component<{
                 </td>
 
                 <td>
-                    <Link to={`/explorers/${slug}`} className="btn btn-primary">
+                    <Link
+                        to={`/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
+                        className="btn btn-primary"
+                    >
                         Edit
                     </Link>
                 </td>
@@ -322,7 +327,9 @@ export class ExplorersIndexPage extends React.Component {
         if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
 
         this.context.admin.loadingIndicatorSetting = "loading"
-        await deleteRemoteFile({ filepath: `explorers/${filename}` })
+        await deleteRemoteFile({
+            filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
+        })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()
     }

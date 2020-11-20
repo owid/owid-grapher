@@ -29,7 +29,10 @@ export const ExplorersRoute = "allExplorersForAdminListPage.json"
 export const ExplorersRouteGrapherConfigs =
     "allGrapherConfigsNeedForThisExplorer.json"
 export const ExplorersRouteQueryParam = "grapherIds"
-export const ExplorersPreviewRoute = "explorers/preview"
+
+export const EXPLORERS_ROUTE_FOLDER = "explorers" // Url path: http://owid.org/{explorers}
+export const EXPLORERS_GIT_CMS_FOLDER = "explorers" // Disk path: /home/owid/git-content/{explorers}
+export const EXPLORERS_PREVIEW_ROUTE = `${EXPLORERS_ROUTE_FOLDER}/preview`
 
 export interface ExplorersRouteResponse {
     success: boolean

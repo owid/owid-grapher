@@ -8,7 +8,10 @@ import { AdminSidebar } from "./AdminSidebar"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DefaultNewExplorerSlug } from "explorer/client/ExplorerConstants"
+import {
+    DefaultNewExplorerSlug,
+    EXPLORERS_ROUTE_FOLDER,
+} from "explorer/client/ExplorerConstants"
 
 @observer
 export class AdminLayout extends React.Component<{
@@ -84,7 +87,7 @@ export class AdminLayout extends React.Component<{
                         <li className="nav-item">
                             <Link
                                 className="nav-link"
-                                to={`/explorers/${DefaultNewExplorerSlug}`}
+                                to={`/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                             >
                                 <FontAwesomeIcon icon={faPlus} /> New Explorer
                             </Link>

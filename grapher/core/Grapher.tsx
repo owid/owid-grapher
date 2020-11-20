@@ -154,6 +154,7 @@ import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
 
 declare const window: any
 
@@ -583,9 +584,10 @@ export class Grapher
     }
 
     @computed get editUrl() {
-        return Cookies.get(CookieKey.isAdmin) || this.isDev
-            ? `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
-            : undefined
+        if (!Cookies.get(CookieKey.isAdmin) && !this.isDev) return undefined
+        if (!this.id)
+            return `${this.adminBaseUrl}/admin/${EXPLORERS_ROUTE_FOLDER}/${this.slug}`
+        return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
     }
 
     private populationFilterToggleOption = 1e6

@@ -17,8 +17,10 @@ import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
 import {
-    ExplorersPreviewRoute,
+    EXPLORERS_GIT_CMS_FOLDER,
+    EXPLORERS_PREVIEW_ROUTE,
     ExplorersRoute,
+    EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteGrapherConfigs,
     ExplorersRouteQueryParam,
     ExplorersRouteResponse,
@@ -33,7 +35,7 @@ const git = simpleGit({
     maxConcurrentProcesses: 1,
 })
 
-const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/explorers/`
+const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/${EXPLORERS_GIT_CMS_FOLDER}/`
 
 export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // http://localhost:3030/admin/api/explorers.json
@@ -76,8 +78,8 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 }
 
 export const addExplorerAdminRoutes = (app: Router) => {
-    // http://localhost:3030/admin/explorers/preview/some-slug
-    app.get(`/${ExplorersPreviewRoute}/:slug`, async (req, res) => {
+    // i.e. http://localhost:3030/admin/explorers/preview/some-slug
+    app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         const slug = slugify(req.params.slug)
         const filename = slug + EXPLORER_FILE_SUFFIX
         if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))
@@ -109,7 +111,7 @@ const getExplorerFromFile = async (
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = EXPLORERS_FOLDER,
-    outputFolder = `${BAKED_SITE_DIR}/explorers/`
+    outputFolder = `${BAKED_SITE_DIR}/${EXPLORERS_ROUTE_FOLDER}/`
 ) => {
     const explorers = await getAllExplorers(inputFolder)
     const published = explorers.filter((exp) => exp.isPublished)

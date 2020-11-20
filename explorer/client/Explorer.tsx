@@ -23,7 +23,7 @@ import {
 } from "grapher/slideshowController/SlideShowController"
 import {
     ExplorerContainerId,
-    ExplorersPreviewRoute,
+    EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
 } from "./ExplorerConstants"
@@ -58,7 +58,7 @@ export class Explorer
     extends React.Component<ExplorerProps>
     implements SlideShowManager, EntityPickerManager {
     static bootstrap(props: ExplorerProps) {
-        if (!window.location.href.includes(ExplorersPreviewRoute))
+        if (!window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             return ReactDOM.render(
                 <Explorer {...props} queryString={window.location.search} />,
                 document.getElementById(ExplorerContainerId)
@@ -195,6 +195,7 @@ export class Explorer
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
         grapher.populateFromQueryParams(queryStr)
         grapher.downloadData()
+        grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
     }
 
@@ -264,7 +265,7 @@ export class Explorer
     @computed get params(): ExplorerQueryParams {
         if (!this.grapher) return {}
 
-        if (window.location.href.includes(ExplorersPreviewRoute))
+        if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_QUERY_STRING +
                     this.explorerProgram.slug,

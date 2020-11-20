@@ -17,7 +17,7 @@ import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,
-    ExplorersPreviewRoute,
+    EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
 } from "explorer/client/ExplorerConstants"
@@ -313,7 +313,7 @@ export class ExplorerCreatePage extends React.Component<{
                         &nbsp;
                         <Link
                             target="preview"
-                            to={`/${ExplorersPreviewRoute}/${program.slug}`}
+                            to={`/${EXPLORERS_PREVIEW_ROUTE}/${program.slug}`}
                             className="btn btn-secondary"
                         >
                             Preview

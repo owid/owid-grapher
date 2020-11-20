@@ -12,6 +12,7 @@ import {
     ExplorerControlOption,
     ExplorerControlTypeRegex,
     DefaultNewExplorerSlug,
+    EXPLORERS_ROUTE_FOLDER,
 } from "explorer/client/ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
@@ -685,7 +686,7 @@ const makeCheckBoxOption = (
 }
 
 export const makeFullPath = (slug: string) =>
-    `explorers/${slug}${EXPLORER_FILE_SUFFIX}`
+    `${EXPLORERS_ROUTE_FOLDER}/${slug}${EXPLORER_FILE_SUFFIX}`
 
 const trimAndParseObject = (config: any, grammar: Grammar) => {
     // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
