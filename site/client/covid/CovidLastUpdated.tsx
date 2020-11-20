@@ -25,17 +25,18 @@ export const CovidLastUpdated = () => {
     return (
         date && (
             <span>
-                Last update: <strong>{date.fromNow()}</strong> (
+                Last update: <strong>{date.fromNow()}</strong>.
+                {/* (
                 {date.toDate().toLocaleString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
                     hour: "numeric",
                     minute: "2-digit",
-                    // timeZone: "UTC",
-                    // timeZoneName: "short",
+                    timeZone: "UTC",
+                    timeZoneName: "short",
                 })}
-                )
+                ) */}
             </span>
         )
     )
