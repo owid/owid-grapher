@@ -337,8 +337,9 @@ export class ExplorerProgram extends GridProgram {
         const url = this.getUrlForTableSlug(tableSlug)
         if (!url) return undefined
         const tableDef = this.getTableDef(tableSlug)!
-        const delimited = await fetch(url)
-        const text = await delimited.text()
+        const response = await fetch(url)
+        if (!response.ok) throw new Error(response.statusText)
+        const text = await response.text()
         const table = new OwidTable(text, tableDef.columnDefinitions, {
             tableDescription: `Loaded from ${url}`,
         })

@@ -38,6 +38,17 @@ const git = simpleGit({
 const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/${EXPLORERS_GIT_CMS_FOLDER}/`
 
 export const addExplorerApiRoutes = (app: FunctionalRouter) => {
+    // Add `table http://localhost:3030/admin/api/errorTest.csv?code=404` to test fetch download failures
+    app.get("/errorTest.csv", async (req, res) => {
+        const code =
+            req.query.code && !isNaN(parseInt(req.query.code))
+                ? req.query.code
+                : 400
+        res.status(code)
+
+        return `Simulating code ${code}`
+    })
+
     // http://localhost:3030/admin/api/explorers.json
     // Download all explorers for the admin index page
     app.get(`/${ExplorersRoute}`, async () => {
