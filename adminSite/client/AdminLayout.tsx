@@ -85,12 +85,12 @@ export class AdminLayout extends React.Component<{
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link
+                            <a
                                 className="nav-link"
-                                to={`/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
+                                href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
                             >
                                 <FontAwesomeIcon icon={faPlus} /> New Explorer
-                            </Link>
+                            </a>
                         </li>
                         <li className="nav-item">
                             <a className="nav-link" onClick={this.onToggleFAQ}>
