@@ -6,15 +6,13 @@ export interface QueryParams {
 
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.
-export function getQueryParams(queryStr?: string): QueryParams {
-    return strToQueryParams(queryStr || getWindowQueryStr())
-}
+export const getQueryParams = (queryStr?: string): QueryParams =>
+    strToQueryParams(queryStr || getWindowQueryStr())
 
-export function getWindowQueryParams(): QueryParams {
-    return strToQueryParams(getWindowQueryStr())
-}
+export const getWindowQueryParams = (): QueryParams =>
+    strToQueryParams(getWindowQueryStr())
 
-export function strToQueryParams(queryStr = ""): QueryParams {
+export const strToQueryParams = (queryStr = ""): QueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
     const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
@@ -28,47 +26,41 @@ export function strToQueryParams(queryStr = ""): QueryParams {
     return params
 }
 
-export function queryParamsToStr(params: QueryParams) {
+export const queryParamsToStr = (params: QueryParams) => {
     let newQueryStr = ""
 
-    Object.entries(params).forEach(([k, v]) => {
-        if (v === undefined) return
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined) return
 
         if (isEmpty(newQueryStr)) newQueryStr += "?"
         else newQueryStr += "&"
-        newQueryStr += k + "=" + v
+        newQueryStr += key + "=" + value
     })
 
     return newQueryStr
 }
 
-export function setWindowQueryVariable(key: string, val: string | null) {
+export const setWindowQueryVariable = (key: string, val: string | null) => {
     const params = getWindowQueryParams()
 
-    if (val === null || val === "") {
-        delete params[key]
-    } else {
-        params[key] = val
-    }
+    if (val === null || val === "") delete params[key]
+    else params[key] = val
 
     setWindowQueryStr(queryParamsToStr(params))
 }
 
-export function getWindowQueryStr() {
-    return window.location.search
-}
+export const getWindowQueryStr = () => window.location.search
 
-export function setWindowQueryStr(str: string) {
+export const setWindowQueryStr = (str: string) =>
     history.replaceState(
         null,
         document.title,
         window.location.pathname + str + window.location.hash
     )
-}
 
-export function splitURLintoPathAndQueryString(
+export const splitURLintoPathAndQueryString = (
     url: string
-): { path: string; queryString: string | undefined } {
+): { path: string; queryString: string | undefined } => {
     const [path, queryString] = url.split(/\?/)
     return { path: path, queryString: queryString }
 }

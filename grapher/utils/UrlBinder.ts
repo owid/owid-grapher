@@ -21,7 +21,7 @@ export class UrlBinder {
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = () => {
             const str = queryParamsToStr(obj.params)
-            return setWindowQueryStr(str)
+            setWindowQueryStr(str)
         }
         const debouncedPushParams = debounce(pushParams, 100)
 
