@@ -230,6 +230,10 @@ export class Explorer
         tableSlug?: TableSlug
     ) {
         const url = this.explorerProgram.getUrlForTableSlug(tableSlug)
+        // Use the tableslug as part of the key, that way if someone wants to parse the same CSV but with different column defs, they can.
+        // For example, if someone wanted to use the CountryName as the entity in one chart, but the RegionName in another. Eventually which column
+        // to use as the entity/series column should be a grapher config setting, and at that point we can remove this, but for now
+        // providing 2+ different column defs for 1 URL is the workaround. @breck 11/21/2020
         const cacheKey = [url, tableSlug].join()
         if (!url || Explorer.fetchedTableCache.has(cacheKey)) return
 
