@@ -11,7 +11,7 @@ export enum ChartTypeName {
     WorldMap = "WorldMap",
 }
 
-export const GRAPHER_FIGURE_ATTR = "data-grapher-src"
+export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 
 export enum CookieKey {
     isAdmin = "isAdmin",

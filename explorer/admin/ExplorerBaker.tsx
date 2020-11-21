@@ -170,7 +170,11 @@ const makeInlineJs = (program: ExplorerProgram, grapherConfigs: any[]) => {
         }),
     }
 
-    return `window.Explorer.bootstrap(${JSON.stringify(props, null, 2)})`
+    return `window.Explorer.renderExplorerComponentIntoContainer(${JSON.stringify(
+        props,
+        null,
+        2
+    )})`
 }
 
 export const renderExplorerPage = async (

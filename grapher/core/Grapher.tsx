@@ -1370,7 +1370,7 @@ export class Grapher
         return this.mappableData.length > 1
     }
 
-    static bootstrap({
+    static renderGrapherComponentIntoContainer({
         jsonConfig,
         containerNode,
         isEmbed,

@@ -5,9 +5,10 @@ import {
     GlobalEntitySelection,
     pageContainsGlobalEntityControl,
 } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
-import { Figure } from "./figures/Figure"
-import { GrapherFigure } from "./figures/GrapherFigure"
-import { ExplorerFigure } from "explorer/client/ExplorerFigure"
+import {
+    EmbeddedFigure,
+    getAllEmbeddedFiguresInDOM,
+} from "./figures/EmbeddedFigure"
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
@@ -22,7 +23,7 @@ export function shouldProgressiveEmbed() {
 
 /** Private class – use `GrapherPageUtils` to access functionality. */
 class MultiEmbedder {
-    private figures: Figure[] = []
+    private figures: EmbeddedFigure[] = []
     private globalEntitySelection?: GlobalEntitySelection
 
     constructor(
@@ -33,14 +34,7 @@ class MultiEmbedder {
         this.globalEntitySelection = options.globalEntitySelection
     }
 
-    @bind private addFigure(figure: Figure) {
-        // Prevent adding duplicates
-        if (!this.figures.map((f) => f.container).includes(figure.container)) {
-            this.figures.push(figure)
-        }
-    }
-
-    @bind private shouldLoadFigure(figure: Figure) {
+    @bind private shouldLoadFigure(figure: EmbeddedFigure) {
         if (figure.isLoaded) return false
         if (!shouldProgressiveEmbed() && figure.hasPreview) return false
 
@@ -71,11 +65,11 @@ class MultiEmbedder {
      * otherwise automatically loads interactive charts when they approach the viewport.
      */
     @bind public loadVisibleFigures() {
-        this.figures.filter(this.shouldLoadFigure).forEach((figure) =>
-            figure.load({
-                globalEntitySelection: this.globalEntitySelection,
-            })
-        )
+        this.figures
+            .filter(this.shouldLoadFigure)
+            .forEach((figure) =>
+                figure.renderIntoContainer(this.globalEntitySelection)
+            )
     }
 
     /**
@@ -86,8 +80,12 @@ class MultiEmbedder {
     @bind public addFiguresFromDOM(
         container: HTMLElement | Document = document
     ) {
-        GrapherFigure.figuresFromDOM(container).forEach(this.addFigure)
-        ExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
+        getAllEmbeddedFiguresInDOM(container).forEach((figure) => {
+            // Prevent adding duplicates
+            if (!this.figures.some((fig) => fig.container === figure.container))
+                this.figures.push(figure)
+        })
+
         // Trigger load for any added figures
         this.loadVisibleFiguresThrottled()
         return this

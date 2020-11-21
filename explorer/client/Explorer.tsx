@@ -57,7 +57,7 @@ interface ExplorerQueryParams extends GrapherQueryParams {
 export class Explorer
     extends React.Component<ExplorerProps>
     implements SlideShowManager, EntityPickerManager {
-    static bootstrap(props: ExplorerProps) {
+    static renderExplorerComponentIntoContainer(props: ExplorerProps) {
         if (!window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             return ReactDOM.render(
                 <Explorer {...props} queryString={window.location.search} />,

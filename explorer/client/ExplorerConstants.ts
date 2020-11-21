@@ -23,6 +23,8 @@ export const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
 export const UNSAVED_EXPLORER_PREVIEW_QUERY_STRING =
     "UNSAVED_EXPLORER_PREVIEW_PARAMS"
 
+export const EXPLORER_EMBEDDED_FIGURE_SELECTOR = "data-explorer-src"
+
 export const ExplorerContainerId = "explorerContainer"
 
 export const ExplorersRoute = "allExplorersForAdminListPage.json"

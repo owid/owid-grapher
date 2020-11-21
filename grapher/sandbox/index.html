@@ -26,11 +26,13 @@
             const figure = document.getElementsByTagName("figure")[0]
 
             try {
-                const view = window.Grapher.bootstrap({
-                    jsonConfig: sandboxGrapher,
-                    containerNode: figure,
-                    queryStr: window.location.search,
-                })
+                const view = window.Grapher.renderGrapherComponentIntoContainer(
+                    {
+                        jsonConfig: sandboxGrapher,
+                        containerNode: figure,
+                        queryStr: window.location.search,
+                    }
+                )
                 view.bindToWindow()
             } catch (err) {
                 figure.innerHTML =
