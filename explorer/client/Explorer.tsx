@@ -53,42 +53,41 @@ interface ExplorerQueryParams extends GrapherQueryParams {
     pickerMetric?: ColumnSlug
 }
 
+const renderLivePreviewVersion = (props: ExplorerProps) => {
+    let renderedVersion: string
+    setInterval(() => {
+        const versionToRender =
+            localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug) ??
+            props.program
+        if (versionToRender === renderedVersion) return
+
+        const newProps = { ...props, program: versionToRender }
+        ReactDOM.render(
+            <Explorer
+                {...newProps}
+                queryString={window.location.search}
+                key={Date.now()}
+            />,
+            document.getElementById(ExplorerContainerId)
+        )
+        renderedVersion = versionToRender
+    }, 1000)
+}
+
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
     implements SlideShowManager, EntityPickerManager {
-    static renderExplorerComponentIntoContainer(props: ExplorerProps) {
-        if (!window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
-            return ReactDOM.render(
-                <Explorer {...props} queryString={window.location.search} />,
-                document.getElementById(ExplorerContainerId)
-            )
+    static renderSingleExplorerOnExplorerPage(props: ExplorerProps) {
+        if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
+            renderLivePreviewVersion(props)
+            return
+        }
 
-        let renderedVersion: string
-        setInterval(() => {
-            const versionToRender =
-                localStorage.getItem(UNSAVED_EXPLORER_DRAFT + props.slug) ??
-                props.program
-            if (versionToRender === renderedVersion) return
-
-            const newProps = { ...props, program: versionToRender }
-            ReactDOM.render(
-                <Explorer
-                    {...newProps}
-                    queryString={window.location.search}
-                    key={Date.now()}
-                />,
-                document.getElementById(ExplorerContainerId)
-            )
-            renderedVersion = versionToRender
-        }, 1000)
-    }
-
-    static async createExplorerAndRenderToDom(
-        props: ExplorerProps,
-        containerNode: HTMLElement
-    ) {
-        return ReactDOM.render(<Explorer {...props} />, containerNode)
+        ReactDOM.render(
+            <Explorer {...props} queryString={window.location.search} />,
+            document.getElementById(ExplorerContainerId)
+        )
     }
 
     private urlBinding?: UrlBinder
@@ -453,7 +452,6 @@ export class Explorer
                         isEmbed={true}
                         selectionArray={this.selectionArray}
                         ref={this.grapherRef}
-                        enableKeyboardShortcuts={true}
                     />
                 </div>
             </div>

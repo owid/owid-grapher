@@ -122,10 +122,10 @@ export const Faceting = () => {
     return <Grapher {...model} />
 }
 
-export const WithKeyboardShortcuts = () => {
-    const model = {
+export const WithKeyboardShortcutsAndOtherNonEmbedBehavior = () => {
+    const model: GrapherProgrammaticInterface = {
         ...basics,
-        enableKeyboardShortcuts: true,
+        isEmbed: false,
     }
     return <Grapher {...model} />
 }

@@ -35,22 +35,7 @@ export const GrapherPage = (props: {
     )
 
     const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
-const figure = document.getElementsByTagName("figure")[0];
-try {
-    const view = window.Grapher.renderGrapherComponentIntoContainer({
-        jsonConfig: jsonConfig,
-        containerNode: figure,
-        queryStr: window.location.search
-    });
-    view.bindToWindow();
-} catch (err) {
-    figure.innerHTML = "<img src=\\"/grapher/exports/${
-        grapher.slug
-    }.svg\\"/><p>Unable to load interactive visualization</p>";
-    figure.setAttribute("id", "fallback");
-    throw err;
-}
-`
+window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = lodash.uniq(
         grapher.dimensions!.map((d) => d.variableId)

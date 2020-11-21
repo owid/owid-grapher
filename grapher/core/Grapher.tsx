@@ -181,7 +181,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideEntityControls?: boolean
     queryStr?: string
     isEmbed?: boolean
-    enableKeyboardShortcuts?: boolean
     isMediaCard?: boolean
     globalEntitySelection?: GlobalEntitySelection
     isExport?: boolean
@@ -1366,40 +1365,41 @@ export class Grapher
             .owidRows.filter((row) => isOnTheMap(row.entityName))
     }
 
-    @computed private get hasMultipleCountriesOnTheMap() {
-        return this.mappableData.length > 1
-    }
-
-    static renderGrapherComponentIntoContainer({
-        jsonConfig,
-        containerNode,
-        isEmbed,
-        queryStr,
-        globalEntitySelection,
-    }: {
-        jsonConfig: GrapherInterface
+    static renderGrapherIntoContainer(
+        config: GrapherProgrammaticInterface,
         containerNode: HTMLElement
-        isEmbed?: boolean
-        queryStr?: string
-        globalEntitySelection?: GlobalEntitySelection
-    }) {
-        let view
-        function render() {
-            const enableKeyboardShortcuts = !isEmbed
+    ) {
+        const setBoundsFromContainerAndRender = () => {
             const props: GrapherProgrammaticInterface = {
-                ...jsonConfig,
-                isEmbed,
-                enableKeyboardShortcuts,
-                queryStr,
-                globalEntitySelection,
+                ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            view = ReactDOM.render(<Grapher {...props} />, containerNode)
+            ReactDOM.render(<Grapher {...props} />, containerNode)
         }
 
-        render()
-        window.addEventListener("resize", throttle(render))
-        return view
+        setBoundsFromContainerAndRender()
+        window.addEventListener(
+            "resize",
+            throttle(setBoundsFromContainerAndRender)
+        )
+    }
+
+    static renderSingleGrapherOnGrapherPage(jsonConfig: GrapherInterface) {
+        const container = document.getElementsByTagName("figure")[0]
+
+        try {
+            Grapher.renderGrapherIntoContainer(
+                {
+                    ...jsonConfig,
+                    queryStr: window.location.search,
+                },
+                container
+            )
+        } catch (err) {
+            container.innerHTML = `<img src="/grapher/exports/${jsonConfig.slug}.svg"/><p>Unable to load interactive visualization</p>`
+            container.setAttribute("id", "fallback")
+            throw err
+        }
     }
 
     @computed get isEmbed() {
@@ -1564,7 +1564,7 @@ export class Grapher
     }
 
     private get commandPalette() {
-        return this.enableKeyboardShortcuts ? (
+        return !this.isEmbed ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }
@@ -1593,8 +1593,6 @@ export class Grapher
             </>
         )
     }
-
-    private enableKeyboardShortcuts = false
 
     formatTimeFn(time: Time) {
         return this.inputTable.timeColumnFormatFunction(time)
@@ -1879,7 +1877,7 @@ export class Grapher
 
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
-    bindToWindow() {
+    private bindToWindow() {
         new UrlBinder().bindToWindow(this)
         autorun(() => (document.title = this.currentTitle))
     }
@@ -1889,6 +1887,7 @@ export class Grapher
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
+        if (!this.props.isEmbed) this.bindToWindow()
     }
 
     private _shortcutsBound = false
@@ -1924,7 +1923,7 @@ export class Grapher
     componentDidUpdate() {
         this.setBaseFontSize()
         this.checkVisibility()
-        if (this.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (!this.isEmbed) this.bindKeyboardShortcuts() // todo: why here and not on mount?
     }
 
     componentDidCatch(error: Error, info: any) {

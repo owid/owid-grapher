@@ -9,7 +9,7 @@ import {
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 import { deserializeJSONFromHTML } from "utils/serializers"
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { Explorer } from "explorer/client/Explorer"
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "explorer/client/ExplorerConstants"
 
@@ -34,6 +34,7 @@ class EmbeddedFigure {
         const common = {
             isEmbed: true,
             globalEntitySelection,
+            queryStr: this.props.queryStr,
         }
 
         if (this.isExplorer) {
@@ -48,11 +49,11 @@ class EmbeddedFigure {
         }
         const html = await fetchText(this.props.configUrl)
         this.container.classList.remove("grapherPreview")
-        Grapher.renderGrapherComponentIntoContainer({
-            jsonConfig: deserializeJSONFromHTML(html),
-            containerNode: this.container,
-            queryStr: this.props.queryStr,
-        })
+        const config: GrapherProgrammaticInterface = {
+            ...deserializeJSONFromHTML(html),
+            ...common,
+        }
+        Grapher.renderGrapherIntoContainer(config, this.container)
     }
 
     protected _isLoaded = false

@@ -170,7 +170,7 @@ const makeInlineJs = (program: ExplorerProgram, grapherConfigs: any[]) => {
         }),
     }
 
-    return `window.Explorer.renderExplorerComponentIntoContainer(${JSON.stringify(
+    return `window.Explorer.renderSingleExplorerOnExplorerPage(${JSON.stringify(
         props,
         null,
         2
