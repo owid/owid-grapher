@@ -1,5 +1,4 @@
 import { bind } from "decko"
-
 import { throttle, isMobile } from "grapher/utils/Util"
 import {
     GlobalEntitySelection,
