@@ -5,7 +5,7 @@ import * as ReactDOMServer from "react-dom/server"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
-import { MultiEmbedderSingleton } from "site/client/figures/EmbeddedFigure"
+import { MultiEmbedderSingleton } from "site/client/figures/MultiEmbedder"
 
 export const CLASS_NAME = "wp-block-owid-additional-information"
 const VARIATION_MERGE_LEFT = "merge-left"

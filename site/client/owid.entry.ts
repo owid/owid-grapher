@@ -30,7 +30,7 @@ import { ENV } from "settings"
 import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
 import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
-import { MultiEmbedderSingleton } from "./figures/EmbeddedFigure"
+import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
 
 declare var window: any
 window.Grapher = Grapher

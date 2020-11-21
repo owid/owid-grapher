@@ -1,8 +1,8 @@
-# Embedded Figures
+# MultiEmbedder
 
 [note: This readme is a stub.]
 
-Other sites can embed all our Graphers and Explorers as iFrames. Internally we can do something a little more efficient and powerful using this "Embedded Figures" concept.
+Other sites can embed all our Graphers and Explorers as iFrames. Internally we can do something a little more efficient and powerful using this "MultiEmbedder" concept.
 
 ## Step 1
 
