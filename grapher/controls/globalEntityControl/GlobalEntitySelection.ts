@@ -1,7 +1,7 @@
 import { observable, reaction, IReactionDisposer, computed } from "mobx"
 import { Country, countries } from "utils/countries"
 import { Grapher } from "grapher/core/Grapher"
-import { excludeUndefined } from "grapher/utils/Util"
+import { excludeUndefined, isMobile } from "grapher/utils/Util"
 import {
     UrlBinder,
     ObjectThatSerializesToQueryParams,
@@ -9,6 +9,14 @@ import {
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "./GlobalEntityControlConstants"
+
+// Determine whether this device is powerful enough to handle
+// loading a bunch of inline interactive charts
+// 680px is also used in CSS – keep it in sync if you change this
+export const shouldProgressiveEmbed = () =>
+    !isMobile() ||
+    window.screen.width > 680 ||
+    pageContainsGlobalEntityControl()
 
 export enum GlobalEntitySelectionModes {
     none = "none",
@@ -48,6 +56,8 @@ export class GlobalEntitySelection {
         new UrlBinder().bindToWindow(this.url)
     }
 }
+
+export const GlobalEntitySelectionSingleton = new GlobalEntitySelection()
 
 export const subscribeGrapherToGlobalEntitySelection = (
     grapher: Grapher,

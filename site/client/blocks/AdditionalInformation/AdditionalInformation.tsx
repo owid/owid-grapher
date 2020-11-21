@@ -5,7 +5,7 @@ import * as ReactDOMServer from "react-dom/server"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
-import { GrapherPageUtils } from "site/client/GrapherPageUtils"
+import { MultiEmbedderSingleton } from "site/client/figures/EmbeddedFigure"
 
 export const CLASS_NAME = "wp-block-owid-additional-information"
 const VARIATION_MERGE_LEFT = "merge-left"
@@ -43,7 +43,7 @@ const AdditionalInformation = ({
     useEffect(() => {
         if (refContainer.current) {
             // Trigger embedder check for new figures that may have become visible.
-            GrapherPageUtils.embedder.addFiguresFromDOM(refContainer.current)
+            MultiEmbedderSingleton.addFiguresFromDOM(refContainer.current)
         }
         // Expands accordions for print media.
         window.addEventListener("beforeprint", () => {

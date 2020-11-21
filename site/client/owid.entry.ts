@@ -6,7 +6,6 @@ import "grapher/core/grapher.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
-
 import { Analytics } from "grapher/core/Analytics"
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
@@ -15,7 +14,6 @@ import { runNotFoundPage } from "./NotFoundPageMain"
 import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
 import { getParent } from "./utils"
-import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager/CookiePreferencesManager"
@@ -31,9 +29,10 @@ import { Explorer } from "explorer/client/Explorer"
 import { ENV } from "settings"
 import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
+import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
+import { MultiEmbedderSingleton } from "./figures/EmbeddedFigure"
 
 declare var window: any
-window.GrapherPageUtils = GrapherPageUtils
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.runChartsIndexPage = runChartsIndexPage
@@ -45,6 +44,8 @@ window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
+window.MultiEmbedderSingleton = MultiEmbedderSingleton
+window.GlobalEntitySelectionSingleton = GlobalEntitySelectionSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = () => {
@@ -56,8 +57,8 @@ window.runSiteFooterScripts = () => {
     runCovid()
     runFootnotes()
     if (!document.querySelector(".ChartPage")) {
-        GrapherPageUtils.embedAll()
-        hydrateGlobalEntityControlIfAny(GrapherPageUtils.globalEntitySelection)
+        MultiEmbedderSingleton.embedAll()
+        hydrateGlobalEntityControlIfAny(GlobalEntitySelectionSingleton)
     }
 }
 

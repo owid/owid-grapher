@@ -11,7 +11,7 @@ export const embedSnippet = () => `const embedSnippet = () => {
     const checkReady = () => {
         loadedScripts++
         if (loadedScripts === 3)
-            window.GrapherPageUtils.embedAll()
+            window.MultiEmbedderSingleton.embedAll()
     }
 
     const coreScripts = ['https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch', '${webpack(

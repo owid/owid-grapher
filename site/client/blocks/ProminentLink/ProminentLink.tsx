@@ -1,6 +1,5 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import {
@@ -11,6 +10,7 @@ import {
 } from "utils/client/url"
 import { union, isEmpty, getAttributesOfHTMLElement } from "grapher/utils/Util"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -53,8 +53,8 @@ class ProminentLink extends React.Component<{
             : []
     }
 
-    @computed private get entitiesInGlobalEntitySelection(): string[] {
-        return GrapherPageUtils.globalEntitySelection.selectedEntities.map(
+    @computed private get entitiesInGlobalEntitySelection() {
+        return GlobalEntitySelectionSingleton.selectedEntities.map(
             (entity) => entity.code
         )
     }
