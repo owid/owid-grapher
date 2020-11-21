@@ -204,6 +204,7 @@ export class Explorer
         grapher.appendNewEntitySelectionOptions()
     }
 
+    // todo: add tests
     private getTableForSlug(tableSlug?: TableSlug) {
         const tableDef = this.explorerProgram.getTableDef(tableSlug)
         if (!tableDef)
@@ -211,10 +212,11 @@ export class Explorer
                 tableSlug,
                 `TableDef not found for '${tableSlug}'.`
             )
-        if (tableDef.url)
+        const { url } = tableDef
+        if (url)
             return (
-                Explorer.fetchedTableCache.get(tableDef.url) ??
-                BlankOwidTable(tableSlug, `Loading from ${tableDef.url}.`)
+                Explorer.fetchedTableCache.get([url, tableSlug].join()) ??
+                BlankOwidTable(tableSlug, `Loading from ${url}.`)
             )
         return new OwidTable(tableDef.inlineData, tableDef.columnDefinitions, {
             tableDescription: `Loaded '${tableSlug}' from inline data`,
@@ -222,12 +224,14 @@ export class Explorer
         }).dropEmptyRows()
     }
 
+    // todo: add tests
     private static fetchedTableCache = new Map<string, OwidTable>()
     @action.bound private async fetchTableAndStoreInCache(
         tableSlug?: TableSlug
     ) {
         const url = this.explorerProgram.getUrlForTableSlug(tableSlug)
-        if (!url || Explorer.fetchedTableCache.has(url)) return
+        const cacheKey = [url, tableSlug].join()
+        if (!url || Explorer.fetchedTableCache.has(cacheKey)) return
 
         try {
             const table = await this.explorerProgram.tryFetchTableForTableSlugIfItHasUrl(
@@ -235,7 +239,7 @@ export class Explorer
             )
 
             if (!table) return
-            Explorer.fetchedTableCache.set(url, table)
+            Explorer.fetchedTableCache.set(cacheKey, table)
             this.setTableBySlug(tableSlug)
         } catch (err) {
             if (this.grapher)
