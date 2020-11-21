@@ -9,16 +9,16 @@ Other sites can embed all our Graphers and Explorers as iFrames. Internally we c
 Authors can drop one of two kinds of tags into their Wordpress posts:
 
 ```
-<div some-selector-for-graphers />
+<figure some-selector-for-graphers />
 
 // or:
 
-<div some-selector-for-explorers />
+<figure some-selector-for-explorers />
 ```
 
 ## Step 2
 
-On page load, and/or during scrolls, we can render a Grapher or Explorer into those divs, respectively.
+On page load, and/or during scrolls, we can render a Grapher or Explorer into those containers, respectively.
 
 ## Benefits
 

@@ -14,7 +14,7 @@ import { Explorer } from "explorer/client/Explorer"
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "explorer/client/ExplorerConstants"
 
 interface EmbeddedFigureProps {
-    configUrl: string
+    standaloneUrl: string
     queryStr?: string
     container: HTMLElement
 }
@@ -37,17 +37,18 @@ class EmbeddedFigure {
             queryStr: this.props.queryStr,
         }
 
+        const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
+            const slug = `hello-world`
             const props = {
                 ...common,
                 queryString: this.props.queryStr,
-                slug: "",
-                program: "",
+                slug,
+                program: `title Hello world`,
             }
             ReactDOM.render(<Explorer {...props} />, this.container)
             return
         }
-        const html = await fetchText(this.props.configUrl)
         this.container.classList.remove("grapherPreview")
         const config: GrapherProgrammaticInterface = {
             ...deserializeJSONFromHTML(html),
@@ -93,17 +94,18 @@ const figuresFromDOM = (
             const { path, queryString } = splitURLintoPathAndQueryString(
                 dataSrc
             )
-            const configUrl = path
+            const standaloneUrl = path
             const queryStr = queryString
             const container = element
             const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
 
-            if (isExplorer && configUrl.includes("explorer")) return undefined
+            if (isExplorer && standaloneUrl.includes("explorer"))
+                return undefined
 
             return new EmbeddedFigure(
                 {
                     container,
-                    configUrl,
+                    standaloneUrl,
                     queryStr,
                 },
                 isExplorer

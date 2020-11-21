@@ -21,7 +21,7 @@ import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
-import { expectInt, JsonError } from "utils/server/serverUtil"
+import { expectInt, JsonError, renderToHtmlPage } from "utils/server/serverUtil"
 import { embedSnippet } from "site/server/embedCharts"
 import {
     countryProfilePage,
@@ -34,6 +34,7 @@ import { grapherToExplorerRedirectsByGrapherSlug } from "explorer/legacyCovidExp
 import { renderExplorerPage } from "explorer/admin/ExplorerBaker"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { getVariableData } from "db/model/Variable"
+import { MultiEmbedderTestPage } from "site/client/figures/MultiEmbedderTestPage"
 
 const mockSiteRouter = Router()
 
@@ -181,6 +182,10 @@ mockSiteRouter.get("/country/:countrySlug", async (req, res) => {
 
 mockSiteRouter.get("/feedback", async (req, res) => {
     res.send(await feedbackPage())
+})
+
+mockSiteRouter.get("/multiEmbedderTest", async (req, res) => {
+    res.send(renderToHtmlPage(MultiEmbedderTestPage()))
 })
 
 mockSiteRouter.get("/*", async (req, res) => {
