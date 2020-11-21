@@ -31,11 +31,15 @@ class EmbeddedFigure {
         if (this._isLoaded) return
         this._isLoaded = true
 
+        const common = {
+            isEmbed: true,
+            globalEntitySelection,
+        }
+
         if (this.isExplorer) {
             const props = {
-                isEmbed: true,
+                ...common,
                 queryString: this.props.queryStr,
-                globalEntitySelection,
                 slug: "",
                 program: "",
             }
@@ -47,9 +51,7 @@ class EmbeddedFigure {
         Grapher.renderGrapherComponentIntoContainer({
             jsonConfig: deserializeJSONFromHTML(html),
             containerNode: this.container,
-            isEmbed: true,
             queryStr: this.props.queryStr,
-            globalEntitySelection,
         })
     }
 
@@ -93,21 +95,17 @@ const figuresFromDOM = (
             const configUrl = path
             const queryStr = queryString
             const container = element
-            if (selector === GRAPHER_EMBEDDED_FIGURE_ATTR)
-                return new EmbeddedFigure({
-                    container,
-                    configUrl,
-                    queryStr,
-                })
+            const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
 
-            if (!configUrl.includes("explorer")) return undefined
+            if (isExplorer && configUrl.includes("explorer")) return undefined
+
             return new EmbeddedFigure(
                 {
                     container,
                     configUrl,
                     queryStr,
                 },
-                true
+                isExplorer
             )
         })
         .filter(isPresent)
@@ -182,15 +180,6 @@ class MultiEmbedder {
 
         window.addEventListener("scroll", this.loadVisibleFiguresThrottled)
         this.watchingScroll = true
-
-        return this
-    }
-
-    unwatchScroll() {
-        if (!this.watchingScroll) return this
-
-        window.removeEventListener("scroll", this.loadVisibleFiguresThrottled)
-        this.watchingScroll = false
 
         return this
     }
