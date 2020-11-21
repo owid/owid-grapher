@@ -27,6 +27,7 @@ import {
     SelectAllHitsCommand,
 } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
+import classNames from "classnames"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -118,7 +119,7 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action.bound private async saveAs() {
         const userSlug = prompt(
-            "Create a slug (URL friendly name) for this explorer",
+            `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
             this.program.slug
         )
         if (!userSlug) return
@@ -146,7 +147,7 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action.bound private async save() {
         const commitMessage = prompt(
-            "Enter a message describing this change",
+            `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
             `Updated ${this.program.slug}`
         )
         if (!commitMessage) return
@@ -263,6 +264,11 @@ export class ExplorerCreatePage extends React.Component<{
         return hotSettings
     }
 
+    @action.bound private onSave() {
+        if (this.program.isNewFile) this.saveAs()
+        else if (this.isModified) this.save()
+    }
+
     render() {
         if (!this.isReady)
             return (
@@ -272,68 +278,82 @@ export class ExplorerCreatePage extends React.Component<{
                 </AdminLayout>
             )
 
-        const { program } = this
+        const { program, isModified } = this
+        const { isNewFile } = program
+
+        const buttons = []
+
+        buttons.push(
+            <button
+                key="save"
+                disabled={!isModified && !isNewFile}
+                className={classNames("btn", "btn-primary")}
+                onClick={this.onSave}
+                title="Saves file to disk, commits and pushes to GitHub"
+            >
+                Save
+            </button>
+        )
+
+        buttons.push(
+            <button
+                key="saveAs"
+                disabled={isNewFile}
+                title={
+                    isNewFile
+                        ? "You need to save this file first."
+                        : "Saves file to disk, commits and pushes to GitHub"
+                }
+                className={classNames("btn", "btn-secondary")}
+                onClick={this.saveAs}
+            >
+                Save As
+            </button>
+        )
+
+        buttons.push(
+            <button
+                key="preview"
+                disabled={isNewFile}
+                title={isNewFile ? "You need to save this file first." : ""}
+                onClick={() =>
+                    window.open(
+                        `/admin/${EXPLORERS_PREVIEW_ROUTE}/${this.program.slug}`,
+                        "_blank"
+                    )
+                }
+                className={classNames(`btn`, "btn-secondary")}
+            >
+                Preview '{program.slug}'
+            </button>
+        )
+
+        buttons.push(
+            <button
+                key="clear"
+                disabled={!isModified}
+                title={isModified ? "" : "No changes"}
+                className={classNames("btn", "btn-secondary")}
+                onClick={this.clearChanges}
+            >
+                Clear Changes
+            </button>
+        )
+
+        const modifiedMessage = isModified
+            ? "Are you sure you want to leave? You have unsaved changes."
+            : "" // todo: provide an explanation of how many cells are modified.
 
         return (
             <AdminLayout title="Create Explorer">
-                <Prompt
-                    when={this.isModified}
-                    message="Are you sure you want to leave? You have unsaved changes."
-                />
+                <Prompt when={isModified} message={modifiedMessage} />
                 <main
                     style={{
                         padding: 0,
                         position: "relative",
                     }}
                 >
-                    <div
-                        style={{
-                            padding: "10px",
-                            textAlign: "right",
-                        }}
-                    >
-                        {this.isModified || program.isNewFile ? (
-                            <button
-                                className="btn btn-primary"
-                                onClick={() =>
-                                    program.isNewFile
-                                        ? this.saveAs()
-                                        : this.save()
-                                }
-                                title="Saves file to disk, commits and pushes to GitHub"
-                            >
-                                {program.isNewFile ? `Save New File` : `Save`}{" "}
-                                and Push to {this.props.gitCmsBranchName}
-                            </button>
-                        ) : (
-                            <button className="btn btn-secondary">
-                                Unmodified
-                            </button>
-                        )}
-                        &nbsp;
-                        <Link
-                            target="preview"
-                            to={`/${EXPLORERS_PREVIEW_ROUTE}/${program.slug}`}
-                            className="btn btn-secondary"
-                        >
-                            Preview
-                        </Link>
-                        &nbsp;
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.saveAs}
-                            title="Saves file to disk, commits and pushes to GitHub"
-                        >
-                            Save As and Push to {this.props.gitCmsBranchName}
-                        </button>
-                        &nbsp;
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.clearChanges}
-                        >
-                            Clear changes
-                        </button>
-                    </div>
+                    <div className="ExplorerCreatePageButtons">{buttons}</div>
                     <HotTable
                         settings={this.hotSettings}
                         ref={this.hotTableComponent as any}
