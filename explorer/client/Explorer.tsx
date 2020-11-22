@@ -40,9 +40,8 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 
-export interface ExplorerProps extends SerializedGridProgram {
+interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
-    bindToWindow?: boolean
     queryString?: string
     isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
     globalEntitySelection?: GlobalEntitySelection // todo: use this
@@ -78,7 +77,17 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
 export class Explorer
     extends React.Component<ExplorerProps>
     implements SlideShowManager, EntityPickerManager {
-    static renderSingleExplorerOnExplorerPage(props: ExplorerProps) {
+    // caution: do a ctrl+f to find untyped usages
+    static renderSingleExplorerOnExplorerPage(
+        program: ExplorerProps,
+        grapherConfigs: GrapherInterface[]
+    ) {
+        const props = {
+            ...program,
+            grapherConfigs,
+            isEmbed: false,
+        }
+
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
             renderLivePreviewVersion(props)
             return
@@ -137,7 +146,9 @@ export class Explorer
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
-        this.bindToWindow()
+
+        if (!this.props.isEmbed)
+            this.urlBinding = new UrlBinder().bindToWindow(this)
     }
 
     componentWillUnmount() {
@@ -260,13 +271,6 @@ export class Explorer
         this.explorerProgram.decisionMatrix.setValuesFromQueryString(
             queryString
         )
-    }
-
-    bindToWindow() {
-        if (!this.props.bindToWindow) return
-
-        this.urlBinding = new UrlBinder()
-        this.urlBinding.bindToWindow(this)
     }
 
     @computed get params(): ExplorerQueryParams {

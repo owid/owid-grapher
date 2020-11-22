@@ -5,61 +5,68 @@ import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "site/server/views/EmbedDetector"
-import {
-    SiteSubnavigation,
-    SubNavId,
-} from "site/server/views/SiteSubnavigation"
+import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import ExplorerContent from "./ExplorerContent"
-import { ExplorerContainerId } from "explorer/client/ExplorerConstants"
+import {
+    EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
+    EMBEDDED_EXPLORER_DELIMITER,
+    ExplorerContainerId,
+} from "explorer/client/ExplorerConstants"
+import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { serializeJSONForHTML } from "utils/serializers"
 
 interface ExplorerPageSettings {
-    title: string
-    slug: string
-    imagePath: string
-    preloads: string[]
-    inlineJs: string
-    hideAlertBanner?: boolean
-    subnavId?: SubNavId
-    subnavCurrentId?: string
+    program: ExplorerProgram
     wpContent?: string
+    grapherConfigs: GrapherInterface[]
 }
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {
-    const { subnavId, subnavCurrentId, wpContent } = props
-    const subNav = subnavId ? (
+    const { wpContent, program, grapherConfigs } = props
+    const {
+        subNavId,
+        subNavCurrentId,
+        explorerTitle,
+        slug,
+        thumbnail,
+        hideAlertBanner,
+    } = program
+    const subNav = subNavId ? (
         <SiteSubnavigation
-            subnavId={subnavId}
-            subnavCurrentId={subnavCurrentId}
+            subnavId={subNavId}
+            subnavCurrentId={subNavCurrentId}
         />
     ) : undefined
+
+    const inlineJs = `const explorerProgram = ${serializeJSONForHTML(
+        program.toJson(),
+        EMBEDDED_EXPLORER_DELIMITER
+    )}
+const grapherConfigs = ${serializeJSONForHTML(
+        grapherConfigs,
+        EMBEDDED_EXPLORER_GRAPHER_CONFIGS
+    )}
+window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs)`
 
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/${props.slug}`}
-                pageTitle={props.title}
-                imageUrl={`${settings.BAKED_BASE_URL}/${props.imagePath}`}
+                canonicalUrl={`${settings.BAKED_BASE_URL}/${slug}`}
+                pageTitle={explorerTitle}
+                imageUrl={`${settings.BAKED_BASE_URL}/${thumbnail} `}
             >
                 <EmbedDetector />
-                {props.preloads.map((url: string, index: number) => (
-                    <link
-                        key={`preload${index}`}
-                        rel="preload"
-                        href={url}
-                        as="fetch"
-                        crossOrigin="anonymous"
-                    />
-                ))}
             </Head>
             <body className="ChartPage">
-                <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
+                <SiteHeader hideAlertBanner={hideAlertBanner || false} />
                 {subNav}
                 <main id={ExplorerContainerId}>
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
                 <SiteFooter />
-                <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
+                <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
             </body>
         </html>
     )

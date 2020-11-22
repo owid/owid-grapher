@@ -1,4 +1,5 @@
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "explorer/client/ExplorerConstants"
+import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import React from "react"
 import { Head } from "site/server/views/Head"
@@ -6,6 +7,7 @@ import { SiteFooter } from "site/server/views/SiteFooter"
 import { SiteHeader } from "site/server/views/SiteHeader"
 
 export const MultiEmbedderTestPage = (
+    globalEntityControl = false,
     slug = "embed-test-page",
     title = "MultiEmbedderTestPage"
 ) => {

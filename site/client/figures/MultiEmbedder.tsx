@@ -11,7 +11,11 @@ import { splitURLintoPathAndQueryString } from "utils/client/url"
 import { deserializeJSONFromHTML } from "utils/serializers"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { Explorer } from "explorer/client/Explorer"
-import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "explorer/client/ExplorerConstants"
+import {
+    EMBEDDED_EXPLORER_DELIMITER,
+    EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
+    EXPLORER_EMBEDDED_FIGURE_SELECTOR,
+} from "explorer/client/ExplorerConstants"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -39,12 +43,14 @@ class EmbeddedFigure {
 
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
-            const slug = `hello-world`
             const props = {
                 ...common,
+                ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
                 queryString: this.props.queryStr,
-                slug,
-                program: `title Hello world`,
+                grapherConfigs: deserializeJSONFromHTML(
+                    html,
+                    EMBEDDED_EXPLORER_GRAPHER_CONFIGS
+                ),
             }
             ReactDOM.render(<Explorer {...props} />, this.container)
             return
@@ -99,7 +105,7 @@ const figuresFromDOM = (
             const container = element
             const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
 
-            if (isExplorer && standaloneUrl.includes("explorer"))
+            if (isExplorer && !standaloneUrl.includes("explorer"))
                 return undefined
 
             return new EmbeddedFigure(

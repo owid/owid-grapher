@@ -29,6 +29,7 @@ export class UrlBinder {
             () => obj.params,
             () => (obj.debounceMode ? debouncedPushParams() : pushParams())
         )
+        return this
     }
 
     unbindFromWindow() {

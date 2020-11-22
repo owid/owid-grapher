@@ -9,7 +9,6 @@ import {
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request } from "adminSite/server/utils/authentication"
-import { ExplorerProps } from "explorer/client/Explorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
 import { Router } from "express"
@@ -28,6 +27,7 @@ import {
 import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
 import { slugify } from "grapher/utils/Util"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 const git = simpleGit({
     baseDir: GIT_CMS_DIR,
@@ -167,27 +167,6 @@ const bakeExplorersToDir = async (
     }
 }
 
-// todo: can we remove this sort of thing?
-const makeInlineJs = (program: ExplorerProgram, grapherConfigs: any[]) => {
-    const props: ExplorerProps = {
-        bindToWindow: true,
-        slug: program.slug,
-        lastCommit: program.lastCommit,
-        program: program.toString(),
-        grapherConfigs: grapherConfigs.map((row) => {
-            const config = JSON.parse(row.config)
-            config.id = row.id // Ensure each grapher has an id
-            return config
-        }),
-    }
-
-    return `window.Explorer.renderSingleExplorerOnExplorerPage(${JSON.stringify(
-        props,
-        null,
-        2
-    )})`
-}
-
 export const renderExplorerPage = async (
     slug: string,
     code: string,
@@ -195,9 +174,9 @@ export const renderExplorerPage = async (
 ) => {
     const program = new ExplorerProgram(slug, code, lastCommit)
     const { requiredGrapherIds } = program
-    let grapherConfigs: any[] = []
+    let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)
-        grapherConfigs = await db.query(
+        grapherConfigRows = await db.query(
             `SELECT id, config FROM charts WHERE id IN (?)`,
             [requiredGrapherIds]
         )
@@ -206,16 +185,16 @@ export const renderExplorerPage = async (
         ? await getBlockContent(program.wpBlockId)
         : undefined
 
+    const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
+        const config = JSON.parse(row.config)
+        config.id = row.id // Ensure each grapher has an id
+        return config
+    })
+
     return renderToHtmlPage(
         <ExplorerPage
-            title={program.explorerTitle ?? ""}
-            slug={slug}
-            imagePath={program.thumbnail ?? ""}
-            subnavId={program.subNavId}
-            subnavCurrentId={program.subNavCurrentId}
-            preloads={[]}
-            inlineJs={makeInlineJs(program, grapherConfigs)}
-            hideAlertBanner={program.hideAlertBanner}
+            grapherConfigs={grapherConfigs}
+            program={program}
             wpContent={wpContent}
         />
     )

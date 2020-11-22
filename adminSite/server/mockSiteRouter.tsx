@@ -185,7 +185,11 @@ mockSiteRouter.get("/feedback", async (req, res) => {
 })
 
 mockSiteRouter.get("/multiEmbedderTest", async (req, res) => {
-    res.send(renderToHtmlPage(MultiEmbedderTestPage()))
+    res.send(
+        renderToHtmlPage(
+            MultiEmbedderTestPage(req.query.globalEntityControl === "true")
+        )
+    )
 })
 
 mockSiteRouter.get("/*", async (req, res) => {
