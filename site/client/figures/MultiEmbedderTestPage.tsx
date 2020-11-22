@@ -1,5 +1,5 @@
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "explorer/client/ExplorerConstants"
-import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
+import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "grapher/controls/globalEntityControl/GlobalEntityControlConstants"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import React from "react"
 import { Head } from "site/server/views/Head"
@@ -22,6 +22,14 @@ export const MultiEmbedderTestPage = (
             <body>
                 <SiteHeader />
                 <main>
+                    {globalEntityControl ? (
+                        <div {...{ [GLOBAL_ENTITY_CONTROL_DATA_ATTR]: true }} />
+                    ) : null}
+                    <p>
+                        <a href="?globalEntityControl=true">
+                            With Global Entity Control
+                        </a>
+                    </p>
                     <h1>A grapher about sharks</h1>
                     <figure
                         style={style}

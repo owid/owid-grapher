@@ -1,11 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { throttle, fetchText, isPresent } from "grapher/utils/Util"
-import {
-    GlobalEntitySelectionSingleton,
-    shouldProgressiveEmbed,
-    GlobalEntitySelection,
-} from "grapher/controls/globalEntityControl/GlobalEntitySelection"
+import { throttle, fetchText, isPresent, isMobile } from "grapher/utils/Util"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 import { deserializeJSONFromHTML } from "utils/serializers"
@@ -16,6 +11,7 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "explorer/client/ExplorerConstants"
+import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "grapher/controls/globalEntityControl/GlobalEntityControlConstants"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -31,13 +27,12 @@ class EmbeddedFigure {
         this.isExplorer = isExplorer
     }
 
-    async renderIntoContainer(globalEntitySelection?: GlobalEntitySelection) {
+    async renderIntoContainer() {
         if (this._isLoaded) return
         this._isLoaded = true
 
         const common = {
             isEmbed: true,
-            globalEntitySelection,
             queryStr: this.props.queryStr,
         }
 
@@ -119,13 +114,19 @@ const figuresFromDOM = (
         })
         .filter(isPresent)
 
+// Determine whether this device is powerful enough to handle
+// loading a bunch of inline interactive charts
+// 680px is also used in CSS – keep it in sync if you change this
+export const shouldProgressiveEmbed = () =>
+    !isMobile() ||
+    window.screen.width > 680 ||
+    pageContainsGlobalEntityControl()
+
+const pageContainsGlobalEntityControl = () =>
+    document.querySelector(`[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`) !== null
+
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []
-    private globalEntitySelection: GlobalEntitySelection
-
-    constructor(globalEntitySelection: GlobalEntitySelection) {
-        this.globalEntitySelection = globalEntitySelection
-    }
 
     private shouldLoadFigure(figure: EmbeddedFigure) {
         if (figure.isLoaded) return false
@@ -160,9 +161,7 @@ class MultiEmbedder {
     loadVisibleFigures() {
         this.figures
             .filter(this.shouldLoadFigure)
-            .forEach((figure) =>
-                figure.renderIntoContainer(this.globalEntitySelection)
-            )
+            .forEach((figure) => figure.renderIntoContainer())
     }
 
     /**
@@ -205,6 +204,4 @@ class MultiEmbedder {
     }
 }
 
-export const MultiEmbedderSingleton = new MultiEmbedder(
-    GlobalEntitySelectionSingleton
-)
+export const MultiEmbedderSingleton = new MultiEmbedder()

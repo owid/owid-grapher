@@ -6,7 +6,7 @@ import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { runSearchCountry } from "site/client/SearchCountry"
 import { runExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
-import { shouldProgressiveEmbed } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
+import { shouldProgressiveEmbed } from "site/client/figures/MultiEmbedder"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
