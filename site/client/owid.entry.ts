@@ -31,10 +31,12 @@ import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
 import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
+import { CoreTable } from "coreTable/CoreTable"
 
 declare var window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
+window.CoreTable = CoreTable
 window.runChartsIndexPage = runChartsIndexPage
 window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
