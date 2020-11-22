@@ -96,17 +96,12 @@ export const addExplorerAdminRoutes = (app: Router) => {
         if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))
             return res.send(`File not found`)
         const explorer = await getExplorerFromFile(EXPLORERS_FOLDER, filename)
-        return res.send(
-            await renderExplorerPage(
-                explorer.slug,
-                explorer.toString(),
-                explorer.lastCommit
-            )
-        )
+        return res.send(await renderExplorerPage(explorer))
     })
 }
 
-const getExplorerFromFile = async (
+// todo: don't export once we remove covid legacy stuff?
+export const getExplorerFromFile = async (
     directory = EXPLORERS_FOLDER,
     filename: string
 ) => {
@@ -124,9 +119,15 @@ export const bakeAllPublishedExplorers = async (
     inputFolder = EXPLORERS_FOLDER,
     outputFolder = `${BAKED_SITE_DIR}/${EXPLORERS_ROUTE_FOLDER}/`
 ) => {
-    const explorers = await getAllExplorers(inputFolder)
-    const published = explorers.filter((exp) => exp.isPublished)
+    const published = await getAllPublishedExplorers(inputFolder)
     await bakeExplorersToDir(outputFolder, published)
+}
+
+export const getAllPublishedExplorers = async (
+    inputFolder = EXPLORERS_FOLDER
+) => {
+    const explorers = await getAllExplorers(inputFolder)
+    return explorers.filter((exp) => exp.isPublished)
 }
 
 const getAllExplorers = async (directory = EXPLORERS_FOLDER) => {
@@ -158,21 +159,12 @@ const bakeExplorersToDir = async (
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(
-                explorer.slug,
-                explorer.toString(),
-                explorer.lastCommit
-            )
+            await renderExplorerPage(explorer)
         )
     }
 }
 
-export const renderExplorerPage = async (
-    slug: string,
-    code: string,
-    lastCommit?: GitCommit
-) => {
-    const program = new ExplorerProgram(slug, code, lastCommit)
+export const renderExplorerPage = async (program: ExplorerProgram) => {
     const { requiredGrapherIds } = program
     let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)

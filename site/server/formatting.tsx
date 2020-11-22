@@ -22,8 +22,8 @@ import { Country } from "utils/countries"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 import {
-    replaceGrapherIframesWithExplorerIframes,
-    covidDashboardSlug,
+    replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
+    legacyCovidDashboardSlug,
 } from "explorer/legacyCovidExplorerRedirects"
 import { SubNavId } from "./views/SiteSubnavigation"
 import {
@@ -177,7 +177,7 @@ export async function formatWordpressPost(
         </span>`
     )
 
-    const $ = cheerio.load(html)
+    const cheerioEl = cheerio.load(html)
 
     // Related charts
     // Mimicking SSR output of additional information block from PHP
@@ -200,22 +200,22 @@ export async function formatWordpressPost(
             </content>
         </block>
         `
-        const $summary = $(".wp-block-owid-summary")
+        const $summary = cheerioEl(".wp-block-owid-summary")
         if ($summary.length !== 0) {
             $summary.after(allCharts)
         } else {
-            $("body > h2:first-of-type, body > h3:first-of-type")
+            cheerioEl("body > h2:first-of-type, body > h3:first-of-type")
                 .first()
                 .before(allCharts)
         }
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
-    renderBlocks($)
+    renderBlocks(cheerioEl)
 
     // Extract blog info content
     let info = null
-    const $info = $(".blog-info")
+    const $info = cheerioEl(".blog-info")
     if ($info.length) {
         info = $info.html()
         $info.remove()
@@ -223,7 +223,7 @@ export async function formatWordpressPost(
 
     // Extract last updated
     let lastUpdated
-    const $lastUpdated = $(".wp-block-last-updated")
+    const $lastUpdated = cheerioEl(".wp-block-last-updated")
     if ($lastUpdated.length) {
         lastUpdated = $lastUpdated.html()
         $lastUpdated.remove()
@@ -231,7 +231,7 @@ export async function formatWordpressPost(
 
     // Extract page subtitle
     let pageSubtitle
-    const $pageSubtitle = $(".wp-block-page-subtitle")
+    const $pageSubtitle = cheerioEl(".wp-block-page-subtitle")
     if ($pageSubtitle.length) {
         pageSubtitle = $pageSubtitle.text()
         $pageSubtitle.remove()
@@ -239,23 +239,23 @@ export async function formatWordpressPost(
 
     // Extract page byline
     let byline
-    const $byline = $(".wp-block-owid-byline")
+    const $byline = cheerioEl(".wp-block-owid-byline")
     if ($byline.length) {
         byline = $byline.html()
         $byline.remove()
     }
 
-    // Replace grapher iframes with explorer iframes
-    replaceGrapherIframesWithExplorerIframes($)
+    // Replace grapher iframes with explorer iframes. todo: remove this.
+    replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"
     if (grapherExports) {
-        const grapherIframes = $("iframe")
+        const grapherIframes = cheerioEl("iframe")
             .toArray()
             .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
         for (const el of grapherIframes) {
-            const $el = $(el)
+            const $el = cheerioEl(el)
             const src = el.attribs["src"].trim()
             const chart = grapherExports.get(src)
             if (chart) {
@@ -300,16 +300,18 @@ export async function formatWordpressPost(
     }
 
     // Replace explorer iframes with iframeless embed
-    const explorerIframes = $("iframe")
+    const explorerIframes = cheerioEl("iframe")
         .toArray()
-        .filter((el) => (el.attribs["src"] || "").includes(covidDashboardSlug))
+        .filter((el) =>
+            (el.attribs["src"] || "").includes(legacyCovidDashboardSlug)
+        )
     for (const el of explorerIframes) {
-        const $el = $(el)
+        const $el = cheerioEl(el)
         const src = el.attribs["src"].trim()
         // set a default style if none exists on the existing iframe
         const style = el.attribs["style"] || "width: 100%; height: 600px;"
         const cssClass = el.attribs["class"]
-        const $figure = $(
+        const $figure = cheerioEl(
             ReactDOMServer.renderToStaticMarkup(
                 <figure data-explorer-src={src} className={cssClass}>
                     <LoadingIndicator />
@@ -322,7 +324,7 @@ export async function formatWordpressPost(
     }
 
     // Any remaining iframes
-    for (const iframe of $("iframe").toArray()) {
+    for (const iframe of cheerioEl("iframe").toArray()) {
         // Ensure https embeds
         if (HTTPS_ONLY && iframe.attribs["src"]) {
             iframe.attribs["src"] = iframe.attribs["src"].replace(
@@ -337,22 +339,22 @@ export async function formatWordpressPost(
     }
 
     // Remove any empty elements
-    for (const p of $("p").toArray()) {
-        const $p = $(p)
+    for (const p of cheerioEl("p").toArray()) {
+        const $p = cheerioEl(p)
         if ($p.contents().length === 0) $p.remove()
     }
 
     // Wrap tables so we can do overflow-x: scroll if needed
-    for (const table of $("table").toArray()) {
-        const $table = $(table)
-        const $div = $("<div class='tableContainer'></div>")
+    for (const table of cheerioEl("table").toArray()) {
+        const $table = cheerioEl(table)
+        const $div = cheerioEl("<div class='tableContainer'></div>")
         $table.after($div)
         $div.append($table)
     }
 
     // Make sticky-right layout the default for columns
-    $(".wp-block-columns").each((_, columns) => {
-        const $columns = $(columns)
+    cheerioEl(".wp-block-columns").each((_, columns) => {
+        const $columns = cheerioEl(columns)
         if (columns.attribs.class === "wp-block-columns") {
             $columns.addClass("is-style-sticky-right")
         }
@@ -368,7 +370,7 @@ export async function formatWordpressPost(
     //   the full resolution variant) and wrapping <a> will be removed to prevent
     //   conflicts with lightboxes. Chosen over preventDefault() in front-end code
     //   to avoid clicks before javascript executes.
-    for (const el of $("img").toArray()) {
+    for (const el of cheerioEl("img").toArray()) {
         // Recreate source image path by removing automatically added image
         // dimensions (e.g. remove 800x600).
         const src = el.attribs["src"]
@@ -388,8 +390,8 @@ export async function formatWordpressPost(
 
         // Remove wrapping <a> tag, conflicting with lightbox (cf. assumptions above)
         if (el.parent.tagName === "a") {
-            const $a = $(el.parent)
-            $a.replaceWith($(el))
+            const $a = cheerioEl(el.parent)
+            $a.replaceWith(cheerioEl(el))
         }
 
         // Add alt attribute
@@ -411,8 +413,8 @@ export async function formatWordpressPost(
     const existingSlugs: string[] = []
     let parentHeading: TocHeading | null = null
 
-    $("h1, h2, h3, h4").each((_, el) => {
-        const $heading = $(el)
+    cheerioEl("h1, h2, h3, h4").each((_, el) => {
+        const $heading = cheerioEl(el)
         const headingText = $heading.text()
 
         let slug = urlSlug(headingText)
@@ -479,7 +481,7 @@ export async function formatWordpressPost(
 
     const getColumns = (style: string = "sticky-right"): Columns => {
         const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
-        const $columns = $(emptyColumns)
+        const $columns = cheerioEl(emptyColumns)
         return {
             wrapper: $columns,
             first: $columns.children().first(),
@@ -501,25 +503,29 @@ export async function formatWordpressPost(
 
     // Wrap content demarcated by headings into section blocks
     // and automatically divide content into columns
-    const sectionStarts = [$("body").children().get(0)].concat(
-        $("body > h2").toArray()
+    const sectionStarts = [cheerioEl("body").children().get(0)].concat(
+        cheerioEl("body > h2").toArray()
     )
     for (const start of sectionStarts) {
-        const $start = $(start)
-        const $section = $("<section>")
+        const $start = cheerioEl(start)
+        const $section = cheerioEl("<section>")
         let columns = getColumns()
         let sideBySideColumns = getColumns("side-by-side")
-        const $tempWrapper = $("<div>")
+        const $tempWrapper = cheerioEl("<div>")
         const $contents = $tempWrapper
-            .append($start.clone(), $start.nextUntil($("h2")))
+            .append($start.clone(), $start.nextUntil(cheerioEl("h2")))
             .contents()
 
         if (post.glossary) {
-            formatGlossaryTerms($, $contents, getMutableGlossary(glossary))
+            formatGlossaryTerms(
+                cheerioEl,
+                $contents,
+                getMutableGlossary(glossary)
+            )
         }
 
         $contents.each((i, el) => {
-            const $el = $(el)
+            const $el = cheerioEl(el)
             // Leave h2 at the section level, do not move into columns
             if (el.name === "h2") {
                 $section.append(
@@ -530,7 +536,7 @@ export async function formatWordpressPost(
                         >
                             <div
                                 dangerouslySetInnerHTML={{
-                                    __html: $.html($el),
+                                    __html: cheerioEl.html($el),
                                 }}
                             />
                         </SectionHeading>
@@ -612,7 +618,7 @@ export async function formatWordpressPost(
 
     // Render global country selection component.
     // Injects a <section>, which is why it executes last.
-    bakeGlobalEntityControl($)
+    bakeGlobalEntityControl(cheerioEl)
 
     return {
         id: post.id,
@@ -627,10 +633,10 @@ export async function formatWordpressPost(
         authors: post.authors,
         byline: byline,
         info: info,
-        html: getHtmlContentWithStyles($),
+        html: getHtmlContentWithStyles(cheerioEl),
         footnotes: footnotes,
         references: references,
-        excerpt: post.excerpt || $("p").first().text(),
+        excerpt: post.excerpt || cheerioEl("p").first().text(),
         imageUrl: post.imageUrl,
         tocHeadings: tocHeadings,
         relatedCharts: post.relatedCharts,

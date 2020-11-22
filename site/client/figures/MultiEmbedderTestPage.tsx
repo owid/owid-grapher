@@ -31,14 +31,14 @@ export const MultiEmbedderTestPage = (
                         }}
                     />
                     <h1>
-                        A grapher about sharks with different params (only
-                        Italy)
+                        A grapher about sharks with different params
+                        (time=latest)
                     </h1>
                     <figure
                         style={style}
                         {...{
                             [GRAPHER_EMBEDDED_FIGURE_ATTR]:
-                                "http://localhost:3030/grapher/total-shark-attacks-per-year?country=Italy",
+                                "http://localhost:3030/grapher/total-shark-attacks-per-year?time=latest",
                         }}
                     />
                     <h1>An explorer about co2</h1>

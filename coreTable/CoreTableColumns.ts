@@ -302,6 +302,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return uniq(this.values)
     }
 
+    @imemo get uniqValuesAsSet() {
+        return new Set(this.uniqValues)
+    }
+
     /**
      * Returns all values including ErrorValues..
      * Normally you want just the valid values, like `[45000, 50000, ...]`. But sometimes you
