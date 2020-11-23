@@ -1225,10 +1225,10 @@ export class Grapher
         if (this.hasMultipleYColumns && uniqueDatasetNames.length === 1)
             return uniqueDatasetNames[0]
 
-        if (uniqueDatasetNames.length === 2)
-            return uniqueDatasetNames.join(" and ")
+        if (yColumns.length === 2)
+            return yColumns.map((col) => col.displayName).join(" and ")
 
-        return uniqueDatasetNames.join(", ")
+        return yColumns.map((col) => col.displayName).join(", ")
     }
 
     @computed get displayTitle() {
