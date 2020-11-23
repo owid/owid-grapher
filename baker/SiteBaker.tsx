@@ -40,7 +40,10 @@ import { bakeCountries } from "site/server/countryProfiles"
 import { countries } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
-import { legacyGrapherToCovidExplorerRedirects } from "explorer/legacyCovidExplorerRedirects"
+import {
+    getLegacyCovidExplorerAsExplorerProgramForSlug,
+    legacyGrapherToCovidExplorerRedirectTable,
+} from "explorer/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
@@ -48,7 +51,6 @@ import {
 } from "explorer/admin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 
 const { BLOG_POSTS_PER_PAGE } = settings
 
@@ -302,19 +304,17 @@ export class SiteBaker {
     }
 
     private async bakeGrapherToExplorerRedirects() {
-        for (const grapherToExplorerRedirect of legacyGrapherToCovidExplorerRedirects) {
-            const { slugs, explorerQueryStr } = grapherToExplorerRedirect
+        const rows = legacyGrapherToCovidExplorerRedirectTable.rows
+        for (const row of rows) {
+            const { slug, explorerQueryStr } = row
             // todo: restore functionality
-            const html = await renderExplorerPage(
-                new ExplorerProgram("slug", "")
+            const program = await getLegacyCovidExplorerAsExplorerProgramForSlug(
+                slug
             )
-            await Promise.all(
-                slugs.map((slug) =>
-                    this.stageWrite(
-                        `${this.bakedSiteDir}/grapher/${slug}.html`,
-                        html
-                    )
-                )
+            const html = await renderExplorerPage(program!)
+            await this.stageWrite(
+                `${this.bakedSiteDir}/grapher/${slug}.html`,
+                html
             )
         }
     }

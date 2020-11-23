@@ -52,7 +52,7 @@ const redirectTableTsv = `id	slug	explorerQueryStr
 4490	daily-covid-cases-7-day	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true
 4490	daily-covid-cases-7-day-average	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true`
 
-const legacyGrapherToCovidExplorerRedirectTable = new CoreTable(
+export const legacyGrapherToCovidExplorerRedirectTable = new CoreTable(
     redirectTableTsv
 )
 

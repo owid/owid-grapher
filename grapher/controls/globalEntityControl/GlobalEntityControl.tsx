@@ -223,7 +223,7 @@ export class GlobalEntityControl extends React.Component<{
     private analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
 
     @action.bound private onChange(option: ValueType<any>) {
-        this.selection.setSelectedEntities(option.label)
+        this.selection.setSelectedEntities([option.label])
         this.analytics.logGlobalEntityControl(
             "change",
             this.selection.selectedEntityNames.join(",")
