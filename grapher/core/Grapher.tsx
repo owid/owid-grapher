@@ -277,6 +277,7 @@ export class Grapher
 
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = ENV === "development"
+    private isStaging = location?.host?.includes("staging")
     adminBaseUrl = ADMIN_BASE_URL
     analytics = new Analytics(ENV)
     isEditor =
@@ -570,10 +571,13 @@ export class Grapher
     }
 
     @computed get editUrl() {
-        if (!Cookies.get(CookieKey.isAdmin) && !this.isDev) return undefined
-        if (!this.id)
-            return `${this.adminBaseUrl}/admin/${EXPLORERS_ROUTE_FOLDER}/${this.slug}`
-        return `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
+        if (!this.showAdminControls && !this.isDev && !this.isStaging)
+            return undefined
+        return `${this.adminBaseUrl}/admin/${
+            this.id
+                ? `charts/${this.id}/edit`
+                : `${EXPLORERS_ROUTE_FOLDER}/${this.slug}`
+        }`
     }
 
     private populationFilterToggleOption = 1e6
@@ -604,7 +608,7 @@ export class Grapher
     /**
      * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
      */
-    @computed get useAdminAPI(): boolean {
+    @computed get useAdminAPI() {
         if (typeof window === "undefined") return false
         return window.admin !== undefined
     }
@@ -613,7 +617,7 @@ export class Grapher
      * Whether the user viewing the chart is an admin and we should show admin controls,
      * like the "Edit" option in the share menu.
      */
-    @computed get showAdminControls(): boolean {
+    @computed get showAdminControls() {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
         return !!Cookies.get(CookieKey.isAdmin)
