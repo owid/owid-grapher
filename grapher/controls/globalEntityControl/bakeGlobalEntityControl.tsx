@@ -1,24 +1,21 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { GlobalEntitySelection } from "./GlobalEntitySelection"
 import { GlobalEntityControl } from "./GlobalEntityControl"
 import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
 } from "./GlobalEntityControlConstants"
 
-export function bakeGlobalEntityControl($: CheerioStatic) {
+export function bakeGlobalEntityControl(cheerioEl: CheerioStatic) {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
     // But we should still support the old attribute.
-    $(`*[data-entity-select], ${GLOBAL_ENTITY_CONTROL_SELECTOR}`).each(
+    cheerioEl(`*[data-entity-select], ${GLOBAL_ENTITY_CONTROL_SELECTOR}`).each(
         (_, el) => {
-            const $el = $(el)
+            const $el = cheerioEl(el)
             const $section = $el.closest("section")
 
             const rendered = ReactDOMServer.renderToString(
-                <GlobalEntityControl
-                    globalEntitySelection={new GlobalEntitySelection()}
-                />
+                <GlobalEntityControl />
             )
 
             // Move the element to top-level where <section>s are,

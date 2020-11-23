@@ -1,13 +1,12 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { computed, action, observable, IReactionDisposer, reaction } from "mobx"
+import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
 import { observer } from "mobx-react"
 import Select, {
-    ValueType,
     components,
-    OptionProps,
-    Props,
     GroupedOptionsType,
+    Props,
+    ValueType,
 } from "react-select"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -19,12 +18,6 @@ import {
     getCountryCodeFromNetlifyRedirect,
     sortBy,
 } from "grapher/utils/Util"
-import {
-    GlobalEntitySelection,
-    GlobalEntitySelectionEntity,
-    GlobalEntitySelectionModes,
-} from "./GlobalEntitySelection"
-import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
@@ -32,6 +25,19 @@ import {
     GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
 } from "./GlobalEntityControlConstants"
+import { SelectionArray } from "grapher/selection/SelectionArray"
+import { EntityName } from "coreTable/OwidTableConstants"
+
+enum GlobalEntitySelectionModes {
+    none = "none",
+    // Possibly might need the `add` state in the future to
+    // add country from geolocation without clearing others.
+    // One thing to figure out is what its behaviour should
+    // be for single-entity charts.
+
+    // add = "add",
+    override = "override",
+}
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -43,7 +49,7 @@ const allEntities = sortBy(countries, (c) => c.name)
         },
     ])
 
-const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
+const Option = (props: any) => {
     return (
         <div>
             <components.Option {...props}>
@@ -54,65 +60,59 @@ const Option = (props: OptionProps<GlobalEntitySelectionEntity>) => {
     )
 }
 
-const EntitySelect = (props: Props<GlobalEntitySelectionEntity>) => {
-    return (
-        <Select
-            components={{
-                IndicatorSeparator: null,
-                Option,
-            }}
-            menuPlacement="bottom"
-            isClearable={false}
-            isMulti={true}
-            backspaceRemovesValue={false}
-            blurInputOnSelect={false}
-            closeMenuOnSelect={false}
-            controlShouldRenderValue={false}
-            hideSelectedOptions={false}
-            placeholder="Add a country to all charts..."
-            styles={{
-                placeholder: (base) => ({ ...base, whiteSpace: "nowrap" }),
-                valueContainer: (base) => ({
-                    ...base,
-                    paddingTop: 0,
-                    paddingBottom: 0,
-                }),
-                control: (base) => ({ ...base, minHeight: "initial" }),
-                dropdownIndicator: (base) => ({ ...base, padding: "0 5px" }),
-            }}
-            {...props}
-        />
-    )
+const SelectOptions: Props = {
+    components: {
+        IndicatorSeparator: null,
+        Option,
+    },
+    menuPlacement: "bottom",
+    isClearable: false,
+    isMulti: true,
+    backspaceRemovesValue: false,
+    blurInputOnSelect: false,
+    closeMenuOnSelect: false,
+    controlShouldRenderValue: false,
+    hideSelectedOptions: false,
+    placeholder: "Add a country to all charts...",
+    styles: {
+        placeholder: (base: any) => ({ ...base, whiteSpace: "nowrap" }),
+        valueContainer: (base: any) => ({
+            ...base,
+            paddingTop: 0,
+            paddingBottom: 0,
+        }),
+        control: (base: any) => ({ ...base, minHeight: "initial" }),
+        dropdownIndicator: (base: any) => ({ ...base, padding: "0 5px" }),
+    },
 }
 
-function SelectedItems<T>(props: {
-    selectedItems: T[]
+function SelectedItems(props: {
+    selectedEntityNames: EntityName[]
     emptyLabel: string
-    getLabel: (item: T) => string
     canRemove?: boolean
-    onRemove?: (item: T) => void
+    onRemove?: (item: EntityName) => void
 }) {
     const canRemove = (props.canRemove ?? true) && props.onRemove !== undefined
     const onRemove = props.onRemove || noop
-    const isEmpty = props.selectedItems.length === 0
+    const isEmpty = props.selectedEntityNames.length === 0
     return (
         <div className="selected-items-container">
             {isEmpty ? (
                 <div className="empty">{props.emptyLabel}</div>
             ) : (
                 <div className="selected-items">
-                    {props.selectedItems.map((item) => (
+                    {props.selectedEntityNames.map((entityName) => (
                         <div
-                            key={props.getLabel(item)}
+                            key={entityName}
                             className={classnames("selected-item", {
                                 removable: canRemove,
                             })}
                         >
-                            <div className="label">{props.getLabel(item)}</div>
+                            <div className="label">{entityName}</div>
                             {canRemove && (
                                 <div
                                     className="remove-icon"
-                                    onClick={() => onRemove(item)}
+                                    onClick={() => onRemove(entityName)}
                                 >
                                     <FontAwesomeIcon icon={faTimes} />
                                 </div>
@@ -127,18 +127,26 @@ function SelectedItems<T>(props: {
 
 @observer
 export class GlobalEntityControl extends React.Component<{
-    globalEntitySelection: GlobalEntitySelection
+    initialSelection?: string
 }> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
+    private isBoundToWindow = false
+
+    @observable mode = GlobalEntitySelectionModes.none
+
     @observable private isNarrow = true
     @observable private isOpen = false
-    @observable private localEntity: GlobalEntitySelectionEntity | undefined
+    @observable private localEntityName: EntityName | undefined
 
-    @observable.ref private selectOptions: GroupedOptionsType<
-        GlobalEntitySelectionEntity
-    > = []
+    selection = new SelectionArray(
+        this.props.initialSelection
+            ? this.props.initialSelection.split(" ")
+            : undefined
+    )
+
+    @observable.ref private optionGroups: GroupedOptionsType<any> = []
 
     componentDidMount() {
         this.onResize()
@@ -146,7 +154,7 @@ export class GlobalEntityControl extends React.Component<{
         this.disposers.push(
             reaction(
                 () => this.isOpen,
-                () => this.prepareSelectOptions()
+                () => this.prepareOptionGroups()
             )
         )
         this.populateLocalEntity()
@@ -166,89 +174,64 @@ export class GlobalEntityControl extends React.Component<{
     @action.bound async populateLocalEntity() {
         try {
             const localCountryCode = await getCountryCodeFromNetlifyRedirect()
-            if (localCountryCode) {
-                const [country] = allEntities.filter(
-                    (entity) => entity.code === localCountryCode
-                )
-                if (country) this.localEntity = country
-            }
-        } catch (e) {}
+            if (!localCountryCode) return
+
+            const country = allEntities.find(
+                (entity) => entity.code === localCountryCode
+            )
+            if (country) this.localEntityName = country.name
+        } catch (err) {}
     }
 
-    @computed private get selectedEntities() {
-        return this.props.globalEntitySelection.selectedEntities
-    }
-
-    @action.bound setSelectedEntities(
-        countries: GlobalEntitySelectionEntity[]
-    ) {
-        this.props.globalEntitySelection.mode =
-            GlobalEntitySelectionModes.override
-        this.props.globalEntitySelection.selectedEntities = countries
-    }
-
-    private getOptionValue(entity: GlobalEntitySelectionEntity) {
-        return entity.code
-    }
-
-    private getOptionLabel(entity: GlobalEntitySelectionEntity) {
-        return entity.name
-    }
-
-    @action.bound private prepareSelectOptions() {
-        let optionGroups: GroupedOptionsType<GlobalEntitySelectionEntity> = []
+    @action.bound private prepareOptionGroups() {
+        let optionGroups: GroupedOptionsType<any> = []
         // We want to include the local country, but not if it's already selected, it adds
         // unnecessary duplication.
         if (
-            this.localEntity &&
-            !this.selectedEntities.includes(this.localEntity)
+            this.localEntityName &&
+            !this.selection.selectedSet.has(this.localEntityName)
         ) {
             optionGroups = optionGroups.concat([
                 {
                     label: "Suggestions",
-                    options: [this.localEntity],
+                    options: [entityNameToOption(this.localEntityName)],
                 },
             ])
         }
-        if (this.selectedEntities.length > 0) {
+        if (this.selection.hasSelection) {
             optionGroups = optionGroups.concat([
                 {
                     label: "Selected",
-                    options: this.selectedEntities,
+                    options: this.selection.selectedEntityNames.map(
+                        entityNameToOption
+                    ),
                 },
             ])
         }
         optionGroups = optionGroups.concat([
             {
                 label: "All countries",
-                options: allEntities,
+                options: allEntities
+                    .map((entity) => entity.name)
+                    .map(entityNameToOption),
             },
         ])
-        this.selectOptions = optionGroups
+        this.optionGroups = optionGroups
         return optionGroups
     }
 
-    analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
+    private analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
 
-    @action.bound private onChange(
-        newEntities: ValueType<GlobalEntitySelectionEntity>
-    ) {
-        const entities = asArray(newEntities)
-
-        this.setSelectedEntities(entities)
-
+    @action.bound private onChange(option: ValueType<any>) {
+        this.selection.setSelectedEntities(option.label)
         this.analytics.logGlobalEntityControl(
             "change",
-            entities.map((c) => c.code).join(",")
+            this.selection.selectedEntityNames.join(",")
         )
     }
 
-    @action.bound private onRemove(
-        entityToRemove: GlobalEntitySelectionEntity
-    ) {
-        this.setSelectedEntities(
-            this.selectedEntities.filter((entity) => entity !== entityToRemove)
-        )
+    @action.bound private onRemove(option: ValueType<any>) {
+        this.selection.toggleSelection(option.label)
     }
 
     @action.bound private onMenuOpen() {
@@ -279,6 +262,10 @@ export class GlobalEntityControl extends React.Component<{
         this.onMenuClose()
     }
 
+    @computed private get selectedOptions() {
+        return this.selection.selectedEntityNames.map(entityNameToOption)
+    }
+
     renderNarrow() {
         return (
             <>
@@ -288,26 +275,25 @@ export class GlobalEntityControl extends React.Component<{
                     })}
                 >
                     {this.isOpen ? (
-                        <EntitySelect
-                            options={this.selectOptions}
-                            getOptionValue={this.getOptionValue}
-                            getOptionLabel={this.getOptionLabel}
+                        <Select
+                            {...SelectOptions}
+                            options={this.optionGroups}
+                            value={this.selectedOptions}
                             onChange={this.onChange}
-                            value={this.selectedEntities}
                             menuIsOpen={this.isOpen}
                             autoFocus={true}
                         />
                     ) : (
                         <>
-                            {this.selectedEntities.length === 0
+                            {!this.selection.hasSelection
                                 ? "None selected"
-                                : this.selectedEntities
-                                      .map((entity) => (
+                                : this.selection.selectedEntityNames
+                                      .map((entityName) => (
                                           <span
                                               className="narrow-summary-selected-item"
-                                              key={entity.code}
+                                              key={entityName}
                                           >
-                                              {entity.name}
+                                              {entityName}
                                           </span>
                                       ))
                                       .reduce(
@@ -327,7 +313,7 @@ export class GlobalEntityControl extends React.Component<{
                         </button>
                     ) : (
                         <button className="button" onClick={this.onButtonOpen}>
-                            {this.selectedEntities.length === 0
+                            {!this.selection.hasSelection
                                 ? "Select countries"
                                 : "Edit"}
                         </button>
@@ -341,19 +327,17 @@ export class GlobalEntityControl extends React.Component<{
         return (
             <React.Fragment>
                 <div className="select-dropdown-container">
-                    <EntitySelect
-                        options={this.selectOptions}
-                        getOptionValue={this.getOptionValue}
-                        getOptionLabel={this.getOptionLabel}
+                    <Select
+                        {...SelectOptions}
+                        options={this.optionGroups}
                         onChange={this.onChange}
-                        value={this.selectedEntities}
+                        value={this.selectedOptions}
                         onMenuOpen={this.onMenuOpen}
                         onMenuClose={this.onMenuClose}
                     />
                 </div>
                 <SelectedItems
-                    selectedItems={this.selectedEntities}
-                    getLabel={this.getOptionLabel}
+                    selectedEntityNames={this.selection.selectedEntityNames}
                     onRemove={this.onRemove}
                     emptyLabel="Select countries to show on all charts"
                 />
@@ -377,27 +361,28 @@ export class GlobalEntityControl extends React.Component<{
             </div>
         )
     }
+
+    static singleton() {
+        return new GlobalEntityControl({}).selection
+    }
 }
 
-export function hydrateGlobalEntityControlIfAny(
-    globalEntitySelection: GlobalEntitySelection
-) {
+export function hydrateGlobalEntityControlIfAny() {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (!element) return
 
     ReactDOM.hydrate(
-        <GlobalEntityControl globalEntitySelection={globalEntitySelection} />,
+        <GlobalEntityControl
+            initialSelection={
+                element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ??
+                ""
+            }
+        />,
         element
     )
-    // We only want to bind the URL if a global control element exists
-    globalEntitySelection.bindUrlParamsToWindow()
-    // Load default set of countries if none are selected
-    const countryAttr = element.getAttribute(
-        GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
-    )
-    if (countryAttr && globalEntitySelection.selectedEntities.length === 0) {
-        const countryCodes = countryAttr.split(/[+,]/g)
-        globalEntitySelection.selectByCountryCodes(countryCodes)
-        globalEntitySelection.mode = GlobalEntitySelectionModes.override
-    }
 }
+
+const entityNameToOption = (label: EntityName) => ({
+    label,
+    value: label,
+})

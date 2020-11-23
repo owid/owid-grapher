@@ -31,7 +31,6 @@ import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerC
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { ColumnSlug, SortOrder, TableSlug } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
-import { GlobalEntitySelection } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -44,7 +43,6 @@ interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     queryString?: string
     isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
-    globalEntitySelection?: GlobalEntitySelection // todo: use this
 }
 
 interface ExplorerQueryParams extends GrapherQueryParams {

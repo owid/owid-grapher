@@ -10,7 +10,7 @@ import {
 } from "utils/client/url"
 import { union, isEmpty, getAttributesOfHTMLElement } from "grapher/utils/Util"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
+import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -39,7 +39,7 @@ class ProminentLink extends React.Component<{
             : undefined
     }
 
-    @computed private get originalURLEntityCodes(): string[] {
+    @computed private get originalURLSelectedEntities(): string[] {
         const originalEntityQueryParam = this.originalURLQueryParams?.[
             "country"
         ]
@@ -54,14 +54,12 @@ class ProminentLink extends React.Component<{
     }
 
     @computed private get entitiesInGlobalEntitySelection() {
-        return GlobalEntitySelectionSingleton.selectedEntities.map(
-            (entity) => entity.code
-        )
+        return GlobalEntityControl.singleton().selectedEntityNames
     }
 
     @computed private get updatedEntityQueryParam(): string {
         const newEntityList = union(
-            this.originalURLEntityCodes,
+            this.originalURLSelectedEntities,
             this.entitiesInGlobalEntitySelection
         )
 

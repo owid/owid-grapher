@@ -29,7 +29,6 @@ import { Explorer } from "explorer/client/Explorer"
 import { ENV } from "settings"
 import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
-import { GlobalEntitySelectionSingleton } from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
 import { CoreTable } from "coreTable/CoreTable"
 
@@ -47,7 +46,6 @@ window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
-window.GlobalEntitySelectionSingleton = GlobalEntitySelectionSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = () => {
@@ -60,7 +58,7 @@ window.runSiteFooterScripts = () => {
     runFootnotes()
     if (!document.querySelector(".ChartPage")) {
         MultiEmbedderSingleton.embedAll()
-        hydrateGlobalEntityControlIfAny(GlobalEntitySelectionSingleton)
+        hydrateGlobalEntityControlIfAny()
     }
 }
 

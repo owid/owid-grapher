@@ -70,10 +70,6 @@ import {
     maxTimeToJSON,
     timeBoundToTimeBoundString,
 } from "grapher/utils/TimeBounds"
-import {
-    GlobalEntitySelection,
-    subscribeGrapherToGlobalEntitySelection,
-} from "grapher/controls/globalEntityControl/GlobalEntitySelection"
 import { strToQueryParams, queryParamsToStr } from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
@@ -182,7 +178,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     queryStr?: string
     isEmbed?: boolean
     isMediaCard?: boolean
-    globalEntitySelection?: GlobalEntitySelection
     isExport?: boolean
     bounds?: Bounds
     table?: OwidTable
@@ -338,15 +333,6 @@ export class Grapher
                 strToQueryParams(props.queryStr)
             )
         )
-
-        if (props.globalEntitySelection) {
-            this.disposers.push(
-                subscribeGrapherToGlobalEntitySelection(
-                    this,
-                    props.globalEntitySelection
-                )
-            )
-        }
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
 

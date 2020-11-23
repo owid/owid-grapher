@@ -23,7 +23,9 @@ export const MultiEmbedderTestPage = (
                 <SiteHeader />
                 <main>
                     {globalEntityControl ? (
-                        <div {...{ [GLOBAL_ENTITY_CONTROL_DATA_ATTR]: true }} />
+                        <div
+                            {...{ [GLOBAL_ENTITY_CONTROL_DATA_ATTR]: true }}
+                        ></div>
                     ) : null}
                     <p>
                         <a href="?globalEntityControl=true">
