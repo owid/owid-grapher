@@ -31,6 +31,7 @@ import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
+    SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
@@ -49,6 +50,7 @@ import {
     makeClipPath,
     makeSelectionArray,
 } from "grapher/chart/ChartUtils"
+import { ColorScheme } from "grapher/color/ColorScheme"
 
 const BLUR_COLOR = "#eee"
 
@@ -612,7 +614,7 @@ export class LineChart
             : undefined
     }
 
-    @computed private get colorScheme() {
+    @computed private get colorScheme(): ColorScheme {
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
@@ -620,7 +622,7 @@ export class LineChart
         )
     }
 
-    @computed get seriesStrategy() {
+    @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager)
     }
 
@@ -628,7 +630,7 @@ export class LineChart
         return this.yAxisConfig.scaleType === ScaleType.log
     }
 
-    @computed get series() {
+    @computed get series(): LineChartSeries[] {
         const arrOfSeries: LineChartSeries[] = flatten(
             this.yColumns.map((col) =>
                 columnToLineChartSeriesArray(col, this.seriesStrategy)
