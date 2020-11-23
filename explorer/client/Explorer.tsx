@@ -38,6 +38,7 @@ import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
+import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -110,7 +111,7 @@ export class Explorer
     @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
     @observable entityPickerSort? = this.initialQueryParams.pickerSort
 
-    selectionArray = new SelectionArray(
+    selection = new SelectionArray(
         EntityUrlBuilder.queryParamToEntityNames(
             this.initialQueryParams.selection
         ),
@@ -147,6 +148,7 @@ export class Explorer
 
         if (!this.props.isEmbed)
             this.urlBinding = new UrlBinder().bindToWindow(this)
+        else GlobalEntityRegistry.add(this)
     }
 
     componentWillUnmount() {
@@ -285,7 +287,7 @@ export class Explorer
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
             ...this.explorerProgram.decisionMatrix.params,
-            selection: this.selectionArray.asParam,
+            selection: this.selection.asParam,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
         }
@@ -460,7 +462,7 @@ export class Explorer
                     <Grapher
                         bounds={this.grapherBounds}
                         isEmbed={true}
-                        selectionArray={this.selectionArray}
+                        selectionArray={this.selection}
                         ref={this.grapherRef}
                     />
                 </div>

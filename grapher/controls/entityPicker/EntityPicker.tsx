@@ -80,7 +80,7 @@ export class EntityPicker extends React.Component<{
     }
 
     @action.bound private selectEntity(name: EntityName, checked?: boolean) {
-        this.manager.selectionArray.toggleSelection(name)
+        this.manager.selection.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
         this.manager.analytics?.logEntityPickerEvent(
@@ -129,15 +129,15 @@ export class EntityPicker extends React.Component<{
 
     @computed private get availableEntitiesForCurrentView() {
         if (!this.manager.requiredColumnSlugs?.length || !this.table)
-            return this.selectionArray.availableEntityNameSet
+            return this.selection.availableEntityNameSet
         return this.table.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { table, selectionArray } = this
+        const { table, selection } = this
         const col = this.activePickerMetricColumn
-        const entityNames = selectionArray.availableEntityNames.slice().sort()
+        const entityNames = selection.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
             const plotValue =
                 col && table
@@ -162,12 +162,12 @@ export class EntityPicker extends React.Component<{
         return this.manager.entityPickerTable
     }
 
-    @computed get selectionArray() {
-        return this.manager.selectionArray
+    @computed get selection() {
+        return this.manager.selection
     }
 
     @computed get selectionSet() {
-        return new Set(this.selectionArray.selectedEntityNames)
+        return new Set(this.selection.selectedEntityNames)
     }
 
     @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
@@ -437,14 +437,14 @@ export class EntityPicker extends React.Component<{
     }
 
     render() {
-        const { selectionArray } = this
+        const { selection } = this
         const entities = this.searchResults
-        const selectedEntityNames = selectionArray.selectedEntityNames
+        const selectedEntityNames = selection.selectedEntityNames
         const availableEntities = this.availableEntitiesForCurrentView
 
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
-        const entityType = selectionArray.entityType
+        const entityType = selection.entityType
         return (
             <div className="EntityPicker" onKeyDown={this.onKeyDown}>
                 <div className="EntityPickerSearchInput">
@@ -531,9 +531,7 @@ export class EntityPicker extends React.Component<{
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note={`${this.analyticsNamespace}-clear-selection`}
-                                    onClick={() =>
-                                        selectionArray.clearSelection()
-                                    }
+                                    onClick={() => selection.clearSelection()}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection

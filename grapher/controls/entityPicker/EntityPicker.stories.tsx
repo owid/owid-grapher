@@ -51,7 +51,7 @@ class SomeThingWithAPicker
         return this.props.pickerSlugs
     }
 
-    selectionArray = new SelectionArray(
+    selection = new SelectionArray(
         this.props.selection ?? [],
         this.entityPickerTable.availableEntities
     )
@@ -76,7 +76,7 @@ export const Empty = () => (
     <PickerHolder>
         <EntityPicker
             manager={{
-                selectionArray: new SelectionArray(),
+                selection: new SelectionArray(),
             }}
         />
     </PickerHolder>

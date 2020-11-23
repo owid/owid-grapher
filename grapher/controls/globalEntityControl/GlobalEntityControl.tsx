@@ -27,6 +27,7 @@ import {
 } from "./GlobalEntityControlConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { EntityName } from "coreTable/OwidTableConstants"
+import { GlobalEntityRegistry } from "./GlobalEntityRegistry"
 
 enum GlobalEntitySelectionModes {
     none = "none",
@@ -222,16 +223,28 @@ export class GlobalEntityControl extends React.Component<{
 
     private analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
 
-    @action.bound private onChange(option: ValueType<any>) {
-        this.selection.setSelectedEntities([option.label])
+    @action.bound private onChange(options: ValueType<any>) {
+        this.selection.setSelectedEntities(
+            options.map((option: any) => option.label)
+        )
         this.analytics.logGlobalEntityControl(
             "change",
             this.selection.selectedEntityNames.join(",")
         )
+        this.updateAllGraphersAndExplorersOnPage()
     }
 
-    @action.bound private onRemove(option: ValueType<any>) {
-        this.selection.toggleSelection(option.label)
+    @action.bound private updateAllGraphersAndExplorersOnPage() {
+        Array.from(GlobalEntityRegistry.values()).forEach((value) => {
+            value.selection.setSelectedEntities(
+                this.selection.selectedEntityNames
+            )
+        })
+    }
+
+    @action.bound private onRemove(option: EntityName) {
+        this.selection.toggleSelection(option)
+        this.updateAllGraphersAndExplorersOnPage()
     }
 
     @action.bound private onMenuOpen() {
@@ -266,7 +279,7 @@ export class GlobalEntityControl extends React.Component<{
         return this.selection.selectedEntityNames.map(entityNameToOption)
     }
 
-    renderNarrow() {
+    private renderNarrow() {
         return (
             <>
                 <div
@@ -323,9 +336,9 @@ export class GlobalEntityControl extends React.Component<{
         )
     }
 
-    renderWide() {
+    private renderWide() {
         return (
-            <React.Fragment>
+            <>
                 <div className="select-dropdown-container">
                     <Select
                         {...SelectOptions}
@@ -341,7 +354,7 @@ export class GlobalEntityControl extends React.Component<{
                     onRemove={this.onRemove}
                     emptyLabel="Select countries to show on all charts"
                 />
-            </React.Fragment>
+            </>
         )
     }
 

@@ -151,6 +151,7 @@ import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
+import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 
 declare const window: any
 
@@ -1874,6 +1875,7 @@ export class Grapher
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
         if (!this.props.isEmbed) this.bindToWindow()
+        else GlobalEntityRegistry.add(this)
     }
 
     private _shortcutsBound = false

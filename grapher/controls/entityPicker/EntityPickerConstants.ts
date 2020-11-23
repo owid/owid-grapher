@@ -10,6 +10,6 @@ export interface EntityPickerManager {
     pickerColumnSlugs?: ColumnSlug[] // These are the columns that can be used for sorting entities.
     analytics?: Analytics
     entityPickerTable?: OwidTable
-    selectionArray: SelectionArray
+    selection: SelectionArray
     analyticsNamespace?: string
 }
