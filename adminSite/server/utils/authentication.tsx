@@ -162,7 +162,7 @@ export async function authMiddleware(
     ) {
         return next()
     } else {
-        return res.redirect(`/admin/login?next=${req.path}`)
+        return res.redirect(`/admin/login?next=${encodeURIComponent(req.url)}`)
     }
 }
 
