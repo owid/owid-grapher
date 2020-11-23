@@ -438,11 +438,11 @@ export class SiteBaker {
 
         if (authorEmail && authorName && commitMsg)
             await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
+                `cd ${this.bakedSiteDir} && git add -A . && git commit --allow-empty --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
             )
         else
             await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`
+                `cd ${this.bakedSiteDir} && git add -A . && git commit --allow-empty -a -m '${commitMsg}' && git push origin master`
             )
         progressBar.tick({ name: "✅ committed and pushed to github" })
     }

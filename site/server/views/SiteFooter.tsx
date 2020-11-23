@@ -79,10 +79,10 @@ export const SiteFooter = ({
                                 </li>
                                 <li>
                                     <a
-                                        href="/supporters"
+                                        href="/funding"
                                         data-track-note="footer-navigation"
                                     >
-                                        Supporters
+                                        Funding
                                     </a>
                                 </li>
                                 <li>

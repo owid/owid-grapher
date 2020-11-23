@@ -23,14 +23,19 @@ registerPlugin("owid-key-performance-indicators", {
 })
 
 registerPlugin("owid-glossary", {
-    render: () => (
-        <PluginDocumentSettingPanel
-            name="owid-glossary"
-            title="Glossary"
-            className="owid-glossary"
-        >
-            <Glossary />
-        </PluginDocumentSettingPanel>
-    ),
+    render: () => {
+        const postType = select("core/editor").getCurrentPostType()
+        return (
+            (postType === "page" || postType === "post") && (
+                <PluginDocumentSettingPanel
+                    name="owid-glossary"
+                    title="Glossary"
+                    className="owid-glossary"
+                >
+                    <Glossary />
+                </PluginDocumentSettingPanel>
+            )
+        )
+    },
     icon: false,
 })
