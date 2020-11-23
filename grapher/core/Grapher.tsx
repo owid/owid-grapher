@@ -277,7 +277,6 @@ export class Grapher
 
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = ENV === "development"
-    private isStaging = location?.host?.includes("staging")
     adminBaseUrl = ADMIN_BASE_URL
     analytics = new Analytics(ENV)
     isEditor =
@@ -568,6 +567,11 @@ export class Grapher
 
     @computed get isStaticSvg() {
         return this.isExporting
+    }
+
+    private get isStaging() {
+        if (typeof location === undefined) return false
+        return location.host.includes("staging")
     }
 
     @computed get editUrl() {
