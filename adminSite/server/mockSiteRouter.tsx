@@ -95,10 +95,8 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     const explorerProgram = await getLegacyCovidExplorerAsExplorerProgramForSlug(
         req.params.slug
     )
-    if (!explorerProgram)
-        return res.send(await grapherSlugToHtmlPage(req.params.slug))
-
-    res.send(await renderExplorerPage(explorerProgram))
+    if (!explorerProgram) res.send(await grapherSlugToHtmlPage(req.params.slug))
+    else res.send(await renderExplorerPage(explorerProgram))
 })
 
 mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
