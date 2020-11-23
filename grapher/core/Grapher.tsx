@@ -1041,7 +1041,7 @@ export class Grapher
             (showTitleAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr.length) text = `${text}, ${entityStr}`
+            if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
         if (showTitleAnnotation && this.isLineChart && this.isRelativeMode)
@@ -1216,17 +1216,19 @@ export class Grapher
                 .map((dimension) => dimension.column.displayName)
                 .join(" vs. ")
 
-        if (
-            this.hasMultipleYColumns &&
-            uniq(yColumns.map((col) => (col.def as OwidColumnDef).datasetName))
-                .length === 1
+        const uniqueDatasetNames = uniq(
+            excludeUndefined(
+                yColumns.map((col) => (col.def as OwidColumnDef).datasetName)
+            )
         )
-            return (yColumns[0].def as OwidColumnDef).datasetName!
 
-        if (yColumns.length === 2)
-            return yColumns.map((col) => col.displayName).join(" and ")
+        if (this.hasMultipleYColumns && uniqueDatasetNames.length === 1)
+            return uniqueDatasetNames[0]
 
-        return yColumns.map((col) => col.displayName).join(", ")
+        if (uniqueDatasetNames.length === 2)
+            return uniqueDatasetNames.join(" and ")
+
+        return uniqueDatasetNames.join(", ")
     }
 
     @computed get displayTitle() {
