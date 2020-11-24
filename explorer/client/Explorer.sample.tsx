@@ -6,8 +6,12 @@ import { Explorer } from "./Explorer"
 const SampleExplorerProgram = `explorerTitle	CO₂ Data Explorer
 isPublished	false
 explorerSubtitle	Download the complete <i>Our World in Data</i> <a href="https://github.com/owid/co2-data">CO₂ and GHG Emissions Dataset</a>.
-defaultView	?tab=chart&time=earliest..latest&selection=China~United%20States~India~United%20Kingdom~World&Gas%20=CO₂&Accounting%20=Production-based&Fuel%20=Total&Count%20=Per%20capita&Relative%20to%20world%20total%20=
 subNavId	co2
+tab	chart
+time	earliest..latest
+selection	China~United%20States~India~United%20Kingdom~World
+Gas Radio	CO₂
+Accounting Radio	Production-based
 subNavCurrentId	co2-data-explorer
 graphers
 	grapherId	Gas Radio	Accounting Radio	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox

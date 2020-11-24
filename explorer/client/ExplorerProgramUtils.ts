@@ -1,4 +1,5 @@
 import { parseDelimited } from "coreTable/CoreTableUtils"
+import { strToQueryParams } from "utils/client/url"
 
 export const getRequiredGrapherIds = (code: string) =>
     parseDelimited(code)
@@ -23,7 +24,7 @@ export const objectToPatch = (
         .join(rowDelimiter)
 
 export const objectFromPatch = (
-    patch: string,
+    patch = "",
     rowDelimiter = DEFAULT_ROW_DELIMITER,
     columnDelimiter = DEFAULT_COLUMN_DELIMITER
 ) => {
@@ -37,3 +38,8 @@ export const objectFromPatch = (
     })
     return obj
 }
+
+export const getPatchFromQueryString = (
+    queryString = "",
+    patchKeyword = "patch"
+) => decodeURIComponent(strToQueryParams(queryString)[patchKeyword] ?? "")

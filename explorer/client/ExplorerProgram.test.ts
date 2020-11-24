@@ -143,8 +143,8 @@ describe(DecisionMatrix, () => {
 
     it("starts with a selected chart", () => {
         expect(decisionMatrix.selectedRow.grapherId).toEqual(21)
-        expect(decisionMatrix.toObject().country).toEqual("usa")
-        expect(decisionMatrix.toObject().indicator).toEqual("GDP")
+        expect(decisionMatrix.asObject.country).toEqual("usa")
+        expect(decisionMatrix.asObject.indicator).toEqual("GDP")
     })
 
     it("parses booleans", () => {
@@ -152,7 +152,7 @@ describe(DecisionMatrix, () => {
     })
 
     it("it can get all options", () => {
-        expect(decisionMatrix.allOptionsAsQueryStrings().length).toBe(7)
+        expect(decisionMatrix.allDecisionsAsPatches().length).toBe(7)
     })
 
     it("can detect needed chart configs", () => {
@@ -190,8 +190,8 @@ describe(DecisionMatrix, () => {
         expect(decisionMatrix.toConstrainedOptions().interval).toEqual(
             undefined
         )
-        expect(decisionMatrix.toObject().perCapita).toEqual(GridBoolean.false)
-        expect(decisionMatrix.toObject().interval).toEqual("annual")
+        expect(decisionMatrix.asObject.perCapita).toEqual(GridBoolean.false)
+        expect(decisionMatrix.asObject.interval).toEqual("annual")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(33)
     })
 

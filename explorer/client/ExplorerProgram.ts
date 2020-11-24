@@ -1,12 +1,7 @@
-import { isEqual, trimObject } from "grapher/utils/Util"
-import {
-    queryParamsToStr,
-    strToQueryParams,
-    QueryParams,
-} from "utils/client/url"
+import { trimObject } from "grapher/utils/Util"
+import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
-import { ObjectThatSerializesToQueryParams } from "grapher/utils/UrlBinder"
 import {
     ExplorerControlType,
     ExplorerControlOption,
@@ -24,6 +19,7 @@ import {
 } from "coreTable/CoreTableUtils"
 import {
     getRequiredGrapherIds,
+    objectFromPatch,
     objectToPatch,
 } from "explorer/client/ExplorerProgramUtils"
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
@@ -90,10 +86,8 @@ export class ExplorerProgram extends GridProgram {
         return this.slug + EXPLORER_FILE_SUFFIX
     }
 
-    initDecisionMatrix(queryStr = "") {
-        this.decisionMatrix.setValuesFromQueryString(
-            queryStr || this.defaultView
-        )
+    initDecisionMatrix(patch = "") {
+        this.decisionMatrix.setValuesFromPatch(patch)
         return this
     }
 
@@ -159,10 +153,6 @@ export class ExplorerProgram extends GridProgram {
             ExplorerGrammar.pickerColumnSlugs.keyword
         )
         return slugs ? slugs.split(" ") : undefined
-    }
-
-    get defaultView() {
-        return this.getLineValue(ExplorerGrammar.defaultView.keyword)
     }
 
     get hideControls() {
@@ -412,8 +402,7 @@ const removeChoiceControlTypeInfo = (str: string) => {
 type ChoiceName = string
 type ChoiceValue = string
 
-// A "query" here is just a map of choice names and values. Maps nicely to a query string.
-interface DecisionMatrixQueryParams extends QueryParams {
+interface DecisionsPatchObject {
     [choiceName: string]: ChoiceValue
 }
 
@@ -423,9 +412,9 @@ interface ChoiceMap {
 
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
-export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
+export class DecisionMatrix {
     private table: CoreTable
-    @observable private _settings: DecisionMatrixQueryParams = {}
+    @observable private _settings: DecisionsPatchObject = {}
     constructor(delimited: string, hash = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
@@ -436,16 +425,16 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
             },
         ])
         this.hash = hash
-        this.setValuesFromQueryString() // Initialize options
+        this.setValuesFromPatch() // Initialize options
     }
 
-    allOptionsAsQueryStrings() {
+    allDecisionsAsPatches() {
         return this.table.rows.map((row) => {
-            const params: DecisionMatrixQueryParams = {}
+            const patchObject: DecisionsPatchObject = {}
             this.choiceNames.forEach((name) => {
-                params[name] = row[name]
+                patchObject[name] = row[name]
             })
-            return queryParamsToStr(params)
+            return objectToPatch(patchObject)
         })
     }
 
@@ -454,22 +443,14 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
     }
 
     private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
-    private hash: string
+    hash: string
 
-    toObject(): DecisionMatrixQueryParams {
+    @computed get asObject(): DecisionsPatchObject {
         return { ...this._settings }
     }
 
-    @computed get params(): DecisionMatrixQueryParams {
-        return { ...this.toObject(), hash: this.hash.substring(0, 8) }
-    }
-
-    @computed get patch() {
-        return objectToPatch(this.params)
-    }
-
     toConstrainedOptions() {
-        const settings = this.toObject()
+        const settings = this.asObject
         this.choiceNames.forEach((choiceName) => {
             if (!this.isOptionAvailable(choiceName, settings[choiceName]))
                 settings[choiceName] = this.firstAvailableOptionForChoice(
@@ -511,25 +492,23 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         else this._settings[choiceName] = value
     }
 
-    @action.bound private setValuesFromQueryParams(
-        queryParams: DecisionMatrixQueryParams
+    @action.bound private setValuesFromPatchObject(
+        patchObject: DecisionsPatchObject
     ) {
         this.choiceNames.forEach((choiceName) => {
-            if (queryParams[choiceName] === undefined)
+            if (patchObject[choiceName] === undefined)
                 this._setValue(
                     choiceName,
                     this.firstAvailableOptionForChoice(choiceName)!
                 )
-            else this._setValue(choiceName, queryParams[choiceName]!)
+            else this._setValue(choiceName, patchObject[choiceName]!)
         })
         return this
     }
 
-    @action.bound setValuesFromQueryString(queryString = "") {
-        return this.setValuesFromQueryParams(
-            strToQueryParams(
-                decodeURIComponent(queryString)
-            ) as DecisionMatrixQueryParams
+    @action.bound setValuesFromPatch(patch = "") {
+        return this.setValuesFromPatchObject(
+            objectFromPatch(decodeURIComponent(patch)) as DecisionsPatchObject
         )
     }
 
@@ -574,7 +553,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         option: ChoiceValue,
         currentState = this._settings
     ) {
-        const query: DecisionMatrixQueryParams = {}
+        const query: DecisionsPatchObject = {}
         this.choiceNames
             .slice(0, this.choiceNames.indexOf(choiceName))
             .forEach((name) => {
@@ -584,10 +563,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         return this.rowsWith(query, choiceName).length > 0
     }
 
-    private rowsWith(
-        query: DecisionMatrixQueryParams,
-        choiceName?: ChoiceName
-    ) {
+    private rowsWith(query: DecisionsPatchObject, choiceName?: ChoiceName) {
         // We allow other options to be blank.
         const modifiedQuery: any = {}
         Object.keys(trimObject(query)).forEach((queryColumn) => {
@@ -622,7 +598,7 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
         choiceName: ChoiceName,
         optionName: string,
         currentValue: ChoiceValue,
-        constrainedOptions: DecisionMatrixQueryParams
+        constrainedOptions: DecisionsPatchObject
     ): ExplorerControlOption {
         const available = this.isOptionAvailable(
             choiceName,
