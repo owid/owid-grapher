@@ -49,6 +49,7 @@ import {
     getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
+    toPercentageColumnDef,
 } from "./OwidTableUtil"
 import {
     imemo,
@@ -286,10 +287,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeTotals = this.sumsByTime(columnSlug)
         const timeValues = timeColumn.values
         const newDefs = replaceDef(this.defs, [
-            {
-                ...col.def,
-                type: ColumnTypeNames.Percentage,
-            },
+            toPercentageColumnDef(col.def, ColumnTypeNames.RelativePercentage),
         ])
         const newColumnStore: CoreColumnStore = {
             ...this.columnStore,
@@ -316,7 +314,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
-                return { ...def, type: ColumnTypeNames.RelativePercentage }
+                return toPercentageColumnDef(
+                    def,
+                    ColumnTypeNames.RelativePercentage
+                )
             return def
         })
 
@@ -515,19 +516,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const newDefs = replaceDef(
             this.defs,
-            columns.map((col) => ({
-                ...col.def,
-                type: ColumnTypeNames.PercentChangeOverTime,
-                unit: undefined,
-                shortUnit: undefined,
-                display: {
-                    ...col.display,
-                    unit: undefined,
-                    shortUnit: undefined,
-                    numDecimalPlaces: undefined,
-                    conversionFactor: undefined,
-                },
-            }))
+            columns.map((col) =>
+                toPercentageColumnDef(
+                    col.def,
+                    ColumnTypeNames.PercentChangeOverTime
+                )
+            )
         )
 
         return this.transform(
