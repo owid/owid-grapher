@@ -49,6 +49,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     grapherId?: number
     tableSlug?: string
     yScaleToggle?: boolean
+    yAxisMin?: number
 }
 
 const ExplorerRootDef: CellDef = {

@@ -1991,6 +1991,8 @@ export class Grapher
         this.facet = undefined
         this.hasChartTab = grapher.hasChartTab
         this.map = grapher.map
+        this.yAxis.scaleType = grapher.yAxis.scaleType
+        this.yAxis.min = grapher.yAxis.min
     }
 
     debounceMode = false

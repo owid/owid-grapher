@@ -6,6 +6,7 @@ import {
     SlugDeclarationCellDef,
     BooleanCellDef,
     EnumCellDef,
+    NumericCellDef,
 } from "explorer/gridLang/GridLangConstants"
 import {
     ChartTypeName,
@@ -122,5 +123,10 @@ export const GrapherGrammar: Grammar = {
         ...BooleanCellDef,
         keyword: "yScaleToggle",
         description: "Set to 'true' if the user can change the yAxis",
+    },
+    yAxisMin: {
+        ...NumericCellDef,
+        keyword: "yAxisMin",
+        description: "Set the minimum value for the yAxis",
     },
 } as const

@@ -170,7 +170,12 @@ export class Explorer
 
         const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
 
-        const { grapherId, tableSlug, yScaleToggle } = grapherConfigFromExplorer
+        const {
+            grapherId,
+            tableSlug,
+            yScaleToggle,
+            yAxisMin,
+        } = grapherConfigFromExplorer
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
@@ -203,10 +208,11 @@ export class Explorer
             manuallyProvideData: tableSlug ? true : false,
         }
 
-        grapher.yAxis.canChangeScaleType = yScaleToggle
-
         grapher.setAuthoredVersion(config)
         grapher.reset()
+
+        grapher.yAxis.canChangeScaleType = yScaleToggle
+        grapher.yAxis.min = yAxisMin
         grapher.updateFromObject(config)
         this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.

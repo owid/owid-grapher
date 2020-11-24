@@ -83,6 +83,16 @@ export const RootKeywordCellDef: CellDef = {
     description: "Keyword",
 }
 
+export const NumericCellDef: CellDef = {
+    keyword: "",
+    cssClass: "NumericCellDef",
+    description: "",
+    regex: /^-?\d+\.?\d*$/,
+    requirements: `Must be a number`,
+    placeholder: "98.6",
+    parse: (value: any) => parseFloat(value),
+}
+
 export const IntegerCellDef: CellDef = {
     keyword: "",
     cssClass: "IntegerCellDef",
