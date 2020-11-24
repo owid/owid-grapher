@@ -36,6 +36,7 @@ import {
     EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
+    DefaultNewExplorerSlug,
 } from "explorer/client/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
@@ -262,12 +263,20 @@ export class ExplorersIndexPage extends React.Component {
         return (
             <AdminLayout title="Explorers">
                 <main className="DatasetsIndexPage">
-                    <FieldsRow>
-                        <span>
+                    <div className="ExplorersListPageHeader">
+                        <div>
                             Showing {explorersToShow.length} of {numTotalRows}{" "}
                             explorers
-                        </span>
-                    </FieldsRow>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                            <a
+                                className="btn btn-primary"
+                                href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
+                            >
+                                Create
+                            </a>
+                        </div>
+                    </div>
                     <ExplorerList
                         explorers={explorersToShow}
                         searchHighlight={highlight}

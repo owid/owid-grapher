@@ -6,6 +6,12 @@
     }
 }
 
+.ExplorersListPageHeader {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 50px;
+}
+
 // Hide the noisy arrow in the autocomplete dropdown.
 .handsontable {
     .htAutocompleteArrow {
