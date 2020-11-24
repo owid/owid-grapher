@@ -31,6 +31,7 @@ import {
     exposeInstanceOnWindow,
     findClosestTime,
     excludeUndefined,
+    debounce,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -70,7 +71,11 @@ import {
     maxTimeToJSON,
     timeBoundToTimeBoundString,
 } from "grapher/utils/TimeBounds"
-import { strToQueryParams, queryParamsToStr } from "utils/client/url"
+import {
+    strToQueryParams,
+    queryParamsToStr,
+    setWindowQueryStr,
+} from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
@@ -96,10 +101,6 @@ import {
 import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
-import {
-    UrlBinder,
-    ObjectThatSerializesToQueryParams,
-} from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
@@ -199,7 +200,6 @@ export class Grapher
         DownloadTabManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
-        ObjectThatSerializesToQueryParams,
         ShareMenuManager,
         SmallCountriesFilterManager,
         HighlightToggleManager,
@@ -1875,7 +1875,17 @@ export class Grapher
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     private bindToWindow() {
-        new UrlBinder().bindToWindow(this)
+        // There is a surprisingly considerable performance overhead to updating the url
+        // while animating, so we debounce to allow e.g. smoother timelines
+        const pushParams = () =>
+            setWindowQueryStr(queryParamsToStr(this.params))
+        const debouncedPushParams = debounce(pushParams, 100)
+
+        reaction(
+            () => this.params,
+            () => (this.debounceMode ? debouncedPushParams() : pushParams())
+        )
+
         autorun(() => (document.title = this.currentTitle))
     }
 

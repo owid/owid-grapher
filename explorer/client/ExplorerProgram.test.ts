@@ -130,8 +130,15 @@ graphers
     })
 })
 
+enum Choices {
+    country = "country Radio",
+    indicator = "indicator Radio",
+    interval = "interval Radio",
+    perCapita = "perCapita Radio",
+}
+
 describe(DecisionMatrix, () => {
-    const code = `${grapherIdKeyword},country Radio,indicator Radio,interval Radio,perCapita Radio
+    const code = `${grapherIdKeyword},${Object.values(Choices).join(",")}
 21,usa,GDP,annual,${GridBoolean.false}
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
@@ -143,16 +150,16 @@ describe(DecisionMatrix, () => {
 
     it("starts with a selected chart", () => {
         expect(decisionMatrix.selectedRow.grapherId).toEqual(21)
-        expect(decisionMatrix.toObject().country).toEqual("usa")
-        expect(decisionMatrix.toObject().indicator).toEqual("GDP")
+        expect(decisionMatrix.currentPatch[Choices.country]).toEqual("usa")
+        expect(decisionMatrix.currentPatch[Choices.indicator]).toEqual("GDP")
     })
 
     it("parses booleans", () => {
-        expect(decisionMatrix.selectedRow.perCapita).toEqual(false)
+        expect(decisionMatrix.selectedRow[Choices.perCapita]).toEqual(false)
     })
 
     it("it can get all options", () => {
-        expect(decisionMatrix.allOptionsAsQueryStrings().length).toBe(7)
+        expect(decisionMatrix.allDecisionsAsPatches().length).toBe(7)
     })
 
     it("can detect needed chart configs", () => {
@@ -168,68 +175,79 @@ describe(DecisionMatrix, () => {
     })
 
     it("can detect unavailable options", () => {
-        decisionMatrix.setValue("country", "france")
-        expect(decisionMatrix.isOptionAvailable("indicator", "GDP")).toEqual(
-            false
-        )
-        expect(decisionMatrix.isOptionAvailable("country", "france")).toEqual(
-            true
-        )
-        expect(decisionMatrix.isOptionAvailable("interval", "annual")).toEqual(
-            false
-        )
-        expect(decisionMatrix.isOptionAvailable("interval", "monthly")).toEqual(
-            false
-        )
-        expect(decisionMatrix.toConstrainedOptions().indicator).toEqual(
-            "Life expectancy"
-        )
-        expect(decisionMatrix.toConstrainedOptions().perCapita).toEqual(
+        decisionMatrix.setValueCommand(Choices.country, "france")
+        expect(
+            decisionMatrix.isOptionAvailable(Choices.indicator, "GDP")
+        ).toEqual(false)
+        expect(
+            decisionMatrix.isOptionAvailable(Choices.country, "france")
+        ).toEqual(true)
+        expect(
+            decisionMatrix.isOptionAvailable(Choices.interval, "annual")
+        ).toEqual(false)
+        expect(
+            decisionMatrix.isOptionAvailable(Choices.interval, "monthly")
+        ).toEqual(false)
+        expect(
+            decisionMatrix.toConstrainedOptions()[Choices.indicator]
+        ).toEqual("Life expectancy")
+        expect(
+            decisionMatrix.toConstrainedOptions()[Choices.perCapita]
+        ).toEqual(undefined)
+        expect(decisionMatrix.toConstrainedOptions()[Choices.interval]).toEqual(
             undefined
         )
-        expect(decisionMatrix.toConstrainedOptions().interval).toEqual(
-            undefined
+        expect(decisionMatrix.currentPatch[Choices.perCapita]).toEqual(
+            GridBoolean.false
         )
-        expect(decisionMatrix.toObject().perCapita).toEqual(GridBoolean.false)
-        expect(decisionMatrix.toObject().interval).toEqual("annual")
+        expect(decisionMatrix.currentPatch[Choices.interval]).toEqual("annual")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(33)
     })
 
     it("can handle boolean groups", () => {
         expect(
-            decisionMatrix.isOptionAvailable("perCapita", GridBoolean.false)
+            decisionMatrix.isOptionAvailable(
+                Choices.perCapita,
+                GridBoolean.false
+            )
         ).toEqual(false)
-        decisionMatrix.setValue("country", "usa")
-        decisionMatrix.setValue("perCapita", "Per million")
+        decisionMatrix.setValueCommand(Choices.country, "usa")
+        decisionMatrix.setValueCommand(Choices.perCapita, "Per million")
         expect(
-            decisionMatrix.isOptionAvailable("perCapita", GridBoolean.false)
+            decisionMatrix.isOptionAvailable(
+                Choices.perCapita,
+                GridBoolean.false
+            )
         ).toEqual(true)
         expect(decisionMatrix.selectedRow.grapherId).toEqual(24)
     })
 
     it("can show available choices in a later group", () => {
-        decisionMatrix.setValue("country", "spain")
+        decisionMatrix.setValueCommand(Choices.country, "spain")
         expect(
-            decisionMatrix.isOptionAvailable("perCapita", GridBoolean.false)
+            decisionMatrix.isOptionAvailable(
+                Choices.perCapita,
+                GridBoolean.false
+            )
         ).toEqual(true)
         expect(
-            decisionMatrix.isOptionAvailable("perCapita", "Per million")
+            decisionMatrix.isOptionAvailable(Choices.perCapita, "Per million")
         ).toEqual(true)
-        expect(decisionMatrix.isOptionAvailable("interval", "annual")).toEqual(
-            false
-        )
+        expect(
+            decisionMatrix.isOptionAvailable(Choices.interval, "annual")
+        ).toEqual(false)
         expect(decisionMatrix.selectedRow.grapherId).toEqual(56)
     })
 
     it("returns groups with undefined values if invalid value is selected", () => {
         const decisionMatrix = new DecisionMatrix(code)
-        decisionMatrix.setValue("country", "usa")
-        decisionMatrix.setValue("indicator", "GDP")
-        decisionMatrix.setValue("interval", "annual")
+        decisionMatrix.setValueCommand(Choices.country, "usa")
+        decisionMatrix.setValueCommand(Choices.indicator, "GDP")
+        decisionMatrix.setValueCommand(Choices.interval, "annual")
         expect(decisionMatrix.choicesWithAvailability[2].value).toEqual(
             "annual"
         )
-        decisionMatrix.setValue("country", "spain")
+        decisionMatrix.setValueCommand(Choices.country, "spain")
         expect(decisionMatrix.choicesWithAvailability[2].value).toEqual(
             undefined
         )
@@ -238,7 +256,7 @@ describe(DecisionMatrix, () => {
     it("fails if no grapherId column is provided", () => {
         try {
             new DecisionMatrix(
-                `country Radio,indicator Radio
+                `${Choices.country},${Choices.indicator}
 usa,GDP
 usa,Life expectancy
 france,Life expectancy`
@@ -251,7 +269,7 @@ france,Life expectancy`
 
     it("handles columns without options", () => {
         const decisionMatrix = new DecisionMatrix(
-            `${grapherIdKeyword},country Radio,indicator Radio
+            `${grapherIdKeyword},${Choices.country},${Choices.indicator}
 123,usa,
 32,usa,
 23,france,`
@@ -284,7 +302,7 @@ france,Life expectancy`
 488,A,true
 4331,A,true
 4331,B,false`)
-            decisionMatrix.setValue("Other", "A")
+            decisionMatrix.setValueCommand("Other Radio", "A")
             const {
                 available,
                 checked,
@@ -295,7 +313,7 @@ france,Life expectancy`
             expect(available).toEqual(false)
 
             {
-                decisionMatrix.setValue("PerCapita", "false")
+                decisionMatrix.setValueCommand("PerCapita", "false")
                 const {
                     available,
                     checked,
@@ -312,8 +330,8 @@ france,Life expectancy`
 488,A,1,true
 4331,A,1,true
 4331,B,2,false`)
-            decisionMatrix.setValue("Letter", "A")
-            decisionMatrix.setValue("Number", "2")
+            decisionMatrix.setValueCommand("Letter Radio", "A")
+            decisionMatrix.setValueCommand("Number Radio", "2")
             const {
                 available,
                 checked,
@@ -332,13 +350,13 @@ france,Life expectancy`
 4331,CO₂,Consumption-based
 4147,GHGs,Production-based`
         )
-        decisionMatrix.setValue("Gas", "CO₂")
-        decisionMatrix.setValue("Accounting", "Consumption-based")
-        decisionMatrix.setValue("Gas", "GHGs")
+        decisionMatrix.setValueCommand("Gas Radio", "CO₂")
+        decisionMatrix.setValueCommand("Accounting Radio", "Consumption-based")
+        decisionMatrix.setValueCommand("Gas Radio", "GHGs")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(4147)
-        expect(decisionMatrix.toConstrainedOptions()["Accounting"]).toEqual(
-            "Production-based"
-        )
+        expect(
+            decisionMatrix.toConstrainedOptions()["Accounting Radio"]
+        ).toEqual("Production-based")
         expect(decisionMatrix.choicesWithAvailability[1].value).toEqual(
             "Production-based"
         )

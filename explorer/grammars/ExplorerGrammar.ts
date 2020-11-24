@@ -95,13 +95,6 @@ export const ExplorerGrammar: Grammar = {
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
-    defaultView: {
-        ...QueryStringCellDef,
-        keyword: "defaultView",
-        placeholder: "selection=Canada",
-        description:
-            "Use the Explorer, then copy the part of the url starting with ? here.",
-    },
     isPublished: {
         ...BooleanCellDef,
         keyword: "isPublished",
@@ -138,6 +131,12 @@ export const ExplorerGrammar: Grammar = {
         ...UrlCellDef,
         keyword: "thumbnail",
         description: "URL to the social sharing thumbnail.",
+    },
+    selection: {
+        ...StringCellDef,
+        keyword: "selection",
+        placeholder: "USA~Canada",
+        description: "The default selected entities.",
     },
     entityType: {
         ...StringCellDef,

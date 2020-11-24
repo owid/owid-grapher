@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed, autorun, reaction } from "mobx"
 import {
     GrapherInterface,
     GrapherQueryParams,
@@ -10,13 +10,16 @@ import {
     ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
-import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
-import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { ENTITY_V2_DELIMITER } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { exposeInstanceOnWindow, throttle } from "grapher/utils/Util"
+import {
+    debounce,
+    exposeInstanceOnWindow,
+    throttle,
+    trimObject,
+} from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -25,7 +28,7 @@ import {
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
-    UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
+    UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "./ExplorerConstants"
 import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
@@ -39,14 +42,20 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
+import {
+    getPatchFromQueryString,
+    objectFromPatch,
+    objectToPatch,
+} from "./Patch"
+import { setWindowQueryStr } from "utils/client/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
-    queryString?: string
+    patch?: string
     isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
 }
 
-interface ExplorerQueryParams extends GrapherQueryParams {
+interface ExplorerPatchObject extends GrapherQueryParams {
     pickerSort?: SortOrder
     pickerMetric?: ColumnSlug
 }
@@ -63,7 +72,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                queryString={window.location.search}
+                patch={getPatchFromQueryString(window.location.search)}
                 key={Date.now()}
             />,
             document.getElementById(ExplorerContainerId)
@@ -93,28 +102,27 @@ export class Explorer
         }
 
         ReactDOM.render(
-            <Explorer {...props} queryString={window.location.search} />,
+            <Explorer
+                {...props}
+                patch={getPatchFromQueryString(window.location.search)}
+            />,
             document.getElementById(ExplorerContainerId)
         )
     }
 
-    private urlBinding?: UrlBinder
-
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
-        this.props.queryString
+        this.props.patch
     )
 
-    private initialQueryParams = strToQueryParams(
-        this.props.queryString || this.explorerProgram.defaultView
-    ) as ExplorerQueryParams
+    private initialPatchObject = objectFromPatch(
+        this.props.patch
+    ) as ExplorerPatchObject
 
-    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
-    @observable entityPickerSort? = this.initialQueryParams.pickerSort
+    @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
+    @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
     selection = new SelectionArray(
-        EntityUrlBuilder.queryParamToEntityNames(
-            this.initialQueryParams.selection
-        ),
+        this.explorerProgram.selection?.split(ENTITY_V2_DELIMITER),
         undefined,
         this.explorerProgram.entityType
     )
@@ -146,8 +154,7 @@ export class Explorer
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
 
-        if (!this.props.isEmbed)
-            this.urlBinding = new UrlBinder().bindToWindow(this)
+        if (!this.props.isEmbed) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
     }
 
@@ -177,11 +184,11 @@ export class Explorer
             }
         }
         const queryStr =
-            grapher.id !== undefined ? grapher.params : this.initialQueryParams
+            grapher.id !== undefined ? grapher.params : this.initialPatchObject
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
-                this.explorerProgram.decisionMatrix.allOptionsAsQueryStrings(),
+                this.explorerProgram.decisionMatrix.allDecisionsAsPatches(),
                 0,
                 this
             )
@@ -267,30 +274,76 @@ export class Explorer
         }
     }
 
-    @action.bound setSlide(queryString: string) {
-        this.explorerProgram.decisionMatrix.setValuesFromQueryString(
-            queryString
+    @action.bound setSlide(patch: string) {
+        this.explorerProgram.decisionMatrix.setValuesFromPatch(patch)
+    }
+
+    private bindToWindow() {
+        // There is a surprisingly considerable performance overhead to updating the url
+        // while animating, so we debounce to allow e.g. smoother timelines
+        const pushParams = () =>
+            this.encodedQueryString
+                ? setWindowQueryStr(this.encodedQueryString)
+                : null
+        const debouncedPushParams = debounce(pushParams, 100)
+
+        reaction(
+            () => this.params,
+            () =>
+                this.grapher?.debounceMode
+                    ? debouncedPushParams()
+                    : pushParams()
         )
     }
 
-    @computed get params(): ExplorerQueryParams {
+    @computed private get encodedQueryString() {
+        const encodedPatch = encodeURIComponent(this.patch)
+        return encodedPatch ? `?patch=` + encodedPatch : undefined
+    }
+
+    @computed private get patch() {
+        return objectToPatch(this.params)
+    }
+
+    // Just for debugging
+    @computed private get patchAsTsv() {
+        return objectToPatch(this.params, "\n", "\t")
+    }
+
+    @computed get params(): ExplorerPatchObject {
         if (!this.grapher) return {}
+
+        const { decisionMatrix } = this.explorerProgram
+
+        const decisionsPatchObject: any = {
+            ...decisionMatrix.currentPatch,
+        }
+
+        // Remove any unchanged default props
+        const clone = this.explorerProgram.clone.decisionMatrix.currentPatch
+        Object.keys(decisionsPatchObject).forEach((key) => {
+            if (clone[key] === decisionsPatchObject[key])
+                delete decisionsPatchObject[key]
+        })
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
-                UNSAVED_EXPLORER_PREVIEW_QUERY_STRING +
-                    this.explorerProgram.slug,
-                queryParamsToStr(this.explorerProgram.decisionMatrix.params)
+                UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
+                objectToPatch(decisionsPatchObject)
             )
 
-        return {
+        const patchObject = {
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
-            ...this.explorerProgram.decisionMatrix.params,
-            selection: this.selection.asParam,
+            selection: this.selection.hasSelection
+                ? this.selection.selectedEntityNames.join(ENTITY_V2_DELIMITER)
+                : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
+            ...decisionsPatchObject,
         }
+
+        return trimObject(patchObject)
     }
 
     /**
@@ -304,11 +357,7 @@ export class Explorer
      *
      * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
      */
-    private grapherParamsChangedThisSession: ExplorerQueryParams = {}
-
-    @computed get debounceMode() {
-        return this.grapher?.debounceMode
-    }
+    private grapherParamsChangedThisSession: ExplorerPatchObject = {}
 
     private get panels() {
         return this.explorerProgram.decisionMatrix.choicesWithAvailability.map(
@@ -318,7 +367,7 @@ export class Explorer
                     explorerSlug={this.explorerProgram.slug}
                     choice={choice}
                     onChange={(value) => {
-                        this.explorerProgram.decisionMatrix.setValue(
+                        this.explorerProgram.decisionMatrix.setValueCommand(
                             choice.title,
                             value
                         )

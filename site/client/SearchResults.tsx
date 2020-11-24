@@ -28,7 +28,7 @@ class ChartResult extends React.Component<{
         else
             return (
                 hit.slug +
-                `?tab=chart&country=${EntityUrlBuilder.entityNamesToQueryParam(
+                `?tab=chart&country=${EntityUrlBuilder.entityNamesToEncodedQueryParam(
                     entities
                 )}`
             )
@@ -156,7 +156,7 @@ export class SearchResults extends React.Component<{
         else
             return (
                 bestChartHit.slug +
-                `?tab=chart&country=${EntityUrlBuilder.entityNamesToQueryParam(
+                `?tab=chart&country=${EntityUrlBuilder.entityNamesToEncodedQueryParam(
                     bestChartEntities
                 )}`
             )

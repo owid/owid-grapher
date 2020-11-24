@@ -12,7 +12,15 @@ export const ExplorerControlTypeRegex = new RegExp(
     " (" + Object.values(ExplorerControlType).join("|") + ")$"
 )
 
-export interface ExplorerControlOption {
+export interface ExplorerChoice {
+    title: string
+    displayTitle?: string
+    options: ExplorerChoiceOption[]
+    value: string
+    type: ExplorerControlType
+}
+
+export interface ExplorerChoiceOption {
     label: string
     available: boolean
     value: string
@@ -20,8 +28,7 @@ export interface ExplorerControlOption {
 }
 
 export const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
-export const UNSAVED_EXPLORER_PREVIEW_QUERY_STRING =
-    "UNSAVED_EXPLORER_PREVIEW_PARAMS"
+export const UNSAVED_EXPLORER_PREVIEW_PATCH = "UNSAVED_EXPLORER_PREVIEW_PATCH"
 
 export const EMBEDDED_EXPLORER_DELIMITER = "\n//EMBEDDED_EXPLORER\n"
 export const EMBEDDED_EXPLORER_GRAPHER_CONFIGS =

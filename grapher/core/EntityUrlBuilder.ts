@@ -7,7 +7,7 @@ const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
 export class EntityUrlBuilder {
-    static entityNamesToQueryParam(entityNames: EntityName[]) {
+    static entityNamesToEncodedQueryParam(entityNames: EntityName[]) {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entityNames.length === 1)
             return encodeURIComponent(ENTITY_V2_DELIMITER + entityNames[0])

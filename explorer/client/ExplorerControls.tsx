@@ -3,10 +3,13 @@ import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
-import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
+import {
+    ExplorerControlType,
+    ExplorerChoiceOption,
+    ExplorerChoice,
+} from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
 import { GridBoolean } from "explorer/gridLang/GridLangConstants"
-import { ExplorerChoice } from "./ExplorerChoice"
 import classNames from "classnames"
 
 const AVAILABLE_OPTION_CLASS = "AvailableOption"
@@ -57,10 +60,7 @@ export class ExplorerControlPanel extends React.Component<{
     comment?: string
     onChange?: (value: string) => void
 }> {
-    private renderCheckboxOrRadio(
-        option: ExplorerControlOption,
-        index: number
-    ) {
+    private renderCheckboxOrRadio(option: ExplorerChoiceOption, index: number) {
         const { comment, explorerSlug, choice } = this.props
         const { title, type, value } = choice
         const { available, label, checked } = option
@@ -158,12 +158,12 @@ export class ExplorerControlPanel extends React.Component<{
         if (this.props.onChange) this.props.onChange(value)
     }
 
-    renderColumn(
+    private renderColumn(
         key: string,
         hideTitle: boolean,
-        options?: ExplorerControlOption[]
+        options?: ExplorerChoiceOption[]
     ) {
-        const { title, type } = this.props.choice
+        const { title, type, displayTitle } = this.props.choice
         return (
             <div key={key} className="ExplorerControl">
                 <div
@@ -171,7 +171,7 @@ export class ExplorerControlPanel extends React.Component<{
                         [HIDDEN_CONTROL_HEADER_CLASS]: hideTitle === true,
                     })}
                 >
-                    {title}
+                    {displayTitle ?? title}
                 </div>
                 {type === ExplorerControlType.Dropdown
                     ? this.renderDropdown()

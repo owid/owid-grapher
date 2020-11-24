@@ -19,7 +19,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
-    UNSAVED_EXPLORER_PREVIEW_QUERY_STRING,
+    UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "explorer/client/ExplorerConstants"
 import {
     AutofillColDefCommand,
@@ -45,11 +45,10 @@ export class ExplorerCreatePage extends React.Component<{
         exposeInstanceOnWindow(this, "explorerEditor")
 
         setInterval(() => {
-            const queryStr = localStorage.getItem(
-                UNSAVED_EXPLORER_PREVIEW_QUERY_STRING + this.program.slug
+            const patch = localStorage.getItem(
+                `${UNSAVED_EXPLORER_PREVIEW_PATCH}${this.program.slug}`
             )
-            if (queryStr)
-                this.program.decisionMatrix.setValuesFromQueryString(queryStr)
+            if (patch) this.program.decisionMatrix.setValuesFromPatch(patch)
         }, 1000)
     }
 
