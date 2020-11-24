@@ -23,6 +23,7 @@ import {
     ExplorersRouteGrapherConfigs,
     ExplorersRouteQueryParam,
     ExplorersRouteResponse,
+    DefaultNewExplorerSlug,
 } from "explorer/client/ExplorerConstants"
 import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
@@ -93,6 +94,12 @@ export const addExplorerAdminRoutes = (app: Router) => {
     app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         const slug = slugify(req.params.slug)
         const filename = slug + EXPLORER_FILE_SUFFIX
+        if (slug === DefaultNewExplorerSlug)
+            return res.send(
+                await renderExplorerPage(
+                    new ExplorerProgram(DefaultNewExplorerSlug, "")
+                )
+            )
         if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))
             return res.send(`File not found`)
         const explorer = await getExplorerFromFile(EXPLORERS_FOLDER, filename)

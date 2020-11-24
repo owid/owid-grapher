@@ -277,7 +277,8 @@ export class ExplorerCreatePage extends React.Component<{
             )
 
         const { program, isModified } = this
-        const { isNewFile } = program
+        const { isNewFile, slug } = program
+        const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
 
         const buttons = []
 
@@ -306,23 +307,6 @@ export class ExplorerCreatePage extends React.Component<{
                 onClick={this.saveAs}
             >
                 Save As
-            </button>
-        )
-
-        buttons.push(
-            <button
-                key="preview"
-                disabled={isNewFile}
-                title={isNewFile ? "You need to save this file first." : ""}
-                onClick={() =>
-                    window.open(
-                        `/admin/${EXPLORERS_PREVIEW_ROUTE}/${this.program.slug}`,
-                        "_blank"
-                    )
-                }
-                className={classNames(`btn`, "btn-secondary")}
-            >
-                Preview '{program.slug}'
             </button>
         )
 
@@ -357,6 +341,10 @@ export class ExplorerCreatePage extends React.Component<{
                         ref={this.hotTableComponent as any}
                         licenseKey={"non-commercial-and-evaluation"}
                     />
+                    <iframe src={previewLink} className="ExplorerPipPreview" />
+                    <a className="PreviewLink" href={previewLink}>
+                        Visit preview
+                    </a>
                 </main>
             </AdminLayout>
         )

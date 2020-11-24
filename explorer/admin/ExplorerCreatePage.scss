@@ -12,6 +12,24 @@
     grid-template-rows: 50px;
 }
 
+.ExplorerPipPreview {
+    position: fixed;
+    width: 1200px;
+    height: 800px;
+    transform: scale(0.35);
+    top: 140px;
+    right: 10px;
+    transform-origin: top right;
+}
+
+.PreviewLink {
+    position: fixed;
+    font-size: 12px;
+    text-align: right;
+    top: 125px;
+    right: 10px;
+}
+
 // Hide the noisy arrow in the autocomplete dropdown.
 .handsontable {
     .htAutocompleteArrow {
