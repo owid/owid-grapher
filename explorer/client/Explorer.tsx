@@ -306,7 +306,6 @@ export class Explorer
 
         const decisionsPatchObject: any = {
             ...decisionMatrix.currentPatch,
-            version: decisionMatrix.hash.substring(0, 8),
         }
 
         // Remove any unchanged default props
