@@ -400,14 +400,7 @@ export class Explorer
         )
     }
 
-    private _isMobile() {
-        return (
-            window.screen.width < 450 ||
-            document.documentElement.clientWidth <= 800
-        )
-    }
-
-    @observable private isMobile = this._isMobile()
+    @observable private isNarrow = isNarrow()
 
     @computed private get showExplorerControls() {
         if (this.explorerProgram.hideControls) return false
@@ -427,7 +420,7 @@ export class Explorer
     private renderControlBar() {
         return (
             <ExplorerControlBar
-                isMobile={this.isMobile}
+                isMobile={this.isNarrow}
                 showControls={this.showMobileControlsPopup}
                 closeControls={this.closeControls}
             >
@@ -441,7 +434,7 @@ export class Explorer
             <EntityPicker
                 key="entityPicker"
                 manager={this}
-                isDropdownMenu={this.isMobile}
+                isDropdownMenu={this.isNarrow}
             />
         )
     }
@@ -453,7 +446,7 @@ export class Explorer
     }
 
     @action.bound private onResize() {
-        this.isMobile = this._isMobile()
+        this.isNarrow = isNarrow()
         this.grapherBounds = this.getGrapherBounds() || this.grapherBounds
     }
 
@@ -502,7 +495,7 @@ export class Explorer
             <div
                 className={classNames({
                     Explorer: true,
-                    "mobile-explorer": this.isMobile,
+                    "mobile-explorer": this.isNarrow,
                     HideControls: !showExplorerControls,
                     "is-embed": this.props.isEmbed,
                 })}
@@ -511,7 +504,7 @@ export class Explorer
                 {showHeaderElement && this.renderControlBar()}
                 {showExplorerControls && this.renderEntityPicker()}
                 {showExplorerControls &&
-                    this.isMobile &&
+                    this.isNarrow &&
                     this.mobileCustomizeButton}
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
@@ -551,3 +544,6 @@ export class Explorer
         return this.grapher?.newSlugs ?? []
     }
 }
+
+const isNarrow = () =>
+    window.screen.width < 450 || document.documentElement.clientWidth <= 800
