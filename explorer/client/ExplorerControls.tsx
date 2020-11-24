@@ -57,11 +57,10 @@ export class ExplorerControlBar extends React.Component<{
 export class ExplorerControlPanel extends React.Component<{
     choice: ExplorerChoice
     explorerSlug?: string
-    comment?: string
     onChange?: (value: string) => void
 }> {
     private renderCheckboxOrRadio(option: ExplorerChoiceOption, index: number) {
-        const { comment, explorerSlug, choice } = this.props
+        const { explorerSlug, choice } = this.props
         const { title, type, value } = choice
         const { available, label, checked } = option
         const isCheckbox = type === ExplorerControlType.Checkbox
@@ -100,18 +99,6 @@ export class ExplorerControlPanel extends React.Component<{
                         value={currentValue}
                     />{" "}
                     {label}
-                    {comment && (
-                        <div
-                            className={classNames(
-                                "comment",
-                                available
-                                    ? AVAILABLE_OPTION_CLASS
-                                    : UNAVAILABLE_OPTION_CLASS
-                            )}
-                        >
-                            {comment}
-                        </div>
-                    )}
                 </label>
             </div>
         )
