@@ -59,15 +59,16 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private async fetchExplorerProgramOnLoad() {
+        const { slug } = this.props
         const response = await readRemoteFile({
-            filepath: makeFullPath(this.props.slug),
+            filepath: makeFullPath(slug),
         })
         this.programOnDisk = new ExplorerProgram("", response.content ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
         this.isReady = true
         if (this.isModified)
             alert(
-                `You have a local version of this file that is different than the one on disk. If you want to clear your local changes, click the "Clear Changes" button in the top right.`
+                `Your browser has a changed draft of '${slug}'. If you want to clear your local changes, click the "Clear Changes" button in the top right.`
             )
     }
 
@@ -116,8 +117,8 @@ export class ExplorerCreatePage extends React.Component<{
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
-        this.clearDraft()
         this.setProgram(this.programOnDisk.toString())
+        this.clearDraft()
     }
 
     @action.bound private async saveAs() {
