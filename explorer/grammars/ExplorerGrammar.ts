@@ -132,6 +132,12 @@ export const ExplorerGrammar: Grammar = {
         keyword: "thumbnail",
         description: "URL to the social sharing thumbnail.",
     },
+    selection: {
+        ...StringCellDef,
+        keyword: "selection",
+        placeholder: "USA~Canada",
+        description: "The default selected entities.",
+    },
     entityType: {
         ...StringCellDef,
         keyword: "entityType",

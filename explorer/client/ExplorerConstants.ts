@@ -12,7 +12,15 @@ export const ExplorerControlTypeRegex = new RegExp(
     " (" + Object.values(ExplorerControlType).join("|") + ")$"
 )
 
-export interface ExplorerControlOption {
+export interface ExplorerChoice {
+    title: string
+    displayTitle?: string
+    options: ExplorerChoiceOption[]
+    value: string
+    type: ExplorerControlType
+}
+
+export interface ExplorerChoiceOption {
     label: string
     available: boolean
     value: string

@@ -18,7 +18,11 @@ import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { exposeInstanceOnWindow, throttle } from "grapher/utils/Util"
+import {
+    exposeInstanceOnWindow,
+    throttle,
+    trimObject,
+} from "grapher/utils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -45,7 +49,7 @@ import {
     getPatchFromQueryString,
     objectFromPatch,
     objectToPatch,
-} from "./ExplorerProgramUtils"
+} from "./Patch"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -126,7 +130,7 @@ export class Explorer
 
     selection = new SelectionArray(
         EntityUrlBuilder.queryParamToEntityNames(
-            this.initialPatchObject.selection
+            this.explorerProgram.selection
         ),
         undefined,
         this.explorerProgram.entityType
@@ -290,7 +294,7 @@ export class Explorer
         const { decisionMatrix } = this.explorerProgram
 
         const decisionsPatchObject = {
-            ...decisionMatrix.asObject,
+            ...decisionMatrix.currentPatch,
             hash: decisionMatrix.hash.substring(0, 8),
         }
 
@@ -306,10 +310,11 @@ export class Explorer
             selection: this.selection.asParam,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
+            ...decisionsPatchObject,
         }
 
         return {
-            patch: encodeURIComponent(objectToPatch(patchObject)),
+            patch: encodeURIComponent(objectToPatch(trimObject(patchObject))),
         }
     }
 
@@ -338,7 +343,7 @@ export class Explorer
                     explorerSlug={this.explorerProgram.slug}
                     choice={choice}
                     onChange={(value) => {
-                        this.explorerProgram.decisionMatrix.setValue(
+                        this.explorerProgram.decisionMatrix.setValueCommand(
                             choice.title,
                             value
                         )

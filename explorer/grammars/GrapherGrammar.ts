@@ -7,7 +7,11 @@ import {
     BooleanCellDef,
     EnumCellDef,
 } from "explorer/gridLang/GridLangConstants"
-import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
+import {
+    ChartTypeName,
+    FacetStrategy,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
 
 export const GrapherGrammar: Grammar = {
     title: {
@@ -51,6 +55,16 @@ export const GrapherGrammar: Grammar = {
         ...BooleanCellDef,
         keyword: "hasMapTab",
         description: "Show the map tab?",
+    },
+    tab: {
+        ...EnumCellDef,
+        keyword: "tab",
+        description: "Which tab to show by default",
+        terminalOptions: Object.values(GrapherTabOption).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
     hasChartTab: {
         ...BooleanCellDef,

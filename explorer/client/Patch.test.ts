@@ -4,7 +4,7 @@ import {
     DEFAULT_COLUMN_DELIMITER,
     objectFromPatch,
     objectToPatch,
-} from "./ExplorerProgramUtils"
+} from "./Patch"
 
 it("can create a patch", () => {
     const tests = [

@@ -1,13 +1,14 @@
 import { trimObject } from "grapher/utils/Util"
-import { queryParamsToStr, strToQueryParams } from "utils/client/url"
+import { queryParamsToStr } from "utils/client/url"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import {
     ExplorerControlType,
-    ExplorerControlOption,
+    ExplorerChoiceOption,
     ExplorerControlTypeRegex,
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
+    ExplorerChoice,
 } from "explorer/client/ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
@@ -17,11 +18,7 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
-import {
-    getRequiredGrapherIds,
-    objectFromPatch,
-    objectToPatch,
-} from "explorer/client/ExplorerProgramUtils"
+import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import {
     CellDef,
@@ -38,7 +35,7 @@ import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"
-import { ExplorerChoice } from "./ExplorerChoice"
+import { objectToPatch, objectFromPatch } from "./Patch"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -146,6 +143,10 @@ export class ExplorerProgram extends GridProgram {
 
     get entityType() {
         return this.getLineValue(ExplorerGrammar.entityType.keyword)
+    }
+
+    get selection() {
+        return this.getLineValue(ExplorerGrammar.selection.keyword)
     }
 
     get pickerColumnSlugs() {
@@ -372,7 +373,7 @@ export class ExplorerProgram extends GridProgram {
 }
 
 // todo: cleanup
-const makeControlTypesMap = (delimited: string) => {
+const makeChoicesMap = (delimited: string) => {
     const headerLine = delimited.split("\n")[0]
     const map = new Map<ChoiceName, ExplorerControlType>()
     headerLine
@@ -380,23 +381,10 @@ const makeControlTypesMap = (delimited: string) => {
         .filter((name) => ExplorerControlTypeRegex.test(name))
         .forEach((choiceName) => {
             const words = choiceName.split(" ")
-            const type = words.pop() as ExplorerControlType
+            const type = words[words.length - 1] as ExplorerControlType
             map.set(words.join(" "), type)
         })
     return map
-}
-
-// todo: cleanup
-// This strips the "Dropdown" or "Checkbox" from "SomeChoice Dropdown" or "SomeChoice Checkbox"
-const removeChoiceControlTypeInfo = (str: string) => {
-    const lines = str.split("\n")
-    const headerLine = lines[0]
-    const delimiter = detectDelimiter(headerLine)
-    lines[0] = headerLine
-        .split(delimiter)
-        .map((cell) => cell.replace(ExplorerControlTypeRegex, ""))
-        .join(delimiter)
-    return lines.join("\n")
 }
 
 type ChoiceName = string
@@ -414,11 +402,11 @@ interface ChoiceMap {
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
     private table: CoreTable
-    @observable private _settings: DecisionsPatchObject = {}
+    @observable currentPatch: DecisionsPatchObject = {}
     constructor(delimited: string, hash = "") {
-        this.choiceControlTypes = makeControlTypesMap(delimited)
-        delimited = removeChoiceControlTypeInfo(delimited)
+        this.choices = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(delimited), [
+            // todo: remove col def?
             {
                 slug: GrapherGrammar.grapherId.keyword,
                 type: ColumnTypeNames.Integer,
@@ -442,15 +430,11 @@ export class DecisionMatrix {
         return this.table.numRows
     }
 
-    private choiceControlTypes: Map<ChoiceName, ExplorerControlType>
+    private choices: Map<ChoiceName, ExplorerControlType>
     hash: string
 
-    @computed get asObject(): DecisionsPatchObject {
-        return { ...this._settings }
-    }
-
     toConstrainedOptions() {
-        const settings = this.asObject
+        const settings = { ...this.currentPatch }
         this.choiceNames.forEach((choiceName) => {
             if (!this.isOptionAvailable(choiceName, settings[choiceName]))
                 settings[choiceName] = this.firstAvailableOptionForChoice(
@@ -463,12 +447,12 @@ export class DecisionMatrix {
     @computed private get diffBetweenUserSettingsAndConstrained() {
         const obj = this.toConstrainedOptions()
         Object.keys(obj).forEach((key) => {
-            if (this._settings[key] === obj[key]) delete obj[key]
+            if (this.currentPatch[key] === obj[key]) delete obj[key]
         })
         return obj
     }
 
-    @action.bound setValue(choiceName: ChoiceName, value: ChoiceValue) {
+    @action.bound setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
         const currentInvalidState = this.diffBetweenUserSettingsAndConstrained
         this._setValue(choiceName, value)
         const newInvalidState = this.diffBetweenUserSettingsAndConstrained
@@ -488,8 +472,8 @@ export class DecisionMatrix {
         choiceName: ChoiceName,
         value: ChoiceValue
     ) {
-        if (value === "") delete this._settings[choiceName]
-        else this._settings[choiceName] = value
+        if (value === "") delete this.currentPatch[choiceName]
+        else this.currentPatch[choiceName] = value
     }
 
     @action.bound private setValuesFromPatchObject(
@@ -513,7 +497,7 @@ export class DecisionMatrix {
     }
 
     @computed private get choiceNames(): ChoiceName[] {
-        return Array.from(this.choiceControlTypes.keys())
+        return Array.from(this.choices.keys())
     }
 
     @computed private get allChoiceOptions(): ChoiceMap {
@@ -551,7 +535,7 @@ export class DecisionMatrix {
     isOptionAvailable(
         choiceName: ChoiceName,
         option: ChoiceValue,
-        currentState = this._settings
+        currentState = this.currentPatch
     ) {
         const query: DecisionsPatchObject = {}
         this.choiceNames
@@ -599,7 +583,7 @@ export class DecisionMatrix {
         optionName: string,
         currentValue: ChoiceValue,
         constrainedOptions: DecisionsPatchObject
-    ): ExplorerControlOption {
+    ): ExplorerChoiceOption {
         const available = this.isOptionAvailable(
             choiceName,
             optionName,
@@ -629,10 +613,11 @@ export class DecisionMatrix {
                     constrainedOptions
                 )
             )
-            const type = this.choiceControlTypes.get(title)!
+            const type = this.choices.get(title)!
 
             return {
                 title,
+                displayTitle: removeChoiceControlTypeInfo(title),
                 type,
                 value,
                 options:
@@ -644,12 +629,16 @@ export class DecisionMatrix {
     }
 
     toString() {
-        return queryParamsToStr(this._settings)
+        return queryParamsToStr(this.currentPatch)
     }
 }
 
+// This strips the "Dropdown" or "Checkbox" from "SomeChoice Dropdown" or "SomeChoice Checkbox"
+const removeChoiceControlTypeInfo = (label: string) =>
+    label.replace(ExplorerControlTypeRegex, "")
+
 const makeCheckBoxOption = (
-    options: ExplorerControlOption[],
+    options: ExplorerChoiceOption[],
     choiceName: string
 ) => {
     const checked = options.some(
@@ -665,7 +654,7 @@ const makeCheckBoxOption = (
             checked,
             value: GridBoolean.true,
             available,
-        } as ExplorerControlOption,
+        } as ExplorerChoiceOption,
     ]
 }
 
