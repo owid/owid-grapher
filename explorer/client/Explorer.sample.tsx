@@ -9,7 +9,7 @@ explorerSubtitle	Download the complete <i>Our World in Data</i> <a href="https:/
 subNavId	co2
 tab	chart
 time	earliest..latest
-selection	China~United%20States~India~United%20Kingdom~World
+selection	China~United States~India~United Kingdom~World
 Gas Radio	CO₂
 Accounting Radio	Production-based
 subNavCurrentId	co2-data-explorer
