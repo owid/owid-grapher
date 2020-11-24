@@ -281,10 +281,10 @@ export class Explorer
     private bindToWindow() {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = () => {
-            const encodedPatch = encodeURIComponent(objectToPatch(this.params))
-            if (encodedPatch) setWindowQueryStr(`?patch=` + encodedPatch)
-        }
+        const pushParams = () =>
+            this.encodedQueryString
+                ? setWindowQueryStr(this.encodedQueryString)
+                : null
         const debouncedPushParams = debounce(pushParams, 100)
 
         reaction(
@@ -294,6 +294,20 @@ export class Explorer
                     ? debouncedPushParams()
                     : pushParams()
         )
+    }
+
+    @computed private get encodedQueryString() {
+        const encodedPatch = encodeURIComponent(this.patch)
+        return encodedPatch ? `?patch=` + encodedPatch : undefined
+    }
+
+    @computed private get patch() {
+        return objectToPatch(this.params)
+    }
+
+    // Just for debugging
+    @computed private get patchAsTsv() {
+        return objectToPatch(this.params, "\n", "\t")
     }
 
     @computed get params(): ExplorerPatchObject {
