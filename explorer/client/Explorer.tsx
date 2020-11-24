@@ -48,6 +48,7 @@ import {
     objectToPatch,
 } from "./Patch"
 import { setWindowQueryStr } from "utils/client/url"
+import { deleteRuntimeAndUnchangedProps } from "grapher/persistable/Persistable"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -303,10 +304,17 @@ export class Explorer
 
         const { decisionMatrix } = this.explorerProgram
 
-        const decisionsPatchObject = {
+        const decisionsPatchObject: any = {
             ...decisionMatrix.currentPatch,
-            hash: decisionMatrix.hash.substring(0, 8),
+            version: decisionMatrix.hash.substring(0, 8),
         }
+
+        // Remove any unchanged default props
+        const clone = this.explorerProgram.clone.decisionMatrix.currentPatch
+        Object.keys(decisionsPatchObject).forEach((key) => {
+            if (clone[key] === decisionsPatchObject[key])
+                delete decisionsPatchObject[key]
+        })
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(

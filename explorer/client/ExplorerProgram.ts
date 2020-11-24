@@ -71,7 +71,7 @@ export class ExplorerProgram extends GridProgram {
         return new ExplorerProgram(json.slug, json.program, json.lastCommit)
     }
 
-    private get clone() {
+    get clone() {
         return ExplorerProgram.fromJson(this.toJson())
     }
 
