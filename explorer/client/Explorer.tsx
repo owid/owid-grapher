@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed, autorun, reaction } from "mobx"
 import {
     GrapherInterface,
     GrapherQueryParams,
@@ -10,15 +10,12 @@ import {
     ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
-import {
-    ObjectThatSerializesToQueryParams,
-    UrlBinder,
-} from "grapher/utils/UrlBinder"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import {
+    debounce,
     exposeInstanceOnWindow,
     throttle,
     trimObject,
@@ -50,6 +47,7 @@ import {
     objectFromPatch,
     objectToPatch,
 } from "./Patch"
+import { setWindowQueryStr } from "utils/client/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -86,10 +84,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements
-        SlideShowManager,
-        EntityPickerManager,
-        ObjectThatSerializesToQueryParams {
+    implements SlideShowManager, EntityPickerManager {
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
@@ -114,8 +109,6 @@ export class Explorer
             document.getElementById(ExplorerContainerId)
         )
     }
-
-    private urlBinding?: UrlBinder
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
         this.props.patch
@@ -163,8 +156,7 @@ export class Explorer
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
 
-        if (!this.props.isEmbed)
-            this.urlBinding = new UrlBinder().bindToWindow(this)
+        if (!this.props.isEmbed) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
     }
 
@@ -288,6 +280,24 @@ export class Explorer
         this.explorerProgram.decisionMatrix.setValuesFromPatch(patch)
     }
 
+    private bindToWindow() {
+        // There is a surprisingly considerable performance overhead to updating the url
+        // while animating, so we debounce to allow e.g. smoother timelines
+        const pushParams = () => {
+            const encodedPatch = encodeURIComponent(objectToPatch(this.params))
+            if (encodedPatch) setWindowQueryStr(`?patch=` + encodedPatch)
+        }
+        const debouncedPushParams = debounce(pushParams, 100)
+
+        reaction(
+            () => this.params,
+            () =>
+                this.grapher?.debounceMode
+                    ? debouncedPushParams()
+                    : pushParams()
+        )
+    }
+
     @computed get params(): ExplorerPatchObject {
         if (!this.grapher) return {}
 
@@ -313,9 +323,7 @@ export class Explorer
             ...decisionsPatchObject,
         }
 
-        return {
-            patch: encodeURIComponent(objectToPatch(trimObject(patchObject))),
-        }
+        return trimObject(patchObject)
     }
 
     /**
@@ -330,10 +338,6 @@ export class Explorer
      * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
      */
     private grapherParamsChangedThisSession: ExplorerPatchObject = {}
-
-    @computed get debounceMode() {
-        return this.grapher?.debounceMode
-    }
 
     private get panels() {
         return this.explorerProgram.decisionMatrix.choicesWithAvailability.map(

@@ -10,11 +10,7 @@ export const objectToPatch = (
     columnDelimiter = DEFAULT_COLUMN_DELIMITER
 ) =>
     Object.keys(obj)
-        .map((key) =>
-            [encodeURIComponent(key), encodeURIComponent(obj[key])].join(
-                columnDelimiter
-            )
-        )
+        .map((key) => [key, obj[key]].join(columnDelimiter))
         .join(rowDelimiter)
 
 export const objectFromPatch = (
