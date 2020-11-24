@@ -614,15 +614,16 @@ export class DecisionMatrix {
                 )
             )
             const type = this.choices.get(title)!
+            const displayTitle = removeChoiceControlTypeInfo(title)
 
             return {
                 title,
-                displayTitle: removeChoiceControlTypeInfo(title),
+                displayTitle,
                 type,
                 value,
                 options:
                     type === ExplorerControlType.Checkbox
-                        ? makeCheckBoxOption(options, title)
+                        ? makeCheckBoxOption(options, displayTitle)
                         : options,
             }
         })
