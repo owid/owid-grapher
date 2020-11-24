@@ -324,7 +324,9 @@ export class Explorer
         const patchObject = {
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
-            selection: this.selection.asParam,
+            selection: this.selection.hasSelection
+                ? this.selection.asParam
+                : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
             ...decisionsPatchObject,
