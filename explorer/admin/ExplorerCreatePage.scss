@@ -1,5 +1,7 @@
-.ExplorerCreatePageButtons {
-    text-align: right;
+.ExplorerCreatePageHeader {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 50px;
 
     button {
         margin: 10px 5px;

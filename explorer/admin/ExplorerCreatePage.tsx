@@ -27,6 +27,7 @@ import {
 } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 import classNames from "classnames"
+import { ExplorerTemplates } from "explorer/client/ExplorerTemplates"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -267,6 +268,12 @@ export class ExplorerCreatePage extends React.Component<{
         else if (this.isModified) this.save()
     }
 
+    @action.bound private loadTemplate(slug: string) {
+        this.setProgram(
+            ExplorerTemplates.find((template) => template.slug === slug)!.code
+        )
+    }
+
     render() {
         if (!this.isReady)
             return (
@@ -326,6 +333,18 @@ export class ExplorerCreatePage extends React.Component<{
             ? "Are you sure you want to leave? You have unsaved changes."
             : "" // todo: provide an explanation of how many cells are modified.
 
+        const templates = isNewFile
+            ? ExplorerTemplates.map((template) => (
+                  <button
+                      className={classNames("btn", "btn-primary")}
+                      key={template.slug}
+                      onClick={() => this.loadTemplate(template.slug)}
+                  >
+                      {template.slug} Template
+                  </button>
+              ))
+            : null
+
         return (
             <AdminLayout title="Create Explorer">
                 <Prompt when={isModified} message={modifiedMessage} />
@@ -335,7 +354,10 @@ export class ExplorerCreatePage extends React.Component<{
                         position: "relative",
                     }}
                 >
-                    <div className="ExplorerCreatePageButtons">{buttons}</div>
+                    <div className="ExplorerCreatePageHeader">
+                        <div>{templates}</div>
+                        <div style={{ textAlign: "right" }}>{buttons}</div>
+                    </div>
                     <HotTable
                         settings={this.hotSettings}
                         ref={this.hotTableComponent as any}
