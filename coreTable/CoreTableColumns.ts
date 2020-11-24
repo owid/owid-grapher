@@ -608,9 +608,8 @@ class PercentageColumn extends NumericColumn {
     formatValue(value: number, options?: TickFormattingOptions) {
         return super.formatValue(value, {
             numberPrefixes: false,
-            ...options,
             unit: "%",
-            numDecimalPlaces: 2,
+            ...options,
         })
     }
 }
