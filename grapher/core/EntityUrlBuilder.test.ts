@@ -47,7 +47,7 @@ const encodeTests = [
 encodeTests.forEach((testCase) => {
     it(`correctly encodes url strings`, () => {
         expect(
-            EntityUrlBuilder.entityNamesToQueryParam(testCase.entities)
+            EntityUrlBuilder.entityNamesToEncodedQueryParam(testCase.entities)
         ).toEqual(testCase.queryString)
     })
 

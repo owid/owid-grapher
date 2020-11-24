@@ -12,7 +12,7 @@ import {
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
-import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { ENTITY_V2_DELIMITER } from "grapher/core/EntityUrlBuilder"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import {
     debounce,
@@ -48,7 +48,6 @@ import {
     objectToPatch,
 } from "./Patch"
 import { setWindowQueryStr } from "utils/client/url"
-import { deleteRuntimeAndUnchangedProps } from "grapher/persistable/Persistable"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -123,9 +122,7 @@ export class Explorer
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
     selection = new SelectionArray(
-        EntityUrlBuilder.queryParamToEntityNames(
-            this.explorerProgram.selection
-        ),
+        this.explorerProgram.selection?.split(ENTITY_V2_DELIMITER),
         undefined,
         this.explorerProgram.entityType
     )
@@ -325,7 +322,7 @@ export class Explorer
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
             selection: this.selection.hasSelection
-                ? this.selection.asParam
+                ? this.selection.selectedEntityNames.join(ENTITY_V2_DELIMITER)
                 : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
