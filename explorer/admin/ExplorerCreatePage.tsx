@@ -65,6 +65,10 @@ export class ExplorerCreatePage extends React.Component<{
         this.programOnDisk = new ExplorerProgram("", response.content ?? "")
         this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
         this.isReady = true
+        if (this.isModified)
+            alert(
+                `You have a local version of this file that is different than the one on disk. If you want to clear your local changes, click the "Clear Changes" button in the top right.`
+            )
     }
 
     @action.bound private setProgram(code: string) {
@@ -140,8 +144,11 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private clearChanges() {
-        if (confirm("Are you sure you want to clear your local changes?"))
-            this.setProgram(this.programOnDisk.toString())
+        if (!confirm("Are you sure you want to clear your local changes?"))
+            return
+
+        this.setProgram(this.programOnDisk.toString())
+        this.clearDraft()
     }
 
     @action.bound private async save() {

@@ -37,6 +37,7 @@ import {
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
     DefaultNewExplorerSlug,
+    UNSAVED_EXPLORER_DRAFT,
 } from "explorer/client/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
@@ -88,6 +89,10 @@ class ExplorerRow extends React.Component<{
             </>
         ) : null
 
+        const hasEdits = localStorage.getItem(
+            `${UNSAVED_EXPLORER_DRAFT}${slug}`
+        )
+
         return (
             <tr>
                 <td>
@@ -132,8 +137,9 @@ class ExplorerRow extends React.Component<{
                     <Link
                         to={`/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
                         className="btn btn-primary"
+                        title={hasEdits ? "*You have local edits" : ""}
                     >
-                        Edit
+                        Edit{hasEdits ? "*" : ""}
                     </Link>
                 </td>
                 <td>
