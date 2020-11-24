@@ -22,7 +22,10 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
-import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
+import {
+    getRequiredGrapherIds,
+    objectToPatch,
+} from "explorer/client/ExplorerProgramUtils"
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import {
     CellDef,
@@ -459,6 +462,10 @@ export class DecisionMatrix implements ObjectThatSerializesToQueryParams {
 
     @computed get params(): DecisionMatrixQueryParams {
         return { ...this.toObject(), hash: this.hash.substring(0, 8) }
+    }
+
+    @computed get patch() {
+        return objectToPatch(this.params)
     }
 
     toConstrainedOptions() {
