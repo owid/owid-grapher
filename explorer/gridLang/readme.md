@@ -49,19 +49,19 @@ tab	map
 into this:
 
 ```
-patch=selection=USA=Canada~year=2000~tab=map
+patch=selection-is-USA~Canada-and-year-is-2000-and-tab-is-map
 ```
 
-Tabs become "="
-Newlines become "~"
+Tabs become "-is-"
+Newlines become -and-"
 
-(But you can set those yourself: patchNewline=~, patchTab==)
+(But the delimiters are params that you can define yourself)
 
 ## Benefits
 
 1. A single place to encode and decode your params. Just encode/decode the whole patch. Do not decode/encode N times for every parameter nor invent a special encoding scheme for each param.
 2. Cleanly encodes arrays and nested structures.
-3. Same human readability (and greatly improved readbility for complex params).
+3. Improved human readability for short params; greatly improved readability for complex params.
 4. Versioning with easy upgrading.
 5. Very easy to debug—it's just a patch!
 
