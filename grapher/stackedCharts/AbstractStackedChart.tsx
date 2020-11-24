@@ -37,6 +37,8 @@ export class AbstactStackedChart
             this.selectionArray.selectedEntityNames
         )
 
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
         if (!this.props.disableLinearInterpolation) {
             this.yColumnSlugs.forEach((slug) => {
                 table = table.interpolateColumnLinearly(slug)

@@ -11,6 +11,7 @@ import {
     uniqBy,
     intersectionOfSets,
     isPresent,
+    isNumber,
 } from "grapher/utils/Util"
 import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
@@ -48,7 +49,6 @@ import {
     autodetectColumnDefs,
     reverseColumnStore,
     renameColumnStore,
-    replaceNonPositives,
     replaceRandomCellsInColumnStore,
     getDropIndexes,
     parseDelimited,
@@ -57,6 +57,7 @@ import {
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     truncate,
+    replaceCells,
 } from "./CoreTableUtils"
 import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { OwidTableSlugs } from "./OwidTableConstants"
@@ -1083,10 +1084,25 @@ export class CoreTable<
 
     replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []) {
         return this.transform(
-            replaceNonPositives(this.columnStore, columnSlugs),
+            replaceCells(this.columnStore, columnSlugs, (val) =>
+                val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
+            ),
             this.defs,
             `Replaced negative or zero cells across columns ${columnSlugs.join(
                 " and "
+            )}`,
+            TransformType.UpdateRows
+        )
+    }
+
+    replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]) {
+        return this.transform(
+            replaceCells(this.columnStore, columnSlugs, (val) =>
+                !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
+            ),
+            this.defs,
+            `Replaced non-numeric cells across columns ${columnSlugs.join(
+                ", "
             )}`,
             TransformType.UpdateRows
         )

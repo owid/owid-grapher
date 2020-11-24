@@ -56,6 +56,8 @@ export class DiscreteBarChart
             this.selectionArray.selectedEntityNames
         )
 
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 

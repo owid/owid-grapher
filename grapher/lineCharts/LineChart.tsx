@@ -235,6 +235,8 @@ export class LineChart
             this.selectionArray.selectedEntityNames
         )
 
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(
                 this.manager.yColumnSlugs

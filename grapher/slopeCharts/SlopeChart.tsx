@@ -69,6 +69,8 @@ export class SlopeChart
     transformTable(table: OwidTable) {
         if (!table.has(this.yColumnSlug)) return table
 
+        table = table.replaceNonNumericCellsWithErrorValues([this.yColumnSlug])
+
         return table
             .dropRowsWithErrorValuesForColumn(this.yColumnSlug)
             .interpolateColumnWithTolerance(this.yColumnSlug)
