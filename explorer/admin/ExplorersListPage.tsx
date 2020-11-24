@@ -35,6 +35,7 @@ import {
     ExplorersRoute,
     EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteResponse,
+    EXPLORERS_PREVIEW_ROUTE,
 } from "explorer/client/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
@@ -94,6 +95,10 @@ class ExplorerRow extends React.Component<{
                     ) : (
                         <a href={publishedUrl}>{slug}</a>
                     )}
+                    {" - "}
+                    <a href={`/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`}>
+                        Preview
+                    </a>
                 </td>
                 <td>
                     {searchHighlight
