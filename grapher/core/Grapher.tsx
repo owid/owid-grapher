@@ -179,6 +179,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideEntityControls?: boolean
     queryStr?: string
     isEmbed?: boolean
+    enableKeyboardShortcuts?: boolean
     isMediaCard?: boolean
     isExport?: boolean
     bounds?: Bounds
@@ -1561,7 +1562,7 @@ export class Grapher
     }
 
     private get commandPalette() {
-        return !this.isEmbed ? (
+        return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }
@@ -1896,6 +1897,7 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (!this.props.isEmbed) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
+        if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
     private _shortcutsBound = false
@@ -1931,7 +1933,6 @@ export class Grapher
     componentDidUpdate() {
         this.setBaseFontSize()
         this.checkVisibility()
-        if (!this.isEmbed) this.bindKeyboardShortcuts() // todo: why here and not on mount?
     }
 
     componentDidCatch(error: Error, info: any) {

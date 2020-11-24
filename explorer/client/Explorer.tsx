@@ -511,6 +511,7 @@ export class Explorer
                     <Grapher
                         bounds={this.grapherBounds}
                         isEmbed={true}
+                        enableKeyboardShortcuts={true}
                         selectionArray={this.selection}
                         ref={this.grapherRef}
                     />
