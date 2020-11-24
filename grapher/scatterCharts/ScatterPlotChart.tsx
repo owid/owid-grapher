@@ -677,8 +677,16 @@ export class ScatterPlotChart
 
         if (this.yColumn.isMissing) return "Missing X axis variable"
 
-        if (isEmpty(this.allEntityNamesWithXAndY))
+        if (isEmpty(this.allEntityNamesWithXAndY)) {
+            if (
+                this.manager.isRelativeMode &&
+                this.manager.hasTimeline &&
+                this.manager.startTime === this.manager.endTime
+            ) {
+                return "Please select two points on the timeline below"
+            }
             return "No entities with data for both X and Y"
+        }
 
         if (isEmpty(this.series)) return "No matching data"
 

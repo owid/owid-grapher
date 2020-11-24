@@ -27,6 +27,7 @@ export interface ScatterPlotManager extends ChartManager {
     hideLinesOutsideTolerance?: boolean
     startTime?: Time
     endTime?: Time
+    hasTimeline?: boolean
 }
 
 export interface ScatterTooltipProps {
