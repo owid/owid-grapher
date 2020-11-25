@@ -76,7 +76,7 @@ export const ColumnGrammar: Grammar = {
     },
     sourceLink: {
         ...UrlCellDef,
-        keyword: "sourceName",
+        keyword: "sourceLink",
         description:
             "Link to the publication from which we retrieved this data",
     },
