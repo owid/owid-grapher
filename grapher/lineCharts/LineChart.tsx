@@ -235,6 +235,7 @@ export class LineChart
             this.selectionArray.selectedEntityNames
         )
 
+        // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
         if (this.isLogScale)
