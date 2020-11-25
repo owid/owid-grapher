@@ -1,10 +1,5 @@
 import { observer } from "mobx-react"
 import React from "react"
-import { AdminLayout } from "adminSite/client/AdminLayout"
-import {
-    AdminAppContextType,
-    AdminAppContext,
-} from "adminSite/client/AdminAppContext"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
 import {
@@ -39,17 +34,34 @@ import { GitCmsFile } from "gitCms/GitCmsConstants"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
+interface ExplorerCreatePageManager {
+    loadingIndicatorSetting?: "loading" | "off" | "default"
+}
+
 @observer
 export class ExplorerCreatePage extends React.Component<{
     slug: string
     gitCmsBranchName: string
+    manager?: ExplorerCreatePageManager
 }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+    @computed private get manager() {
+        return this.props.manager ?? {}
+    }
+
+    @action.bound private loadingModalOff() {
+        this.manager.loadingIndicatorSetting = "off"
+    }
+
+    @action.bound private loadingModalOn() {
+        this.manager.loadingIndicatorSetting = "loading"
+    }
+
+    @action.bound private resetLoadingModal() {
+        this.manager.loadingIndicatorSetting = "default"
+    }
 
     @action componentDidMount() {
-        this.context.admin.loadingIndicatorSetting = "off"
-        if (this.program.isNewFile) this.fetchTemplatesOnLoad()
+        this.loadingModalOff()
         this.fetchExplorerProgramOnLoad()
         exposeInstanceOnWindow(this, "explorerEditor")
 
@@ -65,17 +77,7 @@ export class ExplorerCreatePage extends React.Component<{
     @observable isReady = false
 
     @action componentWillUnmount() {
-        this.context.admin.loadingIndicatorSetting = "default"
-    }
-
-    @observable.ref templates: GitCmsFile[] = []
-
-    @action.bound private async fetchTemplatesOnLoad() {
-        const response = await readRemoteFiles({
-            glob: "*template*",
-            folder: "explorers",
-        })
-        this.templates = response.files
+        this.resetLoadingModal()
     }
 
     @action.bound private async fetchExplorerProgramOnLoad() {
@@ -97,20 +99,6 @@ export class ExplorerCreatePage extends React.Component<{
         this.saveDraft(code)
     }
 
-    hotTableComponent = React.createRef<HotTable>()
-
-    @action.bound private updateProgramFromHot() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
-        if (!newVersion) return
-
-        const newProgram = ExplorerProgram.fromMatrix(
-            this.program.slug,
-            newVersion
-        )
-        if (this.program.toString() === newProgram.toString()) return
-        this.setProgram(newProgram.toString())
-    }
-
     private saveDraft(code: string) {
         localStorage.setItem(UNSAVED_EXPLORER_DRAFT + this.program.slug, code)
     }
@@ -128,14 +116,14 @@ export class ExplorerCreatePage extends React.Component<{
     @observable.ref program = new ExplorerProgram(this.props.slug, "")
 
     @action.bound private async _save(slug: string, commitMessage: string) {
-        this.context.admin.loadingIndicatorSetting = "loading"
+        this.loadingModalOn()
         this.program.slug = slug
         await writeRemoteFile({
             filepath: this.program.fullPath,
             content: this.program.toString(),
             commitMessage,
         })
-        this.context.admin.loadingIndicatorSetting = "off"
+        this.loadingModalOff()
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
         this.setProgram(this.programOnDisk.toString())
         this.clearDraft()
@@ -186,6 +174,124 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @observable gitCmsBranchName = this.props.gitCmsBranchName
+
+    @action.bound private onSave() {
+        if (this.program.isNewFile) this.saveAs()
+        else if (this.isModified) this.save()
+    }
+
+    render() {
+        if (!this.isReady) return <LoadingIndicator />
+
+        const { program, isModified } = this
+        const { isNewFile, slug } = program
+        const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
+
+        const buttons = []
+
+        buttons.push(
+            <button
+                key="save"
+                disabled={!isModified && !isNewFile}
+                className={classNames("btn", "btn-primary")}
+                onClick={this.onSave}
+                title="Saves file to disk, commits and pushes to GitHub"
+            >
+                Save
+            </button>
+        )
+
+        buttons.push(
+            <button
+                key="saveAs"
+                disabled={isNewFile}
+                title={
+                    isNewFile
+                        ? "You need to save this file first."
+                        : "Saves file to disk, commits and pushes to GitHub"
+                }
+                className={classNames("btn", "btn-secondary")}
+                onClick={this.saveAs}
+            >
+                Save As
+            </button>
+        )
+
+        buttons.push(
+            <button
+                key="clear"
+                disabled={!isModified}
+                title={isModified ? "" : "No changes"}
+                className={classNames("btn", "btn-secondary")}
+                onClick={this.clearChanges}
+            >
+                Clear Changes
+            </button>
+        )
+
+        const modifiedMessage = isModified
+            ? "Are you sure you want to leave? You have unsaved changes."
+            : "" // todo: provide an explanation of how many cells are modified.
+
+        return (
+            <>
+                <Prompt when={isModified} message={modifiedMessage} />
+                <main
+                    style={{
+                        padding: 0,
+                        position: "relative",
+                    }}
+                >
+                    <div className="ExplorerCreatePageHeader">
+                        <div>
+                            <TemplatesComponent
+                                onChange={this.setProgram}
+                                isNewFile={isNewFile}
+                            />
+                        </div>
+                        <div style={{ textAlign: "right" }}>{buttons}</div>
+                    </div>
+                    <HotEditor
+                        onChange={this.setProgram}
+                        program={program}
+                        programOnDisk={this.programOnDisk}
+                    />
+                    <PictureInPicture previewLink={previewLink} />
+                    <a className="PreviewLink" href={previewLink}>
+                        Visit preview
+                    </a>
+                </main>
+            </>
+        )
+    }
+}
+
+class HotEditor extends React.Component<{
+    onChange: (code: string) => void
+    program: ExplorerProgram
+    programOnDisk: ExplorerProgram
+}> {
+    private hotTableComponent = React.createRef<HotTable>()
+
+    @computed private get program() {
+        return this.props.program
+    }
+
+    @computed private get programOnDisk() {
+        return this.props.programOnDisk
+    }
+
+    @action.bound private updateProgramFromHot() {
+        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
+        if (!newVersion) return
+
+        const newProgram = ExplorerProgram.fromMatrix(
+            this.program.slug,
+            newVersion
+        )
+        if (this.program.toString() === newProgram.toString()) return
+        this.props.onChange(newProgram.toString())
+    }
 
     private get hotSettings() {
         const { program, programOnDisk } = this
@@ -246,11 +352,11 @@ export class ExplorerCreatePage extends React.Component<{
                 items: {
                     AutofillColDefCommand: new AutofillColDefCommand(
                         program,
-                        (newProgram: string) => this.setProgram(newProgram)
+                        (newProgram: string) => this.props.onChange(newProgram)
                     ).toHotCommand(),
                     InlineDataCommand: new InlineDataCommand(
                         program,
-                        (newProgram: string) => this.setProgram(newProgram)
+                        (newProgram: string) => this.props.onChange(newProgram)
                     ).toHotCommand(),
                     SelectAllHitsCommand: new SelectAllHitsCommand(
                         program
@@ -287,115 +393,66 @@ export class ExplorerCreatePage extends React.Component<{
         return hotSettings
     }
 
-    @action.bound private onSave() {
-        if (this.program.isNewFile) this.saveAs()
-        else if (this.isModified) this.save()
+    render() {
+        return (
+            <HotTable
+                settings={this.hotSettings}
+                ref={this.hotTableComponent as any}
+                licenseKey={"non-commercial-and-evaluation"}
+            />
+        )
     }
+}
 
+class PictureInPicture extends React.Component<{
+    previewLink: string
+}> {
+    render() {
+        return (
+            <iframe
+                src={this.props.previewLink}
+                className="ExplorerPipPreview"
+            />
+        )
+    }
+}
+
+class TemplatesComponent extends React.Component<{
+    isNewFile: boolean
+    onChange: (code: string) => void
+}> {
     @action.bound private loadTemplate(filename: string) {
-        this.setProgram(
+        this.props.onChange(
             this.templates.find((template) => template.filename === filename)!
                 .content
         )
     }
 
+    @observable.ref templates: GitCmsFile[] = []
+
+    componentDidMount() {
+        if (this.props.isNewFile) this.fetchTemplatesOnLoad()
+    }
+
+    @action.bound private async fetchTemplatesOnLoad() {
+        const response = await readRemoteFiles({
+            glob: "*template*",
+            folder: "explorers",
+        })
+        this.templates = response.files
+    }
+
     render() {
-        if (!this.isReady)
-            return (
-                <AdminLayout title="Create Explorer">
-                    {" "}
-                    <LoadingIndicator />
-                </AdminLayout>
-            )
-
-        const { program, isModified } = this
-        const { isNewFile, slug } = program
-        const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
-
-        const buttons = []
-
-        buttons.push(
+        return this.templates.map((template) => (
             <button
-                key="save"
-                disabled={!isModified && !isNewFile}
                 className={classNames("btn", "btn-primary")}
-                onClick={this.onSave}
-                title="Saves file to disk, commits and pushes to GitHub"
+                key={template.filename}
+                onClick={() => this.loadTemplate(template.filename)}
             >
-                Save
+                {template.filename
+                    .replace(EXPLORER_FILE_SUFFIX, "")
+                    .replace("-", " ")}
             </button>
-        )
-
-        buttons.push(
-            <button
-                key="saveAs"
-                disabled={isNewFile}
-                title={
-                    isNewFile
-                        ? "You need to save this file first."
-                        : "Saves file to disk, commits and pushes to GitHub"
-                }
-                className={classNames("btn", "btn-secondary")}
-                onClick={this.saveAs}
-            >
-                Save As
-            </button>
-        )
-
-        buttons.push(
-            <button
-                key="clear"
-                disabled={!isModified}
-                title={isModified ? "" : "No changes"}
-                className={classNames("btn", "btn-secondary")}
-                onClick={this.clearChanges}
-            >
-                Clear Changes
-            </button>
-        )
-
-        const modifiedMessage = isModified
-            ? "Are you sure you want to leave? You have unsaved changes."
-            : "" // todo: provide an explanation of how many cells are modified.
-
-        const templates = isNewFile
-            ? this.templates.map((template) => (
-                  <button
-                      className={classNames("btn", "btn-primary")}
-                      key={template.filename}
-                      onClick={() => this.loadTemplate(template.filename)}
-                  >
-                      {template.filename
-                          .replace(EXPLORER_FILE_SUFFIX, "")
-                          .replace("-", " ")}
-                  </button>
-              ))
-            : null
-
-        return (
-            <AdminLayout title="Create Explorer">
-                <Prompt when={isModified} message={modifiedMessage} />
-                <main
-                    style={{
-                        padding: 0,
-                        position: "relative",
-                    }}
-                >
-                    <div className="ExplorerCreatePageHeader">
-                        <div>{templates}</div>
-                        <div style={{ textAlign: "right" }}>{buttons}</div>
-                    </div>
-                    <HotTable
-                        settings={this.hotSettings}
-                        ref={this.hotTableComponent as any}
-                        licenseKey={"non-commercial-and-evaluation"}
-                    />
-                    <iframe src={previewLink} className="ExplorerPipPreview" />
-                    <a className="PreviewLink" href={previewLink}>
-                        Visit preview
-                    </a>
-                </main>
-            </AdminLayout>
-        )
+        ))
     }
 }

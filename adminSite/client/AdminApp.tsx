@@ -34,6 +34,7 @@ import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "explorer/admin/ExplorerCreatePage"
 import { ExplorersIndexPage } from "explorer/admin/ExplorersListPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
+import { AdminLayout } from "./AdminLayout"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -140,10 +141,13 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
                                 render={({ match }) => (
-                                    <ExplorerCreatePage
-                                        slug={match.params.slug}
-                                        gitCmsBranchName={gitCmsBranchName}
-                                    />
+                                    <AdminLayout title="Create Explorer">
+                                        <ExplorerCreatePage
+                                            slug={match.params.slug}
+                                            gitCmsBranchName={gitCmsBranchName}
+                                            manager={admin}
+                                        />
+                                    </AdminLayout>
                                 )}
                             />
                             <Route
