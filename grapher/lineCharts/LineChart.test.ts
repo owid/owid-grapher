@@ -4,6 +4,7 @@ import { LineChart } from "./LineChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithNonPositives,
+    SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -58,6 +59,25 @@ it("can filter points with negative values when using a log scale", () => {
     expect(logChart.verticalAxis.domain[0]).toBeGreaterThan(0)
     expect(logChart.series.length).toEqual(2)
     expect(logChart.allPoints.length).toEqual(180)
+})
+
+it("filters non-numeric values", () => {
+    const table = SynthesizeFruitTableWithStringValues(
+        {
+            entityCount: 2,
+            timeRange: [1900, 2000],
+        },
+        20,
+        1
+    )
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.Fruit],
+        selection: table.availableEntityNames,
+    }
+    const chart = new LineChart({ manager })
+    expect(chart.series.length).toEqual(2)
+    expect(chart.allPoints.length).toEqual(180)
 })
 
 it("will combine entity and column name when we set multi country multi column", () => {

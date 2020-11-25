@@ -14,6 +14,7 @@ import {
     ColumnSlug,
     CoreMatrix,
     Time,
+    CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 
@@ -491,15 +492,14 @@ export const renameColumnStore = (
     return newStore
 }
 
-export const replaceNonPositives = (
+export const replaceCells = (
     columnStore: CoreColumnStore,
-    slugs: ColumnSlug[]
+    columnSlugs: ColumnSlug[],
+    replaceFn: (val: CoreValueType) => CoreValueType
 ) => {
-    const newStore: CoreColumnStore = Object.assign({}, columnStore)
-    slugs.forEach((slug) => {
-        newStore[slug] = newStore[slug].map((val) =>
-            val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
-        )
+    const newStore: CoreColumnStore = { ...columnStore }
+    columnSlugs.forEach((slug) => {
+        newStore[slug] = newStore[slug].map(replaceFn)
     })
     return newStore
 }

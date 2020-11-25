@@ -56,6 +56,9 @@ export class DiscreteBarChart
             this.selectionArray.selectedEntityNames
         )
 
+        // TODO: remove this filter once we don't have mixed type columns in datasets
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 

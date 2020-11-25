@@ -4,12 +4,14 @@ import { StackedAreaChart } from "./StackedAreaChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
+    SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SelectionArray } from "grapher/selection/SelectionArray"
+import { isNumber } from "grapher/utils/Util"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -80,4 +82,29 @@ it("can filter a series when there are no points", () => {
     })
 
     expect(chart.series.length).toEqual(1)
+})
+
+it("filters non-numeric values", () => {
+    const table = SynthesizeFruitTableWithStringValues(
+        {
+            entityCount: 2,
+            timeRange: [1900, 2000],
+        },
+        20,
+        1
+    )
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.Fruit],
+        selection: table.availableEntityNames,
+    }
+    const chart = new StackedAreaChart({ manager })
+    expect(chart.series.length).toEqual(2)
+    expect(
+        chart.series.every((series) =>
+            series.points.every(
+                (point) => isNumber(point.x) && isNumber(point.y)
+            )
+        )
+    ).toBeTruthy()
 })

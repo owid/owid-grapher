@@ -201,3 +201,18 @@ export const SynthesizeFruitTableWithNonPositives = (
         () => rand()
     )
 }
+
+const stringValues = ["NA", "inf", "..", "/", "-", "#VALUE!"]
+
+export const SynthesizeFruitTableWithStringValues = (
+    options?: Partial<SynthOptions>,
+    howMany = 20,
+    seed = Date.now()
+) => {
+    return SynthesizeFruitTable(options, seed).replaceRandomCells(
+        howMany,
+        [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+        undefined,
+        () => sampleFrom(stringValues, 1, Date.now())[0]
+    )
+}
