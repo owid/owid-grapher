@@ -5,7 +5,7 @@ import simpleGit, { SimpleGit } from "simple-git"
 import * as fs from "fs-extra"
 import {
     GIT_CMS_DIR,
-    GIT_CMS_ROUTE,
+    GIT_CMS_FILE_ROUTE,
     GitCmsResponse,
     GitCmsReadResponse,
     WriteRequest,
@@ -13,7 +13,12 @@ import {
     DeleteRequest,
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
+    GlobRequest,
+    GIT_CMS_GLOB_ROUTE,
+    GitCmsGlobResponse,
 } from "./GitCmsConstants"
+import * as glob from "glob"
+
 const IS_PROD = ENV === "production"
 
 const isFolderOnStagingBranch = async (git: SimpleGit) => {
@@ -85,7 +90,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
 
     // Update/create file, commit, and push(unless on local dev brach)
     app.post(
-        GIT_CMS_ROUTE,
+        GIT_CMS_FILE_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
             const request = req.body as WriteRequest
             const filename = request.filepath
@@ -129,7 +134,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
 
     // Get file contents
     app.get(
-        GIT_CMS_ROUTE,
+        GIT_CMS_FILE_ROUTE,
         async (req: Request): Promise<GitCmsReadResponse> => {
             const request = req.query as ReadRequest
             const filepath = `/${request.filepath.replace(/\~/g, "/")}`
@@ -152,9 +157,31 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
         }
     )
 
+    // Get file contents
+    app.get(
+        GIT_CMS_GLOB_ROUTE,
+        async (req: Request): Promise<GitCmsGlobResponse> => {
+            const request = req.query as GlobRequest
+            const query = request.glob.replace(/[^a-zA-Z\*]/, "")
+            const cwd = GIT_CMS_DIR + "/" + request.folder
+            const results = glob.sync(query, {
+                cwd,
+            })
+
+            const files = results.map((filename) => {
+                return {
+                    filename,
+                    content: fs.readFileSync(cwd + "/" + filename, "utf8"),
+                }
+            })
+
+            return { success: true, files }
+        }
+    )
+
     // Delete file, commit, and and push(unless on local dev brach)
     app.delete(
-        GIT_CMS_ROUTE,
+        GIT_CMS_FILE_ROUTE,
         async (req: Request, res: Response): Promise<GitCmsResponse> => {
             const request = req.query as DeleteRequest
             const filepath = request.filepath.replace(/\~/g, "/")

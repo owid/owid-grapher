@@ -7,8 +7,16 @@ import {
 } from "adminSite/client/AdminAppContext"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed } from "mobx"
-import { ExplorerProgram, makeFullPath } from "explorer/client/ExplorerProgram"
-import { readRemoteFile, writeRemoteFile } from "gitCms/GitCmsClient"
+import {
+    ExplorerProgram,
+    EXPLORER_FILE_SUFFIX,
+    makeFullPath,
+} from "explorer/client/ExplorerProgram"
+import {
+    readRemoteFile,
+    readRemoteFiles,
+    writeRemoteFile,
+} from "gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
@@ -27,7 +35,7 @@ import {
 } from "./ExplorerCommands"
 import { isEmpty } from "explorer/gridLang/GrammarUtils"
 import classNames from "classnames"
-import { ExplorerTemplates } from "explorer/client/ExplorerTemplates"
+import { GitCmsFile } from "gitCms/GitCmsConstants"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 
@@ -41,6 +49,7 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action componentDidMount() {
         this.context.admin.loadingIndicatorSetting = "off"
+        if (this.program.isNewFile) this.fetchTemplatesOnLoad()
         this.fetchExplorerProgramOnLoad()
         exposeInstanceOnWindow(this, "explorerEditor")
 
@@ -57,6 +66,16 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action componentWillUnmount() {
         this.context.admin.loadingIndicatorSetting = "default"
+    }
+
+    @observable.ref templates: GitCmsFile[] = []
+
+    @action.bound private async fetchTemplatesOnLoad() {
+        const response = await readRemoteFiles({
+            glob: "*template*",
+            folder: "explorers",
+        })
+        this.templates = response.files
     }
 
     @action.bound private async fetchExplorerProgramOnLoad() {
@@ -273,9 +292,10 @@ export class ExplorerCreatePage extends React.Component<{
         else if (this.isModified) this.save()
     }
 
-    @action.bound private loadTemplate(slug: string) {
+    @action.bound private loadTemplate(filename: string) {
         this.setProgram(
-            ExplorerTemplates.find((template) => template.slug === slug)!.code
+            this.templates.find((template) => template.filename === filename)!
+                .content
         )
     }
 
@@ -339,13 +359,15 @@ export class ExplorerCreatePage extends React.Component<{
             : "" // todo: provide an explanation of how many cells are modified.
 
         const templates = isNewFile
-            ? ExplorerTemplates.map((template) => (
+            ? this.templates.map((template) => (
                   <button
                       className={classNames("btn", "btn-primary")}
-                      key={template.slug}
-                      onClick={() => this.loadTemplate(template.slug)}
+                      key={template.filename}
+                      onClick={() => this.loadTemplate(template.filename)}
                   >
-                      {template.slug} Template
+                      {template.filename
+                          .replace(EXPLORER_FILE_SUFFIX, "")
+                          .replace("-", " ")}
                   </button>
               ))
             : null

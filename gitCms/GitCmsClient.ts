@@ -1,5 +1,5 @@
 import {
-    GIT_CMS_ROUTE,
+    GIT_CMS_FILE_ROUTE,
     WriteRequest,
     ReadRequest,
     GitCmsResponse,
@@ -7,9 +7,12 @@ import {
     DeleteRequest,
     GIT_CMS_PULL_ROUTE,
     GitPullResponse,
+    GlobRequest,
+    GitCmsGlobResponse,
+    GIT_CMS_GLOB_ROUTE,
 } from "./GitCmsConstants"
 const adminPath = `/admin/api`
-const gitCmsApiPath = `${adminPath}${GIT_CMS_ROUTE}`
+const gitCmsApiPath = `${adminPath}${GIT_CMS_FILE_ROUTE}`
 
 const validateFilePath = (path: string) => {
     if (path.includes("~")) throw new Error(`Filenames with ~ not supported`)
@@ -44,6 +47,14 @@ export const readRemoteFile = async (request: ReadRequest) => {
     )
 
     const parsed: GitCmsReadResponse = await response.json()
+    return parsed
+}
+
+export const readRemoteFiles = async (request: GlobRequest) => {
+    const response = await fetch(
+        `${adminPath}${GIT_CMS_GLOB_ROUTE}?glob=${request.glob}&folder=${request.folder}`
+    )
+    const parsed: GitCmsGlobResponse = await response.json()
     return parsed
 }
 
