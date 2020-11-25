@@ -1,7 +1,6 @@
 #! /usr/bin/env yarn jest
 
 import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
-import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
 import {
     CommentCellDef,
     FrontierCellClass,
@@ -21,7 +20,7 @@ describe(ExplorerProgram, () => {
 		Data from CSV Demo	Healthy Life Expectancy		lifeExpectancy	LineChart	Healthy-Life-Expectancy-IHME`
     const program = new ExplorerProgram("test", testProgram)
     it("gets the required grapher ids", () => {
-        expect(program.requiredGrapherIds).toEqual([35])
+        expect(program.decisionMatrix.requiredGrapherIds).toEqual([35])
     })
 
     it("gets code", () => {
@@ -35,10 +34,9 @@ ${ExplorerGrammar.graphers.keyword}
 \t35\tInternet
 
 \t46\tMobile`
-        expect(new ExplorerProgram("test", code).requiredGrapherIds).toEqual([
-            35,
-            46,
-        ])
+        expect(
+            new ExplorerProgram("test", code).decisionMatrix.requiredGrapherIds
+        ).toEqual([35, 46])
     })
 
     it("supports comments", () => {
@@ -163,7 +161,7 @@ describe(DecisionMatrix, () => {
     })
 
     it("can detect needed chart configs", () => {
-        expect(getRequiredGrapherIds(code)).toEqual([
+        expect(decisionMatrix.requiredGrapherIds).toEqual([
             21,
             24,
             26,

@@ -18,7 +18,6 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
-import { getRequiredGrapherIds } from "explorer/client/ExplorerProgramUtils"
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import {
     CellDef,
@@ -91,10 +90,6 @@ export class ExplorerProgram extends GridProgram {
 
     get fullPath() {
         return makeFullPath(this.slug)
-    }
-
-    get requiredGrapherIds() {
-        return getRequiredGrapherIds(this.decisionMatrixCode ?? "")
     }
 
     get currentlySelectedGrapherRow() {
@@ -429,6 +424,10 @@ export class DecisionMatrix {
 
     get numRows() {
         return this.table.numRows
+    }
+
+    get requiredGrapherIds() {
+        return this.table.get(GrapherGrammar.grapherId.keyword).uniqValues
     }
 
     private choices: Map<ChoiceName, ExplorerControlType>

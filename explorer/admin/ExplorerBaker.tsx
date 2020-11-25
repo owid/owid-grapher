@@ -172,7 +172,7 @@ const bakeExplorersToDir = async (
 }
 
 export const renderExplorerPage = async (program: ExplorerProgram) => {
-    const { requiredGrapherIds } = program
+    const { requiredGrapherIds } = program.decisionMatrix
     let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)
         grapherConfigRows = await db.query(
