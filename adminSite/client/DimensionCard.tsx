@@ -8,6 +8,7 @@ import {
     EditableListItem,
     BindAutoString,
     BindAutoFloat,
+    ColorBox,
 } from "./Forms"
 import { Link } from "./Link"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
@@ -16,6 +17,7 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -25,6 +27,10 @@ export class DimensionCard extends React.Component<{
     onRemove?: () => void
 }> {
     @observable.ref isExpanded: boolean = false
+
+    @computed get table(): OwidTable {
+        return this.props.editor.grapher.table
+    }
 
     @computed get hasExpandedOptions(): boolean {
         return (
@@ -41,6 +47,15 @@ export class DimensionCard extends React.Component<{
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
         this.updateTables()
+    }
+
+    @action.bound onColor(color: string | undefined) {
+        this.props.dimension.display.color = color
+        this.updateTables()
+    }
+
+    @computed get color() {
+        return this.props.dimension.column.def.color
     }
 
     private get tableDisplaySettings() {
@@ -105,6 +120,7 @@ export class DimensionCard extends React.Component<{
                             </span>
                         )}
                     </div>
+                    <ColorBox color={this.color} onColor={this.onColor} />
                     <div>
                         <Link
                             to={`/variables/${dimension.variableId}`}
