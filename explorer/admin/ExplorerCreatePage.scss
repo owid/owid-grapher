@@ -58,13 +58,13 @@
     }
 
     .cellCreated {
-        outline: 3px solid rgba(0, 150, 0, 0.5);
+        background-color: rgba(0, 150, 0, 0.1) !important;
     }
     .cellChanged {
-        outline: 3px solid rgba(0, 186, 43, 0.3);
+        background-color: rgba(180, 186, 43, 0.1) !important;
     }
     .cellDeleted {
-        background-color: rgba(150, 0, 0, 0.3) !important;
+        background-color: rgba(150, 0, 0, 0.1) !important;
     }
 
     // Change the default dark top right corner comment arrow into a subtle checkmark.
