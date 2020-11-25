@@ -4,16 +4,19 @@ import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
+    SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
+    DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { OwidTable } from "coreTable/OwidTable"
+import { isNumber } from "grapher/utils/Util"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -110,4 +113,23 @@ describe("barcharts with columns as the series", () => {
         expect(chart.formatValue(chart.series[0])).toEqual("1,002")
         expect(chart.formatValue(chart.series[1])).toEqual("1,000 (2019)")
     })
+})
+
+it("filters non-numeric values", () => {
+    const table = SynthesizeFruitTableWithStringValues(
+        {
+            entityCount: 2,
+            timeRange: [2000, 2001],
+        },
+        1,
+        1
+    )
+    const manager: DiscreteBarChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.Fruit],
+        selection: table.availableEntityNames,
+    }
+    const chart = new DiscreteBarChart({ manager })
+    expect(chart.series.length).toEqual(1)
+    expect(chart.series.every((series) => isNumber(series.value))).toBeTruthy()
 })

@@ -2,10 +2,12 @@
 
 import {
     SampleColumnSlugs,
+    SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { SelectionArray } from "grapher/selection/SelectionArray"
+import { isNumber } from "grapher/utils/Util"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {
@@ -76,4 +78,29 @@ describe("stackedbar chart with entities as series", () => {
         expect(chart.series.length).toEqual(5)
         expect(chart.series[0].points[0].y).toBeTruthy()
     })
+})
+
+it("filters non-numeric values", () => {
+    const table = SynthesizeFruitTableWithStringValues(
+        {
+            entityCount: 2,
+            timeRange: [1900, 2000],
+        },
+        20,
+        1
+    )
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: [SampleColumnSlugs.Fruit],
+        selection: table.availableEntityNames,
+    }
+    const chart = new StackedBarChart({ manager })
+    expect(chart.series.length).toEqual(2)
+    expect(
+        chart.series.every((series) =>
+            series.points.every(
+                (point) => isNumber(point.x) && isNumber(point.y)
+            )
+        )
+    ).toBeTruthy()
 })
