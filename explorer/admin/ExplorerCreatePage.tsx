@@ -48,7 +48,8 @@ export class ExplorerCreatePage extends React.Component<{
             const patch = localStorage.getItem(
                 `${UNSAVED_EXPLORER_PREVIEW_PATCH}${this.program.slug}`
             )
-            if (patch) this.program.decisionMatrix.setValuesFromPatch(patch)
+            if (typeof patch === "string")
+                this.program.decisionMatrix.setValuesFromPatch(patch)
         }, 1000)
     }
 
@@ -196,11 +197,7 @@ export class ExplorerCreatePage extends React.Component<{
                 else allClasses.push("cellChanged")
             }
 
-            if (
-                currentlySelectedGrapherRow &&
-                currentlySelectedGrapherRow === row &&
-                column
-            )
+            if (currentlySelectedGrapherRow === row && column)
                 allClasses.push(`currentlySelectedGrapherRow`)
 
             cellProperties.className = allClasses.join(" ")
