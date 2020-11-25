@@ -127,10 +127,11 @@ const bakeExplorersToDir = async (
 
 async function renderSwitcherExplorerPage(slug: string, code: string) {
     const program = new ExplorerProgram(slug, code)
-    const chartConfigs: any[] = await db.query(
-        `SELECT id, config FROM charts WHERE id IN (?)`,
-        [program.requiredChartIds]
-    )
+    const chartConfigs: any[] = program.requiredChartIds.length
+        ? await db.query(`SELECT id, config FROM charts WHERE id IN (?)`, [
+              program.requiredChartIds,
+          ])
+        : []
 
     const props: SwitcherBootstrapProps = {
         bindToWindow: true,
