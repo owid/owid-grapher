@@ -33,13 +33,11 @@ export const ExplorerGrammar: Grammar = {
             description: "",
             cssClass: "",
         })),
-        placeholder:
-            'http://example.com/data.csv" or "Tax Revenue - World Bank',
+        placeholder: "",
         description: "A link to a CSV or TSV or the name of an OWID dataset.",
         rest: [
             {
                 ...SlugDeclarationCellDef,
-                placeholder: "life_expectancy_dataset",
                 description:
                     "If you have multiple tables, give each one a unique slug.",
             },
@@ -69,7 +67,6 @@ export const ExplorerGrammar: Grammar = {
     },
     columns: {
         ...SlugDeclarationCellDef,
-        placeholder: "life_expectancy_dataset",
         headerCellDef: {
             ...SubTableHeaderCellDef,
             grammar: ColumnGrammar,
