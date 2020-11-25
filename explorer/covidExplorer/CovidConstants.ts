@@ -8,7 +8,7 @@ const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
 export const coronaDefaultView =
     "?zoomToSelection=true&time=2020-03-01..latest&country=IND~USA~GBR~CAN~DEU~FRA&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_cases&pickerSort=desc"
 export const covidDataPath =
-    "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+    "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/jhu/owid-covid-data-jhu-beta.csv"
 export const covidLastUpdatedPath =
     "https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt"
 export const covidChartAndVariableMetaFilename =
