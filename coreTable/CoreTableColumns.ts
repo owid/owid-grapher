@@ -639,7 +639,7 @@ class EntityNameColumn extends CategoricalColumn {}
 abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
-    parse(val: any) {
+    parse(val: any): number | ErrorValue {
         return parseInt(val)
     }
 }
@@ -685,6 +685,26 @@ class DateColumn extends DayColumn {
     }
 }
 
+class QuarterColumn extends TimeColumn {
+    regEx = /^([+-]?\d+)-Q([1-4])$/
+
+    parse(val: any): number | ErrorValue {
+        if (typeof val === "string") {
+            const match = val.match(this.regEx)
+            if (match) {
+                const [, year, quarter] = match
+                return parseInt(year) * 4 + (parseInt(quarter) - 1)
+            }
+        }
+        return ErrorValueTypes.MissingValuePlaceholder
+    }
+
+    formatValue(value: number) {
+        const [year, quarter] = [Math.floor(value / 4), (value % 4) + 1]
+        return `Q${quarter}/${year}`
+    }
+}
+
 class PopulationColumn extends IntegerColumn {}
 class PopulationDensityColumn extends NumericColumn {}
 
@@ -700,6 +720,7 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     Day: DayColumn,
     Date: DateColumn,
     Year: YearColumn,
+    Quarter: QuarterColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
     Percentage: PercentageColumn,

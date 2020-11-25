@@ -26,6 +26,7 @@ export enum ColumnTypeNames {
     Population = "Population",
     PopulationDensity = "PopulationDensity",
     Age = "Age",
+    Quarter = "Quarter",
 }
 
 export interface CoreColumnDef {
