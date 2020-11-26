@@ -2169,6 +2169,10 @@ export class Grapher
         return this.yAxis.canChangeScaleType
     }
 
+    @computed get showXScaleToggle() {
+        return this.xAxis.canChangeScaleType
+    }
+
     @computed get showZoomToggle() {
         return this.isScatter && this.selection.hasSelection
     }

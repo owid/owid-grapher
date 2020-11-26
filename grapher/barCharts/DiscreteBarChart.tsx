@@ -283,8 +283,6 @@ export class DiscreteBarChart
 
         let yOffset = innerBounds.top + barHeight / 2
 
-        const maxX = bounds.width + 40 // This is only used to shift the ScaleSelector left if it exceeds the container. Hard coded for now but could be improved
-
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
@@ -296,9 +294,7 @@ export class DiscreteBarChart
                     fill="rgba(255,255,255,0)"
                 />
                 <HorizontalAxisComponent
-                    maxX={maxX}
                     bounds={bounds}
-                    isInteractive={!this.manager.isStaticSvg}
                     axis={axis}
                     axisPosition={innerBounds.bottom}
                 />

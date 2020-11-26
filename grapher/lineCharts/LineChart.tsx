@@ -524,11 +524,7 @@ export class LineChart
         return (
             <g ref={this.base} className="LineChart">
                 {clipPath.element}
-                <DualAxisComponent
-                    isInteractive={!manager.isStaticSvg}
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                />
+                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine
