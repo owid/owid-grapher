@@ -1,4 +1,4 @@
-.ChartPage main figure[data-grapher-src],
+.StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
 #fallback {
     display: flex;
     align-items: center;
@@ -7,10 +7,10 @@
     margin: 0 auto;
     width: 100%;
 
-    // Defined in chart.authorWidth & chart.authorHeight (the landscape values)
-    $author-width: 680px;
-    $author-height: 480px;
-    $ideal-ratio: $author-width / $author-height;
+    // The landscape values)
+    $orientation-width: 680px;
+    $orientation-height: 480px;
+    $ideal-ratio: $orientation-width / $orientation-height;
 
     $max-width: 1250px; // The rough max-width across all pages on the site
     $max-height: $max-width / $ideal-ratio;
@@ -31,7 +31,7 @@
 
     // At this point, the ratio-preserving sizing kicks in, so we want to mirror that in the CSS
     // to avoid using unnecessary space.
-    @media (min-width: $author-width) {
+    @media (min-width: $orientation-width) {
         // We no longer use the full height
         max-height: #{1 / $ideal-ratio * 100}vw;
     }
@@ -61,13 +61,13 @@
     border: 1px solid #ccc;
 }
 
-.ChartPage .site-subnavigation {
+.StandaloneGrapherOrExplorerPage .site-subnavigation {
     padding-left: 1rem;
     margin: 0 auto;
     max-width: $max-width-covid-data-explorer;
 }
 
-.ChartPage main {
+.StandaloneGrapherOrExplorerPage main {
     .related-research-data {
         @include block-spacing;
         margin-top: $vertical-spacing;
@@ -94,7 +94,7 @@
     }
 }
 
-html.iframe .ChartPage {
+html.IsInIframe .StandaloneGrapherOrExplorerPage {
     background-color: inherit;
 
     > main {

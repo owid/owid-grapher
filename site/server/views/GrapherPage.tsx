@@ -13,8 +13,9 @@ import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { EmbedDetector } from "./EmbedDetector"
+import { IFrameDetector } from "./IframeDetector"
 import { serializeJSONForHTML } from "utils/serializers"
+import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -51,7 +52,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             >
                 <meta property="og:image:width" content="850" />
                 <meta property="og:image:height" content="600" />
-                <EmbedDetector />
+                <IFrameDetector />
                 <noscript>
                     <style>{`
                     figure { display: none !important; }
@@ -66,7 +67,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     crossOrigin="anonymous"
                 />
             </Head>
-            <body className="ChartPage">
+            <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader />
                 <main>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>

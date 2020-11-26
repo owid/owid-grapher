@@ -52,7 +52,8 @@ import { setWindowQueryStr } from "utils/client/url"
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     patch?: string
-    isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
+    isEmbeddedInAnOwidPage?: boolean
+    isInStandalonePage?: boolean
 }
 
 interface ExplorerPatchObject extends GrapherQueryParams {
@@ -90,10 +91,11 @@ export class Explorer
         program: ExplorerProps,
         grapherConfigs: GrapherInterface[]
     ) {
-        const props = {
+        const props: ExplorerProps = {
             ...program,
             grapherConfigs,
-            isEmbed: false,
+            isEmbeddedInAnOwidPage: false,
+            isInStandalonePage: true,
         }
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
@@ -154,7 +156,7 @@ export class Explorer
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
 
-        if (!this.props.isEmbed) this.bindToWindow()
+        if (this.props.isInStandalonePage) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
     }
 
@@ -405,7 +407,7 @@ export class Explorer
     @computed private get showExplorerControls() {
         if (this.explorerProgram.hideControls) return false
 
-        return this.props.isEmbed ? false : true
+        return this.props.isEmbeddedInAnOwidPage ? false : true
     }
 
     @observable private grapherContainerRef: React.RefObject<
@@ -497,7 +499,7 @@ export class Explorer
                     Explorer: true,
                     "mobile-explorer": this.isNarrow,
                     HideControls: !showExplorerControls,
-                    "is-embed": this.props.isEmbed,
+                    "is-embed": this.props.isEmbeddedInAnOwidPage,
                 })}
             >
                 {showHeaderElement && this.renderHeaderElement()}
@@ -509,7 +511,8 @@ export class Explorer
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
                         bounds={this.grapherBounds}
-                        isInStandalonePage={true}
+                        enableKeyboardShortcuts={true}
+                        isInAnExplorer={true}
                         selectionArray={this.selection}
                         ref={this.grapherRef}
                     />

@@ -22,7 +22,7 @@ export async function bakeGraphersToPngs(
     optimizeSvgs = false
 ) {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExporting = true
+    grapher.isExportingtoSvgOrPng = true
     grapher.receiveLegacyData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
 
@@ -88,7 +88,7 @@ export async function bakeGrapherToSvg(
         manuallyProvideData: true,
         queryStr,
     })
-    grapher.isExporting = true
+    grapher.isExportingtoSvgOrPng = true
     const { width, height } = grapher.idealBounds
     const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${
         jsonConfig.version
@@ -157,7 +157,7 @@ export async function grapherToSVG(
     vardata: any
 ): Promise<string> {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    grapher.isExporting = true
+    grapher.isExportingtoSvgOrPng = true
     grapher.receiveLegacyData(vardata)
     return grapher.staticSVG
 }

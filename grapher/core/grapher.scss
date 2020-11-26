@@ -13,14 +13,14 @@ $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-Tooltip: 20;
 
-.chart,
-.chart p,
-.chart ul,
-.chart ol {
+.GrapherComponent,
+.GrapherComponent p,
+.GrapherComponent ul,
+.GrapherComponent ol {
     font-family: $sans-serif-font-stack;
 }
 
-.chart {
+.GrapherComponent {
     display: inline-block;
     border-bottom: none;
     border-radius: 2px;
@@ -123,7 +123,7 @@ $zindex-Tooltip: 20;
     }
 }
 
-.chart.export {
+.GrapherComponent.isExportingToSvgOrPng {
     padding: 0 !important;
 }
 

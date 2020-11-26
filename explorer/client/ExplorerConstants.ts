@@ -36,7 +36,7 @@ export const EMBEDDED_EXPLORER_GRAPHER_CONFIGS =
 
 export const EXPLORER_EMBEDDED_FIGURE_SELECTOR = "data-explorer-src"
 
-export const ExplorerContainerId = "explorerContainer"
+export const ExplorerContainerId = "ExplorerContainer"
 
 export const ExplorersRoute = "allExplorersForAdminListPage.json"
 export const ExplorersRouteGrapherConfigs =

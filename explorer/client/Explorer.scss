@@ -4,14 +4,14 @@ $explorer-grid-gap: 10px;
 $explorer-min-width-first-col: 200px;
 $explorer-padding: 0.5rem;
 
-#explorerContainer {
+#ExplorerContainer {
     min-height: $placeholder-height;
     width: 100%;
     position: relative;
     padding: $explorer-padding;
 }
 
-html.iframe #explorerContainer {
+html.IsInIframe #ExplorerContainer {
     height: 100vh;
     min-height: auto !important;
     max-height: none;
@@ -62,7 +62,7 @@ html.iframe #explorerContainer {
     }
 }
 
-html.iframe .Explorer,
+html.IsInIframe .Explorer,
 .Explorer.is-embed {
     height: 100%;
     min-height: auto !important;
@@ -72,7 +72,7 @@ html.iframe .Explorer,
     padding: 0;
 }
 
-html.iframe .ExplorerFigure,
+html.IsInIframe .ExplorerFigure,
 .is-embed .ExplorerFigure {
     min-height: auto !important;
     max-height: none;
@@ -123,7 +123,7 @@ html.iframe .ExplorerFigure,
         // Remove chart from layout calculation.
         // Since grid/flex layouts size to their contents, having the chart dictate that leads to
         // a very slow adaptations to resizing.
-        .chart {
+        .GrapherComponent {
             position: absolute;
         }
     }

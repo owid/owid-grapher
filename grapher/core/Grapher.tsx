@@ -23,7 +23,6 @@ import {
     isVisible,
     VNode,
     throttle,
-    isTouchDevice,
     next,
     sampleFrom,
     range,
@@ -153,6 +152,7 @@ import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConsta
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
+import classNames from "classnames"
 
 declare const window: any
 
@@ -179,15 +179,16 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideEntityControls?: boolean
     queryStr?: string
     isMediaCard?: boolean
-    isExport?: boolean
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
     selectionArray?: SelectionArray
     getGrapherInstance?: (instance: Grapher) => void
 
-    isInStandalonePage?: boolean
+    enableKeyboardShortcuts?: boolean
+    bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
+    isInAnExplorer?: boolean
 }
 
 @observer
@@ -562,13 +563,13 @@ export class Grapher
     }
 
     @observable.ref isMediaCard = false
-    @observable.ref isExporting = !!this.props.isExport
+    @observable.ref isExportingtoSvgOrPng = false
     @observable.ref tooltip?: TooltipProps
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
     @computed get isStaticSvg() {
-        return this.isExporting
+        return this.isExportingtoSvgOrPng
     }
 
     private get isStaging() {
@@ -713,7 +714,7 @@ export class Grapher
 
     @computed get baseFontSize() {
         if (this.isMediaCard) return 24
-        else if (this.isExporting) return 18
+        else if (this.isExportingtoSvgOrPng) return 18
         return this._baseFontSize
     }
 
@@ -834,7 +835,7 @@ export class Grapher
     @computed get shouldLinkToOwid() {
         if (
             this.props.isEmbeddedInAnOwidPage ||
-            this.isExporting ||
+            this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
             return false
@@ -1397,7 +1398,8 @@ export class Grapher
             Grapher.renderGrapherIntoContainer(
                 {
                     ...jsonConfig,
-                    isInStandalonePage: true,
+                    bindUrlToWindow: true,
+                    enableKeyboardShortcuts: true,
                     queryStr: window.location.search,
                 },
                 container
@@ -1421,58 +1423,53 @@ export class Grapher
         return this.bounds.width < this.bounds.height && this.bounds.width < 850
     }
 
-    @computed private get isLandscape() {
-        return !this.isPortrait
-    }
-
-    @computed private get authorWidth() {
+    @computed private get widthForDeviceOrientation() {
         return this.isPortrait ? 400 : 680
     }
-    @computed private get authorHeight() {
+
+    @computed private get heightForDeviceOrientation() {
         return this.isPortrait ? 640 : 480
     }
 
-    // If the available space is very small, we use all of the space given to us
     @computed private get useIdealBounds() {
         const {
             isEditor,
-            isExporting,
+            isExportingtoSvgOrPng,
             bounds,
-            authorWidth,
-            authorHeight,
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
             isInIFrame,
         } = this
 
+        // For these, defer to the bounds that is set externally
+        if (
+            this.props.isEmbeddedInAnOwidPage ||
+            this.props.isInAnExplorer ||
+            isInIFrame
+        )
+            return false
+
+        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
+        if (isExportingtoSvgOrPng) return false
+
+        // todo: can remove this if we drop old adminSite editor
         if (isEditor) return true
-        if (this.props.isEmbeddedInAnOwidPage) return false
-        if (isInIFrame) return false
-        if (isExporting) return false // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
-        if (bounds.height < authorHeight || bounds.width < authorWidth)
+
+        // If the available space is very small, we use all of the space given to us
+        if (
+            bounds.height < heightForDeviceOrientation ||
+            bounds.width < widthForDeviceOrientation
+        )
             return false
 
         return true
     }
 
-    @computed private get classNames() {
-        const { isExporting, isEditor } = this
-
-        const classNames = [
-            "chart",
-            isExporting && "export",
-            isEditor && "editor",
-            this.isPortrait && "portrait",
-            this.isLandscape && "landscape",
-            isTouchDevice() && "is-touch",
-        ]
-
-        return classNames.filter((n) => !!n).join(" ")
-    }
-
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get scaleToFitIdeal() {
         return Math.min(
-            (this.bounds.width * 0.95) / this.authorWidth,
-            (this.bounds.height * 0.95) / this.authorHeight
+            (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
+            (this.bounds.height * 0.95) / this.heightForDeviceOrientation
         )
     }
 
@@ -1480,18 +1477,18 @@ export class Grapher
     // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth() {
         return this.useIdealBounds
-            ? this.authorWidth * this.scaleToFitIdeal
-            : this.bounds.width - (this.isExporting ? 0 : 5)
+            ? this.widthForDeviceOrientation * this.scaleToFitIdeal
+            : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
     }
     @computed private get renderHeight() {
         return this.useIdealBounds
-            ? this.authorHeight * this.scaleToFitIdeal
-            : this.bounds.height - (this.isExporting ? 0 : 5)
+            ? this.heightForDeviceOrientation * this.scaleToFitIdeal
+            : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
     }
 
     @computed get tabBounds() {
         const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
-        return this.isExporting
+        return this.isExportingtoSvgOrPng
             ? bounds
             : bounds.padBottom(this.footerControlsHeight)
     }
@@ -1565,39 +1562,10 @@ export class Grapher
         return undefined
     }
 
-    @computed private get isInStandalonePage() {
-        return this.props.isInStandalonePage
-    }
-
     private get commandPalette() {
-        return this.isInStandalonePage ? (
+        return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
-    }
-
-    private renderReady() {
-        return (
-            <>
-                {this.hasBeenVisible && this.renderPrimaryTab()}
-                <FooterControls manager={this} />
-                {this.renderOverlayTab()}
-                {this.popups}
-                <TooltipView
-                    width={this.renderWidth}
-                    height={this.renderHeight}
-                    tooltipProvider={this}
-                />
-                {this.isSelectingData && (
-                    <EntitySelectorModal
-                        canChangeEntity={this.canChangeEntity}
-                        selectionArray={this.selection}
-                        key="entitySelector"
-                        isMobile={this.isMobile}
-                        onDismiss={action(() => (this.isSelectingData = false))}
-                    />
-                )}
-            </>
-        )
     }
 
     formatTimeFn(time: Time) {
@@ -1848,9 +1816,10 @@ export class Grapher
     }
 
     render() {
+        const { isExportingtoSvgOrPng, isPortrait } = this
         // TODO how to handle errors in exports?
         // TODO tidy this up
-        if (this.isExporting) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
+        if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
         const { renderWidth, renderHeight } = this
 
@@ -1860,11 +1829,42 @@ export class Grapher
             fontSize: this.baseFontSize,
         }
 
+        const classes = classNames(
+            "GrapherComponent",
+            isExportingtoSvgOrPng && "isExportingToSvgOrPng",
+            isPortrait && "GrapherPortraitClass"
+        )
+
         return (
-            <div ref={this.base} className={this.classNames} style={style}>
+            <div ref={this.base} className={classes} style={style}>
                 {this.commandPalette}
                 {this.uncaughtError ? this.renderError() : this.renderReady()}
             </div>
+        )
+    }
+
+    private renderReady() {
+        return (
+            <>
+                {this.hasBeenVisible && this.renderPrimaryTab()}
+                <FooterControls manager={this} />
+                {this.renderOverlayTab()}
+                {this.popups}
+                <TooltipView
+                    width={this.renderWidth}
+                    height={this.renderHeight}
+                    tooltipProvider={this}
+                />
+                {this.isSelectingData && (
+                    <EntitySelectorModal
+                        canChangeEntity={this.canChangeEntity}
+                        selectionArray={this.selection}
+                        key="entitySelector"
+                        isMobile={this.isMobile}
+                        onDismiss={action(() => (this.isSelectingData = false))}
+                    />
+                )}
+            </>
         )
     }
 
@@ -1896,8 +1896,6 @@ export class Grapher
         )
 
         autorun(() => (document.title = this.currentTitle))
-
-        this.bindKeyboardShortcuts()
     }
 
     componentDidMount() {
@@ -1905,8 +1903,9 @@ export class Grapher
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
-        if (this.isInStandalonePage) this.bindToWindow()
+        if (this.props.bindUrlToWindow) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
+        if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
     private _shortcutsBound = false
