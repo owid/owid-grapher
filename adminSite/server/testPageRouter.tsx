@@ -102,6 +102,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                         <div className="side-by-side">
                             <iframe
                                 src={`https://ourworldindata.org/grapher/${chart.slug}`}
+                                loading="lazy"
                             />
                             {!IS_LIVE && (
                                 <figure
