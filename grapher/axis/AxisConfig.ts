@@ -7,6 +7,7 @@ import {
     Persistable,
 } from "grapher/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
+import { ScaleSelectorManager } from "grapher/controls/ScaleSelector"
 
 export interface FontSizeManager {
     fontSize: number
@@ -23,7 +24,7 @@ class AxisConfigDefaults {
 
 export class AxisConfig
     extends AxisConfigDefaults
-    implements AxisConfigInterface, Persistable {
+    implements AxisConfigInterface, Persistable, ScaleSelectorManager {
     // todo: test/refactor
     constructor(
         props?: AxisConfigInterface,

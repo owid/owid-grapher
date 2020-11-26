@@ -52,11 +52,11 @@ export interface CaptionedChartManager
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
     whatAreWeWaitingFor?: string
-    isStaticSvg?: boolean
     entityType?: string
     entityTypePlural?: string
     showSmallCountriesFilterToggle?: boolean
     showYScaleToggle?: boolean
+    showXScaleToggle?: boolean
     showZoomToggle?: boolean
     showAbsRelToggle?: boolean
     showHighlightToggle?: boolean
@@ -176,11 +176,26 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
         if (!manager.isReady || this.isMapTab) return []
 
+        const { showYScaleToggle, showXScaleToggle } = manager
+
         const controls: JSX.Element[] = []
 
-        if (manager.showYScaleToggle)
+        if (showYScaleToggle)
             controls.push(
-                <ScaleSelector key="scaleSelector" manager={manager.yAxis!} />
+                <ScaleSelector
+                    key="scaleSelector"
+                    manager={manager.yAxis!}
+                    prefix={showXScaleToggle ? "Y: " : ""}
+                />
+            )
+
+        if (showXScaleToggle)
+            controls.push(
+                <ScaleSelector
+                    key="scaleSelector"
+                    manager={manager.xAxis!}
+                    prefix={"X: "}
+                />
             )
 
         if (manager.showSelectEntitiesButton)

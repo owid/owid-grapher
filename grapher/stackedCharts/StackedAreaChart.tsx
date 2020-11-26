@@ -419,7 +419,7 @@ export class StackedAreaChart
                 />
             )
 
-        const { manager, bounds, dualAxis, renderUid, series } = this
+        const { bounds, dualAxis, renderUid, series } = this
 
         const showLegend = !this.manager.hideLegend
 
@@ -432,11 +432,7 @@ export class StackedAreaChart
         return (
             <g ref={this.base} className="StackedArea">
                 {clipPath.element}
-                <DualAxisComponent
-                    isInteractive={!manager.isStaticSvg}
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                />
+                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
                     <Areas

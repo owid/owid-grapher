@@ -573,10 +573,6 @@ export class Grapher
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
-    @computed get isStaticSvg() {
-        return this.isExportingtoSvgOrPng
-    }
-
     private get isStaging() {
         if (typeof location === undefined) return false
         return location.host.includes("staging")
@@ -2167,6 +2163,10 @@ export class Grapher
         if (this.isRelativeMode) return false
         if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
         return this.yAxis.canChangeScaleType
+    }
+
+    @computed get showXScaleToggle() {
+        return this.xAxis.canChangeScaleType
     }
 
     @computed get showZoomToggle() {

@@ -4,10 +4,6 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import {
-    ScaleSelector,
-    ScaleSelectorManager,
-} from "grapher/controls/ScaleSelector"
 import { ScaleType } from "grapher/core/GrapherConstants"
 
 @observer
@@ -91,7 +87,6 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
-    isInteractive?: boolean
 }
 
 @observer
@@ -99,8 +94,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render() {
         const { dualAxis, showTickMarks } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
-
-        const maxX = undefined // {grapher.tabBounds.width} todo
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
             <VerticalAxisGridLines
@@ -125,12 +118,10 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
         const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
             <HorizontalAxisComponent
-                maxX={maxX}
                 bounds={bounds}
                 axisPosition={innerBounds.bottom}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
-                isInteractive={false} // Todo! Renable xAxis scale type toggle. this.props.isInteractive
             />
         )
 
@@ -181,33 +172,18 @@ export class VerticalAxisComponent extends React.Component<{
     }
 }
 
-export class HorizontalAxisComponent
-    extends React.Component<{
-        bounds: Bounds
-        axis: HorizontalAxis
-        axisPosition: number
-        maxX?: number
-        showTickMarks?: boolean
-        isInteractive?: boolean
-    }>
-    implements ScaleSelectorManager {
-    @computed private get controls() {
-        const showControls =
-            this.props.isInteractive && this.props.axis.canChangeScaleType
-        if (!showControls) return undefined
-        return <ScaleSelector manager={this} />
-    }
-
+export class HorizontalAxisComponent extends React.Component<{
+    bounds: Bounds
+    axis: HorizontalAxis
+    axisPosition: number
+    showTickMarks?: boolean
+}> {
     @computed get scaleType() {
         return this.props.axis.scaleType
     }
 
     set scaleType(scaleType: ScaleType) {
         this.props.axis.config.scaleType = scaleType
-    }
-
-    @computed get maxX() {
-        return this.props.maxX
     }
 
     // for scale selector. todo: cleanup
@@ -266,7 +242,6 @@ export class HorizontalAxisComponent
 
                     return element
                 })}
-                {this.controls}
             </g>
         )
     }

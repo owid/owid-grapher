@@ -546,17 +546,12 @@ export class ScatterPlotChart
             sidebarWidth,
             tooltipSeries,
             comparisonLines,
-            manager,
             legendDimensions,
         } = this
 
         return (
             <g className="ScatterPlot">
-                <DualAxisComponent
-                    isInteractive={!manager.isStaticSvg}
-                    dualAxis={dualAxis}
-                    showTickMarks={false}
-                />
+                <DualAxisComponent dualAxis={dualAxis} showTickMarks={false} />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
                         <ComparisonLine
