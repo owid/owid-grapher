@@ -1,24 +1,6 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "alwaysStrict": true,
-        "noImplicitReturns": true,
-        "allowJs": false,
-        "outDir": "./dist/",
-        "sourceMap": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "jsx": "react",
-        "target": "es6",
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es2020"],
-        "baseUrl": ".",
-        "plugins": [],
-        "keyofStringsOnly": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true
-    },
-    "exclude": ["node_modules", "bakedSite"]
+    "extends": "./tsconfigs/tsconfig-base.json",
+    "files": [],
+    "include": [],
+    "references": [{ "path": "./coreTable" }]
 }
