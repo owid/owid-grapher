@@ -293,9 +293,7 @@ export class Grapher
 
     @observable.ref inputTable: OwidTable
 
-    @observable.ref private legacyConfigAsAuthored: Partial<
-        LegacyGrapherInterface
-    > = {}
+    @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
 
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
