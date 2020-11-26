@@ -90,9 +90,9 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromLegacyVariable(variable)
-        const valueColumnColor = columnColorMap.get(
-            dimension.variableId.toString()
-        )
+        const valueColumnColor =
+            dimension.display?.color ??
+            columnColorMap.get(dimension.variableId.toString())
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
         valueColumnDef.slug = dimension.slug

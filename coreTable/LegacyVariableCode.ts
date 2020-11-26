@@ -39,6 +39,7 @@ class LegacyVariableDisplayConfigDefaults {
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable?: boolean = true
     @observable tableDisplay?: LegacyVariableTableDisplayConfig
+    @observable color?: string = undefined
 }
 
 export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplayConfigDefaults
