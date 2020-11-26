@@ -38,7 +38,7 @@ export class Header extends React.Component<{
 
         return new Logo({
             logo: manager.logo as any,
-            isLink: !manager.isNativeEmbed,
+            isLink: !!manager.shouldLinkToOwid,
             fontSize: this.fontSize,
         })
     }

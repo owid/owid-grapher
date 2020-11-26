@@ -27,7 +27,10 @@ import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityCo
 import { runFootnotes } from "site/client/Footnote"
 import { Explorer } from "explorer/client/Explorer"
 import { ENV } from "settings"
-import { CookieKey } from "grapher/core/GrapherConstants"
+import {
+    CookieKey,
+    GRAPHER_PAGE_BODY_CLASS,
+} from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
 import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
 import { CoreTable } from "coreTable/CoreTable"
@@ -56,7 +59,7 @@ window.runSiteFooterScripts = () => {
     runCookiePreferencesManager()
     runCovid()
     runFootnotes()
-    if (!document.querySelector(".ChartPage")) {
+    if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.embedAll()
         hydrateGlobalEntityControlIfAny()
     }

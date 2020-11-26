@@ -6,7 +6,7 @@ export interface FooterManager {
     sourcesLine?: string
     note?: string
     hasOWIDLogo?: boolean
-    isNativeEmbed?: boolean
+    shouldLinkToOwid?: boolean
     originUrlWithProtocol?: string
     isMediaCard?: boolean
     currentTab?: string

@@ -5,7 +5,7 @@ export interface HeaderManager {
     currentTitle?: string
     subtitle?: string
     hideLogo?: boolean
-    isNativeEmbed?: boolean
+    shouldLinkToOwid?: boolean
     isMediaCard?: boolean
     logo?: string
     canonicalUrl?: string

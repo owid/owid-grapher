@@ -29,6 +29,7 @@ import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
 import { slugify } from "grapher/utils/Util"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 
 const git = simpleGit({
     baseDir: GIT_CMS_DIR,
@@ -187,7 +188,7 @@ export const renderExplorerPage = async (program: ExplorerProgram) => {
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
         const config = JSON.parse(row.config)
         config.id = row.id // Ensure each grapher has an id
-        return config
+        return new Grapher(config).toObject()
     })
 
     return renderToHtmlPage(

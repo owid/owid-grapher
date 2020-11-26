@@ -36,7 +36,7 @@ class ClientVariableCountryPage extends React.Component<{
     componentDidMount() {
         this.grapher = new Grapher({
             ...this.grapherConfig,
-            isEmbed: true,
+            isEmbeddedInAnOwidPage: true,
         })
     }
 

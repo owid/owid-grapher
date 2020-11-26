@@ -14,15 +14,15 @@ import { deserializeJSONFromHTML } from "utils/serializers"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
-    @computed get configUrl(): string {
+    @computed private get configUrl() {
         return splitURLintoPathAndQueryString(this.props.src).path
     }
-    @computed get queryStr(): string | undefined {
+    @computed private get queryStr() {
         return splitURLintoPathAndQueryString(this.props.src).queryString
     }
-    @observable grapher?: Grapher
+    @observable private grapher?: Grapher
 
-    async loadConfig() {
+    private async loadConfig() {
         const { configUrl } = this
         const resp = await fetch(configUrl)
         if (this.configUrl !== configUrl) {
@@ -35,13 +35,13 @@ export class EmbedChart extends React.Component<{ src: string }> {
         runInAction(() => {
             this.grapher = new Grapher({
                 ...config,
-                isEmbed: true,
+                isEmbeddedInAnOwidPage: true,
                 queryStr: this.queryStr,
             })
         })
     }
 
-    dispose?: IReactionDisposer
+    private dispose?: IReactionDisposer
     componentDidMount() {
         this.dispose = autorun(() => this.props.src && this.loadConfig())
     }

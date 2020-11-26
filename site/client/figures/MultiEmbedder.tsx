@@ -31,8 +31,8 @@ class EmbeddedFigure {
         if (this._isLoaded) return
         this._isLoaded = true
 
-        const common = {
-            isEmbed: true,
+        const common: GrapherProgrammaticInterface = {
+            isEmbeddedInAnOwidPage: true,
             queryStr: this.props.queryStr,
         }
 

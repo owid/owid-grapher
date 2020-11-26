@@ -4,7 +4,7 @@ import { Head } from "site/server/views/Head"
 import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { EmbedDetector } from "site/server/views/EmbedDetector"
+import { IFrameDetector } from "site/server/views/IframeDetector"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import ExplorerContent from "./ExplorerContent"
 import {
@@ -15,6 +15,7 @@ import {
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { serializeJSONForHTML } from "utils/serializers"
+import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram
@@ -56,9 +57,9 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 pageTitle={explorerTitle}
                 imageUrl={`${settings.BAKED_BASE_URL}/${thumbnail} `}
             >
-                <EmbedDetector />
+                <IFrameDetector />
             </Head>
-            <body className="ChartPage">
+            <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader hideAlertBanner={hideAlertBanner || false} />
                 {subNav}
                 <main id={ExplorerContainerId}>

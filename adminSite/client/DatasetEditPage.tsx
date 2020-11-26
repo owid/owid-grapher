@@ -152,7 +152,10 @@ class VariableEditRow extends React.Component<{
     dispose!: IReactionDisposer
     dispose2!: IReactionDisposer
     componentDidMount() {
-        this.grapher = new Grapher({ ...this.grapherConfig, isEmbed: true })
+        this.grapher = new Grapher({
+            ...this.grapherConfig,
+            isEmbeddedInAnOwidPage: true,
+        })
 
         this.dispose2 = when(
             () => this.grapher !== undefined && this.grapher.isReady,

@@ -200,7 +200,7 @@ export interface FooterControlsManager extends ShareMenuManager {
     isSelectingData?: boolean
     availableTabs?: GrapherTabOption[]
     currentTab?: GrapherTabOption
-    isEmbed?: boolean
+    isInIFrame?: boolean
     canonicalUrl?: string
     hasTimeline?: boolean
     hasRelatedQuestion?: boolean
@@ -282,7 +282,7 @@ export class FooterControls extends React.Component<{
                             <FontAwesomeIcon icon={faShareAlt} />
                         </a>
                     </li>
-                    {manager.isEmbed && (
+                    {manager.isInIFrame && (
                         <li className="clickable icon">
                             <a
                                 title="Open chart in new tab"
