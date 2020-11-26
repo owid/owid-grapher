@@ -13,7 +13,11 @@ import ReactDOM from "react-dom"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import { ENTITY_V2_DELIMITER } from "grapher/core/EntityUrlBuilder"
-import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
+import {
+    Grapher,
+    GrapherManager,
+    GrapherProgrammaticInterface,
+} from "grapher/core/Grapher"
 import {
     debounce,
     exposeInstanceOnWindow,
@@ -54,6 +58,7 @@ interface ExplorerProps extends SerializedGridProgram {
     patch?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
+    canonicalUrl?: string
 }
 
 interface ExplorerPatchObject extends GrapherQueryParams {
@@ -85,7 +90,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements SlideShowManager, EntityPickerManager {
+    implements SlideShowManager, EntityPickerManager, GrapherManager {
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
@@ -306,7 +311,7 @@ export class Explorer
 
     @computed private get encodedQueryString() {
         const encodedPatch = encodeURIComponent(this.patch)
-        return encodedPatch ? `?patch=` + encodedPatch : undefined
+        return encodedPatch ? `?patch=` + encodedPatch : ""
     }
 
     @computed private get patch() {
@@ -512,13 +517,16 @@ export class Explorer
                     <Grapher
                         bounds={this.grapherBounds}
                         enableKeyboardShortcuts={true}
-                        isInAnExplorer={true}
-                        selectionArray={this.selection}
+                        manager={this}
                         ref={this.grapherRef}
                     />
                 </div>
             </div>
         )
+    }
+
+    @computed get canonicalUrl() {
+        return (this.props.canonicalUrl ?? "") + this.encodedQueryString
     }
 
     @computed get entityPickerTable() {

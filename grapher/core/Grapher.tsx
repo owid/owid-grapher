@@ -182,13 +182,18 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
-    selectionArray?: SelectionArray
     getGrapherInstance?: (instance: Grapher) => void
 
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
-    isInAnExplorer?: boolean
+
+    manager?: GrapherManager
+}
+
+export interface GrapherManager {
+    canonicalUrl?: string
+    selection?: SelectionArray
 }
 
 @observer
@@ -669,7 +674,7 @@ export class Grapher
 
         this.appendNewEntitySelectionOptions()
 
-        if (this.props.selectionArray) {
+        if (this.manager.selection) {
             // Selection is managed externally, do nothing.
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
@@ -1444,7 +1449,7 @@ export class Grapher
         // For these, defer to the bounds that is set externally
         if (
             this.props.isEmbeddedInAnOwidPage ||
-            this.props.isInAnExplorer ||
+            this.props.manager ||
             isInIFrame
         )
             return false
@@ -1581,7 +1586,7 @@ export class Grapher
     }
 
     selection =
-        this.props.selectionArray ??
+        this.manager.selection ??
         new SelectionArray(
             this.props.selectedEntityNames ?? [],
             this.props.table?.availableEntities ?? []
@@ -2075,9 +2080,16 @@ export class Grapher
             : undefined
     }
 
+    @computed private get manager() {
+        return this.props.manager ?? {}
+    }
+
     // Get the full url representing the canonical location of this grapher state
     @computed get canonicalUrl() {
-        return this.baseUrl ? this.baseUrl + this.queryStr : undefined
+        return (
+            this.manager.canonicalUrl ??
+            (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
+        )
     }
 
     @computed private get hasUserChangedTimeHandles() {
