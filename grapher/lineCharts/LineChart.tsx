@@ -461,7 +461,7 @@ export class LineChart
         unknown
     >
     componentDidMount() {
-        if (!this.manager.isStaticSvg) this.runFancyIntroAnimation()
+        if (!this.manager.isExportingtoSvgOrPng) this.runFancyIntroAnimation()
         exposeInstanceOnWindow(this)
     }
 

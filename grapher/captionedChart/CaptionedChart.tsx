@@ -52,7 +52,6 @@ export interface CaptionedChartManager
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
     whatAreWeWaitingFor?: string
-    isStaticSvg?: boolean
     entityType?: string
     entityTypePlural?: string
     showSmallCountriesFilterToggle?: boolean

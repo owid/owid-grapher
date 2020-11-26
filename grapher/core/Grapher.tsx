@@ -573,10 +573,6 @@ export class Grapher
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
-    @computed get isStaticSvg() {
-        return this.isExportingtoSvgOrPng
-    }
-
     private get isStaging() {
         if (typeof location === undefined) return false
         return location.host.includes("staging")

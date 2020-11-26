@@ -37,7 +37,7 @@ export const StaticLineChartForExport = () => {
         <StaticCaptionedChart
             manager={{
                 ...manager,
-                isStaticSvg: true,
+                isExportingtoSvgOrPng: true,
             }}
         />
     )
