@@ -509,8 +509,7 @@ export class Explorer
                 <div className="ExplorerFigure" ref={this.grapherContainerRef}>
                     <Grapher
                         bounds={this.grapherBounds}
-                        isEmbed={true}
-                        enableKeyboardShortcuts={true}
+                        isInStandalonePage={true}
                         selectionArray={this.selection}
                         ref={this.grapherRef}
                     />

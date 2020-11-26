@@ -2,7 +2,11 @@ import * as React from "react"
 import { computed } from "mobx"
 import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG"
 
-export type LogoOption = "owid" | "core+owid" | "gv+owid"
+export enum LogoOption {
+    owid = "owid",
+    "core+owid" = "core+owid",
+    "gv+owid" = "gv+owid",
+}
 
 interface LogoAttributes {
     svg: string
@@ -35,7 +39,7 @@ const logos: Record<LogoOption, LogoAttributes> = {
 }
 
 interface LogoProps {
-    logo: LogoOption | undefined
+    logo?: LogoOption
     isLink: boolean
     fontSize: number
 }
@@ -46,13 +50,13 @@ export class Logo {
         this.props = props
     }
 
-    @computed get spec() {
+    @computed private get spec() {
         return this.props.logo !== undefined
             ? logos[this.props.logo]
             : logos.owid
     }
 
-    @computed get scale(): number {
+    @computed private get scale() {
         return this.spec.targetHeight / this.spec.height
     }
 
@@ -78,24 +82,15 @@ export class Logo {
     }
 
     renderHTML() {
+        const { spec } = this
         const props: React.HTMLAttributes<
             HTMLDivElement & HTMLAnchorElement
         > = {
             className: "logo",
-            dangerouslySetInnerHTML: { __html: this.spec.svg },
-            style: { height: `${this.spec.targetHeight}px` },
+            dangerouslySetInnerHTML: { __html: spec.svg },
+            style: { height: `${spec.targetHeight}px` },
         }
-        if (this.props.isLink || !this.spec.url) {
-            return <div {...props} />
-        } else {
-            return (
-                <a
-                    {...props}
-                    href={this.spec.url}
-                    target="_blank"
-                    rel="noopener"
-                />
-            )
-        }
+        if (this.props.isLink || !spec.url) return <div {...props} />
+        return <a {...props} href={spec.url} target="_blank" rel="noopener" />
     }
 }

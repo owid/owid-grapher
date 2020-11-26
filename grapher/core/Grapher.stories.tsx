@@ -122,14 +122,6 @@ export const Faceting = () => {
     return <Grapher {...model} />
 }
 
-export const WithKeyboardShortcutsAndOtherNonEmbedBehavior = () => {
-    const model: GrapherProgrammaticInterface = {
-        ...basics,
-        isEmbed: false,
-    }
-    return <Grapher {...model} />
-}
-
 export const WithAuthorTimeFilter = () => {
     const model: GrapherProgrammaticInterface = {
         ...basics,

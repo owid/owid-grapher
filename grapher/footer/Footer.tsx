@@ -53,22 +53,24 @@ export class Footer extends React.Component<{
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
-        if (originUrl && originUrl.toLowerCase().match(/^https?:\/\/./)) {
-            const url = parseUrl(originUrl)
-            const finalUrlText = `${url.hostname}${url.pathname}`.replace(
-                "ourworldindata.org",
-                "OurWorldInData.org"
-            )
-            if (
-                this.manager.isNativeEmbed ||
-                Bounds.forText(finalUrlText, { fontSize: this.fontSize })
-                    .width >
-                    0.7 * this.maxWidth
-            )
-                return undefined
-            return finalUrlText
-        }
-        return undefined
+        if (
+            !originUrl ||
+            !originUrl.toLowerCase().match(/^https?:\/\/./) ||
+            this.manager.shouldLinkToOwid
+        )
+            return undefined
+
+        const url = parseUrl(originUrl)
+        const finalUrlText = `${url.hostname}${url.pathname}`.replace(
+            "ourworldindata.org",
+            "OurWorldInData.org"
+        )
+        if (
+            Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
+            0.7 * this.maxWidth
+        )
+            return undefined
+        return finalUrlText
     }
 
     @computed private get licenseSvg() {

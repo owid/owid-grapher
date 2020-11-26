@@ -178,8 +178,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
     queryStr?: string
-    isEmbed?: boolean
-    enableKeyboardShortcuts?: boolean
     isMediaCard?: boolean
     isExport?: boolean
     bounds?: Bounds
@@ -187,6 +185,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     selectionArray?: SelectionArray
     getGrapherInstance?: (instance: Grapher) => void
+
+    isInStandalonePage?: boolean
+    isEmbeddedInAnOwidPage?: boolean
 }
 
 @observer
@@ -757,7 +758,7 @@ export class Grapher
         )
     }
 
-    @computed get isIframe() {
+    @computed get isInIFrame() {
         return window.self !== window.top
     }
 
@@ -830,8 +831,15 @@ export class Grapher
         )
     }
 
-    @computed get isNativeEmbed() {
-        return this.isEmbed && !this.isIframe && !this.isExporting
+    @computed get shouldLinkToOwid() {
+        if (
+            this.props.isEmbeddedInAnOwidPage ||
+            this.isExporting ||
+            !this.isInIFrame
+        )
+            return false
+
+        return true
     }
 
     @computed.struct private get variableIds() {
@@ -1389,6 +1397,7 @@ export class Grapher
             Grapher.renderGrapherIntoContainer(
                 {
                     ...jsonConfig,
+                    isInStandalonePage: true,
                     queryStr: window.location.search,
                 },
                 container
@@ -1398,13 +1407,6 @@ export class Grapher
             container.setAttribute("id", "fallback")
             throw err
         }
-    }
-
-    @computed get isEmbed() {
-        return (
-            this.props.isEmbed ||
-            (!this.isExporting && (window.self !== window.top || this.isEditor))
-        )
     }
 
     @computed get isMobile() {
@@ -1434,20 +1436,36 @@ export class Grapher
     @computed private get useIdealBounds() {
         const {
             isEditor,
-            isEmbed,
             isExporting,
             bounds,
             authorWidth,
             authorHeight,
+            isInIFrame,
         } = this
 
         if (isEditor) return true
-        if (isEmbed) return false
+        if (this.props.isEmbeddedInAnOwidPage) return false
+        if (isInIFrame) return false
         if (isExporting) return false // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
         if (bounds.height < authorHeight || bounds.width < authorWidth)
             return false
 
         return true
+    }
+
+    @computed private get classNames() {
+        const { isExporting, isEditor } = this
+
+        const classNames = [
+            "chart",
+            isExporting && "export",
+            isEditor && "editor",
+            this.isPortrait && "portrait",
+            this.isLandscape && "landscape",
+            isTouchDevice() && "is-touch",
+        ]
+
+        return classNames.filter((n) => !!n).join(" ")
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
@@ -1503,20 +1521,6 @@ export class Grapher
         this.userFacingErrorSuggestion = undefined
     }
 
-    @computed private get classNames() {
-        const classNames = [
-            "chart",
-            this.isExporting && "export",
-            this.isEditor && "editor",
-            this.isEmbed && "embed",
-            this.isPortrait && "portrait",
-            this.isLandscape && "landscape",
-            isTouchDevice() && "is-touch",
-        ]
-
-        return classNames.filter((n) => !!n).join(" ")
-    }
-
     // todo: clean up this popup stuff
     addPopup(vnode: VNode) {
         this.popups = this.popups.concat([vnode])
@@ -1561,8 +1565,12 @@ export class Grapher
         return undefined
     }
 
+    @computed private get isInStandalonePage() {
+        return this.props.isInStandalonePage
+    }
+
     private get commandPalette() {
-        return this.props.enableKeyboardShortcuts ? (
+        return this.isInStandalonePage ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }
@@ -1888,6 +1896,8 @@ export class Grapher
         )
 
         autorun(() => (document.title = this.currentTitle))
+
+        this.bindKeyboardShortcuts()
     }
 
     componentDidMount() {
@@ -1895,9 +1905,8 @@ export class Grapher
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
-        if (!this.props.isEmbed) this.bindToWindow()
+        if (this.isInStandalonePage) this.bindToWindow()
         else GlobalEntityRegistry.add(this)
-        if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
     private _shortcutsBound = false
