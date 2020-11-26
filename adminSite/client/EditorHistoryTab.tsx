@@ -51,7 +51,15 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound async applyConfig(config: any) {
-        this.props.editor.grapher.updateFromObject(JSON.parse(config))
+        const { grapher } = this.props.editor
+        const configJson = JSON.parse(config)
+        grapher.updateFromObject(configJson)
+        grapher.updateAuthoredVersion({
+            ...grapher.toObject(),
+            selectedData: configJson.selectedData,
+            data: configJson.data,
+        })
+        grapher.rebuildInputOwidTable()
     }
 
     render() {
