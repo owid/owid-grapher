@@ -7,7 +7,7 @@ import {
     QueryParams,
 } from "clientUtils/url"
 import { TimelineComponent } from "grapher/timeline/TimelineComponent"
-import { formatValue } from "clientUtils/Util"
+import { formatValue } from "clientUtils/formatValue"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"

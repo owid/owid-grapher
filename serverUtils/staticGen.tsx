@@ -5,7 +5,7 @@ import urljoin from "url-join"
 import * as path from "path"
 
 let manifest: { [key: string]: string }
-export const webpack = (assetName: string) => {
+export const getWebpackUrlForAsset = (assetName: string) => {
     if (ENV === "production") {
         // Read the real asset name from the manifest in case it has a hashed filename
         if (!manifest)

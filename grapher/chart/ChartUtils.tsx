@@ -1,4 +1,5 @@
-import { Box, SeriesStrategy } from "grapher/core/GrapherConstants"
+import { SeriesStrategy } from "grapher/core/GrapherConstants"
+import { Box } from "clientUtils/owidTypes"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import React from "react"
 import { ChartManager } from "./ChartManager"

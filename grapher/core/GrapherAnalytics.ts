@@ -1,5 +1,7 @@
 const DEBUG = false
 
+declare var window: any
+
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
     hitType: string

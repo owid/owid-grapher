@@ -1,5 +1,5 @@
 import * as React from "react"
-import { webpack } from "serverUtils/staticGen"
+import { getWebpackUrlForAsset } from "serverUtils/staticGen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { BAKED_BASE_URL } from "settings"
@@ -235,8 +235,8 @@ export const SiteFooter = ({
                 </div>
                 <div className="site-tools" />
                 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch" />
-                <script src={webpack("commons.js", "site")} />
-                <script src={webpack("owid.js", "site")} />
+                <script src={getWebpackUrlForAsset("commons.js")} />
+                <script src={getWebpackUrlForAsset("owid.js")} />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
