@@ -8,7 +8,7 @@
 const common = {
     preset: "ts-jest",
     moduleNameMapper: {
-        "^(adminSite|site|grapher|gitCms|explorer|coreTable|clientUtils|serverUtils|db|deploy|settings|test)/(.*)$":
+        "^(adminSite|site|grapher|gitCms|explorer|coreTable|clientUtils|serverUtils|db|deploy)/(.*)$":
             "<rootDir>/$1/$2",
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings",

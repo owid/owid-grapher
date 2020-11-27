@@ -47,7 +47,7 @@ module.exports = (env, argv) => {
                         transpileOnly: true,
                         configFile: path.join(
                             __dirname,
-                            "tsconfig.client.json"
+                            "tsconfigs/tsconfig.client.json"
                         ),
                     },
                 },

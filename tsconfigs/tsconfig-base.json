@@ -30,5 +30,6 @@
         "plugins": [],
         "keyofStringsOnly": true
     },
-    "exclude": ["node_modules", "bakedSite"]
+    "exclude": ["node_modules", "bakedSite", "*.test.ts"],
+    "include": ["*.ts", "*.tsx"]
 }

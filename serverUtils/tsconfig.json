@@ -4,7 +4,5 @@
         "composite": true,
         "rootDir": "../",
         "baseUrl": "../"
-    },
-    "include": ["*.ts"],
-    "exclude": ["*.test.ts"]
+    }
 }

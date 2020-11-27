@@ -23,7 +23,10 @@ module.exports = ({ config }: { config: any }) => {
     ])
     config.resolve.plugins = [
         new TsconfigPathsPlugin({
-            configFile: path.join(__dirname, "../tsconfig.client.json"),
+            configFile: path.join(
+                __dirname,
+                "../tsconfigs/tsconfig.client.json"
+            ),
         }),
     ]
     config.plugins = config.plugins.concat([
