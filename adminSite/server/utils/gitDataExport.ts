@@ -5,7 +5,7 @@ import {
     filenamify,
     exec,
     execFormatted,
-} from "utils/server/serverUtil"
+} from "serverUtils/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"

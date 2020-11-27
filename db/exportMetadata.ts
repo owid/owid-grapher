@@ -5,7 +5,7 @@ import * as fs from "fs-extra"
 import parseArgs from "minimist"
 
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
-import { exec } from "utils/server/serverUtil"
+import { exec } from "serverUtils/serverUtil"
 
 const argv = parseArgs(process.argv.slice(2))
 const withPasswords = argv["with-passwords"]

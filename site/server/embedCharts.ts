@@ -1,4 +1,4 @@
-import { webpack } from "utils/server/staticGen"
+import { webpack } from "serverUtils/staticGen"
 
 export const embedSnippet = () => `const embedSnippet = () => {
     const link = document.createElement('link')

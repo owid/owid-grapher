@@ -15,7 +15,7 @@ import Select, { ValueType } from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
-import { asArray } from "utils/client/react-select"
+import { asArray } from "clientUtils/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"

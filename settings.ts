@@ -1,4 +1,4 @@
-import { parseBool } from "utils/string"
+import { parseBool } from "clientUtils/string"
 
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O

@@ -37,9 +37,9 @@ import * as React from "react"
 import { embedSnippet } from "site/server/embedCharts"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "site/server/countryProfiles"
-import { countries } from "utils/countries"
-import { exec } from "utils/server/serverUtil"
-import { log } from "utils/server/log"
+import { countries } from "clientUtils/countries"
+import { exec } from "serverUtils/serverUtil"
+import { log } from "serverUtils/log"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,

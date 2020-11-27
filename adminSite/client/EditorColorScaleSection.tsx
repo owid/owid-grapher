@@ -13,7 +13,7 @@ import {
 } from "grapher/color/ColorScaleBin"
 import { clone, noop, last } from "clientUtils/Util"
 import { Color } from "coreTable/CoreTableConstants"
-import { asArray } from "utils/client/react-select"
+import { asArray } from "clientUtils/react-select"
 import {
     Section,
     Toggle,

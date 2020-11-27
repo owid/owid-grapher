@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { throttle, fetchText, isPresent, isMobile } from "clientUtils/Util"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "clientUtils/url"
-import { deserializeJSONFromHTML } from "utils/serializers"
+import { deserializeJSONFromHTML } from "clientUtils/serializers"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { Explorer } from "explorer/client/Explorer"
 import {

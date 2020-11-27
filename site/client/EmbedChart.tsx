@@ -10,7 +10,7 @@ import {
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { splitURLintoPathAndQueryString } from "clientUtils/url"
-import { deserializeJSONFromHTML } from "utils/serializers"
+import { deserializeJSONFromHTML } from "clientUtils/serializers"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

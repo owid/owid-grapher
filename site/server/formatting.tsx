@@ -18,7 +18,7 @@ import {
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "grapher/controls/globalEntityControl/bakeGlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
-import { Country } from "utils/countries"
+import { Country } from "clientUtils/countries"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 import {

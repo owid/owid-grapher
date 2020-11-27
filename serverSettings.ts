@@ -3,7 +3,7 @@
 
 import { ENV } from "settings"
 import * as path from "path"
-import { parseBool } from "utils/string"
+import { parseBool } from "clientUtils/string"
 
 function expect(key: string): string {
     const val = process.env[key]

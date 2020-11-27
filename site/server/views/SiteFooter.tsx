@@ -1,5 +1,5 @@
 import * as React from "react"
-import { webpack } from "utils/server/staticGen"
+import { webpack } from "serverUtils/staticGen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { BAKED_BASE_URL } from "settings"

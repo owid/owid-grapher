@@ -25,7 +25,7 @@ import {
     GrapherExports,
 } from "./grapherUtil"
 import * as cheerio from "cheerio"
-import { JsonError } from "utils/server/serverUtil"
+import { JsonError } from "serverUtils/serverUtil"
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "settings"
 import {
@@ -34,7 +34,7 @@ import {
 } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage"
 import { FeedbackPage } from "./views/FeedbackPage"
-import { getCountry, Country } from "utils/countries"
+import { getCountry, Country } from "clientUtils/countries"
 import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/server/countryProfileProjects"
 

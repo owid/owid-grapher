@@ -5,8 +5,8 @@ import * as wpdb from "db/wpdb"
 import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { formatPost, FormattedPost } from "site/server/formatting"
-import { chunkParagraphs, htmlToPlaintext } from "utils/search"
-import { countries } from "utils/countries"
+import { chunkParagraphs, htmlToPlaintext } from "clientUtils/search"
+import { countries } from "clientUtils/countries"
 
 interface Tag {
     id: number

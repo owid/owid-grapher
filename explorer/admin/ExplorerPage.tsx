@@ -14,7 +14,7 @@ import {
 } from "explorer/client/ExplorerConstants"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { serializeJSONForHTML } from "utils/serializers"
+import { serializeJSONForHTML } from "clientUtils/serializers"
 import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
 
 interface ExplorerPageSettings {

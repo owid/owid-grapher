@@ -5,7 +5,7 @@ import * as db from "db/db"
 import * as lodash from "lodash"
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
 
-import { exec } from "utils/server/serverUtil"
+import { exec } from "serverUtils/serverUtil"
 
 const namespacesArg: string = process.argv[2]
 

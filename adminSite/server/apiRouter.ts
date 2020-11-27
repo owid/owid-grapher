@@ -3,7 +3,6 @@
 import * as lodash from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
-
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "serverSettings"
@@ -12,7 +11,7 @@ import {
     expectInt,
     isValidSlug,
     absoluteUrl,
-} from "utils/server/serverUtil"
+} from "serverUtils/serverUtil"
 import { sendMail } from "adminSite/server/utils/mail"
 import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
@@ -31,8 +30,8 @@ import {
 } from "adminSite/server/utils/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
-import { camelCaseProperties } from "utils/string"
-import { log } from "utils/server/log"
+import { camelCaseProperties } from "clientUtils/string"
+import { log } from "serverUtils/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"

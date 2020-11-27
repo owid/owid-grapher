@@ -11,7 +11,7 @@ import Select, {
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { countries } from "utils/countries"
+import { countries } from "clientUtils/countries"
 import {
     throttle,
     noop,

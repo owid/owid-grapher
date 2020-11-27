@@ -3,7 +3,7 @@ import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, ENV } from "settings"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { log } from "utils/server/log"
+import { log } from "serverUtils/log"
 
 import express from "express"
 require("express-async-errors")
@@ -18,7 +18,7 @@ import {
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
-import { renderToHtmlPage } from "utils/server/serverUtil"
+import { renderToHtmlPage } from "serverUtils/serverUtil"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 
 import * as React from "react"

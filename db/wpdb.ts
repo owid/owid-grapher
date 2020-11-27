@@ -18,7 +18,7 @@ import { defaultTo, memoize } from "clientUtils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
-import { JsonError } from "utils/server/serverUtil"
+import { JsonError } from "serverUtils/serverUtil"
 import {
     CountryProfileSpec,
     countryProfileSpecs,

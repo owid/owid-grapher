@@ -1,5 +1,5 @@
 import { sampleFrom, getRandomNumberGenerator, range } from "clientUtils/Util"
-import { countries } from "utils/countries"
+import { countries } from "clientUtils/countries"
 import { ColumnSlug, TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"

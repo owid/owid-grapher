@@ -21,7 +21,7 @@ import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
-import { expectInt, JsonError, renderToHtmlPage } from "utils/server/serverUtil"
+import { expectInt, JsonError, renderToHtmlPage } from "serverUtils/serverUtil"
 import { embedSnippet } from "site/server/embedCharts"
 import {
     countryProfilePage,

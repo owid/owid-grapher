@@ -5,7 +5,7 @@ import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 
-import { asArray } from "utils/client/react-select"
+import { asArray } from "clientUtils/react-select"
 import { first } from "clientUtils/Util"
 import { ColorScheme } from "grapher/color/ColorScheme"
 

@@ -3,7 +3,7 @@ import { Chart } from "db/model/Chart"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import moment from "moment"
 import * as db from "db/db"
-import { countries } from "utils/countries"
+import { countries } from "clientUtils/countries"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 

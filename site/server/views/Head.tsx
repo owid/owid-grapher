@@ -1,6 +1,6 @@
 import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
-import { webpack } from "utils/server/staticGen"
+import { webpack } from "serverUtils/staticGen"
 
 export const Head = (props: {
     canonicalUrl: string

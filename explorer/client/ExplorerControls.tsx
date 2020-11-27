@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import Select from "react-select"
-import { getStylesForTargetHeight } from "utils/client/react-select"
+import { getStylesForTargetHeight } from "clientUtils/react-select"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,

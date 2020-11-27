@@ -23,7 +23,7 @@ import {
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"
-import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
+import { getStylesForTargetHeight, asArray } from "clientUtils/react-select"
 import { ColumnTypeMap } from "coreTable/CoreTableColumns"
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"

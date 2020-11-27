@@ -1,8 +1,8 @@
 #! /usr/bin/env yarn jest
 
-import { ExecError } from "utils/server/serverUtil"
+import { ExecError } from "serverUtils/serverUtil"
 
-const { exec } = require("utils/server/serverUtil")
+const { exec } = require("serverUtils/serverUtil")
 
 describe("exec()", () => {
     it("should resolve when there is a zero exit code", async () => {

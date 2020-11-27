@@ -1,5 +1,5 @@
 import * as db from "db/db"
-import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
+import { renderToHtmlPage, JsonError } from "serverUtils/serverUtil"
 import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
@@ -10,7 +10,7 @@ import {
 } from "./views/CountryProfilePage"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "baker/SiteBaker"
-import { countries, getCountry } from "utils/countries"
+import { countries, getCountry } from "clientUtils/countries"
 import { OwidTable } from "coreTable/OwidTable"
 
 export async function countriesIndexPage() {

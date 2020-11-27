@@ -14,7 +14,7 @@ import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "./IframeDetector"
-import { serializeJSONForHTML } from "utils/serializers"
+import { serializeJSONForHTML } from "clientUtils/serializers"
 import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
 
 export const GrapherPage = (props: {
