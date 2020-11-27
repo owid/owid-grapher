@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { getLeastUsedColor } from "./ColorUtils"
 

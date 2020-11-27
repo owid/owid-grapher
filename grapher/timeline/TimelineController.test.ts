@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { TimeBoundValue } from "clientUtils/TimeBounds"
 import { range } from "clientUtils/Util"

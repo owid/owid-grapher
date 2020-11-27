@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import * as cheerio from "cheerio"
 import * as ReactDOMServer from "react-dom/server"

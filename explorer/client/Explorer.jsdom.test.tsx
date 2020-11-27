@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { mount } from "enzyme"
 import { Explorer } from "./Explorer"

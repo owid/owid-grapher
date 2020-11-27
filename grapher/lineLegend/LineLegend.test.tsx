@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { LineLegend, LineLegendManager } from "./LineLegend"

@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { chunkParagraphs, htmlToPlaintext } from "./search"
 

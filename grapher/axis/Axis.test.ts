@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { HorizontalAxis } from "grapher/axis/Axis"
 import { ScaleType } from "grapher/core/GrapherConstants"

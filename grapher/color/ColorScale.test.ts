@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { CoreTable } from "coreTable/CoreTable"
 import { BinningStrategy } from "./BinningStrategies"

@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { TextWrap } from "./TextWrap"
 import { Bounds } from "clientUtils/Bounds"

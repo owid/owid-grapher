@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { ChartTypeName, DimensionProperty } from "grapher/core/GrapherConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"

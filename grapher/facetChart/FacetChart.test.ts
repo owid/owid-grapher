@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
