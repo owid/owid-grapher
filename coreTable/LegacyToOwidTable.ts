@@ -25,7 +25,7 @@ import {
     EntityId,
 } from "./OwidTableConstants"
 import { OwidTable } from "./OwidTable"
-import { EPOCH_DATE } from "types/owidTypes"
+import { EPOCH_DATE } from "clientUtils/owidTypes"
 
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`

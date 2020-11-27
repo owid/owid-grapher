@@ -4,7 +4,7 @@ import {
     diffDateISOStringInDays,
     formatDay,
 } from "./Util"
-import { EPOCH_DATE, Time } from "types/owidTypes"
+import { EPOCH_DATE, Time } from "clientUtils/owidTypes"
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).

@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import * as timezoneMock from "timezone-mock"
 import {
@@ -24,7 +24,7 @@ import {
     getClosestTimePairs,
 } from "./Util"
 import { strToQueryParams } from "./url"
-import { SortOrder, ScaleType } from "types/owidTypes"
+import { SortOrder, ScaleType } from "./owidTypes"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {

@@ -13,7 +13,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ValueRange } from "coreTable/CoreTableConstants"
-import { ScaleType } from "types/owidTypes"
+import { ScaleType } from "clientUtils/owidTypes"
 import { TickFormattingOptions } from "coreTable/formatValue"
 
 interface Tickmark {

@@ -125,7 +125,7 @@ import {
     Time,
     EPOCH_DATE,
     ScaleType,
-} from "types/owidTypes"
+} from "clientUtils/owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "./url"
