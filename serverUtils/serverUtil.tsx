@@ -25,18 +25,17 @@ export class ExecError extends Error implements ExecReturn {
     }
 }
 
-export function exec(
+export const exec = (
     command: string,
     options?: shell.ExecOptions
-): Promise<ExecReturn> {
-    return new Promise((resolve, reject) => {
+): Promise<ExecReturn> =>
+    new Promise((resolve, reject) => {
         shell.exec(command, options || {}, (code, stdout, stderr) =>
             code === 0
                 ? resolve({ code, stdout, stderr })
                 : reject(new ExecError({ code, stdout, stderr }))
         )
     })
-}
 
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {
@@ -48,69 +47,63 @@ export class JsonError extends Error {
 }
 
 // Fail-fast integer conversion, for e.g. ids in url params
-export function expectInt(value: any): number {
+export const expectInt = (value: any): number => {
     const num = parseInt(value)
     if (isNaN(num))
         throw new JsonError(`Expected integer value, not '${value}'`, 400)
     return num
 }
 
-export function tryInt(value: any, defaultNum: number): number {
+export const tryInt = (value: any, defaultNum: number): number => {
     const num = parseInt(value)
     if (isNaN(num)) return defaultNum
     return num
 }
 
 // Generate a static html page string from a given JSX element
-export function renderToHtmlPage(element: any): string {
-    return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
-}
+export const renderToHtmlPage = (element: any) =>
+    `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 // Determine if input is suitable for use as a url slug
-export function isValidSlug(slug: any) {
-    return lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
+export const isValidSlug = (slug: any) =>
+    lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
+
+export const shellEscape = (str: string) => quote([str])
+
+export const csvEscape = (value: any) => {
+    if (lodash.includes(lodash.toString(value), ","))
+        return `"${value.replace(/\"/g, '""')}"`
+    return value
 }
 
-export function shellEscape(s: string) {
-    return quote([s])
-}
+export const csvRow = (arr: string[]) =>
+    arr.map((x) => csvEscape(x)).join(",") + "\n"
 
-export function csvEscape(value: any): string {
-    const valueStr = lodash.toString(value)
-    if (lodash.includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
-    else return value
-}
-
-export function csvRow(arr: string[]): string {
-    return arr.map((x) => csvEscape(x)).join(",") + "\n"
-}
-
-export function absoluteUrl(path: string): string {
-    return urljoin(settings.ADMIN_BASE_URL, path)
-}
+export const absoluteUrl = (path: string) =>
+    urljoin(settings.ADMIN_BASE_URL, path)
 
 // Take an arbitrary string and turn it into a nice url slug
-export function slugify(s: string) {
-    s = s
+export const slugify = (str: string) => {
+    str = str
         .toLowerCase()
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-    return lodash.trim(s).replace(/ +/g, "-")
+    return lodash.trim(str).replace(/ +/g, "-")
 }
 
-export const splitOnLastWord = (s: string) => {
-    const endIndex = (s.lastIndexOf(" ") as number) + 1
+export const splitOnLastWord = (str: string) => {
+    const endIndex = (str.lastIndexOf(" ") as number) + 1
     return {
-        start: endIndex === 0 ? "" : s.substring(0, endIndex),
-        end: s.substring(endIndex),
+        start: endIndex === 0 ? "" : str.substring(0, endIndex),
+        end: str.substring(endIndex),
     }
 }
 
-export async function execFormatted(
+export const execFormatted = async (
     cmd: string,
     args: string[],
     verbose = true
-) {
+) => {
     const formatCmd = util.format(cmd, ...args.map((s) => quote([s])))
     if (verbose) console.log(formatCmd)
     return await exec(formatCmd, { silent: !verbose })
