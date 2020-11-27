@@ -1,8 +1,6 @@
-import { TickFormattingOptions } from "grapher/core/GrapherConstants"
 import {
     anyToString,
     csvEscape,
-    formatValue,
     formatYear,
     formatDay,
     isString,
@@ -33,6 +31,7 @@ import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "./OwidSource"
+import { formatValue, TickFormattingOptions } from "./formatValue"
 
 interface ColumnSummary {
     numErrorValues: number

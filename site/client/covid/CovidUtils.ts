@@ -1,7 +1,7 @@
 import { maxBy, dateDiffInDays, formatValue } from "grapher/utils/Util"
 import { utcFormat } from "d3-time-format"
 import { SortOrder } from "coreTable/CoreTableConstants"
-import { TickFormattingOptions } from "grapher/core/GrapherConstants"
+import { TickFormattingOptions } from "coreTable/formatValue"
 import {
     CovidSeries,
     CovidDatum,

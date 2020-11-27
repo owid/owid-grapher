@@ -15,7 +15,7 @@ import {
 import { LogoOption } from "grapher/captionedChart/Logos"
 import slugify from "slugify"
 import { RelatedQuestionsConfig } from "grapher/core/GrapherConstants"
-import { getErrorMessageRelatedQuestionUrl } from "grapher/utils/Util"
+import { getErrorMessageRelatedQuestionUrl } from "grapher/core/Grapher" // fix.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"

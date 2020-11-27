@@ -8,12 +8,13 @@ import {
     sortBy,
     maxBy,
 } from "grapher/utils/Util"
-import { TickFormattingOptions, ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ValueRange } from "coreTable/CoreTableConstants"
+import { ScaleType } from "types/owidTypes"
+import { TickFormattingOptions } from "coreTable/formatValue"
 
 interface Tickmark {
     value: number

@@ -3,9 +3,8 @@ import {
     isString,
     diffDateISOStringInDays,
     formatDay,
-} from "grapher/utils/Util"
-import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-import { Time } from "coreTable/CoreTableConstants"
+} from "./Util"
+import { EPOCH_DATE, Time } from "types/owidTypes"
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).

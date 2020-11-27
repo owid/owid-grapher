@@ -1,6 +1,6 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { ChartTypeName, EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
 
@@ -25,6 +25,7 @@ import {
     EntityId,
 } from "./OwidTableConstants"
 import { OwidTable } from "./OwidTable"
+import { EPOCH_DATE } from "types/owidTypes"
 
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`

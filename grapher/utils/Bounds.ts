@@ -1,7 +1,7 @@
-import { makeGrid, range } from "grapher/utils/Util"
-import { PointVector } from "grapher/utils/PointVector"
+import { makeGrid, range } from "./Util"
+import { PointVector } from "./PointVector"
 import pixelWidth from "string-pixel-width"
-import { Box } from "grapher/core/GrapherConstants"
+import { Box } from "types/owidTypes"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we

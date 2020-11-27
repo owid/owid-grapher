@@ -15,7 +15,6 @@ import {
     isEqual,
     uniq,
     fetchJSON,
-    getErrorMessageRelatedQuestionUrl,
     slugify,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
@@ -2248,3 +2247,14 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
+
+export const getErrorMessageRelatedQuestionUrl = (
+    question: RelatedQuestionsConfig
+): string | undefined => {
+    return question.text
+        ? (!question.url && "Missing URL") ||
+              (!question.url.match(/^https?:\/\//) &&
+                  "URL should start with http(s)://") ||
+              undefined
+        : undefined
+}

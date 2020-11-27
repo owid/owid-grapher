@@ -56,7 +56,6 @@ import uniqWith from "lodash/uniqWith"
 import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
 import xor from "lodash/xor"
-
 export {
     capitalize,
     clone,
@@ -113,24 +112,21 @@ export {
     without,
     xor,
 }
-
 import { extent, pairs } from "d3-array"
-
 export { pairs }
-
 import moment from "moment"
 import { formatLocale } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import { SortOrder, Integer, Time } from "coreTable/CoreTableConstants"
-import { PointVector } from "./PointVector"
 import {
-    TickFormattingOptions,
-    RelatedQuestionsConfig,
-    ScaleType,
+    SortOrder,
+    Integer,
+    Time,
     EPOCH_DATE,
-} from "grapher/core/GrapherConstants"
+    ScaleType,
+} from "types/owidTypes"
+import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 
@@ -232,80 +228,6 @@ export function roundSigFig(num: number, sigfigs: number = 1) {
     if (num === 0) return 0
     const magnitude = Math.floor(Math.log10(Math.abs(num)))
     return round(num, -magnitude + sigfigs - 1)
-}
-
-// todo: Should this be numberSuffixes instead of Prefixes?
-// todo: we should have unit tests for this one. lot's of great features but hard to see how to use all of them.
-export function formatValue(
-    value: number,
-    options: TickFormattingOptions
-): string {
-    const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
-    const numberPrefixes = defaultTo(
-        options.numberPrefixes || options.shortNumberPrefixes,
-        true
-    )
-    const shortNumberPrefixes = defaultTo(options.shortNumberPrefixes, false)
-    const showPlus = defaultTo(options.showPlus, false)
-    const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
-    const unit = defaultTo(options.unit, "")
-    const isNoSpaceUnit = defaultTo(options.noSpaceUnit, unit[0] === "%")
-
-    let output: string = value.toString()
-
-    const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
-        if (!isFinite(absValue)) output = "Infinity"
-        else if (absValue >= 1e12)
-            output = formatValue(value / 1e12, {
-                ...options,
-                unit: shortNumberPrefixes ? "T" : "trillion",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e9)
-            output = formatValue(value / 1e9, {
-                ...options,
-                unit: shortNumberPrefixes ? "B" : "billion",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e6)
-            output = formatValue(value / 1e6, {
-                ...options,
-                unit: shortNumberPrefixes ? "M" : "million",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-    } else {
-        const targetDigits = Math.pow(10, -numDecimalPlaces)
-
-        if (value !== 0 && Math.abs(value) < targetDigits) {
-            if (value < 0) output = `>-${targetDigits}`
-            else output = `<${targetDigits}`
-        } else {
-            output = d3Format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
-                value
-            )
-        }
-
-        if (noTrailingZeroes) {
-            // Convert e.g. 2.200 to 2.2
-            const m = output.match(/(.*?[0-9,-]+.[0-9,]*?)0*$/)
-            if (m) output = m[1]
-            if (output[output.length - 1] === ".")
-                output = output.slice(0, output.length - 1)
-        }
-    }
-
-    if (unit === "$" || unit === "£") output = unit + output
-    else if (isNoSpaceUnit) {
-        output = output + unit
-    } else if (unit.length > 0) {
-        output = output + " " + unit
-    }
-
-    return output
 }
 
 export function defaultTo<T, K>(
@@ -954,17 +876,6 @@ export function sortByUndefinedLast<T>(
         return mapped
     })
     return order === SortOrder.asc ? sorted : sorted.reverse()
-}
-
-export const getErrorMessageRelatedQuestionUrl = (
-    question: RelatedQuestionsConfig
-): string | undefined => {
-    return question.text
-        ? (!question.url && "Missing URL") ||
-              (!question.url.match(/^https?:\/\//) &&
-                  "URL should start with http(s)://") ||
-              undefined
-        : undefined
 }
 
 export function getAttributesOfHTMLElement(el: HTMLElement) {

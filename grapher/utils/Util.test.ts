@@ -1,7 +1,6 @@
 #! /usr/bin/env yarn jest
 
 import * as timezoneMock from "timezone-mock"
-
 import {
     findClosestTime,
     getStartEndValues,
@@ -23,10 +22,9 @@ import {
     intersection,
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
-} from "grapher/utils/Util"
+} from "./Util"
 import { strToQueryParams } from "utils/client/url"
-import { SortOrder } from "coreTable/CoreTableConstants"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { SortOrder, ScaleType } from "types/owidTypes"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {
