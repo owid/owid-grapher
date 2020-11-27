@@ -4,5 +4,6 @@
         "composite": true,
         "rootDir": "../",
         "baseUrl": "../"
-    }
+    },
+    "references": [{ "path": "../coreTable" }, { "path": "../clientUtils" }]
 }

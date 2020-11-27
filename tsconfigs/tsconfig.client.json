@@ -4,6 +4,11 @@
         "module": "ES6",
         "typeRoots": ["../types", "../node_modules/@types"]
     },
-    "exclude": ["types", "node_modules", "bakedSite", "*.test.ts"],
-    "include": ["*.ts", "*.tsx"]
+    "files": [],
+    "include": [],
+    "references": [
+        { "path": "../coreTable" },
+        { "path": "../clientUtils" },
+        { "path": "../grapher" }
+    ]
 }
