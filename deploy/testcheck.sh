@@ -10,4 +10,4 @@ else
   PRETTIFY_CMD="yarn prettify-all:check"
 fi
 
-$PRETTIFY_CMD && yarn typecheck && yarn test
+$PRETTIFY_CMD && yarn typecheck && jest

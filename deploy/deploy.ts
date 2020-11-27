@@ -172,7 +172,7 @@ const main = async () => {
     } else {
         await runAndTick(`yarn prettify:check`, progressBar)
         await runAndTick(`yarn typecheck`, progressBar)
-        await runAndTick(`yarn test`, progressBar)
+        await runAndTick(`jest`, progressBar)
     }
 
     // Write the current commit SHA to public/head.txt so we always know which commit is deployed

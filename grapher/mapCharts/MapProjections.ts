@@ -5,10 +5,10 @@ import {
     GeoProjection,
     GeoPath,
 } from "d3-geo"
+import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
 // https://github.com/d3/d3-geo-projection/issues/202
 // todo: would be nice to get propert types for this and not have to run different code during testing
-import { geoRobinson, geoPatterson } from "d3-geo-projection"
 const projectionToUseDuringJestTesting = geoConicConformal()
 
 export enum MapProjectionName {
