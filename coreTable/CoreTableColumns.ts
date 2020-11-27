@@ -31,7 +31,7 @@ import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "./OwidSource"
-import { formatValue, TickFormattingOptions } from "./formatValue"
+import { formatValue, TickFormattingOptions } from "clientUtils/formatValue"
 
 interface ColumnSummary {
     numErrorValues: number

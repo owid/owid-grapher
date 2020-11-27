@@ -14,7 +14,7 @@ import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ValueRange } from "coreTable/CoreTableConstants"
 import { ScaleType } from "clientUtils/owidTypes"
-import { TickFormattingOptions } from "coreTable/formatValue"
+import { TickFormattingOptions } from "clientUtils/formatValue"
 
 interface Tickmark {
     value: number
