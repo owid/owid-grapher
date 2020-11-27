@@ -8,13 +8,13 @@
 const common = {
     preset: "ts-jest",
     moduleNameMapper: {
-        "^(adminSite|site|grapher|gitCms|explorer|coreTable|utils|db|deploy|settings|test)/(.*)$":
+        "^(adminSite|site|grapher|gitCms|explorer|coreTable|clientUtils|db|deploy|settings|test)/(.*)$":
             "<rootDir>/$1/$2",
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings",
         // Jest cannot handle importing CSS
         // https://stackoverflow.com/questions/39418555/syntaxerror-with-jest-and-react-and-importing-css-files
-        "\\.(css|less|sass|scss)$": "<rootDir>/utils/styleMock.ts",
+        "\\.(css|less|sass|scss)$": "<rootDir>/jestStyleMock.ts",
     },
 }
 

@@ -31,7 +31,7 @@ import {
 } from "adminSite/server/utils/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
-import { camelCaseProperties } from "utils/object"
+import { camelCaseProperties } from "utils/string"
 import { log } from "utils/server/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
