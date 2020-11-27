@@ -1,4 +1,4 @@
-import { sampleFrom, getRandomNumberGenerator, range } from "grapher/utils/Util"
+import { sampleFrom, getRandomNumberGenerator, range } from "clientUtils/Util"
 import { countries } from "utils/countries"
 import { ColumnSlug, TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"

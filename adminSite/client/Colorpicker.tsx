@@ -2,7 +2,7 @@ import * as React from "react"
 import { action } from "mobx"
 import { SketchPicker } from "react-color"
 
-import { lastOfNonEmptyArray } from "grapher/utils/Util"
+import { lastOfNonEmptyArray } from "clientUtils/Util"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 
 interface ColorpickerProps {

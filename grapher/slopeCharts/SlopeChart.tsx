@@ -14,10 +14,10 @@ import {
     minBy,
     maxBy,
     exposeInstanceOnWindow,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     VerticalColorLegend,

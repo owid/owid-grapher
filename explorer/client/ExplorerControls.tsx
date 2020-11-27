@@ -8,7 +8,7 @@ import {
     ExplorerChoiceOption,
     ExplorerChoice,
 } from "./ExplorerConstants"
-import { splitArrayIntoGroupsOfN } from "grapher/utils/Util"
+import { splitArrayIntoGroupsOfN } from "clientUtils/Util"
 import { GridBoolean } from "explorer/gridLang/GridLangConstants"
 import classNames from "classnames"
 

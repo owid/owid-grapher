@@ -23,7 +23,7 @@ import {
     exposeInstanceOnWindow,
     throttle,
     trimObject,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     SlideShowController,
     SlideShowManager,
@@ -38,7 +38,7 @@ import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerC
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { ColumnSlug, SortOrder, TableSlug } from "coreTable/CoreTableConstants"
 import { isNotErrorValue } from "coreTable/ErrorValues"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"

@@ -13,7 +13,7 @@ import {
     dateDiffInDays,
     isNumber,
     omitUndefinedValues,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { CoreTable } from "./CoreTable"
 import {
     CoreRow,

@@ -12,12 +12,12 @@ import {
     LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
-import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
+import { TimeBoundValue, TimeBound, TimeBounds } from "clientUtils/TimeBounds"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
-import { orderBy } from "grapher/utils/Util"
+import { orderBy } from "clientUtils/Util"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
 import {
@@ -34,7 +34,7 @@ import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "grapher/footer/FooterManager"
 import { HeaderManager } from "grapher/header/HeaderManager"
-import { exposeInstanceOnWindow } from "grapher/utils/Util"
+import { exposeInstanceOnWindow } from "clientUtils/Util"
 
 export interface CaptionedChartManager
     extends ChartManager,

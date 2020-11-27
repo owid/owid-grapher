@@ -5,7 +5,7 @@ import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
 import { Meta } from "@storybook/react"
 

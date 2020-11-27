@@ -2,7 +2,7 @@
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
 import { observable, computed } from "mobx"
-import { trimObject } from "grapher/utils/Util"
+import { trimObject } from "clientUtils/Util"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import {

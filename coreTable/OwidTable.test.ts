@@ -5,7 +5,7 @@ import {
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
-import { flatten } from "grapher/utils/Util"
+import { flatten } from "clientUtils/Util"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import { ErrorValueTypes } from "./ErrorValues"

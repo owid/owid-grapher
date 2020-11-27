@@ -19,12 +19,12 @@ import {
     countBy,
     union,
     exposeInstanceOnWindow,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
 import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { makeSelectionArray } from "grapher/chart/ChartUtils"
 
 interface DataTableState {

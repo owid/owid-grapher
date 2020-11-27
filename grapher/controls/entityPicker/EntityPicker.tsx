@@ -19,7 +19,7 @@ import {
     sortBy,
     sortByUndefinedLast,
     first,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { ColumnSlug, SortOrder } from "coreTable/CoreTableConstants"

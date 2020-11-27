@@ -1,5 +1,5 @@
 import * as React from "react"
-import { clone } from "grapher/utils/Util"
+import { clone } from "clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"

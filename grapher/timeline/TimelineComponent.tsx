@@ -1,7 +1,7 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { getRelativeMouse, isMobile, debounce } from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
+import { getRelativeMouse, isMobile, debounce } from "clientUtils/Util"
+import { Bounds } from "clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
 import { TimelineController } from "./TimelineController"
-import { timeFromTimebounds } from "grapher/utils/TimeBounds"
+import { timeFromTimebounds } from "clientUtils/TimeBounds"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 

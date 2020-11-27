@@ -1,7 +1,7 @@
 import { ChartSeries } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 export interface FacetChartProps {
     bounds?: Bounds

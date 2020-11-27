@@ -7,7 +7,7 @@ import {
     sampleFrom,
     slugifySameCase,
     toString,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     CoreColumnStore,
     CoreRow,

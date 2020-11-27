@@ -1,5 +1,5 @@
 import { imemo, trimArray } from "coreTable/CoreTableUtils"
-import { isPresent } from "grapher/utils/Util"
+import { isPresent } from "clientUtils/Util"
 import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
     CellPosition,

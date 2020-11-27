@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -18,7 +18,7 @@ import {
     difference,
     isPresent,
     exposeInstanceOnWindow,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -50,7 +50,7 @@ import {
 } from "grapher/color/ColorScaleBin"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
-import { PointVector } from "grapher/utils/PointVector"
+import { PointVector } from "clientUtils/PointVector"
 import {
     WorldRegionName,
     WorldRegionToProjection,

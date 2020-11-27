@@ -9,7 +9,7 @@ import {
 import { ChartManager } from "grapher/chart/ChartManager"
 import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
-import { isNumber } from "grapher/utils/Util"
+import { isNumber } from "clientUtils/Util"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {

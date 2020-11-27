@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import Select, { ValueType } from "react-select"
 import { countries } from "utils/countries"
 import { asArray } from "utils/client/react-select"
-import { sortBy } from "grapher/utils/Util"
+import { sortBy } from "clientUtils/Util"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { SiteAnalytics } from "./SiteAnalytics"
 

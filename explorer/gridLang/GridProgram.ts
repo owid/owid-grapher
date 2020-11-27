@@ -1,6 +1,6 @@
 import { imemo, trimMatrix } from "coreTable/CoreTableUtils"
 import { GitCommit } from "gitCms/GitTypes"
-import { isPresent } from "grapher/utils/Util"
+import { isPresent } from "clientUtils/Util"
 import { GridCell } from "./GridCell"
 import {
     CellDef,

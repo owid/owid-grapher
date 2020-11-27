@@ -20,7 +20,7 @@ import {
     maxBy,
     minBy,
     cagr,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     ColumnSlug,
     Integer,
@@ -44,7 +44,7 @@ import {
     makeAnnotationsSlug,
 } from "./LegacyToOwidTable"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
-import { TimeBound } from "grapher/utils/TimeBounds"
+import { TimeBound } from "clientUtils/TimeBounds"
 import {
     getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,

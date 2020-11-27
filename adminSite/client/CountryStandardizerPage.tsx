@@ -20,7 +20,7 @@ import {
     CountryNameFormatDefs,
     CountryDefByKey,
 } from "adminSite/client/CountryNameFormat"
-import { uniq, toString, csvEscape, sortBy } from "grapher/utils/Util"
+import { uniq, toString, csvEscape, sortBy } from "clientUtils/Util"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

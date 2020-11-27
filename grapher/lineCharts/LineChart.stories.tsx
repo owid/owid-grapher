@@ -7,9 +7,9 @@ import {
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { ScaleType } from "grapher/core/GrapherConstants"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import { makeAnnotationsSlug } from "coreTable/LegacyToOwidTable"
-import { range } from "grapher/utils/Util"
+import { range } from "clientUtils/Util"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export default {

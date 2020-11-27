@@ -7,8 +7,8 @@ import {
     uniq,
     sortBy,
     maxBy,
-} from "grapher/utils/Util"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+} from "clientUtils/Util"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"

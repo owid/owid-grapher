@@ -10,7 +10,7 @@ import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { pick, capitalize } from "grapher/utils/Util"
+import { pick, capitalize } from "clientUtils/Util"
 import { Colorpicker } from "./Colorpicker"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"

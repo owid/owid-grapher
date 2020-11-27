@@ -1,4 +1,4 @@
-import { flatten, keyBy, sortNumeric, uniq } from "grapher/utils/Util"
+import { flatten, keyBy, sortNumeric, uniq } from "clientUtils/Util"
 import { StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points in place.

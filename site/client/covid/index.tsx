@@ -11,7 +11,7 @@ import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "grapher/chart/Tippy"
 import { SortOrder } from "coreTable/CoreTableConstants"
-import { oneOf } from "grapher/utils/Util"
+import { oneOf } from "clientUtils/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 

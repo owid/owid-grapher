@@ -12,8 +12,8 @@ import {
 import {
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,
-} from "grapher/utils/TimeBounds"
-import { trimObject } from "grapher/utils/Util"
+} from "clientUtils/TimeBounds"
+import { trimObject } from "clientUtils/Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.

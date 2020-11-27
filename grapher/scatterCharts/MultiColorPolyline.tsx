@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { last } from "grapher/utils/Util"
+import { last } from "clientUtils/Util"
 
 interface MultiColorPolylinePoint {
     x: number

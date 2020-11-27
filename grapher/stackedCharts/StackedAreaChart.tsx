@@ -7,7 +7,7 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "grapher/core/GrapherConstants"
 import { observer } from "mobx-react"

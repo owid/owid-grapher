@@ -17,7 +17,7 @@ import {
     noop,
     getCountryCodeFromNetlifyRedirect,
     sortBy,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"

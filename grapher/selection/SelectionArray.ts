@@ -5,7 +5,7 @@ import {
     OwidTableSlugs,
 } from "coreTable/OwidTableConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { difference, isPresent, mapBy } from "grapher/utils/Util"
+import { difference, isPresent, mapBy } from "clientUtils/Util"
 import { action, computed, observable } from "mobx"
 
 interface Entity {

@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
-import { max, keyBy } from "grapher/utils/Util"
+import { max, keyBy } from "clientUtils/Util"
 
 enum BarState {
     highlighted = "highlighted",

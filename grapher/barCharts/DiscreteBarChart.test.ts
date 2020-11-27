@@ -16,7 +16,7 @@ import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { OwidTable } from "coreTable/OwidTable"
-import { isNumber } from "grapher/utils/Util"
+import { isNumber } from "clientUtils/Util"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })

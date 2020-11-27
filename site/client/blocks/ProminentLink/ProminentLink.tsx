@@ -8,7 +8,7 @@ import {
     splitURLintoPathAndQueryString,
     QueryParams,
 } from "utils/client/url"
-import { union, isEmpty, getAttributesOfHTMLElement } from "grapher/utils/Util"
+import { union, isEmpty, getAttributesOfHTMLElement } from "clientUtils/Util"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 

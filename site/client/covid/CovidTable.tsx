@@ -18,7 +18,7 @@ import {
     extend,
     fromPairs,
     uniq,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { SortOrder } from "coreTable/CoreTableConstants"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 import {

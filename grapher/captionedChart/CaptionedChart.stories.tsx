@@ -4,7 +4,7 @@ import {
     GrapherTabOption,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import * as React from "react"
 import {
     CaptionedChart,

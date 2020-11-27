@@ -14,14 +14,14 @@ import {
     TextField,
     Button,
 } from "./Forms"
-import { debounce } from "grapher/utils/Util"
+import { debounce } from "clientUtils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { TimeBoundValue } from "grapher/utils/TimeBounds"
+import { TimeBoundValue } from "clientUtils/TimeBounds"
 import { GrapherTabOption } from "grapher/core/GrapherConstants"
 
 @observer

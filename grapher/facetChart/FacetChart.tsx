@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
@@ -12,7 +12,7 @@ import {
     DefaultChartClass,
 } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { makeGrid } from "grapher/utils/Util"
+import { makeGrid } from "clientUtils/Util"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { getChartPadding, getFontSize } from "./FacetChartUtils"
 import {

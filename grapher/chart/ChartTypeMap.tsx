@@ -10,7 +10,7 @@ import { MapChart } from "grapher/mapCharts/MapChart"
 import { ChartInterface } from "./ChartInterface"
 import { ChartManager } from "./ChartManager"
 import { ComponentClass, Component } from "react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 interface ChartComponentProps {
     manager: ChartManager

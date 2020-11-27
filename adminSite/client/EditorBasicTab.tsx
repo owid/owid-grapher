@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
-import { sample, sampleSize, startCase } from "grapher/utils/Util"
+import { sample, sampleSize, startCase } from "clientUtils/Util"
 import {
     EntitySelectionMode,
     ChartTypeName,

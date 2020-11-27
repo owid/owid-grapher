@@ -1,5 +1,5 @@
 import { BAKED_BASE_URL } from "settings"
-import { urlToSlug, mergeQueryStr } from "grapher/utils/Util"
+import { urlToSlug, mergeQueryStr } from "clientUtils/Util"
 import { CoreTable } from "coreTable/CoreTable"
 import { ExplorerProgram, EXPLORER_FILE_SUFFIX } from "./client/ExplorerProgram"
 import { getExplorerFromFile } from "./admin/ExplorerBaker"

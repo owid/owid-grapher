@@ -12,7 +12,7 @@ import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
-import { parseIntOrUndefined } from "grapher/utils/Util"
+import { parseIntOrUndefined } from "clientUtils/Util"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { EntitySelectionMode } from "grapher/core/GrapherConstants"
 

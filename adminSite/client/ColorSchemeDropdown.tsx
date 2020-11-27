@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { bind } from "decko"
 
 import { asArray } from "utils/client/react-select"
-import { first } from "grapher/utils/Util"
+import { first } from "clientUtils/Util"
 import { ColorScheme } from "grapher/color/ColorScheme"
 
 export interface ColorSchemeOption {

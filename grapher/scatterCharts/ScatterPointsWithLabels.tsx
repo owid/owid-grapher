@@ -2,8 +2,8 @@ import { scaleLinear } from "d3-scale"
 import { select } from "d3-selection"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { SortOrder } from "coreTable/CoreTableConstants"
-import { Bounds } from "grapher/utils/Bounds"
-import { PointVector } from "grapher/utils/PointVector"
+import { Bounds } from "clientUtils/Bounds"
+import { PointVector } from "clientUtils/PointVector"
 import {
     sortNumeric,
     makeSafeForCSS,
@@ -16,7 +16,7 @@ import {
     first,
     isEmpty,
     guid,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"

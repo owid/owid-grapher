@@ -1,7 +1,7 @@
 import * as React from "react"
 import { TimelineComponent } from "./TimelineComponent"
 import { action, computed, observable } from "mobx"
-import { range } from "grapher/utils/Util"
+import { range } from "clientUtils/Util"
 import { TimelineController, TimelineManager } from "./TimelineController"
 
 class TimelineManagerMock implements TimelineManager {

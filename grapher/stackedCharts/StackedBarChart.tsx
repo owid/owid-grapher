@@ -1,8 +1,8 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { uniq, makeSafeForCSS } from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
+import { uniq, makeSafeForCSS } from "clientUtils/Util"
+import { Bounds } from "clientUtils/Bounds"
 import {
     VerticalAxisComponent,
     AxisTickMarks,

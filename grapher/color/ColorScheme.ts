@@ -2,7 +2,7 @@ import { Color } from "coreTable/CoreTableConstants"
 import { rgb, interpolate } from "d3"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 import { SeriesColorMap, SeriesName } from "grapher/core/GrapherConstants"
-import { lastOfNonEmptyArray, clone, isPresent } from "grapher/utils/Util"
+import { lastOfNonEmptyArray, clone, isPresent } from "clientUtils/Util"
 import { ColorSchemeInterface } from "./ColorConstants"
 import { getLeastUsedColor, interpolateArray } from "./ColorUtils"
 

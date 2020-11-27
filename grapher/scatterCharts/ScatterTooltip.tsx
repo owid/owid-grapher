@@ -1,6 +1,6 @@
 import React from "react"
 import { TextWrap } from "grapher/text/TextWrap"
-import { first, last, compact, uniq } from "grapher/utils/Util"
+import { first, last, compact, uniq } from "clientUtils/Util"
 import { observer } from "mobx-react"
 import { ScatterTooltipProps, SeriesPoint } from "./ScatterPlotChartConstants"
 

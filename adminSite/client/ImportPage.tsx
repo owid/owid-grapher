@@ -1,7 +1,7 @@
 // WIP
 
 import * as React from "react"
-import { isEmpty, difference, clone, uniq } from "grapher/utils/Util"
+import { isEmpty, difference, clone, uniq } from "clientUtils/Util"
 import {
     observable,
     computed,

@@ -1,4 +1,4 @@
-import { flatten } from "grapher/utils/Util"
+import { flatten } from "clientUtils/Util"
 import { ColumnSlug, CoreColumnStore, Time } from "./CoreTableConstants"
 import { CoreColumnDef } from "./CoreColumnDef"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"

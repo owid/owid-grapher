@@ -1,4 +1,4 @@
-import { flatten } from "grapher/utils/Util"
+import { flatten } from "clientUtils/Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 

@@ -15,7 +15,7 @@ import {
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "coreTable/CoreTableConstants"
-import { exposeInstanceOnWindow, slugify } from "grapher/utils/Util"
+import { exposeInstanceOnWindow, slugify } from "clientUtils/Util"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,

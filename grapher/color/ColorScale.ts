@@ -9,7 +9,7 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { Color } from "coreTable/CoreTableConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"

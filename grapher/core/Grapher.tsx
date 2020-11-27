@@ -30,7 +30,7 @@ import {
     findClosestTime,
     excludeUndefined,
     debounce,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -56,7 +56,7 @@ import {
     ChartDimension,
     LegacyDimensionsManager,
 } from "grapher/chart/ChartDimension"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
@@ -68,7 +68,7 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     timeBoundToTimeBoundString,
-} from "grapher/utils/TimeBounds"
+} from "clientUtils/TimeBounds"
 import {
     strToQueryParams,
     queryParamsToStr,

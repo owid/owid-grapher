@@ -1,4 +1,4 @@
-import { maxBy, dateDiffInDays, formatValue } from "grapher/utils/Util"
+import { maxBy, dateDiffInDays, formatValue } from "clientUtils/Util"
 import { utcFormat } from "d3-time-format"
 import { SortOrder } from "coreTable/CoreTableConstants"
 import { TickFormattingOptions } from "coreTable/formatValue"

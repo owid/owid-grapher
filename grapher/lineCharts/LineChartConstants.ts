@@ -1,8 +1,8 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { SeriesName } from "grapher/core/GrapherConstants"
-import { PointVector } from "grapher/utils/PointVector"
-import { TimeBound } from "grapher/utils/TimeBounds"
+import { PointVector } from "clientUtils/PointVector"
+import { TimeBound } from "clientUtils/TimeBounds"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 
 interface LinePoint {

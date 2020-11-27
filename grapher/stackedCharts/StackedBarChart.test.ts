@@ -7,7 +7,7 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import { isNumber } from "grapher/utils/Util"
+import { isNumber } from "clientUtils/Util"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {

@@ -1,4 +1,4 @@
-import { memoize } from "grapher/utils/Util"
+import { memoize } from "clientUtils/Util"
 export interface GlossaryItem {
     term: string
     slug: string

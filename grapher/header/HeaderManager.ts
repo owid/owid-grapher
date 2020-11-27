@@ -1,4 +1,4 @@
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 export interface HeaderManager {
     fontSize?: number

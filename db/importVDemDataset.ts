@@ -6,7 +6,7 @@ import * as XLSX from "xlsx"
 import * as lodash from "lodash"
 import * as fs from "fs-extra"
 
-import { parseCSV, CSVStreamParser } from "utils/csv"
+import { parseCSV, CSVStreamParser } from "./csv"
 import { findUrlsInText } from "utils/string"
 
 import * as db from "db/db"

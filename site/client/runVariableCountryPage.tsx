@@ -1,6 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { clone } from "grapher/utils/Util"
+import { clone } from "clientUtils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"

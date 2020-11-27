@@ -10,7 +10,7 @@ import {
     isNumber,
     trimObject,
     uniqBy,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 
 import {
     LegacyVariablesAndEntityKey,

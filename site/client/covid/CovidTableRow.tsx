@@ -3,7 +3,7 @@ import { observable, computed } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ScaleLinear } from "d3-scale"
-import { dateDiffInDays, addDays } from "grapher/utils/Util"
+import { dateDiffInDays, addDays } from "clientUtils/Util"
 import { CovidCountryDatum, DateRange, CovidDatum } from "./CovidTypes"
 import { CovidTableState } from "./CovidTable"
 import {

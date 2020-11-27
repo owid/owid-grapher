@@ -11,7 +11,7 @@ import { EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "settings"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { startCase } from "grapher/utils/Util"
+import { startCase } from "clientUtils/Util"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 // These properties are coming from OldChart.ts

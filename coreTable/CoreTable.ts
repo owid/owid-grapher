@@ -12,7 +12,7 @@ import {
     intersectionOfSets,
     isPresent,
     isNumber,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {

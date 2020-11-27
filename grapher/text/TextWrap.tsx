@@ -1,6 +1,6 @@
-import { isEmpty, max, stripHTML, linkify } from "grapher/utils/Util"
+import { isEmpty, max, stripHTML, linkify } from "clientUtils/Util"
 import { computed } from "mobx"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import * as React from "react"
 
 declare type FontSize = number

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { debounce, excludeUndefined } from "grapher/utils/Util"
+import { debounce, excludeUndefined } from "clientUtils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"

@@ -11,7 +11,7 @@ import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import { isNumber } from "grapher/utils/Util"
+import { isNumber } from "clientUtils/Util"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

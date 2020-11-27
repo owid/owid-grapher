@@ -27,7 +27,7 @@ import {
 } from "explorer/client/ExplorerConstants"
 import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
-import { slugify } from "grapher/utils/Util"
+import { slugify } from "clientUtils/Util"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 

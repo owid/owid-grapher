@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { orderBy } from "grapher/utils/Util"
+import { orderBy } from "clientUtils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
 import {
