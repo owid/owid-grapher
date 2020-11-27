@@ -1,4 +1,4 @@
-import { isEmpty } from "clientUtils/Util"
+import { isEmpty } from "./Util"
 
 export interface QueryParams {
     [key: string]: string | undefined

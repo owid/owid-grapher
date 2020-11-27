@@ -1,4 +1,4 @@
-import { flatten } from "clientUtils/Util"
+import { flatten } from "./Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 

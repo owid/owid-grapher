@@ -1,6 +1,6 @@
 import ReactDOM from "react-dom"
 import React from "react"
-import { getWindowQueryParams } from "utils/client/url"
+import { getWindowQueryParams } from "clientUtils/url"
 import { siteSearch, SiteSearchResults } from "algolia/searchClient"
 import { SearchResults } from "site/client/SearchResults"
 import { observer } from "mobx-react"

@@ -5,7 +5,7 @@ import {
     getQueryParams,
     getWindowQueryParams,
     QueryParams,
-} from "utils/client/url"
+} from "clientUtils/url"
 import { TimelineComponent } from "grapher/timeline/TimelineComponent"
 import { formatValue } from "clientUtils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

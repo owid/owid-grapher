@@ -6,7 +6,7 @@ import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp"
 import { Json } from "clientUtils/Util"
-import { queryParamsToStr } from "utils/client/url"
+import { queryParamsToStr } from "clientUtils/url"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
 

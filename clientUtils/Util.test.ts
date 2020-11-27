@@ -23,7 +23,7 @@ import {
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
 } from "./Util"
-import { strToQueryParams } from "utils/client/url"
+import { strToQueryParams } from "./url"
 import { SortOrder, ScaleType } from "types/owidTypes"
 
 describe(findClosestTime, () => {

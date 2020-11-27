@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { chunkParagraphs, htmlToPlaintext } from "utils/search"
+import { chunkParagraphs, htmlToPlaintext } from "./search"
 
 const CO2_TEXT = `The large growth in global CO₂ emissions has had a significant impact on the concentrations of CO₂ in Earth’s atmosphere. If we look at atmospheric concentrations over the past 2000 years (see the Data Quality and Measurement section in this entry for explanation on how we estimate historical emissions), we see that levels were fairly stable at 270-285 parts per million (ppm) until the 18th century. Since the Industrial Revolution, global CO₂ concentrations have been increasing rapidly.
 

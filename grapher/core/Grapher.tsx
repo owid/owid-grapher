@@ -73,7 +73,7 @@ import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-} from "utils/client/url"
+} from "clientUtils/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,

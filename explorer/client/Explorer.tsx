@@ -51,7 +51,7 @@ import {
     objectFromPatch,
     objectToPatch,
 } from "./Patch"
-import { setWindowQueryStr } from "utils/client/url"
+import { setWindowQueryStr } from "clientUtils/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

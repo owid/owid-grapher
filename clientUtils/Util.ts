@@ -128,7 +128,7 @@ import {
 } from "types/owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
-import { queryParamsToStr, strToQueryParams } from "utils/client/url"
+import { queryParamsToStr, strToQueryParams } from "./url"
 
 export type SVGElement = any
 export type VNode = any

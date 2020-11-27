@@ -13,7 +13,7 @@ import {
     isPresent,
     isNumber,
 } from "clientUtils/Util"
-import { queryParamsToStr } from "utils/client/url"
+import { queryParamsToStr } from "clientUtils/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,

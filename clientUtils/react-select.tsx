@@ -1,19 +1,18 @@
 import { ValueType, OptionsType, StylesConfig } from "react-select"
 
-export function isMultiValue<T>(value: ValueType<T>): value is OptionsType<T> {
-    return Array.isArray(value)
-}
+const isMultiValue = <T,>(value: ValueType<T>): value is OptionsType<T> =>
+    Array.isArray(value)
 
-export function asArray<T>(value: ValueType<T>): T[] {
+export const asArray = <T,>(value: ValueType<T>): T[] => {
     if (value == null) return []
-    else if (isMultiValue(value)) return Array.from(value)
-    else return [value]
+    if (isMultiValue(value)) return Array.from(value)
+    return [value]
 }
 
-export function getStylesForTargetHeight(
+export const getStylesForTargetHeight = (
     targetHeight: number,
     props: any = {}
-): StylesConfig {
+): StylesConfig => {
     // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
     const {
         control,
