@@ -1,3 +1,5 @@
+import { d3Format } from "./Util"
+
 export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string

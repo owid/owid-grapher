@@ -137,7 +137,7 @@ export type VNode = any
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
 // See https://observablehq.com/@d3/d3v6-migration-guide#minus
-const d3Format = formatLocale({
+export const d3Format = formatLocale({
     decimal: ".",
     thousands: ",",
     grouping: [3],
@@ -213,7 +213,7 @@ export function formatDay(
     return moment.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
 }
 
-export function formatYear(year: number): string {
+export const formatYear = (year: number) => {
     if (isNaN(year)) {
         console.warn(`Invalid year '${year}'`)
         return ""
