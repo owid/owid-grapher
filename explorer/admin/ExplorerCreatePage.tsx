@@ -43,6 +43,7 @@ export class ExplorerCreatePage extends React.Component<{
     slug: string
     gitCmsBranchName: string
     manager?: ExplorerCreatePageManager
+    doNotFetch?: boolean // for testing
 }> {
     @computed private get manager() {
         return this.props.manager ?? {}
@@ -62,9 +63,11 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action componentDidMount() {
         this.loadingModalOff()
-        this.fetchExplorerProgramOnLoad()
         exposeInstanceOnWindow(this, "explorerEditor")
 
+        if (this.props.doNotFetch) return
+
+        this.fetchExplorerProgramOnLoad()
         setInterval(() => {
             const patch = localStorage.getItem(
                 `${UNSAVED_EXPLORER_PREVIEW_PATCH}${this.program.slug}`
