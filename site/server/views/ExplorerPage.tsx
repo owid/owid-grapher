@@ -6,7 +6,7 @@ import { SiteFooter } from "site/server/views/SiteFooter"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "site/server/views/IframeDetector"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
-import ExplorerContent from "./ExplorerContent"
+import { formatReusableBlock } from "site/server/formatting"
 import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,
@@ -21,6 +21,27 @@ interface ExplorerPageSettings {
     program: ExplorerProgram
     wpContent?: string
     grapherConfigs: GrapherInterface[]
+}
+
+const ExplorerContent = ({ content }: { content: string }) => {
+    return (
+        <div className="explorerContentContainer">
+            <div className="sidebar"></div>
+            <div className="article-content">
+                <section>
+                    <div className="wp-block-columns is-style-sticky-right">
+                        <div
+                            className="wp-block-column"
+                            dangerouslySetInnerHTML={{
+                                __html: formatReusableBlock(content),
+                            }}
+                        ></div>
+                        <div className="wp-block-column"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    )
 }
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {

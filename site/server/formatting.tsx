@@ -12,7 +12,7 @@ import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
 import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
-import { FormattedPost } from "clientUtils/owidTypes"
+import { FormattedPost, SubNavId } from "clientUtils/owidTypes"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "grapher/controls/globalEntityControl/bakeGlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
@@ -23,7 +23,7 @@ import {
     replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
     legacyCovidDashboardSlug,
 } from "explorer/legacyCovidExplorerRedirects"
-import { SubNavId } from "./views/SiteSubnavigation"
+
 import {
     countryProfileDefaultCountryPlaceholder,
     countryProfileSpecs,

@@ -1,19 +1,13 @@
 import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
+import { SubNavId } from "clientUtils/owidTypes"
 
 interface SubnavItem {
     label: string
     href: string
     id: string
     highlight?: boolean
-}
-
-export enum SubNavId {
-    about = "about",
-    coronavirus = "coronavirus",
-    co2 = "co2",
-    energy = "energy",
 }
 
 const subnavs: { [key in SubNavId]: SubnavItem[] } = {

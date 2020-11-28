@@ -1,4 +1,4 @@
-import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { SubNavId } from "clientUtils/owidTypes"
 import {
     CellDef,
     BooleanCellDef,
@@ -9,7 +9,6 @@ import {
     IntegerCellDef,
     SlugsDeclarationCellDef,
     Grammar,
-    QueryStringCellDef,
     EnumCellDef,
     StringDeclarationDef,
 } from "gridLang/GridLangConstants"

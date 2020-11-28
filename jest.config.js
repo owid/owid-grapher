@@ -6,15 +6,11 @@
 // between client and server tests. -@jasoncrawford 2019-12-03
 
 const common = {
-    preset: "ts-jest",
     moduleNameMapper: {
         "^(adminSite|site|grapher|gitCms|explorer|coreTable|clientUtils|serverUtils|db|deploy)/(.*)$":
-            "<rootDir>/$1/$2",
+            "<rootDir>/$1/compiled/$2",
         "^settings$": "<rootDir>/settings",
         "^serverSettings$": "<rootDir>/serverSettings",
-        // Jest cannot handle importing CSS
-        // https://stackoverflow.com/questions/39418555/syntaxerror-with-jest-and-react-and-importing-css-files
-        "\\.(css|less|sass|scss)$": "<rootDir>/jestStyleMock.ts",
     },
 }
 
@@ -26,14 +22,14 @@ module.exports = {
             displayName: "node",
             testEnvironment: "node",
             testPathIgnorePatterns: [".jsdom.test."],
-            testMatch: ["**/*.test.(tsx|ts)"],
+            testMatch: ["**/*.test.(jsx|js)"],
         },
-        {
-            ...common,
-            displayName: "jsdom",
-            testEnvironment: "jsdom",
-            setupFilesAfterEnv: ["<rootDir>/.enzymeSetup.ts"],
-            testMatch: ["**/*.jsdom.test.(tsx|ts)"],
-        },
+        // {
+        //     ...common,
+        //     displayName: "jsdom",
+        //     testEnvironment: "jsdom",
+        //     setupFilesAfterEnv: ["<rootDir>/.enzymeSetup.ts"],
+        //     testMatch: ["**/*.jsdom.test.(jsx|js)"],
+        // },
     ],
 }

@@ -1,7 +1,7 @@
 import { trimObject } from "clientUtils/Util"
 import { queryParamsToStr } from "clientUtils/url"
 import { action, observable, computed } from "mobx"
-import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { SubNavId } from "clientUtils/owidTypes"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,

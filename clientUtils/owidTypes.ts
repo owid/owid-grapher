@@ -60,3 +60,10 @@ export interface FormattedPost {
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
     relatedCharts?: RelatedChart[]
 }
+
+export enum SubNavId {
+    about = "about",
+    coronavirus = "coronavirus",
+    co2 = "co2",
+    energy = "energy",
+}
