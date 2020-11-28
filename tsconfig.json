@@ -6,6 +6,7 @@
     "references": [
         { "path": "./clientUtils" },
         { "path": "./gridLang" },
-        { "path": "./gitCms" }
+        { "path": "./gitCms" },
+        { "path": "./coreTable" }
     ]
 }
