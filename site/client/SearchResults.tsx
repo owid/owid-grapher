@@ -3,7 +3,7 @@ import {
     ChartHit,
     CountryHit,
     ArticleHit,
-} from "algolia/searchClient"
+} from "site/algolia/searchClient"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import React from "react"
