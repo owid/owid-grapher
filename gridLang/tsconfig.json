@@ -1,7 +1,12 @@
 {
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./compiled/"
+        "outDir": "./compiled/",
+        "baseUrl": "../"
     },
-    "references": [{ "path": "../clientUtils" }, { "path": "../gitCms" }]
+    "references": [
+        { "path": "../clientUtils" },
+        { "path": "../gitCms" },
+        { "path": "../coreTable" }
+    ]
 }
