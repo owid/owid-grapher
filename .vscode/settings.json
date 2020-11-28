@@ -8,7 +8,8 @@
     "search.exclude": {
         "dist": true,
         "**/compiled": true,
-        "bakedSite": true
+        "bakedSite": true,
+        "yarn.lock": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.preferences.useAliasesForRenames": false,
