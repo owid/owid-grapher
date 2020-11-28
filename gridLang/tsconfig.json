@@ -1,8 +1,6 @@
 {
-    "extends": "../tsconfigs/tsconfig-base.json",
+    "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "composite": true,
-        "rootDir": "../",
-        "baseUrl": "../"
+        "outDir": "./compiled/"
     }
 }

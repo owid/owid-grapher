@@ -24,6 +24,7 @@
         "prettify-all:check": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
+        "tbuild": "tsc --build",
         "test": "jest",
         "test-watch": "jest --watch",
         "test-single-process": "jest --maxWorkers=1",

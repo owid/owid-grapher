@@ -119,13 +119,7 @@ import { formatLocale } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import {
-    SortOrder,
-    Integer,
-    Time,
-    EPOCH_DATE,
-    ScaleType,
-} from "clientUtils/owidTypes"
+import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "./url"

@@ -2,21 +2,19 @@ import { flatten } from "./Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 
-export function htmlToPlaintext(html: string): string {
-    return fromString(html, {
+export const htmlToPlaintext = (html: string) =>
+    fromString(html, {
         tables: true,
         ignoreHref: true,
         wordwrap: false,
         uppercaseHeadings: false,
         ignoreImage: true,
     })
-}
 
-export function chunkWords(text: string, maxChunkLength: number): string[] {
-    return chunk(text, maxChunkLength)
-}
+export const chunkWords = (text: string, maxChunkLength: number) =>
+    chunk(text, maxChunkLength)
 
-export function chunkSentences(text: string, maxChunkLength: number): string[] {
+export const chunkSentences = (text: string, maxChunkLength: number) => {
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g
@@ -36,18 +34,16 @@ export function chunkSentences(text: string, maxChunkLength: number): string[] {
     if (!chunk) return []
 
     while (true) {
-        const s = sentences.pop()
-        if (!s) {
+        const sentence = sentences.pop()
+        if (!sentence) {
             chunks.push(chunk)
             break
         } else {
-            const nextChunk: string = chunk + " " + s
+            const nextChunk: string = chunk + " " + sentence
             if (nextChunk.length > maxChunkLength) {
                 chunks.push(chunk)
-                chunk = s
-            } else {
-                chunk = nextChunk
-            }
+                chunk = sentence
+            } else chunk = nextChunk
         }
     }
 
@@ -56,10 +52,7 @@ export function chunkSentences(text: string, maxChunkLength: number): string[] {
 
 // Chunks a given bit of text into an array of fragments less than or equal to maxChunkLength in size
 // These chunks will honor sentence boundaries where possible
-export function chunkParagraphs(
-    text: string,
-    maxChunkLength: number
-): string[] {
+export const chunkParagraphs = (text: string, maxChunkLength: number) => {
     const paragraphs = flatten(
         text
             .split("\n\n")
@@ -87,9 +80,7 @@ export function chunkParagraphs(
             if (nextChunk.length > maxChunkLength) {
                 chunks.push(chunk)
                 chunk = p
-            } else {
-                chunk = nextChunk
-            }
+            } else chunk = nextChunk
         }
     }
 

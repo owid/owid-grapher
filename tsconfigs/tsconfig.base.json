@@ -6,6 +6,10 @@
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true,
+        "composite": true,
+
+        "declaration": true,
+        "declarationMap": true,
 
         // We start with https://github.com/tsconfig/bases/blob/master/bases/node14.json then drop:
         //   "lib": ["es2020"],
@@ -21,15 +25,8 @@
         "moduleResolution": "node",
         "jsx": "react",
 
-        "outDir": "./dist/",
-        "baseUrl": "../",
-        "rootDir": "../",
-
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "plugins": [],
         "keyofStringsOnly": true
-    },
-    "exclude": ["node_modules", "bakedSite", "*.test.ts"],
-    "include": ["*.ts", "*.tsx"]
+    }
 }

@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { getCountryDetectionRedirects } from "clientUtils/countries"
+import { getCountryDetectionRedirects } from "./countries"
 
 it("generates correct country redirect urls for netlify", () => {
     expect(getCountryDetectionRedirects()).toContain(

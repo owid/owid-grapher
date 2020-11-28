@@ -1,6 +1,9 @@
 {
-    "extends": "./tsconfigs/tsconfig-base.json",
+    "extends": "./tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "composite": false
+    },
     "files": [],
-    "include": [],
-    "references": [{ "path": "./coreTable" }]
+
+    "references": [{ "path": "./clientUtils" }]
 }
