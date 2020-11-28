@@ -2,6 +2,5 @@
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "outDir": "./compiled/"
-    },
-    "include": ["*.ts", "*.tsx"]
+    }
 }

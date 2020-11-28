@@ -7,6 +7,7 @@
     "files.insertFinalNewline": false,
     "search.exclude": {
         "dist": true,
+        "**/compiled": true,
         "bakedSite": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",

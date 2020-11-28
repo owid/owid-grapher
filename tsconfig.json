@@ -3,7 +3,9 @@
     "compilerOptions": {
         "composite": false
     },
-    "files": [],
-
-    "references": [{ "path": "./clientUtils" }]
+    "references": [
+        { "path": "./clientUtils" },
+        { "path": "./gridLang" },
+        { "path": "./gitCms" }
+    ]
 }

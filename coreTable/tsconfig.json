@@ -1,7 +1,8 @@
 {
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "rootDir": "../",
+        "outDir": "./compiled/",
         "baseUrl": "../"
-    }
+    },
+    "references": [{ "path": "../clientUtils" }]
 }
