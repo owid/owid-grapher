@@ -25,7 +25,6 @@ class BlankButShouldBeNumber extends ErrorValue {}
 class UndefinedButShouldBeString extends ErrorValue {}
 class NullButShouldBeString extends ErrorValue {}
 class NotAParseableNumberButShouldBeNumber extends ErrorValue {}
-class MissingValuePlaceholder extends ErrorValue {}
 class DivideByZeroError extends ErrorValue {}
 class NoValueWithinTolerance extends ErrorValue {}
 class NoMatchingValueAfterJoin extends ErrorValue {}
@@ -33,6 +32,9 @@ class ValueTooLow extends ErrorValue {}
 class NoValueToCompareAgainst extends ErrorValue {}
 class FilteredValue extends ErrorValue {}
 class NoValueForInterpolation extends ErrorValue {}
+
+// todo: if we don't export this, get an error in Transforms. should be fixable, see: https://github.com/microsoft/TypeScript/issues/5711
+export class MissingValuePlaceholder extends ErrorValue {}
 
 export const ErrorValueTypes = {
     NaNButShouldBeNumber: new NaNButShouldBeNumber(),
