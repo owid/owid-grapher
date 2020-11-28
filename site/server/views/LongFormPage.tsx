@@ -7,7 +7,6 @@ import { SiteFooter } from "./SiteFooter"
 import {
     formatAuthors,
     formatDate,
-    FormattedPost,
     FormattingOptions,
     TocHeading,
 } from "site/server/formatting"
@@ -17,6 +16,7 @@ import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "site/client/TableOfContents"
 import { PageType } from "db/wpdb"
+import { FormattedPost } from "clientUtils/owidTypes"
 
 export interface PageOverrides {
     pageTitle?: string

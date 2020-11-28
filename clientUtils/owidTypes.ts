@@ -31,3 +31,32 @@ export enum ScaleType {
     linear = "linear",
     log = "log",
 }
+
+export interface RelatedChart {
+    title: string
+    slug: string
+    variantName?: string | null
+}
+
+export interface FormattedPost {
+    id: number
+    postId?: number
+    type: "post" | "page"
+    slug: string
+    path: string
+    title: string
+    subtitle?: string | null
+    date: Date
+    modifiedDate: Date
+    lastUpdated?: string | null
+    authors: string[]
+    byline?: string | null
+    info?: string | null
+    html: string
+    footnotes: string[]
+    references: Record<string, unknown>[]
+    excerpt: string
+    imageUrl?: string
+    tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    relatedCharts?: RelatedChart[]
+}

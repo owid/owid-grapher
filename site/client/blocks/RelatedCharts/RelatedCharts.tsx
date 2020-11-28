@@ -2,12 +2,7 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 import { useState, useEffect, useRef } from "react"
 import { MultiEmbedderSingleton } from "site/client/figures/MultiEmbedder"
-
-export interface RelatedChart {
-    title: string
-    slug: string
-    variantName?: string | null
-}
+import { RelatedChart } from "clientUtils/owidTypes"
 
 const RELATED_CHARTS_CLASS_NAME = "related-charts"
 

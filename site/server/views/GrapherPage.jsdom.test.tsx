@@ -7,7 +7,7 @@ import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Post } from "db/model/Post"
-import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { RelatedChart } from "clientUtils/owidTypes"
 
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { GrapherInterface } from "grapher/core/GrapherInterface"

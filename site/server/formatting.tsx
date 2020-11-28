@@ -11,10 +11,8 @@ import Tablepress from "./views/Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
-import {
-    RelatedCharts,
-    RelatedChart,
-} from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { FormattedPost } from "clientUtils/owidTypes"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "grapher/controls/globalEntityControl/bakeGlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
@@ -43,31 +41,6 @@ const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-pre
 const DEEP_LINK_CLASS = "deep-link"
 
 const formatMathJax = initMathJax()
-
-export interface Reference {}
-
-export interface FormattedPost {
-    id: number
-    postId?: number
-    type: "post" | "page"
-    slug: string
-    path: string
-    title: string
-    subtitle?: string | null
-    date: Date
-    modifiedDate: Date
-    lastUpdated?: string | null
-    authors: string[]
-    byline?: string | null
-    info?: string | null
-    html: string
-    footnotes: string[]
-    references: Reference[]
-    excerpt: string
-    imageUrl?: string
-    tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
-    relatedCharts?: RelatedChart[]
-}
 
 export interface TocHeading {
     text: string
@@ -705,57 +678,42 @@ function parseFormattingOptions(text: string): FormattingOptions {
     return options
 }
 
-export function formatLinks(html: string): string {
-    // Standardize urls
-    return html
+// Standardize urls
+export const formatLinks = (html: string) =>
+    html
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
-}
 
-export function formatReusableBlock(html: string): string {
-    return formatLinks(html)
-}
+export const formatReusableBlock = (html: string) => formatLinks(html)
 
-export async function formatPost(
+export const formatPost = async (
     post: FullPost,
     formattingOptions: FormattingOptions,
     grapherExports?: GrapherExports
-): Promise<FormattedPost> {
-    let html = post.content
-
-    html = formatLinks(html)
+): Promise<FormattedPost> => {
+    const html = formatLinks(post.content)
 
     // No formatting applied, plain source HTML returned
-    if (formattingOptions.raw) {
+    if (formattingOptions.raw)
         return {
-            id: post.id,
-            type: post.type,
-            slug: post.slug,
-            path: post.path,
-            title: post.title,
-            date: post.date,
-            modifiedDate: post.modifiedDate,
-            authors: post.authors,
-            html: html,
+            ...post,
+            html,
             footnotes: [],
             references: [],
-            excerpt: post.excerpt || "",
-            imageUrl: post.imageUrl,
             tocHeadings: [],
-            relatedCharts: post.relatedCharts,
+            excerpt: post.excerpt || "",
         }
-    } else {
-        // Override formattingOptions if specified in the post (as an HTML comment)
-        const options: FormattingOptions = Object.assign(
-            {
-                toc: post.type === "page",
-                footnotes: true,
-            },
-            formattingOptions
-        )
-        return formatWordpressPost(post, html, options, grapherExports)
-    }
+
+    // Override formattingOptions if specified in the post (as an HTML comment)
+    const options: FormattingOptions = Object.assign(
+        {
+            toc: post.type === "page",
+            footnotes: true,
+        },
+        formattingOptions
+    )
+    return formatWordpressPost(post, html, options, grapherExports)
 }
 
 export function formatCountryProfile(

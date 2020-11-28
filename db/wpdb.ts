@@ -17,7 +17,7 @@ import fetch from "node-fetch"
 import { defaultTo, memoize } from "clientUtils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
-import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
+import { RelatedChart } from "clientUtils/owidTypes"
 import { JsonError } from "serverUtils/serverUtil"
 import {
     CountryProfileSpec,
