@@ -1,6 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { throttle, fetchText, isPresent, isMobile } from "clientUtils/Util"
+import { throttle, fetchText, isMobile } from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "clientUtils/url"
 import { deserializeJSONFromHTML } from "clientUtils/serializers"

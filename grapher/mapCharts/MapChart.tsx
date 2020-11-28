@@ -16,9 +16,9 @@ import {
     guid,
     minBy,
     difference,
-    isPresent,
     exposeInstanceOnWindow,
 } from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"

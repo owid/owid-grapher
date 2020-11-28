@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { GridCell } from "explorer/gridLang/GridCell"
+import { GridCell } from "./GridCell"
 import {
     CellDef,
     CellHasErrorsClass,
@@ -8,7 +8,7 @@ import {
     Grammar,
     RootKeywordCellDef,
     StringCellDef,
-} from "explorer/gridLang/GridLangConstants"
+} from "./GridLangConstants"
 import { tsvToMatrix } from "./GrammarUtils"
 
 const TestGrammar: Grammar = {

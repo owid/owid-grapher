@@ -6,7 +6,6 @@ import {
     isString,
     last,
     uniq,
-    isPresent,
     sortNumeric,
     range,
     union,
@@ -14,6 +13,7 @@ import {
     isNumber,
     omitUndefinedValues,
 } from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
 import { CoreTable } from "./CoreTable"
 import {
     CoreRow,

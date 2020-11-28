@@ -1,4 +1,4 @@
-import { GitCommit } from "gitCms/GitTypes"
+import { GitCommit } from "./GridImports"
 
 export interface SerializedGridProgram {
     slug: string

@@ -8,7 +8,6 @@ import {
     flatten,
     uniq,
     sortNumeric,
-    isPresent,
     last,
     keyBy,
     groupBy,
@@ -21,6 +20,7 @@ import {
     minBy,
     cagr,
 } from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
 import {
     ColumnSlug,
     Integer,
