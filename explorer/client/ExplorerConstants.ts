@@ -1,4 +1,4 @@
-import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
+import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 
 export enum ExplorerControlType {
     Radio = "Radio",

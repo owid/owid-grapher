@@ -6,7 +6,7 @@ import {
     StringCellDef,
     IntegerCellDef,
     UrlCellDef,
-} from "explorer/gridLang/GridLangConstants"
+} from "gridLang/GridLangConstants"
 
 export const ColumnGrammar: Grammar = {
     slug: {

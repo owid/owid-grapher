@@ -1,7 +1,6 @@
 {
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "rootDir": "../",
         "baseUrl": "../"
     },
     "references": [{ "path": "../coreTable" }, { "path": "../clientUtils" }]

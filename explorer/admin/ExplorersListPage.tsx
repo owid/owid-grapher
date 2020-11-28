@@ -18,7 +18,7 @@ import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
 import { orderBy } from "clientUtils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
+import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 import {
     deleteRemoteFile,
     pullFromGithub,

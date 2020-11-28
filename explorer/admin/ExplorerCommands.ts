@@ -1,6 +1,6 @@
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { CellPosition } from "explorer/gridLang/GridLangConstants"
+import { CellPosition } from "gridLang/GridLangConstants"
 import Handsontable from "handsontable"
 
 abstract class HotCommand {

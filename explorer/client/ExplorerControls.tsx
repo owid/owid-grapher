@@ -9,7 +9,7 @@ import {
     ExplorerChoice,
 } from "./ExplorerConstants"
 import { splitArrayIntoGroupsOfN } from "clientUtils/Util"
-import { GridBoolean } from "explorer/gridLang/GridLangConstants"
+import { GridBoolean } from "gridLang/GridLangConstants"
 import classNames from "classnames"
 
 const AVAILABLE_OPTION_CLASS = "AvailableOption"

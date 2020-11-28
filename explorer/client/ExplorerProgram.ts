@@ -26,11 +26,11 @@ import {
     GRID_NODE_DELIMITER,
     Grammar,
     RootKeywordCellDef,
-} from "explorer/gridLang/GridLangConstants"
+} from "gridLang/GridLangConstants"
 import { GitCommit } from "gitCms/GitTypes"
 import { OwidTable } from "coreTable/OwidTable"
-import { GridProgram } from "explorer/gridLang/GridProgram"
-import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
+import { GridProgram } from "gridLang/GridProgram"
+import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"

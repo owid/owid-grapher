@@ -7,7 +7,7 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
-} from "explorer/gridLang/GridLangConstants"
+} from "gridLang/GridLangConstants"
 import {
     ChartTypeName,
     FacetStrategy,

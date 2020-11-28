@@ -11,7 +11,7 @@ import {
 } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
-import { SerializedGridProgram } from "explorer/gridLang/SerializedGridProgram"
+import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 import { ENTITY_V2_DELIMITER } from "grapher/core/EntityUrlBuilder"
 import {
     Grapher,

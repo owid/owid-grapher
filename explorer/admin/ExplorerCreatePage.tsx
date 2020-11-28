@@ -28,7 +28,7 @@ import {
     InlineDataCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands"
-import { isEmpty } from "explorer/gridLang/GrammarUtils"
+import { isEmpty } from "gridLang/GrammarUtils"
 import classNames from "classnames"
 import { GitCmsFile } from "gitCms/GitCmsConstants"
 

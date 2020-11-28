@@ -5,7 +5,7 @@ import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
-} from "explorer/gridLang/GridLangConstants"
+} from "gridLang/GridLangConstants"
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 

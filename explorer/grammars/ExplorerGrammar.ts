@@ -12,7 +12,7 @@ import {
     QueryStringCellDef,
     EnumCellDef,
     StringDeclarationDef,
-} from "explorer/gridLang/GridLangConstants"
+} from "gridLang/GridLangConstants"
 import { OwidDatasets } from "./OwidDatasets"
 import { GrapherGrammar } from "./GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
