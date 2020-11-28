@@ -2,7 +2,7 @@ import { sampleFrom, getRandomNumberGenerator, range } from "clientUtils/Util"
 import { countries } from "clientUtils/countries"
 import { ColumnSlug, TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
+import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableDisplayConfigInterface"
 import { OwidTable } from "./OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 

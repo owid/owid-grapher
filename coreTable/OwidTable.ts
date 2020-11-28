@@ -28,8 +28,8 @@ import {
     TransformType,
     CoreColumnStore,
     Color,
-} from "coreTable/CoreTableConstants"
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
+} from "./CoreTableConstants"
+import { ColumnTypeNames } from "./CoreColumnDef"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import {

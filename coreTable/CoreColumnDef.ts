@@ -1,4 +1,4 @@
-import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
+import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableDisplayConfigInterface"
 import { ColumnSlug, CoreValueType, Color } from "./CoreTableConstants"
 
 export enum ColumnTypeNames {

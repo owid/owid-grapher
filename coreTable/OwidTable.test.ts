@@ -1,11 +1,11 @@
 #! /usr/bin/env jest
+
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
-import { flatten } from "clientUtils/Util"
+} from "./OwidTableSynthesizers"
+import { BlankOwidTable, OwidTable } from "./OwidTable"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { ErrorValueTypes } from "./ErrorValues"
 
@@ -91,11 +91,11 @@ it("can group data by entity and time", () => {
         entityCount: 5,
     })
 
-    const timeValues = flatten(
-        Array.from(
-            table.get("Population").valueByEntityNameAndTime.values()
-        ).map((value) => Array.from(value.values()))
+    const timeValues = Array.from(
+        table.get("Population").valueByEntityNameAndTime.values()
     )
+        .map((value) => Array.from(value.values()))
+        .flat()
 
     expect(timeValues.length).toEqual(50)
     expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])

@@ -23,7 +23,7 @@ import {
     JsTypes,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { EntityName } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
