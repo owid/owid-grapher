@@ -17,7 +17,6 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,

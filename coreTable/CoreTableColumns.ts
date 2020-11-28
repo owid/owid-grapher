@@ -23,10 +23,8 @@ import {
     JsTypes,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-
 import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
-import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
@@ -163,7 +161,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get display() {
-        return this.def.display || new LegacyVariableDisplayConfig()
+        return this.def.display || {}
     }
 
     abstract formatValue(value: any, options?: TickFormattingOptions): string

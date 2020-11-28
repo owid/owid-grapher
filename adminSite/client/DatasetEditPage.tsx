@@ -14,10 +14,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import {
-    LegacyVariableDisplayConfigInterface,
-    LegacyVariableDisplayConfig,
-} from "coreTable/LegacyVariableCode"
+import { LegacyVariableDisplayConfig } from "coreTable/LegacyVariableCode"
 import { OwidSource } from "coreTable/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
@@ -42,6 +39,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
 
 class VariableEditable {
     @observable name: string = ""

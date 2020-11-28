@@ -3,7 +3,7 @@ import { Writable } from "stream"
 
 import * as db from "db/db"
 import { csvRow } from "serverUtils/serverUtil"
-import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableCode"
+import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
 
 export namespace Variable {
     export interface Row {

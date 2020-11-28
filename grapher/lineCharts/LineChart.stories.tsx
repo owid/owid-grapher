@@ -8,8 +8,7 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds } from "clientUtils/Bounds"
-import { makeAnnotationsSlug } from "coreTable/LegacyToOwidTable"
-import { range } from "clientUtils/Util"
+import { makeAnnotationsSlug } from "clientUtils/Util"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export default {

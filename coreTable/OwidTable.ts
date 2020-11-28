@@ -1,4 +1,3 @@
-import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import {
     max,
     min,
@@ -19,6 +18,7 @@ import {
     maxBy,
     minBy,
     cagr,
+    makeAnnotationsSlug,
 } from "clientUtils/Util"
 import { isPresent } from "clientUtils/isPresent"
 import {
@@ -32,17 +32,12 @@ import {
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
-import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
     EntityName,
     OwidColumnDef,
     OwidRow,
     OwidTableSlugs,
 } from "./OwidTableConstants"
-import {
-    legacyToOwidTableAndDimensions,
-    makeAnnotationsSlug,
-} from "./LegacyToOwidTable"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { TimeBound } from "clientUtils/TimeBounds"
 import {
@@ -890,15 +885,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             `Interpolated values`,
             TransformType.UpdateColumnDefs
         )
-    }
-
-    // This takes both the Variables and Dimensions data and generates an OwidTable.
-    static fromLegacy(
-        json: LegacyVariablesAndEntityKey,
-        grapherConfig: Partial<LegacyGrapherInterface> = {}
-    ) {
-        const { table } = legacyToOwidTableAndDimensions(json, grapherConfig)
-        return table
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.

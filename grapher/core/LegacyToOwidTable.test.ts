@@ -2,11 +2,14 @@
 
 import { ChartTypeName, DimensionProperty } from "grapher/core/GrapherConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
-import { ColumnTypeMap } from "./CoreTableColumns"
-import { ErrorValueTypes } from "./ErrorValues"
+import { ColumnTypeMap } from "coreTable/CoreTableColumns"
+import { ErrorValueTypes } from "coreTable/ErrorValues"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
-import { OwidTableSlugs, StandardOwidColumnDefs } from "./OwidTableConstants"
+import {
+    OwidTableSlugs,
+    StandardOwidColumnDefs,
+} from "coreTable/OwidTableConstants"
 
 describe(legacyToOwidTableAndDimensions, () => {
     const legacyVariableConfig: LegacyVariablesAndEntityKey = {
@@ -315,3 +318,105 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
     })
 })
+
+describe("creating a table from legacy", () => {
+    const table = legacyToOwidTableAndDimensions(getLegacyVarSet(), {
+        ...getLegacyGrapherConfig(),
+        selectedData: [{ entityId: 45, index: 0, color: "blue" }],
+    }).table
+    const name =
+        "Prevalence of wasting, weight for height (% of children under 5)"
+
+    it("can create a table and detect columns from legacy", () => {
+        expect(table.numRows).toEqual(3)
+        expect(table.columnSlugs).toEqual([
+            "entityName",
+            "entityId",
+            "entityCode",
+            "entityColor",
+            "year",
+            "3512",
+            "time", // todo: what is the best design here?
+        ])
+
+        expect(table.columnNames).toEqual([
+            "Entity",
+            "entityId",
+            "Code",
+            "entityColor",
+            "Year",
+            name,
+            "time",
+        ])
+
+        expect(table.get("3512").displayName).toBe("Some Display Name")
+    })
+
+    it("can apply legacy unit conversion factors", () => {
+        const varSet = getLegacyVarSet()
+        varSet.variables["3512"].display!.conversionFactor = 100
+        expect(
+            legacyToOwidTableAndDimensions(
+                varSet,
+                getLegacyGrapherConfig()
+            ).table.get("3512")!.values
+        ).toEqual([550, 420, 1260])
+    })
+
+    it("can apply legacy selection colors", () => {
+        expect(table.getColorForEntityName("Cape Verde")).toBe("blue")
+        expect(table.getColorForEntityName("Kiribati")).toBe(undefined)
+    })
+
+    it("can export legacy to CSV", () => {
+        const expected = `Entity,Code,Year,"Prevalence of wasting, weight for height (% of children under 5)"
+Cape Verde,CPV,1985,4.2
+Kiribati,KIR,1985,12.6
+Papua New Guinea,PNG,1983,5.5`
+        expect(table.toPrettyCsv()).toEqual(expected)
+    })
+})
+
+const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
+    return {
+        variables: {
+            "3512": {
+                years: [1983, 1985, 1985],
+                entities: [99, 45, 204],
+                values: [5.5, 4.2, 12.6],
+                id: 3512,
+                name:
+                    "Prevalence of wasting, weight for height (% of children under 5)",
+                unit: "% of children under 5",
+                description: "Prevalence of...",
+                shortUnit: "%",
+                display: {
+                    name: "Some Display Name",
+                },
+                source: {
+                    id: 2174,
+                    name:
+                        "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+                    link:
+                        "http://data.worldbank.org/data-catalog/world-development-indicators",
+                } as any,
+            },
+        },
+        entityKey: {
+            45: { name: "Cape Verde", code: "CPV", id: 45 },
+            99: { name: "Papua New Guinea", code: "PNG", id: 99 },
+            204: { name: "Kiribati", code: "KIR", id: 204 },
+        },
+    }
+}
+
+const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
+    return {
+        dimensions: [
+            {
+                property: DimensionProperty.y,
+                variableId: 3512,
+            },
+        ],
+    }
+}

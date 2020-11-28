@@ -3,15 +3,14 @@
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
-
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
     diffDateISOStringInDays,
     isNumber,
+    makeAnnotationsSlug,
     trimObject,
     uniqBy,
 } from "clientUtils/Util"
-
 import {
     LegacyVariablesAndEntityKey,
     LegacyEntityMeta,
@@ -23,12 +22,9 @@ import {
     OwidTableSlugs,
     OwidColumnDef,
     EntityId,
-} from "./OwidTableConstants"
-import { OwidTable } from "./OwidTable"
+} from "coreTable/OwidTableConstants"
+import { OwidTable } from "coreTable/OwidTable"
 import { EPOCH_DATE } from "clientUtils/owidTypes"
-
-export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
-    `${columnSlug}-annotations`
 
 export const legacyToOwidTableAndDimensions = (
     json: LegacyVariablesAndEntityKey,

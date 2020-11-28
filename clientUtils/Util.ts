@@ -336,6 +336,9 @@ export function cagr(
     )
 }
 
+export const makeAnnotationsSlug = (columnSlug: string) =>
+    `${columnSlug}-annotations`
+
 // Todo: add unit tests
 export const relativeMinAndMax = (
     points: Point[],

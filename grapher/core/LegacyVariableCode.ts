@@ -7,16 +7,15 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
-import { ColumnSlug, Integer, Time } from "./CoreTableConstants"
+import { ColumnSlug, Integer, Time } from "coreTable/CoreTableConstants"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
-import { OwidSource } from "./OwidSource"
+import { OwidSource } from "coreTable/OwidSource"
+import {
+    LegacyVariableDataTableConfigInteface,
+    LegacyVariableDisplayConfigInterface,
+} from "coreTable/LegacyVariableDisplayConfigInterface"
 
 export declare type LegacyVariableId = Integer
-
-class LegacyVariableTableDisplayConfig {
-    @observable hideAbsoluteChange?: boolean
-    @observable hideRelativeChange?: boolean
-}
 
 export interface LegacyChartDimensionInterface {
     property: DimensionProperty
@@ -38,11 +37,9 @@ class LegacyVariableDisplayConfigDefaults {
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable?: boolean = true
-    @observable tableDisplay?: LegacyVariableTableDisplayConfig
+    @observable tableDisplay?: LegacyVariableDataTableConfigInteface
     @observable color?: string = undefined
 }
-
-export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplayConfigDefaults
 
 export class LegacyVariableDisplayConfig
     extends LegacyVariableDisplayConfigDefaults
