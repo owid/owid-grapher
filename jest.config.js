@@ -24,12 +24,11 @@ module.exports = {
             testPathIgnorePatterns: [".jsdom.test."],
             testMatch: ["**/*.test.(jsx|js)"],
         },
-        // {
-        //     ...common,
-        //     displayName: "jsdom",
-        //     testEnvironment: "jsdom",
-        //     setupFilesAfterEnv: ["<rootDir>/.enzymeSetup.ts"],
-        //     testMatch: ["**/*.jsdom.test.(jsx|js)"],
-        // },
+        {
+            ...common,
+            displayName: "jsdom",
+            testEnvironment: "jsdom",
+            testMatch: ["**/*.jsdom.test.(jsx|js)"],
+        },
     ],
 }
