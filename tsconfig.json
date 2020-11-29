@@ -9,6 +9,8 @@
         { "path": "./gitCms" },
         { "path": "./explorer" },
         { "path": "./coreTable" },
-        { "path": "./site" }
+        { "path": "./site" },
+        { "path": "./adminSiteClient" },
+        { "path": "./adminSiteServer" }
     ]
 }
