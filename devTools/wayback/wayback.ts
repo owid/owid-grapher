@@ -8,7 +8,7 @@ import * as mime from "mime-types"
 const PORT = 4433
 const app = express()
 
-const staticFolder = __dirname + "/../../owid-static"
+const staticFolder = __dirname + "/../../../owid-static"
 
 if (!fs.existsSync(staticFolder))
     throw new Error(`Owid Static not found at ${staticFolder}`)
