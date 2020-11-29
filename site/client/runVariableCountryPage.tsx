@@ -5,7 +5,7 @@ import { computed, IReactionDisposer, observable } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
-import { VariableCountryPageProps } from "site/server/views/VariableCountryPageProps"
+import { VariableCountryPageProps } from "site/server/VariableCountryPageProps"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 @observer

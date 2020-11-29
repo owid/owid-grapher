@@ -1,13 +1,13 @@
 import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "adminSiteServer/serverUtil"
 import React from "react"
-import { CountriesIndexPage } from "./views/CountriesIndexPage"
+import { CountriesIndexPage } from "./CountriesIndexPage"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage,
-} from "./views/CountryProfilePage"
+} from "./CountryProfilePage"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "baker/SiteBaker"
 import { countries, getCountry } from "clientUtils/countries"

@@ -9,7 +9,7 @@ import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { BLOG_POSTS_PER_PAGE } from "settings"
 import { formatPost, extractFormattingOptions } from "site/server/formatting"
-import { LongFormPage } from "site/server/views/LongFormPage"
+import { LongFormPage } from "site/server/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
     renderToHtmlPage,
