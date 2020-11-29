@@ -124,6 +124,7 @@ const renderPage = async (postApi: any) => {
             pageType={pageType}
             post={formatted}
             formattingOptions={formattingOptions}
+            baseUrl={BAKED_BASE_URL}
         />
     )
 }
@@ -353,6 +354,7 @@ export const renderCountryProfile = async (
             post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}
+            baseUrl={BAKED_BASE_URL}
         />
     )
 }

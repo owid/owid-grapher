@@ -1,4 +1,4 @@
-import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
+import { WORDPRESS_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
@@ -34,8 +34,9 @@ export const LongFormPage = (props: {
     post: FormattedPost
     overrides?: PageOverrides
     formattingOptions: FormattingOptions
+    baseUrl: string
 }) => {
-    const { pageType, post, overrides, formattingOptions } = props
+    const { pageType, post, overrides, formattingOptions, baseUrl } = props
 
     const isPost = post.type === "post"
     const isEntry = pageType === PageType.Entry
@@ -46,8 +47,7 @@ export const LongFormPage = (props: {
         post.subtitle ? ` - ${post.subtitle}` : ""
     }`
     const pageDesc = overrides?.excerpt ?? post.excerpt
-    const canonicalUrl =
-        overrides?.canonicalUrl ?? `${BAKED_BASE_URL}/${post.slug}`
+    const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
 
     const citationTitle = overrides?.citationTitle ?? pageTitle
     const citationSlug = overrides?.citationSlug ?? post.slug
@@ -116,7 +116,7 @@ export const LongFormPage = (props: {
                 )}
             </Head>
             <body className={bodyClasses.join(" ")}>
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <article
                         className={`page${

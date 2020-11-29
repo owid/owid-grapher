@@ -18,7 +18,7 @@ export const VariableCountryPage = (props: VariableCountryPageProps) => {
                 pageDesc="Search articles and charts on Our World in Data."
             />
             <body className="VariableCountryPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>{variable.name}</main>
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: script }} />

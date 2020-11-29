@@ -6,15 +6,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 export const SearchPage = (props: { baseUrl: string }) => {
+    const { baseUrl } = props
     return (
         <html>
             <Head
-                canonicalUrl={`${props.baseUrl}/search`}
+                canonicalUrl={`${baseUrl}/search`}
                 pageTitle="Search"
                 pageDesc="Search articles and charts on Our World in Data."
             />
             <body className="SearchPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <form action="/search" method="GET">
                         <div className="inputWrapper">

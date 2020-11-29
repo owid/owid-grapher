@@ -55,9 +55,11 @@ import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } fro
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
+    private baseUrl: string
 
-    constructor(bakedSiteDir: string) {
+    constructor(bakedSiteDir: string, baseUrl: string) {
         this.bakedSiteDir = bakedSiteDir
+        this.baseUrl = baseUrl
     }
 
     private async bakeEmbeds() {
@@ -127,6 +129,7 @@ export class SiteBaker {
                 pageType={pageType}
                 post={formatted}
                 formattingOptions={formattingOptions}
+                baseUrl={this.baseUrl}
             />
         )
 

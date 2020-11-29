@@ -14,7 +14,7 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                 pageDesc="Search articles and charts on Our World in Data."
             />
             <body className="NotFoundPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={props.baseUrl} />
                 <main>
                     <h1>Sorry, that page doesn’t exist!</h1>
                     <p>

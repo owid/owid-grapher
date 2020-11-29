@@ -11,8 +11,9 @@ import {
 } from "./queue"
 import { DeployChange } from "./types"
 import { BAKED_SITE_DIR } from "serverSettings"
+import { BAKED_BASE_URL } from "settings"
 
-async function defaultCommitMessage(): Promise<string> {
+const defaultCommitMessage = async (): Promise<string> => {
     let message = "Automated update"
 
     // In the deploy.sh script, we write the current git rev to 'public/head.txt'
@@ -30,10 +31,14 @@ async function defaultCommitMessage(): Promise<string> {
 /**
  * Initiate a deploy, without any checks. Throws error on failure.
  */
-async function bakeAndDeploy(message?: string, email?: string, name?: string) {
+const bakeAndDeploy = async (
+    message?: string,
+    email?: string,
+    name?: string
+) => {
     message = message ?? (await defaultCommitMessage())
 
-    const baker = new SiteBaker(BAKED_SITE_DIR)
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
     try {
         await baker.bakeAll()
@@ -48,14 +53,14 @@ async function bakeAndDeploy(message?: string, email?: string, name?: string) {
  * Try to initiate a deploy and then terminate the baker, allowing a clean exit.
  * Used in CLI.
  */
-export async function tryBakeDeployAndTerminate(
+export const tryBakeDeployAndTerminate = async (
     message?: string,
     email?: string,
     name?: string
-) {
+) => {
     message = message ?? (await defaultCommitMessage())
 
-    const baker = new SiteBaker(BAKED_SITE_DIR)
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
     try {
         await baker.bakeAll()
@@ -67,8 +72,8 @@ export async function tryBakeDeployAndTerminate(
     }
 }
 
-export async function tryBake() {
-    const baker = new SiteBaker(BAKED_SITE_DIR)
+export const tryBake = async () => {
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
         await baker.bakeAll()
     } catch (err) {
@@ -82,13 +87,13 @@ export async function tryBake() {
  * Try to initiate a deploy and then terminate the baker, allowing a clean exit.
  * Used in CLI.
  */
-export async function tryDeploy(
+export const tryDeploy = async (
     message?: string,
     email?: string,
     name?: string
-) {
+) => {
     message = message ?? (await defaultCommitMessage())
-    const baker = new SiteBaker(BAKED_SITE_DIR)
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
     try {
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
@@ -99,7 +104,7 @@ export async function tryDeploy(
     }
 }
 
-function generateCommitMsg(queueItems: DeployChange[]): string {
+const generateCommitMsg = (queueItems: DeployChange[]) => {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems
@@ -120,7 +125,7 @@ function generateCommitMsg(queueItems: DeployChange[]): string {
 const MAX_SUCCESSIVE_FAILURES = 2
 
 /** Whether a deploy is currently running */
-let deploying: boolean = false
+let deploying = false
 
 /**
  * Initiate deploy if no other deploy is currently pending, and there are changes
@@ -129,7 +134,7 @@ let deploying: boolean = false
  * the end of the current one, as long as there are changes in the queue.
  * If there are no changes in the queue, a deploy won't be initiated.
  */
-export async function deployIfQueueIsNotEmpty() {
+export const deployIfQueueIsNotEmpty = async () => {
     if (deploying) return
     deploying = true
     let failures = 0
