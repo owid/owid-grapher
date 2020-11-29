@@ -8,7 +8,11 @@ import {
     splitURLintoPathAndQueryString,
     QueryParams,
 } from "clientUtils/url"
-import { union, isEmpty, getAttributesOfHTMLElement } from "clientUtils/Util"
+import {
+    union,
+    isEmpty,
+    getAttributesOfHTMLElement,
+} from "../../../../adminSiteClient/node_modules/clientUtils/Util"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 

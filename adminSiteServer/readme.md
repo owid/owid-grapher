@@ -1,6 +1,6 @@
-# Admin Site
+# Admin Site Server
 
-This is the project that contains the express backend and React frontend for authors to create charts and perform other admin tasks. The backend also contains some development apis and tools.
+This is the project that contains the express backend for authors to create vis and perform other admin tasks. The backend also contains some development apis and tools.
 
 ## Using
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as lodash from "lodash"
 
-import { getWebpackLinkForAsset } from "adminSite/server/webpack"
+import { getWebpackLinkForAsset } from "adminSiteServer/getWebpackLinkForAsset"
 import * as settings from "settings"
 
 export function IndexPage(props: {
