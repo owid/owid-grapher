@@ -14,7 +14,7 @@ import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { BAKED_BASE_URL, ENV } from "settings"
 import { addExplorerAdminRoutes } from "explorerAdmin/ExplorerBaker"
-import { renderPreview } from "site/siteRenderers"
+import { renderPreview } from "../baker/siteRenderers"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (

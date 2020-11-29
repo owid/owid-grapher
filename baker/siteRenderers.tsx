@@ -1,14 +1,14 @@
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import { LongFormPage, PageOverrides } from "./LongFormPage"
-import { BlogIndexPage } from "./BlogIndexPage"
-import { FrontPage } from "./FrontPage"
-import { ChartsIndexPage, ChartIndexItem } from "./ChartsIndexPage"
-import { CovidPage } from "./CovidPage"
-import { SearchPage } from "./SearchPage"
-import { NotFoundPage } from "./NotFoundPage"
-import { DonatePage } from "./DonatePage"
-import { SubscribePage } from "./SubscribePage"
+import { LongFormPage, PageOverrides } from "site/LongFormPage"
+import { BlogIndexPage } from "site/BlogIndexPage"
+import { FrontPage } from "site/FrontPage"
+import { ChartsIndexPage, ChartIndexItem } from "site/ChartsIndexPage"
+import { CovidPage } from "site/CovidPage"
+import { SearchPage } from "site/SearchPage"
+import { NotFoundPage } from "site/NotFoundPage"
+import { DonatePage } from "site/DonatePage"
+import { SubscribePage } from "site/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
@@ -17,12 +17,12 @@ import {
     extractFormattingOptions,
     FormattingOptions,
     formatCountryProfile,
-} from "./formatting"
+} from "site/formatting"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "./grapherUtil"
+} from "site/grapherUtil"
 import * as cheerio from "cheerio"
 import { JsonError } from "adminSiteServer/serverUtil"
 import { Post } from "db/model/Post"
@@ -31,9 +31,9 @@ import {
     BLOG_POSTS_PER_PAGE,
     RECAPTCHA_SITE_KEY,
 } from "settings"
-import { EntriesByYearPage, EntriesForYearPage } from "./EntriesByYearPage"
-import { VariableCountryPage } from "./VariableCountryPage"
-import { FeedbackPage } from "./FeedbackPage"
+import { EntriesByYearPage, EntriesForYearPage } from "site/EntriesByYearPage"
+import { VariableCountryPage } from "site/VariableCountryPage"
+import { FeedbackPage } from "site/FeedbackPage"
 import { getCountry, Country } from "clientUtils/countries"
 import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
