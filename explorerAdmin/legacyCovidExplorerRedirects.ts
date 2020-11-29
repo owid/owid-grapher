@@ -1,10 +1,6 @@
-import { BAKED_BASE_URL } from "settings"
 import { urlToSlug, mergeQueryStr } from "clientUtils/Util"
 import { CoreTable } from "coreTable/CoreTable"
-import {
-    ExplorerProgram,
-    EXPLORER_FILE_SUFFIX,
-} from "../explorer/ExplorerProgram"
+import { ExplorerProgram, EXPLORER_FILE_SUFFIX } from "explorer/ExplorerProgram"
 import { getExplorerFromFile } from "./ExplorerBaker"
 
 // Todo: remove this file eventually. Would server side redirects do it?
@@ -173,5 +169,5 @@ export const replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost = (
             // Replace Grapher iframe src with explorer src
             el.attribs[
                 "src"
-            ] = `${BAKED_BASE_URL}/explorers/${legacyCovidDashboardSlug}${queryStr}`
+            ] = `/explorers/${legacyCovidDashboardSlug}${queryStr}`
         })

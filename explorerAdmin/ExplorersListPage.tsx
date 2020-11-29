@@ -18,7 +18,6 @@ import {
     pullFromGithub,
     writeRemoteFile,
 } from "gitCms/GitCmsClient"
-import { BAKED_BASE_URL } from "settings"
 import {
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
@@ -35,6 +34,8 @@ import {
 } from "explorer/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { AdminManager } from "./AdminManager"
+
+const BAKED_BASE_URL = `https://ourworldindata.org/`
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -62,7 +63,7 @@ class ExplorerRow extends React.Component<{
             inlineTableCount,
         } = explorer
 
-        const publishedUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
+        const publishedUrl = `https://${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
         const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/${EXPLORERS_GIT_CMS_FOLDER}/`
         const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
 
