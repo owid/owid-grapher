@@ -12,7 +12,7 @@ import {
     renderToHtmlPage,
     JsonError,
 } from "serverUtils/serverUtil"
-import { logInWithCredentials, logOut } from "./utils/authentication"
+import { logInWithCredentials, logOut } from "./authentication"
 import { LoginPage } from "./pages/LoginPage"
 import { RegisterPage } from "./pages/RegisterPage"
 import { Dataset } from "db/model/Dataset"

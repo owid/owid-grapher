@@ -1,6 +1,6 @@
 import * as express from "express"
 import { Router } from "express"
-import { Request, Response } from "./authentication"
+import { Request, Response } from "../authentication"
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner

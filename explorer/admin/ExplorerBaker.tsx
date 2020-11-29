@@ -8,8 +8,8 @@ import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
-import { Request } from "adminSite/server/utils/authentication"
-import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
+import { Request } from "adminSite/server/authentication"
+import { FunctionalRouter } from "adminSite/server/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"

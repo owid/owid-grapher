@@ -11,10 +11,7 @@ import cookieParser from "cookie-parser"
 const expressErrorSlack = require("express-error-slack")
 import "reflect-metadata"
 import { IndexPage } from "./pages/IndexPage"
-import {
-    authCloudflareSSOMiddleware,
-    authMiddleware,
-} from "./utils/authentication"
+import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"

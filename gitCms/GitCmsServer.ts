@@ -1,5 +1,5 @@
-import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
-import { Request, Response } from "adminSite/server/utils/authentication"
+import { FunctionalRouter } from "adminSite/server/FunctionalRouter"
+import { Request, Response } from "adminSite/server/authentication"
 import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, ENV } from "settings"
 import simpleGit, { SimpleGit } from "simple-git"
 import * as fs from "fs-extra"

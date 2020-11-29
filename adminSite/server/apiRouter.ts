@@ -12,10 +12,10 @@ import {
     isValidSlug,
     absoluteUrl,
 } from "serverUtils/serverUtil"
-import { sendMail } from "adminSite/server/utils/mail"
+import { sendMail } from "./mail"
 import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
-import { Request, Response, CurrentUser } from "./utils/authentication"
+import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData } from "db/model/Variable"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
@@ -24,10 +24,7 @@ import {
 } from "adminSite/client/CountryNameFormat"
 import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
-import {
-    syncDatasetToGitRepo,
-    removeDatasetFromGitRepo,
-} from "adminSite/server/utils/gitDataExport"
+import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
 import { camelCaseProperties } from "clientUtils/string"
@@ -36,7 +33,7 @@ import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
 import { enqueueChange, getDeploys } from "deploy/queue"
-import { FunctionalRouter } from "./utils/FunctionalRouter"
+import { FunctionalRouter } from "./FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/GitCmsServer"
 
