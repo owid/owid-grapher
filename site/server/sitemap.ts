@@ -12,20 +12,19 @@ interface SitemapUrl {
     lastmod?: string
 }
 
-function xmlify(url: SitemapUrl) {
-    if (url.lastmod) {
+const xmlify = (url: SitemapUrl) => {
+    if (url.lastmod)
         return `    <url>
         <loc>${url.loc}</loc>
         <lastmod>${url.lastmod}</lastmod>
     </url>`
-    } else {
-        return `    <url>
+
+    return `    <url>
         <loc>${url.loc}</loc>
     </url>`
-    }
 }
 
-export async function makeSitemap() {
+export const makeSitemap = async () => {
     const posts = (await db
         .table(Post.table)
         .where({ status: "publish" })

@@ -24,22 +24,20 @@ export const prepareGlossary = memoize(
     }
 )
 
-const flattenGlossary = (glossary: GlossaryGroup[]): GlossaryItem[] => {
-    return glossary.flatMap(({ slug, excerpt, terms }) =>
+const flattenGlossary = (glossary: GlossaryGroup[]): GlossaryItem[] =>
+    glossary.flatMap(({ slug, excerpt, terms }) =>
         terms.map((term) => {
             return { slug, excerpt, term }
         })
     )
-}
 
 /*
  * Sort the glossary * in place *, in descending order of term lengths so that longer terms
  * match and are linked instead of shorter ones, which might be included in
  * them. E.g. favour "population growth" over "population"
  */
-export const sortGlossary = (glossary: GlossaryItem[]) => {
-    return glossary.sort((a, b) => b.term.length - a.term.length)
-}
+export const sortGlossary = (glossary: GlossaryItem[]) =>
+    glossary.sort((a, b) => b.term.length - a.term.length)
 
 export const glossary: GlossaryGroup[] = [
     {
