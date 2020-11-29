@@ -1943,7 +1943,7 @@ export class Grapher
 
     componentDidCatch(error: Error, info: any) {
         this.setError(error)
-        this.analytics.logChartError(error, info)
+        this.analytics.logGrapherViewError(error, info)
     }
 
     @observable isShareMenuActive = false
@@ -2125,7 +2125,7 @@ export class Grapher
     timelineController = new TimelineController(this)
 
     onPlay() {
-        this.analytics.logChartTimelinePlay(this.slug)
+        this.analytics.logGrapherTimelinePlay(this.slug)
     }
 
     // todo: restore this behavior??
