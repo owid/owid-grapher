@@ -13,13 +13,17 @@ import * as fs from "fs-extra"
 import { deserializeJSONFromHTML } from "clientUtils/serializers"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker"
-import { OPTIMIZE_SVG_EXPORTS } from "settings"
+import {
+    OPTIMIZE_SVG_EXPORTS,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "settings"
 import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
 import { hasLegacyGrapherToCovidExplorerRedirect } from "explorerAdmin/legacyCovidExplorerRedirects"
 
-export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
+const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
     const relatedCharts = post ? await getRelatedCharts(post.id) : undefined
@@ -28,11 +32,13 @@ export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
             grapher={grapher}
             post={post}
             relatedCharts={relatedCharts}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
         />
     )
 }
 
-export async function grapherSlugToHtmlPage(slug: string) {
+export const grapherSlugToHtmlPage = async (slug: string) => {
     const entity = await Chart.getBySlug(slug)
     if (!entity) throw new JsonError("No such chart", 404)
     return grapherConfigToHtmlPage(entity.config)

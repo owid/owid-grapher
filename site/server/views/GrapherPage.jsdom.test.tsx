@@ -63,6 +63,8 @@ describe("when the page is rendered", () => {
                     post={post}
                     grapher={grapher}
                     relatedCharts={relatedCharts}
+                    baseGrapherUrl={"/grapher/"}
+                    baseUrl={""}
                 />
             ))
     )

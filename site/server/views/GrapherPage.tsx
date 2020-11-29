@@ -1,10 +1,7 @@
-import { BAKED_GRAPHER_URL } from "settings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
-
 import * as React from "react"
 import urljoin from "url-join"
-import * as lodash from "lodash"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -16,21 +13,24 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "./IframeDetector"
 import { serializeJSONForHTML } from "clientUtils/serializers"
 import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
+import { uniq } from "clientUtils/Util"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
     post?: Post.Row
     relatedCharts?: RelatedChart[]
+    baseUrl: string
+    baseGrapherUrl: string
 }) => {
-    const { grapher, post, relatedCharts } = props
+    const { grapher, post, relatedCharts, baseGrapherUrl, baseUrl } = props
 
     const pageTitle = grapher.title
     const pageDesc =
         grapher.subtitle ||
         "An interactive visualization from Our World in Data."
-    const canonicalUrl = urljoin(BAKED_GRAPHER_URL, grapher.slug as string)
+    const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     const imageUrl = urljoin(
-        BAKED_GRAPHER_URL,
+        baseGrapherUrl,
         "exports",
         `${grapher.slug}.png?v=${grapher.version}`
     )
@@ -38,9 +38,7 @@ export const GrapherPage = (props: {
     const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
-    const variableIds = lodash.uniq(
-        grapher.dimensions!.map((d) => d.variableId)
-    )
+    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     return (
         <html>
@@ -68,14 +66,14 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator />
                     </figure>
                     <noscript id="fallback">
                         <img
-                            src={`${BAKED_GRAPHER_URL}/exports/${grapher.slug}.svg`}
+                            src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
                         />
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
