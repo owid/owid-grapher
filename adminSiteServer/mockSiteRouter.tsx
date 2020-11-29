@@ -17,6 +17,7 @@ import {
     renderCovidPage,
     countryProfileCountryPage,
 } from "site/siteRenderers"
+import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
@@ -26,7 +27,7 @@ import {
     JsonError,
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
-import { embedSnippet } from "baker/embedCharts"
+import { bakeEmbedSnippet } from "baker/bakeEmbedSnippet"
 import { countryProfilePage, countriesIndexPage } from "site/countryProfiles"
 import { makeSitemap } from "site/sitemap"
 import { OldChart } from "db/model/Chart"
@@ -78,7 +79,11 @@ mockSiteRouter.get(
 )
 
 mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
-    res.send(embedSnippet())
+    res.send(
+        bakeEmbedSnippet(
+            getWebpackUrlForAsset("commons.css", "commons.js", "owid.js")
+        )
+    )
 )
 
 mockSiteRouter.get("/grapher/latest", async (req, res) => {

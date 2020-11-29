@@ -34,7 +34,7 @@ import {
 } from "site/grapherUtil"
 import { makeSitemap } from "site/sitemap"
 import * as React from "react"
-import { embedSnippet } from "./embedCharts"
+import { bakeEmbedSnippet } from "./bakeEmbedSnippet"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "site/countryProfiles"
 import { countries } from "clientUtils/countries"
@@ -51,7 +51,8 @@ import {
 } from "explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
+import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -304,7 +305,9 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            embedSnippet()
+            bakeEmbedSnippet(
+                getWebpackUrlForAsset("commons.css", "commons.js", "owid.js")
+            )
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
     }
