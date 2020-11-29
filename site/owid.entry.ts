@@ -1,4 +1,4 @@
-import "site/client/owid.scss"
+import "site/owid.scss"
 import "grapher/core/grapher.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash

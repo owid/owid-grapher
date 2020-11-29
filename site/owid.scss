@@ -47,16 +47,16 @@
 @import "explorer/Explorer.scss";
 @import "explorer/ExplorerControls.scss";
 
-@import "site/client/blocks/AdditionalInformation/additional-information.scss";
-@import "site/client/blocks/ProminentLink/prominent-link.scss";
-@import "site/client/blocks/RelatedCharts/related-charts.scss";
-@import "site/client/blocks/Summary/summary.scss";
-@import "site/client/blocks/Help/help.scss";
-@import "site/client/blocks/CookiePreferences/CookiePreferences.scss";
-@import "site/client/blocks/Grid/Grid.scss";
-@import "site/client/blocks/Card/Card.scss";
-@import "site/client/ExpandableInlineBlock/ExpandableInlineBlock.scss";
-@import "site/client/GlossaryExcerpt/GlossaryExcerpt.scss";
+@import "site/blocks/AdditionalInformation/additional-information.scss";
+@import "site/blocks/ProminentLink/prominent-link.scss";
+@import "site/blocks/RelatedCharts/related-charts.scss";
+@import "site/blocks/Summary/summary.scss";
+@import "site/blocks/Help/help.scss";
+@import "site/blocks/CookiePreferences/CookiePreferences.scss";
+@import "site/blocks/Grid/Grid.scss";
+@import "site/blocks/Card/Card.scss";
+@import "site/ExpandableInlineBlock/ExpandableInlineBlock.scss";
+@import "site/GlossaryExcerpt/GlossaryExcerpt.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */

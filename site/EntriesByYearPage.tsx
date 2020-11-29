@@ -4,7 +4,7 @@ import { Post } from "db/model/Post"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { TableOfContents } from "site/client/TableOfContents"
+import { TableOfContents } from "site/TableOfContents"
 import { groupBy } from "clientUtils/Util"
 
 type Entry = Pick<Post.Row, "title" | "slug" | "published_at">

@@ -22,7 +22,7 @@ import { Link } from "./Link"
 import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
 import { Grapher } from "grapher/core/Grapher"
-import { GrapherFigureView } from "site/client/GrapherFigureView"
+import { GrapherFigureView } from "site/GrapherFigureView"
 import {
     EntitySelectionMode,
     ChartTypeName,

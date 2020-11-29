@@ -1,5 +1,5 @@
 import * as React from "react"
-import { FeedbackForm } from "site/client/Feedback"
+import { FeedbackForm } from "site/Feedback"
 
 export default {
     title: "FeedbackForm",

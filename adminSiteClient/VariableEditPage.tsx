@@ -17,7 +17,7 @@ import {
     LegacyVariableDisplayConfig,
 } from "grapher/core/LegacyVariableCode"
 import { Grapher } from "grapher/core/Grapher"
-import { GrapherFigureView } from "site/client/GrapherFigureView"
+import { GrapherFigureView } from "site/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"

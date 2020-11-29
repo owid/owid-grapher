@@ -13,7 +13,7 @@ module.exports = (env, argv) => {
         context: __dirname,
         entry: {
             admin: "./adminSiteClient/admin.entry.ts",
-            owid: "./site/client/owid.entry.ts",
+            owid: "./site/owid.entry.ts",
         },
         optimization: {
             splitChunks: {

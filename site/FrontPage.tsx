@@ -15,7 +15,7 @@ import { splitOnLastWord } from "adminSiteServer/serverUtil"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "site/client/NewsletterSubscription"
+} from "site/NewsletterSubscription"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]

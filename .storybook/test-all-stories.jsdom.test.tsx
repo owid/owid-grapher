@@ -28,7 +28,7 @@ import * as LoadingIndicator from "grapher/loadingIndicator/LoadingIndicator.sto
 import * as ScatterPlot from "grapher/scatterCharts/ScatterPlotChart.stories"
 import * as SlopeChart from "grapher/slopeCharts/SlopeChart.stories"
 import * as TimelineComponent from "grapher/timeline/TimelineComponent.stories"
-import * as Feedback from "site/client/Feedback.stories"
+import * as Feedback from "site/Feedback.stories"
 import * as StackedBarChart from "grapher/stackedCharts/StackedBarChart.stories"
 import * as DownloadTab from "grapher/downloadTab/DownloadTab.stories"
 import * as LineLegend from "grapher/lineLegend/LineLegend.stories"

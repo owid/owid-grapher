@@ -2,7 +2,7 @@ import React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { FeedbackForm } from "site/client/Feedback"
+import { FeedbackForm } from "site/Feedback"
 
 export class FeedbackPage extends React.Component<{ baseUrl: string }> {
     render() {
