@@ -196,7 +196,7 @@ const main = async () => {
         bake: `pm2 stop ${NAME}-deploy-queue
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-yarn tsn deploy/bakeSite.ts`,
+yarn tsn baker/bakeSite.ts`,
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitEmail,
@@ -339,7 +339,7 @@ const makeScriptToDeployToNetlifyDoQueue = (
     GIT_NAME: string,
     FINAL_TARGET: string
 ) => `cd ${FINAL_TARGET}
-yarn tsn deploy/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
+yarn tsn baker/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
 

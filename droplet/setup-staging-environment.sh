@@ -97,7 +97,7 @@ pm2 save
 #   https://github.com/owid/owid-grapher/blob/6a6767db680aec820082bc11db4acf6917ccc4af/wordpress/scripts/deploy.sh#L13
 #
 # - Grapher deploy:
-#   https://github.com/owid/owid-grapher/blob/17197489c87ce527a967eb45d899324e193ad124/deploy/deploy.sh#L11
+#   https://github.com/owid/owid-grapher/blob/17197489c87ce527a967eb45d899324e193ad124/baker/deploy.sh#L11
 
 
 ## Update mysql DB:
