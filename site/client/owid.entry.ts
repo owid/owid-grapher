@@ -31,7 +31,7 @@ import {
     GRAPHER_PAGE_BODY_CLASS,
 } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
-import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
+import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder"
 import { CoreTable } from "coreTable/CoreTable"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 

@@ -7,7 +7,7 @@ import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { runSearchCountry } from "site/client/SearchCountry"
 import { runExpandableInlineBlock } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
 import { runDataTokens } from "site/client/runDataTokens"
-import { shouldProgressiveEmbed } from "site/client/figures/MultiEmbedder"
+import { shouldProgressiveEmbed } from "site/client/multiembedder/MultiEmbedder"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
