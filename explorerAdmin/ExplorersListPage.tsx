@@ -15,7 +15,6 @@ import {
 } from "mobx"
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSiteClient/AdminLayout"
-import { FieldsRow } from "adminSiteClient/Forms"
 import { orderBy } from "clientUtils/Util"
 import { ExplorerProgram } from "explorer/ExplorerProgram"
 import { SerializedGridProgram } from "clientUtils/owidTypes"
