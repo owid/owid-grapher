@@ -13,26 +13,23 @@ import { SiteBaker } from "baker/SiteBaker"
 import { countries, getCountry } from "clientUtils/countries"
 import { OwidTable } from "coreTable/OwidTable"
 
-export async function countriesIndexPage() {
-    return renderToHtmlPage(<CountriesIndexPage countries={countries} />)
-}
+export const countriesIndexPage = async () =>
+    renderToHtmlPage(<CountriesIndexPage countries={countries} />)
 
 const cache = new Map()
 // Cache the result of an operation by a key for the duration of the process
 function bakeCache<T>(cacheKey: any, retriever: () => T): T {
-    if (cache.has(cacheKey)) {
-        return cache.get(cacheKey)
-    } else {
-        const result = retriever()
-        cache.set(cacheKey, result)
-        return result
-    }
+    if (cache.has(cacheKey)) return cache.get(cacheKey)
+
+    const result = retriever()
+    cache.set(cacheKey, result)
+    return result
 }
 
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
-async function countryIndicatorGraphers(): Promise<GrapherInterface[]> {
-    return bakeCache(countryIndicatorGraphers, async () => {
+const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
+    bakeCache(countryIndicatorGraphers, async () => {
         const graphers = (
             await db
                 .table("charts")
@@ -45,10 +42,9 @@ async function countryIndicatorGraphers(): Promise<GrapherInterface[]> {
                 grapher.dimensions?.length === 1
         )
     })
-}
 
-async function countryIndicatorVariables(): Promise<Variable.Row[]> {
-    return bakeCache(countryIndicatorVariables, async () => {
+const countryIndicatorVariables = async (): Promise<Variable.Row[]> =>
+    bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
         )
@@ -56,9 +52,8 @@ async function countryIndicatorVariables(): Promise<Variable.Row[]> {
             await db.table(Variable.table).whereIn("id", variableIds)
         )
     })
-}
 
-export async function denormalizeLatestCountryData(variableIds?: number[]) {
+export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
     const entities = (await db
         .table("entities")
         .select("id", "code")
@@ -71,9 +66,8 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
     const entitiesById = lodash.keyBy(entities, (e) => e.id)
     const entityIds = countries.map((c) => entitiesByCode[c.code].id)
 
-    if (!variableIds) {
+    if (!variableIds)
         variableIds = (await countryIndicatorVariables()).map((v) => v.id)
-    }
 
     const dataValuesQuery = db
         .table("data_values")
@@ -113,7 +107,7 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
     })
 }
 
-async function countryIndicatorLatestData(countryCode: string) {
+const countryIndicatorLatestData = async (countryCode: string) => {
     const dataValuesByEntityId = await bakeCache(
         countryIndicatorLatestData,
         async () => {
@@ -168,9 +162,7 @@ async function countryIndicatorLatestData(countryCode: string) {
 
 export async function countryProfilePage(countrySlug: string) {
     const country = getCountry(countrySlug)
-    if (!country) {
-        throw new JsonError(`No such country ${countrySlug}`, 404)
-    }
+    if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
     const graphers = await countryIndicatorGraphers()
     const variables = await countryIndicatorVariables()
@@ -225,7 +217,7 @@ export async function countryProfilePage(countrySlug: string) {
     )
 }
 
-export async function bakeCountries(baker: SiteBaker) {
+export const bakeCountries = async (baker: SiteBaker) => {
     const html = await countriesIndexPage()
     await baker.writeFile("/countries.html", html)
 

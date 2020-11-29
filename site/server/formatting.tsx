@@ -49,7 +49,7 @@ export interface TocHeading {
     isSubheading: boolean
 }
 
-function extractLatex(html: string): [string, string[]] {
+const extractLatex = (html: string): [string, string[]] => {
     const latexBlocks: string[] = []
     html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
         latexBlocks.push(
@@ -60,10 +60,10 @@ function extractLatex(html: string): [string, string[]] {
     return [html, latexBlocks]
 }
 
-async function formatLatex(
+const formatLatex = async (
     html: string,
     latexBlocks?: string[]
-): Promise<string> {
+): Promise<string> => {
     if (!latexBlocks) [html, latexBlocks] = extractLatex(html)
 
     // return early so we don't do unnecessary work for sites without latex
@@ -621,17 +621,19 @@ export async function formatWordpressPost(
     }
 }
 
-function getHtmlContentWithStyles($: CheerioStatic) {
+const getHtmlContentWithStyles = (cheerEl: CheerioStatic) => {
     // Inline styling
     // Get the first root level <style> tag within the content as it gets
     // stripped out by $("body").html() below. Voluntarily limits to 1 as there
     // should not be a need for more.
     const style =
-        $("style").length === 1 ? `<style>${$("style").html()}</style>` : ""
+        cheerEl("style").length === 1
+            ? `<style>${cheerEl("style").html()}</style>`
+            : ""
 
     // This is effectively a hack within a hack, as style tags are technically
     // not allowed in the body (of the main article)
-    return `${style}${$("body").html()}`
+    return `${style}${cheerEl("body").html()}`
 }
 
 export interface FormattingOptions {
@@ -645,15 +647,14 @@ export interface FormattingOptions {
     [key: string]: string | boolean | undefined
 }
 
-export function extractFormattingOptions(html: string): FormattingOptions {
+export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(
         /<!--\s*formatting-options\s+(.*)\s*-->/
     )
-    if (formattingOptionsMatch) {
+    if (formattingOptionsMatch)
         return parseFormattingOptions(formattingOptionsMatch[1])
-    } else {
-        return {}
-    }
+
+    return {}
 }
 
 // Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
@@ -716,10 +717,10 @@ export const formatPost = async (
     return formatWordpressPost(post, html, options, grapherExports)
 }
 
-export function formatCountryProfile(
+export const formatCountryProfile = (
     post: FormattedPost,
     country: Country
-): FormattedPost {
+): FormattedPost => {
     // Localize country selector
     const htmlWithLocalizedCountrySelector = post.html.replace(
         countryProfileDefaultCountryPlaceholder,
@@ -738,7 +739,7 @@ export function formatCountryProfile(
     return { ...post, html: getHtmlContentWithStyles($) }
 }
 
-export function formatAuthors(authors: string[], requireMax?: boolean): string {
+export const formatAuthors = (authors: string[], requireMax?: boolean) => {
     if (requireMax && authors.indexOf("Max Roser") === -1)
         authors.push("Max Roser")
 
@@ -749,10 +750,9 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
     return authorsText
 }
 
-export function formatDate(date: Date): string {
-    return date.toLocaleDateString("en-US", {
+export const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "2-digit",
     })
-}
