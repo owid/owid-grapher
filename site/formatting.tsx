@@ -42,13 +42,6 @@ const DEEP_LINK_CLASS = "deep-link"
 
 const formatMathJax = initMathJax()
 
-export interface TocHeading {
-    text: string
-    html?: string
-    slug: string
-    isSubheading: boolean
-}
-
 const extractLatex = (html: string): [string, string[]] => {
     const latexBlocks: string[] = []
     html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
@@ -651,10 +644,9 @@ export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(
         /<!--\s*formatting-options\s+(.*)\s*-->/
     )
-    if (formattingOptionsMatch)
-        return parseFormattingOptions(formattingOptionsMatch[1])
-
-    return {}
+    return formattingOptionsMatch
+        ? parseFormattingOptions(formattingOptionsMatch[1])
+        : {}
 }
 
 // Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
@@ -680,7 +672,7 @@ const parseFormattingOptions = (text: string): FormattingOptions => {
 }
 
 // Standardize urls
-export const formatLinks = (html: string) =>
+const formatLinks = (html: string) =>
     html
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
@@ -727,16 +719,16 @@ export const formatCountryProfile = (
         country.code
     )
 
-    const $ = cheerio.load(htmlWithLocalizedCountrySelector)
+    const cheerioEl = cheerio.load(htmlWithLocalizedCountrySelector)
 
     // Inject country names on h3 headings which have been already identified as subsections
     // (filtering them out based on whether they have a deep link anchor attached to them)
-    $(`h3 a.${DEEP_LINK_CLASS}`).each((_, deepLinkAnchor) => {
-        const $deepLinkAnchor = $(deepLinkAnchor)
+    cheerioEl(`h3 a.${DEEP_LINK_CLASS}`).each((_, deepLinkAnchor) => {
+        const $deepLinkAnchor = cheerioEl(deepLinkAnchor)
         $deepLinkAnchor.after(`${country.name}: `)
     })
 
-    return { ...post, html: getHtmlContentWithStyles($) }
+    return { ...post, html: getHtmlContentWithStyles(cheerioEl) }
 }
 
 export const formatAuthors = (authors: string[], requireMax?: boolean) => {

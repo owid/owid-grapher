@@ -4,19 +4,14 @@ import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import {
-    formatAuthors,
-    formatDate,
-    FormattingOptions,
-    TocHeading,
-} from "site/formatting"
+import { formatAuthors, formatDate, FormattingOptions } from "site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "site/TableOfContents"
 import { PageType } from "db/wpdb"
-import { FormattedPost } from "clientUtils/owidTypes"
+import { FormattedPost, TocHeading } from "clientUtils/owidTypes"
 
 export interface PageOverrides {
     pageTitle?: string

@@ -84,3 +84,10 @@ export interface SerializedGridProgram {
     program: string
     lastCommit?: GitCommit
 }
+
+export interface TocHeading {
+    text: string
+    html?: string
+    slug: string
+    isSubheading: boolean
+}
