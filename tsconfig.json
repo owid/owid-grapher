@@ -8,6 +8,7 @@
         { "path": "./gridLang" },
         { "path": "./gitCms" },
         { "path": "./explorer" },
-        { "path": "./coreTable" }
+        { "path": "./coreTable" },
+        { "path": "./site" }
     ]
 }
