@@ -8,8 +8,8 @@ import ProgressBar = require("progress")
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { BLOG_POSTS_PER_PAGE } from "settings"
-import { formatPost, extractFormattingOptions } from "site/server/formatting"
-import { LongFormPage } from "site/server/LongFormPage"
+import { formatPost, extractFormattingOptions } from "site/formatting"
+import { LongFormPage } from "site/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
     renderToHtmlPage,
@@ -26,17 +26,17 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
-} from "site/server/siteRenderers"
+} from "site/siteRenderers"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "site/server/grapherUtil"
-import { makeSitemap } from "site/server/sitemap"
+} from "site/grapherUtil"
+import { makeSitemap } from "site/sitemap"
 import * as React from "react"
-import { embedSnippet } from "site/server/embedCharts"
+import { embedSnippet } from "./embedCharts"
 import { Post } from "db/model/Post"
-import { bakeCountries } from "site/server/countryProfiles"
+import { bakeCountries } from "site/countryProfiles"
 import { countries } from "clientUtils/countries"
 import { exec } from "adminSiteServer/serverUtil"
 import { log } from "adminSiteServer/log"
@@ -44,7 +44,7 @@ import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,
 } from "explorerAdmin/legacyCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/server/countryProfileProjects"
+import { countryProfileSpecs } from "site/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
     renderExplorerPage,

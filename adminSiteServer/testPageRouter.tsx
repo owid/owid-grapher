@@ -5,7 +5,7 @@ import * as React from "react"
 
 import { renderToHtmlPage, expectInt } from "adminSiteServer/serverUtil"
 import { OldChart, Chart } from "db/model/Chart"
-import { Head } from "site/server/Head"
+import { Head } from "site/Head"
 import * as db from "db/db"
 import { ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL } from "settings"
 import * as querystring from "querystring"

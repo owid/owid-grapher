@@ -11,7 +11,7 @@ import { getGrapherById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 import { getBlockContent } from "db/wpdb"
-import { ExplorerPage } from "site/server/ExplorerPage"
+import { ExplorerPage } from "site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,

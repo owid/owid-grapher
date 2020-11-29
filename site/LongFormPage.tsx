@@ -9,7 +9,7 @@ import {
     formatDate,
     FormattingOptions,
     TocHeading,
-} from "site/server/formatting"
+} from "site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"

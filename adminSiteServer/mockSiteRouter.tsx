@@ -16,7 +16,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
-} from "site/server/siteRenderers"
+} from "site/siteRenderers"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
@@ -26,14 +26,11 @@ import {
     JsonError,
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
-import { embedSnippet } from "site/server/embedCharts"
-import {
-    countryProfilePage,
-    countriesIndexPage,
-} from "site/server/countryProfiles"
-import { makeSitemap } from "site/server/sitemap"
+import { embedSnippet } from "./embedCharts"
+import { countryProfilePage, countriesIndexPage } from "site/countryProfiles"
+import { makeSitemap } from "site/sitemap"
 import { OldChart } from "db/model/Chart"
-import { countryProfileSpecs } from "site/server/countryProfileProjects"
+import { countryProfileSpecs } from "site/countryProfileProjects"
 import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorer/legacyCovidExplorerRedirects"
 import {
     getAllPublishedExplorers,

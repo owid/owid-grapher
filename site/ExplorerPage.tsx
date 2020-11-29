@@ -1,11 +1,11 @@
 import React from "react"
-import { Head } from "site/server/Head"
-import { SiteHeader } from "site/server/SiteHeader"
-import { SiteFooter } from "site/server/SiteFooter"
+import { Head } from "site/Head"
+import { SiteHeader } from "site/SiteHeader"
+import { SiteFooter } from "site/SiteFooter"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { IFrameDetector } from "site/server/IframeDetector"
-import { SiteSubnavigation } from "site/server/SiteSubnavigation"
-import { formatReusableBlock } from "site/server/formatting"
+import { IFrameDetector } from "site/IframeDetector"
+import { SiteSubnavigation } from "site/SiteSubnavigation"
+import { formatReusableBlock } from "site/formatting"
 import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,

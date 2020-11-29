@@ -5,7 +5,7 @@ import moment from "moment"
 import * as db from "db/db"
 import { countries } from "clientUtils/countries"
 import urljoin from "url-join"
-import { countryProfileSpecs } from "site/server/countryProfileProjects"
+import { countryProfileSpecs } from "site/countryProfileProjects"
 
 interface SitemapUrl {
     loc: string
