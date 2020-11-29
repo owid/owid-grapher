@@ -31,7 +31,7 @@ import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "site/grapherUtil"
+} from "baker/grapherUtil"
 import { makeSitemap } from "site/sitemap"
 import * as React from "react"
 import { Post } from "db/model/Post"
