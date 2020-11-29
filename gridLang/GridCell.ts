@@ -1,4 +1,6 @@
-import { isPresent, imemo, trimArray } from "./GridImports"
+import { imemo, trimArray } from "coreTable/CoreTableUtils"
+import { isPresent } from "clientUtils/isPresent"
+
 import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils"
 import {
     CellPosition,

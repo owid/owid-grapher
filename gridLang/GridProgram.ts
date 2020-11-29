@@ -1,4 +1,7 @@
-import { isPresent, imemo, trimMatrix, GitCommit } from "./GridImports"
+import { imemo, trimMatrix } from "coreTable/CoreTableUtils"
+import { isPresent } from "clientUtils/isPresent"
+import { GitCommit } from "clientUtils/owidTypes"
+
 import { GridCell } from "./GridCell"
 import {
     CellDef,
