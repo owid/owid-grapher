@@ -3,8 +3,7 @@
 
 import * as React from "react"
 import { bind } from "decko"
-
-import { getParent } from "./utils"
+import { getParent } from "./client/utils"
 
 interface Position {
     x: number
@@ -16,19 +15,14 @@ const MOUSE_LOCS_TRACKED = 3
 const DELAY = 400
 const TOLERANCE_PX = 20
 
-function getSubmenuId(targetEl: HTMLElement): string | null {
+const getSubmenuId = (targetEl: HTMLElement): string | null => {
     const listItem = getParent(targetEl, (el: HTMLElement) =>
         el.matches(`[${ATTRIBUTE}]`)
     )
-    if (listItem) {
-        return listItem.getAttribute(ATTRIBUTE)
-    }
-    return null
+    return listItem ? listItem.getAttribute(ATTRIBUTE) : null
 }
 
-function slope(a: Position, b: Position) {
-    return (b.y - a.y) / (b.x - a.x)
-}
+const slope = (a: Position, b: Position) => (b.y - a.y) / (b.x - a.x)
 
 export class AmazonMenu extends React.Component<{
     children: React.ReactNode

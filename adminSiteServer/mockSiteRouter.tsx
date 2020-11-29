@@ -41,7 +41,7 @@ import {
 } from "explorerAdmin/ExplorerBaker"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { getVariableData } from "db/model/Variable"
-import { MultiEmbedderTestPage } from "site/client/multiembedder/MultiEmbedderTestPage"
+import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate

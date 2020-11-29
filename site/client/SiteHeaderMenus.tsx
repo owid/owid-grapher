@@ -20,7 +20,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
-import { AmazonMenu } from "./AmazonMenu"
+import { AmazonMenu } from "../AmazonMenu"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
