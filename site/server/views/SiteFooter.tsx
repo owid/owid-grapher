@@ -1,5 +1,5 @@
 import * as React from "react"
-import { getWebpackUrlForAsset } from "serverUtils/staticGen"
+import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { BAKED_BASE_URL } from "settings"

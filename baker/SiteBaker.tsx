@@ -38,8 +38,8 @@ import { embedSnippet } from "site/server/embedCharts"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "site/server/countryProfiles"
 import { countries } from "clientUtils/countries"
-import { exec } from "serverUtils/serverUtil"
-import { log } from "serverUtils/log"
+import { exec } from "adminSiteServer/serverUtil"
+import { log } from "adminSiteServer/log"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,

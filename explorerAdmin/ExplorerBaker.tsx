@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import * as db from "db/db"
 import React from "react"
-import { renderToHtmlPage } from "serverUtils/serverUtil"
+import { renderToHtmlPage } from "adminSiteServer/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
 import {
     EXPLORER_FILE_SUFFIX,

@@ -18,7 +18,7 @@ import { defaultTo, memoize } from "clientUtils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "clientUtils/owidTypes"
-import { JsonError } from "serverUtils/serverUtil"
+import { JsonError } from "adminSiteServer/serverUtil"
 import {
     CountryProfileSpec,
     countryProfileSpecs,

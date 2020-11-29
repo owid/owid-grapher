@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { SiteBaker } from "baker/SiteBaker"
-import { log } from "serverUtils/log"
+import { log } from "adminSiteServer/log"
 import {
     queueIsEmpty,
     readQueuedAndPendingFiles,

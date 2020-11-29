@@ -11,7 +11,7 @@ import { Writable } from "stream"
 import { User } from "./User"
 import { Source } from "./Source"
 import { Variable } from "./Variable"
-import { csvRow, slugify, filenamify } from "serverUtils/serverUtil"
+import { csvRow, slugify, filenamify } from "adminSiteServer/serverUtil"
 import * as db from "db/db"
 
 @Entity("datasets")

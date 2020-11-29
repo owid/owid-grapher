@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import parseArgs from "minimist"
 
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
-import { exec } from "serverUtils/serverUtil"
+import { exec } from "adminSiteServer/serverUtil"
 
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"

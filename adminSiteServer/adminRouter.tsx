@@ -11,7 +11,7 @@ import {
     tryInt,
     renderToHtmlPage,
     JsonError,
-} from "serverUtils/serverUtil"
+} from "adminSiteServer/serverUtil"
 import { logInWithCredentials, logOut } from "./authentication"
 import { LoginPage } from "./LoginPage"
 import { RegisterPage } from "./RegisterPage"

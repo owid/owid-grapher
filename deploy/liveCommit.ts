@@ -3,7 +3,7 @@ import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
 import * as timeago from "timeago.js"
-import { exec } from "serverUtils/serverUtil"
+import { exec } from "adminSiteServer/serverUtil"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.

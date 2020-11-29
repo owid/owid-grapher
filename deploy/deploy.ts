@@ -6,7 +6,7 @@ import * as path from "path"
 import parseArgs from "minimist"
 import * as prompts from "prompts"
 import ProgressBar = require("progress")
-import { exec } from "serverUtils/serverUtil"
+import { exec } from "adminSiteServer/serverUtil"
 import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"
 import { WriteStream } from "tty"

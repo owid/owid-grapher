@@ -1,5 +1,5 @@
 import * as React from "react"
-import { JsonError } from "serverUtils/serverUtil"
+import { JsonError } from "adminSiteServer/serverUtil"
 import { Chart } from "db/model/Chart"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherPage } from "site/server/views/GrapherPage"

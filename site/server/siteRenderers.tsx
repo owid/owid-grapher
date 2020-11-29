@@ -24,7 +24,7 @@ import {
     GrapherExports,
 } from "./grapherUtil"
 import * as cheerio from "cheerio"
-import { JsonError } from "serverUtils/serverUtil"
+import { JsonError } from "adminSiteServer/serverUtil"
 import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "settings"
 import {

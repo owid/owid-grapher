@@ -12,7 +12,7 @@ import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { splitOnLastWord } from "serverUtils/serverUtil"
+import { splitOnLastWord } from "adminSiteServer/serverUtil"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,

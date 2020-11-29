@@ -3,7 +3,7 @@ import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, ENV } from "settings"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { log } from "serverUtils/log"
+import { log } from "adminSiteServer/log"
 
 import express from "express"
 require("express-async-errors")
@@ -15,7 +15,7 @@ import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
-import { renderToHtmlPage } from "serverUtils/serverUtil"
+import { renderToHtmlPage } from "adminSiteServer/serverUtil"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 
 import * as React from "react"

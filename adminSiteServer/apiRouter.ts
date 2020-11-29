@@ -11,7 +11,7 @@ import {
     expectInt,
     isValidSlug,
     absoluteUrl,
-} from "serverUtils/serverUtil"
+} from "adminSiteServer/serverUtil"
 import { sendMail } from "./mail"
 import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
@@ -28,7 +28,7 @@ import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
 import { camelCaseProperties } from "clientUtils/string"
-import { log } from "serverUtils/log"
+import { log } from "adminSiteServer/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSiteClient/ChartEditor"

@@ -8,7 +8,7 @@ import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings"
 import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
 import { bakeGraphersToSvgs } from "baker/GrapherImageBaker"
-import { log } from "serverUtils/log"
+import { log } from "adminSiteServer/log"
 import { Chart } from "db/model/Chart"
 
 // Given a grapher url with query string, create a key to match export filenames

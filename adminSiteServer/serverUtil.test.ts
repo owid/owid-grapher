@@ -1,8 +1,8 @@
 #! /usr/bin/env jest
 
-import { ExecError } from "serverUtils/serverUtil"
+import { ExecError } from "adminSiteServer/serverUtil"
 
-const { exec } = require("serverUtils/serverUtil")
+const { exec } = require("adminSiteServer/serverUtil")
 
 describe("exec()", () => {
     it("should resolve when there is a zero exit code", async () => {

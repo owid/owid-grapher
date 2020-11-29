@@ -1,6 +1,6 @@
 import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
-import { getWebpackUrlForAsset } from "serverUtils/staticGen"
+import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 
 export const Head = (props: {
     canonicalUrl: string

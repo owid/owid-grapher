@@ -2,7 +2,7 @@ import * as lodash from "lodash"
 import { Writable } from "stream"
 
 import * as db from "db/db"
-import { csvRow } from "serverUtils/serverUtil"
+import { csvRow } from "adminSiteServer/serverUtil"
 import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
 
 export namespace Variable {

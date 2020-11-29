@@ -1,4 +1,4 @@
-import { getWebpackUrlForAsset } from "serverUtils/staticGen"
+import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 
 export const embedSnippet = () => `const embedSnippet = () => {
     const link = document.createElement('link')
