@@ -1,4 +1,3 @@
-import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -10,13 +9,16 @@ export interface Country {
     code: string
 }
 
-export const CountriesIndexPage = (props: { countries: Country[] }) => {
-    const { countries } = props
+export const CountriesIndexPage = (props: {
+    countries: Country[]
+    baseUrl: string
+}) => {
+    const { countries, baseUrl } = props
 
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/countries`}
+                canonicalUrl={`${baseUrl}/countries`}
                 pageTitle="Countries"
                 pageDesc="Data by individual country on Our World in Data."
             />

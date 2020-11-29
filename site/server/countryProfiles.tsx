@@ -15,7 +15,9 @@ import { OwidTable } from "coreTable/OwidTable"
 import { BAKED_BASE_URL } from "settings"
 
 export const countriesIndexPage = async () =>
-    renderToHtmlPage(<CountriesIndexPage countries={countries} />)
+    renderToHtmlPage(
+        <CountriesIndexPage countries={countries} baseUrl={BAKED_BASE_URL} />
+    )
 
 const cache = new Map()
 // Cache the result of an operation by a key for the duration of the process
@@ -133,35 +135,7 @@ const countryIndicatorLatestData = async (countryCode: string) => {
     return dataValuesByEntityId[countryCode]
 }
 
-// async function countryIndicatorLatestData(countryCode: string) {
-//     const dataValuesByEntityId = await bakeCache(countryIndicatorLatestData, async () => {
-//         const entities = await db.table("entities").select("id", "code").whereRaw("validated is true and code is not null") as { id: number, code: string }[]
-
-//         const entitiesByCode = _.keyBy(entities, e => e.code)
-//         const entitiesById = _.keyBy(entities, e => e.id)
-//         const entityIds = countries.map(c => entitiesByCode[c.code].id)
-
-//         const variables = await countryIndicatorVariables()
-//         const variableIds = variables.map(v => v.id)
-//         // const dataValues = await db.table("entities")
-//         //     .select("data_values.variableId", "data_values.entityId", "data_values.value", "data_values.year")
-//         //     .join("data_values", "data_values.entityId", "=", "entities.id")
-//         //     .whereIn("entities.code", countryCodes)
-//         //     .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]
-
-//         const dataValues = await db.table("data_values").select("variableId", "entityId", "value", "year")
-//             .whereIn("variableId", variableIds)
-//             .whereRaw(`entityId in (?)`, [entityIds])
-//             .andWhere("year", ">", 2010)
-//             .andWhere("year", "<", 2020)
-//             .orderBy("year", "DESC") as { variableId: number, entityId: number, value: string, year: number }[]
-//         return _.groupBy(dataValues, dv => entitiesById[dv.entityId].code)
-//     })
-
-//     return dataValuesByEntityId[countryCode]
-// }
-
-export async function countryProfilePage(countrySlug: string) {
+export const countryProfilePage = async (countrySlug: string) => {
     const country = getCountry(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
@@ -214,7 +188,11 @@ export async function countryProfilePage(countrySlug: string) {
     indicators = lodash.sortBy(indicators, (i) => i.name.trim())
 
     return renderToHtmlPage(
-        <CountryProfilePage indicators={indicators} country={country} baseUrl={BAKED_BASE_URL/>
+        <CountryProfilePage
+            indicators={indicators}
+            country={country}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 

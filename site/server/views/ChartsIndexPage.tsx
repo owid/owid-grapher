@@ -1,4 +1,3 @@
-import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -22,22 +21,26 @@ export interface TagWithCharts {
     charts: ChartIndexItem[]
 }
 
-export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
-    const { chartItems } = props
+export const ChartsIndexPage = (props: {
+    chartItems: ChartIndexItem[]
+    baseUrl: string
+}) => {
+    const { chartItems, baseUrl } = props
 
     const allTags = lodash.sortBy(
         lodash.uniqBy(
-            lodash.flatten(chartItems.map((c) => c.tags)),
-            (t) => t.id
+            lodash.flatten(chartItems.map((item) => item.tags)),
+            (tag) => tag.id
         ),
-        (t) => t.name
+        (tag) => tag.name
     ) as TagWithCharts[]
 
-    for (const c of chartItems) {
+    for (const chartItem of chartItems) {
         for (const tag of allTags) {
             if (tag.charts === undefined) tag.charts = []
 
-            if (c.tags.some((t) => t.id === tag.id)) tag.charts.push(c)
+            if (chartItem.tags.some((t) => t.id === tag.id))
+                tag.charts.push(chartItem)
         }
     }
 
@@ -58,7 +61,7 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/charts`}
+                canonicalUrl={`${baseUrl}/charts`}
                 pageTitle="Charts"
                 pageDesc="All of the interactive charts on Our World in Data."
             />
