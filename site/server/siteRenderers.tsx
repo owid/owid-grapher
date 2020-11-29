@@ -142,7 +142,12 @@ export const renderFrontPage = async () => {
         )
     )[0].count as number
     return renderToHtmlPage(
-        <FrontPage entries={entries} posts={posts} totalCharts={totalCharts} />
+        <FrontPage
+            entries={entries}
+            posts={posts}
+            totalCharts={totalCharts}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 

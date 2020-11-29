@@ -1,5 +1,4 @@
 import * as React from "react"
-import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -22,17 +21,18 @@ export const FrontPage = (props: {
     entries: CategoryWithEntries[]
     posts: FullPost[]
     totalCharts: number
+    baseUrl: string
 }) => {
-    const { entries, posts, totalCharts } = props
+    const { entries, posts, totalCharts, baseUrl } = props
 
     // Structured data for google
     const structuredMarkup = {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        url: BAKED_BASE_URL,
+        url: baseUrl,
         potentialAction: {
             "@type": "SearchAction",
-            target: `${BAKED_BASE_URL}/search?q={search_term_string}`,
+            target: `${baseUrl}/search?q={search_term_string}`,
             "query-input": "required name=search_term_string",
         },
     }
@@ -76,7 +76,7 @@ export const FrontPage = (props: {
 
     return (
         <html>
-            <Head canonicalUrl={BAKED_BASE_URL}>
+            <Head canonicalUrl={baseUrl}>
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
@@ -125,7 +125,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src={`${BAKED_BASE_URL}/media-logos-wide.png`}
+                                                src={`${baseUrl}/media-logos-wide.png`}
                                                 alt="Logos of the publications that have used our content"
                                             />
                                             <div className="hover-note">
@@ -147,7 +147,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-trust"
                                         >
                                             <img
-                                                src={`${BAKED_BASE_URL}/university-logos-wide.png`}
+                                                src={`${baseUrl}/university-logos-wide.png`}
                                                 alt="Logos of the universities that have used our content"
                                             />
                                             <div className="hover-note">
@@ -163,112 +163,6 @@ export const FrontPage = (props: {
                         </div>
                     </div>
                 </section>
-
-                {/* <section className="homepage-featured">
-                <div className="wrapper">
-                    <div className="inner-wrapper">
-                        <h2>Our most popular research</h2>
-                        <div className="owid-row owid-spacing--1">
-                            <div className="owid-col owid-col--lg-auto">
-                                <div className="list">
-                                    <a href="/co2-and-other-greenhouse-gas-emissions" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            CO₂ and other Greenhouse Gas Emissions
-                                        </div>
-                                    </a>
-                                    <a href="/a-history-of-global-living-conditions-in-5-charts" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faFileAlt} />
-                                        </div>
-                                        <div className="label">
-                                            The short history of global living conditions
-                                        </div>
-                                    </a>
-                                    <a href="/literacy" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            Literacy
-                                        </div>
-                                    </a>
-                                    <a href="/world-population-growth" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            World Population Growth
-                                        </div>
-                                    </a>
-                                    <a href="/life-expectancy" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            Life expectancy
-                                        </div>
-                                    </a>
-                                    <a href="/why-do-women-live-longer-than-men" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faFileAlt} />
-                                        </div>
-                                        <div className="label">
-                                            Why do women live longer?
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                            <div className="owid-col owid-col--lg-auto">
-                                <div className="list">
-                                    <a href="/hunger-and-undernourishment" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            Hunger and undernourishment
-                                        </div>
-                                    </a>
-                                    <a href="/income-inequality" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            Income inequality
-                                        </div>
-                                    </a>
-                                    <a href="/faq-on-plastics" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faFileAlt} />
-                                        </div>
-                                        <div className="label">
-                                            FAQs on plastics pollution
-                                        </div>
-                                    </a>
-                                    <a href="/global-rise-of-education" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faBook} />
-                                        </div>
-                                        <div className="label">
-                                            Global rise of education
-                                        </div>
-                                    </a>
-                                    <a href="/much-better-awful-can-be-better" className="list-item" data-track-note="homepage-popular">
-                                        <div className="icon">
-                                            <FontAwesomeIcon icon={faFileAlt} />
-                                        </div>
-                                        <div className="label">
-                                            The world is much better; The world is awful; The world can be much better
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section> */}
 
                 <section className="homepage-posts">
                     <div className="wrapper">
@@ -416,7 +310,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src={`${BAKED_BASE_URL}/sdg-wheel.png`}
+                                        src={`${baseUrl}/sdg-wheel.png`}
                                         alt="SDG Tracker logo"
                                         loading="lazy"
                                     />
@@ -441,7 +335,7 @@ export const FrontPage = (props: {
                             >
                                 <div className="icon-left">
                                     <img
-                                        src={`${BAKED_BASE_URL}/teaching-hub.svg`}
+                                        src={`${baseUrl}/teaching-hub.svg`}
                                         alt="Teaching Hub logo"
                                         loading="lazy"
                                     />

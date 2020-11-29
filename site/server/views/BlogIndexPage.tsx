@@ -1,28 +1,26 @@
 import * as React from "react"
-import * as lodash from "lodash"
-
-import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { formatAuthors, formatDate } from "site/server/formatting"
 import { FullPost } from "db/wpdb"
+import { range } from "clientUtils/Util"
 
 export const BlogIndexPage = (props: {
     posts: FullPost[]
     pageNum: number
     numPages: number
+    baseUrl: string
 }) => {
-    const { posts, pageNum, numPages } = props
-    const pageNums = lodash.range(1, numPages + 1)
+    const { posts, pageNum, numPages, baseUrl } = props
+    const pageNums = range(1, numPages + 1)
     const pageTitle = "Latest publications"
 
     return (
         <html>
             <Head
                 canonicalUrl={
-                    `${BAKED_BASE_URL}/blog` +
-                    (pageNum > 1 ? `/page/${pageNum}` : "")
+                    `${baseUrl}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")
                 }
                 pageTitle={pageTitle}
             />
