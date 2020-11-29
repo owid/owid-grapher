@@ -19,7 +19,6 @@ import {
     sortBy,
 } from "clientUtils/Util"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
-import { ENV, GRAPHER_VERSION } from "settings"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
 import {
     GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
@@ -129,6 +128,7 @@ function SelectedItems(props: {
 @observer
 export class GlobalEntityControl extends React.Component<{
     initialSelection?: string
+    environment?: string
 }> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
@@ -221,7 +221,9 @@ export class GlobalEntityControl extends React.Component<{
         return optionGroups
     }
 
-    private analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
+    private analytics = new GrapherAnalytics(
+        this.props.environment ?? "development"
+    )
 
     @action.bound private onChange(options: ValueType<any>) {
         this.selection.setSelectedEntities(
@@ -380,7 +382,8 @@ export class GlobalEntityControl extends React.Component<{
     }
 }
 
-export function hydrateGlobalEntityControlIfAny() {
+// todo: add analytics back
+export const hydrateGlobalEntityControlIfAny = () => {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (!element) return
 

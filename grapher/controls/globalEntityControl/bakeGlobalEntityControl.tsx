@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
+import { ENV } from "settings"
 import { GlobalEntityControl } from "./GlobalEntityControl"
 import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,
@@ -15,7 +16,7 @@ export function bakeGlobalEntityControl(cheerioEl: CheerioStatic) {
             const $section = $el.closest("section")
 
             const rendered = ReactDOMServer.renderToString(
-                <GlobalEntityControl />
+                <GlobalEntityControl environment={ENV} />
             )
 
             // Move the element to top-level where <section>s are,
