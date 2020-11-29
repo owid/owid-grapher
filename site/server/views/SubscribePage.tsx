@@ -1,8 +1,7 @@
 import * as React from "react"
-import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 
-export default function SubscribePage() {
+export const SubscribePage = (props: { baseUrl: string }) => {
     const style = `
         body {
             display: flex;
@@ -39,7 +38,7 @@ export default function SubscribePage() {
         <html>
             <Head
                 pageTitle="Subscribe"
-                canonicalUrl={`${BAKED_BASE_URL}/subscribe`}
+                canonicalUrl={`${props.baseUrl}/subscribe`}
             >
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>

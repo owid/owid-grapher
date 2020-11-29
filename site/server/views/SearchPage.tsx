@@ -5,11 +5,11 @@ import { SiteFooter } from "./SiteFooter"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
-export const SearchPage = (baseUrl: string) => {
+export const SearchPage = (props: { baseUrl: string }) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${baseUrl}/search`}
+                canonicalUrl={`${props.baseUrl}/search`}
                 pageTitle="Search"
                 pageDesc="Search articles and charts on Our World in Data."
             />

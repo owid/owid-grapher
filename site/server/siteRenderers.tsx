@@ -8,7 +8,7 @@ import { CovidPage } from "./views/CovidPage"
 import { SearchPage } from "./views/SearchPage"
 import { NotFoundPage } from "./views/NotFoundPage"
 import { DonatePage } from "./views/DonatePage"
-import SubscribePage from "./views/SubscribePage"
+import { SubscribePage } from "./views/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
@@ -26,7 +26,11 @@ import {
 import * as cheerio from "cheerio"
 import { JsonError } from "adminSiteServer/serverUtil"
 import { Post } from "db/model/Post"
-import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "settings"
+import {
+    BAKED_BASE_URL,
+    BLOG_POSTS_PER_PAGE,
+    RECAPTCHA_SITE_KEY,
+} from "settings"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
@@ -78,22 +82,20 @@ export async function renderChartsPage() {
 }
 
 // Only used in the dev server
-export async function renderCovidPage() {
-    return renderToHtmlPage(<CovidPage />)
-}
+export const renderCovidPage = () =>
+    renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
-export async function renderPageBySlug(slug: string) {
+export const renderPageBySlug = async (slug: string) => {
     const postApi = await wpdb.getPostBySlug(slug)
-
     return renderPage(postApi)
 }
 
-export async function renderPreview(postId: number): Promise<string> {
+export const renderPreview = (postId: number): Promise<string> => {
     const postApi = await wpdb.getLatestPostRevision(postId)
     return renderPage(postApi)
 }
 
-export async function renderMenuJson() {
+export const renderMenuJson = async () => {
     const categories = await wpdb.getEntriesByCategory()
     return JSON.stringify({ categories: categories })
 }
@@ -144,13 +146,17 @@ export async function renderFrontPage() {
         <FrontPage entries={entries} posts={posts} totalCharts={totalCharts} />
     )
 }
-export async function renderDonatePage() {
-    return renderToHtmlPage(<DonatePage />)
-}
 
-export async function renderSubscribePage() {
-    return renderToHtmlPage(<SubscribePage />)
-}
+export const renderDonatePage = () =>
+    renderToHtmlPage(
+        <DonatePage
+            baseUrl={BAKED_BASE_URL}
+            recaptchaKey={RECAPTCHA_SITE_KEY}
+        />
+    )
+
+export const renderSubscribePage = () =>
+    renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 
 export async function renderBlogByPageNum(pageNum: number) {
     const allPosts = await wpdb.getBlogIndex()
