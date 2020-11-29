@@ -36,7 +36,7 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                         </button>
                     </form>
                 </main>
-                <SiteFooter hideDonate={true} />
+                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `

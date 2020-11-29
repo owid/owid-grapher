@@ -83,7 +83,7 @@ export const EntriesByYearPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter hideDonate={true} />
+                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
 
                 <script
                     dangerouslySetInnerHTML={{
@@ -151,7 +151,7 @@ export const EntriesForYearPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter hideDonate={true} />
+                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
             </body>
         </html>
     )

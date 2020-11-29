@@ -20,7 +20,7 @@ export const VariableCountryPage = (props: VariableCountryPageProps) => {
             <body className="VariableCountryPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>{variable.name}</main>
-                <SiteFooter />
+                <SiteFooter baseUrl={baseUrl} />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>

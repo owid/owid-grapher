@@ -19,7 +19,7 @@ export class FeedbackPage extends React.Component<{ baseUrl: string }> {
                     <main>
                         <FeedbackForm />
                     </main>
-                    <SiteFooter hideDonate={true} />
+                    <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 </body>
                 <script>{`window.runFeedbackPage()`}</script>
             </html>

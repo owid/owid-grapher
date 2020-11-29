@@ -109,7 +109,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         </div>
                     )}
                 </main>
-                <SiteFooter />
+                <SiteFooter baseUrl={baseUrl} />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>

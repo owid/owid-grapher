@@ -402,7 +402,7 @@ export const FrontPage = (props: {
                     </div>
                 </section>
 
-                <SiteFooter />
+                <SiteFooter baseUrl={baseUrl} />
             </body>
         </html>
     )

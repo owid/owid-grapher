@@ -40,7 +40,7 @@ export const CountriesIndexPage = (props: {
                         ))}
                     </ul>
                 </main>
-                <SiteFooter />
+                <SiteFooter baseUrl={baseUrl} />
                 {/* <script>{`window.runChartsIndexPage()`}</script> */}
             </body>
         </html>

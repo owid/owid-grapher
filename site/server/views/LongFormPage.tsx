@@ -366,7 +366,10 @@ export const LongFormPage = (props: {
                         </ul>
                     </div>
                 </div>
-                <SiteFooter hideDonate={formattingOptions.hideDonateFooter} />
+                <SiteFooter
+                    hideDonate={formattingOptions.hideDonateFooter}
+                    baseUrl={baseUrl}
+                />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `

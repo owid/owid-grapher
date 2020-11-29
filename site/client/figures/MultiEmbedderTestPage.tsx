@@ -86,7 +86,7 @@ export const MultiEmbedderTestPage = (
                         }}
                     />
                 </main>
-                <SiteFooter />
+                <SiteFooter baseUrl={""} />
             </body>
         </html>
     )

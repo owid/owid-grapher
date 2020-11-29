@@ -106,7 +106,7 @@ export const ChartsIndexPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter />
+                <SiteFooter baseUrl={baseUrl} />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
