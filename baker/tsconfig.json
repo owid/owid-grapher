@@ -3,5 +3,5 @@
     "compilerOptions": {
         "baseUrl": "../"
     },
-    "references": [{ "path": "../site" }]
+    "references": [{ "path": "../site" }, { "path": "../explorerAdmin" }]
 }
