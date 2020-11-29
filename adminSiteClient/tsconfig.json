@@ -1,0 +1,11 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "baseUrl": "../"
+    },
+    "references": [
+        { "path": "../grapher" },
+        { "path": "../explorerAdmin" },
+        { "path": "../clientUtils" }
+    ]
+}
