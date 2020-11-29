@@ -35,9 +35,9 @@ import { EntriesByYearPage, EntriesForYearPage } from "./EntriesByYearPage"
 import { VariableCountryPage } from "./VariableCountryPage"
 import { FeedbackPage } from "./FeedbackPage"
 import { getCountry, Country } from "clientUtils/countries"
-import { memoize } from "../covid/node_modules/clientUtils/Util"
-import { CountryProfileSpec } from "site/server/countryProfileProjects"
-import { FormattedPost } from "../blocks/RelatedCharts/node_modules/clientUtils/owidTypes"
+import { memoize } from "clientUtils/Util"
+import { CountryProfileSpec } from "site/countryProfileProjects"
+import { FormattedPost } from "clientUtils/owidTypes"
 
 // Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>

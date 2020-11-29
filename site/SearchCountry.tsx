@@ -3,8 +3,8 @@ import ReactDOM from "react-dom"
 import Select, { ValueType } from "react-select"
 import { countries } from "clientUtils/countries"
 import { asArray } from "clientUtils/react-select"
-import { sortBy } from "../covid/node_modules/clientUtils/Util"
-import { countryProfileSpecs } from "site/server/countryProfileProjects"
+import { sortBy } from "clientUtils/Util"
+import { countryProfileSpecs } from "site/countryProfileProjects"
 import { SiteAnalytics } from "./SiteAnalytics"
 
 interface CountrySelectOption {

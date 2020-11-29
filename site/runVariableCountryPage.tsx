@@ -1,11 +1,11 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { clone } from "../covid/node_modules/clientUtils/Util"
+import { clone } from "clientUtils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
-import { VariableCountryPageProps } from "site/server/VariableCountryPageProps"
+import { VariableCountryPageProps } from "site/VariableCountryPageProps"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 @observer

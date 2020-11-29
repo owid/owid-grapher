@@ -9,9 +9,9 @@ import { computed } from "mobx"
 import React from "react"
 import { EmbedChart } from "./EmbedChart"
 import { BAKED_GRAPHER_URL } from "settings"
-import { uniq, capitalize } from "../covid/node_modules/clientUtils/Util"
+import { uniq, capitalize } from "clientUtils/Util"
 import { Country } from "clientUtils/countries"
-import { EntityUrlBuilder } from "../blocks/ProminentLink/node_modules/grapher/core/EntityUrlBuilder"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 class ChartResult extends React.Component<{
     hit: ChartHit

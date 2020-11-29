@@ -1,4 +1,4 @@
-import { SectionHeading } from "../client/SectionHeading"
+import { SectionHeading } from "./SectionHeading"
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as lodash from "lodash"
@@ -10,18 +10,15 @@ import { getTables, FullPost } from "db/wpdb"
 import Tablepress from "./Tablepress"
 import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
-import { renderBlocks } from "site/client/blocks"
-import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
-import {
-    FormattedPost,
-    SubNavId,
-} from "../blocks/RelatedCharts/node_modules/clientUtils/owidTypes"
+import { renderBlocks } from "./blocks"
+import { RelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
+import { FormattedPost, SubNavId } from "clientUtils/owidTypes"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
-import { Footnote } from "site/client/Footnote"
+import { Footnote } from "./Footnote"
 import { Country } from "clientUtils/countries"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
+import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink/ProminentLink"
 import {
     replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
     legacyCovidDashboardSlug,
@@ -30,7 +27,7 @@ import {
 import {
     countryProfileDefaultCountryPlaceholder,
     countryProfileSpecs,
-} from "site/server/countryProfileProjects"
+} from "./countryProfileProjects"
 import { formatGlossaryTerms } from "./formatGlossary"
 import { getMutableGlossary, glossary } from "./glossary"
 import { DataToken } from "./DataToken"

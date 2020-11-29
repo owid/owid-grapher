@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
-import { flatten } from "../covid/node_modules/clientUtils/Util"
+import { flatten } from "clientUtils/Util"
 import { bind } from "decko"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -20,7 +20,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
-import { AmazonMenu } from "../AmazonMenu"
+import { AmazonMenu } from "./AmazonMenu"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,

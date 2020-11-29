@@ -1,5 +1,5 @@
-import { Tippy } from "../covid/node_modules/grapher/chart/Tippy"
-import { parseIntOrUndefined } from "../covid/node_modules/clientUtils/Util"
+import { Tippy } from "grapher/chart/Tippy"
+import { parseIntOrUndefined } from "clientUtils/Util"
 import React from "react"
 import ReactDOM from "react-dom"
 
