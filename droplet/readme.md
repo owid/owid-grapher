@@ -4,7 +4,7 @@ This folder contains the code for setting up dev staging environments.
 
 ## Monitoring the Admin Site
 
-We use (pm2)[https://www.npmjs.com/package/pm2] for running the adminSite express server and the deploy queue server.
+We use (pm2)[https://www.npmjs.com/package/pm2] for running the adminSiteServer and the deploy queue server.
 
 Common tasks:
 
