@@ -1,16 +1,15 @@
 import * as React from "react"
 import { Head } from "./Head"
-import { BAKED_BASE_URL } from "settings"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
-export const NotFoundPage = () => {
+export const NotFoundPage = (baseUrl: string) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/search`}
+                canonicalUrl={`${baseUrl}/search`}
                 pageTitle="404 Not Found"
                 pageDesc="Search articles and charts on Our World in Data."
             />

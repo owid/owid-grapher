@@ -166,13 +166,11 @@ export async function renderBlogByPageNum(pageNum: number) {
     )
 }
 
-export async function renderSearchPage() {
-    return renderToHtmlPage(<SearchPage />)
-}
+export const renderSearchPage = () =>
+    renderToHtmlPage(<SearchPage baseUrl={BAKED_BASE_URL} />)
 
-export async function renderNotFoundPage() {
-    return renderToHtmlPage(<NotFoundPage />)
-}
+export const renderNotFoundPage = () =>
+    renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed() {
     const postsApi = await wpdb.getPosts(["post"], 10)
