@@ -1,5 +1,5 @@
-import * as settings from "settings"
 import * as React from "react"
+import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 
 export default function SubscribePage() {
@@ -39,7 +39,7 @@ export default function SubscribePage() {
         <html>
             <Head
                 pageTitle="Subscribe"
-                canonicalUrl={`${settings.BAKED_BASE_URL}/subscribe`}
+                canonicalUrl={`${BAKED_BASE_URL}/subscribe`}
             >
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>

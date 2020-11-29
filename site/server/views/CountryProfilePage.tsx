@@ -1,4 +1,4 @@
-import * as settings from "settings"
+import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -74,7 +74,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                                     <div className="indicatorName">
                                         <a
                                             href={urljoin(
-                                                settings.BAKED_BASE_URL,
+                                                BAKED_BASE_URL,
                                                 indicator.slug
                                             )}
                                         >

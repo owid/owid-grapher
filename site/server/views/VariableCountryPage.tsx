@@ -1,5 +1,5 @@
-import * as settings from "settings"
 import * as React from "react"
+import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -14,7 +14,7 @@ export const VariableCountryPage = (props: VariableCountryPageProps) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/search`}
+                canonicalUrl={`${BAKED_BASE_URL}/search`}
                 pageTitle={pageTitle}
                 pageDesc="Search articles and charts on Our World in Data."
             />

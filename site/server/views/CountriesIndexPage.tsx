@@ -1,4 +1,4 @@
-import * as settings from "settings"
+import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -16,7 +16,7 @@ export const CountriesIndexPage = (props: { countries: Country[] }) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/countries`}
+                canonicalUrl={`${BAKED_BASE_URL}/countries`}
                 pageTitle="Countries"
                 pageDesc="Data by individual country on Our World in Data."
             />

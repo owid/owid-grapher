@@ -1,6 +1,5 @@
 import * as React from "react"
-
-import * as settings from "settings"
+\import { BAKED_BASE_URL, RECAPTCHA_SITE_KEY } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -9,12 +8,12 @@ export const DonatePage = () => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/donate`}
+                canonicalUrl={`${BAKED_BASE_URL}/donate`}
                 pageTitle="Donate"
             >
                 <script src="https://js.stripe.com/v3/" />
                 <script
-                    src={`https://www.google.com/recaptcha/api.js?render=${settings.RECAPTCHA_SITE_KEY}`}
+                    src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
                 />
             </Head>
             <body>

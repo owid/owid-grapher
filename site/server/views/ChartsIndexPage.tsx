@@ -1,4 +1,4 @@
-import * as settings from "settings"
+import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -58,7 +58,7 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/charts`}
+                canonicalUrl={`${BAKED_BASE_URL}/charts`}
                 pageTitle="Charts"
                 pageDesc="All of the interactive charts on Our World in Data."
             />

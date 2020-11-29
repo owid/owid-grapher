@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as lodash from "lodash"
 
-import * as settings from "settings"
+import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -21,7 +21,7 @@ export const BlogIndexPage = (props: {
         <html>
             <Head
                 canonicalUrl={
-                    `${settings.BAKED_BASE_URL}/blog` +
+                    `${BAKED_BASE_URL}/blog` +
                     (pageNum > 1 ? `/page/${pageNum}` : "")
                 }
                 pageTitle={pageTitle}

@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as settings from "settings"
+import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -12,7 +12,7 @@ export const CovidPage = () => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/covid`}
+                canonicalUrl={`${BAKED_BASE_URL}/covid`}
                 pageTitle="COVID-19"
             ></Head>
             <body className="CovidPage">

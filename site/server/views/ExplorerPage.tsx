@@ -1,5 +1,5 @@
 import React from "react"
-import * as settings from "settings"
+\import { BAKED_BASE_URL} from "settings"
 import { Head } from "site/server/views/Head"
 import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
@@ -74,9 +74,9 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/${slug}`}
+                canonicalUrl={`${BAKED_BASE_URL}/${slug}`}
                 pageTitle={explorerTitle}
-                imageUrl={`${settings.BAKED_BASE_URL}/${thumbnail} `}
+                imageUrl={`${BAKED_BASE_URL}/${thumbnail} `}
             >
                 <IFrameDetector />
             </Head>
