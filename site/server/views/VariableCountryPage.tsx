@@ -1,12 +1,11 @@
 import * as React from "react"
-import { BAKED_BASE_URL } from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { VariableCountryPageProps } from "./VariableCountryPageProps"
 
 export const VariableCountryPage = (props: VariableCountryPageProps) => {
-    const { variable, country } = props
+    const { variable, country, baseUrl } = props
 
     const pageTitle = `${country.name} / ${variable.name}`
     const script = `window.runVariableCountryPage(${JSON.stringify(props)})`
@@ -14,7 +13,7 @@ export const VariableCountryPage = (props: VariableCountryPageProps) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/search`}
+                canonicalUrl={`${baseUrl}/search`}
                 pageTitle={pageTitle}
                 pageDesc="Search articles and charts on Our World in Data."
             />

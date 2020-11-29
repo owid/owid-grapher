@@ -6,4 +6,5 @@ export interface VariableCountryPageProps {
         name: string
     }
     variable: LegacyVariableDisplayConfigInterface
+    baseUrl: string
 }

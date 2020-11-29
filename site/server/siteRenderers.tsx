@@ -43,11 +43,10 @@ import { CountryProfileSpec } from "site/server/countryProfileProjects"
 import { FormattedPost } from "clientUtils/owidTypes"
 
 // Wrap ReactDOMServer to stick the doctype on
-export function renderToHtmlPage(element: any) {
-    return `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
-}
+export const renderToHtmlPage = (element: any) =>
+    `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export async function renderChartsPage() {
+export const renderChartsPage = async () => {
     const chartItems = (await db.query(`
         SELECT
             id,
@@ -90,7 +89,7 @@ export const renderPageBySlug = async (slug: string) => {
     return renderPage(postApi)
 }
 
-export const renderPreview = (postId: number): Promise<string> => {
+export const renderPreview = async (postId: number): Promise<string> => {
     const postApi = await wpdb.getLatestPostRevision(postId)
     return renderPage(postApi)
 }
@@ -100,7 +99,7 @@ export const renderMenuJson = async () => {
     return JSON.stringify({ categories: categories })
 }
 
-async function renderPage(postApi: any) {
+const renderPage = async (postApi: any) => {
     const post = await wpdb.getFullPost(postApi)
     const pageType = await wpdb.getPageType(post)
 
@@ -129,7 +128,7 @@ async function renderPage(postApi: any) {
     )
 }
 
-export async function renderFrontPage() {
+export const renderFrontPage = async () => {
     const entries = await wpdb.getEntriesByCategory()
     const posts = await wpdb.getBlogIndex()
     const totalCharts = (
@@ -158,7 +157,7 @@ export const renderDonatePage = () =>
 export const renderSubscribePage = () =>
     renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 
-export async function renderBlogByPageNum(pageNum: number) {
+export const renderBlogByPageNum = async (pageNum: number) => {
     const allPosts = await wpdb.getBlogIndex()
 
     const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
@@ -222,7 +221,7 @@ ${posts
 }
 
 // These pages exist largely just for Google Scholar
-export async function entriesByYearPage(year?: number) {
+export const entriesByYearPage = async (year?: number) => {
     const entries = (await db
         .table(Post.table)
         .where({ status: "publish" })
@@ -238,10 +237,14 @@ export async function entriesByYearPage(year?: number) {
         return renderToHtmlPage(
             <EntriesForYearPage entries={entries} year={year} />
         )
-    else return renderToHtmlPage(<EntriesByYearPage entries={entries} />)
+
+    return renderToHtmlPage(<EntriesByYearPage entries={entries} />)
 }
 
-export async function pagePerVariable(variableId: number, countryName: string) {
+export const pagePerVariable = async (
+    variableId: number,
+    countryName: string
+) => {
     const variable = await db.get(
         `
         SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
@@ -271,13 +274,16 @@ export async function pagePerVariable(variableId: number, countryName: string) {
         .first()
 
     return renderToHtmlPage(
-        <VariableCountryPage variable={variable} country={country} />
+        <VariableCountryPage
+            variable={variable}
+            country={country}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 
-export async function feedbackPage() {
-    return renderToHtmlPage(<FeedbackPage />)
-}
+export const feedbackPage = () =>
+    renderToHtmlPage(<FeedbackPage baseUrl={BAKED_BASE_URL} />)
 
 const getCountryProfilePost = memoize(
     async (
@@ -306,11 +312,11 @@ const getCountryProfilePost = memoize(
     }
 )
 
-export async function renderCountryProfile(
+export const renderCountryProfile = async (
     profileSpec: CountryProfileSpec,
     country: Country,
     grapherExports?: GrapherExports
-) {
+) => {
     const [formatted, formattingOptions] = await getCountryProfilePost(
         profileSpec,
         grapherExports
@@ -340,19 +346,15 @@ export async function renderCountryProfile(
     )
 }
 
-export async function countryProfileCountryPage(
+export const countryProfileCountryPage = async (
     profileSpec: CountryProfileSpec,
     countrySlug: string
-) {
+) => {
     const country = getCountry(countrySlug)
-    if (!country) {
-        throw new JsonError(`No such country ${countrySlug}`, 404)
-    } else {
-        // Voluntarily not dealing with grapherExports on devServer for simplicity
-        return renderCountryProfile(profileSpec, country)
-    }
+    if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
+
+    // Voluntarily not dealing with grapherExports on devServer for simplicity
+    return renderCountryProfile(profileSpec, country)
 }
 
-export function flushCache() {
-    getCountryProfilePost.cache.clear?.()
-}
+export const flushCache = () => getCountryProfilePost.cache.clear?.()
