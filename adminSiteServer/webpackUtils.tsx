@@ -1,8 +1,12 @@
-import { WEBPACK_OUTPUT_PATH } from "serverSettings"
-import { ENV, WEBPACK_DEV_URL, BAKED_BASE_URL } from "settings"
+import { ENV, BAKED_BASE_URL } from "settings"
 import * as fs from "fs-extra"
 import urljoin from "url-join"
 import * as path from "path"
+
+const WEBPACK_DEV_URL = process.env.WEBPACK_DEV_URL ?? "http://localhost:8090"
+const WEBPACK_OUTPUT_PATH =
+    process.env.WEBPACK_OUTPUT_PATH ??
+    path.join(__dirname + "/../", "dist/webpack")
 
 let manifest: { [key: string]: string }
 export const webpackUrl = (assetName: string) => {

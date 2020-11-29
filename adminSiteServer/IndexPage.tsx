@@ -1,6 +1,6 @@
 import * as React from "react"
-import { getWebpackLinkForAsset } from "./getWebpackLinkForAsset"
 import { ENV, GITHUB_USERNAME } from "settings"
+import { webpackUrl } from "./webpackUtils"
 
 export const IndexPage = (props: {
     username: string
@@ -27,20 +27,20 @@ export const IndexPage = (props: {
                     rel="stylesheet"
                 />
                 <link
-                    href={getWebpackLinkForAsset("commons.css")}
+                    href={webpackUrl("commons.css")}
                     rel="stylesheet"
                     type="text/css"
                 />
                 <link
-                    href={getWebpackLinkForAsset("admin.css")}
+                    href={webpackUrl("admin.css")}
                     rel="stylesheet"
                     type="text/css"
                 />
             </head>
             <body>
                 <div id="app"></div>
-                <script src={getWebpackLinkForAsset("commons.js")}></script>
-                <script src={getWebpackLinkForAsset("admin.js")}></script>
+                <script src={webpackUrl("commons.js")}></script>
+                <script src={webpackUrl("admin.js")}></script>
                 <script
                     type="text/javascript"
                     dangerouslySetInnerHTML={{ __html: script }}

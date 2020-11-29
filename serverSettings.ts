@@ -52,8 +52,6 @@ export const WORDPRESS_API_PASS: string = process.env.WORDPRESS_API_PASS || ""
 // Where the static build output goes
 export const BAKED_SITE_DIR: string =
     process.env.BAKED_SITE_DIR || path.join(BASE_DIR, "bakedSite")
-export const WEBPACK_OUTPUT_PATH: string =
-    process.env.WEBPACK_OUTPUT_PATH || path.join(BASE_DIR, "dist/webpack")
 
 // Settings for automated email sending, e.g. for admin invites
 export const EMAIL_HOST: string = process.env.EMAIL_HOST || "smtp.mail.com"

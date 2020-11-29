@@ -1,0 +1,7 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "baseUrl": "../"
+    },
+    "references": [{ "path": "../site" }]
+}
