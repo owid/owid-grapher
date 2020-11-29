@@ -1,6 +1,6 @@
 import { imemo, trimMatrix } from "coreTable/CoreTableUtils"
 import { isPresent } from "clientUtils/isPresent"
-import { GitCommit } from "clientUtils/owidTypes"
+import { GitCommit, SerializedGridProgram } from "clientUtils/owidTypes"
 
 import { GridCell } from "./GridCell"
 import {
@@ -12,7 +12,6 @@ import {
     Origin,
     ParsedCell,
 } from "./GridLangConstants"
-import { SerializedGridProgram } from "./SerializedGridProgram"
 
 /**
  * Block location for the below would be like (numRows = 2)

@@ -38,3 +38,6 @@ What is `rootDir` vs `baseUrl`?
 `baseUrl` is Base directory to resolve non-relative module names.
 
 (https://stackoverflow.com/questions/63515076/difference-between-rootdir-and-baseurl-in-tsconfig)
+
+Eslint issues:
+https://github.com/typescript-eslint/typescript-eslint/issues/967

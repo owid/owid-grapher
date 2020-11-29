@@ -78,3 +78,9 @@ export interface GitCommit {
     hash: string
     message: string
 }
+
+export interface SerializedGridProgram {
+    slug: string
+    program: string
+    lastCommit?: GitCommit
+}

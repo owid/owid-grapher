@@ -29,7 +29,7 @@ import {
 } from "gridLang/GridLangConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "gridLang/GridProgram"
-import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
+import { SerializedGridProgram } from "clientUtils/owidTypes"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
