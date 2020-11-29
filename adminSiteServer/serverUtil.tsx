@@ -2,7 +2,7 @@ import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
 import { quote } from "shell-quote"
 import urljoin from "url-join"
-import * as settings from "settings"
+import { ADMIN_BASE_URL } from "settings"
 import * as shell from "shelljs"
 import * as util from "util"
 
@@ -79,8 +79,7 @@ export const csvEscape = (value: any) => {
 export const csvRow = (arr: string[]) =>
     arr.map((x) => csvEscape(x)).join(",") + "\n"
 
-export const absoluteUrl = (path: string) =>
-    urljoin(settings.ADMIN_BASE_URL, path)
+export const absoluteUrl = (path: string) => urljoin(ADMIN_BASE_URL, path)
 
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string) => {

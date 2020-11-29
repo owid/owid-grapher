@@ -7,7 +7,7 @@ import * as cheerio from "cheerio"
 import ProgressBar = require("progress")
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import * as settings from "settings"
+import { BLOG_POSTS_PER_PAGE } from "settings"
 import { formatPost, extractFormattingOptions } from "site/server/formatting"
 import { LongFormPage } from "site/server/views/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
@@ -51,8 +51,6 @@ import {
 } from "explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-
-const { BLOG_POSTS_PER_PAGE } = settings
 
 export class SiteBaker {
     private grapherExports!: GrapherExports

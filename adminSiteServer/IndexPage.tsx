@@ -1,20 +1,18 @@
 import * as React from "react"
-import * as lodash from "lodash"
-
 import { getWebpackLinkForAsset } from "adminSiteServer/getWebpackLinkForAsset"
-import * as settings from "settings"
+import { ENV, GITHUB_USERNAME } from "settings"
 
-export function IndexPage(props: {
+export const IndexPage = (props: {
     username: string
     isSuperuser: boolean
     gitCmsBranchName: string
-}) {
+}) => {
     const script = `
         window.isEditor = true
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        lodash.pick(settings, ["ENV", "GITHUB_USERNAME"])
+        { ENV, GITHUB_USERNAME }
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
