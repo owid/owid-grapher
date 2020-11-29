@@ -5,7 +5,7 @@ import {
 import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { runSearchCountry } from "site/SearchCountry"
-import { runExpandableInlineBlock } from "site/ExpandableInlineBlock/ExpandableInlineBlock"
+import { runExpandableInlineBlock } from "site/ExpandableInlineBlock"
 import { runDataTokens } from "site/runDataTokens"
 import { shouldProgressiveEmbed } from "site/multiembedder/MultiEmbedder"
 

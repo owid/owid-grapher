@@ -2,7 +2,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "site/formatting"
+import { formatAuthors, formatDate } from "./formatting"
 import { FullPost } from "db/wpdb"
 import { range } from "clientUtils/Util"
 

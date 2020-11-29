@@ -8,7 +8,7 @@ import {
     getTodayDate,
     Preference,
     PreferenceType,
-} from "site/CookiePreferencesManager/CookiePreferencesManager"
+} from "site/CookiePreferencesManager"
 import slugify from "slugify"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"

@@ -1,6 +1,6 @@
 import React, { ReactElement, useState } from "react"
 import ReactDOM from "react-dom"
-import { GlossaryExcerpt } from "site/GlossaryExcerpt/GlossaryExcerpt"
+import { GlossaryExcerpt } from "site/GlossaryExcerpt"
 
 interface Component {
     [key: string]: any
