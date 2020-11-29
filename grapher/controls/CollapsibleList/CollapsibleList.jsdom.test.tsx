@@ -1,9 +1,12 @@
 #! /usr/bin/env jest
 
 import * as React from "react"
-import { shallow } from "enzyme"
 import { CollapsibleList, numItemsVisible } from "./CollapsibleList"
 import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
+
+import { configure, shallow } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 describe("when you render a collapsible list", () => {
     test("something renders", () => {

@@ -319,6 +319,50 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 })
 
+const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
+    return {
+        variables: {
+            "3512": {
+                years: [1983, 1985, 1985],
+                entities: [99, 45, 204],
+                values: [5.5, 4.2, 12.6],
+                id: 3512,
+                name:
+                    "Prevalence of wasting, weight for height (% of children under 5)",
+                unit: "% of children under 5",
+                description: "Prevalence of...",
+                shortUnit: "%",
+                display: {
+                    name: "Some Display Name",
+                },
+                source: {
+                    id: 2174,
+                    name:
+                        "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+                    link:
+                        "http://data.worldbank.org/data-catalog/world-development-indicators",
+                } as any,
+            },
+        },
+        entityKey: {
+            45: { name: "Cape Verde", code: "CPV", id: 45 },
+            99: { name: "Papua New Guinea", code: "PNG", id: 99 },
+            204: { name: "Kiribati", code: "KIR", id: 204 },
+        },
+    }
+}
+
+const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
+    return {
+        dimensions: [
+            {
+                property: DimensionProperty.y,
+                variableId: 3512,
+            },
+        ],
+    }
+}
+
 describe("creating a table from legacy", () => {
     const table = legacyToOwidTableAndDimensions(getLegacyVarSet(), {
         ...getLegacyGrapherConfig(),
@@ -376,47 +420,3 @@ Papua New Guinea,PNG,1983,5.5`
         expect(table.toPrettyCsv()).toEqual(expected)
     })
 })
-
-const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
-    return {
-        variables: {
-            "3512": {
-                years: [1983, 1985, 1985],
-                entities: [99, 45, 204],
-                values: [5.5, 4.2, 12.6],
-                id: 3512,
-                name:
-                    "Prevalence of wasting, weight for height (% of children under 5)",
-                unit: "% of children under 5",
-                description: "Prevalence of...",
-                shortUnit: "%",
-                display: {
-                    name: "Some Display Name",
-                },
-                source: {
-                    id: 2174,
-                    name:
-                        "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
-                    link:
-                        "http://data.worldbank.org/data-catalog/world-development-indicators",
-                } as any,
-            },
-        },
-        entityKey: {
-            45: { name: "Cape Verde", code: "CPV", id: 45 },
-            99: { name: "Papua New Guinea", code: "PNG", id: 99 },
-            204: { name: "Kiribati", code: "KIR", id: 204 },
-        },
-    }
-}
-
-const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
-    return {
-        dimensions: [
-            {
-                property: DimensionProperty.y,
-                variableId: 3512,
-            },
-        ],
-    }
-}

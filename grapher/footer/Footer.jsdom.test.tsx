@@ -1,6 +1,5 @@
 #! /usr/bin/env jest
 
-import { mount } from "enzyme"
 import React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import {
@@ -8,6 +7,10 @@ import {
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
+
+import { configure, mount } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })

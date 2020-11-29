@@ -1,9 +1,12 @@
 #! /usr/bin/env jest
 
-import { mount } from "enzyme"
 import React from "react"
 import { ExplorerControlType } from "./ExplorerConstants"
 import { ExplorerControlPanel } from "./ExplorerControls"
+
+import { configure, mount } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 describe(ExplorerControlPanel, () => {
     const options = [

@@ -1,8 +1,11 @@
 #! /usr/bin/env jest
 
-import { mount } from "enzyme"
 import { Explorer } from "./Explorer"
 import { SampleExplorer } from "./Explorer.sample"
+
+import { configure, mount } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 describe(Explorer, () => {
     const title = "AlphaBeta"

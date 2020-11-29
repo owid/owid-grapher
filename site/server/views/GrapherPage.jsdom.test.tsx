@@ -1,17 +1,18 @@
 #! /usr/bin/env jest
 
 import * as React from "react"
-import { shallow, ShallowWrapper } from "enzyme"
-
 import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "clientUtils/owidTypes"
-
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
+
+import { configure, shallow, ShallowWrapper } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 const mockGrapher: GrapherInterface = {
     version: 5,

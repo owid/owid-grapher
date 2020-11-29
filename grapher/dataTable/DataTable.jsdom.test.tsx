@@ -1,11 +1,15 @@
 #! /usr/bin/env jest
 
 import * as React from "react"
-import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
+
 import { DataTable } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
 import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
+
+import { shallow, ShallowWrapper, mount, ReactWrapper, configure } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
     let view: ReactWrapper

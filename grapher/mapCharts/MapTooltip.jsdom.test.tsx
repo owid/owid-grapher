@@ -1,9 +1,12 @@
 #! /usr/bin/env jest
 
-import { mount } from "enzyme"
 import React from "react"
 import { Grapher } from "grapher/core/Grapher"
 import { legacyMapGrapher } from "./MapChart.sample"
+
+import { configure, mount } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 const grapherWrapper = mount(<Grapher {...legacyMapGrapher} />)
 

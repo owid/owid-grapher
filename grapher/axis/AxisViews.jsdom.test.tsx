@@ -2,10 +2,13 @@
 
 import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
-import { shallow } from "enzyme"
 import React from "react"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { DualAxis } from "./Axis"
+
+import { configure, shallow } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
+configure({ adapter: new Adapter() })
 
 it("can create horizontal axis", () => {
     const axisConfig = new AxisConfig({
