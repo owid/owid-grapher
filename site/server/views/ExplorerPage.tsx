@@ -81,7 +81,10 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <IFrameDetector />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader hideAlertBanner={hideAlertBanner || false} />
+                <SiteHeader
+                    baseUrl={baseUrl}
+                    hideAlertBanner={hideAlertBanner || false}
+                />
                 {subNav}
                 <main id={ExplorerContainerId}>
                     <LoadingIndicator />

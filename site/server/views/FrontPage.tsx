@@ -85,7 +85,7 @@ export const FrontPage = (props: {
                 />
             </Head>
             <body className="FrontPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
 
                 <section className="homepage-masthead">
                     <div className="wrapper">

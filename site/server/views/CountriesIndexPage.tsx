@@ -23,7 +23,7 @@ export const CountriesIndexPage = (props: {
                 pageDesc="Data by individual country on Our World in Data."
             />
             <body className="CountriesIndexPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <h1>Data by country</h1>
                     <ul>

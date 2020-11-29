@@ -15,7 +15,7 @@ export const DonatePage = (props: {
             />
         </Head>
         <body>
-            <SiteHeader />
+            <SiteHeader baseUrl={props.baseUrl} />
             <main>
                 <article className="donate-page">
                     <div className="page-header">

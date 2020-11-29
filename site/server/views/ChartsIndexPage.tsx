@@ -66,7 +66,7 @@ export const ChartsIndexPage = (props: {
                 pageDesc="All of the interactive charts on Our World in Data."
             />
             <body className="ChartsIndexPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <div className="page with-sidebar">
                         <div className="content-wrapper">

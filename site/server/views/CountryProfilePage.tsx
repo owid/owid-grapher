@@ -46,7 +46,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                 pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}
             />
             <body className="CountryProfilePage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <header>
                         <img

@@ -37,7 +37,7 @@ export const EntriesByYearPage = (props: {
                 pageDesc="An index of Our World in Data entries by year of first publication."
             />
             <body className="EntriesByYearPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <div className="page with-sidebar">
                         <div className="content-wrapper">
@@ -122,7 +122,7 @@ export const EntriesForYearPage = (props: {
                 pageDesc={`Our World in Data entries first published in ${year}.`}
             />
             <body className="EntriesByYearPage">
-                <SiteHeader />
+                <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <div className="page">
                         <div className="content-wrapper">

@@ -14,7 +14,7 @@ export const CovidPage = (props: { baseUrl: string }) => (
             pageTitle="COVID-19"
         ></Head>
         <body className="CovidPage">
-            <SiteHeader />
+            <SiteHeader baseUrl={props.baseUrl} />
             <main>
                 <article className="page no-sidebar large-banner">
                     <div className="offset-header">

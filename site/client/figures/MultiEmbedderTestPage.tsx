@@ -20,7 +20,7 @@ export const MultiEmbedderTestPage = (
         <html>
             <Head canonicalUrl={slug} pageTitle={title} />
             <body>
-                <SiteHeader />
+                <SiteHeader baseUrl={""} />
                 <main>
                     {globalEntityControl ? (
                         <div
