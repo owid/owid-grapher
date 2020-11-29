@@ -17,7 +17,7 @@ import * as lodash from "lodash"
 import { AdminLayout } from "adminSiteClient/AdminLayout"
 import { FieldsRow } from "adminSiteClient/Forms"
 import { orderBy } from "clientUtils/Util"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { ExplorerProgram } from "explorer/ExplorerProgram"
 import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 import {
     deleteRemoteFile,
@@ -38,7 +38,7 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     DefaultNewExplorerSlug,
     UNSAVED_EXPLORER_DRAFT,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
 @observer

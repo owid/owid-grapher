@@ -21,7 +21,7 @@ import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPreview } from "site/server/siteRenderers"
 import { ENV } from "settings"
-import { addExplorerAdminRoutes } from "explorer/admin/ExplorerBaker"
+import { addExplorerAdminRoutes } from "explorerAdmin/ExplorerBaker"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (

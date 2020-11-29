@@ -31,9 +31,9 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { ExplorerCreatePage } from "explorer/client/ExplorerCreatePage"
+import { ExplorerCreatePage } from "explorer/ExplorerCreatePage"
 import { ExplorersIndexPage } from "explorer/explorerAdmin/ExplorersListPage"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { AdminLayout } from "./AdminLayout"
 
 @observer

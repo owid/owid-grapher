@@ -7,7 +7,7 @@ import { mount } from "enzyme"
 // For now, to get a list of all stories for updating this file:
 // git ls-tree -r master --name-only | grep .stories.tsx | sed 's/.tsx//'
 
-import * as Explorer from "explorer/client/Explorer.stories"
+import * as Explorer from "explorer/Explorer.stories"
 import * as StackedAreaChart from "grapher/stackedCharts/StackedAreaChart.stories"
 import * as DiscreteBarChart from "grapher/barCharts/DiscreteBarChart.stories"
 import * as CaptionedChart from "grapher/captionedChart/CaptionedChart.stories"

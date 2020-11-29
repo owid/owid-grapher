@@ -1,5 +1,5 @@
 import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
+import { ExplorerProgram } from "explorer/ExplorerProgram"
 import { CellPosition } from "gridLang/GridLangConstants"
 import Handsontable from "handsontable"
 

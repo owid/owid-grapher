@@ -9,7 +9,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
     ExplorerChoice,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 import { CoreTable } from "coreTable/CoreTable"
 import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"

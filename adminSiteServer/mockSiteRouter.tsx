@@ -38,11 +38,11 @@ import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorer/legacyC
 import {
     getAllPublishedExplorers,
     renderExplorerPage,
-} from "explorer/admin/ExplorerBaker"
+} from "explorerAdmin/ExplorerBaker"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { getVariableData } from "db/model/Variable"
 import { MultiEmbedderTestPage } from "site/client/figures/MultiEmbedderTestPage"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()

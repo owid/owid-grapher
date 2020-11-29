@@ -25,7 +25,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "site/client/Footnote"
-import { Explorer } from "explorer/client/Explorer"
+import { Explorer } from "explorer/Explorer"
 import { ENV } from "settings"
 import {
     CookieKey,

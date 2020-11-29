@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 
 @observer
 export class AdminLayout extends React.Component<{

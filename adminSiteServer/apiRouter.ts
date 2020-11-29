@@ -34,7 +34,7 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSiteClient/ChartEditor"
 import { enqueueChange, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
-import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
+import { addExplorerApiRoutes } from "explorerAdmin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/GitCmsServer"
 
 const apiRouter = new FunctionalRouter()

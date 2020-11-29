@@ -1,4 +1,4 @@
-import { Explorer } from "explorer/client/Explorer"
+import { Explorer } from "explorer/Explorer"
 import { SampleExplorer } from "./Explorer.sample"
 
 export default {

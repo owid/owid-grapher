@@ -1,6 +1,6 @@
 import "grapher/core/grapher.entry"
 import "adminSiteClient/admin.scss"
-import "explorer/admin/ExplorerCreatePage.scss"
+import "explorerAdmin/ExplorerCreatePage.scss"
 import "handsontable/dist/handsontable.full.css"
 
 declare var window: any

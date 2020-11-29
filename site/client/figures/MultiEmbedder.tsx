@@ -6,12 +6,12 @@ import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "clientUtils/url"
 import { deserializeJSONFromHTML } from "clientUtils/serializers"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { Explorer } from "explorer/client/Explorer"
+import { Explorer } from "explorer/Explorer"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "grapher/controls/globalEntityControl/GlobalEntityControlConstants"
 
 interface EmbeddedFigureProps {

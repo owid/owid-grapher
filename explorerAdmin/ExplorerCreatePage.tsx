@@ -6,7 +6,7 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
     makeFullPath,
-} from "explorer/client/ExplorerProgram"
+} from "explorer/ExplorerProgram"
 import {
     readRemoteFile,
     readRemoteFiles,
@@ -22,7 +22,7 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 import {
     AutofillColDefCommand,
     InlineDataCommand,

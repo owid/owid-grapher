@@ -4,10 +4,7 @@ import * as db from "db/db"
 import React from "react"
 import { renderToHtmlPage } from "adminSiteServer/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
-import {
-    EXPLORER_FILE_SUFFIX,
-    ExplorerProgram,
-} from "explorer/client/ExplorerProgram"
+import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "explorer/ExplorerProgram"
 import { Request } from "adminSiteServer/authentication"
 import { FunctionalRouter } from "adminSiteServer/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
@@ -24,7 +21,7 @@ import {
     ExplorersRouteQueryParam,
     ExplorersRouteResponse,
     DefaultNewExplorerSlug,
-} from "explorer/client/ExplorerConstants"
+} from "explorer/ExplorerConstants"
 import simpleGit from "simple-git"
 import { GitCommit } from "gitCms/GitTypes"
 import { slugify } from "clientUtils/Util"

@@ -146,10 +146,10 @@ import {
 } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
 
