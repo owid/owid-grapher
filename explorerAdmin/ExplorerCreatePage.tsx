@@ -27,22 +27,19 @@ import {
     AutofillColDefCommand,
     InlineDataCommand,
     SelectAllHitsCommand,
-} from "../explorerAdmin/ExplorerCommands"
+} from "./ExplorerCommands"
 import { isEmpty } from "gridLang/GrammarUtils"
 import classNames from "classnames"
 import { GitCmsFile } from "gitCms/GitCmsConstants"
+import { AdminManager } from "./AdminManager"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
-
-interface ExplorerCreatePageManager {
-    loadingIndicatorSetting?: "loading" | "off" | "default"
-}
 
 @observer
 export class ExplorerCreatePage extends React.Component<{
     slug: string
     gitCmsBranchName: string
-    manager?: ExplorerCreatePageManager
+    manager?: AdminManager
     doNotFetch?: boolean // for testing
 }> {
     @computed private get manager() {

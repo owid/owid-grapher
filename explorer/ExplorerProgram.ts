@@ -18,7 +18,7 @@ import {
     parseDelimited,
     isCellEmpty,
 } from "coreTable/CoreTableUtils"
-import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
+import { ExplorerGrammar } from "explorer/ExplorerGrammar"
 import {
     CellDef,
     GridBoolean,
@@ -31,7 +31,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "gridLang/GridProgram"
 import { SerializedGridProgram } from "clientUtils/owidTypes"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
+import { GrapherGrammar } from "explorer/GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
 import { objectToPatch, objectFromPatch } from "./Patch"
 

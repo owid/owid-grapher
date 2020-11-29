@@ -1,4 +1,4 @@
-import { ExplorerGrammar } from "explorer/grammars/ExplorerGrammar"
+import { ExplorerGrammar } from "explorer/ExplorerGrammar"
 import { ExplorerProgram } from "explorer/ExplorerProgram"
 import { CellPosition } from "gridLang/GridLangConstants"
 import Handsontable from "handsontable"

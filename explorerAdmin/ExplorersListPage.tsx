@@ -1,10 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { Link } from "adminSiteClient/Link"
-import {
-    AdminAppContext,
-    AdminAppContextType,
-} from "adminSiteClient/AdminAppContext"
+import { AdminLayout } from "adminSiteClient/AdminLayout"
 import {
     observable,
     computed,
@@ -13,9 +10,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import * as lodash from "lodash"
-import { AdminLayout } from "adminSiteClient/AdminLayout"
-import { orderBy } from "clientUtils/Util"
+import { debounce, orderBy } from "clientUtils/Util"
 import { ExplorerProgram } from "explorer/ExplorerProgram"
 import { SerializedGridProgram } from "clientUtils/owidTypes"
 import {
@@ -39,6 +34,7 @@ import {
     UNSAVED_EXPLORER_DRAFT,
 } from "explorer/ExplorerConstants"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+import { AdminManager } from "./AdminManager"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -47,9 +43,6 @@ class ExplorerRow extends React.Component<{
     gitCmsBranchName: string
     searchHighlight?: (text: string) => any
 }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
     render() {
         const {
             explorer,
@@ -171,9 +164,6 @@ class ExplorerList extends React.Component<{
     indexPage: ExplorersIndexPage
     gitCmsBranchName: string
 }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
     render() {
         const { props } = this
         return (
@@ -205,10 +195,9 @@ class ExplorerList extends React.Component<{
 }
 
 @observer
-export class ExplorersIndexPage extends React.Component {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
+export class ExplorersIndexPage extends React.Component<{
+    manager?: AdminManager
+}> {
     @observable explorers: ExplorerProgram[] = []
     @observable needsPull = false
     @observable maxVisibleRows = 50
@@ -307,9 +296,11 @@ export class ExplorersIndexPage extends React.Component {
 
     private async getData() {
         const { searchInput } = this
-        const json = (await this.context.admin.getJSON(
-            `/api/${ExplorersRoute}`
-        )) as ExplorersRouteResponse
+
+        const response = await fetch(`/api/${ExplorersRoute}`, {
+            method: "GET",
+        })
+        const json = (await response.json()) as ExplorersRouteResponse
         if (!json.success) alert(JSON.stringify(json.errorMessage))
         this.needsPull = json.needsPull
         this.isReady = true
@@ -326,30 +317,42 @@ export class ExplorersIndexPage extends React.Component {
         })
     }
 
+    @computed private get manager() {
+        return this.props.manager ?? {}
+    }
+
+    @action.bound private loadingModalOn() {
+        this.manager.loadingIndicatorSetting = "loading"
+    }
+
+    @action.bound private resetLoadingModal() {
+        this.manager.loadingIndicatorSetting = "default"
+    }
+
     @action.bound async togglePublishedStatus(filename: string) {
         const explorer = this.explorers.find(
             (exp) => exp.filename === filename
         )!
         const newVersion = explorer.setPublished(!explorer.isPublished)
 
-        this.context.admin.loadingIndicatorSetting = "loading"
+        this.loadingModalOn()
         await writeRemoteFile({
             filepath: newVersion.fullPath,
             content: newVersion.toString(),
             commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
         })
-        this.context.admin.loadingIndicatorSetting = "default"
+        this.resetLoadingModal()
         this.getData()
     }
 
     @action.bound async deleteFile(filename: string) {
         if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
 
-        this.context.admin.loadingIndicatorSetting = "loading"
+        this.loadingModalOn()
         await deleteRemoteFile({
             filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
         })
-        this.context.admin.loadingIndicatorSetting = "default"
+        this.resetLoadingModal()
         this.getData()
     }
 
@@ -357,7 +360,7 @@ export class ExplorersIndexPage extends React.Component {
     componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
-            lodash.debounce(() => this.getData(), 200)
+            debounce(() => this.getData(), 200)
         )
         this.getData()
     }
