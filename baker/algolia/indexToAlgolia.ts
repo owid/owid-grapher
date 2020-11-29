@@ -4,17 +4,17 @@ import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
-import { formatPost } from "site/formatting"
 import { chunkParagraphs, htmlToPlaintext } from "clientUtils/search"
 import { countries } from "clientUtils/countries"
 import { FormattedPost } from "clientUtils/owidTypes"
+import { formatPost } from "baker/formatWordpressPost"
 
 interface Tag {
     id: number
     name: string
 }
 
-async function getPostTags(postId: number) {
+const getPostTags = async (postId: number) => {
     return (await db
         .table("post_tags")
         .select("tags.id", "tags.name")
@@ -22,24 +22,21 @@ async function getPostTags(postId: number) {
         .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
 }
 
-function getPostType(post: FormattedPost, tags: Tag[]) {
-    if (post.slug.startsWith("about/")) {
-        return "about"
-    } else if (post.type === "post") {
+const getPostType = (post: FormattedPost, tags: Tag[]) => {
+    if (post.slug.startsWith("about/")) return "about"
+    if (post.type === "post") {
         if (tags.some((t) => t.name === "Explainers")) return "explainer"
-        else if (tags.some((t) => t.name === "Short updates and facts"))
+        if (tags.some((t) => t.name === "Short updates and facts"))
             return "fact"
-        else return "post"
-    } else {
-        if (tags.some((t) => t.name === "Entries")) {
-            return "entry"
-        } else {
-            return "page"
-        }
+        return "post"
     }
+
+    if (tags.some((t) => t.name === "Entries")) return "entry"
+
+    return "page"
 }
 
-async function indexToAlgolia() {
+const indexToAlgolia = async () => {
     const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
     const index = client.initIndex("pages")
 

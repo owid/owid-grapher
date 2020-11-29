@@ -8,7 +8,7 @@ import ProgressBar = require("progress")
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { BLOG_POSTS_PER_PAGE } from "settings"
-import { formatPost, extractFormattingOptions } from "site/formatting"
+import { extractFormattingOptions } from "site/formatting"
 import { LongFormPage } from "site/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
@@ -52,6 +52,7 @@ import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "adminSiteServer/webpackUtils"
+import { formatPost } from "./formatWordpressPost"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports

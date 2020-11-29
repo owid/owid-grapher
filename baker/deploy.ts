@@ -310,7 +310,7 @@ cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
 yarn build
 yarn migrate
-yarn tsn site/algolia/configureAlgolia.ts`
+yarn tsn baker/algolia/configureAlgolia.ts`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
     NAME: string,

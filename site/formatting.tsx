@@ -117,35 +117,6 @@ const formatLinks = (html: string) =>
 
 export const formatReusableBlock = (html: string) => formatLinks(html)
 
-export const formatPost = async (
-    post: FullPost,
-    formattingOptions: FormattingOptions,
-    grapherExports?: GrapherExports
-): Promise<FormattedPost> => {
-    const html = formatLinks(post.content)
-
-    // No formatting applied, plain source HTML returned
-    if (formattingOptions.raw)
-        return {
-            ...post,
-            html,
-            footnotes: [],
-            references: [],
-            tocHeadings: [],
-            excerpt: post.excerpt || "",
-        }
-
-    // Override formattingOptions if specified in the post (as an HTML comment)
-    const options: FormattingOptions = Object.assign(
-        {
-            toc: post.type === "page",
-            footnotes: true,
-        },
-        formattingOptions
-    )
-    return formatWordpressPost(post, html, options, grapherExports)
-}
-
 export const formatCountryProfile = (
     post: FormattedPost,
     country: Country

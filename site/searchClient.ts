@@ -3,8 +3,7 @@ import { countries, Country } from "clientUtils/countries"
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
 let algolia: SearchClient | undefined
-
-function getClient() {
+const getClient = () => {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
 }
@@ -66,7 +65,7 @@ export interface SiteSearchResults {
     countries: Country[]
 }
 
-export async function siteSearch(query: string): Promise<SiteSearchResults> {
+export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
     // Some special ad hoc handling of country names for chart query
     // This is especially important for "uk" and "us" since algolia otherwise isn't too sure what to do with them
     let chartQuery = query.trim()
@@ -80,9 +79,7 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
 
             if (newQuery !== chartQuery) {
                 matchCountries.push(country)
-                if (newQuery.trim().length) {
-                    chartQuery = newQuery
-                }
+                if (newQuery.trim().length) chartQuery = newQuery
             }
         }
     }

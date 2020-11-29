@@ -12,11 +12,7 @@ import { SubscribePage } from "site/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
-import {
-    formatPost,
-    extractFormattingOptions,
-    formatCountryProfile,
-} from "site/formatting"
+import { extractFormattingOptions, formatCountryProfile } from "site/formatting"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -37,6 +33,7 @@ import { getCountry, Country } from "clientUtils/countries"
 import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
 import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
+import { formatPost } from "./formatWordpressPost"
 
 // Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>

@@ -6,7 +6,7 @@ import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { configureAlgolia } from "./configureAlgolia"
 
-async function indexChartsToAlgolia() {
+const indexChartsToAlgolia = async () => {
     await configureAlgolia()
 
     const allCharts = await db.query(`
