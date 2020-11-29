@@ -6,6 +6,7 @@
     },
     "references": [
         { "path": "../clientUtils" },
+        { "path": "../explorer" },
         { "path": "../grapher" },
         { "path": "../gridLang" },
         { "path": "../gitCms" },
