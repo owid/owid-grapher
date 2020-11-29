@@ -76,7 +76,7 @@ export const FrontPage = (props: {
 
     return (
         <html>
-            <Head canonicalUrl={baseUrl}>
+            <Head canonicalUrl={baseUrl} baseUrl={baseUrl}>
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

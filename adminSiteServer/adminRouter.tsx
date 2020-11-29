@@ -20,7 +20,7 @@ import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPreview } from "site/server/siteRenderers"
-import { ENV } from "settings"
+import { BAKED_BASE_URL, ENV } from "settings"
 import { addExplorerAdminRoutes } from "explorerAdmin/ExplorerBaker"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
@@ -231,6 +231,6 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
     res.send(await renderPreview(postId))
 })
 
-addExplorerAdminRoutes(adminRouter)
+addExplorerAdminRoutes(adminRouter, BAKED_BASE_URL)
 
 export { adminRouter }

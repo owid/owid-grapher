@@ -236,7 +236,7 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        await bakeAllPublishedExplorers()
+        await bakeAllPublishedExplorers(undefined, undefined, this.baseUrl)
     }
 
     // Pages that are expected by google scholar for indexing
@@ -312,7 +312,7 @@ export class SiteBaker {
             const program = await getLegacyCovidExplorerAsExplorerProgramForSlug(
                 slug
             )
-            const html = await renderExplorerPage(program!)
+            const html = await renderExplorerPage(program!, this.baseUrl)
             await this.stageWrite(
                 `${this.bakedSiteDir}/grapher/${slug}.html`,
                 html

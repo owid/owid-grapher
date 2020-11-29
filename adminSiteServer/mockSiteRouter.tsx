@@ -100,7 +100,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         req.params.slug
     )
     if (!explorerProgram) res.send(await grapherSlugToHtmlPage(req.params.slug))
-    else res.send(await renderExplorerPage(explorerProgram))
+    else res.send(await renderExplorerPage(explorerProgram, BAKED_BASE_URL))
 })
 
 mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
@@ -110,7 +110,8 @@ mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
     const explorerProgram = explorers.find(
         (program) => program.slug === req.params.slug
     )
-    if (explorerProgram) res.send(await renderExplorerPage(explorerProgram))
+    if (explorerProgram)
+        res.send(await renderExplorerPage(explorerProgram, BAKED_BASE_URL))
     else
         throw new JsonError(
             "A published explorer with that slug was not found",

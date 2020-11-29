@@ -8,7 +8,11 @@ export const DonatePage = (props: {
     recaptchaKey: string
 }) => (
     <html>
-        <Head canonicalUrl={`${props.baseUrl}/donate`} pageTitle="Donate">
+        <Head
+            canonicalUrl={`${props.baseUrl}/donate`}
+            pageTitle="Donate"
+            baseUrl={props.baseUrl}
+        >
             <script src="https://js.stripe.com/v3/" />
             <script
                 src={`https://www.google.com/recaptcha/api.js?render=${props.recaptchaKey}`}

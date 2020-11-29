@@ -1,4 +1,3 @@
-import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 
@@ -8,8 +7,9 @@ export const Head = (props: {
     pageDesc?: string
     imageUrl?: string
     children?: any
+    baseUrl: string
 }) => {
-    const { canonicalUrl } = props
+    const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
         ? `${props.pageTitle} - Our World in Data`
@@ -17,7 +17,7 @@ export const Head = (props: {
     const pageDesc =
         props.pageDesc ||
         "Research and data to make progress against the world’s largest problems"
-    const imageUrl = props.imageUrl || `${BAKED_BASE_URL}/default-thumbnail.jpg`
+    const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
 
     return (
         <head>

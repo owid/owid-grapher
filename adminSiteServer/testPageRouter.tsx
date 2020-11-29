@@ -92,7 +92,11 @@ function EmbedTestPage(props: EmbedTestPageProps) {
     `
     return (
         <html>
-            <Head canonicalUrl="" pageTitle="Test Embeds">
+            <Head
+                canonicalUrl=""
+                pageTitle="Test Embeds"
+                baseUrl={BAKED_BASE_URL}
+            >
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>
             <body>

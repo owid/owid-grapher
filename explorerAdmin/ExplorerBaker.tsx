@@ -88,7 +88,7 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     })
 }
 
-export const addExplorerAdminRoutes = (app: Router) => {
+export const addExplorerAdminRoutes = (app: Router, baseUrl: string) => {
     // i.e. http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         const slug = slugify(req.params.slug)
@@ -96,13 +96,14 @@ export const addExplorerAdminRoutes = (app: Router) => {
         if (slug === DefaultNewExplorerSlug)
             return res.send(
                 await renderExplorerPage(
-                    new ExplorerProgram(DefaultNewExplorerSlug, "")
+                    new ExplorerProgram(DefaultNewExplorerSlug, ""),
+                    baseUrl
                 )
             )
         if (!slug || !fs.existsSync(EXPLORERS_FOLDER + filename))
             return res.send(`File not found`)
         const explorer = await getExplorerFromFile(EXPLORERS_FOLDER, filename)
-        return res.send(await renderExplorerPage(explorer))
+        return res.send(await renderExplorerPage(explorer, baseUrl))
     })
 }
 
@@ -123,10 +124,11 @@ export const getExplorerFromFile = async (
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = EXPLORERS_FOLDER,
-    outputFolder = `${BAKED_SITE_DIR}/${EXPLORERS_ROUTE_FOLDER}/`
+    outputFolder = `${BAKED_SITE_DIR}/${EXPLORERS_ROUTE_FOLDER}/`,
+    baseUrl: string
 ) => {
     const published = await getAllPublishedExplorers(inputFolder)
-    await bakeExplorersToDir(outputFolder, published)
+    await bakeExplorersToDir(outputFolder, published, baseUrl)
 }
 
 export const getAllPublishedExplorers = async (
@@ -160,17 +162,21 @@ const write = async (outPath: string, content: string) => {
 
 const bakeExplorersToDir = async (
     directory: string,
-    explorers: ExplorerProgram[] = []
+    explorers: ExplorerProgram[] = [],
+    baseUrl: string
 ) => {
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer)
+            await renderExplorerPage(explorer, baseUrl)
         )
     }
 }
 
-export const renderExplorerPage = async (program: ExplorerProgram) => {
+export const renderExplorerPage = async (
+    program: ExplorerProgram,
+    baseUrl: string
+) => {
     const { requiredGrapherIds } = program.decisionMatrix
     let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)
@@ -194,7 +200,7 @@ export const renderExplorerPage = async (program: ExplorerProgram) => {
             grapherConfigs={grapherConfigs}
             program={program}
             wpContent={wpContent}
-            baseUrl={BAKED_BASE_URL}
+            baseUrl={baseUrl}
         />
     )
 }
