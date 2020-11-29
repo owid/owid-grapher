@@ -10,7 +10,7 @@ import {
     parseQueueContent,
 } from "./queue"
 import { DeployChange } from "./types"
-import { BAKED_SITE_DIR } from "../adminSiteServer/utils/node_modules/serverSettings"
+import { BAKED_SITE_DIR } from "serverSettings"
 
 async function defaultCommitMessage(): Promise<string> {
     let message = "Automated update"

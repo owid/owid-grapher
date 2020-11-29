@@ -1,12 +1,6 @@
 // Update with your config settings.
 
-import {
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
-} from "./adminSiteServer/utils/node_modules/serverSettings"
+import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
 
 const dbConfig = {
     client: "mysql",

@@ -27,7 +27,7 @@ import {
     AutofillColDefCommand,
     InlineDataCommand,
     SelectAllHitsCommand,
-} from "./ExplorerCommands"
+} from "../explorerAdmin/ExplorerCommands"
 import { isEmpty } from "gridLang/GrammarUtils"
 import classNames from "classnames"
 import { GitCmsFile } from "gitCms/GitCmsConstants"

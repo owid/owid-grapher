@@ -2,7 +2,7 @@
 
 import { syncPostToGrapher } from "db/model/Post"
 import parseArgs from "minimist"
-import { BAKE_ON_CHANGE } from "../adminSiteServer/utils/node_modules/serverSettings"
+import { BAKE_ON_CHANGE } from "serverSettings"
 import { enqueueChange } from "deploy/queue"
 import { exit } from "db/cleanup"
 const argv = parseArgs(process.argv.slice(2))

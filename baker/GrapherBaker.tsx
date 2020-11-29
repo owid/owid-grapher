@@ -17,7 +17,7 @@ import { OPTIMIZE_SVG_EXPORTS } from "settings"
 import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
-import { hasLegacyGrapherToCovidExplorerRedirect } from "explorer/legacyCovidExplorerRedirects"
+import { hasLegacyGrapherToCovidExplorerRedirect } from "explorerAdmin/legacyCovidExplorerRedirects"
 
 export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
     const postSlug = urlToSlug(grapher.originUrl || "")

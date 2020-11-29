@@ -4,7 +4,7 @@ import urlSlug from "url-slug"
 import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { HTTPS_ONLY } from "../../adminSiteServer/utils/node_modules/serverSettings"
+import { HTTPS_ONLY } from "serverSettings"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 import { getTables, FullPost } from "db/wpdb"
 import Tablepress from "./views/Tablepress"
@@ -22,7 +22,7 @@ import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/Promi
 import {
     replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
     legacyCovidDashboardSlug,
-} from "explorer/legacyCovidExplorerRedirects"
+} from "explorerAdmin/legacyCovidExplorerRedirects"
 
 import {
     countryProfileDefaultCountryPlaceholder,

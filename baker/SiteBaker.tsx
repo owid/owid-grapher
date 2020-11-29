@@ -10,10 +10,7 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "site/server/formatting"
 import { LongFormPage } from "site/server/views/LongFormPage"
-import {
-    BASE_DIR,
-    WORDPRESS_DIR,
-} from "../adminSiteServer/utils/node_modules/serverSettings"
+import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -46,12 +43,12 @@ import { log } from "serverUtils/log"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,
-} from "explorer/legacyCovidExplorerRedirects"
+} from "explorerAdmin/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
     renderExplorerPage,
-} from "explorer/admin/ExplorerBaker"
+} from "explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 

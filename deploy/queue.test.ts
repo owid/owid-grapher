@@ -6,7 +6,7 @@ import { parseQueueContent, getDeploys } from "./queue"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
-} from "../adminSiteServer/utils/node_modules/serverSettings"
+} from "serverSettings"
 
 describe(parseQueueContent, () => {
     it("parses newline delimited JSON objects", async () => {

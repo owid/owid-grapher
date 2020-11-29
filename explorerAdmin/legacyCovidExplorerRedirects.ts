@@ -1,8 +1,11 @@
 import { BAKED_BASE_URL } from "settings"
 import { urlToSlug, mergeQueryStr } from "clientUtils/Util"
 import { CoreTable } from "coreTable/CoreTable"
-import { ExplorerProgram, EXPLORER_FILE_SUFFIX } from "./client/ExplorerProgram"
-import { getExplorerFromFile } from "./admin/ExplorerBaker"
+import {
+    ExplorerProgram,
+    EXPLORER_FILE_SUFFIX,
+} from "../explorer/client/ExplorerProgram"
+import { getExplorerFromFile } from "./ExplorerBaker"
 
 // Todo: remove this file eventually. Would server side redirects do it?
 // this runs only at bake/wordpress/dev time and is not a clientside file.

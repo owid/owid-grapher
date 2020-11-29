@@ -33,7 +33,7 @@ import { GridProgram } from "gridLang/GridProgram"
 import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherGrammar } from "explorer/grammars/GrapherGrammar"
-import { ColumnGrammar } from "explorer/grammars/ColumnGrammar"
+import { ColumnGrammar } from "./ColumnGrammar"
 import { objectToPatch, objectFromPatch } from "./Patch"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"

@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import md5 from "md5"
 
 import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings"
-import { BAKED_SITE_DIR } from "../../adminSiteServer/utils/node_modules/serverSettings"
+import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
 import { bakeGraphersToSvgs } from "baker/GrapherImageBaker"
 import { log } from "serverUtils/log"
