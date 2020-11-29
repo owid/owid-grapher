@@ -70,6 +70,17 @@ export enum SubNavId {
     energy = "energy",
 }
 
+export interface FormattingOptions {
+    toc?: boolean
+    hideAuthors?: boolean
+    bodyClassName?: string
+    subnavId?: SubNavId
+    subnavCurrentId?: string
+    raw?: boolean
+    hideDonateFooter?: boolean
+    [key: string]: string | boolean | undefined
+}
+
 export interface GitCommit {
     author_email: string
     author_name: string

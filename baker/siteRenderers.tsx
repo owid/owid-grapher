@@ -15,7 +15,6 @@ import * as lodash from "lodash"
 import {
     formatPost,
     extractFormattingOptions,
-    FormattingOptions,
     formatCountryProfile,
 } from "site/formatting"
 import {
@@ -37,7 +36,7 @@ import { FeedbackPage } from "site/FeedbackPage"
 import { getCountry, Country } from "clientUtils/countries"
 import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
-import { FormattedPost } from "clientUtils/owidTypes"
+import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
 
 // Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>
