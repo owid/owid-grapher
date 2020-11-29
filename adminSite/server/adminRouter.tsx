@@ -13,8 +13,8 @@ import {
     JsonError,
 } from "serverUtils/serverUtil"
 import { logInWithCredentials, logOut } from "./authentication"
-import { LoginPage } from "./pages/LoginPage"
-import { RegisterPage } from "./pages/RegisterPage"
+import { LoginPage } from "./LoginPage"
+import { RegisterPage } from "./RegisterPage"
 import { Dataset } from "db/model/Dataset"
 
 import { User } from "db/model/User"
