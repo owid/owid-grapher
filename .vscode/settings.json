@@ -5,6 +5,9 @@
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
+    "files.exclude": {
+        "**/compiled": true
+    },
     "search.exclude": {
         "dist": true,
         "**/compiled": true,
