@@ -6,7 +6,6 @@ import "grapher/core/grapher.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
-import { Analytics } from "grapher/core/Analytics"
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runSearchPage } from "./SearchPageMain"
@@ -34,6 +33,7 @@ import {
 import { Grapher } from "grapher/core/Grapher"
 import { MultiEmbedderSingleton } from "./figures/MultiEmbedder"
 import { CoreTable } from "coreTable/CoreTable"
+import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 
 declare var window: any
 window.Grapher = Grapher
@@ -65,7 +65,7 @@ window.runSiteFooterScripts = () => {
     }
 }
 
-const analytics = new Analytics(ENV)
+const analytics = new GrapherAnalytics(ENV)
 analytics.logPageLoad()
 
 document.querySelector("html")?.classList.add("js")

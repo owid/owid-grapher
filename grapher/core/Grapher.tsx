@@ -83,7 +83,6 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/captionedChart/Logos"
@@ -152,6 +151,7 @@ import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
+import { GrapherAnalytics } from "./GrapherAnalytics"
 
 declare const window: any
 
@@ -285,7 +285,7 @@ export class Grapher
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = ENV === "development"
     adminBaseUrl = ADMIN_BASE_URL
-    analytics = new Analytics(ENV)
+    analytics = new GrapherAnalytics(ENV)
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = BAKED_GRAPHER_URL
