@@ -1,5 +1,4 @@
 import React from "react"
-\import { BAKED_BASE_URL} from "settings"
 import { Head } from "site/server/views/Head"
 import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
@@ -21,6 +20,7 @@ interface ExplorerPageSettings {
     program: ExplorerProgram
     wpContent?: string
     grapherConfigs: GrapherInterface[]
+    baseUrl: string
 }
 
 const ExplorerContent = ({ content }: { content: string }) => {
@@ -45,7 +45,7 @@ const ExplorerContent = ({ content }: { content: string }) => {
 }
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {
-    const { wpContent, program, grapherConfigs } = props
+    const { wpContent, program, grapherConfigs, baseUrl } = props
     const {
         subNavId,
         subNavCurrentId,
@@ -74,9 +74,9 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/${slug}`}
+                canonicalUrl={`${baseUrl}/${slug}`}
                 pageTitle={explorerTitle}
-                imageUrl={`${BAKED_BASE_URL}/${thumbnail} `}
+                imageUrl={`${baseUrl}/${thumbnail} `}
             >
                 <IFrameDetector />
             </Head>
