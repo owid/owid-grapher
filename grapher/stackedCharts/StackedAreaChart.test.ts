@@ -12,6 +12,8 @@ import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SelectionArray } from "grapher/selection/SelectionArray"
 import { isNumber } from "grapher/utils/Util"
+import { OwidTable } from "coreTable/OwidTable"
+import { ColumnTypeNames } from "coreTable/CoreColumnDef"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -107,4 +109,33 @@ it("filters non-numeric values", () => {
             )
         )
     ).toBeTruthy()
+})
+
+it("should drop missing values at start or end", () => {
+    const csv = `gdp,year,entityName
+    ,2000,france
+    ,2001,france
+    1,2002,france
+    2,2003,france
+    8,2004,france
+    ,2005,france
+    ,2000,uk
+    ,2001,uk
+    5,2002,uk
+    18,2003,uk
+    2,2004,uk
+    ,2005,uk`
+    const table = new OwidTable(csv, [
+        { slug: "gdp", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+    const manager: ChartManager = {
+        table,
+        yColumnSlugs: ["gdp"],
+        selection: table.availableEntityNames,
+    }
+    const chart = new StackedAreaChart({ manager })
+    expect(chart.series.length).toEqual(2)
+    expect(chart.series[0].points.length).toEqual(3)
+    expect(chart.series[1].points.length).toEqual(3)
 })

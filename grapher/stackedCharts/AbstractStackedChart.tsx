@@ -40,6 +40,12 @@ export class AbstactStackedChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
+        // Drop rows for which no valid data points exist for any display column, so
+        // we don't interpolate these values and display a misleading chart
+        // Important: needs to be run after replaceNonNumericCellsWithErrorValues, so
+        // undefined and empty values are already replaced with error values
+        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
         if (!this.props.disableLinearInterpolation) {
             this.yColumnSlugs.forEach((slug) => {
                 table = table.interpolateColumnLinearly(slug)
