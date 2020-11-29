@@ -10,7 +10,7 @@ import {
 import { extend, trimObject } from "clientUtils/Util"
 import { ColorSchemeName } from "./ColorConstants"
 
-class ColorScaleConfigDefaults {
+export class ColorScaleConfigDefaults {
     // Color scheme
     // ============
 

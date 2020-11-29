@@ -5,7 +5,7 @@ import { PointVector } from "clientUtils/PointVector"
 import { TimeBound } from "clientUtils/TimeBounds"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 
-interface LinePoint {
+export interface LinePoint {
     x: number
     y: number
 }

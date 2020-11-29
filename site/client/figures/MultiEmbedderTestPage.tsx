@@ -18,7 +18,7 @@ export const MultiEmbedderTestPage = (
     }
     return (
         <html>
-            <Head canonicalUrl={slug} pageTitle={title} baseUrl="/>
+            <Head canonicalUrl={slug} pageTitle={title} baseUrl="/" />
             <body>
                 <SiteHeader baseUrl={""} />
                 <main>
