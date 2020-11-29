@@ -12,11 +12,10 @@ import { Variable } from "db/model/Variable"
 import { SiteBaker } from "baker/SiteBaker"
 import { countries, getCountry } from "clientUtils/countries"
 import { OwidTable } from "coreTable/OwidTable"
-import { BAKED_BASE_URL } from "settings"
 
-export const countriesIndexPage = async () =>
+export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(
-        <CountriesIndexPage countries={countries} baseUrl={BAKED_BASE_URL} />
+        <CountriesIndexPage countries={countries} baseUrl={baseUrl} />
     )
 
 const cache = new Map()
@@ -135,7 +134,10 @@ const countryIndicatorLatestData = async (countryCode: string) => {
     return dataValuesByEntityId[countryCode]
 }
 
-export const countryProfilePage = async (countrySlug: string) => {
+export const countryProfilePage = async (
+    countrySlug: string,
+    baseUrl: string
+) => {
     const country = getCountry(countrySlug)
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
@@ -191,19 +193,19 @@ export const countryProfilePage = async (countrySlug: string) => {
         <CountryProfilePage
             indicators={indicators}
             country={country}
-            baseUrl={BAKED_BASE_URL}
+            baseUrl={baseUrl}
         />
     )
 }
 
 export const bakeCountries = async (baker: SiteBaker) => {
-    const html = await countriesIndexPage()
+    const html = await countriesIndexPage(baker.baseUrl)
     await baker.writeFile("/countries.html", html)
 
     await baker.ensureDir("/country")
     for (const country of countries) {
         const path = `/country/${country.slug}.html`
-        const html = await countryProfilePage(country.slug)
+        const html = await countryProfilePage(country.slug, baker.baseUrl)
         await baker.writeFile(path, html)
     }
 }

@@ -3,7 +3,7 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 
-export interface Country {
+interface Country {
     name: string
     slug: string
     code: string
@@ -21,6 +21,7 @@ export const CountriesIndexPage = (props: {
                 canonicalUrl={`${baseUrl}/countries`}
                 pageTitle="Countries"
                 pageDesc="Data by individual country on Our World in Data."
+                baseUrl={baseUrl}
             />
             <body className="CountriesIndexPage">
                 <SiteHeader baseUrl={baseUrl} />

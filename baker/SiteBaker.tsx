@@ -55,7 +55,7 @@ import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } fro
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
-    private baseUrl: string
+    baseUrl: string
 
     constructor(bakedSiteDir: string, baseUrl: string) {
         this.bakedSiteDir = bakedSiteDir

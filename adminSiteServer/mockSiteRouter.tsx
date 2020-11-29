@@ -18,7 +18,7 @@ import {
     countryProfileCountryPage,
 } from "site/server/siteRenderers"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
-import { BAKED_GRAPHER_URL } from "settings"
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
 import {
@@ -189,11 +189,11 @@ mockSiteRouter.get("/indicator/:variableId/:country", async (req, res) => {
 })
 
 mockSiteRouter.get("/countries", async (req, res) =>
-    res.send(await countriesIndexPage())
+    res.send(await countriesIndexPage(BAKED_BASE_URL))
 )
 
 mockSiteRouter.get("/country/:countrySlug", async (req, res) =>
-    res.send(await countryProfilePage(req.params.countrySlug))
+    res.send(await countryProfilePage(req.params.countrySlug, BAKED_BASE_URL))
 )
 
 mockSiteRouter.get("/feedback", async (req, res) =>
