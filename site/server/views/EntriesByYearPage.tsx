@@ -1,19 +1,21 @@
 import React from "react"
 import moment from "moment"
-import * as lodash from "lodash"
-
 import { Post } from "db/model/Post"
 import { Head } from "./Head"
-import { BAKED_BASE_URL } from "settings"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { TableOfContents } from "site/client/TableOfContents"
+import { groupBy } from "clientUtils/Util"
 
 type Entry = Pick<Post.Row, "title" | "slug" | "published_at">
 
-export const EntriesByYearPage = (props: { entries: Entry[] }) => {
-    const entriesByYear = lodash.groupBy(props.entries, (e) =>
-        moment(e.published_at as Date).year()
+export const EntriesByYearPage = (props: {
+    entries: Entry[]
+    baseUrl: string
+}) => {
+    const { baseUrl } = props
+    const entriesByYear = groupBy(props.entries, (entry) =>
+        moment(entry.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear).sort().reverse()
@@ -30,7 +32,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/entries-by-year`}
+                canonicalUrl={`${baseUrl}/entries-by-year`}
                 pageTitle="Entries by Year"
                 pageDesc="An index of Our World in Data entries by year of first publication."
             />
@@ -56,7 +58,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                                         <section key={year}>
                                             <h2 id={year}>
                                                 <a
-                                                    href={`${BAKED_BASE_URL}/entries-by-year/${year}`}
+                                                    href={`${baseUrl}/entries-by-year/${year}`}
                                                 >
                                                     {year}
                                                 </a>
@@ -66,7 +68,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                                                     (entry) => (
                                                         <li key={entry.slug}>
                                                             <a
-                                                                href={`${BAKED_BASE_URL}/${entry.slug}`}
+                                                                href={`${baseUrl}/${entry.slug}`}
                                                             >
                                                                 {entry.title}
                                                             </a>
@@ -100,22 +102,24 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
 export const EntriesForYearPage = (props: {
     entries: Entry[]
     year: number
+    baseUrl: string
 }) => {
-    const entriesByYear = lodash.groupBy(props.entries, (e) =>
-        moment(e.published_at as Date).year()
+    const { baseUrl, year } = props
+    const entriesByYear = groupBy(props.entries, (entry) =>
+        moment(entry.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear)
         .sort()
         .reverse()
-        .filter((y) => parseInt(y) === props.year)
+        .filter((y) => parseInt(y) === year)
 
     return (
         <html>
             <Head
-                canonicalUrl={`${BAKED_BASE_URL}/entries-by-year/${props.year}`}
-                pageTitle={`${props.year} Entries`}
-                pageDesc={`Our World in Data entries first published in ${props.year}.`}
+                canonicalUrl={`${baseUrl}/entries-by-year/${year}`}
+                pageTitle={`${year} Entries`}
+                pageDesc={`Our World in Data entries first published in ${year}.`}
             />
             <body className="EntriesByYearPage">
                 <SiteHeader />
@@ -132,7 +136,7 @@ export const EntriesForYearPage = (props: {
                                                     (entry) => (
                                                         <li key={entry.slug}>
                                                             <a
-                                                                href={`${BAKED_BASE_URL}/${entry.slug}`}
+                                                                href={`${baseUrl}/${entry.slug}`}
                                                             >
                                                                 {entry.title}
                                                             </a>

@@ -235,10 +235,16 @@ export const entriesByYearPage = async (year?: number) => {
 
     if (year !== undefined)
         return renderToHtmlPage(
-            <EntriesForYearPage entries={entries} year={year} />
+            <EntriesForYearPage
+                entries={entries}
+                year={year}
+                baseUrl={BAKED_BASE_URL}
+            />
         )
 
-    return renderToHtmlPage(<EntriesByYearPage entries={entries} />)
+    return renderToHtmlPage(
+        <EntriesByYearPage entries={entries} baseUrl={BAKED_BASE_URL} />
+    )
 }
 
 export const pagePerVariable = async (
