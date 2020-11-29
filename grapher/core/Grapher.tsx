@@ -58,7 +58,6 @@ import {
 } from "grapher/chart/ChartDimension"
 import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
-import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -180,6 +179,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
+    adminBaseUrl?: string
+    env?: string
+
     getGrapherInstance?: (instance: Grapher) => void
 
     enableKeyboardShortcuts?: boolean
@@ -283,12 +285,14 @@ export class Grapher
     manuallyProvideData?: boolean = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
-    isDev = ENV === "development"
-    adminBaseUrl = ADMIN_BASE_URL
-    analytics = new GrapherAnalytics(ENV)
+    isDev = this.props.env === "development"
+    analytics = new GrapherAnalytics(this.props.env)
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    @observable bakedGrapherURL = BAKED_GRAPHER_URL
+
+    @computed get adminBaseUrl() {
+        return this.props.adminBaseUrl
+    }
 
     @observable.ref inputTable: OwidTable
 
@@ -850,7 +854,9 @@ export class Grapher
     }
 
     @computed get dataUrl() {
-        return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
+        return `${this.props.bakedGrapherURL ?? ""}/data/variables/${
+            this.dataFileName
+        }`
     }
 
     externalCsvLink = ""
@@ -2067,7 +2073,7 @@ export class Grapher
 
     @computed get baseUrl() {
         return this.isPublished
-            ? `${this.bakedGrapherURL}/${this.displaySlug}`
+            ? `${this.props.bakedGrapherURL ?? ""}/${this.displaySlug}`
             : undefined
     }
 
