@@ -148,7 +148,6 @@ import { SelectionArray } from "grapher/selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
@@ -193,6 +192,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
+    editUrl?: string
 }
 
 @observer
@@ -579,9 +579,7 @@ export class Grapher
         if (!this.showAdminControls && !this.isDev && !this.isStaging)
             return undefined
         return `${this.adminBaseUrl}/admin/${
-            this.id
-                ? `charts/${this.id}/edit`
-                : `${EXPLORERS_ROUTE_FOLDER}/${this.slug}`
+            this.manager.editUrl ?? `charts/${this.id}/edit`
         }`
     }
 

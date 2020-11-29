@@ -31,6 +31,7 @@ import {
 import {
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
+    EXPLORERS_ROUTE_FOLDER,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "./ExplorerConstants"
@@ -523,6 +524,10 @@ export class Explorer
                 </div>
             </div>
         )
+    }
+
+    @computed get editUrl() {
+        return `${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
     }
 
     @computed get canonicalUrl() {
