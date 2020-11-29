@@ -3,7 +3,7 @@
 import * as fs from "fs"
 import * as db from "db/db"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { mapToObjectLiteral } from "clientUtils/Util"
+import { mapToObjectLiteral } from "../../site/covid/node_modules/clientUtils/Util"
 import { isPresent } from "clientUtils/isPresent"
 import { getPublishedGraphersBySlug } from "baker/GrapherImageBaker"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"

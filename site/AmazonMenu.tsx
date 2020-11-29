@@ -3,7 +3,6 @@
 
 import * as React from "react"
 import { bind } from "decko"
-import { getParent } from "./client/utils"
 
 interface Position {
     x: number
@@ -14,6 +13,18 @@ const ATTRIBUTE = "data-submenu-id"
 const MOUSE_LOCS_TRACKED = 3
 const DELAY = 400
 const TOLERANCE_PX = 20
+
+const getParent = (
+    el: HTMLElement,
+    condition: (el: HTMLElement) => boolean
+): HTMLElement | null => {
+    let current: HTMLElement | null = el
+    while (current) {
+        if (condition(current)) return current
+        current = current.parentElement
+    }
+    return null
+}
 
 const getSubmenuId = (targetEl: HTMLElement): string | null => {
     const listItem = getParent(targetEl, (el: HTMLElement) =>

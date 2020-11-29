@@ -1,5 +1,5 @@
 import fuzzysort from "fuzzysort"
-import { keyBy } from "clientUtils/Util"
+import { keyBy } from "../covid/node_modules/clientUtils/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
 import { SiteAnalytics } from "./SiteAnalytics"
@@ -7,6 +7,10 @@ interface ChartItem {
     title: string
     li: HTMLLIElement
     ul: HTMLUListElement
+}
+
+interface SearchResult {
+    target: string
 }
 
 function encodeHashSafe(s: string) {
@@ -44,13 +48,16 @@ class ChartFilter {
             ".chartsSearchInput"
         ) as HTMLInputElement
         this.sections = Array.from(
-            document.querySelectorAll(".ChartsIndexPage main .content section")
+            document.querySelectorAll(".CountryProfilePage main section")
         ) as HTMLDivElement[]
         const lis = Array.from(
-            document.querySelectorAll(".ChartsIndexPage main .content li")
+            document.querySelectorAll(".CountryProfilePage main li")
         ) as HTMLLIElement[]
         this.chartItems = lis.map((li) => ({
-            title: (li.children[0].textContent as string).replace(/₂/g, "2"),
+            title: ((li.firstChild as any).textContent as string).replace(
+                /₂/g,
+                "2"
+            ),
             li: li,
             ul: li.closest("ul") as HTMLUListElement,
         }))
@@ -86,7 +93,7 @@ class ChartFilter {
             null,
             document.title,
             window.location.pathname +
-                (this.query ? `?search=${encodeHashSafe(this.query)}` : "")
+                (this.query ? `#search=${encodeHashSafe(this.query)}` : "")
         )
 
         if (!this.query) {
@@ -96,7 +103,7 @@ class ChartFilter {
             for (const c of this.chartItems) {
                 c.ul.append(c.li)
                 c.li.style.display = ""
-                c.li.children[0].innerHTML = c.title
+                c.li.children[0].children[0].innerHTML = c.title
             }
 
             return
@@ -113,7 +120,8 @@ class ChartFilter {
                 c.li.style.display = "none"
             } else {
                 c.li.style.display = ""
-                c.li.children[0].innerHTML = fuzzyHighlight(res) ?? ""
+                c.li.children[0].children[0].innerHTML =
+                    fuzzyHighlight(res) ?? ""
             }
         }
 
@@ -137,7 +145,7 @@ class ChartFilter {
 
         autorun(() => this.render())
 
-        const m = window.location.search.match(/search=(.+)/)
+        const m = window.location.hash.match(/search=(.+)/)
         if (m) {
             this.searchInput.value = decodeHashSafe(m[1])
         }
@@ -145,7 +153,7 @@ class ChartFilter {
     }
 }
 
-export function runChartsIndexPage() {
+export function runCountryProfilePage() {
     const searcher = new ChartFilter()
     searcher.run()
 }

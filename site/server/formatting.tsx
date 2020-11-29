@@ -12,7 +12,10 @@ import { GrapherExports } from "./grapherUtil"
 import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
 import { RelatedCharts } from "site/client/blocks/RelatedCharts/RelatedCharts"
-import { FormattedPost, SubNavId } from "clientUtils/owidTypes"
+import {
+    FormattedPost,
+    SubNavId,
+} from "../blocks/RelatedCharts/node_modules/clientUtils/owidTypes"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
 import { Footnote } from "site/client/Footnote"

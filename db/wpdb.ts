@@ -14,10 +14,10 @@ import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
 
-import { defaultTo, memoize } from "clientUtils/Util"
+import { defaultTo, memoize } from "../site/covid/node_modules/clientUtils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
-import { RelatedChart } from "clientUtils/owidTypes"
+import { RelatedChart } from "../site/blocks/RelatedCharts/node_modules/clientUtils/owidTypes"
 import { JsonError } from "adminSiteServer/serverUtil"
 import {
     CountryProfileSpec,

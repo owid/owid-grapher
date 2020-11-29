@@ -7,7 +7,7 @@ import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { formatPost } from "site/server/formatting"
 import { chunkParagraphs, htmlToPlaintext } from "clientUtils/search"
 import { countries } from "clientUtils/countries"
-import { FormattedPost } from "clientUtils/owidTypes"
+import { FormattedPost } from "../blocks/RelatedCharts/node_modules/clientUtils/owidTypes"
 
 interface Tag {
     id: number

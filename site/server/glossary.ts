@@ -1,4 +1,4 @@
-import { memoize } from "clientUtils/Util"
+import { memoize } from "../covid/node_modules/clientUtils/Util"
 export interface GlossaryItem {
     term: string
     slug: string

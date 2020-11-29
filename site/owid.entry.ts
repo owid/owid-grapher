@@ -12,17 +12,16 @@ import { runSearchPage } from "./SearchPageMain"
 import { runNotFoundPage } from "./NotFoundPageMain"
 import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
-import { getParent } from "./utils"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager/CookiePreferencesManager"
-import { runBlocks } from "./blocks"
+import { runBlocks } from "../blocks"
 import { runTableOfContents } from "./TableOfContents"
-import { runRelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
+import { runRelatedCharts } from "../blocks/RelatedCharts/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
-import { runCovid } from "./covid/index"
-import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
+import { runCovid } from "../covid/index"
+import { hydrateGlobalEntityControlIfAny } from "../blocks/ProminentLink/node_modules/grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "site/client/Footnote"
 import { Explorer } from "explorer/Explorer"
 import { BAKED_BASE_URL, ENV } from "settings"
@@ -87,6 +86,18 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
 })
 
 const dataTrackAttr = "data-track-note"
+
+const getParent = (
+    el: HTMLElement,
+    condition: (el: HTMLElement) => boolean
+): HTMLElement | null => {
+    let current: HTMLElement | null = el
+    while (current) {
+        if (condition(current)) return current
+        current = current.parentElement
+    }
+    return null
+}
 
 document.addEventListener("click", async (ev) => {
     const targetElement = ev.target as HTMLElement

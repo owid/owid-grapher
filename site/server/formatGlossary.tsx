@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { ExpandableInlineBlock_name } from "site/client/ExpandableInlineBlock/ExpandableInlineBlock"
+import { ExpandableInlineBlock_name } from "../blocks/node_modules/site/client/ExpandableInlineBlock/ExpandableInlineBlock"
 import { GlossaryExcerpt_name } from "site/client/GlossaryExcerpt/GlossaryExcerpt"
 import { GlossaryItem } from "./glossary"
 
