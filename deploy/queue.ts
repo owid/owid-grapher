@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
-} from "serverSettings"
+} from "../adminSiteServer/utils/node_modules/serverSettings"
 import { DeployChange, Deploy, DeployStatus } from "./types"
 
 // File manipulation

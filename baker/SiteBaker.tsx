@@ -10,7 +10,10 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "site/server/formatting"
 import { LongFormPage } from "site/server/views/LongFormPage"
-import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
+import {
+    BASE_DIR,
+    WORDPRESS_DIR,
+} from "../adminSiteServer/utils/node_modules/serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,

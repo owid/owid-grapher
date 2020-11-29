@@ -1,7 +1,13 @@
 import * as mysql from "mysql"
 import * as typeorm from "typeorm"
 import Knex from "knex"
-import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from "serverSettings"
+import {
+    DB_HOST,
+    DB_USER,
+    DB_PASS,
+    DB_NAME,
+    DB_PORT,
+} from "../adminSiteServer/utils/node_modules/serverSettings"
 import { registerExitHandler } from "./cleanup"
 let connection: typeorm.Connection
 

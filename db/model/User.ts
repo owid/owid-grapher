@@ -8,7 +8,7 @@ import {
 import { Chart } from "./Chart"
 import { Dataset } from "./Dataset"
 import { ChartRevision } from "./ChartRevision"
-import { BCryptHasher } from "serverUtils/hashers"
+import { BCryptHasher } from "../../adminSiteServer/utils/node_modules/serverUtils/hashers"
 
 @Entity("users")
 export class User extends BaseEntity {
