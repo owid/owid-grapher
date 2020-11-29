@@ -1,7 +1,7 @@
 import { trimObject } from "clientUtils/Util"
 import { queryParamsToStr } from "clientUtils/url"
 import { action, observable, computed } from "mobx"
-import { SubNavId } from "clientUtils/owidTypes"
+import { GitCommit, SubNavId } from "clientUtils/owidTypes"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,
@@ -27,7 +27,6 @@ import {
     Grammar,
     RootKeywordCellDef,
 } from "gridLang/GridLangConstants"
-import { GitCommit } from "gitCms/GitTypes"
 import { OwidTable } from "coreTable/OwidTable"
 import { GridProgram } from "gridLang/GridProgram"
 import { SerializedGridProgram } from "gridLang/SerializedGridProgram"

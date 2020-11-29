@@ -23,10 +23,10 @@ import {
     DefaultNewExplorerSlug,
 } from "explorer/ExplorerConstants"
 import simpleGit from "simple-git"
-import { GitCommit } from "gitCms/GitTypes"
 import { slugify } from "clientUtils/Util"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
+import { GitCommit } from "clientUtils/owidTypes"
 
 const git = simpleGit({
     baseDir: GIT_CMS_DIR,

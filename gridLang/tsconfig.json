@@ -4,9 +4,5 @@
         "outDir": "./compiled/",
         "baseUrl": "../"
     },
-    "references": [
-        { "path": "../clientUtils" },
-        { "path": "../gitCms" },
-        { "path": "../coreTable" }
-    ]
+    "references": [{ "path": "../clientUtils" }, { "path": "../coreTable" }]
 }
