@@ -13,9 +13,7 @@ import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
 import { flatten } from "clientUtils/Util"
 import { bind } from "decko"
-
 import { BAKED_BASE_URL } from "settings"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
