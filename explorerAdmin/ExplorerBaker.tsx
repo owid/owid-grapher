@@ -1,16 +1,16 @@
+import React from "react"
 import * as fs from "fs-extra"
 import * as path from "path"
+
+import * as express from "express"
 import * as db from "db/db"
-import React from "react"
-import { renderToHtmlPage } from "adminSiteServer/serverUtil"
-import { BAKED_SITE_DIR } from "serverSettings"
-import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "explorer/ExplorerProgram"
-import { Request } from "adminSiteServer/authentication"
-import { FunctionalRouter } from "adminSiteServer/FunctionalRouter"
 import { getGrapherById } from "db/model/Chart"
+import { getBlockContent } from "db/wpdb"
+import { BAKED_SITE_DIR } from "serverSettings"
+
+import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "explorer/ExplorerProgram"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
-import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
@@ -27,6 +27,7 @@ import { slugify } from "clientUtils/Util"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { GitCommit } from "clientUtils/owidTypes"
+import ReactDOMServer from "react-dom/server"
 
 const git = simpleGit({
     baseDir: GIT_CMS_DIR,
@@ -36,55 +37,63 @@ const git = simpleGit({
 
 const EXPLORERS_FOLDER = `${GIT_CMS_DIR}/${EXPLORERS_GIT_CMS_FOLDER}/`
 
-export const addExplorerApiRoutes = (app: FunctionalRouter) => {
+type ExpressRouter = {
+    [route: string]: (
+        req: express.Request,
+        res: express.Response
+    ) => Promise<any>
+}
+
+export const ExplorerApiRoutes: ExpressRouter = {}
+
+ExplorerApiRoutes["/errorTest.csv"] = async (req, res) => {
     // Add `table http://localhost:3030/admin/api/errorTest.csv?code=404` to test fetch download failures
-    app.get("/errorTest.csv", async (req, res) => {
-        const code =
-            req.query.code && !isNaN(parseInt(req.query.code))
-                ? req.query.code
-                : 400
-        res.status(code)
+    const code =
+        req.query.code && !isNaN(parseInt(req.query.code))
+            ? req.query.code
+            : 400
 
-        return `Simulating code ${code}`
-    })
+    res.status(code)
 
+    return `Simulating code ${code}`
+}
+
+ExplorerApiRoutes[`/${ExplorersRoute}`] = async () => {
     // http://localhost:3030/admin/api/explorers.json
     // Download all explorers for the admin index page
-    app.get(`/${ExplorersRoute}`, async () => {
-        try {
-            const explorers = await getAllExplorers()
-            const branches = await git.branchLocal()
-            const gitCmsBranchName = await branches.current
-            const needsPull = false // todo: add
+    try {
+        const explorers = await getAllExplorers()
+        const branches = await git.branchLocal()
+        const gitCmsBranchName = await branches.current
+        const needsPull = false // todo: add
 
-            return {
-                success: true,
-                gitCmsBranchName,
-                needsPull,
-                explorers: explorers.map((explorer) => explorer.toJson()),
-            } as ExplorersRouteResponse
-        } catch (err) {
-            console.log(err)
-            return {
-                success: false,
-                errorMessage: err,
-            } as ExplorersRouteResponse
-        }
-    })
+        return {
+            success: true,
+            gitCmsBranchName,
+            needsPull,
+            explorers: explorers.map((explorer) => explorer.toJson()),
+        } as ExplorersRouteResponse
+    } catch (err) {
+        console.log(err)
+        return {
+            success: false,
+            errorMessage: err,
+        } as ExplorersRouteResponse
+    }
+}
 
+ExplorerApiRoutes[`/${ExplorersRouteGrapherConfigs}`] = async (req) => {
     // Download all chart configs for Explorer create page
-    app.get(`/${ExplorersRouteGrapherConfigs}`, async (req: Request) => {
-        const grapherIds = req.query[ExplorersRouteQueryParam].split("~")
-        const configs = []
-        for (const grapherId of grapherIds) {
-            try {
-                configs.push(await getGrapherById(grapherId))
-            } catch (err) {
-                console.log(`Error with grapherId '${grapherId}'`)
-            }
+    const grapherIds = req.query[ExplorersRouteQueryParam].split("~")
+    const configs = []
+    for (const grapherId of grapherIds) {
+        try {
+            configs.push(await getGrapherById(grapherId))
+        } catch (err) {
+            console.log(`Error with grapherId '${grapherId}'`)
         }
-        return configs
-    })
+    }
+    return configs
 }
 
 export const addExplorerAdminRoutes = (app: Router, baseUrl: string) => {
@@ -171,6 +180,9 @@ const bakeExplorersToDir = async (
         )
     }
 }
+
+const renderToHtmlPage = (element: any) =>
+    `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 export const renderExplorerPage = async (
     program: ExplorerProgram,

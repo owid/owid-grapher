@@ -29,7 +29,7 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSiteClient/ChartEditor"
 import { enqueueChange, getDeploys } from "baker/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
-import { addExplorerApiRoutes } from "explorerAdmin/ExplorerBaker"
+import { ExplorerApiRoutes } from "explorerAdmin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/GitCmsServer"
 
 const apiRouter = new FunctionalRouter()
@@ -1617,7 +1617,10 @@ apiRouter.get("/deploys.json", async () => {
     }
 })
 
-addExplorerApiRoutes(apiRouter)
+Object.keys(ExplorerApiRoutes).forEach((route) =>
+    apiRouter.get(route, ExplorerApiRoutes[route])
+)
+
 addGitCmsApiRoutes(apiRouter)
 
 // Legacy code, preventing modification, just in case

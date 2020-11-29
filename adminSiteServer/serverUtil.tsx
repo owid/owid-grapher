@@ -60,7 +60,6 @@ export const tryInt = (value: any, defaultNum: number): number => {
     return num
 }
 
-// Generate a static html page string from a given JSX element
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
