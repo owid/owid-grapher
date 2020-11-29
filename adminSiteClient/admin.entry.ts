@@ -1,5 +1,5 @@
 import "grapher/core/grapher.entry"
-import "adminSite/client/admin.scss"
+import "adminSiteClient/admin.scss"
 import "explorer/admin/ExplorerCreatePage.scss"
 import "handsontable/dist/handsontable.full.css"
 

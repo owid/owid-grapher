@@ -21,7 +21,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     CountryNameFormat,
     CountryDefByKey,
-} from "adminSite/client/CountryNameFormat"
+} from "adminSiteClient/CountryNameFormat"
 import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
@@ -31,7 +31,7 @@ import { camelCaseProperties } from "clientUtils/string"
 import { log } from "serverUtils/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
-import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
+import { PostReference, ChartRedirect } from "adminSiteClient/ChartEditor"
 import { enqueueChange, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"

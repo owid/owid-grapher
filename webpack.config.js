@@ -12,7 +12,7 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         entry: {
-            admin: "./adminSite/client/admin.entry.ts",
+            admin: "./adminSiteClient/admin.entry.ts",
             owid: "./site/client/owid.entry.ts",
         },
         optimization: {

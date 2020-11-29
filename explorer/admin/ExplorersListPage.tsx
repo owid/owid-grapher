@@ -1,10 +1,10 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { Link } from "adminSite/client/Link"
+import { Link } from "adminSiteClient/Link"
 import {
     AdminAppContext,
     AdminAppContextType,
-} from "adminSite/client/AdminAppContext"
+} from "adminSiteClient/AdminAppContext"
 import {
     observable,
     computed,
@@ -14,8 +14,8 @@ import {
     IReactionDisposer,
 } from "mobx"
 import * as lodash from "lodash"
-import { AdminLayout } from "adminSite/client/AdminLayout"
-import { FieldsRow } from "adminSite/client/Forms"
+import { AdminLayout } from "adminSiteClient/AdminLayout"
+import { FieldsRow } from "adminSiteClient/Forms"
 import { orderBy } from "clientUtils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { SerializedGridProgram } from "gridLang/SerializedGridProgram"
