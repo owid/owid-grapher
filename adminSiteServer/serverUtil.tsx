@@ -6,7 +6,7 @@ import { ADMIN_BASE_URL } from "settings"
 import * as shell from "shelljs"
 import * as util from "util"
 
-export interface ExecReturn {
+interface ExecReturn {
     code: number
     stdout: string
     stderr: string

@@ -6,12 +6,7 @@ import * as bodyParser from "body-parser"
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "serverSettings"
-import {
-    JsonError,
-    expectInt,
-    isValidSlug,
-    absoluteUrl,
-} from "adminSiteServer/serverUtil"
+import { JsonError, expectInt, isValidSlug, absoluteUrl } from "./serverUtil"
 import { sendMail } from "./mail"
 import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"

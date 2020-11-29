@@ -1,29 +1,26 @@
-// This import has side-effects to do with React import binding, keep it up here
-import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, ENV } from "settings"
-
-import * as db from "db/db"
-import * as wpdb from "db/wpdb"
-import { log } from "adminSiteServer/log"
-
+import * as React from "react"
+import simpleGit from "simple-git"
 import express from "express"
 require("express-async-errors")
 import cookieParser from "cookie-parser"
-const expressErrorSlack = require("express-error-slack")
 import "reflect-metadata"
+
+import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, ENV } from "settings"
+import * as db from "db/db"
+import * as wpdb from "db/wpdb"
+import { log } from "./log"
 import { IndexPage } from "./IndexPage"
 import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
-import { renderToHtmlPage } from "adminSiteServer/serverUtil"
+import { renderToHtmlPage } from "./serverUtil"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
-
-import * as React from "react"
 import { publicApiRouter } from "./publicApiRouter"
 import { mockSiteRouter } from "./mockSiteRouter"
-import simpleGit from "simple-git"
 import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
 
+const expressErrorSlack = require("express-error-slack")
 const app = express()
 
 // since the server is running behind a reverse proxy (nginx), we need to "trust"

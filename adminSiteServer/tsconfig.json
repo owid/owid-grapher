@@ -2,5 +2,14 @@
     "extends": "../tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "baseUrl": "../"
-    }
+    },
+    "references": [
+        { "path": "../site" },
+        { "path": "../explorer" },
+        { "path": "../explorerAdmin" },
+        { "path": "../gitCms" },
+        { "path": "../adminSiteClient" },
+        { "path": "../grapher" },
+        { "path": "../clientUtils" }
+    ]
 }

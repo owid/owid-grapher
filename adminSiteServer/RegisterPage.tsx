@@ -1,10 +1,10 @@
 import * as React from "react"
 
-export function RegisterPage(props: {
+export const RegisterPage = (props: {
     inviteEmail?: string
     errorMessage?: string
     body: any
-}) {
+}) => {
     const style = `
         html, body {
             height: 100%;

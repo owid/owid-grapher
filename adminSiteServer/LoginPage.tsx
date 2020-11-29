@@ -1,6 +1,6 @@
 import * as React from "react"
 
-export function LoginPage(props: { next?: string; errorMessage?: string }) {
+export const LoginPage = (props: { next?: string; errorMessage?: string }) => {
     const style = `
         html, body {
             height: 100%;

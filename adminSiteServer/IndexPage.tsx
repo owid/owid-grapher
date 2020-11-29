@@ -1,5 +1,5 @@
 import * as React from "react"
-import { getWebpackLinkForAsset } from "adminSiteServer/getWebpackLinkForAsset"
+import { getWebpackLinkForAsset } from "./getWebpackLinkForAsset"
 import { ENV, GITHUB_USERNAME } from "settings"
 
 export const IndexPage = (props: {

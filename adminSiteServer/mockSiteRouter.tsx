@@ -26,12 +26,12 @@ import {
     JsonError,
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
-import { embedSnippet } from "./embedCharts"
+import { embedSnippet } from "baker/embedCharts"
 import { countryProfilePage, countriesIndexPage } from "site/countryProfiles"
 import { makeSitemap } from "site/sitemap"
 import { OldChart } from "db/model/Chart"
 import { countryProfileSpecs } from "site/countryProfileProjects"
-import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorer/legacyCovidExplorerRedirects"
+import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorerAdmin/legacyCovidExplorerRedirects"
 import {
     getAllPublishedExplorers,
     renderExplorerPage,

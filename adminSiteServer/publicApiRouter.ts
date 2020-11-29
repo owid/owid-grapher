@@ -1,7 +1,7 @@
 import { FunctionalRouter } from "./FunctionalRouter"
 import { Request, Response } from "./authentication"
 import { writeVariableCSV } from "db/model/Variable"
-import { expectInt } from "adminSiteServer/serverUtil"
+import { expectInt } from "./serverUtil"
 
 export const publicApiRouter = new FunctionalRouter()
 
