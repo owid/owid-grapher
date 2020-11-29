@@ -22,7 +22,7 @@ import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "baker/grapherUtil"
+} from "baker/GrapherBakingUtils"
 import * as cheerio from "cheerio"
 import { JsonError } from "adminSiteServer/serverUtil"
 import { Post } from "db/model/Post"
