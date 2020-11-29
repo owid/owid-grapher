@@ -12,6 +12,7 @@ import { Variable } from "db/model/Variable"
 import { SiteBaker } from "baker/SiteBaker"
 import { countries, getCountry } from "clientUtils/countries"
 import { OwidTable } from "coreTable/OwidTable"
+import { BAKED_BASE_URL } from "settings"
 
 export const countriesIndexPage = async () =>
     renderToHtmlPage(<CountriesIndexPage countries={countries} />)
@@ -213,7 +214,7 @@ export async function countryProfilePage(countrySlug: string) {
     indicators = lodash.sortBy(indicators, (i) => i.name.trim())
 
     return renderToHtmlPage(
-        <CountryProfilePage indicators={indicators} country={country} />
+        <CountryProfilePage indicators={indicators} country={country} baseUrl={BAKED_BASE_URL/>
     )
 }
 

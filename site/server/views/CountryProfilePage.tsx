@@ -1,4 +1,3 @@
-import { BAKED_BASE_URL } from "settings"
 import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
@@ -29,10 +28,11 @@ export interface CountryProfilePageProps {
         code: string
     }
     indicators: CountryProfileIndicator[]
+    baseUrl: string
 }
 
 export const CountryProfilePage = (props: CountryProfilePageProps) => {
-    const { country, indicators } = props
+    const { country, indicators, baseUrl } = props
 
     // const displayName = defaultTo(variable.display.name, variable.name)
 
@@ -41,7 +41,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
     return (
         <html>
             <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/country/${country.slug}`}
+                canonicalUrl={`${baseUrl}/country/${country.slug}`}
                 pageTitle={`${country.name}`}
                 pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}
             />
@@ -74,7 +74,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                                     <div className="indicatorName">
                                         <a
                                             href={urljoin(
-                                                BAKED_BASE_URL,
+                                                baseUrl,
                                                 indicator.slug
                                             )}
                                         >
