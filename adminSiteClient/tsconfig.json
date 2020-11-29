@@ -5,6 +5,7 @@
     },
     "references": [
         { "path": "../grapher" },
+        { "path": "../explorer" },
         { "path": "../explorerAdmin" },
         { "path": "../clientUtils" }
     ]

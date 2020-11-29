@@ -32,7 +32,7 @@ import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "explorer/ExplorerCreatePage"
-import { ExplorersIndexPage } from "explorer/explorerAdmin/ExplorersListPage"
+import { ExplorersIndexPage } from "explorerAdmin/ExplorersListPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { AdminLayout } from "./AdminLayout"
 
@@ -153,7 +153,11 @@ export class AdminApp extends React.Component<{
                             <Route
                                 exact
                                 path={`/${EXPLORERS_ROUTE_FOLDER}`}
-                                component={ExplorersIndexPage}
+                                render={({ match }) => (
+                                    <AdminLayout title="Explorers">
+                                        <ExplorersIndexPage />
+                                    </AdminLayout>
+                                )}
                             />
                             <Route
                                 exact

@@ -51,6 +51,7 @@ import {
 } from "explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -236,7 +237,11 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        await bakeAllPublishedExplorers(undefined, undefined, this.baseUrl)
+        await bakeAllPublishedExplorers(
+            undefined,
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+            this.baseUrl
+        )
     }
 
     // Pages that are expected by google scholar for indexing

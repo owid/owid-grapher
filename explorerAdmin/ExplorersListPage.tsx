@@ -1,7 +1,5 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { Link } from "adminSiteClient/Link"
-import { AdminLayout } from "adminSiteClient/AdminLayout"
 import {
     observable,
     computed,
@@ -127,13 +125,13 @@ class ExplorerRow extends React.Component<{
                 </td>
 
                 <td>
-                    <Link
-                        to={`/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
+                    <a
+                        href={`${EXPLORERS_ROUTE_FOLDER}/${slug}`}
                         className="btn btn-primary"
                         title={hasEdits ? "*You have local edits" : ""}
                     >
                         Edit{hasEdits ? "*" : ""}
-                    </Link>
+                    </a>
                 </td>
                 <td>
                     <button
@@ -256,38 +254,36 @@ export class ExplorersIndexPage extends React.Component<{
         )
 
         return (
-            <AdminLayout title="Explorers">
-                <main className="DatasetsIndexPage">
-                    <div className="ExplorersListPageHeader">
-                        <div>
-                            Showing {explorersToShow.length} of {numTotalRows}{" "}
-                            explorers
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                            <a
-                                className="btn btn-primary"
-                                href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
-                            >
-                                Create
-                            </a>
-                        </div>
+            <main className="DatasetsIndexPage">
+                <div className="ExplorersListPageHeader">
+                    <div>
+                        Showing {explorersToShow.length} of {numTotalRows}{" "}
+                        explorers
                     </div>
-                    <ExplorerList
-                        explorers={explorersToShow}
-                        searchHighlight={highlight}
-                        indexPage={this}
-                        gitCmsBranchName={this.gitCmsBranchName}
-                    />
-                    {pullButton} |{" "}
-                    <a
-                        href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
-                    >
-                        See branch '{this.gitCmsBranchName}' history on GitHub
-                    </a>
-                    <br />
-                    <br />
-                </main>
-            </AdminLayout>
+                    <div style={{ textAlign: "right" }}>
+                        <a
+                            className="btn btn-primary"
+                            href={`/admin/${EXPLORERS_ROUTE_FOLDER}/${DefaultNewExplorerSlug}`}
+                        >
+                            Create
+                        </a>
+                    </div>
+                </div>
+                <ExplorerList
+                    explorers={explorersToShow}
+                    searchHighlight={highlight}
+                    indexPage={this}
+                    gitCmsBranchName={this.gitCmsBranchName}
+                />
+                {pullButton} |{" "}
+                <a
+                    href={`${GIT_CMS_REPO_URL}/commits/${this.gitCmsBranchName}`}
+                >
+                    See branch '{this.gitCmsBranchName}' history on GitHub
+                </a>
+                <br />
+                <br />
+            </main>
         )
     }
 

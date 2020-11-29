@@ -6,7 +6,6 @@ import * as express from "express"
 import * as db from "db/db"
 import { getGrapherById } from "db/model/Chart"
 import { getBlockContent } from "db/wpdb"
-import { BAKED_SITE_DIR } from "serverSettings"
 
 import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "explorer/ExplorerProgram"
 import { Router } from "express"
@@ -16,7 +15,6 @@ import {
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
     ExplorersRoute,
-    EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteGrapherConfigs,
     ExplorersRouteQueryParam,
     ExplorersRouteResponse,
@@ -132,7 +130,7 @@ export const getExplorerFromFile = async (
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = EXPLORERS_FOLDER,
-    outputFolder = `${BAKED_SITE_DIR}/${EXPLORERS_ROUTE_FOLDER}/`,
+    outputFolder: string,
     baseUrl: string
 ) => {
     const published = await getAllPublishedExplorers(inputFolder)
