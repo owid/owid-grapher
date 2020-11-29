@@ -25,7 +25,7 @@ import { runCovid } from "./covid/index"
 import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "site/client/Footnote"
 import { Explorer } from "explorer/Explorer"
-import { ENV } from "settings"
+import { BAKED_BASE_URL, ENV } from "settings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
@@ -52,7 +52,7 @@ window.MultiEmbedderSingleton = MultiEmbedderSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = () => {
-    runHeaderMenus()
+    runHeaderMenus(BAKED_BASE_URL)
     runBlocks()
     runLightbox()
     runSiteTools()

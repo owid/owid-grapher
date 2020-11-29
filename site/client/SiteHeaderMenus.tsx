@@ -13,7 +13,6 @@ import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
 import { flatten } from "clientUtils/Util"
 import { bind } from "decko"
-import { BAKED_BASE_URL } from "settings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
@@ -28,19 +27,20 @@ import {
 } from "./NewsletterSubscription"
 
 @observer
-export class Header extends React.Component<{
+class Header extends React.Component<{
     categories: CategoryWithEntries[]
+    baseUrl: string
 }> {
-    @observable.ref dropdownIsOpen: boolean = false
+    @observable.ref dropdownIsOpen = false
 
     dropdownOpenTimeoutId?: number // ID of the timeout that will set isOpen to true
     dropdownCloseTimeoutId?: number // ID of the timeout that will set isOpen to false
     dropdownLastOpened?: number // Timestamp of the last time isOpen was set to true
 
     // Mobile menu toggles
-    @observable showSearch: boolean = false
-    @observable showCategories: boolean = false
-    @observable showNewsletterSubscription: boolean = false
+    @observable showSearch = false
+    @observable showCategories = false
+    @observable showNewsletterSubscription = false
 
     dispose!: IReactionDisposer
 
@@ -122,10 +122,10 @@ export class Header extends React.Component<{
     }
 
     render() {
-        const { categories } = this.props
+        const { categories, baseUrl } = this.props
 
         return (
-            <React.Fragment>
+            <>
                 <div className="wrapper site-navigation-bar">
                     <div className="site-logo">
                         <a href="/" data-track-note="header-navigation">
@@ -230,7 +230,7 @@ export class Header extends React.Component<{
                             className="oxford-logo"
                         >
                             <img
-                                src={`${BAKED_BASE_URL}/oms-logo.svg`}
+                                src={`${baseUrl}/oms-logo.svg`}
                                 alt="Oxford Martin School logo"
                             />
                         </a>
@@ -239,7 +239,7 @@ export class Header extends React.Component<{
                             className="gcdl-logo"
                         >
                             <img
-                                src={`${BAKED_BASE_URL}/gcdl-logo-narrow.png`}
+                                src={`${baseUrl}/gcdl-logo-narrow.png`}
                                 alt="Global Change Data Lab logo"
                             />
                         </a>
@@ -291,7 +291,7 @@ export class Header extends React.Component<{
                 {this.showCategories && (
                     <MobileTopicsMenu categories={this.props.categories} />
                 )}
-            </React.Fragment>
+            </>
         )
     }
 }
@@ -321,35 +321,35 @@ const allEntries = (category: CategoryWithEntries): EntryMeta[] => {
 }
 
 @observer
-export class DesktopTopicsMenu extends React.Component<{
+class DesktopTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
     isOpen: boolean
     onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void
     onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void
 }> {
-    @observable.ref activeCategory?: CategoryWithEntries
-    submenuRef: React.RefObject<HTMLUListElement> = React.createRef()
+    @observable.ref private activeCategory?: CategoryWithEntries
+    private submenuRef: React.RefObject<HTMLUListElement> = React.createRef()
 
-    @action.bound setCategory(category?: CategoryWithEntries) {
+    @action.bound private setCategory(category?: CategoryWithEntries) {
         this.activeCategory = category
     }
 
-    @bind onActivate(categorySlug: string) {
-        if (categorySlug) {
-            const category = this.props.categories.find(
-                (c) => c.slug === categorySlug
-            )
-            if (category) this.setCategory(category)
-        }
+    @bind private onActivate(categorySlug: string) {
+        if (!categorySlug) return
+
+        const category = this.props.categories.find(
+            (cat) => cat.slug === categorySlug
+        )
+        if (category) this.setCategory(category)
     }
 
-    @bind onDeactivate(categorySlug: string) {
-        if (categorySlug) {
-            const category = this.props.categories.find(
-                (c) => c.slug === categorySlug
-            )
-            if (category === this.activeCategory) this.setCategory(undefined)
-        }
+    @bind private onDeactivate(categorySlug: string) {
+        if (!categorySlug) return
+
+        const category = this.props.categories.find(
+            (cat) => cat.slug === categorySlug
+        )
+        if (category === this.activeCategory) this.setCategory(undefined)
     }
 
     render() {
@@ -448,12 +448,12 @@ export class DesktopTopicsMenu extends React.Component<{
 }
 
 @observer
-export class MobileTopicsMenu extends React.Component<{
+class MobileTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
 }> {
-    @observable.ref activeCategory?: CategoryWithEntries
+    @observable.ref private activeCategory?: CategoryWithEntries
 
-    @action.bound toggleCategory(category: CategoryWithEntries) {
+    @action.bound private toggleCategory(category: CategoryWithEntries) {
         if (this.activeCategory === category) this.activeCategory = undefined
         else this.activeCategory = category
     }
@@ -546,15 +546,15 @@ export class MobileTopicsMenu extends React.Component<{
 }
 
 @observer
-export class SiteHeaderMenus extends React.Component {
-    @observable width!: number
-    @observable.ref categories: CategoryWithEntries[] = []
+class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
+    @observable private width!: number
+    @observable.ref private categories: CategoryWithEntries[] = []
 
-    @action.bound onResize() {
+    @action.bound private onResize() {
         this.width = window.innerWidth
     }
 
-    async getEntries() {
+    private async getEntries() {
         const json = await (
             await fetch("/headerMenu.json", {
                 method: "GET",
@@ -579,9 +579,14 @@ export class SiteHeaderMenus extends React.Component {
     }
 
     render() {
-        return <Header categories={this.categories} />
+        return (
+            <Header categories={this.categories} baseUrl={this.props.baseUrl} />
+        )
     }
 }
 
-export const runHeaderMenus = () =>
-    ReactDOM.render(<SiteHeaderMenus />, document.querySelector(".site-header"))
+export const runHeaderMenus = (baseUrl: string) =>
+    ReactDOM.render(
+        <SiteHeaderMenus baseUrl={baseUrl} />,
+        document.querySelector(".site-header")
+    )
