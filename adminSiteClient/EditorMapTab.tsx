@@ -15,7 +15,7 @@ import {
     Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { LegacyVariableId } from "coreTable/LegacyVariableCode"
+import { LegacyVariableId } from "clientUtils/owidTypes"
 import { MapConfig } from "grapher/mapCharts/MapConfig"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { ColorScale } from "grapher/color/ColorScale"

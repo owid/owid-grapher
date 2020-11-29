@@ -10,7 +10,7 @@ import {
     FacetStrategy,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
-import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
+import { LegacyChartDimensionInterface } from "./LegacyVariableCode"
 import { TimeBound } from "clientUtils/TimeBounds"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/captionedChart/Logos"

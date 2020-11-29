@@ -8,8 +8,8 @@ import { OwidTable } from "coreTable/OwidTable"
 import {
     LegacyChartDimensionInterface,
     LegacyVariableDisplayConfig,
-    LegacyVariableId,
-} from "coreTable/LegacyVariableCode"
+} from "grapher/core/LegacyVariableCode"
+import { LegacyVariableId } from "clientUtils/owidTypes"
 import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
 import {
     Persistable,

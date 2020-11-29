@@ -13,7 +13,7 @@ import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { LegacyVariableId } from "coreTable/LegacyVariableCode"
+import { LegacyVariableId } from "clientUtils/owidTypes"
 
 @observer
 class DimensionSlotView extends React.Component<{

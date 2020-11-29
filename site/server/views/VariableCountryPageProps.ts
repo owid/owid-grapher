@@ -1,9 +1,9 @@
-import { LegacyVariableConfig } from "coreTable/LegacyVariableCode"
+import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
 
 export interface VariableCountryPageProps {
     country: {
         id: number
         name: string
     }
-    variable: LegacyVariableConfig
+    variable: LegacyVariableDisplayConfigInterface
 }

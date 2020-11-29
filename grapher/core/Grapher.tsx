@@ -50,7 +50,7 @@ import {
 import {
     LegacyChartDimensionInterface,
     LegacyVariablesAndEntityKey,
-} from "coreTable/LegacyVariableCode"
+} from "./LegacyVariableCode"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,

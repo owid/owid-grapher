@@ -14,8 +14,7 @@ import {
     LegacyVariableDataTableConfigInteface,
     LegacyVariableDisplayConfigInterface,
 } from "coreTable/LegacyVariableDisplayConfigInterface"
-
-export declare type LegacyVariableId = Integer
+import { LegacyVariableId } from "clientUtils/owidTypes"
 
 export interface LegacyChartDimensionInterface {
     property: DimensionProperty
