@@ -12,6 +12,7 @@ export const CovidPage = (props: { baseUrl: string }) => (
         <Head
             canonicalUrl={`${props.baseUrl}/covid`}
             pageTitle="COVID-19"
+            baseUrl={props.baseUrl}
         ></Head>
         <body className="CovidPage">
             <SiteHeader baseUrl={props.baseUrl} />

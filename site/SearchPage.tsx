@@ -13,6 +13,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
                 canonicalUrl={`${baseUrl}/search`}
                 pageTitle="Search"
                 pageDesc="Search articles and charts on Our World in Data."
+                baseUrl={baseUrl}
             />
             <body className="SearchPage">
                 <SiteHeader baseUrl={baseUrl} />

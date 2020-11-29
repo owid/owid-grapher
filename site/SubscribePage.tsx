@@ -39,6 +39,7 @@ export const SubscribePage = (props: { baseUrl: string }) => {
             <Head
                 pageTitle="Subscribe"
                 canonicalUrl={`${props.baseUrl}/subscribe`}
+                baseUrl={props.baseUrl}
             >
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </Head>

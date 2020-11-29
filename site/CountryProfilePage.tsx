@@ -44,6 +44,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                 canonicalUrl={`${baseUrl}/country/${country.slug}`}
                 pageTitle={`${country.name}`}
                 pageDesc={`Population, GDP, life expectancy, birth rate and other key metrics for ${country.name}.`}
+                baseUrl={baseUrl}
             />
             <body className="CountryProfilePage">
                 <SiteHeader baseUrl={baseUrl} />

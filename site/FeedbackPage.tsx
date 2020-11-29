@@ -13,6 +13,7 @@ export class FeedbackPage extends React.Component<{ baseUrl: string }> {
                     canonicalUrl={`${baseUrl}/feedback`}
                     pageTitle="Feedback"
                     pageDesc="Do you have feedback or suggestions for improving Our World in Data? Let us know!"
+                    baseUrl={baseUrl}
                 />
                 <body className="FeedbackPage">
                     <SiteHeader baseUrl={baseUrl} />

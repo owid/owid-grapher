@@ -35,6 +35,7 @@ export const EntriesByYearPage = (props: {
                 canonicalUrl={`${baseUrl}/entries-by-year`}
                 pageTitle="Entries by Year"
                 pageDesc="An index of Our World in Data entries by year of first publication."
+                baseUrl={baseUrl}
             />
             <body className="EntriesByYearPage">
                 <SiteHeader baseUrl={baseUrl} />
@@ -120,6 +121,7 @@ export const EntriesForYearPage = (props: {
                 canonicalUrl={`${baseUrl}/entries-by-year/${year}`}
                 pageTitle={`${year} Entries`}
                 pageDesc={`Our World in Data entries first published in ${year}.`}
+                baseUrl={baseUrl}
             />
             <body className="EntriesByYearPage">
                 <SiteHeader baseUrl={baseUrl} />

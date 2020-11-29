@@ -47,6 +47,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
+                baseUrl={baseUrl}
             >
                 <meta property="og:image:width" content="850" />
                 <meta property="og:image:height" content="600" />

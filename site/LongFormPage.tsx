@@ -105,6 +105,7 @@ export const LongFormPage = (props: {
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
                 imageUrl={post.imageUrl}
+                baseUrl={baseUrl}
             >
                 {(isEntry || isSubEntry) && (
                     <CitationMeta

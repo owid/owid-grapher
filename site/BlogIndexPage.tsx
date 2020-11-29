@@ -23,6 +23,7 @@ export const BlogIndexPage = (props: {
                     `${baseUrl}/blog` + (pageNum > 1 ? `/page/${pageNum}` : "")
                 }
                 pageTitle={pageTitle}
+                baseUrl={baseUrl}
             />
             <body className="blog">
                 <SiteHeader baseUrl={baseUrl} />

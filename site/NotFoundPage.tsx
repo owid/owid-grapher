@@ -12,6 +12,7 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                 canonicalUrl={`${props.baseUrl}/search`}
                 pageTitle="404 Not Found"
                 pageDesc="Search articles and charts on Our World in Data."
+                baseUrl={props.baseUrl}
             />
             <body className="NotFoundPage">
                 <SiteHeader baseUrl={props.baseUrl} />

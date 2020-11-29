@@ -16,6 +16,7 @@ export const VariableCountryPage = (props: VariableCountryPageProps) => {
                 canonicalUrl={`${baseUrl}/search`}
                 pageTitle={pageTitle}
                 pageDesc="Search articles and charts on Our World in Data."
+                baseUrl={baseUrl}
             />
             <body className="VariableCountryPage">
                 <SiteHeader baseUrl={baseUrl} />

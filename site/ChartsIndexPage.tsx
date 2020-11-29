@@ -64,6 +64,7 @@ export const ChartsIndexPage = (props: {
                 canonicalUrl={`${baseUrl}/charts`}
                 pageTitle="Charts"
                 pageDesc="All of the interactive charts on Our World in Data."
+                baseUrl={baseUrl}
             />
             <body className="ChartsIndexPage">
                 <SiteHeader baseUrl={baseUrl} />

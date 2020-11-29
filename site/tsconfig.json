@@ -4,5 +4,9 @@
         "outDir": "./compiled/",
         "baseUrl": "../"
     },
-    "references": [{ "path": "../clientUtils" }, { "path": "../grapher" }]
+    "references": [
+        { "path": "../clientUtils" },
+        { "path": "../grapher" },
+        { "path": "../explorer" }
+    ]
 }
