@@ -36,7 +36,7 @@ type countrySelectorEvent =
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
 // Events are discarded if consent not given.
 export class GrapherAnalytics {
-    constructor(environment: string, version: string) {
+    constructor(environment: string, version = "1.0.0") {
         this.isDev = environment === "development"
         this.version = version
     }
