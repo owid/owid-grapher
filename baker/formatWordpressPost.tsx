@@ -11,7 +11,11 @@ import { GrapherExports } from "baker/GrapherBakingUtils"
 import * as path from "path"
 import { renderBlocks } from "site/blocks"
 import { RelatedCharts } from "site/blocks/RelatedCharts/RelatedCharts"
-import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
+import {
+    FormattedPost,
+    FormattingOptions,
+    TocHeading,
+} from "clientUtils/owidTypes"
 import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
 import { Footnote } from "site/Footnote"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
@@ -24,7 +28,11 @@ import { countryProfileSpecs } from "site/countryProfileProjects"
 import { formatGlossaryTerms } from "site/formatGlossary"
 import { getMutableGlossary, glossary } from "site/glossary"
 import { DataToken } from "site/DataToken"
-import { DEEP_LINK_CLASS, getHtmlContentWithStyles } from "site/formatting"
+import {
+    DEEP_LINK_CLASS,
+    formatLinks,
+    getHtmlContentWithStyles,
+} from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
 import { TeX } from "mathjax-full/js/input/tex"
 import { SVG } from "mathjax-full/js/output/svg"
@@ -110,7 +118,7 @@ export const formatWordpressPost = async (
     let latexBlocks
     ;[html, latexBlocks] = extractLatex(html)
 
-    const references: Reference[] = []
+    const references: any[] = []
     html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, () => {
         references.push({}) // Todo
         return ``

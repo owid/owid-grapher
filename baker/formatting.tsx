@@ -2,8 +2,16 @@ import * as cheerio from "cheerio"
 import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
 import { Country } from "clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "site/countryProfileProjects"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
 
 export const DEEP_LINK_CLASS = "deep-link"
+
+// Standardize urls
+export const formatLinks = (html: string) =>
+    html
+        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
 export const getHtmlContentWithStyles = (cheerEl: CheerioStatic) => {
     // Inline styling
