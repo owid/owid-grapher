@@ -1,5 +1,5 @@
 import * as React from "react"
-import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
+import { webpackUrl } from "adminSiteServer/webpackUtils"
 
 export const Head = (props: {
     canonicalUrl: string
@@ -54,11 +54,8 @@ export const Head = (props: {
                 href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
                 rel="stylesheet"
             />
-            <link
-                rel="stylesheet"
-                href={getWebpackUrlForAsset("commons.css")}
-            />
-            <link rel="stylesheet" href={getWebpackUrlForAsset("owid.css")} />
+            <link rel="stylesheet" href={webpackUrl("commons.css")} />
+            <link rel="stylesheet" href={webpackUrl("owid.css")} />
             {props.children}
         </head>
     )

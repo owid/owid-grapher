@@ -17,7 +17,6 @@ import {
     renderCovidPage,
     countryProfileCountryPage,
 } from "site/siteRenderers"
-import { getWebpackUrlForAsset } from "adminSiteServer/staticGen"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
@@ -27,7 +26,6 @@ import {
     JsonError,
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
-import { bakeEmbedSnippet } from "baker/bakeEmbedSnippet"
 import { countryProfilePage, countriesIndexPage } from "site/countryProfiles"
 import { makeSitemap } from "site/sitemap"
 import { OldChart } from "db/model/Chart"
@@ -41,6 +39,7 @@ import { grapherToSVG } from "baker/GrapherImageBaker"
 import { getVariableData } from "db/model/Variable"
 import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
+import { bakeEmbedSnippet } from "./webpackUtils"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -79,11 +78,7 @@ mockSiteRouter.get(
 )
 
 mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
-    res.send(
-        bakeEmbedSnippet(
-            getWebpackUrlForAsset("commons.css", "commons.js", "owid.js")
-        )
-    )
+    res.send(bakeEmbedSnippet())
 )
 
 mockSiteRouter.get("/grapher/latest", async (req, res) => {
