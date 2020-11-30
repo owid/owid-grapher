@@ -8,7 +8,7 @@ import {
     SECRET_KEY,
     SESSION_COOKIE_AGE,
 } from "settings/serverSettings"
-import { BCryptHasher } from "db/hasherss"
+import { BCryptHasher } from "db/hashers"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
 import { ENV } from "settings/clientSettings"
@@ -85,9 +85,7 @@ export async function authCloudflareSSOMiddleware(
     }
 
     const user = await User.findOne({ email: payload.email })
-    if (!user) {
-        return next("User not found. Please contact an administrator.")
-    }
+    if (!user) return next("User not found. Please contact an administrator.")
 
     // Authenticate as the user stored in the token
     const { id: sessionId } = await logInAsUser(user)
@@ -162,11 +160,10 @@ export async function authMiddleware(
         !req.path.startsWith("/admin") ||
         req.path === "/admin/login" ||
         req.path === "/admin/register"
-    ) {
+    )
         return next()
-    } else {
-        return res.redirect(`/admin/login?next=${encodeURIComponent(req.url)}`)
-    }
+
+    return res.redirect(`/admin/login?next=${encodeURIComponent(req.url)}`)
 }
 
 function saltedHmac(salt: string, value: string): string {
@@ -208,15 +205,12 @@ export async function logInWithCredentials(
     password: string
 ): Promise<Session> {
     const user = await User.findOne({ email: email })
-    if (!user) {
-        throw new Error("No such user")
-    }
+    if (!user) throw new Error("No such user")
 
-    const h = new BCryptHasher()
-    if (await h.verify(password, user.password)) {
+    const hasher = new BCryptHasher()
+    if (await hasher.verify(password, user.password))
         // Login successful
         return logInAsUser(user)
-    } else {
-        throw new Error("Invalid password")
-    }
+
+    throw new Error("Invalid password")
 }

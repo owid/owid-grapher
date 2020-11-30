@@ -1,8 +1,8 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./compiled/"
+        "outDir": "./compiled/",
+        "baseUrl": "../"
     },
-    "exclude": ["GitCmsServer.ts"],
     "references": [{ "path": "../settings" }]
 }

@@ -1,20 +1,20 @@
 import * as bcrypt from "bcrypt"
 
 export class BCryptHasher {
-    algorithm = "bcrypt"
-    iterations = 12
+    private algorithm = "bcrypt"
+    private iterations = 12
 
-    async salt(): Promise<string> {
+    private async salt() {
         return bcrypt.genSalt(this.iterations)
     }
 
-    async encode(password: string): Promise<string> {
+    async encode(password: string) {
         const salt = await this.salt()
         const key = await bcrypt.hash(password, salt)
         return `${this.algorithm}$${key}`
     }
 
-    async verify(password: string, hashToken: string): Promise<boolean> {
+    async verify(password: string, hashToken: string) {
         const hashPassword = hashToken.substring(
             this.algorithm.length + 1,
             hashToken.length
