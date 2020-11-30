@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "composite": true,
+
+        "declaration": true,
+        "declarationMap": true,
+
+        // We start with https://github.com/tsconfig/bases/blob/master/bases/node14.json then drop:
+        //   "lib": ["es2020"],
+        //   "target": "es2020",
+
+        "lib": ["dom", "es2020"],
+        "target": "es6",
+
+        "alwaysStrict": true,
+        "noImplicitReturns": true,
+        "allowJs": false,
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "jsx": "react",
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "keyofStringsOnly": true
+    },
+    "exclude": ["compiled/*"]
+}

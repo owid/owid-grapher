@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { takeWhile, last, first, isMobile } from "grapher/utils/Util"
+import { takeWhile, last, first, isMobile } from "clientUtils/Util"
 import {
     SparkBars,
     SparkBarsDatum,

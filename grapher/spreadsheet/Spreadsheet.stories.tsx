@@ -6,7 +6,7 @@ import {
 import { Spreadsheet } from "./Spreadsheet"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import {
     ChartComponentClassMap,

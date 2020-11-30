@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { StackedAreaChart } from "./StackedAreaChart"
 import {
@@ -11,9 +11,9 @@ import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import { isNumber } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColumnTypeNames } from "coreTable/CoreColumnDef"
+import { isNumber } from "clientUtils/Util"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

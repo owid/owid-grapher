@@ -3,7 +3,7 @@ import { action } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import classNames from "classnames"
-import { next } from "grapher/utils/Util"
+import { next } from "clientUtils/Util"
 
 export interface ScaleSelectorManager {
     scaleType?: ScaleType

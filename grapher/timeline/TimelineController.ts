@@ -1,6 +1,6 @@
 import { Time } from "coreTable/CoreTableConstants"
-import { TimeBound, TimeBoundValue } from "grapher/utils/TimeBounds"
-import { findClosestTime, last } from "grapher/utils/Util"
+import { TimeBound, TimeBoundValue } from "clientUtils/TimeBounds"
+import { findClosestTime, last } from "clientUtils/Util"
 
 export interface TimelineManager {
     disablePlay?: boolean

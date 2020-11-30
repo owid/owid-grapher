@@ -15,7 +15,6 @@ import {
     isEqual,
     uniq,
     fetchJSON,
-    getErrorMessageRelatedQuestionUrl,
     slugify,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
@@ -31,7 +30,7 @@ import {
     findClosestTime,
     excludeUndefined,
     debounce,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -51,15 +50,14 @@ import {
 import {
     LegacyChartDimensionInterface,
     LegacyVariablesAndEntityKey,
-} from "coreTable/LegacyVariableCode"
+} from "./LegacyVariableCode"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
     LegacyDimensionsManager,
 } from "grapher/chart/ChartDimension"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
-import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -69,12 +67,12 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     timeBoundToTimeBoundString,
-} from "grapher/utils/TimeBounds"
+} from "clientUtils/TimeBounds"
 import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-} from "utils/client/url"
+} from "clientUtils/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
@@ -84,7 +82,6 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/captionedChart/Logos"
@@ -147,12 +144,12 @@ import {
 } from "grapher/chart/ChartTypeMap"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SelectionArray } from "grapher/selection/SelectionArray"
-import { legacyToOwidTableAndDimensions } from "coreTable/LegacyToOwidTable"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "grapher/scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/client/ExplorerConstants"
 import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
+import { GrapherAnalytics } from "./GrapherAnalytics"
 
 declare const window: any
 
@@ -182,6 +179,9 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
+    adminBaseUrl?: string
+    env?: string
+
     getGrapherInstance?: (instance: Grapher) => void
 
     enableKeyboardShortcuts?: boolean
@@ -194,6 +194,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
+    editUrl?: string
 }
 
 @observer
@@ -284,12 +285,14 @@ export class Grapher
     manuallyProvideData?: boolean = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
-    isDev = ENV === "development"
-    adminBaseUrl = ADMIN_BASE_URL
-    analytics = new Analytics(ENV)
+    isDev = this.props.env === "development"
+    analytics = new GrapherAnalytics(this.props.env ?? "")
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    @observable bakedGrapherURL = BAKED_GRAPHER_URL
+
+    @computed get adminBaseUrl() {
+        return this.props.adminBaseUrl
+    }
 
     @observable.ref inputTable: OwidTable
 
@@ -580,9 +583,7 @@ export class Grapher
         if (!this.showAdminControls && !this.isDev && !this.isStaging)
             return undefined
         return `${this.adminBaseUrl}/admin/${
-            this.id
-                ? `charts/${this.id}/edit`
-                : `${EXPLORERS_ROUTE_FOLDER}/${this.slug}`
+            this.manager.editUrl ?? `charts/${this.id}/edit`
         }`
     }
 
@@ -853,7 +854,9 @@ export class Grapher
     }
 
     @computed get dataUrl() {
-        return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
+        return `${this.props.bakedGrapherURL ?? ""}/data/variables/${
+            this.dataFileName
+        }`
     }
 
     externalCsvLink = ""
@@ -1944,7 +1947,7 @@ export class Grapher
 
     componentDidCatch(error: Error, info: any) {
         this.setError(error)
-        this.analytics.logChartError(error, info)
+        this.analytics.logGrapherViewError(error, info)
     }
 
     @observable isShareMenuActive = false
@@ -2070,7 +2073,7 @@ export class Grapher
 
     @computed get baseUrl() {
         return this.isPublished
-            ? `${this.bakedGrapherURL}/${this.displaySlug}`
+            ? `${this.props.bakedGrapherURL ?? ""}/${this.displaySlug}`
             : undefined
     }
 
@@ -2126,7 +2129,7 @@ export class Grapher
     timelineController = new TimelineController(this)
 
     onPlay() {
-        this.analytics.logChartTimelinePlay(this.slug)
+        this.analytics.logGrapherTimelinePlay(this.slug)
     }
 
     // todo: restore this behavior??
@@ -2248,3 +2251,14 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
+
+export const getErrorMessageRelatedQuestionUrl = (
+    question: RelatedQuestionsConfig
+): string | undefined => {
+    return question.text
+        ? (!question.url && "Missing URL") ||
+              (!question.url.match(/^https?:\/\//) &&
+                  "URL should start with http(s)://") ||
+              undefined
+        : undefined
+}

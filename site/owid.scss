@@ -1,0 +1,1506 @@
+/*
+    Theme Name: Our World In Data
+    Theme URI: https://ourworldindata.org;
+    Description: A responsive custom theme for Our World In Data
+    Author: Jaiden Mispy
+    Author URI: https://ourworldindata.org
+
+    Version: 1.2
+
+    Tags: responsive layout
+
+    License: MIT
+    License URI: https://opensource.org/licenses/MIT
+*/
+
+@import "~normalize.css";
+
+@import "~tippy.js/dist/tippy.css";
+@import "~tippy.js/themes/light.css";
+
+@import "css/variables.scss";
+@import "css/colors.scss";
+@import "css/mixins.scss";
+@import "css/category-coloring.scss";
+@import "css/util.scss";
+@import "css/layout.scss";
+@import "css/general.scss";
+@import "css/header.scss";
+@import "css/footer.scss";
+@import "css/content.scss";
+@import "css/forms.scss";
+@import "css/page.scss";
+@import "css/sidebar.scss";
+
+@import "css/homepage.scss";
+@import "css/donate.scss";
+@import "css/faq.scss";
+@import "css/covid.scss";
+@import "css/chart.scss";
+
+@import "css/cookie-notice.scss";
+@import "css/site-tools.scss";
+@import "css/newsletter-subscription.scss";
+@import "css/lightbox.scss";
+@import "css/alert-banner.scss";
+
+@import "explorer/Explorer.scss";
+@import "explorer/ExplorerControls.scss";
+
+@import "site/blocks/additional-information.scss";
+@import "site/blocks/prominent-link.scss";
+@import "site/blocks/related-charts.scss";
+@import "site/blocks/summary.scss";
+@import "site/blocks/help.scss";
+@import "site/blocks/CookiePreferences.scss";
+@import "site/blocks/Grid.scss";
+@import "site/blocks/Card.scss";
+@import "site/ExpandableInlineBlock/ExpandableInlineBlock.scss";
+@import "site/GlossaryExcerpt/GlossaryExcerpt.scss";
+
+/* HACK (Mispy): Fix search autozooming on iPhone Safari.
+   http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select,
+    textarea,
+    input {
+        font-size: 16px;
+    }
+}
+
+#wpadminbar {
+    direction: ltr;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    height: 32px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: $zindex-adminbar;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 32px;
+    opacity: 0.3;
+}
+
+#wpadminbar li {
+    float: left;
+    list-style-type: none;
+}
+
+#wpadminbar li > a {
+    height: 32px;
+    padding: 0 8px 0 7px;
+    color: #3366cc;
+}
+
+/* Blog posts and blog index page (on /blog)
+--------------------------------------------- */
+
+header.blog-header h1 {
+    text-align: center;
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    background: $primary-color;
+    color: white;
+    margin: auto;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    line-height: 1;
+    padding: 1.25rem 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+header.blog-header h1 > a {
+    color: white;
+}
+
+body.blog h2 {
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    margin-bottom: 14px;
+}
+
+body.blog ul.posts {
+    @include posts-list(20);
+}
+
+body.blog li.post h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 19px;
+    line-height: 24px;
+    font-family: $serif-font-stack;
+    font-weight: 400;
+}
+
+body.blog li.post .entry-meta {
+    font-size: 14px;
+}
+
+body.blog li.post a {
+    color: inherit;
+}
+
+body.blog li.post a:hover h3 {
+    color: #d10a11;
+}
+
+body.blog li.post a .cover-image {
+    width: 100%;
+    height: 0;
+    padding-bottom: 52.5%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-color: rgba(white, 0.05);
+
+    border: 1px solid #e0e0e0;
+}
+
+body.blog li.post a:hover .cover-image {
+    border: 1px solid #999;
+}
+
+@include md-up {
+    body.blog main {
+        margin-top: 40px;
+    }
+}
+
+h1.entry-title > a {
+    color: #222;
+}
+
+h1.entry-title > a:hover {
+    color: #d10a11;
+}
+
+.pagination {
+    text-align: center;
+    padding-bottom: 30px;
+}
+
+.pagination .page-numbers {
+    background-color: #000;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: $sans-serif-font-stack;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    text-transform: uppercase;
+}
+
+.pagination .page-numbers.current,
+.pagination .page-numbers:hover {
+    color: #fff;
+    background: #f04848;
+}
+
+@media only screen {
+    .screen-reader-text {
+        display: none;
+    }
+}
+
+main {
+    min-height: 500px;
+}
+
+#fancybox-frame {
+    width: 100% !important;
+}
+#fancybox-wrap .chart-wrapper-inner {
+    box-sizing: border-box !important;
+}
+
+.deep-link {
+    position: relative;
+    left: 0;
+    display: inline-block;
+    width: 28px;
+    height: 20px;
+    margin-top: -5px;
+    margin-left: -28px;
+    font-size: 16px;
+    text-indent: -9999px;
+    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iY3VycmVudENvbG9yIiBmaWxsLW9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=")
+        no-repeat left;
+    background-size: contain;
+    opacity: 0;
+    vertical-align: middle;
+    transition: opacity 100ms linear;
+
+    &:hover {
+        background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuNDgyIDYuNTE3MThDMTMuNTgyNSA4LjYxOTg0IDEzLjU1MzYgMTEuOTkwOSAxMS40OTQ2IDE0LjA2MTRDMTEuNDkwOCAxNC4wNjU2IDExLjQ4NjIgMTQuMDcwMiAxMS40ODIgMTQuMDc0NEw5LjExOTQ4IDE2LjQzNjlDNy4wMzU3NyAxOC41MjA2IDMuNjQ1NjkgMTguNTIwMyAxLjU2MjMgMTYuNDM2OUMtMC41MjE0MTYgMTQuMzUzNSAtMC41MjE0MTYgMTAuOTYzIDEuNTYyMyA4Ljg3OTY4TDIuODY2OCA3LjU3NTE4QzMuMjEyNzQgNy4yMjkyNCAzLjgwODUgNy40NTkxNiAzLjgyNjM2IDcuOTQ4MDRDMy44NDkxNCA4LjU3MTA4IDMuOTYwODcgOS4xOTcwNCA0LjE2NzAyIDkuODAxNTJDNC4yMzY4NCAxMC4wMDYyIDQuMTg2OTYgMTAuMjMyNiA0LjAzNDAzIDEwLjM4NTVMMy41NzM5NCAxMC44NDU2QzIuNTg4NjUgMTEuODMwOSAyLjU1Nzc0IDEzLjQzNTIgMy41MzMzMyAxNC40MzAyQzQuNTE4NTUgMTUuNDM0OSA2LjEzNzkyIDE1LjQ0MDkgNy4xMzA2OSAxNC40NDgxTDkuNDkzMTkgMTIuMDg1OUMxMC40ODQzIDExLjA5NDggMTAuNDgwMSA5LjQ5MjkyIDkuNDkzMTkgOC41MDU5N0M5LjM2MzA4IDguMzc2MTEgOS4yMzIwMiA4LjI3NTIxIDkuMTI5NjQgOC4yMDQ3MkM5LjA1NzIyIDguMTU0OTkgOC45OTc0MiA4LjA4OTAxIDguOTU1MDIgOC4wMTIwN0M4LjkxMjYxIDcuOTM1MTIgOC44ODg3OCA3Ljg0OTMzIDguODg1NDEgNy43NjE1NEM4Ljg3MTQ5IDcuMzkwMDQgOS4wMDMxMiA3LjAwNzIzIDkuMjk2NjcgNi43MTM2N0wxMC4wMzY5IDUuOTczNDZDMTAuMjMwOSA1Ljc3OTM2IDEwLjUzNTQgNS43NTU1MiAxMC43NjA1IDUuOTEyNkMxMS4wMTgzIDYuMDkyNTggMTEuMjU5NyA2LjI5NDg5IDExLjQ4MiA2LjUxNzE4VjYuNTE3MThaTTE2LjQzNjcgMS41NjIxOUMxNC4zNTMzIC0wLjUyMTI0IDEwLjk2MzMgLTAuNTIxNTIyIDguODc5NTQgMS41NjIxOUw2LjUxNzA0IDMuOTI0NjlDNi41MTI4MiAzLjkyODkxIDYuNTA4MjUgMy45MzM0OCA2LjUwNDM5IDMuOTM3N0M0LjQ0NTQyIDYuMDA4MTIgNC40MTY1NiA5LjM3OTIyIDYuNTE3MDQgMTEuNDgxOUM2LjczOTMzIDExLjcwNDIgNi45ODA3NCAxMS45MDY1IDcuMjM4NDggMTIuMDg2NEM3LjQ2MzU1IDEyLjI0MzUgNy43NjgwOCAxMi4yMTk2IDcuOTYyMTQgMTIuMDI1Nkw4LjcwMjMyIDExLjI4NTRDOC45OTU4OCAxMC45OTE4IDkuMTI3NSAxMC42MDkgOS4xMTM1OCAxMC4yMzc1QzkuMTEwMjEgMTAuMTQ5NyA5LjA4NjM4IDEwLjA2MzkgOS4wNDM5OCA5Ljk4Njk2QzkuMDAxNTcgOS45MTAwMSA4Ljk0MTc3IDkuODQ0MDQgOC44NjkzNSA5Ljc5NDMxQzguNzY2OTcgOS43MjM4MiA4LjYzNTkxIDkuNjIyOTIgOC41MDU4IDkuNDkzMDZDNy41MTg4NiA4LjUwNjExIDcuNTE0NzEgNi45MDQxOCA4LjUwNTggNS45MTMwOUwxMC44NjgzIDMuNTUwOTRDMTEuODYxMSAyLjU1ODE3IDEzLjQ4MDQgMi41NjQxNCAxNC40NjU3IDMuNTY4ODdDMTUuNDQxMiA0LjU2MzggMTUuNDEwNCA2LjE2ODEyIDE0LjQyNTEgNy4xNTM0MUwxMy45NjUgNy42MTM1QzEzLjgxMiA3Ljc2NjQzIDEzLjc2MjEgNy45OTI4MyAxMy44MzIgOC4xOTc1MUMxNC4wMzgxIDguODAxOTkgMTQuMTQ5OSA5LjQyNzk1IDE0LjE3MjYgMTAuMDUxQzE0LjE5MDUgMTAuNTM5OSAxNC43ODYzIDEwLjc2OTggMTUuMTMyMiAxMC40MjM5TDE2LjQzNjcgOS4xMTkzNEMxOC41MjA0IDcuMDM2MDIgMTguNTIwNCAzLjY0NTU1IDE2LjQzNjcgMS41NjIxOVYxLjU2MjE5WiIgZmlsbD0iIzAwMjE0NyIvPjwvc3ZnPg==")
+            no-repeat left;
+        background-size: contain;
+    }
+}
+
+h2:hover .deep-link,
+h3:hover .deep-link,
+h4:hover .deep-link,
+h5:hover .deep-link,
+h6:hover .deep-link {
+    opacity: 1;
+}
+
+#un-button.un-bottom.css3 {
+    left: 0 !important;
+    margin-left: 20px !important;
+    font-size: 16px;
+}
+
+/* search */
+.archive-pagination {
+    margin: 40px auto;
+    text-align: center;
+}
+
+.article-footer a {
+    @include owid-link;
+}
+
+/* Homepage
+--------------------------------------------- */
+
+#homepage-content {
+    padding: 30px 0;
+}
+
+.social a {
+    font-size: 24px;
+    background-color: #c0023e;
+    color: white;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin-right: 5px;
+
+    svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.social a:hover {
+    color: white;
+    background-color: #5b011d;
+}
+
+#homepage-content h3 {
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    margin-bottom: 14px;
+}
+
+#homepage-content h3 > a {
+    color: #c0023e;
+}
+
+#homepage-content h3 > a:hover {
+    color: #5b011d;
+}
+
+#homepage-content iframe {
+    margin-bottom: 20px;
+}
+
+#homepage-latest {
+    padding: 10px 20px;
+}
+
+#homepage-blog h4 {
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    margin-bottom: 0.25rem;
+    font-size: 20px;
+}
+
+#homepage-blog li {
+    list-style-type: none;
+}
+
+#homepage-blog li a {
+    color: #222;
+}
+
+#homepage-blog li a:hover {
+    color: #d10a11;
+}
+
+#homepage-blog > a {
+    color: #c0023e;
+}
+
+#homepage-blog > a:hover {
+    color: #5b011d;
+}
+
+#homepage-blog a.more {
+    font-size: 17px;
+}
+
+@include lg-up {
+    #homepage-blog {
+        float: right;
+        width: 30%;
+        padding: 10px 20px;
+    }
+
+    #homepage-entries {
+        float: left;
+        width: 70%;
+        padding: 10px 20px;
+    }
+
+    #homepage-entries p {
+        font-size: 17px;
+    }
+
+    #homepage-entries div > a {
+        font-size: 14px;
+    }
+
+    #homepage-entries span {
+        margin-right: 0;
+    }
+
+    #homepage-entries span::after {
+        content: "";
+    }
+
+    #homepage-content .owid-presentations {
+        float: right;
+        width: 30%;
+        padding: 10px 20px;
+    }
+
+    #homepage-content .owid-presentations p {
+        text-align: left;
+        font-size: 16px;
+    }
+
+    #homepage-content .owid-presentations div > a {
+        width: 100%;
+    }
+
+    #homepage-twitter {
+        float: right;
+        width: 30%;
+        padding: 10px 20px;
+    }
+
+    #homepage-twitter .social {
+        margin-bottom: 10px;
+    }
+
+    .owid-data .link-container {
+        display: flex;
+        flex-flow: row wrap;
+        display: -webkit-flex;
+        -webkit-flex-flow: row wrap;
+        display: -ms-flexbox;
+        -ms-flex-flow: row wrap;
+    }
+
+    .owid-data li a {
+        width: 33.3333%;
+        display: inline-block;
+    }
+}
+
+@include sm-only {
+    #homepage-twitter {
+        display: none;
+    }
+
+    #homepage-blog {
+        margin-bottom: 20px;
+    }
+}
+
+/* Teaching Page
+--------------------------------------------- */
+
+.teaching-hub #category-nav,
+.teaching-hub #entries-nav {
+    display: none;
+}
+
+.teaching-hub .article-content h2 {
+    font-family: inherit;
+    font-size: 36px;
+    font-weight: 700;
+    text-align: left;
+    margin: 1rem 0 2rem;
+}
+
+.teaching-hub .columns {
+    margin-bottom: 1.5rem;
+}
+
+.teaching-hub .columns .column {
+    display: inline-block;
+    margin: 0 0.6rem 0.6rem 0;
+}
+
+@media screen and (max-width: 640px) {
+    .teaching-hub .columns .column {
+        display: block;
+    }
+}
+
+.teaching-hub .button {
+    background-color: #3a4c71;
+    color: white;
+    padding: 0.75rem 1.4rem;
+    text-align: center;
+    line-height: 1.2;
+    display: block;
+}
+
+.teaching-hub .button:hover {
+    text-decoration: none;
+    background-color: #4b5c7e;
+    color: white;
+}
+
+.teaching-hub a.button:visited {
+    color: white;
+}
+
+.teaching-hub .primary-button {
+    background-color: #b62300;
+}
+
+.teaching-hub .primary-button:hover {
+    background-color: #bb4122;
+}
+
+.teaching-hub .button .label {
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.teaching-hub .button .note {
+    font-size: 68.75%;
+    text-transform: uppercase;
+    letter-spacing: 0.04rem;
+    opacity: 0.6;
+}
+
+.teaching-hub .button span {
+    display: block;
+}
+
+.teaching-hub .authors-byline {
+    display: none;
+}
+
+.teaching-hub .button::selection {
+    background: transparent;
+}
+
+/* OWID Data Entries Table
+--------------------------------------------- */
+
+.owid-data h1 {
+    margin: 0;
+    text-align: center;
+    z-index: 1;
+    position: relative;
+}
+
+.owid-data h1 > span {
+    background: white;
+    text-transform: uppercase;
+    font-size: 24px;
+    color: #002147;
+    padding: 0 15px;
+}
+
+.owid-data .separator {
+    position: relative;
+    opacity: 0.8;
+}
+
+.owid-data hr {
+    position: relative;
+    margin: 0;
+    top: -1.2em;
+
+    background: #002147;
+    border: 0;
+    clear: both;
+    color: #002147;
+    display: block;
+    height: 1px;
+    padding: 0;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.owid-data ul {
+    margin: 0 !important;
+}
+
+.owid-data li {
+    list-style-type: none !important;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#homepage-entries li:last-child {
+    margin-bottom: 30px;
+}
+
+.owid-data h4 {
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    margin-top: 25px;
+    margin-bottom: 0;
+    font-size: 16px;
+    color: #002147;
+    text-align: center;
+    position: relative;
+}
+
+.owid-data .link-container {
+    border-top: 2px solid #002147;
+    border-left: 1px solid #ddd;
+    margin-top: 3px;
+}
+
+.owid-data li a {
+    display: block;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ddd !important;
+    border-right: 1px solid #ddd;
+    padding: 5px 10px;
+    background: none !important;
+    font-size: 16px;
+    color: #002147 !important;
+}
+
+.owid-data li a:hover {
+    color: white !important;
+    /*padding-bottom: 2px;*/
+}
+
+.owid-data a.starred:hover:after {
+    color: white;
+}
+
+/* MISPY: Front page mobile-default responsiveness and data entry listing */
+
+body.home .mobile.subheading {
+    font-family: $serif-font-stack;
+    color: rgb(255, 203, 31);
+    font-size: 22px;
+}
+
+.owid-presentations li:nth-of-type(1) .link-container {
+    border-top: 2px solid #333;
+}
+
+div.owid-presentations li:nth-of-type(1) h4 {
+    color: #333;
+}
+div.owid-presentations li:nth-of-type(1) a:hover {
+    background: #333 !important;
+}
+
+.footer-widgets .widget-title {
+    color: #fff;
+}
+
+/* Blog post updates listing on front page */
+
+.entry-meta {
+    font-size: 80%;
+    color: rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+/* Pages & Posts
+--------------------------------------------- */
+
+.article-content > section:not(:first-of-type) {
+    margin-top: 60px;
+    padding-top: 30px;
+}
+
+.article-content > section {
+    /* The CSS here is very precise so as not to interfere with any iframeless embeds */
+
+    > p {
+        margin-bottom: 1em;
+    }
+
+    /* Subsections e.g. I.1 Historical perspective */
+    > h3 {
+        @include h3-style;
+        margin-top: 5rem;
+        margin-bottom: 1.5rem;
+        padding-top: 2.5rem;
+        border-top: 1px solid $primary-color-200;
+    }
+
+    // e.g. see "Sector by sector: where do global greenhouse gas emissions come from?"
+    .wp-block-column > h3 {
+        @include h3-style;
+        margin-bottom: 1.5rem;
+        margin-top: 2.5rem;
+    }
+
+    > .section-heading + h3 {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
+    .wp-block-columns h4 {
+        font-family: $serif-font-stack;
+        font-weight: 400;
+        font-size: 1.5rem;
+        line-height: 1.4em;
+        margin-top: 2.75rem;
+        margin-bottom: $vertical-spacing;
+
+        @include sm-only {
+            font-size: 1.25rem;
+        }
+    }
+
+    .wp-block-columns h5 {
+        font-family: $serif-font-stack;
+        font-weight: bold;
+        font-size: 1.2rem;
+        line-height: 1.2;
+        margin: 2 * $vertical-spacing 0 $vertical-spacing;
+
+        @include sm-only {
+            font-size: 1rem;
+        }
+    }
+
+    /* Image captions */
+    figcaption {
+        text-align: center;
+    }
+
+    blockquote {
+        font-style: italic;
+    }
+
+    /* Center latex equations that occur on their own line e.g. https://ourworldindata.org/projections-of-future-education#methodology */
+    mjx-container:only-child {
+        display: block;
+        margin: auto;
+        text-align: center;
+
+        svg {
+            max-width: 100%; // e.g. https//ourworldindata.org/coronavirus#the-definition-of-the-case-fatality-rate-cfr
+        }
+    }
+}
+
+/* Major sections e.g. I. Empirical View */
+.article-content .section-heading {
+    .wrapper {
+        @include content-wrapper;
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
+    }
+    @include full-width;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    margin-bottom: 2rem;
+    @include md-up {
+        padding-top: 4 * $vertical-spacing;
+        padding-bottom: 4 * $vertical-spacing;
+        margin-bottom: 5rem;
+    }
+    background-color: $primary-color-200;
+
+    @include xxlg-up {
+        width: calc(100vw - #{2 * $padding-x-md});
+        margin-left: calc(50% - 50vw - #{$padding-x-md});
+    }
+
+    h2 {
+        margin: 0;
+        font-family: $serif-font-stack;
+        font-size: 2.5rem;
+        @include md-up {
+            font-size: 3rem;
+        }
+        font-weight: 400;
+        line-height: 1.25em;
+    }
+
+    .in-this-section {
+        display: flex;
+        align-items: center;
+        margin: 1.5 * $vertical-spacing 0 $vertical-spacing;
+        @include md-up {
+            margin-top: 2 * $vertical-spacing;
+        }
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: $primary-color-400;
+        .border {
+            margin-left: 1rem;
+            background-color: $primary-color-300;
+            height: 0.7em;
+            flex: 1;
+        }
+    }
+
+    ul {
+        margin-bottom: 0;
+        list-style: none;
+        padding: 0;
+        font-size: 0.9rem;
+    }
+    li {
+        line-height: 1.2;
+        margin-bottom: $vertical-spacing / 2;
+    }
+
+    a {
+        color: $primary-color;
+        &:hover svg {
+            color: inherit;
+        }
+    }
+    svg {
+        color: $primary-color-400;
+        margin-right: 0.5rem;
+    }
+}
+
+.with-sidebar .section-heading {
+    @include md-up {
+        position: relative;
+        width: calc(100vw - #{$sidebar-closed-drawer-width});
+        left: $sidebar-closed-drawer-width;
+        margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+    }
+
+    @include xxlg-up {
+        width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
+        margin-left: calc(
+            50% - 50vw - #{($sidebar-content-width + 2 * $padding-x-md) / 2}
+        );
+        left: $sidebar-content-width + 2 * $padding-x-md;
+    }
+}
+
+hr {
+    color: lightgrey;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    padding-bottom: 8px;
+    border-top: 1px;
+    border-top-style: solid;
+    margin-bottom: 0;
+}
+
+.article-footer {
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-top: 40px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.5);
+    padding-top: 60px;
+    padding-bottom: 48px;
+
+    h3 {
+        font-size: 15px;
+        font-weight: 500;
+        margin-top: 2em;
+        margin-bottom: 0;
+        color: rgba(0, 0, 0, 0.65);
+    }
+
+    ol.endnotes {
+        margin-top: 1em;
+    }
+
+    ol.endnotes > li {
+        margin-left: 20px;
+        padding-left: 5px;
+        margin-bottom: 1em;
+        list-style-type: decimal;
+        list-style-position: outside;
+    }
+
+    .citation {
+        font-size: 11px;
+        line-height: 15px;
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        padding-left: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(0, 0, 0, 0.02);
+        padding: 10px 18px;
+        border-radius: 3px;
+        color: rgba(150, 150, 150, 1);
+        overflow: hidden;
+        margin-top: -6px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+}
+
+.article-content ol,
+.article-content ul {
+    margin-bottom: 30px;
+    padding-left: 40px;
+    font-weight: normal;
+}
+
+.article-content ul ul {
+    margin-bottom: 0;
+}
+
+.article-content > p > ul > li {
+    margin-bottom: 5px;
+}
+
+.article-content ol > li {
+    margin-bottom: 10px;
+}
+
+.article-content iframe {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #ccc !important;
+}
+
+.article-content iframe[src*="grapher"] {
+    border: none !important;
+    width: 100%;
+    max-width: $content-max-width;
+}
+
+.article-content .twitter-tweet {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* HACK (Mispy): Solve an issue with inconsistent WP markup.
+   Sometimes iframes are inside the same <p> element as their preceding text,
+   sometimes not. */
+iframe:not(:first-child) {
+    margin-bottom: 1em;
+}
+
+@include sm-only {
+    article.post {
+        padding: $padding-x-sm;
+    }
+
+    .deep-link {
+        width: 12px;
+        height: 12px;
+        margin-left: -11px;
+    }
+}
+
+article.page .authors-byline .citation-note {
+    opacity: 0.9;
+    color: #0645ad;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
+    -webkit-touch-callout: none; /* iOS Safari */
+}
+
+article.page .authors-byline .citation-note:hover {
+    color: #0645ad;
+}
+
+.citation-guideline {
+    display: none;
+    text-align: center;
+    max-width: 900px;
+    margin: auto;
+    border: 1px solid #ccc;
+    padding: 1em;
+    font-size: 18px;
+    margin-top: 1.2rem;
+}
+
+/* Customizations to tooltip */
+
+.tippy-box[data-theme~="owid-footnote"] {
+    font-size: 87.5%;
+    // Have a 1px "border" between the scrollbars and the tippy arrow, so that the arrow looks
+    // connected to the box rather than the scrollbars (when they end up joining on the same side).
+    padding: 1px;
+    cursor: default;
+    position: relative;
+
+    $background-color: #000;
+    $vertical-padding: 16px;
+    $horizontal-padding: 19px;
+    $border-radius: 4px;
+
+    border-radius: $border-radius;
+    background-color: $background-color;
+
+    // Show shadows at top and bottom edge of footnote to give users
+    // a hint that they can scroll.
+    &:before,
+    &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: $vertical-padding;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    &:before {
+        top: 0;
+        background: linear-gradient(
+            rgba($background-color, 1),
+            rgba($background-color, 0)
+        );
+        border-radius: $border-radius $border-radius 0 0;
+    }
+
+    &:after {
+        bottom: 0;
+        background: linear-gradient(
+            rgba($background-color, 0),
+            rgba($background-color, 1)
+        );
+        border-radius: 0 0 $border-radius $border-radius;
+    }
+
+    &[data-placement^="top"] .tippy-arrow::before {
+        border-top-color: #000;
+    }
+    &[data-placement^="bottom"] .tippy-arrow::before {
+        border-bottom-color: #000;
+    }
+    &[data-placement^="left"] .tippy-arrow::before {
+        border-left-color: #000;
+    }
+    &[data-placement^="right"] .tippy-arrow::before {
+        border-right-color: #000;
+    }
+
+    a {
+        background-image: none !important;
+        padding-right: 0 !important;
+        color: #75b7eb;
+
+        &:hover {
+            color: #75b7eb;
+            text-decoration: underline;
+        }
+    }
+
+    .tippy-content {
+        max-height: 40vh;
+        overflow: auto;
+        padding: $vertical-padding $horizontal-padding;
+
+        p {
+            margin: 0;
+            // Support for comments in references, and multiple references
+            // sharing the same footnote
+            & + p {
+                margin-top: 1em;
+            }
+        }
+    }
+}
+
+a.ref sup {
+    padding-left: 0.5px;
+}
+
+/* Hide feedback button on mobile */
+
+@media only screen and (max-width: 1060px) {
+    #un-button {
+        display: none !important;
+    }
+}
+
+/* Printing
+--------------------------------------------- */
+
+.print-only {
+    display: none !important;
+}
+
+html:not(.js) {
+    .js-only {
+        display: none;
+    }
+}
+
+@media print {
+    .site-header,
+    .alert-banner,
+    .offset-subnavigation,
+    footer.SiteFooter,
+    #un-button,
+    .citation-note,
+    .entry-sidebar,
+    address,
+    #wpadminbar,
+    .no-print {
+        display: none !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    body,
+    .article-content > p,
+    .article-content > ol,
+    .article-content > ul {
+        font: 12pt "Times New Roman", Times, serif;
+        line-height: 1.3;
+    }
+    .article-content > h2,
+    .article-content > h3,
+    .article-content > h4,
+    .article-content > h5,
+    .article-content > h6 {
+        page-break-after: avoid;
+    }
+    pre,
+    blockquote {
+        page-break-inside: avoid;
+    }
+}
+
+.ChartsIndexPage main,
+.EntriesByYearPage main {
+    padding-top: 0;
+    padding-bottom: 0;
+
+    .content {
+        padding-left: 3vw;
+        padding-right: 3vw;
+        padding-bottom: 100px;
+
+        .chartsHeader {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        input[type="search"] {
+            width: 100%;
+            padding: 10px;
+        }
+
+        h2 {
+            font-size: 0.9em;
+            color: #444;
+            margin-top: 1.1em;
+            margin-bottom: 0.1em;
+        }
+
+        ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+            grid-column-gap: 1rem;
+        }
+
+        ul > li {
+            width: 100%;
+            list-style-type: none;
+            padding: 0.1em 0;
+            padding-right: 0.1em;
+            font-size: 0.8em;
+            max-width: 90vw;
+        }
+
+        /* Make the ending lines look nice */
+        /* https://stackoverflow.com/questions/18744164/flex-box-align-last-row-to-grid */
+        ul::after {
+            content: "";
+            flex: 1 0 400px;
+        }
+
+        a {
+            @include owid-link;
+        }
+    }
+}
+
+.SearchPage > main,
+.NotFoundPage > main {
+    > form {
+        max-width: 1200px;
+        margin: 0 auto;
+        margin-top: 20px;
+        display: flex;
+        margin-bottom: 30px;
+    }
+
+    > form > .inputWrapper {
+        width: 100%;
+        position: relative;
+        padding-right: 5px;
+    }
+
+    > form > .inputWrapper input {
+        width: 100%;
+        height: 40px;
+        padding-left: 35px;
+    }
+
+    > form > .inputWrapper svg {
+        position: absolute;
+        left: 10px;
+        top: 12px;
+    }
+
+    > form > button {
+        width: 160px;
+        height: 40px;
+        margin: 0px;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 16px;
+        padding-right: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        outline: none;
+        text-decoration: none;
+        box-sizing: border-box;
+        touch-action: manipulation;
+        background: #1865f2;
+        color: #ffffff;
+    }
+}
+
+.NotFoundPage {
+    main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    footer {
+        // Hide the header, we need to include it for scripts but don't want to
+        // show it because it does not go to the bottom of the page and looks weird
+        display: none;
+    }
+}
+
+.SearchResults {
+    padding-bottom: 200px;
+
+    > .container {
+        max-width: 80rem;
+        margin: auto;
+        display: flex;
+        flex-direction: row;
+    }
+
+    > .container > :first-child {
+        margin-right: 5rem;
+    }
+
+    .postResults,
+    .chartResults {
+        width: 50%;
+
+        > h2 {
+            color: #666;
+            font-weight: normal;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ccc;
+        }
+    }
+
+    .postResults li {
+        list-style-type: none;
+
+        a {
+            font-size: 16px;
+        }
+
+        p {
+            font-size: 13px;
+        }
+    }
+
+    .chartResults > ul > li {
+        list-style-type: none;
+        line-height: 1.8em;
+
+        p {
+            font-size: 13px;
+        }
+    }
+
+    .postResults em,
+    .ChartResult em {
+        font-style: normal;
+        font-weight: bold;
+    }
+
+    .algoliaCredit {
+        max-width: 80rem;
+        margin: auto;
+        margin-top: 2rem;
+        text-align: right;
+        opacity: 0.9;
+    }
+}
+
+@media (max-width: 768px) {
+    .SearchPage {
+        > main {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        .SearchResults > .container {
+            display: block;
+        }
+
+        .postResults,
+        .chartResults {
+            width: 100%;
+        }
+    }
+}
+
+.variantName {
+    margin-left: 3px;
+    color: $grey-text-color;
+    font-size: 0.9em;
+}
+
+.FeedbackForm {
+    height: calc(100vh - 100px);
+    max-height: 600px;
+    transition: opacity 0.25s ease-in-out;
+
+    &.loading > * {
+        opacity: 0.5;
+    }
+
+    > div.formBody {
+        padding: 0.6rem 1rem;
+        overflow-y: auto;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+
+        .formSection {
+            margin-bottom: 0.75rem;
+            flex: 0;
+        }
+
+        .formSectionExpand {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 1rem;
+            vertical-align: middle;
+            line-height: 2.14286;
+            color: #555;
+        }
+
+        input,
+        textarea {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            outline: none;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 1px;
+            background-color: #fff;
+            padding: 0.4rem 0.7rem;
+            width: 100%;
+            min-height: 40px;
+            box-sizing: border-box;
+            vertical-align: middle;
+            line-height: 1.28571;
+            color: #002147;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+
+            &:focus {
+                border-color: #002147;
+            }
+        }
+
+        textarea {
+            font-weight: 400;
+            font-size: 0.875rem;
+            flex: 1;
+            resize: none;
+        }
+    }
+
+    .notice {
+        @include info;
+        margin-top: 0;
+        padding: 1rem;
+        background-color: $tertiary-color;
+        color: $primary-color;
+        .title {
+            font-weight: bold;
+            margin: 0 0 0.5rem;
+            font-size: inherit;
+        }
+    }
+
+    > .footer {
+        box-shadow: 0 -0.07143rem 0.85714rem rgba(0, 0, 0, 0.08);
+        padding: 0.8rem 1rem;
+        display: flex;
+        justify-content: flex-end;
+        text-align: right;
+
+        button {
+            margin: 0;
+        }
+    }
+
+    .doneMessage {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+
+        h3 {
+            margin: 1rem 0;
+        }
+
+        p {
+            margin: 1rem 0;
+        }
+
+        .icon {
+            font-size: 3rem;
+            color: rgba($primary-color, 0.45);
+        }
+    }
+}
+
+.CountryProfilePage {
+    main {
+        margin: auto;
+        max-width: 900px;
+
+        header {
+            display: flex;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+            img.flag {
+                max-height: 100px;
+                margin-right: 20px;
+            }
+        }
+
+        input[type="search"] {
+            width: 100%;
+            padding: 10px;
+        }
+
+        ul {
+            li {
+                display: flex;
+                list-style-type: none;
+                border-bottom: 1px solid #c5c9d3;
+                font-size: 14px;
+            }
+
+            .indicatorName {
+                line-height: 32px;
+                flex-grow: 1;
+            }
+
+            .indicatorValue {
+                line-height: 32px;
+                text-align: right;
+            }
+        }
+    }
+}
+
+.CountriesIndexPage > main {
+    max-width: 1100px;
+    margin: auto;
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        grid-column-gap: 1rem;
+    }
+
+    li {
+        width: 100%;
+        list-style-type: none;
+        padding-right: 1em;
+        font-size: 0.8em;
+        max-width: 90vw;
+    }
+
+    .flag {
+        width: 16px;
+        margin-right: 4px;
+    }
+}
+
+.FeedbackPage {
+    main {
+        height: calc(100vh - 100px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .box {
+        margin: $vertical-spacing 0;
+
+        @include popover-box-styles;
+    }
+}

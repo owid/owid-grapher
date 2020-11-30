@@ -1,4 +1,4 @@
-import { PointVector } from "grapher/utils/PointVector"
+import { PointVector } from "clientUtils/PointVector"
 import { first, last } from "lodash"
 import { observer } from "mobx-react"
 import React from "react"

@@ -9,8 +9,8 @@ import {
     last,
     flatten,
     sum,
-} from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
+} from "clientUtils/Util"
+import { Bounds } from "clientUtils/Bounds"
 import {
     ColorScaleBin,
     NumericBin,

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import { TooltipProps, TooltipManager } from "./TooltipProps"
 
 @observer

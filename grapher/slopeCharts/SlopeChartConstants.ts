@@ -3,7 +3,7 @@ import { ChartSeries } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { TextWrap } from "grapher/text/TextWrap"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 export interface SlopeChartValue {
     x: number

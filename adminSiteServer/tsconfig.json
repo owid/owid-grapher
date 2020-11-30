@@ -1,0 +1,19 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./compiled/",
+        "baseUrl": "../"
+    },
+    "references": [
+        { "path": "../site" },
+        { "path": "../db" },
+        { "path": "../explorer" },
+        { "path": "../explorerAdmin" },
+        { "path": "../gitCms" },
+        { "path": "../adminSiteClient" },
+        { "path": "../grapher" },
+        { "path": "../clientUtils" },
+        { "path": "../settings" },
+        { "path": "../baker" }
+    ]
+}

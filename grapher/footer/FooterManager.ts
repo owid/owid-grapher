@@ -1,5 +1,5 @@
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 export interface FooterManager {
     fontSize?: number

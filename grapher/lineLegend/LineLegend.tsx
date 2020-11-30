@@ -9,12 +9,12 @@ import {
     sumBy,
     flatten,
     sign,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 import { EntityName } from "coreTable/OwidTableConstants"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { ChartSeries } from "grapher/chart/ChartInterface"

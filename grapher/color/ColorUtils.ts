@@ -1,7 +1,7 @@
 import { Color } from "coreTable/CoreTableConstants"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { difference, groupBy, minBy } from "grapher/utils/Util"
+import { difference, groupBy, minBy } from "clientUtils/Util"
 
 export const interpolateArray = (scaleArr: string[]) => {
     const N = scaleArr.length - 2 // -1 for spacings, -1 for number of interpolate fns

@@ -10,18 +10,18 @@ import {
     FacetStrategy,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
-import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
-import { TimeBound } from "grapher/utils/TimeBounds"
+import { LegacyChartDimensionInterface } from "./LegacyVariableCode"
+import { TimeBound } from "clientUtils/TimeBounds"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/captionedChart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
 import { ColumnSlug, ColumnSlugs, Time } from "coreTable/CoreTableConstants"
-import { omit } from "grapher/utils/Util"
+import { omit } from "clientUtils/Util"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { QueryParams } from "utils/client/url"
+import { QueryParams } from "clientUtils/url"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

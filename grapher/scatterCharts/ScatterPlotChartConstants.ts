@@ -10,8 +10,8 @@ import {
     SeriesName,
 } from "grapher/core/GrapherConstants"
 
-import { Bounds } from "grapher/utils/Bounds"
-import { PointVector } from "grapher/utils/PointVector"
+import { Bounds } from "clientUtils/Bounds"
+import { PointVector } from "clientUtils/PointVector"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 import { ChartSeries } from "grapher/chart/ChartInterface"
 import { OwidTable } from "coreTable/OwidTable"

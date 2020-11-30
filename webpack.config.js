@@ -12,8 +12,8 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         entry: {
-            admin: "./adminSite/client/admin.entry.ts",
-            owid: "./site/client/owid.entry.ts",
+            admin: "./adminSiteClient/admin.entry.ts",
+            owid: "./site/owid.entry.ts",
         },
         optimization: {
             splitChunks: {
@@ -47,7 +47,7 @@ module.exports = (env, argv) => {
                         transpileOnly: true,
                         configFile: path.join(
                             __dirname,
-                            "tsconfig.client.json"
+                            "tsconfigs/tsconfig.client.json"
                         ),
                     },
                 },

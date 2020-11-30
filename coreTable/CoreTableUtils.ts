@@ -7,7 +7,7 @@ import {
     sampleFrom,
     slugifySameCase,
     toString,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import {
     CoreColumnStore,
     CoreRow,
@@ -17,7 +17,6 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,

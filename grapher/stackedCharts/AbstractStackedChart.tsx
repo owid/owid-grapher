@@ -7,8 +7,8 @@ import {
     SeriesName,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { exposeInstanceOnWindow, flatten, guid, max } from "grapher/utils/Util"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { exposeInstanceOnWindow, flatten, guid, max } from "clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"

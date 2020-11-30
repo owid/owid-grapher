@@ -1,5 +1,5 @@
 import * as React from "react"
-import { sum, max } from "grapher/utils/Util"
+import { sum, max } from "clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"

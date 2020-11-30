@@ -9,15 +9,15 @@ import {
     flatten,
     last,
     exposeInstanceOnWindow,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
-import { PointVector } from "grapher/utils/PointVector"
+import { PointVector } from "clientUtils/PointVector"
 import {
     LineLegend,
     LineLabelSeries,

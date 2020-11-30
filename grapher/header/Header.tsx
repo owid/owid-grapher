@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { Logo } from "grapher/captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { DEFAULT_BOUNDS } from "clientUtils/Bounds"
 
 @observer
 export class Header extends React.Component<{

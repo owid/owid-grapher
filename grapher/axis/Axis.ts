@@ -7,13 +7,14 @@ import {
     uniq,
     sortBy,
     maxBy,
-} from "grapher/utils/Util"
-import { TickFormattingOptions, ScaleType } from "grapher/core/GrapherConstants"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+} from "clientUtils/Util"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ValueRange } from "coreTable/CoreTableConstants"
+import { ScaleType } from "clientUtils/owidTypes"
+import { TickFormattingOptions } from "clientUtils/formatValue"
 
 interface Tickmark {
     value: number

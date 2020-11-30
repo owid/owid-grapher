@@ -1,4 +1,4 @@
-import { flatten } from "grapher/utils/Util"
+import { flatten } from "clientUtils/Util"
 import { ColumnSlug, CoreColumnStore, Time } from "./CoreTableConstants"
 import { CoreColumnDef } from "./CoreColumnDef"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
@@ -8,10 +8,10 @@ import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 // Takes an array of value/year pairs and expands it so that there is an undefined
 // for each missing value from the first year to the last year, preserving the position of
 // the existing values.
-export function insertMissingValuePlaceholders(
+export const insertMissingValuePlaceholders = (
     values: number[],
     times: number[]
-) {
+) => {
     const startTime = times[0]
     const endTime = times[times.length - 1]
     const filledRange = []

@@ -34,9 +34,6 @@ export enum StackMode {
     relative = "relative",
 }
 
-// todo: remove when we ditch Year and YearIsDay
-export const EPOCH_DATE = "2020-01-21"
-
 export const BASE_FONT_SIZE = 16
 
 export enum FacetStrategy {
@@ -95,17 +92,6 @@ export enum DimensionProperty {
     table = "table",
 }
 
-export interface TickFormattingOptions {
-    numDecimalPlaces?: number
-    unit?: string
-    noTrailingZeroes?: boolean
-    noSpaceUnit?: boolean
-    numberPrefixes?: boolean
-    shortNumberPrefixes?: boolean
-    showPlus?: boolean
-    isFirstOrLastTick?: boolean
-}
-
 // todo: remove
 export interface EntitySelection {
     entityId: number
@@ -114,10 +100,3 @@ export interface EntitySelection {
 }
 
 export type SeriesName = string
-
-export interface Box {
-    x: number
-    y: number
-    width: number
-    height: number
-}

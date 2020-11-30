@@ -1,6 +1,6 @@
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-import { Bounds } from "grapher/utils/Bounds"
-import { PointVector } from "grapher/utils/PointVector"
+import { Bounds } from "clientUtils/Bounds"
+import { PointVector } from "clientUtils/PointVector"
 import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"

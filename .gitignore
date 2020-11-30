@@ -11,6 +11,7 @@ env
 .awcache
 data
 dist
+compiled/
 .netlify
 *.swp
 datasetsExport

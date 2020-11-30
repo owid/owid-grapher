@@ -3,3 +3,4 @@ dist/**
 .eslintrc.js
 db/knexMigrations/**
 db/migration/**
+compiled/**

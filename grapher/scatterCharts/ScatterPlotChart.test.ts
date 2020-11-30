@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
 import {
@@ -19,7 +19,7 @@ import { ContinentColors } from "grapher/color/ColorConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { Color } from "coreTable/CoreTableConstants"
 import { makeOriginalTimeSlugFromColumnSlug } from "coreTable/OwidTableUtil"
-import { uniq, uniqBy } from "grapher/utils/Util"
+import { uniq, uniqBy } from "clientUtils/Util"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {

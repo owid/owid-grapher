@@ -1,8 +1,8 @@
-import { sampleFrom, getRandomNumberGenerator, range } from "grapher/utils/Util"
-import { countries } from "utils/countries"
+import { sampleFrom, getRandomNumberGenerator, range } from "clientUtils/Util"
+import { countries } from "clientUtils/countries"
 import { ColumnSlug, TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
+import { LegacyVariableDisplayConfigInterface } from "clientUtils/LegacyVariableDisplayConfigInterface"
 import { OwidTable } from "./OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 

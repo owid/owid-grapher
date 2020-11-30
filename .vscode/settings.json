@@ -5,9 +5,14 @@
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
+    "files.exclude": {
+        "**/compiled": true
+    },
     "search.exclude": {
         "dist": true,
-        "bakedSite": true
+        "**/compiled": true,
+        "bakedSite": true,
+        "yarn.lock": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.preferences.useAliasesForRenames": false,

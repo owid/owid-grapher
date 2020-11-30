@@ -1,5 +1,5 @@
 import { BASE_FONT_SIZE, ScaleType } from "grapher/core/GrapherConstants"
-import { extend, trimObject } from "grapher/utils/Util"
+import { extend, trimObject } from "clientUtils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {

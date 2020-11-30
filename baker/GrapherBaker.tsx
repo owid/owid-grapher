@@ -1,24 +1,29 @@
 import * as React from "react"
-import { JsonError } from "utils/server/serverUtil"
 import { Chart } from "db/model/Chart"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { GrapherPage } from "site/server/views/GrapherPage"
-import { renderToHtmlPage } from "site/server/siteRenderers"
+import { GrapherPage } from "site/GrapherPage"
+import { renderToHtmlPage } from "baker/siteRenderers"
 import { Post } from "db/model/Post"
-import { isPresent, urlToSlug, without } from "grapher/utils/Util"
+import { urlToSlug, without } from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
 import { getRelatedCharts } from "db/wpdb"
 import { getVariableData } from "db/model/Variable"
 import * as fs from "fs-extra"
-import { deserializeJSONFromHTML } from "utils/serializers"
+import { deserializeJSONFromHTML } from "clientUtils/serializers"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker"
-import { OPTIMIZE_SVG_EXPORTS } from "settings"
+import {
+    OPTIMIZE_SVG_EXPORTS,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "settings/clientSettings"
 import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
-import { hasLegacyGrapherToCovidExplorerRedirect } from "explorer/legacyCovidExplorerRedirects"
+import { hasLegacyGrapherToCovidExplorerRedirect } from "explorerAdmin/legacyCovidExplorerRedirects"
+import { JsonError } from "clientUtils/owidTypes"
 
-export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
+const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
     const relatedCharts = post ? await getRelatedCharts(post.id) : undefined
@@ -27,11 +32,13 @@ export async function grapherConfigToHtmlPage(grapher: GrapherInterface) {
             grapher={grapher}
             post={post}
             relatedCharts={relatedCharts}
+            baseUrl={BAKED_BASE_URL}
+            baseGrapherUrl={BAKED_GRAPHER_URL}
         />
     )
 }
 
-export async function grapherSlugToHtmlPage(slug: string) {
+export const grapherSlugToHtmlPage = async (slug: string) => {
     const entity = await Chart.getBySlug(slug)
     if (!entity) throw new JsonError("No such chart", 404)
     return grapherConfigToHtmlPage(entity.config)
@@ -78,9 +85,8 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const vardataPath = `${bakedSiteDir}/grapher/data/variables/${variableIds.join(
         "+"
     )}.json`
-    if (!isSameVersion || !fs.existsSync(vardataPath)) {
+    if (!isSameVersion || !fs.existsSync(vardataPath))
         await bakeVariableData(bakedSiteDir, variableIds, vardataPath)
-    }
 
     try {
         await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)

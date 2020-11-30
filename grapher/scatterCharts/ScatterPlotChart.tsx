@@ -16,9 +16,9 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,

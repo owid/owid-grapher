@@ -1,5 +1,5 @@
 // CSS
-import "site/client/owid.scss"
+import "site/owid.scss"
 import "grapher/core/grapher.scss"
 
 // Enable mobx-formatters

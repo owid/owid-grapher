@@ -1,6 +1,6 @@
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { getCountryDetectionRedirects } from "utils/countries"
+import { getCountryDetectionRedirects } from "clientUtils/countries"
 
 export const getRedirects = async () => {
     const redirects = [

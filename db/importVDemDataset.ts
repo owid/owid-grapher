@@ -6,10 +6,10 @@ import * as XLSX from "xlsx"
 import * as lodash from "lodash"
 import * as fs from "fs-extra"
 
-import { parseCSV, CSVStreamParser } from "utils/csv"
-import { findUrlsInText } from "utils/string"
+import { parseCSV, CSVStreamParser } from "./csv"
+import { findUrlsInText } from "clientUtils/string"
 
-import * as db from "db/db"
+import * as db from "./db"
 const CODEBOOK_FILE =
     "/Users/mispy/Bulk imports/2018 V-Dem Dataset/Original/codebook_current_20180604.xlsx"
 const DATA_FILE =
@@ -472,12 +472,16 @@ async function importData() {
                     throw new Error(`Unable to find entity ${entity}`)
                 const year = row[3]
 
-                for (let i = VARIABLE_START_COLUMN; i < row.length; i++) {
-                    const variableId = variableIds[i]
-                    if (!variableId || row[i] === "") continue
+                for (
+                    let index = VARIABLE_START_COLUMN;
+                    index < row.length;
+                    index++
+                ) {
+                    const variableId = variableIds[index]
+                    if (!variableId || row[index] === "") continue
 
                     valueRows.push([
-                        row[i],
+                        row[index],
                         parseInt(year),
                         entityId,
                         variableId,

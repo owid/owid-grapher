@@ -1,12 +1,12 @@
 import { line as d3_line, curveLinear } from "d3-shape"
-import { guid } from "grapher/utils/Util"
+import { guid } from "clientUtils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { DualAxis } from "grapher/axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
-import { Bounds } from "grapher/utils/Bounds"
-import { PointVector } from "grapher/utils/PointVector"
+import { Bounds } from "clientUtils/Bounds"
+import { PointVector } from "clientUtils/PointVector"
 import { getElementWithHalo } from "./Halos"
 
 export interface ComparisonLineConfig {

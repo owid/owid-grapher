@@ -1,0 +1,17 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./compiled/",
+        "baseUrl": "../"
+    },
+    "references": [
+        { "path": "../clientUtils" },
+        { "path": "../explorer" },
+        { "path": "../grapher" },
+        { "path": "../gridLang" },
+        { "path": "../gitCms" },
+        { "path": "../coreTable" },
+        { "path": "../site" },
+        { "path": "../db" }
+    ]
+}

@@ -10,10 +10,10 @@ import {
     sum,
     uniqBy,
     intersectionOfSets,
-    isPresent,
     isNumber,
-} from "grapher/utils/Util"
-import { queryParamsToStr } from "utils/client/url"
+} from "clientUtils/Util"
+import { isPresent } from "clientUtils/isPresent"
+import { queryParamsToStr } from "clientUtils/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,

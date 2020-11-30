@@ -1,0 +1,14 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "module": "ES6",
+        "typeRoots": ["../types", "../node_modules/@types"]
+    },
+    "files": [],
+    "include": [],
+    "references": [
+        { "path": "../coreTable" },
+        { "path": "../clientUtils" },
+        { "path": "../grapher" }
+    ]
+}

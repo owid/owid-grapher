@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "clientUtils/Bounds"
 
 const DEFAULT_COLOR = "#333"
 

@@ -1,16 +1,33 @@
 import { ErrorValue } from "./ErrorValues"
 
-export type Integer = number
 export type TableSlug = string // a url friendly name for a table
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
 export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs
 
+export type Integer = number
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
 }
 
+export type Year = Integer
+export type Color = string
+
+/**
+ * A concrete point in time (year or date). It's always supposed to be a finite number, but we
+ * cannot enforce this in TypeScript.
+ */
+export type Time = Integer
+export type TimeRange = [Time, Time]
+
+export type PrimitiveType = number | string | boolean
 export type ValueRange = [number, number]
+
+export type TimeTolerance = Integer
+
+export interface CoreRow {
+    [columnSlug: string]: any
+}
 
 export enum InputType {
     Delimited = "Delimited",
@@ -45,23 +62,6 @@ export enum TransformType {
     RenameColumns = "RenameColumns",
     InverseFilterColumns = "InverseFilterColumns",
 }
-
-export type Year = Integer
-export type Color = string
-
-/**
- * A concrete point in time (year or date). It's always supposed to be a finite number, but we
- * cannot enforce this in TypeScript.
- */
-export type Time = Integer
-export type TimeRange = [Time, Time]
-export type TimeTolerance = Integer
-
-export interface CoreRow {
-    [columnSlug: string]: any
-}
-
-export type PrimitiveType = number | string | boolean
 
 export enum JsTypes {
     string = "string",

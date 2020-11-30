@@ -1,7 +1,5 @@
 import { ColumnSlug, CoreRow, Integer, Time, Year } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-
-import { LegacyVariableId } from "./LegacyVariableCode"
 import { OwidSource } from "./OwidSource"
 
 export enum OwidTableSlugs {
@@ -26,7 +24,7 @@ export type EntityId = number
 
 // Todo: coverage, datasetId, and datasetName can just be on source, right? or should we flatten source onto this?
 export interface OwidColumnDef extends CoreColumnDef {
-    owidVariableId?: LegacyVariableId // todo: remove after data 2.0
+    owidVariableId?: number // todo: remove after data 2.0
     coverage?: string
     datasetId?: string
     datasetName?: string

@@ -7,10 +7,10 @@ import {
     Persistable,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { extend, trimObject } from "grapher/utils/Util"
+import { extend, trimObject } from "clientUtils/Util"
 import { ColorSchemeName } from "./ColorConstants"
 
-class ColorScaleConfigDefaults {
+export class ColorScaleConfigDefaults {
     // Color scheme
     // ============
 

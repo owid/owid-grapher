@@ -26,6 +26,7 @@ export function createConnection(props: { database: string }) {
             host: "localhost",
             user: "root",
             database: props.database,
+            charset: "utf8mb4",
         })
     )
 }

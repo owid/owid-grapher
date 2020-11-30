@@ -7,10 +7,10 @@ import * as cheerio from "cheerio"
 import ProgressBar = require("progress")
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
-import * as settings from "settings"
-import { formatPost, extractFormattingOptions } from "site/server/formatting"
-import { LongFormPage } from "site/server/views/LongFormPage"
-import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
+import { BLOG_POSTS_PER_PAGE } from "settings/clientSettings"
+import { extractFormattingOptions } from "./formatting"
+import { LongFormPage } from "site/LongFormPage"
+import { BASE_DIR, WORDPRESS_DIR } from "settings/serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -26,40 +26,43 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
-} from "site/server/siteRenderers"
+} from "baker/siteRenderers"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "site/server/grapherUtil"
-import { makeSitemap } from "site/server/sitemap"
+} from "baker/GrapherBakingUtils"
+import { makeSitemap } from "baker/sitemap"
 import * as React from "react"
-import { embedSnippet } from "site/server/embedCharts"
 import { Post } from "db/model/Post"
-import { bakeCountries } from "site/server/countryProfiles"
-import { countries } from "utils/countries"
-import { exec } from "utils/server/serverUtil"
-import { log } from "utils/server/log"
+import { bakeCountries } from "baker/countryProfiles"
+import { countries } from "clientUtils/countries"
+import { execWrapper } from "db/execWrapper"
+import { log } from "./slackLog"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,
-} from "explorer/legacyCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/server/countryProfileProjects"
+} from "explorerAdmin/legacyCovidExplorerRedirects"
+import { countryProfileSpecs } from "site/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
     renderExplorerPage,
-} from "explorer/admin/ExplorerBaker"
+} from "explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-
-const { BLOG_POSTS_PER_PAGE } = settings
+import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
+import { bakeEmbedSnippet } from "site/webpackUtils"
+import { formatPost } from "./formatWordpressPost"
+import { FullPost } from "clientUtils/owidTypes"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
+    baseUrl: string
 
-    constructor(bakedSiteDir: string) {
+    constructor(bakedSiteDir: string, baseUrl: string) {
         this.bakedSiteDir = bakedSiteDir
+        this.baseUrl = baseUrl
     }
 
     private async bakeEmbeds() {
@@ -116,7 +119,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: wpdb.FullPost) {
+    private async bakePost(post: FullPost) {
         const pageType = await wpdb.getPageType(post)
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(
@@ -129,6 +132,7 @@ export class SiteBaker {
                 pageType={pageType}
                 post={formatted}
                 formattingOptions={formattingOptions}
+                baseUrl={this.baseUrl}
             />
         )
 
@@ -235,7 +239,11 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        await bakeAllPublishedExplorers()
+        await bakeAllPublishedExplorers(
+            undefined,
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+            this.baseUrl
+        )
     }
 
     // Pages that are expected by google scholar for indexing
@@ -286,19 +294,19 @@ export class SiteBaker {
 
     // Bake the static assets
     private async bakeAssets() {
-        await exec(
+        await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
-        await exec(
+        await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/webpack ${this.bakedSiteDir}/assets`
         )
-        await exec(
+        await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            embedSnippet()
+            bakeEmbedSnippet()
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
     }
@@ -311,7 +319,7 @@ export class SiteBaker {
             const program = await getLegacyCovidExplorerAsExplorerProgramForSlug(
                 slug
             )
-            const html = await renderExplorerPage(program!)
+            const html = await renderExplorerPage(program!, this.baseUrl)
             await this.stageWrite(
                 `${this.bakedSiteDir}/grapher/${slug}.html`,
                 html
@@ -393,10 +401,10 @@ export class SiteBaker {
     private async execAndLogAnyErrorsToSlack(cmd: string) {
         console.log(cmd)
         try {
-            return await exec(cmd)
+            return await execWrapper(cmd)
         } catch (error) {
             // Log error to Slack, but do not throw error
-            return log.error(error)
+            return log.logErrorAndMaybeSendToSlack(error)
         }
     }
 
@@ -434,7 +442,7 @@ export class SiteBaker {
         // Target root level HTML files only (entries and posts) for performance
         // reasons.
         // TODO: check again --only-changed
-        // await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
+        // await this.execWrapper(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg)
             await this.execAndLogAnyErrorsToSlack(

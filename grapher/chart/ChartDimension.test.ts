@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 // todo: remove this when we remove chartDimension
 

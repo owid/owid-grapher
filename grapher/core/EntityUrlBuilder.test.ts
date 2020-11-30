@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
 
 import { EntityUrlBuilder, ENTITY_V2_DELIMITER } from "./EntityUrlBuilder"
 

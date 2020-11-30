@@ -9,10 +9,10 @@ import {
     uniq,
     first,
     excludeUndefined,
-} from "grapher/utils/Util"
+} from "clientUtils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
 import {
     ScaleType,
     BASE_FONT_SIZE,
