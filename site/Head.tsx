@@ -1,5 +1,5 @@
 import * as React from "react"
-import { webpackUrl } from "adminSiteServer/webpackUtils"
+import { webpackUrl } from "site/webpackUtils"
 
 export const Head = (props: {
     canonicalUrl: string

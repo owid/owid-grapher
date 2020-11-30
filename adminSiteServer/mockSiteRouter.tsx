@@ -38,7 +38,7 @@ import { grapherToSVG } from "baker/GrapherImageBaker"
 import { getVariableData } from "db/model/Variable"
 import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
-import { bakeEmbedSnippet } from "./webpackUtils"
+import { bakeEmbedSnippet } from "site/webpackUtils"
 
 require("express-async-errors")
 

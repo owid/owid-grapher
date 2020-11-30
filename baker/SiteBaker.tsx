@@ -51,7 +51,7 @@ import {
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
-import { bakeEmbedSnippet } from "adminSiteServer/webpackUtils"
+import { bakeEmbedSnippet } from "site/webpackUtils"
 import { formatPost } from "./formatWordpressPost"
 import { FullPost } from "clientUtils/owidTypes"
 
