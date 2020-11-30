@@ -1,6 +1,5 @@
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
-import { quote } from "shell-quote"
 import urljoin from "url-join"
 import { ADMIN_BASE_URL } from "settings/clientSettings"
 
@@ -34,7 +33,5 @@ export const renderToHtmlPage = (element: any) =>
 // Determine if input is suitable for use as a url slug
 export const isValidSlug = (slug: any) =>
     lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
-
-export const shellEscape = (str: string) => quote([str])
 
 export const absoluteUrl = (path: string) => urljoin(ADMIN_BASE_URL, path)
