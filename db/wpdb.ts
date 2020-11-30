@@ -20,6 +20,7 @@ import {
     CategoryWithEntries,
     PageType,
     EntryNode,
+    FullPost,
 } from "clientUtils/owidTypes"
 
 class WPDB {
@@ -510,23 +511,6 @@ export async function getBlockContent(id: number): Promise<string | undefined> {
     const json = await response.json()
 
     return json.data.post?.content ?? undefined
-}
-
-export interface FullPost {
-    id: number
-    type: "post" | "page"
-    slug: string
-    path: string
-    title: string
-    date: Date
-    modifiedDate: Date
-    authors: string[]
-    content: string
-    excerpt?: string
-    imageUrl?: string
-    postId?: number
-    relatedCharts?: RelatedChart[]
-    glossary: boolean
 }
 
 export async function getFullPost(

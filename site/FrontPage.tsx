@@ -2,7 +2,6 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { FullPost } from "db/wpdb"
 import { faRss } from "@fortawesome/free-solid-svg-icons/faRss"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
@@ -15,7 +14,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "site/NewsletterSubscription"
-import { CategoryWithEntries, EntryNode } from "clientUtils/owidTypes"
+import { CategoryWithEntries, EntryNode, FullPost } from "clientUtils/owidTypes"
 
 const splitOnLastWord = (str: string) => {
     const endIndex = (str.lastIndexOf(" ") as number) + 1

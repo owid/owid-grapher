@@ -3,8 +3,8 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { formatAuthors, formatDate } from "./formatting"
-import { FullPost } from "db/wpdb"
 import { range } from "clientUtils/Util"
+import { FullPost } from "clientUtils/owidTypes"
 
 export const BlogIndexPage = (props: {
     posts: FullPost[]

@@ -53,6 +53,7 @@ import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } fro
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "adminSiteServer/webpackUtils"
 import { formatPost } from "./formatWordpressPost"
+import { FullPost } from "clientUtils/owidTypes"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -118,7 +119,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: wpdb.FullPost) {
+    private async bakePost(post: FullPost) {
         const pageType = await wpdb.getPageType(post)
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(

@@ -143,3 +143,20 @@ export interface EntryNode {
     excerpt: string | null
     kpi: string
 }
+
+export interface FullPost {
+    id: number
+    type: "post" | "page"
+    slug: string
+    path: string
+    title: string
+    date: Date
+    modifiedDate: Date
+    authors: string[]
+    content: string
+    excerpt?: string
+    imageUrl?: string
+    postId?: number
+    relatedCharts?: RelatedChart[]
+    glossary: boolean
+}

@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { HTTPS_ONLY } from "serverSettings"
-import { getTables, FullPost } from "db/wpdb"
+import { getTables } from "db/wpdb"
 import Tablepress from "site/Tablepress"
 import { GrapherExports } from "baker/GrapherBakingUtils"
 import * as path from "path"
@@ -14,6 +14,7 @@ import { RelatedCharts } from "site/blocks/RelatedCharts"
 import {
     FormattedPost,
     FormattingOptions,
+    FullPost,
     TocHeading,
 } from "clientUtils/owidTypes"
 import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
