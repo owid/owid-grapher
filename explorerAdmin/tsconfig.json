@@ -11,6 +11,7 @@
         { "path": "../gridLang" },
         { "path": "../gitCms" },
         { "path": "../coreTable" },
+        { "path": "../site" },
         { "path": "../db" }
     ]
 }
