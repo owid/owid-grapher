@@ -150,11 +150,9 @@ async function getRedirectsByChartId(
 async function expectChartById(chartId: any): Promise<GrapherInterface> {
     const chart = await getGrapherById(expectInt(chartId))
 
-    if (chart) {
-        return chart
-    } else {
-        throw new JsonError(`No chart found for id ${chartId}`, 404)
-    }
+    if (chart) return chart
+
+    throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
 async function saveGrapher(

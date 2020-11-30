@@ -13,7 +13,7 @@ import { OwidSource } from "coreTable/OwidSource"
 import {
     LegacyVariableDataTableConfigInteface,
     LegacyVariableDisplayConfigInterface,
-} from "coreTable/LegacyVariableDisplayConfigInterface"
+} from "clientUtils/LegacyVariableDisplayConfigInterface"
 import { LegacyVariableId } from "clientUtils/owidTypes"
 
 export interface LegacyChartDimensionInterface {
@@ -35,7 +35,7 @@ class LegacyVariableDisplayConfigDefaults {
     @observable yearIsDay?: boolean = undefined
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
-    @observable includeInTable?: boolean = true
+    @observable includeInTable? = true
     @observable tableDisplay?: LegacyVariableDataTableConfigInteface
     @observable color?: string = undefined
 }

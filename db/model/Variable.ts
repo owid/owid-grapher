@@ -1,7 +1,7 @@
 import * as lodash from "lodash"
 import { Writable } from "stream"
 import * as db from "db/db"
-import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
+import { LegacyVariableDisplayConfigInterface } from "clientUtils/LegacyVariableDisplayConfigInterface"
 import { arrToCsvRow } from "clientUtils/Util"
 
 export namespace Variable {

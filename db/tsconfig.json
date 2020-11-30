@@ -4,6 +4,6 @@
         "outDir": "./compiled/",
         "baseUrl": "../"
     },
-    "exclude": ["model/*", "migration/*", "knexMigrations/*"],
+    "exclude": ["migration/*", "knexMigrations/*"],
     "references": [{ "path": "../clientUtils" }, { "path": "../settings" }]
 }

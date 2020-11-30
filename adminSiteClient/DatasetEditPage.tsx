@@ -39,7 +39,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
+import { LegacyVariableDisplayConfigInterface } from "clientUtils/LegacyVariableDisplayConfigInterface"
 
 class VariableEditable {
     @observable name: string = ""
