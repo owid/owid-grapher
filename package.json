@@ -39,7 +39,7 @@
         "refresh": "cd wordpress && lando refresh",
         "serve": "yarn tsn adminSiteServer/app.tsx",
         "bakeAndDeploy": "yarn tsn baker/bakeAndDeploySite.ts",
-        "post-update": "yarn tsn db/postUpdatedHook.ts",
+        "post-update": "yarn tsn baker/postUpdatedHook.ts",
         "deploy-queue": "yarn tsn baker/watch.ts",
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",

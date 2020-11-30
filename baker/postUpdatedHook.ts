@@ -1,18 +1,18 @@
 // This is used by owid-wordpress
 
-import { syncPostToGrapher } from "./model/Post"
+import { syncPostToGrapher } from "db/model/Post"
 import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "serverSettings"
-import { enqueueChange } from "baker/queue"
-import { exit } from "./cleanup"
+import { enqueueChange } from "./queue"
+import { exit } from "db/cleanup"
 const argv = parseArgs(process.argv.slice(2))
 
-async function main(
+const main = async (
     email: string,
     name: string,
     postId: number,
     postSlug: string
-) {
+) => {
     console.log(email, name, postId)
     const slug = await syncPostToGrapher(postId)
 
