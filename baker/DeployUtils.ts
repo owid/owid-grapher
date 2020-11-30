@@ -10,7 +10,7 @@ import {
     parseQueueContent,
 } from "./queue"
 import { DeployChange } from "./types"
-import { BAKED_SITE_DIR } from "serverSettings"
+import { BAKED_SITE_DIR } from "settings/serverSettings"
 import { BAKED_BASE_URL } from "settings"
 
 const defaultCommitMessage = async (): Promise<string> => {

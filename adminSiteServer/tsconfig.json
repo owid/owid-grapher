@@ -11,6 +11,7 @@
         { "path": "../gitCms" },
         { "path": "../adminSiteClient" },
         { "path": "../grapher" },
-        { "path": "../clientUtils" }
+        { "path": "../clientUtils" },
+        { "path": "../settings" }
     ]
 }

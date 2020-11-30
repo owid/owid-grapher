@@ -1,5 +1,5 @@
 import * as fs from "fs-extra"
-import { DEPLOY_QUEUE_FILE_PATH } from "serverSettings"
+import { DEPLOY_QUEUE_FILE_PATH } from "settings/serverSettings"
 import { deployIfQueueIsNotEmpty } from "./DeployUtils"
 
 async function main() {

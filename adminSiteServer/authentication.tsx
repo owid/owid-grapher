@@ -3,7 +3,11 @@ import * as crypto from "crypto"
 import * as randomstring from "randomstring"
 import { User } from "db/model/User"
 import * as db from "db/db"
-import { CLOUDFLARE_AUD, SECRET_KEY, SESSION_COOKIE_AGE } from "serverSettings"
+import {
+    CLOUDFLARE_AUD,
+    SECRET_KEY,
+    SESSION_COOKIE_AGE,
+} from "settings/serverSettings"
 import { BCryptHasher } from "../db/hasherss"
 import { JsonError } from "./serverUtil"
 import fetch from "node-fetch"

@@ -10,7 +10,7 @@ import * as db from "db/db"
 import { BLOG_POSTS_PER_PAGE } from "settings"
 import { extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "site/LongFormPage"
-import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
+import { BASE_DIR, WORDPRESS_DIR } from "settings/serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,

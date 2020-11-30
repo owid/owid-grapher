@@ -1,7 +1,7 @@
 import algoliasearch from "algoliasearch"
 import { Synonym } from "@algolia/client-search"
 import { ALGOLIA_ID } from "settings"
-import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { ALGOLIA_SECRET_KEY } from "settings/serverSettings"
 import { countries } from "clientUtils/countries"
 
 // This function initializes and applies settings to the Algolia search indices

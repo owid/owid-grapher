@@ -7,6 +7,7 @@
         { "path": "../grapher" },
         { "path": "../explorer" },
         { "path": "../explorerAdmin" },
-        { "path": "../clientUtils" }
+        { "path": "../clientUtils" },
+        { "path": "../settings" }
     ]
 }

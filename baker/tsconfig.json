@@ -6,6 +6,7 @@
     "references": [
         { "path": "../site" },
         { "path": "../explorerAdmin" },
-        { "path": "../db" }
+        { "path": "../db" },
+        { "path": "../settings" }
     ]
 }

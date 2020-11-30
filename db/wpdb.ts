@@ -8,7 +8,7 @@ import {
     WORDPRESS_DB_PASS,
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
-} from "serverSettings"
+} from "settings/serverSettings"
 import { WORDPRESS_URL, BAKED_BASE_URL, BLOG_SLUG } from "settings"
 import * as db from "./db"
 import Knex from "knex"

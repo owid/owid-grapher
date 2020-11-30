@@ -1,4 +1,7 @@
-import { parseBool } from "clientUtils/string"
+const parseBool = (input: string) => {
+    const normalized = input.trim().toLowerCase()
+    return normalized === "true" || normalized === "1"
+}
 
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O

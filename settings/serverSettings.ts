@@ -1,17 +1,20 @@
 // This is where server-side only, potentially sensitive settings enter from the environment
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
-import { ENV } from "settings"
+import { ENV } from "./clientSettings"
 import * as path from "path"
-import { parseBool } from "clientUtils/string"
 
-function expect(key: string): string {
+const parseBool = (input: string) => {
+    const normalized = input.trim().toLowerCase()
+    return normalized === "true" || normalized === "1"
+}
+
+const expect = (key: string) => {
     const val = process.env[key]
-    if (val === undefined) {
+    if (val === undefined)
         throw new Error(`OWID requires an environment variable for ${key}`)
-    } else {
-        return val
-    }
+
+    return val
 }
 
 export const BASE_DIR: string = __dirname

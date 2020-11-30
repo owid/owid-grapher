@@ -3,7 +3,7 @@ import * as lodash from "lodash"
 
 import * as db from "db/db"
 import { ALGOLIA_ID } from "settings"
-import { ALGOLIA_SECRET_KEY } from "serverSettings"
+import { ALGOLIA_SECRET_KEY } from "settings/serverSettings"
 import { configureAlgolia } from "./configureAlgolia"
 
 const indexChartsToAlgolia = async () => {

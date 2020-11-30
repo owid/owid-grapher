@@ -5,7 +5,7 @@ import {
     EMAIL_PORT,
     EMAIL_HOST_USER,
     EMAIL_HOST_PASSWORD,
-} from "serverSettings"
+} from "settings/serverSettings"
 
 const transporter = nodemailer.createTransport({
     host: EMAIL_HOST,

@@ -18,7 +18,11 @@ import {
 } from "baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
-import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
+import {
+    WORDPRESS_DIR,
+    BASE_DIR,
+    BAKED_SITE_DIR,
+} from "settings/serverSettings"
 import * as db from "db/db"
 import {
     expectInt,
