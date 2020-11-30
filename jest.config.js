@@ -1,10 +1,5 @@
-// For now:
-// - server tests end in .node.test.tsx? and are run in the node environment
-// - client tests end in .test.tsx? and are run in the jsdom environment
-//
-// This may not be ideal long-term, but we need a simple pattern-matching way to distinguish
-// between client and server tests. -@jasoncrawford 2019-12-03
-
+// Build the project JS first, and then test the JS. that should be the default, since it is always faster.
+// todo: restore the other slow option as a secondary option—passing a ts file to jest directly
 const common = {
     moduleNameMapper: {
         "^(site|grapher|gitCms|explorer|coreTable|gridLang|clientUtils|adminSiteServer|db|deploy|settings)/(.*)$":
