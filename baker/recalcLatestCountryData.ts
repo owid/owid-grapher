@@ -2,7 +2,7 @@
 // to populate the old country profiles cache (which speeds up baking of the country profiles). I think we can keep it?
 
 import * as db from "db/db"
-import { denormalizeLatestCountryData } from "site/countryProfiles"
+import { denormalizeLatestCountryData } from "baker/countryProfiles"
 
 const main = async () => {
     await denormalizeLatestCountryData()

@@ -1,5 +1,4 @@
 import express, { Router } from "express"
-require("express-async-errors")
 import * as path from "path"
 import {
     renderFrontPage,
@@ -16,7 +15,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
-} from "../baker/siteRenderers"
+} from "baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
 import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
@@ -26,7 +25,7 @@ import {
     JsonError,
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
-import { countryProfilePage, countriesIndexPage } from "site/countryProfiles"
+import { countryProfilePage, countriesIndexPage } from "baker/countryProfiles"
 import { makeSitemap } from "site/sitemap"
 import { OldChart } from "db/model/Chart"
 import { countryProfileSpecs } from "site/countryProfileProjects"
@@ -40,6 +39,8 @@ import { getVariableData } from "db/model/Variable"
 import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "./webpackUtils"
+
+require("express-async-errors")
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()

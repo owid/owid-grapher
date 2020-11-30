@@ -3,5 +3,6 @@
     "compilerOptions": {
         "outDir": "./compiled/"
     },
+    "exclude": ["model/*", "migration/*", "knexMigrations/*"],
     "references": [{ "path": "../clientUtils" }]
 }
