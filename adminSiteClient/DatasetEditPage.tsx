@@ -26,7 +26,6 @@ import { GrapherFigureView } from "site/GrapherFigureView"
 import {
     EntitySelectionMode,
     ChartTypeName,
-    EPOCH_DATE,
     GrapherTabOption,
     WorldEntityName,
 } from "grapher/core/GrapherConstants"
@@ -40,6 +39,7 @@ import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { LegacyVariableDisplayConfigInterface } from "clientUtils/LegacyVariableDisplayConfigInterface"
+import { EPOCH_DATE } from "clientUtils/owidTypes"
 
 class VariableEditable {
     @observable name: string = ""

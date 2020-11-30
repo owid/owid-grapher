@@ -23,10 +23,10 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import {
     DimensionProperty,
-    EPOCH_DATE,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { EPOCH_DATE } from "clientUtils/owidTypes"
 
 interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
     datasetNamespace: string

@@ -1,6 +1,7 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
+        "outDir": "./compiled/",
         "baseUrl": "../"
     },
     "references": [
@@ -8,6 +9,7 @@
         { "path": "../explorer" },
         { "path": "../explorerAdmin" },
         { "path": "../clientUtils" },
-        { "path": "../settings" }
+        { "path": "../settings" },
+        { "path": "../baker" }
     ]
 }
