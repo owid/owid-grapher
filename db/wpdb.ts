@@ -114,26 +114,22 @@ async function apiQuery(
     }
 }
 
-export async function query(queryStr: string, params?: any[]): Promise<any[]> {
-    return wpdb.query(queryStr, params)
-}
+export const query = async (queryStr: string, params?: any[]): Promise<any[]> =>
+    wpdb.query(queryStr, params)
 
-export async function get(queryStr: string, params?: any[]): Promise<any> {
-    return wpdb.get(queryStr, params)
-}
+export const get = async (queryStr: string, params?: any[]): Promise<any> =>
+    wpdb.get(queryStr, params)
 
-export async function connect() {
-    await wpdb.connect()
-}
+export const connect = async () => await wpdb.connect()
 
-export async function end() {
+export const end = async () => {
     if (wpdb.conn) wpdb.conn.end()
     if (knexInstance) await knexInstance.destroy()
 }
 
 // Retrieve a map of post ids to authors
 let cachedAuthorship: Map<number, string[]> | undefined
-export async function getAuthorship(): Promise<Map<number, string[]>> {
+export const getAuthorship = async (): Promise<Map<number, string[]>> => {
     if (cachedAuthorship) return cachedAuthorship
 
     const authorRows = await wpdb.query(`
@@ -171,7 +167,9 @@ export interface CategoryWithEntries {
     subcategories: CategoryWithEntries[]
 }
 
-export async function getCategoriesByPostId(): Promise<Map<number, string[]>> {
+export const etCategoriesByPostId = async (): Promise<
+    Map<number, string[]>
+> => {
     const categoriesByPostId = new Map<number, string[]>()
     const rows = await wpdb.query(`
         SELECT object_id, terms.name FROM wp_term_relationships AS rels
@@ -190,7 +188,7 @@ export async function getCategoriesByPostId(): Promise<Map<number, string[]>> {
     return categoriesByPostId
 }
 
-export async function getTagsByPostId(): Promise<Map<number, string[]>> {
+export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
     const tagsByPostId = new Map<number, string[]>()
     const rows = await wpdb.query(`
         SELECT p.id, t.name
@@ -227,7 +225,9 @@ export interface EntryNode {
 
 // Retrieve a list of categories and their associated entries
 let cachedEntries: CategoryWithEntries[] = []
-export async function getEntriesByCategory(): Promise<CategoryWithEntries[]> {
+export const getEntriesByCategory = async (): Promise<
+    CategoryWithEntries[]
+> => {
     if (cachedEntries.length) return cachedEntries
 
     const first = 100
@@ -352,7 +352,7 @@ export enum PageType {
     Standard = "STANDARD",
 }
 
-export async function getPageType(post: FullPost): Promise<PageType> {
+export const getPageType = async (post: FullPost): Promise<PageType> => {
     const entries = await getEntriesByCategory()
     const isEntry = entries.some((category) => {
         return (
@@ -369,7 +369,7 @@ export async function getPageType(post: FullPost): Promise<PageType> {
     return isEntry ? PageType.Entry : PageType.Standard
 }
 
-export async function getPermalinks() {
+export const getPermalinks = async () => {
     return {
         // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
         get: (ID: number, postName: string) =>
@@ -381,7 +381,7 @@ export async function getPermalinks() {
 }
 
 let cachedFeaturedImages: Map<number, string> | undefined
-export async function getFeaturedImages() {
+export const getFeaturedImages = async () => {
     if (cachedFeaturedImages) return cachedFeaturedImages
 
     const rows = await wpdb.query(
@@ -397,19 +397,17 @@ export async function getFeaturedImages() {
     return featuredImages
 }
 
-function getEndpointSlugFromType(type: string): string {
-    // page => pages, post => posts
-    return `${type}s`
-}
+// page => pages, post => posts
+const getEndpointSlugFromType = (type: string) => `${type}s`
 
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
 // will be a predominance of a certain post type.
-export async function getPosts(
+export const getPosts = async (
     postTypes: string[] = ["post", "page"],
     limit?: number
-): Promise<any[]> {
+): Promise<any[]> => {
     const perPage = 50
     let posts: any[] = []
     let response
@@ -446,7 +444,7 @@ export async function getPosts(
     return limit ? posts.slice(0, limit) : posts
 }
 
-export async function getPostType(search: number | string): Promise<string> {
+export const getPostType = async (search: number | string): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
     const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, {
         searchParams: [[paramName, search]],
@@ -456,7 +454,7 @@ export async function getPostType(search: number | string): Promise<string> {
     return type
 }
 
-export async function getPostBySlug(slug: string): Promise<any[]> {
+export const getPostBySlug = async (slug: string): Promise<any[]> => {
     const type = await getPostType(slug)
     const response = await apiQuery(
         `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
@@ -473,7 +471,7 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
 
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
-export async function getLatestPostRevision(id: number): Promise<any> {
+export const getLatestPostRevision = async (id: number): Promise<any> => {
     const type = await getPostType(id)
     const endpointSlug = getEndpointSlugFromType(type)
 
@@ -506,10 +504,10 @@ export async function getLatestPostRevision(id: number): Promise<any> {
     }
 }
 
-export async function getRelatedCharts(
+export const getRelatedCharts = async (
     postId: number
-): Promise<RelatedChart[]> {
-    return db.query(`
+): Promise<RelatedChart[]> =>
+    db.query(`
         SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,
@@ -521,7 +519,6 @@ export async function getRelatedCharts(
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
     `)
-}
 
 export async function getBlockContent(id: number): Promise<string | undefined> {
     const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
@@ -659,13 +656,11 @@ export async function getTables(): Promise<Map<string, TablepressTable>> {
 
 let knexInstance: Knex
 
-export function knex(
+export const knex = (
     tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
-) {
-    return wpdb.knex(tableName)
-}
+) => wpdb.knex(tableName)
 
-export function flushCache() {
+export const flushCache = () => {
     cachedAuthorship = undefined
     cachedEntries = []
     cachedFeaturedImages = undefined
