@@ -693,11 +693,14 @@ class QuarterColumn extends TimeColumn {
                 return parseInt(year) * 4 + (parseInt(quarter) - 1)
             }
         }
-        return ErrorValueTypes.MissingValuePlaceholder
+        return ErrorValueTypes.InvalidQuarterValue
     }
 
     formatValue(value: number) {
-        const [year, quarter] = [Math.floor(value / 4), (value % 4) + 1]
+        const [year, quarter] = [
+            Math.floor(value / 4),
+            (Math.abs(value) % 4) + 1,
+        ]
         return `Q${quarter}/${year}`
     }
 }
