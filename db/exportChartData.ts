@@ -10,7 +10,7 @@ import { exec } from "adminSiteServer/serverUtil"
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
 
-async function dataExport() {
+const dataExport = async () => {
     await db.connect()
 
     const variablesToExportQuery = `

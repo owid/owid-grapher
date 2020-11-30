@@ -13,16 +13,10 @@ import { WORDPRESS_URL, BAKED_BASE_URL, BLOG_SLUG } from "settings"
 import * as db from "./db"
 import Knex from "knex"
 import fetch from "node-fetch"
-
-import { defaultTo, memoize } from "clientUtils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "clientUtils/owidTypes"
 import { JsonError } from "adminSiteServer/serverUtil"
-import {
-    CountryProfileSpec,
-    countryProfileSpecs,
-} from "site/countryProfileProjects"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -435,11 +429,12 @@ export const getPosts = async (
     }
 
     // Published pages excluded from public views
-    const excludedSlugs = [
-        BLOG_SLUG,
-        ...countryProfileSpecs.map((spec) => spec.genericProfileSlug),
-    ]
-    posts = posts.filter((post) => !excludedSlugs.includes(post.slug))
+    const excludedSlugs = [BLOG_SLUG]
+    posts = posts.filter(
+        (post) =>
+            !excludedSlugs.includes(post.slug) &&
+            !post.slug.endsWith("-country-profile")
+    )
 
     return limit ? posts.slice(0, limit) : posts
 }
@@ -578,9 +573,9 @@ export async function getFullPost(
         authors: postApi.authors_name || [],
         content: excludeContent ? "" : postApi.content.rendered,
         excerpt: decodeHTML(postApi.excerpt.rendered),
-        imageUrl:
-            BAKED_BASE_URL +
-            defaultTo(postApi.featured_media_path, "/default-thumbnail.jpg"),
+        imageUrl: `${BAKED_BASE_URL}${
+            postApi.featured_media_path ?? "/default-thumbnail.jpg"
+        }`,
         relatedCharts:
             postApi.type === "page"
                 ? await getRelatedCharts(postApi.id)
@@ -588,17 +583,6 @@ export async function getFullPost(
         glossary: postApi.meta.owid_glossary_meta_field,
     }
 }
-
-export const getCountryProfileLandingPost = memoize(
-    async (profileSpec: CountryProfileSpec) => {
-        const landingPagePostApi = await getPostBySlug(
-            profileSpec.landingPageSlug
-        )
-        const landingPost = getFullPost(landingPagePostApi)
-
-        return landingPost
-    }
-)
 
 let cachedPosts: Promise<FullPost[]> | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
@@ -665,6 +649,5 @@ export const flushCache = () => {
     cachedEntries = []
     cachedFeaturedImages = undefined
     cachedPosts = undefined
-    getCountryProfileLandingPost.cache.clear?.()
     cachedTables = undefined
 }

@@ -3,5 +3,9 @@
     "compilerOptions": {
         "baseUrl": "../"
     },
-    "references": [{ "path": "../site" }, { "path": "../explorerAdmin" }]
+    "references": [
+        { "path": "../site" },
+        { "path": "../explorerAdmin" },
+        { "path": "../db" }
+    ]
 }

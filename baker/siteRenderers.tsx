@@ -34,6 +34,7 @@ import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
 import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
+import { getFullPost, getPostBySlug } from "db/wpdb"
 
 // Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>
@@ -317,6 +318,18 @@ const getCountryProfilePost = memoize(
     }
 )
 
+// todo: we used to flush cache of this thing.
+const getCountryProfileLandingPost = memoize(
+    async (profileSpec: CountryProfileSpec) => {
+        const landingPagePostApi = await getPostBySlug(
+            profileSpec.landingPageSlug
+        )
+        const landingPost = getFullPost(landingPagePostApi)
+
+        return landingPost
+    }
+)
+
 export const renderCountryProfile = async (
     profileSpec: CountryProfileSpec,
     country: Country,
@@ -329,7 +342,7 @@ export const renderCountryProfile = async (
 
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
-    const landing = await wpdb.getCountryProfileLandingPost(profileSpec)
+    const landing = await getCountryProfileLandingPost(profileSpec)
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
