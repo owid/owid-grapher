@@ -8,7 +8,7 @@ import ProgressBar = require("progress")
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { BLOG_POSTS_PER_PAGE } from "settings"
-import { extractFormattingOptions } from "site/formatting"
+import { extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "site/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "serverSettings"
 import {
@@ -32,7 +32,7 @@ import {
     getGrapherExportsByUrl,
     GrapherExports,
 } from "baker/GrapherBakingUtils"
-import { makeSitemap } from "site/sitemap"
+import { makeSitemap } from "baker/sitemap"
 import * as React from "react"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "baker/countryProfiles"

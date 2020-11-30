@@ -26,7 +26,7 @@ import {
     renderToHtmlPage,
 } from "adminSiteServer/serverUtil"
 import { countryProfilePage, countriesIndexPage } from "baker/countryProfiles"
-import { makeSitemap } from "site/sitemap"
+import { makeSitemap } from "baker/sitemap"
 import { OldChart } from "db/model/Chart"
 import { countryProfileSpecs } from "site/countryProfileProjects"
 import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorerAdmin/legacyCovidExplorerRedirects"
