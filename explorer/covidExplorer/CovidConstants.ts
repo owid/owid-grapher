@@ -119,11 +119,11 @@ export const sourceCharts = {
 export const sourceVariables = {
     positive_test_rate: 142721,
     tests_per_case: 142754,
-    case_fatality_rate: 142600,
-    cases: 142582,
-    deaths: 142583,
+    case_fatality_rate: 145479,
+    cases: 145450,
+    deaths: 145451,
     tests: 142601,
-    days_since: 142712,
+    days_since: 145465,
     continents: 123,
 }
 

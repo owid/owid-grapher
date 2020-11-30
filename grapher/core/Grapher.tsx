@@ -358,17 +358,22 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                     const entityCodes = EntityUrlBuilder.queryParamToEntities(
                         country
                     )
-                    const matchedEntities = this.setSelectedEntitiesByCode(
-                        entityCodes
-                    )
-                    const notFoundEntities = Array.from(
-                        matchedEntities.keys()
-                    ).filter((key) => !matchedEntities.get(key))
+                    this.setSelectedEntitiesByCode(entityCodes)
 
-                    if (notFoundEntities.length)
-                        this.analytics.logEntitiesNotFoundError(
-                            notFoundEntities
-                        )
+                    // Commented out temporarily because it causes some errors.
+                    // Some of the logging functions call document which doesn't
+                    // exist during baking.
+                    //
+                    // const matchedEntities = this.setSelectedEntitiesByCode(
+                    //     entityCodes
+                    // )
+                    // const notFoundEntities = Array.from(
+                    //     matchedEntities.keys()
+                    // ).filter((key) => !matchedEntities.get(key))
+                    // if (notFoundEntities.length)
+                    //     this.analytics.logEntitiesNotFoundError(
+                    //         notFoundEntities
+                    //     )
                 })
             }
         )
