@@ -1,10 +1,10 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
 import Select, { ValueType } from "react-select"
-import { countries } from "clientUtils/countries"
-import { asArray } from "clientUtils/react-select"
-import { sortBy } from "clientUtils/Util"
-import { countryProfileSpecs } from "site/countryProfileProjects"
+import { countries } from "../clientUtils/countries"
+import { asArray } from "../clientUtils/react-select"
+import { sortBy } from "../clientUtils/Util"
+import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { SiteAnalytics } from "./SiteAnalytics"
 
 interface CountrySelectOption {

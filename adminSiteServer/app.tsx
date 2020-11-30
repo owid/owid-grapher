@@ -9,20 +9,20 @@ import {
     ADMIN_SERVER_PORT,
     ADMIN_SERVER_HOST,
     ENV,
-} from "settings/clientSettings"
-import * as db from "db/db"
-import * as wpdb from "db/wpdb"
-import { log } from "baker/slackLog"
+} from "../settings/clientSettings"
+import * as db from "../db/db"
+import * as wpdb from "../db/wpdb"
+import { log } from "../baker/slackLog"
 import { IndexPage } from "./IndexPage"
 import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
 import { renderToHtmlPage } from "./serverUtil"
-import { SLACK_ERRORS_WEBHOOK_URL } from "settings/serverSettings"
+import { SLACK_ERRORS_WEBHOOK_URL } from "../settings/serverSettings"
 import { publicApiRouter } from "./publicApiRouter"
 import { mockSiteRouter } from "./mockSiteRouter"
-import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
 const expressErrorSlack = require("express-error-slack")
 const app = express()

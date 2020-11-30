@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { TextWrap } from "./TextWrap"
-import { Bounds } from "clientUtils/Bounds"
+import { Bounds } from "../clientUtils/Bounds"
 
 const FONT_SIZE = 14
 

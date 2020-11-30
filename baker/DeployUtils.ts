@@ -1,5 +1,5 @@
 import fs from "fs-extra"
-import { SiteBaker } from "baker/SiteBaker"
+import { SiteBaker } from "../baker/SiteBaker"
 import { log } from "./slackLog"
 import {
     queueIsEmpty,
@@ -9,9 +9,9 @@ import {
     writePendingFile,
     parseQueueContent,
 } from "./queue"
-import { BAKED_SITE_DIR } from "settings/serverSettings"
-import { BAKED_BASE_URL } from "settings/clientSettings"
-import { DeployChange } from "clientUtils/owidTypes"
+import { BAKED_SITE_DIR } from "../settings/serverSettings"
+import { BAKED_BASE_URL } from "../settings/clientSettings"
+import { DeployChange } from "../clientUtils/owidTypes"
 
 const defaultCommitMessage = async (): Promise<string> => {
     let message = "Automated update"

@@ -10,7 +10,7 @@ import {
     DB_PASS,
     DB_HOST,
     DB_PORT,
-} from "settings/serverSettings"
+} from "../settings/serverSettings"
 import { execWrapper } from "./execWrapper"
 
 const argv = parseArgs(process.argv.slice(2))

@@ -1,6 +1,6 @@
 import React from "react"
-import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { DimensionProperty } from "../grapher/core/GrapherConstants"
 import { Explorer } from "./Explorer"
 
 const SampleExplorerProgram = `explorerTitle	CO₂ Data Explorer

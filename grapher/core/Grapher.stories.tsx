@@ -3,17 +3,17 @@ import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
+} from "../coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
     DimensionProperty,
     FacetStrategy,
     GrapherTabOption,
 } from "./GrapherConstants"
-import { BlankOwidTable } from "coreTable/OwidTable"
+import { BlankOwidTable } from "../coreTable/OwidTable"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartTypeSwitcher } from "grapher/chart/ChartTypeSwitcher"
+import { ChartTypeSwitcher } from "../grapher/chart/ChartTypeSwitcher"
 
 export default {
     title: "Grapher",

@@ -1,16 +1,16 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "coreTable/CoreColumnDef"
-import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
+import { ChartTypeName } from "../grapher/core/GrapherConstants"
+import { Color, ColumnSlug } from "../coreTable/CoreTableConstants"
+import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef"
+import { LegacyGrapherInterface } from "../grapher/core/GrapherInterface"
 import {
     diffDateISOStringInDays,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import {
     LegacyVariablesAndEntityKey,
     LegacyEntityMeta,
@@ -22,9 +22,9 @@ import {
     OwidTableSlugs,
     OwidColumnDef,
     EntityId,
-} from "coreTable/OwidTableConstants"
-import { OwidTable } from "coreTable/OwidTable"
-import { EPOCH_DATE } from "clientUtils/owidTypes"
+} from "../coreTable/OwidTableConstants"
+import { OwidTable } from "../coreTable/OwidTable"
+import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 export const legacyToOwidTableAndDimensions = (
     json: LegacyVariablesAndEntityKey,

@@ -1,5 +1,5 @@
-import { BodyDiv } from "grapher/bodyDiv/BodyDiv"
-import { sortBy } from "clientUtils/Util"
+import { BodyDiv } from "../grapher/bodyDiv/BodyDiv"
+import { sortBy } from "../clientUtils/Util"
 import { observer } from "mobx-react"
 import React from "react"
 

@@ -10,9 +10,9 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { Bounds } from "clientUtils/Bounds"
-import { capitalize } from "clientUtils/Util"
-import { Grapher } from "grapher/core/Grapher"
+import { Bounds } from "../clientUtils/Bounds"
+import { capitalize } from "../clientUtils/Util"
+import { Grapher } from "../grapher/core/Grapher"
 
 import {
     ChartEditor,

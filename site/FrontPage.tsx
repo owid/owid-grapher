@@ -13,8 +13,12 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "site/NewsletterSubscription"
-import { CategoryWithEntries, EntryNode, FullPost } from "clientUtils/owidTypes"
+} from "../site/NewsletterSubscription"
+import {
+    CategoryWithEntries,
+    EntryNode,
+    FullPost,
+} from "../clientUtils/owidTypes"
 
 const splitOnLastWord = (str: string) => {
     const endIndex = (str.lastIndexOf(" ") as number) + 1

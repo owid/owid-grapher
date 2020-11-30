@@ -1,11 +1,11 @@
-import { Post } from "db/model/Post"
-import { Chart } from "db/model/Chart"
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings/clientSettings"
+import { Post } from "../db/model/Post"
+import { Chart } from "../db/model/Chart"
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import moment from "moment"
-import * as db from "db/db"
-import { countries } from "clientUtils/countries"
+import * as db from "../db/db"
+import { countries } from "../clientUtils/countries"
 import urljoin from "url-join"
-import { countryProfileSpecs } from "site/countryProfileProjects"
+import { countryProfileSpecs } from "../site/countryProfileProjects"
 
 interface SitemapUrl {
     loc: string

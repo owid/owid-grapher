@@ -4,30 +4,30 @@ import { action, observable, computed, autorun, reaction } from "mobx"
 import {
     GrapherInterface,
     GrapherQueryParams,
-} from "grapher/core/GrapherInterface"
+} from "../grapher/core/GrapherInterface"
 import {
     ExplorerControlPanel,
     ExplorerControlBar,
-} from "explorer/ExplorerControls"
+} from "../explorer/ExplorerControls"
 import ReactDOM from "react-dom"
-import { ExplorerProgram } from "explorer/ExplorerProgram"
-import { SerializedGridProgram } from "clientUtils/owidTypes"
-import { ENTITY_V2_DELIMITER } from "grapher/core/EntityUrlBuilder"
+import { ExplorerProgram } from "../explorer/ExplorerProgram"
+import { SerializedGridProgram } from "../clientUtils/owidTypes"
+import { ENTITY_V2_DELIMITER } from "../grapher/core/EntityUrlBuilder"
 import {
     Grapher,
     GrapherManager,
     GrapherProgrammaticInterface,
-} from "grapher/core/Grapher"
+} from "../grapher/core/Grapher"
 import {
     debounce,
     exposeInstanceOnWindow,
     throttle,
     trimObject,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import {
     SlideShowController,
     SlideShowManager,
-} from "grapher/slideshowController/SlideShowController"
+} from "../grapher/slideshowController/SlideShowController"
 import {
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
@@ -35,24 +35,24 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "./ExplorerConstants"
-import { EntityPickerManager } from "grapher/controls/entityPicker/EntityPickerConstants"
-import { SelectionArray } from "grapher/selection/SelectionArray"
-import { ColumnSlug, SortOrder, TableSlug } from "coreTable/CoreTableConstants"
-import { isNotErrorValue } from "coreTable/ErrorValues"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
+import { SelectionArray } from "../grapher/selection/SelectionArray"
+import { ColumnSlug, SortOrder, TableSlug } from "../coreTable/CoreTableConstants"
+import { isNotErrorValue } from "../coreTable/ErrorValues"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { EntityPicker } from "grapher/controls/entityPicker/EntityPicker"
+import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
-import { BlankOwidTable, OwidTable } from "coreTable/OwidTable"
-import { GlobalEntityRegistry } from "grapher/controls/globalEntityControl/GlobalEntityRegistry"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
+import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
+import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import {
     getPatchFromQueryString,
     objectFromPatch,
     objectToPatch,
 } from "./Patch"
-import { setWindowQueryStr } from "clientUtils/url"
+import { setWindowQueryStr } from "../clientUtils/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

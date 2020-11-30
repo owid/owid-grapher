@@ -21,17 +21,17 @@ import { runRelatedCharts } from "./blocks/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
-import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
+import { hydrateGlobalEntityControlIfAny } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "./Footnote"
-import { Explorer } from "explorer/Explorer"
-import { BAKED_BASE_URL, ENV } from "settings/clientSettings"
+import { Explorer } from "../explorer/Explorer"
+import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
-} from "grapher/core/GrapherConstants"
-import { Grapher } from "grapher/core/Grapher"
-import { MultiEmbedderSingleton } from "site/multiembedder/MultiEmbedder"
-import { CoreTable } from "coreTable/CoreTable"
+} from "../grapher/core/GrapherConstants"
+import { Grapher } from "../grapher/core/Grapher"
+import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
+import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 
 declare var window: any

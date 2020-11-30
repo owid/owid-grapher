@@ -3,14 +3,14 @@ import * as fs from "fs-extra"
 import * as path from "path"
 
 import * as express from "express"
-import { query } from "db/db"
-import { getGrapherById } from "db/model/Chart"
-import { getBlockContent } from "db/wpdb"
+import { query } from "../db/db"
+import { getGrapherById } from "../db/model/Chart"
+import { getBlockContent } from "../db/wpdb"
 
-import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "explorer/ExplorerProgram"
+import { EXPLORER_FILE_SUFFIX, ExplorerProgram } from "../explorer/ExplorerProgram"
 import { Router } from "express"
-import { GIT_CMS_DIR } from "gitCms/GitCmsConstants"
-import { ExplorerPage } from "site/ExplorerPage"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { ExplorerPage } from "../site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
@@ -19,12 +19,12 @@ import {
     ExplorersRouteQueryParam,
     ExplorersRouteResponse,
     DefaultNewExplorerSlug,
-} from "explorer/ExplorerConstants"
+} from "../explorer/ExplorerConstants"
 import simpleGit from "simple-git"
-import { slugify } from "clientUtils/Util"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { Grapher } from "grapher/core/Grapher"
-import { GitCommit } from "clientUtils/owidTypes"
+import { slugify } from "../clientUtils/Util"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { Grapher } from "../grapher/core/Grapher"
+import { GitCommit } from "../clientUtils/owidTypes"
 import ReactDOMServer from "react-dom/server"
 
 const git = simpleGit({

@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { CategoricalBin, NumericBin } from "grapher/color/ColorScaleBin"
+import { CategoricalBin, NumericBin } from "../grapher/color/ColorScaleBin"
 import {
     MapCategoricalColorLegend,
     MapNumericColorLegend,

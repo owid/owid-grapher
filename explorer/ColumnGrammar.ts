@@ -1,12 +1,12 @@
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
-import { AvailableTransforms } from "coreTable/Transforms"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
+import { AvailableTransforms } from "../coreTable/Transforms"
 import {
     Grammar,
     SlugDeclarationCellDef,
     StringCellDef,
     IntegerCellDef,
     UrlCellDef,
-} from "gridLang/GridLangConstants"
+} from "../gridLang/GridLangConstants"
 
 export const ColumnGrammar: Grammar = {
     slug: {

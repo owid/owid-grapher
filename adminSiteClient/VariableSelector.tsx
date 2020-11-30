@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy, defaultTo, first } from "clientUtils/Util"
+import { groupBy, isString, sortBy, defaultTo, first } from "../clientUtils/Util"
 import {
     computed,
     action,
@@ -15,13 +15,13 @@ import Select, { ValueType } from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
-import { asArray } from "clientUtils/react-select"
+import { asArray } from "../clientUtils/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
-import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
-import { LegacyVariableId } from "clientUtils/owidTypes"
-import { DimensionSlot } from "grapher/chart/DimensionSlot"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
+import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 
 interface VariableSelectorProps {
     editor: ChartEditor

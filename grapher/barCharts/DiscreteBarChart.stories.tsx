@@ -4,7 +4,7 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
+} from "../coreTable/OwidTableSynthesizers"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 export default {

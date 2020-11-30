@@ -1,9 +1,9 @@
-import { ChartManager } from "grapher/chart/ChartManager"
+import { ChartManager } from "../grapher/chart/ChartManager"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
+} from "../coreTable/OwidTableSynthesizers"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 

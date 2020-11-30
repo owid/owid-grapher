@@ -6,31 +6,31 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
     makeFullPath,
-} from "explorer/ExplorerProgram"
+} from "../explorer/ExplorerProgram"
 import {
     readRemoteFile,
     readRemoteFiles,
     writeRemoteFile,
-} from "gitCms/GitCmsClient"
+} from "../gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
-import { CoreMatrix } from "coreTable/CoreTableConstants"
-import { exposeInstanceOnWindow, slugify } from "clientUtils/Util"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+import { CoreMatrix } from "../coreTable/CoreTableConstants"
+import { exposeInstanceOnWindow, slugify } from "../clientUtils/Util"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
-} from "explorer/ExplorerConstants"
+} from "../explorer/ExplorerConstants"
 import {
     AutofillColDefCommand,
     InlineDataCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands"
-import { isEmpty } from "gridLang/GrammarUtils"
+import { isEmpty } from "../gridLang/GrammarUtils"
 import classNames from "classnames"
-import { GitCmsFile } from "gitCms/GitCmsConstants"
+import { GitCmsFile } from "../gitCms/GitCmsConstants"
 import { AdminManager } from "./AdminManager"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.

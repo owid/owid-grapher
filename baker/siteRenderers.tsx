@@ -1,12 +1,12 @@
-import { LongFormPage, PageOverrides } from "site/LongFormPage"
-import { BlogIndexPage } from "site/BlogIndexPage"
-import { FrontPage } from "site/FrontPage"
-import { ChartsIndexPage, ChartIndexItem } from "site/ChartsIndexPage"
-import { CovidPage } from "site/CovidPage"
-import { SearchPage } from "site/SearchPage"
-import { NotFoundPage } from "site/NotFoundPage"
-import { DonatePage } from "site/DonatePage"
-import { SubscribePage } from "site/SubscribePage"
+import { LongFormPage, PageOverrides } from "../site/LongFormPage"
+import { BlogIndexPage } from "../site/BlogIndexPage"
+import { FrontPage } from "../site/FrontPage"
+import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage"
+import { CovidPage } from "../site/CovidPage"
+import { SearchPage } from "../site/SearchPage"
+import { NotFoundPage } from "../site/NotFoundPage"
+import { DonatePage } from "../site/DonatePage"
+import { SubscribePage } from "../site/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
@@ -15,27 +15,27 @@ import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "baker/GrapherBakingUtils"
+} from "../baker/GrapherBakingUtils"
 import * as cheerio from "cheerio"
-import { Post } from "db/model/Post"
+import { Post } from "../db/model/Post"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
     RECAPTCHA_SITE_KEY,
-} from "settings/clientSettings"
-import { EntriesByYearPage, EntriesForYearPage } from "site/EntriesByYearPage"
-import { VariableCountryPage } from "site/VariableCountryPage"
-import { FeedbackPage } from "site/FeedbackPage"
-import { getCountry, Country } from "clientUtils/countries"
-import { memoize } from "clientUtils/Util"
-import { CountryProfileSpec } from "site/countryProfileProjects"
+} from "../settings/clientSettings"
+import { EntriesByYearPage, EntriesForYearPage } from "../site/EntriesByYearPage"
+import { VariableCountryPage } from "../site/VariableCountryPage"
+import { FeedbackPage } from "../site/FeedbackPage"
+import { getCountry, Country } from "../clientUtils/countries"
+import { memoize } from "../clientUtils/Util"
+import { CountryProfileSpec } from "../site/countryProfileProjects"
 import {
     FormattedPost,
     FormattingOptions,
     JsonError,
     PageType,
     PostRow,
-} from "clientUtils/owidTypes"
+} from "../clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
 import {
     getBlogIndex,
@@ -45,8 +45,8 @@ import {
     getPageType,
     getPostBySlug,
     getPosts,
-} from "db/wpdb"
-import { get, query, table } from "db/db"
+} from "../db/wpdb"
+import { get, query, table } from "../db/db"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`

@@ -1,5 +1,5 @@
-import { last } from "clientUtils/Util"
-import { BAKED_BASE_URL, WORDPRESS_URL } from "settings/clientSettings"
+import { last } from "../clientUtils/Util"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/clientSettings"
 
 // Standardize urls
 const formatLinks = (html: string) =>

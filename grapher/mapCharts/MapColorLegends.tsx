@@ -9,14 +9,14 @@ import {
     last,
     flatten,
     sum,
-} from "clientUtils/Util"
-import { Bounds } from "clientUtils/Bounds"
+} from "../clientUtils/Util"
+import { Bounds } from "../clientUtils/Bounds"
 import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "grapher/color/ColorScaleBin"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+} from "../grapher/color/ColorScaleBin"
+import { BASE_FONT_SIZE } from "../grapher/core/GrapherConstants"
 
 interface PositionedBin {
     x: number

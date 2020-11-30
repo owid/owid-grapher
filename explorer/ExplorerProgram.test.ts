@@ -5,9 +5,9 @@ import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
-} from "gridLang/GridLangConstants"
-import { ExplorerGrammar } from "explorer/ExplorerGrammar"
-import { GrapherGrammar } from "explorer/GrapherGrammar"
+} from "../gridLang/GridLangConstants"
+import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
+import { GrapherGrammar } from "../explorer/GrapherGrammar"
 
 const grapherIdKeyword = GrapherGrammar.grapherId.keyword
 const tableSlugKeyword = GrapherGrammar.tableSlug.keyword

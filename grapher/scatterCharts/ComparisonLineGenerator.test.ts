@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { ScaleType } from "../grapher/core/GrapherConstants"
 
 describe("For y = x", () => {
     it("returns the correct number of points", () => {

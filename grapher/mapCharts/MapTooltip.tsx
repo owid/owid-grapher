@@ -1,18 +1,18 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip } from "grapher/tooltip/Tooltip"
-import { takeWhile, last, first, isMobile } from "clientUtils/Util"
+import { Tooltip } from "../grapher/tooltip/Tooltip"
+import { takeWhile, last, first, isMobile } from "../clientUtils/Util"
 import {
     SparkBars,
     SparkBarsDatum,
     SparkBarsProps,
-} from "grapher/sparkBars/SparkBars"
-import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
+} from "../grapher/sparkBars/SparkBars"
+import { SparkBarTimeSeriesValue } from "../grapher/sparkBars/SparkBarTimeSeriesValue"
 import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
-import { ColorScale } from "grapher/color/ColorScale"
-import { Time } from "coreTable/CoreTableConstants"
-import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
+import { ColorScale } from "../grapher/color/ColorScale"
+import { Time } from "../coreTable/CoreTableConstants"
+import { ChartTypeName, GrapherTabOption } from "../grapher/core/GrapherConstants"
 
 interface MapTooltipProps {
     tooltipDatum?: ChoroplethSeries

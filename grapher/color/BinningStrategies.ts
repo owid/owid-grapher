@@ -7,7 +7,7 @@ import {
     last,
     roundSigFig,
     first,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 
 export enum BinningStrategy {
     equalInterval = "equalInterval",

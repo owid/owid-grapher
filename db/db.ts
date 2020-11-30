@@ -7,7 +7,7 @@ import {
     DB_PASS,
     DB_NAME,
     DB_PORT,
-} from "settings/serverSettings"
+} from "../settings/serverSettings"
 import { registerExitHandler } from "./cleanup"
 let connection: typeorm.Connection
 

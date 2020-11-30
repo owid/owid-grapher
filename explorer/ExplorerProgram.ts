@@ -1,7 +1,7 @@
-import { trimObject } from "clientUtils/Util"
-import { queryParamsToStr } from "clientUtils/url"
+import { trimObject } from "../clientUtils/Util"
+import { queryParamsToStr } from "../clientUtils/url"
 import { action, observable, computed } from "mobx"
-import { GitCommit, SubNavId } from "clientUtils/owidTypes"
+import { GitCommit, SubNavId } from "../clientUtils/owidTypes"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,
@@ -9,16 +9,16 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
     ExplorerChoice,
-} from "explorer/ExplorerConstants"
-import { CoreTable } from "coreTable/CoreTable"
-import { CoreMatrix, TableSlug } from "coreTable/CoreTableConstants"
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
+} from "../explorer/ExplorerConstants"
+import { CoreTable } from "../coreTable/CoreTable"
+import { CoreMatrix, TableSlug } from "../coreTable/CoreTableConstants"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import {
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
-} from "coreTable/CoreTableUtils"
-import { ExplorerGrammar } from "explorer/ExplorerGrammar"
+} from "../coreTable/CoreTableUtils"
+import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
 import {
     CellDef,
     GridBoolean,
@@ -26,12 +26,12 @@ import {
     GRID_NODE_DELIMITER,
     Grammar,
     RootKeywordCellDef,
-} from "gridLang/GridLangConstants"
-import { OwidTable } from "coreTable/OwidTable"
-import { GridProgram } from "gridLang/GridProgram"
-import { SerializedGridProgram } from "clientUtils/owidTypes"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { GrapherGrammar } from "explorer/GrapherGrammar"
+} from "../gridLang/GridLangConstants"
+import { OwidTable } from "../coreTable/OwidTable"
+import { GridProgram } from "../gridLang/GridProgram"
+import { SerializedGridProgram } from "../clientUtils/owidTypes"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { GrapherGrammar } from "../explorer/GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
 import { objectToPatch, objectFromPatch } from "./Patch"
 

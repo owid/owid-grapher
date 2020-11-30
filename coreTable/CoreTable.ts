@@ -11,9 +11,9 @@ import {
     uniqBy,
     intersectionOfSets,
     isNumber,
-} from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
-import { queryParamsToStr } from "clientUtils/url"
+} from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
+import { queryParamsToStr } from "../clientUtils/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,

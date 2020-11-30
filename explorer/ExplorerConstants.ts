@@ -1,4 +1,4 @@
-import { SerializedGridProgram } from "clientUtils/owidTypes"
+import { SerializedGridProgram } from "../clientUtils/owidTypes"
 
 export enum ExplorerControlType {
     Radio = "Radio",

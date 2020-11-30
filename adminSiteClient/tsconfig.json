@@ -1,7 +1,6 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "baseUrl": "../",
         "outDir": "../itsJustJavascript/adminSiteClient",
         "rootDir": "."
     },

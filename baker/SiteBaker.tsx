@@ -5,12 +5,12 @@ import { without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import ProgressBar = require("progress")
-import * as wpdb from "db/wpdb"
-import * as db from "db/db"
-import { BLOG_POSTS_PER_PAGE } from "settings/clientSettings"
+import * as wpdb from "../db/wpdb"
+import * as db from "../db/db"
+import { BLOG_POSTS_PER_PAGE } from "../settings/clientSettings"
 import { extractFormattingOptions } from "./formatting"
-import { LongFormPage } from "site/LongFormPage"
-import { BASE_DIR, WORDPRESS_DIR } from "settings/serverSettings"
+import { LongFormPage } from "../site/LongFormPage"
+import { BASE_DIR, WORDPRESS_DIR } from "../settings/serverSettings"
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -26,34 +26,34 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
-} from "baker/siteRenderers"
+} from "../baker/siteRenderers"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "baker/GrapherBakingUtils"
-import { makeSitemap } from "baker/sitemap"
+} from "../baker/GrapherBakingUtils"
+import { makeSitemap } from "../baker/sitemap"
 import * as React from "react"
-import { Post } from "db/model/Post"
-import { bakeCountries } from "baker/countryProfiles"
-import { countries } from "clientUtils/countries"
-import { execWrapper } from "db/execWrapper"
+import { Post } from "../db/model/Post"
+import { bakeCountries } from "../baker/countryProfiles"
+import { countries } from "../clientUtils/countries"
+import { execWrapper } from "../db/execWrapper"
 import { log } from "./slackLog"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,
-} from "explorerAdmin/legacyCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/countryProfileProjects"
+} from "../explorerAdmin/legacyCovidExplorerRedirects"
+import { countryProfileSpecs } from "../site/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
     renderExplorerPage,
-} from "explorerAdmin/ExplorerBaker"
+} from "../explorerAdmin/ExplorerBaker"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
-import { bakeEmbedSnippet } from "site/webpackUtils"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { formatPost } from "./formatWordpressPost"
-import { FullPost } from "clientUtils/owidTypes"
+import { FullPost } from "../clientUtils/owidTypes"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports

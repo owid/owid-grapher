@@ -1,11 +1,11 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty } from "clientUtils/Util"
+import { isEmpty } from "../clientUtils/Util"
 import {
     MapProjectionLabels,
     MapProjectionName,
-} from "grapher/mapCharts/MapProjections"
+} from "../grapher/mapCharts/MapProjections"
 import { ChartEditor } from "./ChartEditor"
 import {
     NumericSelectField,
@@ -15,11 +15,11 @@ import {
     Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { LegacyVariableId } from "clientUtils/owidTypes"
-import { MapConfig } from "grapher/mapCharts/MapConfig"
-import { ChartDimension } from "grapher/chart/ChartDimension"
-import { ColorScale } from "grapher/color/ColorScale"
-import { MapChart } from "grapher/mapCharts/MapChart"
+import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { MapConfig } from "../grapher/mapCharts/MapConfig"
+import { ChartDimension } from "../grapher/chart/ChartDimension"
+import { ColorScale } from "../grapher/color/ColorScale"
+import { MapChart } from "../grapher/mapCharts/MapChart"
 
 @observer
 class VariableSection extends React.Component<{

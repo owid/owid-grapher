@@ -8,10 +8,10 @@ import { observer } from "mobx-react"
 import { computed } from "mobx"
 import React from "react"
 import { EmbedChart } from "./EmbedChart"
-import { BAKED_GRAPHER_URL } from "settings/clientSettings"
-import { uniq, capitalize } from "clientUtils/Util"
-import { Country } from "clientUtils/countries"
-import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
+import { uniq, capitalize } from "../clientUtils/Util"
+import { Country } from "../clientUtils/countries"
+import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
 
 class ChartResult extends React.Component<{
     hit: ChartHit

@@ -1,4 +1,4 @@
-import { EntitySelectionMode } from "grapher/core/GrapherConstants"
+import { EntitySelectionMode } from "../grapher/core/GrapherConstants"
 import { computed } from "mobx"
 import { ChartEditor } from "./ChartEditor"
 

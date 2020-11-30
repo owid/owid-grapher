@@ -9,12 +9,12 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
-} from "clientUtils/Util"
-import { Color } from "coreTable/CoreTableConstants"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
+} from "../clientUtils/Util"
+import { Color } from "../coreTable/CoreTableConstants"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
-import { CoreColumn } from "coreTable/CoreTableColumns"
+import { CoreColumn } from "../coreTable/CoreTableColumns"
 import { ColorSchemeName } from "./ColorConstants"
 
 const NO_DATA_LABEL = "No data"

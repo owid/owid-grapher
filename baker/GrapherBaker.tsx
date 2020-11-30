@@ -1,27 +1,27 @@
 import * as React from "react"
-import { Chart } from "db/model/Chart"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { GrapherPage } from "site/GrapherPage"
-import { renderToHtmlPage } from "baker/siteRenderers"
-import { Post } from "db/model/Post"
-import { urlToSlug, without } from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
-import { getRelatedCharts } from "db/wpdb"
-import { getVariableData } from "db/model/Variable"
+import { Chart } from "../db/model/Chart"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { GrapherPage } from "../site/GrapherPage"
+import { renderToHtmlPage } from "../baker/siteRenderers"
+import { Post } from "../db/model/Post"
+import { urlToSlug, without } from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
+import { getRelatedCharts } from "../db/wpdb"
+import { getVariableData } from "../db/model/Variable"
 import * as fs from "fs-extra"
-import { deserializeJSONFromHTML } from "clientUtils/serializers"
+import { deserializeJSONFromHTML } from "../clientUtils/serializers"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker"
 import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "settings/clientSettings"
+} from "../settings/clientSettings"
 import ProgressBar = require("progress")
-import * as db from "db/db"
+import * as db from "../db/db"
 import * as glob from "glob"
-import { hasLegacyGrapherToCovidExplorerRedirect } from "explorerAdmin/legacyCovidExplorerRedirects"
-import { JsonError } from "clientUtils/owidTypes"
+import { hasLegacyGrapherToCovidExplorerRedirect } from "../explorerAdmin/legacyCovidExplorerRedirects"
+import { JsonError } from "../clientUtils/owidTypes"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")

@@ -1,26 +1,26 @@
-import { DualAxis } from "grapher/axis/Axis"
-import { AxisConfig, FontSizeManager } from "grapher/axis/AxisConfig"
-import { ChartInterface } from "grapher/chart/ChartInterface"
-import { ChartManager } from "grapher/chart/ChartManager"
+import { DualAxis } from "../grapher/axis/Axis"
+import { AxisConfig, FontSizeManager } from "../grapher/axis/AxisConfig"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
+import { ChartManager } from "../grapher/chart/ChartManager"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     SeriesStrategy,
-} from "grapher/core/GrapherConstants"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
-import { exposeInstanceOnWindow, flatten, guid, max } from "clientUtils/Util"
+} from "../grapher/core/GrapherConstants"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
+import { exposeInstanceOnWindow, flatten, guid, max } from "../clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { StackedSeries } from "./StackedConstants"
-import { OwidTable } from "coreTable/OwidTable"
+import { OwidTable } from "../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
+} from "../grapher/chart/ChartUtils"
 import { easeLinear, scaleOrdinal, select } from "d3"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds

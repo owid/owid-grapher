@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, ChartRedirect } from "./ChartEditor"
 import { computed, action, observable, runInAction } from "mobx"
-import { BAKED_GRAPHER_URL } from "settings/clientSettings"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")

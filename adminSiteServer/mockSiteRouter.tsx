@@ -15,31 +15,34 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
-} from "baker/siteRenderers"
-import { grapherSlugToHtmlPage } from "baker/GrapherBaker"
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "settings/clientSettings"
+} from "../baker/siteRenderers"
+import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import {
     WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
-} from "settings/serverSettings"
-import * as db from "db/db"
-import { expectInt, renderToHtmlPage } from "adminSiteServer/serverUtil"
-import { countryProfilePage, countriesIndexPage } from "baker/countryProfiles"
-import { makeSitemap } from "baker/sitemap"
-import { OldChart } from "db/model/Chart"
-import { countryProfileSpecs } from "site/countryProfileProjects"
-import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "explorerAdmin/legacyCovidExplorerRedirects"
+} from "../settings/serverSettings"
+import * as db from "../db/db"
+import { expectInt, renderToHtmlPage } from "./serverUtil"
+import {
+    countryProfilePage,
+    countriesIndexPage,
+} from "../baker/countryProfiles"
+import { makeSitemap } from "../baker/sitemap"
+import { OldChart } from "../db/model/Chart"
+import { countryProfileSpecs } from "../site/countryProfileProjects"
+import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "../explorerAdmin/legacyCovidExplorerRedirects"
 import {
     getAllPublishedExplorers,
     renderExplorerPage,
-} from "explorerAdmin/ExplorerBaker"
-import { grapherToSVG } from "baker/GrapherImageBaker"
-import { getVariableData } from "db/model/Variable"
-import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
-import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
-import { bakeEmbedSnippet } from "site/webpackUtils"
-import { JsonError } from "clientUtils/owidTypes"
+} from "../explorerAdmin/ExplorerBaker"
+import { grapherToSVG } from "../baker/GrapherImageBaker"
+import { getVariableData } from "../db/model/Variable"
+import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+import { bakeEmbedSnippet } from "../site/webpackUtils"
+import { JsonError } from "../clientUtils/owidTypes"
 
 require("express-async-errors")
 

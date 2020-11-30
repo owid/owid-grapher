@@ -4,20 +4,20 @@ import { Router } from "express"
 import * as React from "react"
 
 import { renderToHtmlPage, expectInt } from "./serverUtil"
-import { OldChart, Chart } from "db/model/Chart"
-import { Head } from "site/Head"
-import * as db from "db/db"
+import { OldChart, Chart } from "../db/model/Chart"
+import { Head } from "../site/Head"
+import * as db from "../db/db"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,
-} from "settings/clientSettings"
+} from "../settings/clientSettings"
 import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"
-import { excludeUndefined, parseIntOrUndefined } from "clientUtils/Util"
-import { grapherToSVG } from "baker/GrapherImageBaker"
-import { EntitySelectionMode } from "grapher/core/GrapherConstants"
+import { excludeUndefined, parseIntOrUndefined } from "../clientUtils/Util"
+import { grapherToSVG } from "../baker/GrapherImageBaker"
+import { EntitySelectionMode } from "../grapher/core/GrapherConstants"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 

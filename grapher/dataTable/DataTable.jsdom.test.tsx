@@ -3,8 +3,8 @@
 import * as React from "react"
 
 import { DataTable } from "./DataTable"
-import { Grapher } from "grapher/core/Grapher"
-import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
+import { Grapher } from "../grapher/core/Grapher"
+import { ChartTypeName, GrapherTabOption } from "../grapher/core/GrapherConstants"
 import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
 
 import { shallow, ShallowWrapper, mount, ReactWrapper, configure } from "enzyme"

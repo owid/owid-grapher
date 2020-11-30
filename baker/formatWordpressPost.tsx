@@ -1,34 +1,34 @@
-import { SectionHeading } from "site/SectionHeading"
+import { SectionHeading } from "../site/SectionHeading"
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { HTTPS_ONLY } from "settings/serverSettings"
-import { getTables } from "db/wpdb"
-import Tablepress from "site/Tablepress"
-import { GrapherExports } from "baker/GrapherBakingUtils"
+import { HTTPS_ONLY } from "../settings/serverSettings"
+import { getTables } from "../db/wpdb"
+import Tablepress from "../site/Tablepress"
+import { GrapherExports } from "../baker/GrapherBakingUtils"
 import * as path from "path"
-import { renderBlocks } from "site/blocks"
-import { RelatedCharts } from "site/blocks/RelatedCharts"
+import { renderBlocks } from "../site/blocks"
+import { RelatedCharts } from "../site/blocks/RelatedCharts"
 import {
     FormattedPost,
     FormattingOptions,
     FullPost,
     TocHeading,
-} from "clientUtils/owidTypes"
-import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
-import { Footnote } from "site/Footnote"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "site/blocks/ProminentLink"
+} from "../clientUtils/owidTypes"
+import { bakeGlobalEntityControl } from "../baker/bakeGlobalEntityControl"
+import { Footnote } from "../site/Footnote"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
+import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
 import {
     replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
     legacyCovidDashboardSlug,
-} from "explorerAdmin/legacyCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/countryProfileProjects"
-import { formatGlossaryTerms } from "site/formatGlossary"
-import { getMutableGlossary, glossary } from "site/glossary"
-import { DataToken } from "site/DataToken"
+} from "../explorerAdmin/legacyCovidExplorerRedirects"
+import { countryProfileSpecs } from "../site/countryProfileProjects"
+import { formatGlossaryTerms } from "../site/formatGlossary"
+import { getMutableGlossary, glossary } from "../site/glossary"
+import { DataToken } from "../site/DataToken"
 import {
     DEEP_LINK_CLASS,
     formatLinks,

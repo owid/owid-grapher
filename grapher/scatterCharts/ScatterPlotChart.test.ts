@@ -1,25 +1,25 @@
 #! /usr/bin/env jest
 
-import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
+import { ScatterPlotChart } from "../grapher/scatterCharts/ScatterPlotChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
+} from "../coreTable/OwidTableSynthesizers"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 import {
     ScaleType,
     ScatterPointLabelStrategy,
-} from "grapher/core/GrapherConstants"
-import { OwidTable } from "coreTable/OwidTable"
-import { ErrorValueTypes } from "coreTable/ErrorValues"
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
-import { ContinentColors } from "grapher/color/ColorConstants"
-import { OwidTableSlugs } from "coreTable/OwidTableConstants"
-import { Color } from "coreTable/CoreTableConstants"
-import { makeOriginalTimeSlugFromColumnSlug } from "coreTable/OwidTableUtil"
-import { uniq, uniqBy } from "clientUtils/Util"
+} from "../grapher/core/GrapherConstants"
+import { OwidTable } from "../coreTable/OwidTable"
+import { ErrorValueTypes } from "../coreTable/ErrorValues"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
+import { ContinentColors } from "../grapher/color/ColorConstants"
+import { OwidTableSlugs } from "../coreTable/OwidTableConstants"
+import { Color } from "../coreTable/CoreTableConstants"
+import { makeOriginalTimeSlugFromColumnSlug } from "../coreTable/OwidTableUtil"
+import { uniq, uniqBy } from "../clientUtils/Util"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {

@@ -1,2 +1,2 @@
-import { tryDeploy } from "baker/DeployUtils"
+import { tryDeploy } from "../baker/DeployUtils"
 tryDeploy()

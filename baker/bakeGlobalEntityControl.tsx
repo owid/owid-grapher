@@ -1,11 +1,11 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { ENV } from "settings/clientSettings"
-import { GlobalEntityControl } from "grapher/controls/globalEntityControl/GlobalEntityControl"
+import { ENV } from "../settings/clientSettings"
+import { GlobalEntityControl } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
 import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
-} from "grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+} from "../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
 
 export const bakeGlobalEntityControl = (cheerioEl: CheerioStatic) => {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.

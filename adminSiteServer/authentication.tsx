@@ -1,18 +1,18 @@
 import * as express from "express"
 import * as crypto from "crypto"
 import * as randomstring from "randomstring"
-import { User } from "db/model/User"
-import * as db from "db/db"
+import { User } from "../db/model/User"
+import * as db from "../db/db"
 import {
     CLOUDFLARE_AUD,
     SECRET_KEY,
     SESSION_COOKIE_AGE,
-} from "settings/serverSettings"
-import { BCryptHasher } from "db/hashers"
+} from "../settings/serverSettings"
+import { BCryptHasher } from "../db/hashers"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
-import { ENV } from "settings/clientSettings"
-import { JsonError } from "clientUtils/owidTypes"
+import { ENV } from "../settings/clientSettings"
+import { JsonError } from "../clientUtils/owidTypes"
 
 export type CurrentUser = User
 

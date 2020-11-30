@@ -9,48 +9,48 @@ import {
     flatten,
     last,
     exposeInstanceOnWindow,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
-import { DualAxisComponent } from "grapher/axis/AxisViews"
-import { DualAxis } from "grapher/axis/Axis"
-import { PointVector } from "clientUtils/PointVector"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
+import { DualAxisComponent } from "../grapher/axis/AxisViews"
+import { DualAxis } from "../grapher/axis/Axis"
+import { PointVector } from "../clientUtils/PointVector"
 import {
     LineLegend,
     LineLabelSeries,
     LineLegendManager,
-} from "grapher/lineLegend/LineLegend"
-import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
-import { Tooltip } from "grapher/tooltip/Tooltip"
-import { NoDataModal } from "grapher/noDataModal/NoDataModal"
+} from "../grapher/lineLegend/LineLegend"
+import { ComparisonLine } from "../grapher/scatterCharts/ComparisonLine"
+import { Tooltip } from "../grapher/tooltip/Tooltip"
+import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
     SeriesStrategy,
-} from "grapher/core/GrapherConstants"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ChartInterface } from "grapher/chart/ChartInterface"
+} from "../grapher/core/GrapherConstants"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { AxisConfig } from "../grapher/axis/AxisConfig"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
 import {
     LinesProps,
     LineChartSeries,
     LineChartManager,
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
-import { OwidTable } from "coreTable/OwidTable"
+import { OwidTable } from "../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
     makeClipPath,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
-import { ColorScheme } from "grapher/color/ColorScheme"
+} from "../grapher/chart/ChartUtils"
+import { ColorScheme } from "../grapher/color/ColorScheme"
 
 const BLUR_COLOR = "#eee"
 

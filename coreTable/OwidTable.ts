@@ -19,8 +19,8 @@ import {
     minBy,
     cagr,
     makeAnnotationsSlug,
-} from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
+} from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
 import {
     ColumnSlug,
     Integer,
@@ -39,7 +39,7 @@ import {
     OwidTableSlugs,
 } from "./OwidTableConstants"
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
-import { TimeBound } from "clientUtils/TimeBounds"
+import { TimeBound } from "../clientUtils/TimeBounds"
 import {
     getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,

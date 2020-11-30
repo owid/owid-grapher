@@ -1,13 +1,13 @@
 import { observable } from "mobx"
-import { Color } from "coreTable/CoreTableConstants"
+import { Color } from "../coreTable/CoreTableConstants"
 import { BinningStrategy } from "./BinningStrategies"
 import {
     deleteRuntimeAndUnchangedProps,
     objectWithPersistablesToObject,
     Persistable,
     updatePersistables,
-} from "grapher/persistable/Persistable"
-import { extend, trimObject } from "clientUtils/Util"
+} from "../grapher/persistable/Persistable"
+import { extend, trimObject } from "../clientUtils/Util"
 import { ColorSchemeName } from "./ColorConstants"
 
 export class ColorScaleConfigDefaults {

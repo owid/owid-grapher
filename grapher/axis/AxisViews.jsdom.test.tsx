@@ -3,7 +3,7 @@
 import { AxisConfig } from "./AxisConfig"
 import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
 import React from "react"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { ScaleType } from "../grapher/core/GrapherConstants"
 import { DualAxis } from "./Axis"
 
 import { configure, shallow } from "enzyme"

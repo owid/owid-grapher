@@ -1,4 +1,4 @@
-import { strToQueryParams } from "clientUtils/url"
+import { strToQueryParams } from "../clientUtils/url"
 
 export const DEFAULT_COLUMN_DELIMITER = "-is-"
 export const DEFAULT_ROW_DELIMITER = "-and-"

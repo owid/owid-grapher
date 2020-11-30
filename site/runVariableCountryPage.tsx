@@ -1,12 +1,12 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { clone } from "clientUtils/Util"
+import { clone } from "../clientUtils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
-import { VariableCountryPageProps } from "site/VariableCountryPageProps"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { VariableCountryPageProps } from "../site/VariableCountryPageProps"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
 
 @observer
 class ClientVariableCountryPage extends React.Component<{

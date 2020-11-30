@@ -2,9 +2,9 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { ScaleType } from "grapher/core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "clientUtils/Bounds"
+} from "../coreTable/OwidTableSynthesizers"
+import { ScaleType } from "../grapher/core/GrapherConstants"
+import { DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import * as React from "react"
 import { ScatterPlotChart } from "./ScatterPlotChart"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants"

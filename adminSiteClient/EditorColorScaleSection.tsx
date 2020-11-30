@@ -5,15 +5,15 @@ import Select, { ValueType } from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScale } from "../grapher/color/ColorScale"
 import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "grapher/color/ColorScaleBin"
-import { clone, noop, last } from "clientUtils/Util"
-import { Color } from "coreTable/CoreTableConstants"
-import { asArray } from "clientUtils/react-select"
+} from "../grapher/color/ColorScaleBin"
+import { clone, noop, last } from "../clientUtils/Util"
+import { Color } from "../coreTable/CoreTableConstants"
+import { asArray } from "../clientUtils/react-select"
 import {
     Section,
     Toggle,
@@ -30,8 +30,8 @@ import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
     BinningStrategy,
     binningStrategyLabels,
-} from "grapher/color/BinningStrategies"
-import { ColorSchemeName } from "grapher/color/ColorConstants"
+} from "../grapher/color/BinningStrategies"
+import { ColorSchemeName } from "../grapher/color/ColorConstants"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean

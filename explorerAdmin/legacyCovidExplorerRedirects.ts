@@ -1,6 +1,6 @@
-import { urlToSlug, mergeQueryStr } from "clientUtils/Util"
-import { CoreTable } from "coreTable/CoreTable"
-import { ExplorerProgram, EXPLORER_FILE_SUFFIX } from "explorer/ExplorerProgram"
+import { urlToSlug, mergeQueryStr } from "../clientUtils/Util"
+import { CoreTable } from "../coreTable/CoreTable"
+import { ExplorerProgram, EXPLORER_FILE_SUFFIX } from "../explorer/ExplorerProgram"
 import { getExplorerFromFile } from "./ExplorerBaker"
 
 // Todo: remove this file eventually. Would server side redirects do it?

@@ -1,5 +1,5 @@
 import * as colorbrewer from "colorbrewer"
-import { Color } from "coreTable/CoreTableConstants"
+import { Color } from "../coreTable/CoreTableConstants"
 import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants"
 
 type ColorSchemeProps = { displayName: string; singleColorScale: boolean }

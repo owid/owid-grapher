@@ -1,13 +1,13 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import Select, { ValueType } from "react-select"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 
-import { asArray } from "clientUtils/react-select"
-import { first } from "clientUtils/Util"
-import { ColorScheme } from "grapher/color/ColorScheme"
+import { asArray } from "../clientUtils/react-select"
+import { first } from "../clientUtils/Util"
+import { ColorScheme } from "../grapher/color/ColorScheme"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme

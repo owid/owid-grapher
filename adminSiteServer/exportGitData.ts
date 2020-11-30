@@ -1,6 +1,6 @@
-import * as db from "db/db"
+import * as db from "../db/db"
 import { syncDatasetToGitRepo } from "./gitDataExport"
-import { Dataset } from "db/model/Dataset"
+import { Dataset } from "../db/model/Dataset"
 
 const main = async () => {
     await db.connect()

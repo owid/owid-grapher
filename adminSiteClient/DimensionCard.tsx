@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "grapher/chart/ChartDimension"
+import { ChartDimension } from "../grapher/chart/ChartDimension"
 import { ChartEditor } from "./ChartEditor"
 import {
     Toggle,
@@ -16,8 +16,8 @@ import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
-import { OwidTable } from "coreTable/OwidTable"
+import { DimensionProperty } from "../grapher/core/GrapherConstants"
+import { OwidTable } from "../coreTable/OwidTable"
 
 @observer
 export class DimensionCard extends React.Component<{

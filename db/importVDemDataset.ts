@@ -7,7 +7,7 @@ import * as lodash from "lodash"
 import * as fs from "fs-extra"
 
 import { parseCSV, CSVStreamParser } from "./csv"
-import { findUrlsInText } from "clientUtils/string"
+import { findUrlsInText } from "../clientUtils/string"
 
 import * as db from "./db"
 const CODEBOOK_FILE =

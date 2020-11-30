@@ -7,12 +7,12 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
-} from "gridLang/GridLangConstants"
+} from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
-} from "grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants"
 
 export const GrapherGrammar: Grammar = {
     title: {

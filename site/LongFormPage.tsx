@@ -1,21 +1,21 @@
-import { WORDPRESS_URL } from "settings/clientSettings"
+import { WORDPRESS_URL } from "../settings/clientSettings"
 import * as React from "react"
 import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "site/formatting"
+import { formatAuthors, formatDate } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
-import { TableOfContents } from "site/TableOfContents"
+import { TableOfContents } from "../site/TableOfContents"
 import {
     FormattedPost,
     FormattingOptions,
     PageType,
     TocHeading,
-} from "clientUtils/owidTypes"
+} from "../clientUtils/owidTypes"
 
 export interface PageOverrides {
     pageTitle?: string

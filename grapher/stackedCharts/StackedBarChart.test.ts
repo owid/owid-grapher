@@ -4,10 +4,10 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { ChartManager } from "grapher/chart/ChartManager"
-import { SelectionArray } from "grapher/selection/SelectionArray"
-import { isNumber } from "clientUtils/Util"
+} from "../coreTable/OwidTableSynthesizers"
+import { ChartManager } from "../grapher/chart/ChartManager"
+import { SelectionArray } from "../grapher/selection/SelectionArray"
+import { isNumber } from "../clientUtils/Util"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {

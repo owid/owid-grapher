@@ -6,7 +6,7 @@ import {
     DB_PASS,
     DB_HOST,
     DB_PORT,
-} from "settings/serverSettings"
+} from "../settings/serverSettings"
 
 const dbConfig = {
     client: "mysql",

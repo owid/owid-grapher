@@ -1,12 +1,12 @@
-import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-import { Bounds } from "clientUtils/Bounds"
-import { PointVector } from "clientUtils/PointVector"
+import { ColorScaleBin } from "../grapher/color/ColorScaleBin"
+import { Bounds } from "../clientUtils/Bounds"
+import { PointVector } from "../clientUtils/PointVector"
 import { MapProjectionName } from "./MapProjections"
-import { ChartManager } from "grapher/chart/ChartManager"
+import { ChartManager } from "../grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
-import { Color, ColumnSlug, Time } from "coreTable/CoreTableConstants"
-import { ChartTypeName, SeriesName } from "grapher/core/GrapherConstants"
-import { ChartSeries } from "grapher/chart/ChartInterface"
+import { Color, ColumnSlug, Time } from "../coreTable/CoreTableConstants"
+import { ChartTypeName, SeriesName } from "../grapher/core/GrapherConstants"
+import { ChartSeries } from "../grapher/chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin

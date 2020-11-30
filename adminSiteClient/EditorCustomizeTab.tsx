@@ -2,8 +2,8 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
-import { Grapher } from "grapher/core/Grapher"
-import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
+import { Grapher } from "../grapher/core/Grapher"
+import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine"
 import {
     NumberField,
     Toggle,
@@ -14,14 +14,14 @@ import {
     TextField,
     Button,
 } from "./Forms"
-import { debounce } from "clientUtils/Util"
+import { debounce } from "../clientUtils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { TimeBoundValue } from "clientUtils/TimeBounds"
+import { ColorSchemeName } from "../grapher/color/ColorConstants"
+import { TimeBoundValue } from "../clientUtils/TimeBounds"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {

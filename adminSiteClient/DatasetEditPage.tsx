@@ -14,21 +14,21 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { LegacyVariableDisplayConfig } from "grapher/core/LegacyVariableCode"
-import { OwidSource } from "coreTable/OwidSource"
+import { LegacyVariableDisplayConfig } from "../grapher/core/LegacyVariableCode"
+import { OwidSource } from "../coreTable/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
-import { Grapher } from "grapher/core/Grapher"
-import { GrapherFigureView } from "site/GrapherFigureView"
+import { Grapher } from "../grapher/core/Grapher"
+import { GrapherFigureView } from "../site/GrapherFigureView"
 import {
     EntitySelectionMode,
     ChartTypeName,
     GrapherTabOption,
     WorldEntityName,
-} from "grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -37,9 +37,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { LegacyVariableDisplayConfigInterface } from "clientUtils/LegacyVariableDisplayConfigInterface"
-import { EPOCH_DATE } from "clientUtils/owidTypes"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 class VariableEditable {
     @observable name: string = ""

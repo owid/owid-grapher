@@ -6,10 +6,10 @@ import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
-import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { SearchField, FieldsRow } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { WORDPRESS_URL } from "settings/clientSettings"
+import { WORDPRESS_URL } from "../settings/clientSettings"
 import { Tag } from "./TagBadge"
 
 interface PostIndexMeta {

@@ -1,5 +1,5 @@
-import { Color } from "coreTable/CoreTableConstants"
-import { ChartSeries } from "grapher/chart/ChartInterface"
+import { Color } from "../coreTable/CoreTableConstants"
+import { ChartSeries } from "../grapher/chart/ChartInterface"
 
 export interface StackedPoint {
     x: number

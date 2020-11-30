@@ -12,8 +12,8 @@ import {
     dateDiffInDays,
     isNumber,
     omitUndefinedValues,
-} from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
+} from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
 import { CoreTable } from "./CoreTable"
 import {
     CoreRow,
@@ -29,7 +29,7 @@ import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "./OwidSource"
-import { formatValue, TickFormattingOptions } from "clientUtils/formatValue"
+import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
 
 interface ColumnSummary {
     numErrorValues: number

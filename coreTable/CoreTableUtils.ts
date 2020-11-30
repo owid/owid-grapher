@@ -7,7 +7,7 @@ import {
     sampleFrom,
     slugifySameCase,
     toString,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import {
     CoreColumnStore,
     CoreRow,

@@ -1,30 +1,30 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
     FacetStrategy,
     SeriesStrategy,
-} from "grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "grapher/chart/ChartTypeMap"
-import { ChartManager } from "grapher/chart/ChartManager"
-import { makeGrid } from "clientUtils/Util"
-import { ChartInterface } from "grapher/chart/ChartInterface"
+} from "../grapher/chart/ChartTypeMap"
+import { ChartManager } from "../grapher/chart/ChartManager"
+import { makeGrid } from "../clientUtils/Util"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
 import { getChartPadding, getFontSize } from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
 } from "./FacetChartConstants"
-import { OwidTable } from "coreTable/OwidTable"
+import { OwidTable } from "../coreTable/OwidTable"
 import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
+} from "../grapher/chart/ChartUtils"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 

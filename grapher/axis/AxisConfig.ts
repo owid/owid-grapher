@@ -1,13 +1,13 @@
-import { BASE_FONT_SIZE, ScaleType } from "grapher/core/GrapherConstants"
-import { extend, trimObject } from "clientUtils/Util"
+import { BASE_FONT_SIZE, ScaleType } from "../grapher/core/GrapherConstants"
+import { extend, trimObject } from "../clientUtils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
-} from "grapher/persistable/Persistable"
+} from "../grapher/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
-import { ScaleSelectorManager } from "grapher/controls/ScaleSelector"
+import { ScaleSelectorManager } from "../grapher/controls/ScaleSelector"
 
 export interface FontSizeManager {
     fontSize: number

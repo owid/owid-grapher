@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CommandPalette, Command } from "grapher/controls/CommandPalette"
+import { CommandPalette, Command } from "../grapher/controls/CommandPalette"
 
 export default {
     title: "CommandPalette",

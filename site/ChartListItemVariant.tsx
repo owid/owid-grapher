@@ -1,5 +1,5 @@
 import * as React from "react"
-import { RelatedChart } from "clientUtils/owidTypes"
+import { RelatedChart } from "../clientUtils/owidTypes"
 
 export const ChartListItemVariant = ({ chart }: { chart: RelatedChart }) => {
     return (

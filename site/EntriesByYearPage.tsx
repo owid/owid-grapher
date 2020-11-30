@@ -3,9 +3,9 @@ import moment from "moment"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { TableOfContents } from "site/TableOfContents"
-import { groupBy } from "clientUtils/Util"
-import { PostRow } from "clientUtils/owidTypes"
+import { TableOfContents } from "../site/TableOfContents"
+import { groupBy } from "../clientUtils/Util"
+import { PostRow } from "../clientUtils/owidTypes"
 
 type Entry = Pick<PostRow, "title" | "slug" | "published_at">
 

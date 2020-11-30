@@ -9,10 +9,10 @@ import { Tag } from "./TagBadge"
 import { bind } from "decko"
 import { EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { BAKED_GRAPHER_URL } from "settings/clientSettings"
-import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { startCase } from "clientUtils/Util"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
+import { ChartTypeName } from "../grapher/core/GrapherConstants"
+import { startCase } from "../clientUtils/Util"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {

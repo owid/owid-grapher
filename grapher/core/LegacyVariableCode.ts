@@ -6,15 +6,15 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-} from "grapher/persistable/Persistable"
-import { ColumnSlug, Integer, Time } from "coreTable/CoreTableConstants"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
-import { OwidSource } from "coreTable/OwidSource"
+} from "../grapher/persistable/Persistable"
+import { ColumnSlug, Integer, Time } from "../coreTable/CoreTableConstants"
+import { DimensionProperty } from "../grapher/core/GrapherConstants"
+import { OwidSource } from "../coreTable/OwidSource"
 import {
     LegacyVariableDataTableConfigInteface,
     LegacyVariableDisplayConfigInterface,
-} from "clientUtils/LegacyVariableDisplayConfigInterface"
-import { LegacyVariableId } from "clientUtils/owidTypes"
+} from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { LegacyVariableId } from "../clientUtils/owidTypes"
 
 export interface LegacyChartDimensionInterface {
     property: DimensionProperty

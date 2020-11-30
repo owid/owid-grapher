@@ -1,5 +1,5 @@
 import * as React from "react"
-import { webpackUrl } from "site/webpackUtils"
+import { webpackUrl } from "../site/webpackUtils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 

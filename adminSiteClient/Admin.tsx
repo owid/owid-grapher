@@ -5,8 +5,8 @@ import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp"
-import { Json } from "clientUtils/Util"
-import { queryParamsToStr } from "clientUtils/url"
+import { Json } from "../clientUtils/Util"
+import { queryParamsToStr } from "../clientUtils/url"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
 

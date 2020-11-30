@@ -1,8 +1,8 @@
 #! /usr/bin/env jest
 
-import { HorizontalAxis } from "grapher/axis/Axis"
-import { ScaleType } from "grapher/core/GrapherConstants"
-import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
+import { HorizontalAxis } from "../grapher/axis/Axis"
+import { ScaleType } from "../grapher/core/GrapherConstants"
+import { SynthesizeGDPTable } from "../coreTable/OwidTableSynthesizers"
 import { AxisConfig } from "./AxisConfig"
 
 it("can create an axis", () => {

@@ -15,18 +15,18 @@ import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import {
     LegacyVariableConfig,
     LegacyVariableDisplayConfig,
-} from "grapher/core/LegacyVariableCode"
-import { Grapher } from "grapher/core/Grapher"
-import { GrapherFigureView } from "site/GrapherFigureView"
+} from "../grapher/core/LegacyVariableCode"
+import { Grapher } from "../grapher/core/Grapher"
+import { GrapherFigureView } from "../site/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import {
     DimensionProperty,
     GrapherTabOption,
-} from "grapher/core/GrapherConstants"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { EPOCH_DATE } from "clientUtils/owidTypes"
+} from "../grapher/core/GrapherConstants"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
     datasetNamespace: string

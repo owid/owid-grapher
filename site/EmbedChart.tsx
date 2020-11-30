@@ -7,10 +7,10 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
-import { splitURLintoPathAndQueryString } from "clientUtils/url"
-import { deserializeJSONFromHTML } from "clientUtils/serializers"
+import { splitURLintoPathAndQueryString } from "../clientUtils/url"
+import { deserializeJSONFromHTML } from "../clientUtils/serializers"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

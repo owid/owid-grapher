@@ -16,18 +16,18 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
-import { NoDataModal } from "grapher/noDataModal/NoDataModal"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
+import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
-} from "grapher/core/GrapherConstants"
-import { Color } from "coreTable/CoreTableConstants"
+} from "../grapher/core/GrapherConstants"
+import { Color } from "../coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -35,14 +35,14 @@ import {
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "grapher/verticalColorLegend/VerticalColorLegend"
-import { DualAxisComponent } from "grapher/axis/AxisViews"
-import { DualAxis } from "grapher/axis/Axis"
+} from "../grapher/verticalColorLegend/VerticalColorLegend"
+import { DualAxisComponent } from "../grapher/axis/AxisViews"
+import { DualAxis } from "../grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 
-import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ChartInterface } from "grapher/chart/ChartInterface"
+import { ColorScale, ColorScaleManager } from "../grapher/color/ColorScale"
+import { AxisConfig } from "../grapher/axis/AxisConfig"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
 import {
     ScatterPlotManager,
     ScatterSeries,
@@ -54,14 +54,14 @@ import {
     EntityName,
     OwidRow,
     OwidTableSlugs,
-} from "coreTable/OwidTableConstants"
-import { OwidTable } from "coreTable/OwidTable"
+} from "../coreTable/OwidTableConstants"
+import { OwidTable } from "../coreTable/OwidTable"
 import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
-import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { defaultIfErrorValue, isNotErrorValue } from "coreTable/ErrorValues"
+} from "../grapher/chart/ChartUtils"
+import { ColorSchemeName } from "../grapher/color/ColorConstants"
+import { defaultIfErrorValue, isNotErrorValue } from "../coreTable/ErrorValues"
 
 @observer
 export class ScatterPlotChart

@@ -10,7 +10,7 @@ import {
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import classnames from "classnames"
-import { flatten } from "clientUtils/Util"
+import { flatten } from "../clientUtils/Util"
 import { bind } from "decko"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -24,7 +24,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription"
-import { CategoryWithEntries, EntryMeta } from "clientUtils/owidTypes"
+import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes"
 
 @observer
 class Header extends React.Component<{

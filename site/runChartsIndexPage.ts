@@ -1,7 +1,7 @@
 import fuzzysort from "fuzzysort"
-import { keyBy } from "clientUtils/Util"
+import { keyBy } from "../clientUtils/Util"
 import { observable, computed, action, autorun } from "mobx"
-import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { SiteAnalytics } from "./SiteAnalytics"
 interface ChartItem {
     title: string

@@ -1,15 +1,15 @@
 import * as React from "react"
-import { LineChart } from "grapher/lineCharts/LineChart"
+import { LineChart } from "../grapher/lineCharts/LineChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { ScaleType } from "grapher/core/GrapherConstants"
-import { Bounds } from "clientUtils/Bounds"
-import { makeAnnotationsSlug } from "clientUtils/Util"
-import { OwidTableSlugs } from "coreTable/OwidTableConstants"
+} from "../coreTable/OwidTableSynthesizers"
+import { ScaleType } from "../grapher/core/GrapherConstants"
+import { Bounds } from "../clientUtils/Bounds"
+import { makeAnnotationsSlug } from "../clientUtils/Util"
+import { OwidTableSlugs } from "../coreTable/OwidTableConstants"
 
 export default {
     title: "LineChart",

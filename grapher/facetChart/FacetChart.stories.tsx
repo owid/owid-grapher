@@ -4,9 +4,9 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { Bounds } from "clientUtils/Bounds"
-import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
+} from "../coreTable/OwidTableSynthesizers"
+import { Bounds } from "../clientUtils/Bounds"
+import { ChartTypeName, FacetStrategy } from "../grapher/core/GrapherConstants"
 import { Meta } from "@storybook/react"
 
 // See https://storybook.js.org/docs/react/essentials/controls for Control Types

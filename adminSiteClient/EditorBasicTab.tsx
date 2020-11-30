@@ -1,19 +1,19 @@
 import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
-import { sample, sampleSize, startCase } from "clientUtils/Util"
+import { sample, sampleSize, startCase } from "../clientUtils/Util"
 import {
     EntitySelectionMode,
     ChartTypeName,
     DimensionProperty,
     WorldEntityName,
-} from "grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
-import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { LegacyVariableId } from "clientUtils/owidTypes"
+import { DimensionSlot } from "../grapher/chart/DimensionSlot"
+import { LegacyVariableId } from "../clientUtils/owidTypes"
 
 @observer
 class DimensionSlotView extends React.Component<{

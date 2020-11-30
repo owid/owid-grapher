@@ -1,8 +1,8 @@
 // todo: remove
 
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher } from "../grapher/core/Grapher"
 import { computed } from "mobx"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { DimensionProperty } from "../grapher/core/GrapherConstants"
 
 export class DimensionSlot {
     private grapher: Grapher

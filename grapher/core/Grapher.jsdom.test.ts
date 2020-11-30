@@ -1,5 +1,5 @@
 #! /usr/bin/env jest
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher } from "../grapher/core/Grapher"
 import {
     ChartTypeName,
     DimensionProperty,
@@ -11,13 +11,13 @@ import {
     GrapherInterface,
     LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
-} from "grapher/core/GrapherInterface"
-import { TimeBoundValue, TimeBound, TimeBounds } from "clientUtils/TimeBounds"
+} from "../grapher/core/GrapherInterface"
+import { TimeBoundValue, TimeBound, TimeBounds } from "../clientUtils/TimeBounds"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { orderBy } from "clientUtils/Util"
+} from "../coreTable/OwidTableSynthesizers"
+import { orderBy } from "../clientUtils/Util"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })

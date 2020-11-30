@@ -1,12 +1,12 @@
 import * as React from "react"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     MapCategoricalColorLegend,
     MapLegendManager,
     MapNumericColorLegend,
-} from "grapher/mapCharts/MapColorLegends"
+} from "../grapher/mapCharts/MapColorLegends"
 import {
     flatten,
     getRelativeMouse,
@@ -17,15 +17,15 @@ import {
     minBy,
     difference,
     exposeInstanceOnWindow,
-} from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
+} from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
-import { EntityName } from "coreTable/OwidTableConstants"
+import { EntityName } from "../coreTable/OwidTableConstants"
 import {
     GeoFeature,
     MapBracket,
@@ -36,33 +36,33 @@ import {
     ChoroplethSeries,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleManager } from "../grapher/color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GrapherTabOption,
     SeriesName,
-} from "grapher/core/GrapherConstants"
-import { ChartInterface } from "grapher/chart/ChartInterface"
+} from "../grapher/core/GrapherConstants"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "grapher/color/ColorScaleBin"
+} from "../grapher/color/ColorScaleBin"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
-import { PointVector } from "clientUtils/PointVector"
+import { PointVector } from "../clientUtils/PointVector"
 import {
     WorldRegionName,
     WorldRegionToProjection,
 } from "./WorldRegionsToProjection"
-import { OwidTable } from "coreTable/OwidTable"
-import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { OwidTable } from "../coreTable/OwidTable"
+import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
-import { NoDataModal } from "grapher/noDataModal/NoDataModal"
+} from "../grapher/chart/ChartUtils"
+import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Footer } from "grapher/footer/Footer"
+import { Footer } from "../grapher/footer/Footer"
 import { FooterManager } from "./FooterManager"
 
 export default {

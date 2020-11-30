@@ -8,18 +8,18 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import { debounce, orderBy } from "clientUtils/Util"
-import { ExplorerProgram } from "explorer/ExplorerProgram"
-import { SerializedGridProgram } from "clientUtils/owidTypes"
+import { debounce, orderBy } from "../clientUtils/Util"
+import { ExplorerProgram } from "../explorer/ExplorerProgram"
+import { SerializedGridProgram } from "../clientUtils/owidTypes"
 import {
     deleteRemoteFile,
     pullFromGithub,
     writeRemoteFile,
-} from "gitCms/GitCmsClient"
+} from "../gitCms/GitCmsClient"
 import {
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
-} from "gitCms/GitCmsConstants"
+} from "../gitCms/GitCmsConstants"
 import moment from "moment"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
@@ -29,8 +29,8 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     DefaultNewExplorerSlug,
     UNSAVED_EXPLORER_DRAFT,
-} from "explorer/ExplorerConstants"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+} from "../explorer/ExplorerConstants"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { AdminManager } from "./AdminManager"
 
 const BAKED_BASE_URL = `https://ourworldindata.org/`

@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { PUBLIC_TAG_PARENT_IDS } from "settings/clientSettings"
+import { PUBLIC_TAG_PARENT_IDS } from "../settings/clientSettings"
 
 export class ChartsIsIndexable1551312762103 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {

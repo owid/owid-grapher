@@ -1,15 +1,15 @@
 #! /usr/bin/env yarn tsn
 
 import * as fs from "fs"
-import * as db from "db/db"
-import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { mapToObjectLiteral } from "clientUtils/Util"
-import { isPresent } from "clientUtils/isPresent"
-import { getPublishedGraphersBySlug } from "baker/GrapherImageBaker"
-import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
-import { CoreTable } from "coreTable/CoreTable"
+import * as db from "../db/db"
+import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { mapToObjectLiteral } from "../clientUtils/Util"
+import { isPresent } from "../clientUtils/isPresent"
+import { getPublishedGraphersBySlug } from "../baker/GrapherImageBaker"
+import { LegacyGrapherInterface } from "../grapher/core/GrapherInterface"
+import { CoreTable } from "../coreTable/CoreTable"
 import parseArgs from "minimist"
-import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "../grapher/core/GrapherConstants"
 
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"

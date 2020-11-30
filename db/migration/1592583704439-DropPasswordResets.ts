@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { query } from "db/db"
+import { query } from "../db/db"
 
 export class DropPasswordResets1592583704439 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {

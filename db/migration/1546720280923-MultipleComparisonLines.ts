@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { Chart } from "db/model/Chart"
+import { Chart } from "../db/model/Chart"
 
 export class MultipleComparisonLines1546720280923
     implements MigrationInterface {

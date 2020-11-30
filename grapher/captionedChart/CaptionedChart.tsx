@@ -1,25 +1,25 @@
 import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
-import { Header } from "grapher/header/Header"
-import { Footer } from "grapher/footer/Footer"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
+import { Header } from "../grapher/header/Header"
+import { Footer } from "../grapher/footer/Footer"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "grapher/chart/ChartTypeMap"
+} from "../grapher/chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
     GrapherTabOption,
-} from "grapher/core/GrapherConstants"
-import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
-import { ChartManager } from "grapher/chart/ChartManager"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { FacetChart } from "grapher/facetChart/FacetChart"
+} from "../grapher/core/GrapherConstants"
+import { MapChartManager } from "../grapher/mapCharts/MapChartConstants"
+import { ChartManager } from "../grapher/chart/ChartManager"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
+import { FacetChart } from "../grapher/facetChart/FacetChart"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CollapsibleList } from "grapher/controls/CollapsibleList/CollapsibleList"
+import { CollapsibleList } from "../grapher/controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
     AbsRelToggle,
@@ -28,13 +28,13 @@ import {
     SmallCountriesFilterManager,
     AbsRelToggleManager,
     HighlightToggleManager,
-} from "grapher/controls/Controls"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
-import { AddEntityButton } from "grapher/controls/AddEntityButton"
+} from "../grapher/controls/Controls"
+import { ScaleSelector } from "../grapher/controls/ScaleSelector"
+import { AddEntityButton } from "../grapher/controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { FooterManager } from "grapher/footer/FooterManager"
-import { HeaderManager } from "grapher/header/HeaderManager"
-import { exposeInstanceOnWindow } from "clientUtils/Util"
+import { FooterManager } from "../grapher/footer/FooterManager"
+import { HeaderManager } from "../grapher/header/HeaderManager"
+import { exposeInstanceOnWindow } from "../clientUtils/Util"
 
 export interface CaptionedChartManager
     extends ChartManager,

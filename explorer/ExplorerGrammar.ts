@@ -1,4 +1,4 @@
-import { SubNavId } from "clientUtils/owidTypes"
+import { SubNavId } from "../clientUtils/owidTypes"
 import {
     CellDef,
     BooleanCellDef,
@@ -11,7 +11,7 @@ import {
     Grammar,
     EnumCellDef,
     StringDeclarationDef,
-} from "gridLang/GridLangConstants"
+} from "../gridLang/GridLangConstants"
 import { OwidDatasets } from "./OwidDatasets"
 import { GrapherGrammar } from "./GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"

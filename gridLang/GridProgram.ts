@@ -1,6 +1,6 @@
-import { imemo, trimMatrix } from "coreTable/CoreTableUtils"
-import { isPresent } from "clientUtils/isPresent"
-import { GitCommit, SerializedGridProgram } from "clientUtils/owidTypes"
+import { imemo, trimMatrix } from "../coreTable/CoreTableUtils"
+import { isPresent } from "../clientUtils/isPresent"
+import { GitCommit, SerializedGridProgram } from "../clientUtils/owidTypes"
 
 import { GridCell } from "./GridCell"
 import {

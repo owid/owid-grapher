@@ -1,10 +1,10 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { ScaleType } from "../grapher/core/GrapherConstants"
 
 @observer
 export class VerticalAxisGridLines extends React.Component<{

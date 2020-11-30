@@ -7,11 +7,11 @@ import {
     OneToMany,
 } from "typeorm"
 import * as lodash from "lodash"
-import * as db from "db/db"
+import * as db from "../db/db"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"
-import { PUBLIC_TAG_PARENT_IDS } from "settings/clientSettings"
+import { PUBLIC_TAG_PARENT_IDS } from "../settings/clientSettings"
 
 @Entity("charts")
 export class Chart extends BaseEntity {

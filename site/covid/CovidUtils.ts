@@ -1,7 +1,7 @@
-import { maxBy, dateDiffInDays } from "clientUtils/Util"
+import { maxBy, dateDiffInDays } from "../clientUtils/Util"
 import { utcFormat } from "d3-time-format"
-import { SortOrder } from "coreTable/CoreTableConstants"
-import { TickFormattingOptions, formatValue } from "clientUtils/formatValue"
+import { SortOrder } from "../coreTable/CoreTableConstants"
+import { TickFormattingOptions, formatValue } from "../clientUtils/formatValue"
 import {
     CovidSeries,
     CovidDatum,

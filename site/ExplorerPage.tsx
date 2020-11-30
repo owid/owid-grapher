@@ -1,20 +1,20 @@
 import React from "react"
-import { Head } from "site/Head"
-import { SiteHeader } from "site/SiteHeader"
-import { SiteFooter } from "site/SiteFooter"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { IFrameDetector } from "site/IframeDetector"
-import { SiteSubnavigation } from "site/SiteSubnavigation"
-import { formatReusableBlock } from "site/formatting"
+import { Head } from "../site/Head"
+import { SiteHeader } from "../site/SiteHeader"
+import { SiteFooter } from "../site/SiteFooter"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
+import { IFrameDetector } from "../site/IframeDetector"
+import { SiteSubnavigation } from "../site/SiteSubnavigation"
+import { formatReusableBlock } from "../site/formatting"
 import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,
     ExplorerContainerId,
-} from "explorer/ExplorerConstants"
-import { ExplorerProgram } from "explorer/ExplorerProgram"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { serializeJSONForHTML } from "clientUtils/serializers"
-import { GRAPHER_PAGE_BODY_CLASS } from "grapher/core/GrapherConstants"
+} from "../explorer/ExplorerConstants"
+import { ExplorerProgram } from "../explorer/ExplorerProgram"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { serializeJSONForHTML } from "../clientUtils/serializers"
+import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram

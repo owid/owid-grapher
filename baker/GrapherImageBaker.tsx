@@ -1,7 +1,7 @@
 import * as lodash from "lodash"
 import parseUrl from "url-parse"
-import * as db from "db/db"
-import { getVariableData } from "db/model/Variable"
+import * as db from "../db/db"
+import { getVariableData } from "../db/model/Variable"
 import * as fs from "fs-extra"
 import svgo from "svgo"
 import md5 from "md5"
@@ -12,8 +12,8 @@ import * as path from "path"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { Grapher } from "grapher/core/Grapher"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { Grapher } from "../grapher/core/Grapher"
 
 export async function bakeGraphersToPngs(
     outDir: string,

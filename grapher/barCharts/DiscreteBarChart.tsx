@@ -9,33 +9,33 @@ import {
     uniq,
     first,
     excludeUndefined,
-} from "clientUtils/Util"
+} from "../clientUtils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
-} from "grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "grapher/axis/AxisViews"
-import { NoDataModal } from "grapher/noDataModal/NoDataModal"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ColorSchemes } from "grapher/color/ColorSchemes"
-import { ChartInterface } from "grapher/chart/ChartInterface"
+} from "../grapher/axis/AxisViews"
+import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
+import { AxisConfig } from "../grapher/axis/AxisConfig"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { ChartInterface } from "../grapher/chart/ChartInterface"
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
-import { OwidTable } from "coreTable/OwidTable"
+import { OwidTable } from "../coreTable/OwidTable"
 import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "grapher/chart/ChartUtils"
+} from "../grapher/chart/ChartUtils"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5

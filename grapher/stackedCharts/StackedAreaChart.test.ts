@@ -6,14 +6,14 @@ import {
     SynthesizeFruitTable,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
-import { ChartManager } from "grapher/chart/ChartManager"
+} from "../coreTable/OwidTableSynthesizers"
+import { ChartManager } from "../grapher/chart/ChartManager"
 import { observable } from "mobx"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { SelectionArray } from "grapher/selection/SelectionArray"
-import { OwidTable } from "coreTable/OwidTable"
-import { ColumnTypeNames } from "coreTable/CoreColumnDef"
-import { isNumber } from "clientUtils/Util"
+import { AxisConfig } from "../grapher/axis/AxisConfig"
+import { SelectionArray } from "../grapher/selection/SelectionArray"
+import { OwidTable } from "../coreTable/OwidTable"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
+import { isNumber } from "../clientUtils/Util"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

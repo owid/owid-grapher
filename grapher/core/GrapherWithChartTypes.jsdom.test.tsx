@@ -3,10 +3,10 @@
 import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
-} from "coreTable/OwidTableSynthesizers"
-import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
-import { MapChart } from "grapher/mapCharts/MapChart"
-import { legacyMapGrapher } from "grapher/mapCharts/MapChart.sample"
+} from "../coreTable/OwidTableSynthesizers"
+import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { MapChart } from "../grapher/mapCharts/MapChart"
+import { legacyMapGrapher } from "../grapher/mapCharts/MapChart.sample"
 import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
 
 describe("grapher and map charts", () => {

@@ -1,8 +1,8 @@
 import * as React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
-import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
+import { SynthesizeGDPTable } from "../coreTable/OwidTableSynthesizers"
 import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
-import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "../grapher/core/GrapherConstants"
 
 export default {
     title: "DataTable",
