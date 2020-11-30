@@ -37,7 +37,7 @@ import * as React from "react"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "site/countryProfiles"
 import { countries } from "clientUtils/countries"
-import { exec } from "adminSiteServer/serverUtil"
+import { execWrapper } from "db/execWrapper"
 import { log } from "adminSiteServer/log"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
@@ -293,13 +293,13 @@ export class SiteBaker {
 
     // Bake the static assets
     private async bakeAssets() {
-        await exec(
+        await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
-        await exec(
+        await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/webpack ${this.bakedSiteDir}/assets`
         )
-        await exec(
+        await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
 
@@ -400,7 +400,7 @@ export class SiteBaker {
     private async execAndLogAnyErrorsToSlack(cmd: string) {
         console.log(cmd)
         try {
-            return await exec(cmd)
+            return await execWrapper(cmd)
         } catch (error) {
             // Log error to Slack, but do not throw error
             return log.error(error)
@@ -441,7 +441,7 @@ export class SiteBaker {
         // Target root level HTML files only (entries and posts) for performance
         // reasons.
         // TODO: check again --only-changed
-        // await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
+        // await this.execWrapper(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg)
             await this.execAndLogAnyErrorsToSlack(

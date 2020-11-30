@@ -16,7 +16,6 @@ import fetch from "node-fetch"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "clientUtils/owidTypes"
-import { JsonError } from "adminSiteServer/serverUtil"
 
 class WPDB {
     conn?: DatabaseConnection

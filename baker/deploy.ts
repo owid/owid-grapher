@@ -6,7 +6,7 @@ import * as path from "path"
 import parseArgs from "minimist"
 import * as prompts from "prompts"
 import ProgressBar = require("progress")
-import { exec } from "adminSiteServer/serverUtil"
+import { execWrapper } from "db/execWrapper"
 import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"
 import { WriteStream } from "tty"
@@ -42,12 +42,12 @@ const runPreDeployChecksRemotely = async (
     SYNC_TARGET_TESTS: string
 ) => {
     const RSYNC_TESTS = `rsync -havz --no-perms --progress --delete --include=/test --include=*.test.ts --include=*.test.tsx --exclude-from=${dir}/.rsync-ignore`
-    await exec(`${RSYNC_TESTS} ${dir} ${HOST}:${SYNC_TARGET_TESTS}`)
+    await execWrapper(`${RSYNC_TESTS} ${dir} ${HOST}:${SYNC_TARGET_TESTS}`)
 
     const script = `cd ${SYNC_TARGET_TESTS}
 yarn install --production=false --frozen-lockfile
 yarn testcheck`
-    return await exec(`ssh -t ${HOST} 'bash -e -s' ${script}`)
+    return await execWrapper(`ssh -t ${HOST} 'bash -e -s' ${script}`)
 }
 
 const LIVE_NAME = "live"
@@ -59,7 +59,7 @@ const printAndExit = (message: string) => {
 }
 
 const runAndTick = async (command: string, progressBar: ProgressBar) => {
-    await exec(command)
+    await execWrapper(command)
     progressBar.tick({ name: `✅  finished ${command}` })
 }
 
@@ -241,7 +241,7 @@ yarn tsn baker/bakeSite.ts`,
 }
 
 const ensureTmpDirExistsOnServer = async (HOST: string, ROOT_TMP: string) => {
-    await exec(`ssh ${HOST} mkdir -p ${ROOT_TMP}`)
+    await execWrapper(`ssh ${HOST} mkdir -p ${ROOT_TMP}`)
 }
 
 const copyLocalRepoToServerTmpDirectory = async (
@@ -250,7 +250,7 @@ const copyLocalRepoToServerTmpDirectory = async (
     SYNC_TARGET: string
 ) => {
     const RSYNC = `rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=${DIR}/.rsync-ignore`
-    return await exec(`${RSYNC} ${DIR}/ ${HOST}:${SYNC_TARGET}`)
+    return await execWrapper(`${RSYNC} ${DIR}/ ${HOST}:${SYNC_TARGET}`)
 }
 
 const runAndStreamScriptOnRemoteServerViaSSH = async (

@@ -3,7 +3,7 @@ import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
 import * as timeago from "timeago.js"
-import { exec } from "adminSiteServer/serverUtil"
+import { execWrapper } from "db/execWrapper"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.
@@ -120,14 +120,14 @@ if (args._[0]) {
     fetchCommitSha(server)
         .then(async (headSha) => {
             if (showTree)
-                await exec(
+                await execWrapper(
                     `git log -10 --graph --oneline --decorate --color=always ${headSha}`
                 )
 
             if (showTree && showCommit) console.log()
 
             if (showCommit)
-                await exec(`git show --stat --color=always ${headSha}`)
+                await execWrapper(`git show --stat --color=always ${headSha}`)
 
             if (openInBrowser)
                 opener(`https://github.com/owid/owid-grapher/commit/${headSha}`)

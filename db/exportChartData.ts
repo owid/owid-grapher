@@ -1,11 +1,11 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as db from "db/db"
+import * as db from "./db"
 import * as lodash from "lodash"
 import parseArgs from "minimist"
 
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
-import { exec } from "adminSiteServer/serverUtil"
+import { execWrapper } from "./execWrapper"
 
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
@@ -26,7 +26,7 @@ const dataExport = async () => {
         `Exporting data for ${variableIds.length} variables to ${filePath}`
     )
 
-    await exec(`rm -f ${filePath}`)
+    await execWrapper(`rm -f ${filePath}`)
 
     // Expose password to mysqldump
     // Safer than passing as an argument because it's not shown in 'ps aux'
@@ -34,7 +34,7 @@ const dataExport = async () => {
 
     let count = 0
     for (const chunk of lodash.chunk(variableIds, 100)) {
-        await exec(
+        await execWrapper(
             `mysqldump --default-character-set=utf8mb4 --no-tablespaces --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
                 ","
             )})" >> ${filePath}`

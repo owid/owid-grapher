@@ -1,10 +1,10 @@
 #! /usr/bin/env jest
 
-import { ExecError, exec } from "./serverUtil"
+import { ExecError, execWrapper } from "./execWrapper"
 
-describe("exec()", () => {
+describe("execWrapper()", () => {
     it("should resolve when there is a zero exit code", async () => {
-        const result = await exec(`echo "it works"; exit 0`, {
+        const result = await execWrapper(`echo "it works"; exit 0`, {
             silent: true,
         })
         expect(result).toEqual({
@@ -16,7 +16,7 @@ describe("exec()", () => {
 
     it("should reject when there is a non-zero exit code", async () => {
         try {
-            await exec(`echo "begin"; echo "fail" 1>&2; exit 1`, {
+            await execWrapper(`echo "begin"; echo "fail" 1>&2; exit 1`, {
                 silent: true,
             })
         } catch (err) {
