@@ -1,5 +1,4 @@
-import { FunctionalRouter } from "adminSiteServer/FunctionalRouter"
-import { Request, Response } from "adminSiteServer/authentication"
+import { Router, Request, Response } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
@@ -29,6 +28,11 @@ const isFolderOnStagingBranch = async (git: SimpleGit) => {
     const branches = await git.branchLocal()
     const gitCmsBranchName = await branches.current
     return gitCmsBranchName === "staging"
+}
+
+// todo: cleanup typings
+interface ResponseWithUserInfo extends Response {
+    locals: { user: any; session: any }
 }
 
 // Push if on owid.cloud or staging. Do not push if on a differen branch (so you can set your local dev branch to something else to not push changes automatically)
@@ -85,7 +89,7 @@ const deleteFileFromGitContentDirectory = async (
     )
 }
 
-export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
+export const addGitCmsApiRoutes = (app: Router) => {
     const git = simpleGit({
         baseDir: GIT_CMS_DIR,
         binary: "git",
@@ -95,7 +99,10 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
     // Update/create file, commit, and push(unless on local dev brach)
     app.post(
         GIT_CMS_FILE_ROUTE,
-        async (req: Request, res: Response): Promise<GitCmsResponse> => {
+        async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ): Promise<GitCmsResponse> => {
             const request = req.body as WriteRequest
             const filename = request.filepath
             if (filename.includes(".."))
@@ -186,7 +193,10 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
     // Delete file, commit, and and push(unless on local dev brach)
     app.delete(
         GIT_CMS_FILE_ROUTE,
-        async (req: Request, res: Response): Promise<GitCmsResponse> => {
+        async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ): Promise<GitCmsResponse> => {
             const request = req.query as DeleteRequest
             const filepath = request.filepath.replace(/\~/g, "/")
             if (filepath.includes(".."))
