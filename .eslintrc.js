@@ -39,12 +39,6 @@ module.exports = {
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/restrict-plus-operands": "warn",
-        "no-restricted-imports": [
-            "warn",
-            {
-                patterns: ["../*"],
-            },
-        ],
         "no-console": ["warn", { allow: ["warn", "error"] }],
         "no-var": "off",
         "prefer-const": ["warn", { destructuring: "all" }],
