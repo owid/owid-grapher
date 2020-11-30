@@ -92,7 +92,7 @@ class ProminentLink extends React.Component<{
     }
 }
 
-export const renderProminentLink = () => {
+export const renderProminentLink = () =>
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
         .forEach((el) => {
@@ -110,4 +110,3 @@ export const renderProminentLink = () => {
 
             ReactDOM.render(rendered, el)
         })
-}

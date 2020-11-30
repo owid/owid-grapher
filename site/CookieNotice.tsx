@@ -3,10 +3,7 @@ import { useEffect, useState } from "react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
-import {
-    Action,
-    getTodayDate,
-} from "./CookiePreferencesManager/CookiePreferencesManager"
+import { Action, getTodayDate } from "./CookiePreferencesManager"
 
 export const CookieNotice = ({
     accepted,
