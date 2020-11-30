@@ -5,11 +5,11 @@
 // will slowly diverge. This is not such a big issue as posts are uncategorized and entries do not change that often. That being said,
 // I think we should still keep it around while this architecture is being used.
 
-import * as wpdb from "db/wpdb"
-import * as db from "db/db"
-import { Post } from "db/model/Post"
+import * as wpdb from "./wpdb"
+import * as db from "./db"
+import { Post } from "./model/Post"
 import { decodeHTML } from "entities"
-import { Tag } from "db/model/Tag"
+import { Tag } from "./model/Tag"
 import * as lodash from "lodash"
 
 async function main() {

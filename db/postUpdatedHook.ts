@@ -1,10 +1,10 @@
 // This is used by owid-wordpress
 
-import { syncPostToGrapher } from "db/model/Post"
+import { syncPostToGrapher } from "./model/Post"
 import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "serverSettings"
 import { enqueueChange } from "baker/queue"
-import { exit } from "db/cleanup"
+import { exit } from "./cleanup"
 const argv = parseArgs(process.argv.slice(2))
 
 async function main(
