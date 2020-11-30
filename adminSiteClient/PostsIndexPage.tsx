@@ -9,7 +9,7 @@ import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow, EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { WORDPRESS_URL } from "settings"
+import { WORDPRESS_URL } from "settings/clientSettings"
 import { Tag } from "./TagBadge"
 
 interface PostIndexMeta {

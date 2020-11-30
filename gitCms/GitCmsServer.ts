@@ -1,6 +1,10 @@
 import { FunctionalRouter } from "adminSiteServer/FunctionalRouter"
 import { Request, Response } from "adminSiteServer/authentication"
-import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, ENV } from "settings"
+import {
+    GIT_DEFAULT_USERNAME,
+    GIT_DEFAULT_EMAIL,
+    ENV,
+} from "settings/clientSettings"
 import simpleGit, { SimpleGit } from "simple-git"
 import * as fs from "fs-extra"
 import {

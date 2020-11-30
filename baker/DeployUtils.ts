@@ -11,7 +11,7 @@ import {
 } from "./queue"
 import { DeployChange } from "./types"
 import { BAKED_SITE_DIR } from "settings/serverSettings"
-import { BAKED_BASE_URL } from "settings"
+import { BAKED_BASE_URL } from "settings/clientSettings"
 
 const defaultCommitMessage = async (): Promise<string> => {
     let message = "Automated update"

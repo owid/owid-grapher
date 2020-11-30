@@ -2,7 +2,7 @@ import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
 import { quote } from "shell-quote"
 import urljoin from "url-join"
-import { ADMIN_BASE_URL } from "settings"
+import { ADMIN_BASE_URL } from "settings/clientSettings"
 
 // Exception format that can be easily given as an API error
 export class JsonError extends Error {

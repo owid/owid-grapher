@@ -2,7 +2,7 @@ import * as cheerio from "cheerio"
 import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
 import { Country } from "clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "site/countryProfileProjects"
-import { BAKED_BASE_URL, WORDPRESS_URL } from "settings"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "settings/clientSettings"
 
 export const DEEP_LINK_CLASS = "deep-link"
 

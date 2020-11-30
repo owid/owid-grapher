@@ -3,7 +3,13 @@
 import * as path from "path"
 import * as db from "./db"
 import * as lodash from "lodash"
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import {
+    DB_NAME,
+    DB_USER,
+    DB_PASS,
+    DB_HOST,
+    DB_PORT,
+} from "settings/serverSettings"
 
 import { execWrapper } from "./execWrapper"
 

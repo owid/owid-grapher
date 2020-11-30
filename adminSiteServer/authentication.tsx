@@ -12,7 +12,7 @@ import { BCryptHasher } from "../db/hasherss"
 import { JsonError } from "./serverUtil"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
-import { ENV } from "settings"
+import { ENV } from "settings/clientSettings"
 
 export type CurrentUser = User
 

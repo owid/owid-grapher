@@ -12,7 +12,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"
-import { PUBLIC_TAG_PARENT_IDS } from "settings"
+import { PUBLIC_TAG_PARENT_IDS } from "settings/clientSettings"
 
 @Entity("charts")
 export class Chart extends BaseEntity {

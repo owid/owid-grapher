@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ENV, GITHUB_USERNAME } from "settings"
+import { ENV, GITHUB_USERNAME } from "settings/clientSettings"
 import { webpackUrl } from "site/webpackUtils"
 
 export const IndexPage = (props: {

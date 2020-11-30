@@ -1,5 +1,5 @@
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics" // todo: make these less tightly coupled
-import { ENV, GRAPHER_VERSION } from "settings"
+import { ENV, GRAPHER_VERSION } from "settings/clientSettings"
 
 export class SiteAnalytics extends GrapherAnalytics {
     constructor(environment = ENV, version = GRAPHER_VERSION) {

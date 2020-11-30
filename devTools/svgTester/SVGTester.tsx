@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
 import { csvParse } from "d3-dsv"
 import md5 from "md5"
-import { BAKED_GRAPHER_URL } from "settings"
+import { BAKED_GRAPHER_URL } from "settings/clientSettings"
 import React from "react"
 import {
     bakeGrapherToSvg,

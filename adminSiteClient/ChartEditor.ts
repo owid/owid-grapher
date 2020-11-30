@@ -9,7 +9,7 @@ import { observable, computed, runInAction, when } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
-import { BAKED_GRAPHER_URL } from "settings"
+import { BAKED_GRAPHER_URL } from "settings/clientSettings"
 
 type EditorTab = string
 

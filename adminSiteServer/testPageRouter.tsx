@@ -7,7 +7,11 @@ import { renderToHtmlPage, expectInt } from "./serverUtil"
 import { OldChart, Chart } from "db/model/Chart"
 import { Head } from "site/Head"
 import * as db from "db/db"
-import { ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL } from "settings"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+    BAKED_BASE_URL,
+} from "settings/clientSettings"
 import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"

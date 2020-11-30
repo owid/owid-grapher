@@ -4,7 +4,10 @@ import { JsonError } from "./serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "settings/serverSettings"
-import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
+import {
+    GIT_DEFAULT_USERNAME,
+    GIT_DEFAULT_EMAIL,
+} from "settings/clientSettings"
 import * as db from "db/db"
 import filenamify from "filenamify"
 import { execFormatted } from "db/execWrapper"

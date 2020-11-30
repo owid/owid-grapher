@@ -24,7 +24,7 @@ import { runCovid } from "./covid/index"
 import { hydrateGlobalEntityControlIfAny } from "grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "./Footnote"
 import { Explorer } from "explorer/Explorer"
-import { BAKED_BASE_URL, ENV } from "settings"
+import { BAKED_BASE_URL, ENV } from "settings/clientSettings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,

@@ -1,4 +1,4 @@
-import { ENV, BAKED_BASE_URL } from "settings"
+import { ENV, BAKED_BASE_URL } from "settings/clientSettings"
 import * as fs from "fs-extra"
 import urljoin from "url-join"
 import * as path from "path"

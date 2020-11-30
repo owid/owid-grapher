@@ -9,7 +9,11 @@ import {
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
 } from "settings/serverSettings"
-import { WORDPRESS_URL, BAKED_BASE_URL, BLOG_SLUG } from "settings"
+import {
+    WORDPRESS_URL,
+    BAKED_BASE_URL,
+    BLOG_SLUG,
+} from "settings/clientSettings"
 import * as db from "./db"
 import Knex from "knex"
 import fetch from "node-fetch"

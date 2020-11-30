@@ -12,7 +12,7 @@ import * as db from "db/db"
 import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
-import { BAKED_BASE_URL, ENV } from "settings"
+import { BAKED_BASE_URL, ENV } from "settings/clientSettings"
 import { addExplorerAdminRoutes } from "explorerAdmin/ExplorerBaker"
 import { renderPreview } from "../baker/siteRenderers"
 
