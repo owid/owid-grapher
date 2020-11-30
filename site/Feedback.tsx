@@ -21,7 +21,7 @@ const sendFeedback = (feedback: Feedback) =>
             if (req.readyState === 4) {
                 if (req.status !== 200)
                     reject(`${req.status} ${req.statusText}`)
-                else resolve()
+                else resolve(undefined)
             }
         })
 
