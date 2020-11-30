@@ -19,6 +19,7 @@ import {
     RelatedChart,
     CategoryWithEntries,
     PageType,
+    EntryNode,
 } from "clientUtils/owidTypes"
 
 class WPDB {
@@ -194,15 +195,6 @@ export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
     }
 
     return tagsByPostId
-}
-
-export interface EntryNode {
-    slug: string
-    title: string
-    // in some edge cases (entry alone in a subcategory), WPGraphQL returns
-    // null instead of an empty string)
-    excerpt: string | null
-    kpi: string
 }
 
 // Retrieve a list of categories and their associated entries

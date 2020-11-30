@@ -134,3 +134,12 @@ export enum PageType {
     SubEntry = "SUBENTRY",
     Standard = "STANDARD",
 }
+
+export interface EntryNode {
+    slug: string
+    title: string
+    // in some edge cases (entry alone in a subcategory), WPGraphQL returns
+    // null instead of an empty string)
+    excerpt: string | null
+    kpi: string
+}
