@@ -72,15 +72,6 @@ export const shellEscape = (str: string) => quote([str])
 
 export const absoluteUrl = (path: string) => urljoin(ADMIN_BASE_URL, path)
 
-// Take an arbitrary string and turn it into a nice url slug
-export const slugify = (str: string) => {
-    str = str
-        .toLowerCase()
-        .replace(/\s*\*.+\*/, "")
-        .replace(/[^\w- ]+/g, "")
-    return lodash.trim(str).replace(/ +/g, "-")
-}
-
 export const splitOnLastWord = (str: string) => {
     const endIndex = (str.lastIndexOf(" ") as number) + 1
     return {
@@ -98,6 +89,3 @@ export const execFormatted = async (
     if (verbose) console.log(formatCmd)
     return await exec(formatCmd, { silent: !verbose })
 }
-
-import filenamify from "filenamify"
-export { filenamify }

@@ -11,9 +11,9 @@ import { Writable } from "stream"
 import { User } from "./User"
 import { Source } from "./Source"
 import { Variable } from "./Variable"
-import { slugify, filenamify } from "adminSiteServer/serverUtil"
 import * as db from "db/db"
-import { arrToCsvRow } from "clientUtils/Util"
+import { arrToCsvRow, slugify } from "clientUtils/Util"
+import filenamify from "filenamify"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
