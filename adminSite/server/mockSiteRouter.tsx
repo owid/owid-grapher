@@ -34,7 +34,7 @@ import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "site/server/svgPngExport"
 import {
     covidDashboardSlug,
-    covidChartAndVariableMetaPath,
+    covidChartAndVariableMetaRoute,
 } from "explorer/covidExplorer/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
@@ -131,7 +131,7 @@ countryProfileSpecs.forEach((spec) => {
     })
 })
 
-mockSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {
+mockSiteRouter.get(covidChartAndVariableMetaRoute, async (req, res) => {
     res.send(await bakeCovidChartAndVariableMeta())
 })
 

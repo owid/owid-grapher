@@ -7,13 +7,16 @@ export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
 export const coronaDefaultView =
     "?zoomToSelection=true&time=2020-03-01..latest&country=IND~USA~GBR~CAN~DEU~FRA&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_cases&pickerSort=desc"
-export const covidDataPath =
-    "https://covid.ourworldindata.org/data/owid-covid-data.csv"
-export const covidLastUpdatedPath =
-    "https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt"
+
+// Since we've received complaints about outdated data being cached by browsers despite the
+// conservative caching headers, we added a `v` param for cachebusting purposes.
+const todayISOFormat = new Date().toISOString().slice(0, 10)
+export const covidDataPath = `https://covid.ourworldindata.org/data/owid-covid-data.csv?v=${todayISOFormat}`
+export const covidLastUpdatedPath = `https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt?v=${todayISOFormat}`
 export const covidChartAndVariableMetaFilename =
     "covidChartAndVariableMeta.json"
-export const covidChartAndVariableMetaPath = `/${covidChartAndVariableMetaFilename}`
+export const covidChartAndVariableMetaRoute = `/${covidChartAndVariableMetaFilename}`
+export const covidChartAndVariableMetaPath = `${covidChartAndVariableMetaRoute}?v=${todayISOFormat}`
 
 export const testRateExcludeList = new Set([
     "Peru",
