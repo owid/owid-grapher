@@ -427,6 +427,9 @@ export class CoreTable<
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Year
             ) ??
+            this.columnsAsArray.find(
+                (col) => col instanceof ColumnTypeMap.Quarter
+            ) ??
             this.get(OwidTableSlugs.time)
         )
     }
