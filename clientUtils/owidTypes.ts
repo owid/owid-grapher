@@ -114,3 +114,17 @@ export interface PostRow {
     published_at: Date | null
     updated_at: Date
 }
+
+export interface EntryMeta {
+    slug: string
+    title: string
+    excerpt: string
+    kpi: string
+}
+
+export interface CategoryWithEntries {
+    name: string
+    slug: string
+    entries: EntryMeta[]
+    subcategories: CategoryWithEntries[]
+}

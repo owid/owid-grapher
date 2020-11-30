@@ -9,7 +9,6 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
-import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
 import { flatten } from "clientUtils/Util"
 import { bind } from "decko"
@@ -25,6 +24,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription"
+import { CategoryWithEntries, EntryMeta } from "clientUtils/owidTypes"
 
 @observer
 class Header extends React.Component<{

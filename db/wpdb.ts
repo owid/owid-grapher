@@ -15,7 +15,7 @@ import Knex from "knex"
 import fetch from "node-fetch"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
-import { RelatedChart } from "clientUtils/owidTypes"
+import { RelatedChart, CategoryWithEntries } from "clientUtils/owidTypes"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -143,20 +143,6 @@ export const getAuthorship = async (): Promise<Map<number, string[]>> => {
 
     cachedAuthorship = authorship
     return authorship
-}
-
-export interface EntryMeta {
-    slug: string
-    title: string
-    excerpt: string
-    kpi: string
-}
-
-export interface CategoryWithEntries {
-    name: string
-    slug: string
-    entries: EntryMeta[]
-    subcategories: CategoryWithEntries[]
 }
 
 export const etCategoriesByPostId = async (): Promise<
