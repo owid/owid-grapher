@@ -3,7 +3,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 
 import * as express from "express"
-import * as db from "db/db"
+import { query } from "db/db"
 import { getGrapherById } from "db/model/Chart"
 import { getBlockContent } from "db/wpdb"
 
@@ -189,7 +189,7 @@ export const renderExplorerPage = async (
     const { requiredGrapherIds } = program.decisionMatrix
     let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)
-        grapherConfigRows = await db.query(
+        grapherConfigRows = await query(
             `SELECT id, config FROM charts WHERE id IN (?)`,
             [requiredGrapherIds]
         )

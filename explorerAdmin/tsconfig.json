@@ -10,6 +10,7 @@
         { "path": "../grapher" },
         { "path": "../gridLang" },
         { "path": "../gitCms" },
-        { "path": "../coreTable" }
+        { "path": "../coreTable" },
+        { "path": "../db" }
     ]
 }
