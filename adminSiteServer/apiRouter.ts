@@ -1620,7 +1620,7 @@ Object.keys(ExplorerApiRoutes).forEach((route) =>
     apiRouter.get(route, ExplorerApiRoutes[route])
 )
 
-addGitCmsApiRoutes(apiRouter)
+addGitCmsApiRoutes(apiRouter.router)
 
 // Legacy code, preventing modification, just in case
 //

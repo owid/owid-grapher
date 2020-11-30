@@ -15,7 +15,6 @@ import {
 import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"
-import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 import { parseIntOrUndefined } from "clientUtils/Util"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { EntitySelectionMode } from "grapher/core/GrapherConstants"
@@ -509,16 +508,6 @@ testPageRouter.get("/embedVariants", async (req, res) => {
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))
-})
-
-testPageRouter.get("/compareSvgs", async (req, res) => {
-    res.send(renderToHtmlPage(svgCompareFormPage))
-})
-
-testPageRouter.post("/compareSvgs", async (req, res) => {
-    const { prodResults, localResults } = req.body
-    const page = await getComparePage(prodResults, localResults)
-    res.send(renderToHtmlPage(page))
 })
 
 testPageRouter.get("/:slug.svg", async (req, res) => {
