@@ -1,8 +1,7 @@
 import Stripe from "stripe"
 import { groupBy, sum } from "lodash"
-
 import { STRIPE_SECRET_KEY } from "serverSettings"
-import { csvRow } from "adminSiteServer/serverUtil"
+import { arrToCsvRow } from "clientUtils/Util"
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: "2020-03-02",
@@ -88,12 +87,13 @@ async function getDonors() {
     })
 }
 
-function toCSV(headers: string[], data: any[]) {
-    return [
-        csvRow(headers),
-        ...data.map((json) => csvRow(headers.map((header) => json[header]))),
+const toCSV = (headers: string[], data: any[]) =>
+    [
+        arrToCsvRow(headers),
+        ...data.map((json) =>
+            arrToCsvRow(headers.map((header) => json[header]))
+        ),
     ].join("") // csvRow() already adds newlines
-}
 
 async function writeDonorsCSV() {
     const donors = await getDonors()

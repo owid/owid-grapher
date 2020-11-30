@@ -60,6 +60,7 @@ export const tryInt = (value: any, defaultNum: number): number => {
     return num
 }
 
+// Generate a static html page string from a given JSX element
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -68,15 +69,6 @@ export const isValidSlug = (slug: any) =>
     lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
 
 export const shellEscape = (str: string) => quote([str])
-
-export const csvEscape = (value: any) => {
-    if (lodash.includes(lodash.toString(value), ","))
-        return `"${value.replace(/\"/g, '""')}"`
-    return value
-}
-
-export const csvRow = (arr: string[]) =>
-    arr.map((x) => csvEscape(x)).join(",") + "\n"
 
 export const absoluteUrl = (path: string) => urljoin(ADMIN_BASE_URL, path)
 

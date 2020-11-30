@@ -1,9 +1,8 @@
 import * as lodash from "lodash"
 import { Writable } from "stream"
-
 import * as db from "db/db"
-import { csvRow } from "adminSiteServer/serverUtil"
 import { LegacyVariableDisplayConfigInterface } from "coreTable/LegacyVariableDisplayConfigInterface"
+import { arrToCsvRow } from "clientUtils/Util"
 
 export namespace Variable {
     export interface Row {
@@ -156,7 +155,7 @@ export async function writeVariableCSV(
     variables = variableIds.map((variableId) => variablesById[variableId])
 
     const columns = ["Entity", "Year"].concat(variables.map((v) => v.name))
-    stream.write(csvRow(columns))
+    stream.write(arrToCsvRow(columns))
 
     const variableColumnIndex: { [id: number]: number } = {}
     for (const variable of variables) {
@@ -170,7 +169,7 @@ export async function writeVariableCSV(
         if (datum.entity !== row[0] || datum.year !== row[1]) {
             // New row
             if (row.length) {
-                stream.write(csvRow(row))
+                stream.write(arrToCsvRow(row))
             }
             row = [datum.entity, datum.year]
             for (const variable of variables) {

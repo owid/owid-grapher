@@ -11,8 +11,9 @@ import { Writable } from "stream"
 import { User } from "./User"
 import { Source } from "./Source"
 import { Variable } from "./Variable"
-import { csvRow, slugify, filenamify } from "adminSiteServer/serverUtil"
+import { slugify, filenamify } from "adminSiteServer/serverUtil"
 import * as db from "db/db"
+import { arrToCsvRow } from "clientUtils/Util"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -50,7 +51,7 @@ export class Dataset extends BaseEntity {
             )
         }
 
-        stream.write(csvRow(csvHeader))
+        stream.write(arrToCsvRow(csvHeader))
 
         const data = await db.query(
             `
@@ -68,7 +69,7 @@ export class Dataset extends BaseEntity {
             if (datum.entity !== row[0] || datum.year !== row[1]) {
                 // New row
                 if (row.length) {
-                    stream.write(csvRow(row))
+                    stream.write(arrToCsvRow(row))
                 }
                 row = [datum.entity, datum.year]
                 for (const variable of variables) {
@@ -80,7 +81,7 @@ export class Dataset extends BaseEntity {
         }
 
         // Final row
-        stream.write(csvRow(row))
+        stream.write(arrToCsvRow(row))
 
         stream.end()
     }
