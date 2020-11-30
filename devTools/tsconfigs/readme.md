@@ -31,6 +31,10 @@ tsc -b --verbose
 
 -   config file inheritance https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 
+-   how shopify does it: https://shopify.engineering/migrating-large-typescript-codebases-project-references
+
+-   project references demos: https://github.com/RyanCavanaugh/project-references-demo
+
 ## FAQ
 
 What is `rootDir` vs `baseUrl`?
