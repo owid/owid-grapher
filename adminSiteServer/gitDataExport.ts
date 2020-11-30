@@ -1,14 +1,15 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { JsonError, execFormatted } from "./serverUtil"
+import { JsonError } from "./serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
 import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
 import * as db from "db/db"
 import filenamify from "filenamify"
+import { execFormatted } from "db/execWrapper"
 
-async function datasetToReadme(dataset: Dataset): Promise<string> {
+const datasetToReadme = async (dataset: Dataset): Promise<string> => {
     const source = await Source.findOne({ datasetId: dataset.id })
     return `# ${dataset.name}\n\n${
         (source && source.description && source.description.additionalInfo) ||
