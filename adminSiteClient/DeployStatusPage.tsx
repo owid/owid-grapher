@@ -8,7 +8,8 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { Deploy, DeployStatus } from "baker/types"
+import { Deploy } from "baker/types"
+import { DeployStatus } from "clientUtils/owidTypes"
 
 const statusLabel: Record<DeployStatus, string> = {
     [DeployStatus.queued]: "Next up",

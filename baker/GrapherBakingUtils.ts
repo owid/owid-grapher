@@ -6,7 +6,7 @@ import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings/clientSettings"
 import { BAKED_SITE_DIR } from "settings/serverSettings"
 import * as db from "db/db"
 import { bakeGraphersToSvgs } from "baker/GrapherImageBaker"
-import { log } from "adminSiteServer/log"
+import { log } from "./slackLog"
 import { Chart } from "db/model/Chart"
 import md5 from "md5"
 

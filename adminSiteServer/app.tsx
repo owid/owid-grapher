@@ -12,7 +12,7 @@ import {
 } from "settings/clientSettings"
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { log } from "./log"
+import { log } from "baker/slackLog"
 import { IndexPage } from "./IndexPage"
 import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
@@ -127,7 +127,7 @@ async function main() {
         // Increase server timeout for long-running uploads
         server.timeout = 5 * 60 * 1000
     } catch (e) {
-        log.error(e)
+        log.logErrorAndMaybeSendToSlack(e)
         process.exit(1)
     }
 }

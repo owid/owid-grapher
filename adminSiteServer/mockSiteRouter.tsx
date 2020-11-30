@@ -24,11 +24,7 @@ import {
     BAKED_SITE_DIR,
 } from "settings/serverSettings"
 import * as db from "db/db"
-import {
-    expectInt,
-    JsonError,
-    renderToHtmlPage,
-} from "adminSiteServer/serverUtil"
+import { expectInt, renderToHtmlPage } from "adminSiteServer/serverUtil"
 import { countryProfilePage, countriesIndexPage } from "baker/countryProfiles"
 import { makeSitemap } from "baker/sitemap"
 import { OldChart } from "db/model/Chart"
@@ -43,6 +39,7 @@ import { getVariableData } from "db/model/Variable"
 import { MultiEmbedderTestPage } from "site/multiembedder/MultiEmbedderTestPage"
 import { EXPLORERS_ROUTE_FOLDER } from "explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "site/webpackUtils"
+import { JsonError } from "clientUtils/owidTypes"
 
 require("express-async-errors")
 

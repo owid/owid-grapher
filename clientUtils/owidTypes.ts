@@ -160,3 +160,18 @@ export interface FullPost {
     relatedCharts?: RelatedChart[]
     glossary: boolean
 }
+
+// Exception format that can be easily given as an API error
+export class JsonError extends Error {
+    status: number
+    constructor(message: string, status?: number) {
+        super(message)
+        this.status = status || 400
+    }
+}
+
+export enum DeployStatus {
+    queued = "queued",
+    pending = "pending",
+    // done = "done"
+}

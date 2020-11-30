@@ -38,7 +38,7 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "baker/countryProfiles"
 import { countries } from "clientUtils/countries"
 import { execWrapper } from "db/execWrapper"
-import { log } from "adminSiteServer/log"
+import { log } from "./slackLog"
 import {
     getLegacyCovidExplorerAsExplorerProgramForSlug,
     legacyGrapherToCovidExplorerRedirectTable,
@@ -404,7 +404,7 @@ export class SiteBaker {
             return await execWrapper(cmd)
         } catch (error) {
             // Log error to Slack, but do not throw error
-            return log.error(error)
+            return log.logErrorAndMaybeSendToSlack(error)
         }
     }
 

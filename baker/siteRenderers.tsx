@@ -17,7 +17,6 @@ import {
     GrapherExports,
 } from "baker/GrapherBakingUtils"
 import * as cheerio from "cheerio"
-import { JsonError } from "adminSiteServer/serverUtil"
 import { Post } from "db/model/Post"
 import {
     BAKED_BASE_URL,
@@ -33,6 +32,7 @@ import { CountryProfileSpec } from "site/countryProfileProjects"
 import {
     FormattedPost,
     FormattingOptions,
+    JsonError,
     PageType,
     PostRow,
 } from "clientUtils/owidTypes"
@@ -83,7 +83,9 @@ export const renderChartsPage = async () => {
         if (c) c.tags.push({ id: ct.tagId, name: ct.tagName })
     }
 
-    return renderToHtmlPage(<ChartsIndexPage chartItems={chartItems} />)
+    return renderToHtmlPage(
+        <ChartsIndexPage chartItems={chartItems} baseUrl={BAKED_BASE_URL} />
+    )
 }
 
 // Only used in the dev server
@@ -179,7 +181,12 @@ export const renderBlogByPageNum = async (pageNum: number) => {
     )
 
     return renderToHtmlPage(
-        <BlogIndexPage posts={posts} pageNum={pageNum} numPages={numPages} />
+        <BlogIndexPage
+            posts={posts}
+            pageNum={pageNum}
+            numPages={numPages}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 
@@ -274,9 +281,7 @@ export const pagePerVariable = async (
         [variableId]
     )
 
-    if (!variable) {
-        throw new JsonError(`No variable by id '${variableId}'`, 404)
-    }
+    if (!variable) throw new JsonError(`No variable by id '${variableId}'`, 404)
 
     variable.display = JSON.parse(variable.display)
     variable.source = await get(

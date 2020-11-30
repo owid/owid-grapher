@@ -6,7 +6,7 @@ import * as bodyParser from "body-parser"
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "settings/serverSettings"
-import { JsonError, expectInt, isValidSlug, absoluteUrl } from "./serverUtil"
+import { expectInt, isValidSlug, absoluteUrl } from "./serverUtil"
 import { sendMail } from "./mail"
 import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
@@ -23,7 +23,7 @@ import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
 import { camelCaseProperties } from "clientUtils/string"
-import { log } from "adminSiteServer/log"
+import { log } from "baker/slackLog"
 import { denormalizeLatestCountryData } from "baker/countryProfiles"
 import { BAKED_BASE_URL } from "settings/clientSettings"
 import { PostReference, ChartRedirect } from "adminSiteClient/ChartEditor"
@@ -31,7 +31,7 @@ import { enqueueChange, getDeploys } from "baker/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { ExplorerApiRoutes } from "explorerAdmin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/GitCmsServer"
-import { PostRow } from "clientUtils/owidTypes"
+import { JsonError, PostRow } from "clientUtils/owidTypes"
 
 const apiRouter = new FunctionalRouter()
 
@@ -957,7 +957,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             commitEmail: res.locals.user.email,
         })
     } catch (err) {
-        log.error(err)
+        log.logErrorAndMaybeSendToSlack(err)
         // Continue
     }
 
@@ -1030,7 +1030,7 @@ apiRouter.delete(
                 commitEmail: res.locals.user.email,
             })
         } catch (err) {
-            log.error(err)
+            log.logErrorAndMaybeSendToSlack(err)
             // Continue
         }
 

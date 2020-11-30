@@ -1,6 +1,6 @@
 import React from "react"
 import * as db from "db/db"
-import { renderToHtmlPage, JsonError } from "adminSiteServer/serverUtil"
+import { renderToHtmlPage } from "adminSiteServer/serverUtil"
 import { CountriesIndexPage } from "site/CountriesIndexPage"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import * as lodash from "lodash"
@@ -12,6 +12,7 @@ import { Variable } from "db/model/Variable"
 import { SiteBaker } from "./SiteBaker"
 import { countries, getCountry } from "clientUtils/countries"
 import { OwidTable } from "coreTable/OwidTable"
+import { JsonError } from "clientUtils/owidTypes"
 
 export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(

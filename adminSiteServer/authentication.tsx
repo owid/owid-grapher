@@ -8,11 +8,11 @@ import {
     SECRET_KEY,
     SESSION_COOKIE_AGE,
 } from "settings/serverSettings"
-import { BCryptHasher } from "../db/hasherss"
-import { JsonError } from "./serverUtil"
+import { BCryptHasher } from "db/hasherss"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
 import { ENV } from "settings/clientSettings"
+import { JsonError } from "clientUtils/owidTypes"
 
 export type CurrentUser = User
 

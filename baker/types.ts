@@ -1,8 +1,4 @@
-export enum DeployStatus {
-    queued = "queued",
-    pending = "pending",
-    // done = "done"
-}
+import { DeployStatus } from "clientUtils/owidTypes"
 
 export interface DeployChange {
     timeISOString?: string

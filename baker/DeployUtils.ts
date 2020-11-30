@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { SiteBaker } from "baker/SiteBaker"
-import { log } from "adminSiteServer/log"
+import { log } from "./slackLog"
 import {
     queueIsEmpty,
     readQueuedAndPendingFiles,
@@ -44,7 +44,7 @@ const bakeAndDeploy = async (
         await baker.bakeAll()
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        log.error(err)
+        log.logErrorAndMaybeSendToSlack(err)
         throw err
     }
 }
@@ -66,7 +66,7 @@ export const tryBakeDeployAndTerminate = async (
         await baker.bakeAll()
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        log.error(err)
+        log.logErrorAndMaybeSendToSlack(err)
     } finally {
         baker.endDbConnections()
     }
@@ -77,7 +77,7 @@ export const tryBake = async () => {
     try {
         await baker.bakeAll()
     } catch (err) {
-        log.error(err)
+        log.logErrorAndMaybeSendToSlack(err)
     } finally {
         baker.endDbConnections()
     }
@@ -98,7 +98,7 @@ export const tryDeploy = async (
     try {
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        log.error(err)
+        log.logErrorAndMaybeSendToSlack(err)
     } finally {
         baker.endDbConnections()
     }

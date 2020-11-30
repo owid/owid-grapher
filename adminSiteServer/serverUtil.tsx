@@ -2,15 +2,7 @@ import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
 import urljoin from "url-join"
 import { ADMIN_BASE_URL } from "settings/clientSettings"
-
-// Exception format that can be easily given as an API error
-export class JsonError extends Error {
-    status: number
-    constructor(message: string, status?: number) {
-        super(message)
-        this.status = status || 400
-    }
-}
+import { JsonError } from "clientUtils/owidTypes"
 
 // Fail-fast integer conversion, for e.g. ids in url params
 export const expectInt = (value: any): number => {

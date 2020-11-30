@@ -4,7 +4,7 @@ import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import * as React from "react"
 import { getConnection } from "typeorm"
-import { expectInt, tryInt, renderToHtmlPage, JsonError } from "./serverUtil"
+import { expectInt, tryInt, renderToHtmlPage } from "./serverUtil"
 import { logInWithCredentials, logOut } from "./authentication"
 import { LoginPage } from "./LoginPage"
 import { RegisterPage } from "./RegisterPage"
@@ -15,6 +15,7 @@ import { UserInvitation } from "db/model/UserInvitation"
 import { BAKED_BASE_URL, ENV } from "settings/clientSettings"
 import { addExplorerAdminRoutes } from "explorerAdmin/ExplorerBaker"
 import { renderPreview } from "../baker/siteRenderers"
+import { JsonError } from "clientUtils/owidTypes"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -123,9 +124,7 @@ adminRouter.get(
                 .execute()
 
             invite = await UserInvitation.findOne({ code: req.query.code })
-            if (!invite) {
-                throw new JsonError("Invite code invalid or expired")
-            }
+            if (!invite) throw new JsonError("Invite code invalid or expired")
         } catch (err) {
             errorMessage = err.message
             res.status(tryInt(err.code, 500))

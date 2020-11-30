@@ -1,5 +1,4 @@
 import * as React from "react"
-import { JsonError } from "adminSiteServer/serverUtil"
 import { Chart } from "db/model/Chart"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { GrapherPage } from "site/GrapherPage"
@@ -22,6 +21,7 @@ import ProgressBar = require("progress")
 import * as db from "db/db"
 import * as glob from "glob"
 import { hasLegacyGrapherToCovidExplorerRedirect } from "explorerAdmin/legacyCovidExplorerRedirects"
+import { JsonError } from "clientUtils/owidTypes"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -85,9 +85,8 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     const vardataPath = `${bakedSiteDir}/grapher/data/variables/${variableIds.join(
         "+"
     )}.json`
-    if (!isSameVersion || !fs.existsSync(vardataPath)) {
+    if (!isSameVersion || !fs.existsSync(vardataPath))
         await bakeVariableData(bakedSiteDir, variableIds, vardataPath)
-    }
 
     try {
         await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)

@@ -1,6 +1,7 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
+        "outDir": "./compiled/",
         "baseUrl": "../"
     },
     "references": [
@@ -12,6 +13,7 @@
         { "path": "../adminSiteClient" },
         { "path": "../grapher" },
         { "path": "../clientUtils" },
-        { "path": "../settings" }
+        { "path": "../settings" },
+        { "path": "../baker" }
     ]
 }

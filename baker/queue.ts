@@ -1,9 +1,10 @@
+import { DeployStatus } from "clientUtils/owidTypes"
 import * as fs from "fs-extra"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
 } from "settings/serverSettings"
-import { DeployChange, Deploy, DeployStatus } from "./types"
+import { DeployChange, Deploy } from "./types"
 
 // File manipulation
 

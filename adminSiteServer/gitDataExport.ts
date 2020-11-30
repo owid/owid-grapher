@@ -1,6 +1,5 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { JsonError } from "./serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "settings/serverSettings"
@@ -11,6 +10,7 @@ import {
 import * as db from "db/db"
 import filenamify from "filenamify"
 import { execFormatted } from "db/execWrapper"
+import { JsonError } from "clientUtils/owidTypes"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
     const source = await Source.findOne({ datasetId: dataset.id })
@@ -71,18 +71,15 @@ export async function syncDatasetToGitRepo(
         : Dataset.getRepository()
 
     const dataset = await datasetRepo.findOne({ id: datasetId })
-    if (!dataset) {
-        throw new JsonError(`No such dataset ${datasetId}`, 404)
-    }
+    if (!dataset) throw new JsonError(`No such dataset ${datasetId}`, 404)
 
-    if (dataset.isPrivate) {
+    if (dataset.isPrivate)
         // Private dataset doesn't go in git repo
         return removeDatasetFromGitRepo(
             oldDatasetName || dataset.name,
             dataset.namespace,
             options
         )
-    }
 
     // Not doing bulk imports for now
     if (dataset.namespace !== "owid") return
