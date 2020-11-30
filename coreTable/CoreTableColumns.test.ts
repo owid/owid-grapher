@@ -1,9 +1,10 @@
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { ColumnTypeMap } from "./CoreTableColumns"
 import { ErrorValueTypes } from "./ErrorValues"
+import { OwidTable } from "./OwidTable"
 
 describe(ColumnTypeNames.Quarter, () => {
-    const col = new ColumnTypeMap.Quarter()
+    const col = new ColumnTypeMap.Quarter(new OwidTable(), { slug: "test" })
 
     it("should parse and format values correctly", () => {
         const testValues = [

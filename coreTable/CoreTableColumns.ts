@@ -710,7 +710,7 @@ class PopulationDensityColumn extends NumericColumn {}
 
 class AgeColumn extends NumericColumn {}
 
-export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
+export const ColumnTypeMap = {
     String: StringColumn,
     SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
@@ -737,3 +737,10 @@ export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     PopulationDensity: PopulationDensityColumn,
     Age: AgeColumn,
 }
+
+// Keep this in. This is used as a compile-time check that ColumnTypeMap covers all
+// column names defined in ColumnTypeNames, since that is quite difficult to ensure
+// otherwise without losing inferred type information.
+const _ColumnTypeMap: {
+    [key in ColumnTypeNames]: unknown
+} = ColumnTypeMap

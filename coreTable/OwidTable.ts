@@ -962,7 +962,7 @@ export const BlankOwidTable = (
         undefined,
         [
             { slug: OwidTableSlugs.entityName },
-            { slug: OwidTableSlugs.year, type: ColumnTypeMap.Year },
+            { slug: OwidTableSlugs.year, type: ColumnTypeNames.Year },
         ],
         {
             tableDescription: BLANK_TABLE_MESSAGE + extraTableDescription,
