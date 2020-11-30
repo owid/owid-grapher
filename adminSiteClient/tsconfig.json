@@ -1,8 +1,9 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./compiled/",
-        "baseUrl": "../"
+        "baseUrl": "../",
+        "outDir": "../itsJustJavascript/adminSiteClient",
+        "rootDir": "."
     },
     "references": [
         { "path": "../grapher" },

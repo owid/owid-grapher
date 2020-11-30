@@ -1,6 +1,8 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./compiled/"
+        "baseUrl": "../",
+        "outDir": "../itsJustJavascript/clientUtils",
+        "rootDir": "."
     }
 }

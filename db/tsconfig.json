@@ -1,9 +1,10 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./compiled/",
-        "baseUrl": "../"
+        "baseUrl": "../",
+        "outDir": "../itsJustJavascript/db",
+        "rootDir": "."
     },
-    "exclude": ["migration/*", "knexMigrations/*", "compiled/*"],
+    "exclude": ["migration/*", "knexMigrations/*"],
     "references": [{ "path": "../clientUtils" }, { "path": "../settings" }]
 }
