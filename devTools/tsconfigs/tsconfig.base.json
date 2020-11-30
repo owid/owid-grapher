@@ -28,5 +28,6 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "keyofStringsOnly": true
-    }
+    },
+    "exclude": ["compiled/*"]
 }
