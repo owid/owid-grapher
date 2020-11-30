@@ -57,7 +57,9 @@ export const legacyToOwidTableAndDimensions = (
     })
 
     const colorColumnSlug =
-        entityColorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
+        entityColorMap.size > 0 || grapherConfig.selectedEntityColors
+            ? OwidTableSlugs.entityColor
+            : undefined
     if (colorColumnSlug) {
         baseColumnDefs.set(colorColumnSlug, {
             slug: colorColumnSlug,
@@ -141,8 +143,11 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         if (colorColumnSlug) {
-            columnStore[colorColumnSlug] = entityIds.map((entityId) =>
-                entityColorMap.get(entityId)
+            columnStore[colorColumnSlug] = entityIds.map(
+                (entityId) =>
+                    grapherConfig.selectedEntityColors?.[
+                        entityMetaById[entityId].name
+                    ] ?? entityColorMap.get(entityId)
             )
         }
 

@@ -275,6 +275,7 @@ export class Grapher
     @observable backgroundSeriesLimit?: number = undefined
 
     @observable selectedEntityNames: EntityName[] = []
+    @observable selectedEntityColors: { [entityName: string]: string } = {}
     @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?

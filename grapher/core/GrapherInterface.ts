@@ -73,6 +73,7 @@ export interface GrapherInterface {
     matchingEntitiesOnly?: boolean
     excludedEntities?: number[]
     selectedEntityNames?: EntityName[]
+    selectedEntityColors?: { [entityName: string]: string }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
 
@@ -161,6 +162,7 @@ export const grapherKeysToSerialize = [
     "map",
     "dimensions",
     "selectedEntityNames",
+    "selectedEntityColors",
     "selectedEntityIds",
     "excludedEntities",
     "comparisonLines",

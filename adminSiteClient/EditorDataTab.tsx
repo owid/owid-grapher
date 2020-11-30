@@ -36,8 +36,16 @@ class EntityItem extends React.Component<EntityItemProps> {
     }
 
     @action.bound onColor(color: string | undefined) {
-        // todo
-        // this.props.grapher.setKeyColor(this.props.entityName, color)
+        if (!color) return
+
+        const { grapher } = this.props
+        grapher.selectedEntityColors[this.props.entityName] = color
+        grapher.legacyConfigAsAuthored.selectedEntityColors = {
+            ...grapher.legacyConfigAsAuthored.selectedEntityColors,
+            [this.props.entityName]: color,
+        }
+
+        grapher.rebuildInputOwidTable()
     }
 
     @action.bound onRemove() {
