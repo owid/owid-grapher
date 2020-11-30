@@ -48,7 +48,6 @@ import {
 } from "db/wpdb"
 import { get, query, table } from "db/db"
 
-// Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 

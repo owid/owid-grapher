@@ -54,7 +54,7 @@ export interface Namespace {
 // This contains the dataset/variable metadata for the entire database
 // Used for variable selector interface
 
-interface NamespaceData {
+export interface NamespaceData {
     datasets: Dataset[]
 }
 
