@@ -8,8 +8,8 @@ import { observable, action, toJS } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 
-function sendFeedback(feedback: Feedback) {
-    return new Promise((resolve, reject) => {
+const sendFeedback = (feedback: Feedback) =>
+    new Promise((resolve, reject) => {
         const json = toJS(feedback)
         const req = new XMLHttpRequest()
 
@@ -19,11 +19,9 @@ function sendFeedback(feedback: Feedback) {
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
-                if (req.status !== 200) {
+                if (req.status !== 200)
                     reject(`${req.status} ${req.statusText}`)
-                } else {
-                    resolve()
-                }
+                else resolve()
             }
         })
 
@@ -35,7 +33,6 @@ function sendFeedback(feedback: Feedback) {
 
         req.send(JSON.stringify(json))
     })
-}
 
 class Feedback {
     @observable name: string = ""
