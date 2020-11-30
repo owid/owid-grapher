@@ -1,10 +1,31 @@
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
 import * as lodash from "lodash"
-import { Tag } from "./Tag"
 import { QueryBuilder } from "knex"
 import { decodeHTML } from "entities"
 import { PostRow } from "clientUtils/owidTypes"
+
+namespace Tag {
+    export interface Row {
+        id: number
+        name: string
+        parentId: number
+        specialType: string
+        isBulkImport: boolean
+    }
+
+    export type Field = keyof Row
+
+    export const table = "tags"
+
+    export function select<K extends keyof Row>(
+        ...args: K[]
+    ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
+        return {
+            from: (query) => query.select(...args) as any,
+        }
+    }
+}
 
 export namespace Post {
     export type Field = keyof PostRow
