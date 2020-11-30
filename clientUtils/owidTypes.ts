@@ -128,3 +128,9 @@ export interface CategoryWithEntries {
     entries: EntryMeta[]
     subcategories: CategoryWithEntries[]
 }
+
+export enum PageType {
+    Entry = "ENTRY",
+    SubEntry = "SUBENTRY",
+    Standard = "STANDARD",
+}

@@ -33,6 +33,7 @@ import { CountryProfileSpec } from "site/countryProfileProjects"
 import {
     FormattedPost,
     FormattingOptions,
+    PageType,
     PostRow,
 } from "clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
@@ -44,7 +45,6 @@ import {
     getPageType,
     getPostBySlug,
     getPosts,
-    PageType,
 } from "db/wpdb"
 import { get, query, table } from "db/db"
 

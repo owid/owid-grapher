@@ -10,10 +10,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "site/TableOfContents"
-import { PageType } from "db/wpdb"
 import {
     FormattedPost,
     FormattingOptions,
+    PageType,
     TocHeading,
 } from "clientUtils/owidTypes"
 

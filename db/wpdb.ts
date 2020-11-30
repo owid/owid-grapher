@@ -15,7 +15,11 @@ import Knex from "knex"
 import fetch from "node-fetch"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
-import { RelatedChart, CategoryWithEntries } from "clientUtils/owidTypes"
+import {
+    RelatedChart,
+    CategoryWithEntries,
+    PageType,
+} from "clientUtils/owidTypes"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -322,12 +326,6 @@ export const getEntriesByCategory = async (): Promise<
     )
 
     return cachedEntries
-}
-
-export enum PageType {
-    Entry = "ENTRY",
-    SubEntry = "SUBENTRY",
-    Standard = "STANDARD",
 }
 
 export const getPageType = async (post: FullPost): Promise<PageType> => {
