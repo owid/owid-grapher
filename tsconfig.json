@@ -3,6 +3,7 @@
     "compilerOptions": {
         "composite": false
     },
+    "files": [],
     "references": [
         { "path": "./clientUtils" },
         { "path": "./gridLang" },
