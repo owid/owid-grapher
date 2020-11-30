@@ -1,8 +1,8 @@
-import * as db from "./db"
-import { syncDatasetToGitRepo } from "adminSiteServer/gitDataExport"
-import { Dataset } from "./model/Dataset"
+import * as db from "db/db"
+import { syncDatasetToGitRepo } from "./gitDataExport"
+import { Dataset } from "db/model/Dataset"
 
-async function main() {
+const main = async () => {
     await db.connect()
     for (const dataset of await Dataset.find({ namespace: "owid" })) {
         if (!dataset.isPrivate)

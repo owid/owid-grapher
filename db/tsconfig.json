@@ -3,5 +3,6 @@
     "compilerOptions": {
         "outDir": "./compiled/"
     },
-    "exclude": ["*"]
+    "exclude": ["*"],
+    "references": [{ "path": "../clientUtils" }]
 }
