@@ -32,7 +32,7 @@ import {
 import { Grapher } from "grapher/core/Grapher"
 import { MultiEmbedderSingleton } from "site/multiembedder/MultiEmbedder"
 import { CoreTable } from "coreTable/CoreTable"
-import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
+import { SiteAnalytics } from "./SiteAnalytics"
 
 declare var window: any
 window.Grapher = Grapher
@@ -64,7 +64,7 @@ window.runSiteFooterScripts = () => {
     }
 }
 
-const analytics = new GrapherAnalytics(ENV)
+const analytics = new SiteAnalytics(ENV)
 analytics.logPageLoad()
 
 document.querySelector("html")?.classList.add("js")

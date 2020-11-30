@@ -86,7 +86,7 @@ export const DonatePage = (props: {
                 </article>
             </main>
 
-            <SiteFooter hideDonate={true} baseUrl={baseUrl} />
+            <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
 
             <script
                 dangerouslySetInnerHTML={{

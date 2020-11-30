@@ -169,7 +169,7 @@ export const CovidPage = (props: { baseUrl: string }) => (
                     </div>
                 </article>
             </main>
-            <SiteFooter baseUrl={baseUrl} />
+            <SiteFooter baseUrl={props.baseUrl} />
         </body>
     </html>
 )
