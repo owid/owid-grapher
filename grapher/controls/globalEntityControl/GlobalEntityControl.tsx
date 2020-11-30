@@ -11,21 +11,21 @@ import Select, {
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { countries } from "../../clientUtils/countries"
+import { countries } from "../../../clientUtils/countries"
 import {
     throttle,
     noop,
     getCountryCodeFromNetlifyRedirect,
     sortBy,
-} from "../../clientUtils/Util"
-import { GrapherAnalytics } from "../core/GrapherAnalytics"
-import { WorldEntityName } from "../core/GrapherConstants"
+} from "../../../clientUtils/Util"
+import { GrapherAnalytics } from "../../core/GrapherAnalytics"
+import { WorldEntityName } from "../../core/GrapherConstants"
 import {
     GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
 } from "./GlobalEntityControlConstants"
-import { SelectionArray } from "../selection/SelectionArray"
-import { EntityName } from "../../coreTable/OwidTableConstants"
+import { SelectionArray } from "../../selection/SelectionArray"
+import { EntityName } from "../../../coreTable/OwidTableConstants"
 import { GlobalEntityRegistry } from "./GlobalEntityRegistry"
 
 enum GlobalEntitySelectionModes {

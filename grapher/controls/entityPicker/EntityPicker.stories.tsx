@@ -1,15 +1,15 @@
 import * as React from "react"
-import { EntityPicker } from "../controls/entityPicker/EntityPicker"
+import { EntityPicker } from "./EntityPicker"
 import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ColumnSlug, SortOrder } from "../../coreTable/CoreTableConstants"
-import { EntityName, OwidTableSlugs } from "../../coreTable/OwidTableConstants"
-import { EntityPickerManager } from "../controls/entityPicker/EntityPickerConstants"
+} from "../../../coreTable/OwidTableSynthesizers"
+import { ColumnSlug, SortOrder } from "../../../coreTable/CoreTableConstants"
+import { EntityName, OwidTableSlugs } from "../../../coreTable/OwidTableConstants"
+import { EntityPickerManager } from "./EntityPickerConstants"
 import { computed, observable } from "mobx"
-import { SelectionArray } from "../selection/SelectionArray"
+import { SelectionArray } from "../../selection/SelectionArray"
 
 class PickerHolder extends React.Component {
     render() {
