@@ -2,10 +2,10 @@ import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
 import { action, computed } from "mobx"
-import { exposeInstanceOnWindow } from "../clientUtils/Util"
+import { exposeInstanceOnWindow } from "../../clientUtils/Util"
 import Handsontable from "handsontable"
-import { OwidTable } from "../coreTable/OwidTable"
-import { CoreMatrix } from "../coreTable/CoreTableConstants"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { CoreMatrix } from "../../coreTable/CoreTableConstants"
 
 interface SpreadsheetManager {
     table: OwidTable

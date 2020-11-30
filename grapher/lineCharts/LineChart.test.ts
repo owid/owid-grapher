@@ -6,11 +6,11 @@ import {
     SynthesizeFruitTableWithNonPositives,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../grapher/chart/ChartManager"
-import { ScaleType } from "../grapher/core/GrapherConstants"
-import { OwidTable } from "../coreTable/OwidTable"
-import { SelectionArray } from "../grapher/selection/SelectionArray"
+} from "../../coreTable/OwidTableSynthesizers"
+import { ChartManager } from "../chart/ChartManager"
+import { ScaleType } from "../core/GrapherConstants"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { SelectionArray } from "../selection/SelectionArray"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

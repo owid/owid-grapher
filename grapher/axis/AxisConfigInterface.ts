@@ -1,4 +1,4 @@
-import { ScaleType } from "../grapher/core/GrapherConstants"
+import { ScaleType } from "../core/GrapherConstants"
 
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {

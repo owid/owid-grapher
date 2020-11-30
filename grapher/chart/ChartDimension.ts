@@ -2,20 +2,20 @@
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
 import { observable, computed } from "mobx"
-import { trimObject } from "../clientUtils/Util"
-import { DimensionProperty } from "../grapher/core/GrapherConstants"
-import { OwidTable } from "../coreTable/OwidTable"
+import { trimObject } from "../../clientUtils/Util"
+import { DimensionProperty } from "../core/GrapherConstants"
+import { OwidTable } from "../../coreTable/OwidTable"
 import {
     LegacyChartDimensionInterface,
     LegacyVariableDisplayConfig,
-} from "../grapher/core/LegacyVariableCode"
-import { LegacyVariableId } from "../clientUtils/owidTypes"
-import { ColumnSlug, Time } from "../coreTable/CoreTableConstants"
+} from "../core/LegacyVariableCode"
+import { LegacyVariableId } from "../../clientUtils/owidTypes"
+import { ColumnSlug, Time } from "../../coreTable/CoreTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../grapher/persistable/Persistable"
+} from "../persistable/Persistable"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data

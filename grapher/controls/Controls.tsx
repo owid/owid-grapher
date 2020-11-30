@@ -5,9 +5,9 @@ import {
     getQueryParams,
     getWindowQueryParams,
     QueryParams,
-} from "../clientUtils/url"
-import { TimelineComponent } from "../grapher/timeline/TimelineComponent"
-import { formatValue } from "../clientUtils/formatValue"
+} from "../../clientUtils/url"
+import { TimelineComponent } from "../timeline/TimelineComponent"
+import { formatValue } from "../../clientUtils/formatValue"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -18,10 +18,10 @@ import {
     HighlightToggleConfig,
     RelatedQuestionsConfig,
     StackMode,
-} from "../grapher/core/GrapherConstants"
+} from "../core/GrapherConstants"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
-import { TimelineController } from "../grapher/timeline/TimelineController"
-import { SelectionArray } from "../grapher/selection/SelectionArray"
+import { TimelineController } from "../timeline/TimelineController"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig

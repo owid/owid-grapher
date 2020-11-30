@@ -7,27 +7,27 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy,
-} from "../clientUtils/Util"
+} from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "../grapher/core/GrapherConstants"
+import { SeriesName } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
-import { DualAxisComponent } from "../grapher/axis/AxisViews"
-import { DualAxis } from "../grapher/axis/Axis"
+import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxis } from "../axis/Axis"
 import {
     LineLabelSeries,
     LineLegend,
     LineLegendManager,
-} from "../grapher/lineLegend/LineLegend"
-import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
-import { Tooltip } from "../grapher/tooltip/Tooltip"
+} from "../lineLegend/LineLegend"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Tooltip } from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
-} from "../grapher/stackedCharts/AbstractStackedChart"
+} from "../stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
-import { makeClipPath } from "../grapher/chart/ChartUtils"
+import { makeClipPath } from "../chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis

@@ -1,13 +1,13 @@
-import { isMobile } from "../clientUtils/Util"
+import { isMobile } from "../../clientUtils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
-import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds

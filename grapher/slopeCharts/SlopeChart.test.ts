@@ -5,11 +5,11 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../grapher/chart/ChartManager"
+} from "../../coreTable/OwidTableSynthesizers"
+import { ChartManager } from "../chart/ChartManager"
 import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
-import { OwidTableSlugs } from "../coreTable/OwidTableConstants"
-import { isNumber } from "../clientUtils/Util"
+import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
+import { isNumber } from "../../clientUtils/Util"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {

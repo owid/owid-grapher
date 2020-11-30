@@ -1,10 +1,10 @@
-import { SynthesizeGDPTable } from "../coreTable/OwidTableSynthesizers"
+import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
     GrapherTabOption,
     SeriesStrategy,
-} from "../grapher/core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "../clientUtils/Bounds"
+} from "../core/GrapherConstants"
+import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import * as React from "react"
 import {
     CaptionedChart,

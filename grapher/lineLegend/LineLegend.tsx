@@ -9,15 +9,15 @@ import {
     sumBy,
     flatten,
     sign,
-} from "../clientUtils/Util"
+} from "../../clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../grapher/text/TextWrap"
-import { VerticalAxis } from "../grapher/axis/Axis"
-import { Bounds } from "../clientUtils/Bounds"
-import { EntityName } from "../coreTable/OwidTableConstants"
-import { BASE_FONT_SIZE } from "../grapher/core/GrapherConstants"
-import { ChartSeries } from "../grapher/chart/ChartInterface"
+import { TextWrap } from "../text/TextWrap"
+import { VerticalAxis } from "../axis/Axis"
+import { Bounds } from "../../clientUtils/Bounds"
+import { EntityName } from "../../coreTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { ChartSeries } from "../chart/ChartInterface"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2

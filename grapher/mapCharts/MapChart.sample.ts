@@ -1,8 +1,8 @@
-import { GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     GrapherTabOption,
     DimensionProperty,
-} from "../grapher/core/GrapherConstants"
+} from "../core/GrapherConstants"
 
 export const legacyMapGrapher: GrapherProgrammaticInterface = {
     hasMapTab: true,

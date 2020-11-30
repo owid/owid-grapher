@@ -1,19 +1,19 @@
 import { observable } from "mobx"
 import { MapProjectionName } from "./MapProjections"
-import { ColorScaleConfig } from "../grapher/color/ColorScaleConfig"
-import { ColumnSlug } from "../coreTable/CoreTableConstants"
-import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { ColumnSlug } from "../../coreTable/CoreTableConstants"
+import { LegacyVariableId } from "../../clientUtils/owidTypes"
 import {
     Persistable,
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-} from "../grapher/persistable/Persistable"
+} from "../persistable/Persistable"
 import {
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,
-} from "../clientUtils/TimeBounds"
-import { trimObject } from "../clientUtils/Util"
+} from "../../clientUtils/TimeBounds"
+import { trimObject } from "../../clientUtils/Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.

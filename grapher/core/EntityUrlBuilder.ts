@@ -1,4 +1,4 @@
-import { EntityName } from "../coreTable/OwidTableConstants"
+import { EntityName } from "../../coreTable/OwidTableConstants"
 import { LegacyEntityCodesToEntityNames } from "./LegacyEntityCodesToEntityNames"
 
 // Todo: ensure EntityName never contains the v2Delimiter

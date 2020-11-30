@@ -1,12 +1,12 @@
 #! /usr/bin/env jest
 
 import React from "react"
-import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
-import { DimensionProperty } from "../grapher/core/GrapherConstants"
+} from "../../coreTable/OwidTableSynthesizers"
+import { DimensionProperty } from "../core/GrapherConstants"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

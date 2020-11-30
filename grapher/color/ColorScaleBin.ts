@@ -1,4 +1,4 @@
-import { Color } from "../coreTable/CoreTableConstants"
+import { Color } from "../../coreTable/CoreTableConstants"
 
 interface BinProps {
     color: Color

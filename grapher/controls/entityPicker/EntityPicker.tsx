@@ -9,7 +9,7 @@ import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FuzzySearch } from "../grapher/controls/FuzzySearch"
+import { FuzzySearch } from "../controls/FuzzySearch"
 import {
     partition,
     scrollIntoViewIfNeeded,
@@ -19,13 +19,13 @@ import {
     sortBy,
     sortByUndefinedLast,
     first,
-} from "../clientUtils/Util"
-import { VerticalScrollContainer } from "../grapher/controls/VerticalScrollContainer"
-import { SortIcon } from "../grapher/controls/SortIcon"
-import { ColumnSlug, SortOrder } from "../coreTable/CoreTableConstants"
-import { getStylesForTargetHeight, asArray } from "../clientUtils/react-select"
-import { ColumnTypeMap } from "../coreTable/CoreTableColumns"
-import { EntityName, OwidTableSlugs } from "../coreTable/OwidTableConstants"
+} from "../../clientUtils/Util"
+import { VerticalScrollContainer } from "../controls/VerticalScrollContainer"
+import { SortIcon } from "../controls/SortIcon"
+import { ColumnSlug, SortOrder } from "../../coreTable/CoreTableConstants"
+import { getStylesForTargetHeight, asArray } from "../../clientUtils/react-select"
+import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
+import { EntityName, OwidTableSlugs } from "../../coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"
 
 const toggleSort = (order: SortOrder) =>

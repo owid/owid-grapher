@@ -1,4 +1,4 @@
-import { Color } from "../coreTable/CoreTableConstants"
+import { Color } from "../../coreTable/CoreTableConstants"
 
 export const ContinentColors = {
     Africa: "#923E8B",

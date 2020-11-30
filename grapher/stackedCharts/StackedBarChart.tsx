@@ -1,31 +1,31 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { uniq, makeSafeForCSS } from "../clientUtils/Util"
-import { Bounds } from "../clientUtils/Bounds"
+import { uniq, makeSafeForCSS } from "../../clientUtils/Util"
+import { Bounds } from "../../clientUtils/Bounds"
 import {
     VerticalAxisComponent,
     AxisTickMarks,
     VerticalAxisGridLines,
-} from "../grapher/axis/AxisViews"
-import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
-import { Text } from "../grapher/text/Text"
+} from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../grapher/verticalColorLegend/VerticalColorLegend"
-import { Tooltip } from "../grapher/tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "../grapher/core/GrapherConstants"
-import { ColorScaleManager } from "../grapher/color/ColorScale"
+} from "../verticalColorLegend/VerticalColorLegend"
+import { Tooltip } from "../tooltip/Tooltip"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { ColorScaleManager } from "../color/ColorScale"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
 } from "./AbstractStackedChart"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { VerticalAxis } from "../grapher/axis/Axis"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
+import { VerticalAxis } from "../axis/Axis"
+import { ColorSchemeName } from "../color/ColorConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
-import { makeClipPath } from "../grapher/chart/ChartUtils"
+import { makeClipPath } from "../chart/ChartUtils"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint

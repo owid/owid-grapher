@@ -2,8 +2,8 @@ import * as React from "react"
 import {
     ScaleSelector,
     ScaleSelectorManager,
-} from "../grapher/controls/ScaleSelector"
-import { ScaleType } from "../grapher/core/GrapherConstants"
+} from "../controls/ScaleSelector"
+import { ScaleType } from "../core/GrapherConstants"
 import { observable } from "mobx"
 
 export default {

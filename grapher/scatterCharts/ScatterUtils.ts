@@ -1,6 +1,6 @@
-import { Bounds } from "../clientUtils/Bounds"
-import { PointVector } from "../clientUtils/PointVector"
-import { last, maxBy } from "../clientUtils/Util"
+import { Bounds } from "../../clientUtils/Bounds"
+import { PointVector } from "../../clientUtils/PointVector"
+import { last, maxBy } from "../../clientUtils/Util"
 import {
     ScatterLabel,
     ScatterRenderPoint,

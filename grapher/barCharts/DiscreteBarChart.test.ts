@@ -6,17 +6,17 @@ import {
     SynthesizeFruitTable,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers"
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
-import { SeriesStrategy } from "../grapher/core/GrapherConstants"
-import { SelectionArray } from "../grapher/selection/SelectionArray"
-import { OwidTable } from "../coreTable/OwidTable"
-import { isNumber } from "../clientUtils/Util"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { SeriesStrategy } from "../core/GrapherConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { isNumber } from "../../clientUtils/Util"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })

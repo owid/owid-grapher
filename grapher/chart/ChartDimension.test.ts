@@ -3,8 +3,8 @@
 // todo: remove this when we remove chartDimension
 
 import { ChartDimension } from "./ChartDimension"
-import { BlankOwidTable } from "../coreTable/OwidTable"
-import { DimensionProperty } from "../grapher/core/GrapherConstants"
+import { BlankOwidTable } from "../../coreTable/OwidTable"
+import { DimensionProperty } from "../core/GrapherConstants"
 
 it("can serialize for saving", () => {
     expect(

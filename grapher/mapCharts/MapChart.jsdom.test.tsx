@@ -3,7 +3,7 @@
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers"
 import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
 

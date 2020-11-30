@@ -30,7 +30,7 @@ import {
     findClosestTime,
     excludeUndefined,
     debounce,
-} from "../clientUtils/Util"
+} from "../../clientUtils/Util"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -46,7 +46,7 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
-} from "../grapher/core/GrapherConstants"
+} from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
     LegacyVariablesAndEntityKey,
@@ -55,9 +55,9 @@ import * as Cookies from "js-cookie"
 import {
     ChartDimension,
     LegacyDimensionsManager,
-} from "../grapher/chart/ChartDimension"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
-import { TooltipProps, TooltipManager } from "../grapher/tooltip/TooltipProps"
+} from "../chart/ChartDimension"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -67,36 +67,36 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     timeBoundToTimeBoundString,
-} from "../clientUtils/TimeBounds"
+} from "../../clientUtils/TimeBounds"
 import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-} from "../clientUtils/url"
-import { populationMap } from "../coreTable/PopulationMap"
+} from "../../clientUtils/url"
+import { populationMap } from "../../coreTable/PopulationMap"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
     legacyQueryParamsToCurrentQueryParams,
-} from "../grapher/core/GrapherInterface"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot"
+} from "../core/GrapherInterface"
+import { DimensionSlot } from "../chart/DimensionSlot"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { MapProjectionName } from "../grapher/mapCharts/MapProjections"
-import { LogoOption } from "../grapher/captionedChart/Logos"
-import { AxisConfig, FontSizeManager } from "../grapher/axis/AxisConfig"
-import { ColorScaleConfig } from "../grapher/color/ColorScaleConfig"
-import { MapConfig } from "../grapher/mapCharts/MapConfig"
-import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine"
+import { MapProjectionName } from "../mapCharts/MapProjections"
+import { LogoOption } from "../captionedChart/Logos"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { MapConfig } from "../mapCharts/MapConfig"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../grapher/persistable/Persistable"
-import { ColumnSlug, ColumnSlugs, Time } from "../coreTable/CoreTableConstants"
-import { isOnTheMap } from "../grapher/mapCharts/EntitiesOnTheMap"
-import { ChartManager } from "../grapher/chart/ChartManager"
+} from "../persistable/Persistable"
+import { ColumnSlug, ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
+import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
+import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
@@ -105,50 +105,50 @@ import {
     FooterControlsManager,
     HighlightToggleManager,
     SmallCountriesFilterManager,
-} from "../grapher/controls/Controls"
-import { TooltipView } from "../grapher/tooltip/Tooltip"
-import { EntitySelectorModal } from "../grapher/controls/EntitySelectorModal"
+} from "../controls/Controls"
+import { TooltipView } from "../tooltip/Tooltip"
+import { EntitySelectorModal } from "../controls/EntitySelectorModal"
 import {
     DownloadTab,
     DownloadTabManager,
-} from "../grapher/downloadTab/DownloadTab"
+} from "../downloadTab/DownloadTab"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../grapher/sourcesTab/SourcesTab"
-import { DataTable, DataTableManager } from "../grapher/dataTable/DataTable"
-import { MapChartManager } from "../grapher/mapCharts/MapChartConstants"
-import { MapChart } from "../grapher/mapCharts/MapChart"
-import { DiscreteBarChartManager } from "../grapher/barCharts/DiscreteBarChartConstants"
-import { Command, CommandPalette } from "../grapher/controls/CommandPalette"
-import { ShareMenuManager } from "../grapher/controls/ShareMenu"
+import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
+import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
+import { MapChart } from "../mapCharts/MapChart"
+import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
+import { Command, CommandPalette } from "../controls/CommandPalette"
+import { ShareMenuManager } from "../controls/ShareMenu"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
-} from "../grapher/captionedChart/CaptionedChart"
+} from "../captionedChart/CaptionedChart"
 import {
     TimelineController,
     TimelineManager,
-} from "../grapher/timeline/TimelineController"
+} from "../timeline/TimelineController"
 import {
     EntityId,
     EntityName,
     OwidColumnDef,
-} from "../coreTable/OwidTableConstants"
-import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
+} from "../../coreTable/OwidTableConstants"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
-import { SlideShowController } from "../grapher/slideshowController/SlideShowController"
+import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../grapher/chart/ChartTypeMap"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
-import { SelectionArray } from "../grapher/selection/SelectionArray"
+} from "../chart/ChartTypeMap"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { ScatterPlotManager } from "../grapher/scatterCharts/ScatterPlotChartConstants"
-import { autoDetectYColumnSlugs } from "../grapher/chart/ChartUtils"
-import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
+import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
+import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+import { GlobalEntityRegistry } from "../controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 

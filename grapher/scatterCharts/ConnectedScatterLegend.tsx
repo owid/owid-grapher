@@ -1,8 +1,8 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { Triangle } from "./Triangle"
-import { TextWrap } from "../grapher/text/TextWrap"
-import { BASE_FONT_SIZE } from "../grapher/core/GrapherConstants"
+import { TextWrap } from "../text/TextWrap"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 export interface ConnectedScatterLegendManager {
     sidebarWidth: number

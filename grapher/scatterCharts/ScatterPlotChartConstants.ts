@@ -1,20 +1,20 @@
-import { CoreColumn } from "../coreTable/CoreTableColumns"
-import { Color, Time } from "../coreTable/CoreTableConstants"
-import { DualAxis } from "../grapher/axis/Axis"
-import { ChartManager } from "../grapher/chart/ChartManager"
-import { NoDataModalManager } from "../grapher/noDataModal/NoDataModal"
-import { ColorScale } from "../grapher/color/ColorScale"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { Color, Time } from "../../coreTable/CoreTableConstants"
+import { DualAxis } from "../axis/Axis"
+import { ChartManager } from "../chart/ChartManager"
+import { NoDataModalManager } from "../noDataModal/NoDataModal"
+import { ColorScale } from "../color/ColorScale"
 import {
     ScatterPointLabelStrategy,
     EntitySelectionMode,
     SeriesName,
-} from "../grapher/core/GrapherConstants"
+} from "../core/GrapherConstants"
 
-import { Bounds } from "../clientUtils/Bounds"
-import { PointVector } from "../clientUtils/PointVector"
-import { EntityId, EntityName } from "../coreTable/OwidTableConstants"
-import { ChartSeries } from "../grapher/chart/ChartInterface"
-import { OwidTable } from "../coreTable/OwidTable"
+import { Bounds } from "../../clientUtils/Bounds"
+import { PointVector } from "../../clientUtils/PointVector"
+import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
+import { ChartSeries } from "../chart/ChartInterface"
+import { OwidTable } from "../../coreTable/OwidTable"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean

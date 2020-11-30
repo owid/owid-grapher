@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { AxisConfig } from "../grapher/axis/AxisConfig"
+import { AxisConfig } from "../axis/AxisConfig"
 import { LineLegend, LineLegendManager } from "./LineLegend"
 
 const manager: LineLegendManager = {

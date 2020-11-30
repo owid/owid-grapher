@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { TimeBoundValue } from "../clientUtils/TimeBounds"
-import { range } from "../clientUtils/Util"
+import { TimeBoundValue } from "../../clientUtils/TimeBounds"
+import { range } from "../../clientUtils/Util"
 import { TimelineController, TimelineManager } from "./TimelineController"
 
 it("can play a timeline", async () => {

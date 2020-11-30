@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { CoreTable } from "../coreTable/CoreTable"
+import { CoreTable } from "../../coreTable/CoreTable"
 import { BinningStrategy } from "./BinningStrategies"
 import { ColorScale } from "./ColorScale"
 import { ColorScaleConfigInterface } from "./ColorScaleConfig"

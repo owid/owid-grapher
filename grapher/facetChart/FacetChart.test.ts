@@ -1,9 +1,9 @@
 #! /usr/bin/env jest
 
 import { FacetChart } from "./FacetChart"
-import { SynthesizeGDPTable } from "../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../grapher/chart/ChartManager"
-import { FacetStrategy } from "../grapher/core/GrapherConstants"
+import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
+import { ChartManager } from "../chart/ChartManager"
+import { FacetStrategy } from "../core/GrapherConstants"
 
 it("can create a new FacetChart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

@@ -1,5 +1,5 @@
-import { CoreColumn } from "../coreTable/CoreTableColumns"
-import { SeriesStrategy } from "../grapher/core/GrapherConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { SeriesStrategy } from "../core/GrapherConstants"
 import { LineChartSeries } from "./LineChartConstants"
 
 export const columnToLineChartSeriesArray = (

@@ -14,29 +14,29 @@ import {
     minBy,
     maxBy,
     exposeInstanceOnWindow,
-} from "../clientUtils/Util"
+} from "../../clientUtils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
-import { NoDataModal } from "../grapher/noDataModal/NoDataModal"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../grapher/verticalColorLegend/VerticalColorLegend"
-import { ColorScale, ColorScaleManager } from "../grapher/color/ColorScale"
+} from "../verticalColorLegend/VerticalColorLegend"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     SeriesName,
-} from "../grapher/core/GrapherConstants"
-import { ChartInterface } from "../grapher/chart/ChartInterface"
-import { ChartManager } from "../grapher/chart/ChartManager"
+} from "../core/GrapherConstants"
+import { ChartInterface } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
-import { Text } from "../grapher/text/Text"
-import { TextWrap } from "../grapher/text/TextWrap"
+import { Text } from "../text/Text"
+import { TextWrap } from "../text/TextWrap"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
@@ -45,14 +45,14 @@ import {
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
-import { CoreColumn } from "../coreTable/CoreTableColumns"
-import { OwidTable } from "../coreTable/OwidTable"
-import { Color } from "../coreTable/CoreTableConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { Color } from "../../coreTable/CoreTableConstants"
 import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "../grapher/chart/ChartUtils"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
+} from "../chart/ChartUtils"
+import { ColorSchemeName } from "../color/ColorConstants"
 
 @observer
 export class SlopeChart

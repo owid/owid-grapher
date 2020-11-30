@@ -3,8 +3,8 @@ import { SlopeChart } from "./SlopeChart"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../coreTable/OwidTableSynthesizers"
-import { BlankOwidTable } from "../coreTable/OwidTable"
+} from "../../coreTable/OwidTableSynthesizers"
+import { BlankOwidTable } from "../../coreTable/OwidTable"
 
 export default {
     title: "SlopeChart",

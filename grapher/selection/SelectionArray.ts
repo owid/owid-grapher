@@ -3,10 +3,10 @@ import {
     EntityId,
     EntityName,
     OwidTableSlugs,
-} from "../coreTable/OwidTableConstants"
-import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
-import { difference, mapBy } from "../clientUtils/Util"
-import { isPresent } from "../clientUtils/isPresent"
+} from "../../coreTable/OwidTableConstants"
+import { EntityUrlBuilder } from "../core/EntityUrlBuilder"
+import { difference, mapBy } from "../../clientUtils/Util"
+import { isPresent } from "../../clientUtils/isPresent"
 import { action, computed, observable } from "mobx"
 
 interface Entity {
