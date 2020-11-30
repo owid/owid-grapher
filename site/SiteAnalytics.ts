@@ -1,11 +1,6 @@
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics" // todo: make these less tightly coupled
-import { ENV, GRAPHER_VERSION } from "settings/clientSettings"
 
 export class SiteAnalytics extends GrapherAnalytics {
-    constructor(environment = ENV, version = GRAPHER_VERSION) {
-        super(environment, version)
-    }
-
     logCovidCountryProfileSearch(country: string) {
         this.logToGA("COVID_COUNTRY_PROFILE_SEARCH", country)
         this.logToSA(`COVID_COUNTRY_PROFILE_SEARCH :: ${country}`)
