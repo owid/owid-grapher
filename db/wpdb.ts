@@ -76,13 +76,13 @@ const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
-async function apiQuery(
+const apiQuery = async (
     endpoint: string,
     params?: {
         isAuthenticated?: boolean
         searchParams?: Array<[string, string | number]>
     }
-): Promise<any> {
+): Promise<any> => {
     const url = new URL(endpoint)
 
     if (params && params.searchParams) {
@@ -91,7 +91,7 @@ async function apiQuery(
         })
     }
 
-    if (params && params.isAuthenticated) {
+    if (params && params.isAuthenticated)
         return fetch(url.toString(), {
             headers: [
                 [
@@ -103,9 +103,8 @@ async function apiQuery(
                 ],
             ],
         })
-    } else {
-        return fetch(url.toString())
-    }
+
+    return fetch(url.toString())
 }
 
 export const query = async (queryStr: string, params?: any[]): Promise<any[]> =>
@@ -458,9 +457,6 @@ export const getPostBySlug = async (slug: string): Promise<any[]> => {
         }
     )
     const postApiArray = await response.json()
-    if (!postApiArray.length)
-        throw new JsonError(`No page found by slug ${slug}`, 404)
-
     return postApiArray[0]
 }
 

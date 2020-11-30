@@ -1,5 +1,3 @@
-import * as wpdb from "db/wpdb"
-import * as db from "db/db"
 import { LongFormPage, PageOverrides } from "site/LongFormPage"
 import { BlogIndexPage } from "site/BlogIndexPage"
 import { FrontPage } from "site/FrontPage"
@@ -12,7 +10,7 @@ import { SubscribePage } from "site/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
-import { extractFormattingOptions, formatCountryProfile } from "site/formatting"
+import { extractFormattingOptions, formatCountryProfile } from "./formatting"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -34,14 +32,24 @@ import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
 import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
-import { getFullPost, getPostBySlug } from "db/wpdb"
+import {
+    getBlogIndex,
+    getEntriesByCategory,
+    getFullPost,
+    getLatestPostRevision,
+    getPageType,
+    getPostBySlug,
+    getPosts,
+    PageType,
+} from "db/wpdb"
+import { get, query, table } from "db/db"
 
 // Wrap ReactDOMServer to stick the doctype on
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 export const renderChartsPage = async () => {
-    const chartItems = (await db.query(`
+    const chartItems = (await query(`
         SELECT
             id,
             config->>"$.slug" AS slug,
@@ -54,7 +62,7 @@ export const renderChartsPage = async () => {
             AND config->"$.isPublished" IS TRUE
     `)) as ChartIndexItem[]
 
-    const chartTags = await db.query(`
+    const chartTags = await query(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
@@ -79,23 +87,23 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderPageBySlug = async (slug: string) => {
-    const postApi = await wpdb.getPostBySlug(slug)
+    const postApi = await getPostBySlugOrThrow(slug)
     return renderPage(postApi)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    const postApi = await wpdb.getLatestPostRevision(postId)
+    const postApi = await getLatestPostRevision(postId)
     return renderPage(postApi)
 }
 
 export const renderMenuJson = async () => {
-    const categories = await wpdb.getEntriesByCategory()
+    const categories = await getEntriesByCategory()
     return JSON.stringify({ categories: categories })
 }
 
 const renderPage = async (postApi: any) => {
-    const post = await wpdb.getFullPost(postApi)
-    const pageType = await wpdb.getPageType(post)
+    const post = await getFullPost(postApi)
+    const pageType = await getPageType(post)
 
     const $ = cheerio.load(post.content)
 
@@ -124,10 +132,10 @@ const renderPage = async (postApi: any) => {
 }
 
 export const renderFrontPage = async () => {
-    const entries = await wpdb.getEntriesByCategory()
-    const posts = await wpdb.getBlogIndex()
+    const entries = await getEntriesByCategory()
+    const posts = await getBlogIndex()
     const totalCharts = (
-        await db.query(
+        await query(
             `SELECT COUNT(*) AS count
             FROM charts
             WHERE
@@ -158,7 +166,7 @@ export const renderSubscribePage = () =>
     renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 
 export const renderBlogByPageNum = async (pageNum: number) => {
-    const allPosts = await wpdb.getBlogIndex()
+    const allPosts = await getBlogIndex()
 
     const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
     const posts = allPosts.slice(
@@ -178,9 +186,9 @@ export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed() {
-    const postsApi = await wpdb.getPosts(["post"], 10)
-    const posts: wpdb.FullPost[] = await Promise.all(
-        postsApi.map((postApi) => wpdb.getFullPost(postApi, true))
+    const postsApi = await getPosts(["post"], 10)
+    const posts = await Promise.all(
+        postsApi.map((postApi) => getFullPost(postApi, true))
     )
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
@@ -222,8 +230,7 @@ ${posts
 
 // These pages exist largely just for Google Scholar
 export const entriesByYearPage = async (year?: number) => {
-    const entries = (await db
-        .table(Post.table)
+    const entries = (await table(Post.table)
         .where({ status: "publish" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
@@ -251,7 +258,7 @@ export const pagePerVariable = async (
     variableId: number,
     countryName: string
 ) => {
-    const variable = await db.get(
+    const variable = await get(
         `
         SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
@@ -268,13 +275,12 @@ export const pagePerVariable = async (
     }
 
     variable.display = JSON.parse(variable.display)
-    variable.source = await db.get(
+    variable.source = await get(
         `SELECT id, name FROM sources AS s WHERE id = ?`,
         variable.sourceId
     )
 
-    const country = await db
-        .table("entities")
+    const country = await table("entities")
         .select("id", "name")
         .whereRaw("lower(name) = ?", [countryName])
         .first()
@@ -297,11 +303,11 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePostApi = await wpdb.getPostBySlug(
+        const genericCountryProfilePostApi = await getPostBySlugOrThrow(
             profileSpec.genericProfileSlug
         )
 
-        const genericCountryProfilePost = await wpdb.getFullPost(
+        const genericCountryProfilePost = await getFullPost(
             genericCountryProfilePostApi
         )
 
@@ -318,10 +324,15 @@ const getCountryProfilePost = memoize(
     }
 )
 
+const getPostBySlugOrThrow = async (slug: string) => {
+    const post = await getPostBySlug(slug)
+    if (!post) throw new JsonError(`No page found by slug ${slug}`, 404)
+}
+
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        const landingPagePostApi = await getPostBySlug(
+        const landingPagePostApi = await getPostBySlugOrThrow(
             profileSpec.landingPageSlug
         )
         const landingPost = getFullPost(landingPagePostApi)
@@ -356,7 +367,7 @@ export const renderCountryProfile = async (
     }
     return renderToHtmlPage(
         <LongFormPage
-            pageType={wpdb.PageType.SubEntry}
+            pageType={PageType.SubEntry}
             post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}
