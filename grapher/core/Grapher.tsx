@@ -285,8 +285,12 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         if (obj.originUrl === null) this.originUrl = ""
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) this.minTime = minTimeFromJSON(obj.minTime)
-        if (obj.maxTime) this.maxTime = maxTimeFromJSON(obj.maxTime)
+        if (obj.minTime !== undefined)
+            this.minTime = minTimeFromJSON(obj.minTime)
+        if (obj.maxTime !== undefined)
+            this.maxTime = maxTimeFromJSON(obj.maxTime)
+        if (obj.map?.time !== undefined)
+            this.map.time = maxTimeFromJSON(obj.map.time)
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
