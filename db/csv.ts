@@ -1,8 +1,8 @@
 import parse from "csv-parse"
 import { ReadStream } from "fs"
 
-export async function parseCSV(csv: string): Promise<string[][]> {
-    return new Promise<string[][]>((resolve, reject) => {
+export const parseCSV = async (csv: string): Promise<string[][]> =>
+    new Promise<string[][]>((resolve, reject) => {
         parse(
             csv,
             { relax_column_count: true, skip_empty_lines: true, trim: true },
@@ -12,16 +12,15 @@ export async function parseCSV(csv: string): Promise<string[][]> {
             }
         )
     })
-}
 
 export class CSVStreamParser {
-    parser: any
-    error: any
-    isEnded: boolean = false
-    isReadable: boolean = false
+    private parser: any
+    private error: any
+    private isEnded = false
+    private isReadable = false
 
-    rowResolve?: (value: any) => void
-    rowReject?: (error: any) => void
+    private rowResolve?: (value: any) => void
+    private rowReject?: (error: any) => void
 
     constructor(input: ReadStream) {
         const parser = parse({
@@ -47,7 +46,7 @@ export class CSVStreamParser {
         this.parser = parser
     }
 
-    update() {
+    private update() {
         if (!this.rowResolve || !this.rowReject) return
 
         if (this.error) {

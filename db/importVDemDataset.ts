@@ -472,12 +472,16 @@ async function importData() {
                     throw new Error(`Unable to find entity ${entity}`)
                 const year = row[3]
 
-                for (let i = VARIABLE_START_COLUMN; i < row.length; i++) {
-                    const variableId = variableIds[i]
-                    if (!variableId || row[i] === "") continue
+                for (
+                    let index = VARIABLE_START_COLUMN;
+                    index < row.length;
+                    index++
+                ) {
+                    const variableId = variableIds[index]
+                    if (!variableId || row[index] === "") continue
 
                     valueRows.push([
-                        row[i],
+                        row[index],
                         parseInt(year),
                         entityId,
                         variableId,
