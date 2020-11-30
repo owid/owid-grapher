@@ -9,7 +9,7 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
 import { CovidSortKey } from "./CovidTypes"
-import { fetchTestsData, fetchECDCData } from "./CovidFetch"
+import { fetchTestsData, fetchJHUData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "grapher/chart/Tippy"
 import { SortOrder } from "grapher/core/GrapherConstants"
@@ -22,7 +22,7 @@ const DEATH_THRESHOLD = 5
 
 const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
     cases: {
-        loadData: fetchECDCData,
+        loadData: fetchJHUData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleCases,
@@ -53,8 +53,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
-                        ECDC
+                    <a href="https://github.com/CSSEGISandData/COVID-19">
+                        Johns Hopkins University CSSE
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">
@@ -66,7 +66,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         ),
     },
     deaths: {
-        loadData: fetchECDCData,
+        loadData: fetchJHUData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
@@ -97,8 +97,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
-                        ECDC
+                    <a href="https://github.com/CSSEGISandData/COVID-19">
+                        Johns Hopkins University CSSE
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">
@@ -174,7 +174,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         },
     },
     deathsAndCases: {
-        loadData: fetchECDCData,
+        loadData: fetchJHUData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
@@ -209,8 +209,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide">
-                        ECDC
+                    <a href="https://github.com/CSSEGISandData/COVID-19">
+                        Johns Hopkins University CSSE
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">

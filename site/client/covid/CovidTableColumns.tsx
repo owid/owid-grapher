@@ -356,7 +356,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    ECDC data.{" "}
+                    JHU data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -381,7 +381,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    ECDC data.{" "}
+                    JHU data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -406,7 +406,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    ECDC data.{" "}
+                    JHU data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -431,7 +431,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    ECDC data.{" "}
+                    JHU data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}

@@ -42,7 +42,7 @@ import {
     columns,
     CovidTableCellSpec,
 } from "./CovidTableColumns"
-import { fetchECDCData } from "./CovidFetch"
+import { fetchJHUData } from "./CovidFetch"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
@@ -73,7 +73,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         columns: [],
         mobileColumns: [],
         filter: (d) => d,
-        loadData: fetchECDCData,
+        loadData: fetchJHUData,
         defaultState: {},
     }
 
