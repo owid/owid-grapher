@@ -261,20 +261,21 @@ export class CovidExplorerTable {
 
         const continentRows = CovidExplorerTable.generateContinentRows(
             filtered
-        ).filter(
-            // Drop the last day in aggregates containing Spain & Sweden
-            (row) => !(row.date === latestDate && row.location === "Europe")
-        )
+        ).filter((row) => !(row.date === latestDate))
 
         const euRows = CovidExplorerTable.calculateRowsForGroup(
             filtered.filter((row: ParsedCovidCsvRow) =>
                 CovidExplorerTable.euCountries.has(row.location)
             ),
             "European Union"
-            // Drop the last day in aggregates containing Spain & Sweden
-        ).filter((row) => row.date !== latestDate)
+        )
 
-        return filtered.concat(continentRows, euRows)
+        const aggregatesRows = continentRows
+            .concat(euRows)
+            // Drop last day for all aggregates, because JHU data is sparse for last day
+            .filter((row) => row.date !== latestDate)
+
+        return filtered.concat(aggregatesRows)
     }
 
     private static buildCovidVariableId(params: CovidQueryParams): number {
