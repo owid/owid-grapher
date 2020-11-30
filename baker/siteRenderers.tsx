@@ -30,7 +30,11 @@ import { FeedbackPage } from "site/FeedbackPage"
 import { getCountry, Country } from "clientUtils/countries"
 import { memoize } from "clientUtils/Util"
 import { CountryProfileSpec } from "site/countryProfileProjects"
-import { FormattedPost, FormattingOptions } from "clientUtils/owidTypes"
+import {
+    FormattedPost,
+    FormattingOptions,
+    PostRow,
+} from "clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
 import {
     getBlogIndex,
@@ -236,7 +240,7 @@ export const entriesByYearPage = async (year?: number) => {
         .join("tags", { "tags.id": "post_tags.tag_id" })
         .where({ "tags.name": "Entries" })
         .select("title", "slug", "published_at")) as Pick<
-        Post.Row,
+        PostRow,
         "title" | "slug" | "published_at"
     >[]
 

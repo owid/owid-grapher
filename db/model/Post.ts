@@ -4,26 +4,16 @@ import * as lodash from "lodash"
 import { Tag } from "./Tag"
 import { QueryBuilder } from "knex"
 import { decodeHTML } from "entities"
+import { PostRow } from "clientUtils/owidTypes"
 
 export namespace Post {
-    export interface Row {
-        id: number
-        title: string
-        slug: string
-        type: "post" | "page"
-        status: string
-        content: string
-        published_at: Date | null
-        updated_at: Date
-    }
-
-    export type Field = keyof Row
+    export type Field = keyof PostRow
 
     export const table = "posts"
 
-    export function select<K extends keyof Row>(
+    export function select<K extends keyof PostRow>(
         ...args: K[]
-    ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
+    ): { from: (query: QueryBuilder) => Promise<Pick<PostRow, K>[]> } {
         return {
             from: (query) => query.select(...args) as any,
         }
@@ -62,11 +52,11 @@ export namespace Post {
         })
     }
 
-    export async function bySlug(slug: string): Promise<Post.Row | undefined> {
+    export async function bySlug(slug: string): Promise<PostRow | undefined> {
         return Post.rows(await db.table("posts").where({ slug: slug }))[0]
     }
 
-    export function rows(plainRows: any): Post.Row[] {
+    export function rows(plainRows: any): PostRow[] {
         return plainRows
     }
 }
@@ -102,7 +92,7 @@ export async function syncPostsToGrapher() {
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
         }
-    }) as Post.Row[]
+    }) as PostRow[]
 
     await db.knex().transaction(async (t) => {
         if (toDelete.length) {
@@ -176,7 +166,7 @@ export async function syncPostToGrapher(
                   wpPost.post_modified_gmt === "0000-00-00 00:00:00"
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
-          } as Post.Row)
+          } as PostRow)
         : undefined
 
     await db.knex().transaction(async (t) => {

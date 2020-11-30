@@ -102,3 +102,15 @@ export interface TocHeading {
     slug: string
     isSubheading: boolean
 }
+
+// todo; remove
+export interface PostRow {
+    id: number
+    title: string
+    slug: string
+    type: "post" | "page"
+    status: string
+    content: string
+    published_at: Date | null
+    updated_at: Date
+}

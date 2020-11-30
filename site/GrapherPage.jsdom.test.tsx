@@ -4,8 +4,7 @@ import * as React from "react"
 import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { Post } from "db/model/Post"
-import { RelatedChart } from "clientUtils/owidTypes"
+import { PostRow, RelatedChart } from "clientUtils/owidTypes"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
@@ -27,7 +26,7 @@ const mockGrapher: GrapherInterface = {
 }
 
 let grapher: GrapherInterface
-let post: Post.Row
+let post: PostRow
 let relatedCharts: RelatedChart[]
 
 beforeAll(() => {

@@ -6,8 +6,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
-import { Post } from "db/model/Post"
-import { RelatedChart } from "clientUtils/owidTypes"
+import { PostRow, RelatedChart } from "clientUtils/owidTypes"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "./IframeDetector"
@@ -17,7 +16,7 @@ import { uniq } from "clientUtils/Util"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
-    post?: Post.Row
+    post?: PostRow
     relatedCharts?: RelatedChart[]
     baseUrl: string
     baseGrapherUrl: string

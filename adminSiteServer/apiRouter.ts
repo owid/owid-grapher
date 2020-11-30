@@ -31,6 +31,7 @@ import { enqueueChange, getDeploys } from "baker/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { ExplorerApiRoutes } from "explorerAdmin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/GitCmsServer"
+import { PostRow } from "clientUtils/owidTypes"
 
 const apiRouter = new FunctionalRouter()
 
@@ -1342,7 +1343,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .table(Post.table)
         .where({ id: postId })
         .select("*")
-        .first()) as Post.Row
+        .first()) as PostRow
     return camelCaseProperties(post)
 })
 
