@@ -9,10 +9,10 @@ import {
 } from "clientUtils/Util"
 
 import { CovidSeries } from "./CovidTypes"
-import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
+import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
 
-async function _fetchECDCData(): Promise<CovidSeries> {
-    const responseText = await retryPromise(() => fetchText(ECDC_DATA_URL))
+async function _fetchJHUData(): Promise<CovidSeries> {
+    const responseText = await retryPromise(() => fetchText(JHU_DATA_URL))
     const rows: CovidSeries = csvParse(responseText).map((row) => {
         return {
             date: new Date(row.date as string),
@@ -28,7 +28,7 @@ async function _fetchECDCData(): Promise<CovidSeries> {
 
 // We want to memoize (cache) the return value of that fetch, so we don't need to load
 // the file multiple times if we request the data more than once
-export const fetchECDCData = memoize(_fetchECDCData)
+export const fetchJHUData = memoize(_fetchJHUData)
 
 //      'Entity string'
 //      'OWID country'

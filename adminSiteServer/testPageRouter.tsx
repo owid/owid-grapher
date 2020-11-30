@@ -15,7 +15,7 @@ import {
 import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"
-import { parseIntOrUndefined } from "clientUtils/Util"
+import { excludeUndefined, parseIntOrUndefined } from "clientUtils/Util"
 import { grapherToSVG } from "baker/GrapherImageBaker"
 import { EntitySelectionMode } from "grapher/core/GrapherConstants"
 
@@ -117,6 +117,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                         <div className="side-by-side">
                             <iframe
                                 src={`https://ourworldindata.org/grapher/${chart.slug}`}
+                                loading="lazy"
                             />
                             {!IS_LIVE && (
                                 <figure
@@ -158,8 +159,6 @@ testPageRouter.get("/embeds", async (req, res) => {
         .orderBy("id", "ASC")
 
     let tab = req.query.tab
-    const namespaces =
-        (req.query.namespaces && req.query.namespaces.split(",")) || []
 
     if (req.query.type) {
         if (req.query.type === "ChoroplethMap") {
@@ -277,9 +276,29 @@ testPageRouter.get("/embeds", async (req, res) => {
         `)
     }
 
-    if (req.query.namespace) {
-        namespaces.push(req.query.namespace)
+    if (req.query.datasetIds) {
+        const datasetIds = excludeUndefined(
+            req.query.datasetIds.split(",").map(parseIntOrUndefined)
+        )
+        query.andWhere(
+            `
+            EXISTS(
+                SELECT *
+                FROM variables
+                INNER JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE variables.datasetId IN (:datasetIds)
+                AND chart_dimensions.chartId = charts.id
+            )
+        `,
+            { datasetIds }
+        )
     }
+
+    const namespaces = req.query.namespaces
+        ? req.query.namespaces.split(",")
+        : req.query.namespace
+        ? [req.query.namespace]
+        : []
 
     if (namespaces.length > 0) {
         query.andWhere(
