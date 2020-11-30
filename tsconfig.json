@@ -11,6 +11,7 @@
         { "path": "./explorer" },
         { "path": "./coreTable" },
         { "path": "./site" },
+        { "path": "./settings" },
         { "path": "./adminSiteClient" },
         { "path": "./adminSiteServer" }
     ]

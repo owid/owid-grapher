@@ -7,10 +7,8 @@
 
 const common = {
     moduleNameMapper: {
-        "^(site|grapher|gitCms|explorer|coreTable|gridLang|clientUtils|adminSiteServer|db|deploy)/(.*)$":
+        "^(site|grapher|gitCms|explorer|coreTable|gridLang|clientUtils|adminSiteServer|db|deploy|settings)/(.*)$":
             "<rootDir>/$1/compiled/$2",
-        "^settings$": "<rootDir>/settings",
-        "^serverSettings$": "<rootDir>/serverSettings",
     },
 }
 
