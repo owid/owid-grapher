@@ -94,7 +94,11 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "../persistable/Persistable"
-import { ColumnSlug, ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    ColumnSlugs,
+    Time,
+} from "../../coreTable/CoreTableConstants"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -108,10 +112,7 @@ import {
 } from "../controls/Controls"
 import { TooltipView } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal"
-import {
-    DownloadTab,
-    DownloadTabManager,
-} from "../downloadTab/DownloadTab"
+import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"

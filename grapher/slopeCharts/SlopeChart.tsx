@@ -48,10 +48,7 @@ import {
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { Color } from "../../coreTable/CoreTableConstants"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { ColorSchemeName } from "../color/ColorConstants"
 
 @observer

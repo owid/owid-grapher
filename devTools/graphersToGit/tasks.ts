@@ -2,7 +2,10 @@
 
 import * as fs from "fs"
 import * as db from "../../db/db"
-import { Grapher, GrapherProgrammaticInterface } from "../../grapher/core/Grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+} from "../../grapher/core/Grapher"
 import { mapToObjectLiteral } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker"

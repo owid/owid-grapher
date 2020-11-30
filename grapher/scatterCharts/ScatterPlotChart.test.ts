@@ -8,10 +8,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants"
-import {
-    ScaleType,
-    ScatterPointLabelStrategy,
-} from "../core/GrapherConstants"
+import { ScaleType, ScatterPointLabelStrategy } from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"

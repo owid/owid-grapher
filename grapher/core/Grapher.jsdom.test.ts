@@ -12,7 +12,11 @@ import {
     LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
 } from "../core/GrapherInterface"
-import { TimeBoundValue, TimeBound, TimeBounds } from "../../clientUtils/TimeBounds"
+import {
+    TimeBoundValue,
+    TimeBound,
+    TimeBounds,
+} from "../../clientUtils/TimeBounds"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,

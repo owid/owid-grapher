@@ -21,10 +21,7 @@ import {
     PlacedFacetSeries,
 } from "./FacetChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 

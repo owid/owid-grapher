@@ -56,12 +56,12 @@ import {
     OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { defaultIfErrorValue, isNotErrorValue } from "../../coreTable/ErrorValues"
+import {
+    defaultIfErrorValue,
+    isNotErrorValue,
+} from "../../coreTable/ErrorValues"
 
 @observer
 export class ScatterPlotChart

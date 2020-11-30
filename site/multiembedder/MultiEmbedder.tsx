@@ -5,7 +5,10 @@ import { isPresent } from "../../clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
 import { splitURLintoPathAndQueryString } from "../../clientUtils/url"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
-import { Grapher, GrapherProgrammaticInterface } from "../../grapher/core/Grapher"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+} from "../../grapher/core/Grapher"
 import { Explorer } from "../../explorer/Explorer"
 import {
     EMBEDDED_EXPLORER_DELIMITER,

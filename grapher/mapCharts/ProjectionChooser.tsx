@@ -4,7 +4,10 @@ import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 import { first } from "../../clientUtils/Util"
 import { MapProjectionName, MapProjectionLabels } from "./MapProjections"
-import { asArray, getStylesForTargetHeight } from "../../clientUtils/react-select"
+import {
+    asArray,
+    getStylesForTargetHeight,
+} from "../../clientUtils/react-select"
 
 interface ProjectionChooserEntry {
     label: string

@@ -37,7 +37,11 @@ import {
 } from "./ExplorerConstants"
 import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
-import { ColumnSlug, SortOrder, TableSlug } from "../coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    SortOrder,
+    TableSlug,
+} from "../coreTable/CoreTableConstants"
 import { isNotErrorValue } from "../coreTable/ErrorValues"
 import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

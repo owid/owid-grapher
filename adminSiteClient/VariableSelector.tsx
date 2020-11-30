@@ -1,6 +1,12 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy, defaultTo, first } from "../clientUtils/Util"
+import {
+    groupBy,
+    isString,
+    sortBy,
+    defaultTo,
+    first,
+} from "../clientUtils/Util"
 import {
     computed,
     action,

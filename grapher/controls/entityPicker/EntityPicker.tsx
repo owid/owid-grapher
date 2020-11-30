@@ -23,9 +23,15 @@ import {
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import { ColumnSlug, SortOrder } from "../../../coreTable/CoreTableConstants"
-import { getStylesForTargetHeight, asArray } from "../../../clientUtils/react-select"
+import {
+    getStylesForTargetHeight,
+    asArray,
+} from "../../../clientUtils/react-select"
 import { ColumnTypeMap } from "../../../coreTable/CoreTableColumns"
-import { EntityName, OwidTableSlugs } from "../../../coreTable/OwidTableConstants"
+import {
+    EntityName,
+    OwidTableSlugs,
+} from "../../../coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"
 
 const toggleSort = (order: SortOrder) =>

@@ -16,7 +16,11 @@ import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import { MapConfigInterface } from "../mapCharts/MapConfig"
-import { ColumnSlug, ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    ColumnSlugs,
+    Time,
+} from "../../coreTable/CoreTableConstants"
 import { omit } from "../../clientUtils/Util"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"

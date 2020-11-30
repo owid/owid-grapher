@@ -32,10 +32,7 @@ import {
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5

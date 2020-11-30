@@ -6,7 +6,10 @@ import {
     SynthesizeGDPTable,
 } from "../../../coreTable/OwidTableSynthesizers"
 import { ColumnSlug, SortOrder } from "../../../coreTable/CoreTableConstants"
-import { EntityName, OwidTableSlugs } from "../../../coreTable/OwidTableConstants"
+import {
+    EntityName,
+    OwidTableSlugs,
+} from "../../../coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"
 import { computed, observable } from "mobx"
 import { SelectionArray } from "../../selection/SelectionArray"

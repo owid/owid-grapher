@@ -23,7 +23,10 @@ import {
     BLOG_POSTS_PER_PAGE,
     RECAPTCHA_SITE_KEY,
 } from "../settings/clientSettings"
-import { EntriesByYearPage, EntriesForYearPage } from "../site/EntriesByYearPage"
+import {
+    EntriesByYearPage,
+    EntriesForYearPage,
+} from "../site/EntriesByYearPage"
 import { VariableCountryPage } from "../site/VariableCountryPage"
 import { FeedbackPage } from "../site/FeedbackPage"
 import { getCountry, Country } from "../clientUtils/countries"
