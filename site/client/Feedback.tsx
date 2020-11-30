@@ -152,6 +152,7 @@ export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
                             id="feedback.message"
                             onChange={this.onMessage}
                             rows={5}
+                            minLength={30}
                             required
                             disabled={loading}
                         />
