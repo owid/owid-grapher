@@ -7,54 +7,42 @@ import {
 
 // File manipulation
 
-async function readQueuedFile(): Promise<string> {
-    return await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
-}
+const readQueuedFile = async () =>
+    await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
 
-async function readPendingFile(): Promise<string | undefined> {
-    if (await fs.pathExists(DEPLOY_PENDING_FILE_PATH)) {
+const readPendingFile = async () => {
+    if (await fs.pathExists(DEPLOY_PENDING_FILE_PATH))
         return await fs.readFile(DEPLOY_PENDING_FILE_PATH, "utf8")
-    }
     return undefined
 }
 
-export async function readQueuedAndPendingFiles(): Promise<string> {
+export const readQueuedAndPendingFiles = async () => {
     const queueContent = await readQueuedFile()
     const pendingContent = await readPendingFile()
     // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
-    if (pendingContent) {
-        return pendingContent + "\n" + queueContent
-    } else {
-        return queueContent
-    }
+    return pendingContent ? pendingContent + "\n" + queueContent : queueContent
 }
 
-export async function enqueueChange(item: DeployChange) {
+export const enqueueChange = async (item: DeployChange) =>
     await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + "\n")
-}
 
-export async function clearQueueFile() {
+export const clearQueueFile = async () =>
     await fs.truncate(DEPLOY_QUEUE_FILE_PATH, 0)
-}
 
-export async function writePendingFile(content: string) {
+export const writePendingFile = async (content: string) =>
     await fs.writeFile(DEPLOY_PENDING_FILE_PATH, content)
-}
 
-export async function deletePendingFile() {
+export const deletePendingFile = async () =>
     await fs.unlink(DEPLOY_PENDING_FILE_PATH)
-}
 
 // Parsing queue content
 
-export async function queueIsEmpty(): Promise<boolean> {
-    return !(await readQueuedAndPendingFiles())
-}
+export const queueIsEmpty = async () => !(await readQueuedAndPendingFiles())
 
-export function parseQueueContent(content: string): DeployChange[] {
-    // Parse all lines in file as JSON
-    return content
+// Parse all lines in file as JSON
+export const parseQueueContent = (content: string): DeployChange[] =>
+    content
         .split("\n")
         .map((line) => {
             try {
@@ -64,15 +52,14 @@ export function parseQueueContent(content: string): DeployChange[] {
             }
         })
         .filter((x) => x)
-}
 
-export async function getDeploys(): Promise<Deploy[]> {
+export const getDeploys = async () => {
     const [queueContent, pendingContent] = await Promise.all([
         readQueuedFile(),
         readPendingFile(),
     ])
     const deploys: Deploy[] = []
-    if (queueContent) {
+    if (queueContent)
         deploys.push({
             status: DeployStatus.queued,
             // Changes are always appended. Reversing them means the latest changes are first
@@ -80,12 +67,10 @@ export async function getDeploys(): Promise<Deploy[]> {
             // We can't sort by time because the presence of "time" is not guaranteed.
             changes: parseQueueContent(queueContent).reverse(),
         })
-    }
-    if (pendingContent) {
+    if (pendingContent)
         deploys.push({
             status: DeployStatus.pending,
             changes: parseQueueContent(pendingContent).reverse(),
         })
-    }
     return deploys
 }
