@@ -16,14 +16,13 @@ const main = async (
     console.log(email, name, postId)
     const slug = await syncPostToGrapher(postId)
 
-    if (BAKE_ON_CHANGE) {
+    if (BAKE_ON_CHANGE)
         await enqueueChange({
             timeISOString: new Date().toISOString(),
             authorName: name,
             authorEmail: email,
             message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`,
         })
-    }
 
     exit()
 }

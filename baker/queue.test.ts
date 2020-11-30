@@ -2,12 +2,10 @@
 
 import fs from "fs-extra"
 import { parseQueueContent, getDeploys } from "./queue"
-// Spyon is an antipattern. Create a deploy class that takes an interface with the subset of fs instead, and then can pass
-// a mock FS for testing.
-// import {
-//     DEPLOY_QUEUE_FILE_PATH,
-//     DEPLOY_PENDING_FILE_PATH,
-// } from "settings/serverSettings"
+import {
+    DEPLOY_QUEUE_FILE_PATH,
+    DEPLOY_PENDING_FILE_PATH,
+} from "settings/serverSettings"
 
 describe(parseQueueContent, () => {
     it("parses newline delimited JSON objects", async () => {
@@ -29,10 +27,9 @@ describe(parseQueueContent, () => {
     })
 })
 
-describe.skip(getDeploys, () => {
-    const DEPLOY_QUEUE_FILE_PATH = ""
-    const DEPLOY_PENDING_FILE_PATH = ""
-
+// todo: pretty sure Spyon is an antipattern. Create a deploy class that takes an interface with the subset of fs instead, and then can pass
+// a tiny mock FS for testing.
+describe(getDeploys, () => {
     it("is empty when nothing is in the queues", async () => {
         jest.spyOn(fs, "readFile").mockImplementation(
             (async (): Promise<string> => {
