@@ -10,7 +10,7 @@ import Tablepress from "site/Tablepress"
 import { GrapherExports } from "baker/GrapherBakingUtils"
 import * as path from "path"
 import { renderBlocks } from "site/blocks"
-import { RelatedCharts } from "site/blocks/RelatedCharts/RelatedCharts"
+import { RelatedCharts } from "site/blocks/RelatedCharts"
 import {
     FormattedPost,
     FormattingOptions,
@@ -19,7 +19,7 @@ import {
 import { bakeGlobalEntityControl } from "baker/bakeGlobalEntityControl"
 import { Footnote } from "site/Footnote"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "site/blocks/ProminentLink/ProminentLink"
+import { PROMINENT_LINK_CLASSNAME } from "site/blocks/ProminentLink"
 import {
     replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
     legacyCovidDashboardSlug,
