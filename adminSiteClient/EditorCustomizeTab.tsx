@@ -391,19 +391,18 @@ export class EditorCustomizeTab extends React.Component<{
                 <Section name="Color scheme">
                     <ColorSchemeSelector grapher={grapher} />
                 </Section>
-                {grapher.tab != GrapherTabOption.map && // Map color scale config is in EditorMapTab
-                    grapher.activeColorScale && (
-                        <EditorColorScaleSection
-                            scale={grapher.activeColorScale}
-                            features={{
-                                visualScaling: false,
-                                legendDescription:
-                                    grapher.isScatter ||
-                                    grapher.isSlopeChart ||
-                                    grapher.isStackedBar,
-                            }}
-                        />
-                    )}
+                {grapher.activeColorScaleExceptMap && (
+                    <EditorColorScaleSection
+                        scale={grapher.activeColorScaleExceptMap}
+                        features={{
+                            visualScaling: false,
+                            legendDescription:
+                                grapher.isScatter ||
+                                grapher.isSlopeChart ||
+                                grapher.isStackedBar,
+                        }}
+                    />
+                )}
                 {(features.hideLegend || features.entityType) && (
                     <Section name="Legend">
                         <FieldsRow>

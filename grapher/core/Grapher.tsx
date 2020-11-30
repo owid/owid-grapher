@@ -118,6 +118,7 @@ import "d3-transition"
 import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
 import { DataTable, DataTableManager } from "grapher/dataTable/DataTable"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
+import { MapChart } from "grapher/mapCharts/MapChart"
 import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 import { ShareMenuManager } from "grapher/controls/ShareMenu"
@@ -513,9 +514,16 @@ export class Grapher
     @computed get chartInstance() {
         // Note: when timeline handles on a LineChart are collapsed into a single handle, the
         // LineChart turns into a DiscreteBar.
-        const chartTypeName = this.isOnMapTab
-            ? ChartTypeName.WorldMap
-            : this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+
+        return this.isOnMapTab
+            ? new MapChart({ manager: this })
+            : this.chartInstanceExceptMap
+    }
+
+    // When Map becomes a first-class chart instance, we should drop this
+    @computed get chartInstanceExceptMap() {
+        const chartTypeName = this
+            .typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
         const ChartClass =
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
@@ -1288,6 +1296,11 @@ export class Grapher
 
     @computed get activeColorScale() {
         const chart = this.chartInstance as any
+        return chart.colorScale
+    }
+
+    @computed get activeColorScaleExceptMap() {
+        const chart = this.chartInstanceExceptMap as any
         return chart.colorScale
     }
 
