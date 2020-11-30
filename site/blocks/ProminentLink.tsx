@@ -7,10 +7,10 @@ import {
     queryParamsToStr,
     splitURLintoPathAndQueryString,
     QueryParams,
-} from "../clientUtils/url"
-import { union, isEmpty, getAttributesOfHTMLElement } from "../clientUtils/Util"
-import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
-import { GlobalEntityControl } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
+} from "../../clientUtils/url"
+import { union, isEmpty, getAttributesOfHTMLElement } from "../../clientUtils/Util"
+import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
+import { GlobalEntityControl } from "../../grapher/controls/globalEntityControl/GlobalEntityControl"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 

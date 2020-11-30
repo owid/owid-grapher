@@ -9,9 +9,9 @@ import { CovidTableColumnKey } from "./CovidTableColumns"
 import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchJHUData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
-import { Tippy } from "../grapher/chart/Tippy"
-import { SortOrder } from "../coreTable/CoreTableConstants"
-import { oneOf } from "../clientUtils/Util"
+import { Tippy } from "../../grapher/chart/Tippy"
+import { SortOrder } from "../../coreTable/CoreTableConstants"
+import { oneOf } from "../../clientUtils/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 

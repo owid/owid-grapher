@@ -1,4 +1,4 @@
-import { SortOrder } from "../coreTable/CoreTableConstants"
+import { SortOrder } from "../../coreTable/CoreTableConstants"
 import { NounKey, NounGenerator } from "./CovidTypes"
 import { createNoun } from "./CovidUtils"
 

@@ -8,11 +8,11 @@ import {
     getTodayDate,
     Preference,
     PreferenceType,
-} from "../site/CookiePreferencesManager"
+} from "../../site/CookiePreferencesManager"
 import slugify from "slugify"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
-import { SiteAnalytics } from "../site/SiteAnalytics"
+import { SiteAnalytics } from "../../site/SiteAnalytics"
 
 const ANALYTICS_ACTION = "cookie-preferences"
 const analytics = new SiteAnalytics()

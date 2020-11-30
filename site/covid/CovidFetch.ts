@@ -6,7 +6,7 @@ import {
     retryPromise,
     memoize,
     parseIntOrUndefined,
-} from "../clientUtils/Util"
+} from "../../clientUtils/Util"
 
 import { CovidSeries } from "./CovidTypes"
 import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
