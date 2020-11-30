@@ -35,7 +35,7 @@ export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
     World: geoPath().projection(
         typeof geoRobinson === "undefined"
             ? projectionToUseDuringJestTesting
-            : (geoRobinson() as GeoProjection)
+            : geoRobinson()
     ),
 
     Africa: geoPath().projection(
@@ -60,7 +60,7 @@ export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
     Asia: geoPath().projection(
         (typeof geoPatterson === "undefined"
             ? projectionToUseDuringJestTesting
-            : (geoPatterson() as GeoProjection)
+            : geoPatterson()
         )
             .center([58, 54])
             .scale(150)
