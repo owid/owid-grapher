@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env npm tsn
 
 import express from "express"
 import path from "path"

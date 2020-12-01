@@ -251,7 +251,7 @@ function build_static($post_ID, $post_after, $post_before)
         $cmd =
             "cd " .
             ABSPATH .
-            "codelink && yarn post-update " .
+            "codelink && npm post-update " .
             escapeshellarg($current_user->user_email) .
             " " .
             escapeshellarg($current_user->display_name) .

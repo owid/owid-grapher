@@ -85,9 +85,9 @@ netlify deploy
 
 ## PM2
 cd ~/NEW_NAME
-pm2 start yarn --name NEW_NAME --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- serve
+pm2 start npm --name NEW_NAME --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- serve
 pm2 save
-pm2 start yarn --name NEW_NAME-deploy-queue --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- deploy-queue
+pm2 start npm --name NEW_NAME-deploy-queue --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- deploy-queue
 pm2 save
 
 ## Make deployable.
@@ -104,4 +104,4 @@ pm2 save
 /home/owid/NEW_NAME-wordpress/scripts/refresh.sh -c -u
 
 ## Deploy from grapher on your dev machine
-# yarn deploy NEW_NAME
+# npm deploy NEW_NAME

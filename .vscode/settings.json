@@ -12,7 +12,7 @@
         "dist": true,
         "**/itsJustJavascript": true,
         "bakedSite": true,
-        "yarn.lock": true
+        "npm.lock": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.preferences.useAliasesForRenames": false,

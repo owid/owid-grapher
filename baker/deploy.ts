@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env npm tsn
 
 import * as fs from "fs-extra"
 import os from "os"
@@ -45,8 +45,8 @@ const runPreDeployChecksRemotely = async (
     await execWrapper(`${RSYNC_TESTS} ${dir} ${HOST}:${SYNC_TARGET_TESTS}`)
 
     const script = `cd ${SYNC_TARGET_TESTS}
-yarn install --production=false --frozen-lockfile
-yarn testcheck`
+npm install --production=false --frozen-lockfile
+npm testcheck`
     return await execWrapper(`ssh -t ${HOST} 'bash -e -s' ${script}`)
 }
 
@@ -170,8 +170,8 @@ const main = async () => {
             printAndExit(`Cannot skip checks when deploying to live`)
         progressBar.tick({ name: "✅ finished checks because we skipped them" })
     } else {
-        await runAndTick(`yarn prettify:check`, progressBar)
-        await runAndTick(`yarn typecheck`, progressBar)
+        await runAndTick(`npm prettify:check`, progressBar)
+        await runAndTick(`npm typecheck`, progressBar)
         await runAndTick(`jest`, progressBar)
     }
 
@@ -186,7 +186,7 @@ const main = async () => {
 
     const scripts: any = {
         file: makeScriptToDoFileStuff(ROOT, NAME, SYNC_TARGET, TMP_NEW),
-        yarn: makeScriptToDoYarnStuff(TMP_NEW),
+        npm: makeScriptToDoYarnStuff(TMP_NEW),
         adminServerStuff: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff(
             NAME,
             ROOT_TMP,
@@ -196,7 +196,7 @@ const main = async () => {
         bake: `pm2 stop ${NAME}-deploy-queue
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-yarn tsn baker/bakeSite.ts`,
+npm tsn baker/bakeSite.ts`,
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitEmail,
@@ -206,7 +206,7 @@ yarn tsn baker/bakeSite.ts`,
     }
 
     if (adminOnly) {
-        delete scripts.yarn
+        delete scripts.npm
         delete scripts.bake
         delete scripts.deploy
     }
@@ -307,10 +307,10 @@ const makeScriptToDoYarnStuff = (
     TMP_NEW: string
 ) => `# Install dependencies, build assets and migrate
 cd ${TMP_NEW}
-yarn install --production --frozen-lockfile
-yarn build
-yarn migrate
-yarn tsn baker/algolia/configureAlgolia.ts`
+npm install --production --frozen-lockfile
+npm build
+npm migrate
+npm tsn baker/algolia/configureAlgolia.ts`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
     NAME: string,
@@ -339,7 +339,7 @@ const makeScriptToDeployToNetlifyDoQueue = (
     GIT_NAME: string,
     FINAL_TARGET: string
 ) => `cd ${FINAL_TARGET}
-yarn tsn baker/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
+npm tsn baker/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
 

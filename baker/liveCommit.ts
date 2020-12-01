@@ -8,11 +8,11 @@ import { execWrapper } from "../db/execWrapper"
 /**
  * Retrieves information about the deployed commit on a live or staging server.
  * Usage examples:
- * - `yarn live-commit` will retrieve information about the deployed commits for _all_ servers, and show a table
- * - `yarn live-commit live` will retrieve the commit that's live on https://ourworldindata.org and opens it in GitHub
- *   That's equivalent to `yarn live-commit live --open`
- * - `yarn live-commit staging --show` will `git show` information about the commit deployed on https://staging-owid.netlify.app
- * - `yarn live-commit --show --tree` will both show a git tree and a `git show` of the deployed commits on https://ourworldindata.org
+ * - `npm live-commit` will retrieve information about the deployed commits for _all_ servers, and show a table
+ * - `npm live-commit live` will retrieve the commit that's live on https://ourworldindata.org and opens it in GitHub
+ *   That's equivalent to `npm live-commit live --open`
+ * - `npm live-commit staging --show` will `git show` information about the commit deployed on https://staging-owid.netlify.app
+ * - `npm live-commit --show --tree` will both show a git tree and a `git show` of the deployed commits on https://ourworldindata.org
  *
  * Note:
  *  For the local git commands to work you need to have that commit on your machine. Run a `git fetch` if you're getting a git error message.

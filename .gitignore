@@ -5,7 +5,6 @@ logs/
 .idea/
 db.sqlite3
 .sublime*
-yarn-error.log
 env
 .vscode/tags
 .awcache

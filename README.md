@@ -37,27 +37,21 @@ The owid-grapher visualization frontend code can run isomorphically under node t
     brew services start mysql@5.7
     ```
 
-5. Install yarn:
-
-    ```sh
-    npm install -g yarn
-    ```
-
-6. Git clone the "owid-content" folder as a sibling to owid-grapher:
+5. Git clone the "owid-content" folder as a sibling to owid-grapher:
 
     ```bash
     git clone https://github.com/owid/owid-content
     ```
 
-7. Inside the repo folder, install all dependencies by running:
+6. Inside the repo folder, install all dependencies by running:
 
     ```sh
-    yarn
+    npm install
     ```
 
 ### Other platforms
 
-You will need: [MySQL 5.7](https://www.mysql.com/), [Node 12.13.1+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
+You will need: [MySQL 5.7](https://www.mysql.com/) and [Node 12.13.1+](https://nodejs.org/en/). Running `npm install` in the repo root will grab the remaining dependencies.
 
 ## Database setup
 
@@ -98,13 +92,13 @@ We also have [**a rough sketch of the schema**](https://user-images.githubuserco
 
 `cp .env.example .env` and populate `.env` with your database details.
 
-Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+Finally, run `npm dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
 This development server will rebuild and live-reload the site upon changes, so you can just make changes to the code, save the file and see the result in the browser right away.
 
 ## Migrations
 
-If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `yarn typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `yarn migrate`.
+If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `npm typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `npm migrate`.
 
 ## Architecture notes
 

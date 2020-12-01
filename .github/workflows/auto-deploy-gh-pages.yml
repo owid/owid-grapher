@@ -27,43 +27,43 @@ jobs:
               with:
                   node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
-            # Restore yarn cache, makes it way faster
-            # https://github.com/actions/cache/blob/master/examples.md#node---yarn
-            - name: Get yarn cache directory path
-              id: yarn-cache-dir-path
-              run: echo "::set-output name=dir::$(yarn cache dir)"
+            # Restore npm cache, makes it way faster
+            # https://github.com/actions/cache/blob/master/examples.md#node---npm
+            - name: Get npm cache directory path
+              id: npm-cache-dir-path
+              run: echo "::set-output name=dir::$(npm cache dir)"
 
             - uses: actions/cache@v2
-              id: yarn-cache
+              id: npm-cache
               with:
-                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-                  key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  path: ${{ steps.npm-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-npm-${{ hashFiles('**/npm.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-yarn
+                      ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-npm
 
             - uses: actions/cache@v2
               id: node-modules-cache
               with:
                   path: node_modules
-                  key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/yarn.lock') }}
+                  key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-node-modules-${{ hashFiles('**/npm.lock') }}
 
             - name: Install dependencies
-              run: yarn --frozen-lockfile --network-concurrency 1
+              run: npm --frozen-lockfile --network-concurrency 1
 
             # Note: running these two build steps subsequently means that if either `build-storybook` or `coverage` fails,
             # neither of them is deployed :(
             # Let's hope this doesn't happen too often
 
             - name: Build Storybook 🔧
-              run: yarn build-storybook
+              run: npm build-storybook
 
             - name: Generate Jest coverage report 🃏
-              run: yarn coverage:ci
+              run: npm coverage:ci
 
             - name: Generate coverage badge 🔖
               run: |
                   mkdir -p badges
-                  yarn lcov-badge -o badges/coverage.svg coverage/lcov.info
+                  npm lcov-badge -o badges/coverage.svg coverage/lcov.info
 
             # We're using two subsequent deploys instead of making them parallel because `github-pages-deploy-action`
             # force-pushes, and if we have two deploys running at the same time that might lead to missing update situations.
