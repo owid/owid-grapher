@@ -403,19 +403,7 @@ export class CovidExplorerTable {
 
     initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
         if (params.interval === "smoothed") {
-            const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            this.initColumn(params, (row) => {
-                if (
-                    row.new_tests_smoothed === undefined ||
-                    !(row as any)[casesSlug]
-                )
-                    return undefined
-
-                if (testRateExcludeList.has(row.entityName)) return undefined
-
-                const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
-                return tpc >= 1 ? tpc : undefined
-            })
+            this.initColumn(params, (row) => row.tests_per_case)
         } else if (params.interval === "total")
             this.initColumn(params, (row) => {
                 if (row.total_tests === undefined || !row.total_cases)
@@ -462,25 +450,7 @@ export class CovidExplorerTable {
 
     initTestRateColumn(params: CovidConstrainedQueryParams) {
         if (params.isDailyOrSmoothed) {
-            const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            return this.initColumn(params, (row) => {
-                const testCount =
-                    params.smoothing === 7
-                        ? row.new_tests_smoothed
-                        : row.new_tests
-
-                const cases =
-                    params.smoothing === 7
-                        ? (row as any)[casesSlug]
-                        : row.new_cases
-
-                if (testRateExcludeList.has(row.entityName)) return undefined
-
-                if (!testCount) return undefined
-
-                const rate = cases / testCount
-                return rate >= 0 && rate <= 1 ? rate : undefined
-            })
+            return this.initColumn(params, (row) => row.positive_rate)
         }
         return this.initColumn(params, (row) => {
             if (row.total_cases === undefined || !row.total_tests)
