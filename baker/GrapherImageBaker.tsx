@@ -7,11 +7,6 @@ import svgo from "svgo"
 import md5 from "md5"
 import sharp from "sharp"
 import * as path from "path"
-
-// todo: can we remove the below 2 lines?
-declare var global: any
-global.window = { location: { search: "" } }
-
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher } from "../grapher/core/Grapher"
 

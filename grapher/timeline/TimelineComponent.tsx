@@ -164,9 +164,9 @@ export class TimelineComponent extends React.Component<{
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
-    @action.bound onPlayTouchEnd(e: Event) {
-        e.preventDefault()
-        e.stopPropagation()
+    @action.bound onPlayTouchEnd(evt: Event) {
+        evt.preventDefault()
+        evt.stopPropagation()
         this.controller.togglePlay()
     }
 
