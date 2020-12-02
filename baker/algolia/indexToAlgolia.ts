@@ -16,7 +16,7 @@ interface Tag {
 
 const getPostTags = async (postId: number) => {
     return (await db
-        .table("post_tags")
+        .knexTable("post_tags")
         .select("tags.id", "tags.name")
         .where({ post_id: postId })
         .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
@@ -91,7 +91,7 @@ const indexToAlgolia = async () => {
     index.replaceAllObjects(records)
 
     await wpdb.end()
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 indexToAlgolia()

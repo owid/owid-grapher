@@ -9,14 +9,14 @@ import { configureAlgolia } from "./configureAlgolia"
 const indexChartsToAlgolia = async () => {
     await configureAlgolia()
 
-    const allCharts = await db.query(`
+    const allCharts = await db.queryMysql(`
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName, config->>"$.data.availableEntities" as availableEntitiesStr
         FROM charts
         WHERE publishedAt IS NOT NULL
         AND is_indexable IS TRUE
     `)
 
-    const chartTags = await db.query(`
+    const chartTags = await db.queryMysql(`
         SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
@@ -61,7 +61,7 @@ const indexChartsToAlgolia = async () => {
     }
     await index.replaceAllObjects(records)
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 indexChartsToAlgolia()

@@ -24,7 +24,7 @@ const dataExport = async () => {
         WHERE NOT EXISTS (select * from tags t join chart_tags ct on ct.tagId = t.id where ct.chartId=cd.chartId and t.name='Private')
     `
 
-    const variableIds = (await db.query(variablesToExportQuery)).map(
+    const variableIds = (await db.queryMysql(variablesToExportQuery)).map(
         (row: any) => row.variableId
     )
 
@@ -50,7 +50,7 @@ const dataExport = async () => {
         console.log(count)
     }
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 dataExport()

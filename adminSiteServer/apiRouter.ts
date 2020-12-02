@@ -56,7 +56,7 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
 }
 
 async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
-    const logs = await db.query(
+    const logs = await db.queryMysql(
         `SELECT userId, config, fullName as userName, l.createdAt
         FROM chart_revisions l
         LEFT JOIN users u on u.id = userId
@@ -71,7 +71,7 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
 async function getReferencesByChartId(
     chartId: number
 ): Promise<PostReference[]> {
-    const rows = await db.query(
+    const rows = await db.queryMysql(
         `
         SELECT config->"$.slug" AS slug
         FROM charts
@@ -139,7 +139,7 @@ async function getReferencesByChartId(
 async function getRedirectsByChartId(
     chartId: number
 ): Promise<ChartRedirect[]> {
-    const redirects = await db.query(
+    const redirects = await db.queryMysql(
         `
         SELECT id, slug, chart_id as chartId
         FROM chart_slug_redirects
@@ -304,7 +304,7 @@ async function saveGrapher(
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     const limit =
         req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
-    const charts = await db.query(
+    const charts = await db.queryMysql(
         `
         SELECT ${OldChart.listFields} FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
@@ -329,7 +329,7 @@ apiRouter.get(
 apiRouter.get(
     "/editorData/namespaces.json",
     async (req: Request, res: Response) => {
-        const rows = (await db.query(
+        const rows = (await db.queryMysql(
             `SELECT DISTINCT
                 namespace AS name,
                 namespaces.description AS description,
@@ -388,7 +388,7 @@ apiRouter.get("/countries.json", async (req: Request, res: Response) => {
     if (input === CountryNameFormat.NonStandardCountryName) {
         const outputColumn = CountryDefByKey[output].column_name
 
-        rows = await db.query(`
+        rows = await db.queryMysql(`
             SELECT country_name as input, ${outputColumn} as output
             FROM country_name_tool_countryname ccn
             LEFT JOIN country_name_tool_countrydata ccd on ccn.owid_country = ccd.id
@@ -397,7 +397,7 @@ apiRouter.get("/countries.json", async (req: Request, res: Response) => {
         const inputColumn = CountryDefByKey[input].column_name
         const outputColumn = CountryDefByKey[output].column_name
 
-        rows = await db.query(
+        rows = await db.queryMysql(
             `SELECT ${inputColumn} as input, ${outputColumn} as output
             FROM country_name_tool_countrydata ccd
             LEFT JOIN country_name_tool_continent con on con.id = ccd.continent`
@@ -417,7 +417,7 @@ apiRouter.post("/countries", async (req: Request, res: Response) => {
 
     // find owid ID
     const owidNames = Object.keys(countries).map((key) => countries[key])
-    owidRows = await db.query(
+    owidRows = await db.queryMysql(
         `SELECT id, owid_name
         FROM country_name_tool_countrydata
         WHERE owid_name in (?)
@@ -450,7 +450,7 @@ apiRouter.get(
     "/editorData/:namespace.json",
     async (req: Request, res: Response) => {
         const datasets = []
-        const rows = await db.query(
+        const rows = await db.queryMysql(
             `SELECT v.name, v.id, d.name as datasetName, d.namespace, d.isPrivate
          FROM variables as v JOIN datasets as d ON v.datasetId = d.id
          WHERE namespace=? ORDER BY d.updatedAt DESC`,
@@ -674,13 +674,13 @@ apiRouter.get("/variables.json", async (req) => {
         LIMIT ?
     `
 
-    const rows = await db.query(
+    const rows = await db.queryMysql(
         query,
         searchStr ? [`%${searchStr}%`, limit] : [limit]
     )
 
     const numTotalRows = (
-        await db.query(`SELECT COUNT(*) as count FROM variables`)
+        await db.queryMysql(`SELECT COUNT(*) as count FROM variables`)
     )[0].count
 
     return { variables: rows, numTotalRows: numTotalRows }
@@ -706,7 +706,7 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const variableId = expectInt(req.params.variableId)
 
-        const variable = await db.get(
+        const variable = await db.mysqlFirst(
             `
         SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
@@ -724,12 +724,12 @@ apiRouter.get(
 
         variable.display = JSON.parse(variable.display)
 
-        variable.source = await db.get(
+        variable.source = await db.mysqlFirst(
             `SELECT id, name FROM sources AS s WHERE id = ?`,
             variable.sourceId
         )
 
-        const charts = await db.query(
+        const charts = await db.queryMysql(
             `
         SELECT ${OldChart.listFields}
         FROM charts
@@ -773,7 +773,7 @@ apiRouter.put("/variables/:variableId", async (req: Request) => {
 apiRouter.delete("/variables/:variableId", async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
 
-    const variable = await db.get(
+    const variable = await db.mysqlFirst(
         `SELECT datasets.namespace FROM variables JOIN datasets ON variables.datasetId=datasets.id WHERE variables.id=?`,
         [variableId]
     )
@@ -795,7 +795,7 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
 })
 
 apiRouter.get("/datasets.json", async (req) => {
-    const datasets = await db.query(`
+    const datasets = await db.queryMysql(`
         SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
@@ -803,7 +803,7 @@ apiRouter.get("/datasets.json", async (req) => {
         ORDER BY d.dataEditedAt DESC
     `)
 
-    const tags = await db.query(`
+    const tags = await db.queryMysql(`
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
@@ -822,7 +822,7 @@ apiRouter.get("/datasets.json", async (req) => {
 apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    const dataset = await db.get(
+    const dataset = await db.mysqlFirst(
         `
         SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets AS d
@@ -837,13 +837,13 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         throw new JsonError(`No dataset by id '${datasetId}'`, 404)
     }
 
-    const zipFile = await db.get(
+    const zipFile = await db.mysqlFirst(
         `SELECT filename FROM dataset_files WHERE datasetId=?`,
         [datasetId]
     )
     if (zipFile) dataset.zipFile = zipFile
 
-    const variables = await db.query(
+    const variables = await db.queryMysql(
         `
         SELECT v.id, v.name, v.description, v.display
         FROM variables AS v
@@ -860,7 +860,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     // Currently for backwards compatibility datasets can still have multiple sources
     // but the UI presents only a single item of source metadata, we use the first source
-    const sources = await db.query(
+    const sources = await db.queryMysql(
         `
         SELECT s.id, s.name, s.description
         FROM sources AS s
@@ -874,7 +874,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     dataset.source.id = sources[0].id
     dataset.source.name = sources[0].name
 
-    const charts = await db.query(
+    const charts = await db.queryMysql(
         `
         SELECT ${OldChart.listFields}
         FROM charts
@@ -892,7 +892,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     await Chart.assignTagsForCharts(charts)
 
-    const tags = await db.query(
+    const tags = await db.queryMysql(
         `
         SELECT t.id, t.name
         FROM tags t
@@ -903,7 +903,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
     )
     dataset.tags = tags
 
-    const availableTags = await db.query(`
+    const availableTags = await db.queryMysql(`
         SELECT t.id, t.name, p.name AS parentName
         FROM tags AS t
         JOIN tags AS p ON t.parentId=p.id
@@ -1078,7 +1078,7 @@ apiRouter.post(
 
 // Get a list of redirects that map old slugs to charts
 apiRouter.get("/redirects.json", async (req: Request, res: Response) => {
-    const redirects = await db.query(`
+    const redirects = await db.queryMysql(`
         SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
         FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
         ORDER BY r.id DESC`)
@@ -1096,7 +1096,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     // every time we create a new chart etcs
     const uncategorized = tagId === UNCATEGORIZED_TAG_ID
 
-    const tag = await db.get(
+    const tag = await db.mysqlFirst(
         `
         SELECT t.id, t.name, t.specialType, t.updatedAt, t.parentId, p.isBulkImport
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
@@ -1106,7 +1106,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     )
 
     // Datasets tagged with this tag
-    const datasets = await db.query(
+    const datasets = await db.queryMysql(
         `
         SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.isPrivate
         FROM datasets d
@@ -1124,7 +1124,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
         if (uncategorized) {
             for (const dataset of tag.datasets) dataset.tags = []
         } else {
-            const datasetTags = await db.query(
+            const datasetTags = await db.queryMysql(
                 `
                 SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
                 JOIN tags t ON dt.tagId = t.id
@@ -1145,7 +1145,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     }
 
     // Charts using datasets under this tag
-    const charts = await db.query(
+    const charts = await db.queryMysql(
         `
         SELECT ${OldChart.listFields} FROM charts
         LEFT JOIN chart_tags ct ON ct.chartId=charts.id
@@ -1162,7 +1162,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     await Chart.assignTagsForCharts(charts)
 
     // Subcategories
-    const children = await db.query(
+    const children = await db.queryMysql(
         `
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId = ?
@@ -1172,7 +1172,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     tag.children = children
 
     // Possible parents to choose from
-    const possibleParents = await db.query(`
+    const possibleParents = await db.queryMysql(`
         SELECT t.id, t.name FROM tags t
         WHERE t.parentId IS NULL AND t.isBulkImport IS FALSE
     `)
@@ -1204,7 +1204,7 @@ apiRouter.post("/tags/new", async (req: Request) => {
 })
 
 apiRouter.get("/tags.json", async (req: Request, res: Response) => {
-    const tags = await db.query(`
+    const tags = await db.queryMysql(`
         SELECT t.id, t.name, t.parentId, t.specialType
         FROM tags t LEFT JOIN tags p ON t.parentId=p.id
         WHERE t.isBulkImport IS FALSE AND (t.parentId IS NULL OR p.isBulkImport IS FALSE)
@@ -1234,7 +1234,7 @@ apiRouter.post("/charts/:chartId/redirects/new", async (req: Request) => {
         [chartId, fields.slug]
     )
     const redirectId = result.insertId
-    const redirect = await db.get(
+    const redirect = await db.mysqlFirst(
         `SELECT * FROM chart_slug_redirects WHERE id = ?`,
         [redirectId]
     )
@@ -1244,7 +1244,7 @@ apiRouter.post("/charts/:chartId/redirects/new", async (req: Request) => {
 apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
     const id = expectInt(req.params.id)
 
-    const redirect = await db.get(
+    const redirect = await db.mysqlFirst(
         `SELECT * FROM chart_slug_redirects WHERE id = ?`,
         [id]
     )
@@ -1341,7 +1341,7 @@ apiRouter.post(
 apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
     const postId = expectInt(req.params.postId)
     const post = (await db
-        .table(Post.table)
+        .knexTable(Post.table)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow
@@ -1350,14 +1350,14 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
 
 apiRouter.get("/importData.json", async (req) => {
     // Get all datasets from the importable namespace to match against
-    const datasets = await db.query(
+    const datasets = await db.queryMysql(
         `SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`
     )
 
     // Get a unique list of all entities in the database (probably this won't scale indefinitely)
-    const existingEntities = (await db.query(`SELECT name FROM entities`)).map(
-        (e: any) => e.name
-    )
+    const existingEntities = (
+        await db.queryMysql(`SELECT name FROM entities`)
+    ).map((e: any) => e.name)
 
     return { datasets: datasets, existingEntities: existingEntities }
 })
@@ -1365,7 +1365,7 @@ apiRouter.get("/importData.json", async (req) => {
 apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
     const datasetId = expectInt(req.params.datasetId)
 
-    const dataset = await db.get(
+    const dataset = await db.mysqlFirst(
         `
         SELECT d.id, d.namespace, d.name, d.description, d.updatedAt
         FROM datasets AS d
@@ -1378,7 +1378,7 @@ apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
         throw new JsonError(`No dataset by id '${datasetId}'`, 404)
     }
 
-    const variables = await db.query(
+    const variables = await db.queryMysql(
         `
         SELECT v.id, v.name
         FROM variables AS v
@@ -1596,7 +1596,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
 
 apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     const sourceId = expectInt(req.params.sourceId)
-    const source = await db.get(
+    const source = await db.mysqlFirst(
         `
         SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
@@ -1605,7 +1605,7 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
         [sourceId]
     )
     source.description = JSON.parse(source.description)
-    source.variables = await db.query(
+    source.variables = await db.queryMysql(
         `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
         [sourceId]
     )

@@ -8,7 +8,7 @@ const main = async () => {
         if (!dataset.isPrivate)
             await syncDatasetToGitRepo(dataset.id, { commitOnly: true })
     }
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 main()

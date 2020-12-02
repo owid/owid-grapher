@@ -103,7 +103,7 @@ export async function logOut(
     next: express.NextFunction
 ) {
     if (res.locals.user)
-        await db.query(`DELETE FROM sessions WHERE session_key = ?`, [
+        await db.queryMysql(`DELETE FROM sessions WHERE session_key = ?`, [
             res.locals.session.id,
         ])
 
@@ -125,7 +125,7 @@ export async function authMiddleware(
         // Expire old sessions
         await db.execute("DELETE FROM sessions WHERE expire_date < NOW()")
 
-        const rows = await db.query(
+        const rows = await db.queryMysql(
             `SELECT * FROM sessions WHERE session_key = ?`,
             [sessionid]
         )

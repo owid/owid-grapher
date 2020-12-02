@@ -39,7 +39,7 @@ export async function bakeGraphersToPngs(
 async function getGraphersAndRedirectsBySlug() {
     const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug()
 
-    const redirectQuery = db.query(
+    const redirectQuery = db.queryMysql(
         `SELECT slug, chart_id FROM chart_slug_redirects`
     )
 
@@ -54,7 +54,7 @@ export async function getPublishedGraphersBySlug() {
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
     const graphersById = new Map()
 
-    const query = db.query(
+    const query = db.queryMysql(
         `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
     )
     for (const row of await query) {

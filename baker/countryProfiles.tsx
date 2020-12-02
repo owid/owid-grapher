@@ -35,7 +35,7 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
     bakeCache(countryIndicatorGraphers, async () => {
         const graphers = (
             await db
-                .table("charts")
+                .knexTable("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
         return graphers.filter(
@@ -52,13 +52,13 @@ const countryIndicatorVariables = async (): Promise<Variable.Row[]> =>
             (c) => c.dimensions![0]!.variableId
         )
         return Variable.rows(
-            await db.table(Variable.table).whereIn("id", variableIds)
+            await db.knexTable(Variable.table).whereIn("id", variableIds)
         )
     })
 
 export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
     const entities = (await db
-        .table("entities")
+        .knexTable("entities")
         .select("id", "code")
         .whereRaw("validated is true and code is not null")) as {
         id: number
@@ -73,7 +73,7 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
         variableIds = (await countryIndicatorVariables()).map((v) => v.id)
 
     const dataValuesQuery = db
-        .table("data_values")
+        .knexTable("data_values")
         .select("variableId", "entityId", "value", "year")
         .whereIn("variableId", variableIds)
         .whereRaw(`entityId in (?)`, [entityIds])
@@ -115,7 +115,7 @@ const countryIndicatorLatestData = async (countryCode: string) => {
         countryIndicatorLatestData,
         async () => {
             const dataValues = (await db
-                .table("country_latest_data")
+                .knexTable("country_latest_data")
                 .select(
                     "variable_id AS variableId",
                     "country_code AS code",

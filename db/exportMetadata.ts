@@ -60,7 +60,7 @@ async function dataExport() {
         )
     }
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 dataExport()

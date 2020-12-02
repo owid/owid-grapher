@@ -478,7 +478,7 @@ export const getLatestPostRevision = async (id: number): Promise<any> => {
 export const getRelatedCharts = async (
     postId: number
 ): Promise<RelatedChart[]> =>
-    db.query(`
+    db.queryMysql(`
         SELECT DISTINCT
             charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,

@@ -41,7 +41,7 @@ export namespace Post {
     }
 
     export async function tagsByPostId() {
-        const postTags = await db.query(`
+        const postTags = await db.queryMysql(`
             SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
             JOIN posts p ON p.id=pt.post_id
             JOIN tags t ON t.id=pt.tag_id
@@ -74,7 +74,7 @@ export namespace Post {
     }
 
     export async function bySlug(slug: string): Promise<PostRow | undefined> {
-        return Post.rows(await db.table("posts").where({ slug: slug }))[0]
+        return Post.rows(await db.knexTable("posts").where({ slug: slug }))[0]
     }
 
     export function rows(plainRows: any): PostRow[] {
@@ -167,7 +167,7 @@ export async function syncPostToGrapher(
         [postId]
     )
 
-    const matchingRows = await db.table(Post.table).where({ id: postId })
+    const matchingRows = await db.knexTable(Post.table).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
 
     const wpPost = rows[0]
@@ -206,7 +206,7 @@ export async function syncPostToGrapher(
 
     const newPost = (
         await Post.select("slug").from(
-            db.table(Post.table).where({ id: postId })
+            db.knexTable(Post.table).where({ id: postId })
         )
     )[0]
     return newPost ? newPost.slug : undefined

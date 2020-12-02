@@ -9,26 +9,26 @@ import {
     DB_PORT,
 } from "../settings/serverSettings"
 import { registerExitHandler } from "./cleanup"
-let connection: typeorm.Connection
+let typeormConnection: typeorm.Connection
 
 export const connect = async () => getConnection()
 
 const getConnection = async () => {
-    if (connection) return connection
+    if (typeormConnection) return typeormConnection
 
     try {
-        connection = typeorm.getConnection()
+        typeormConnection = typeorm.getConnection()
     } catch (err) {
         if (err.name === "ConnectionNotFoundError")
-            connection = await typeorm.createConnection()
+            typeormConnection = await typeorm.createConnection()
         else throw err
     }
 
     registerExitHandler(async () => {
-        if (connection) await connection.close()
+        if (typeormConnection) await typeormConnection.close()
     })
 
-    return connection
+    return typeormConnection
 }
 
 export class TransactionContext {
@@ -52,20 +52,12 @@ export class TransactionContext {
 
 export const transaction = async <T>(
     callback: (t: TransactionContext) => Promise<T>
-): Promise<T> => {
-    return (await getConnection()).transaction(async (manager) => {
-        const t = new TransactionContext(manager)
-        return callback(t)
-    })
-}
+): Promise<T> =>
+    (await getConnection()).transaction(async (manager) =>
+        callback(new TransactionContext(manager))
+    )
 
-export const query = async (queryStr: string, params?: any[]): Promise<any> => {
-    const conn = await getConnection()
-    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
-}
-
-// For operations that modify data (TODO: handling to check query isn't used for this)
-export const execute = async (
+export const queryMysql = async (
     queryStr: string,
     params?: any[]
 ): Promise<any> => {
@@ -73,12 +65,19 @@ export const execute = async (
     return conn.query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
-export const get = async (queryStr: string, params?: any[]): Promise<any> => {
-    return (await query(queryStr, params))[0]
+// For operations that modify data (TODO: handling to check query isn't used for this)
+export const execute = queryMysql
+
+// Return the first match from a mysql query
+export const mysqlFirst = async (
+    queryStr: string,
+    params?: any[]
+): Promise<any> => {
+    return (await queryMysql(queryStr, params))[0]
 }
 
-export async function end() {
-    if (connection) await connection.close()
+export const closeTypeOrmAndKnexConnections = async () => {
+    if (typeormConnection) await typeormConnection.close()
     if (knexInstance) await knexInstance.destroy()
 }
 
@@ -111,11 +110,6 @@ export const knex = () => {
     return knexInstance
 }
 
-export const table = (table: string) => knex().table(table)
+export const knexTable = (table: string) => knex().table(table)
 
-export const raw = (str: string) => knex().raw(str)
-
-export const select = <T, K extends keyof T>(
-    query: Knex.QueryBuilder,
-    ...args: K[]
-): Promise<Pick<T, K>[]> => query.select(...args) as any
+export const knexRaw = (str: string) => knex().raw(str)

@@ -26,12 +26,12 @@ const xmlify = (url: SitemapUrl) => {
 
 export const makeSitemap = async () => {
     const posts = (await db
-        .table(Post.table)
+        .knexTable(Post.table)
         .where({ status: "publish" })
         .select("slug", "updated_at")) as { slug: string; updated_at: Date }[]
     const charts = (await db
-        .table(Chart.table)
-        .select(db.raw(`updatedAt, config->>"$.slug" AS slug`))
+        .knexTable(Chart.table)
+        .select(db.knexRaw(`updatedAt, config->>"$.slug" AS slug`))
         .whereRaw('config->"$.isPublished" = true')) as {
         updatedAt: Date
         slug: string

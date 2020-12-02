@@ -29,7 +29,7 @@ export namespace Variable {
 export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: any = { variables: {}, entityKey: {} }
 
-    const variableQuery = db.query(
+    const variableQuery = db.queryMysql(
         `
         SELECT v.*, v.shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
             JOIN datasets as d ON v.datasetId = d.id
@@ -39,7 +39,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         [variableIds]
     )
 
-    const dataQuery = db.query(
+    const dataQuery = db.queryMysql(
         `
             SELECT value, year, variableId as variableId, entities.id as entityId,
             entities.name as entityName, entities.code as entityCode
@@ -103,7 +103,9 @@ export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable
 ) {
-    const variableQuery: Promise<{ id: number; name: string }[]> = db.query(
+    const variableQuery: Promise<
+        { id: number; name: string }[]
+    > = db.queryMysql(
         `
         SELECT id, name
         FROM variables
@@ -119,7 +121,7 @@ export async function writeVariableCSV(
             year: number
             value: string
         }[]
-    > = db.query(
+    > = db.queryMysql(
         `
         SELECT
             data_values.variableId AS variableId,

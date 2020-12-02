@@ -35,7 +35,7 @@ async function dataExport() {
     // namespace.
     // This is necessary in order to reproduce the charts from the live grapher
     // accurately.
-    const rows = await db.query(
+    const rows = await db.queryMysql(
         `
         SELECT DISTINCT chart_dimensions.variableId
         FROM chart_dimensions
@@ -75,7 +75,7 @@ async function dataExport() {
         console.log(count)
     }
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 dataExport()

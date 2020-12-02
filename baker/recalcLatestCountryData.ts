@@ -6,7 +6,7 @@ import { denormalizeLatestCountryData } from "../baker/countryProfiles"
 
 const main = async () => {
     await denormalizeLatestCountryData()
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 if (require.main === module) main()

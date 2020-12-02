@@ -254,12 +254,12 @@ export class SiteBaker {
         )
 
         const rows = (await db
-            .table(Post.table)
+            .knexTable(Post.table)
             .where({ status: "publish" })
             .join("post_tags", { "post_tags.post_id": "posts.id" })
             .join("tags", { "tags.id": "post_tags.tag_id" })
             .where({ "tags.name": "Entries" })
-            .select(db.raw("distinct year(published_at) as year"))
+            .select(db.knexRaw("distinct year(published_at) as year"))
             .orderBy("year", "DESC")) as { year: number }[]
 
         const years = rows.map((r) => r.year)
@@ -457,7 +457,7 @@ export class SiteBaker {
 
     endDbConnections() {
         wpdb.end()
-        db.end()
+        db.closeTypeOrmAndKnexConnections()
     }
 
     private flushCache() {

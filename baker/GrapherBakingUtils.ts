@@ -58,7 +58,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
             continue
         }
 
-        const rows = await db.query(
+        const rows = await db.queryMysql(
             `SELECT charts.config->>"$.version" AS version FROM charts WHERE charts.id=?`,
             [chartId]
         )

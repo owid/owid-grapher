@@ -138,7 +138,7 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers = async (
     bakedSiteDir: string
 ) => {
-    const rows: { id: number; config: any }[] = await db.query(
+    const rows: { id: number; config: any }[] = await db.queryMysql(
         `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
     )
 

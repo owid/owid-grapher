@@ -87,7 +87,7 @@ mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
 )
 
 mockSiteRouter.get("/grapher/latest", async (req, res) => {
-    const latestRows = await db.query(
+    const latestRows = await db.queryMysql(
         `SELECT config->>"$.slug" AS slug FROM charts where starred=1`
     )
     if (latestRows.length)

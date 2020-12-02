@@ -3,7 +3,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 
 import * as express from "express"
-import { query } from "../db/db"
+import { queryMysql } from "../db/db"
 import { getGrapherById } from "../db/model/Chart"
 import { getBlockContent } from "../db/wpdb"
 
@@ -192,7 +192,7 @@ export const renderExplorerPage = async (
     const { requiredGrapherIds } = program.decisionMatrix
     let grapherConfigRows: any[] = []
     if (requiredGrapherIds.length)
-        grapherConfigRows = await query(
+        grapherConfigRows = await queryMysql(
             `SELECT id, config FROM charts WHERE id IN (?)`,
             [requiredGrapherIds]
         )

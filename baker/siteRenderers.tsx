@@ -49,13 +49,13 @@ import {
     getPostBySlug,
     getPosts,
 } from "../db/wpdb"
-import { get, query, table } from "../db/db"
+import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 export const renderChartsPage = async () => {
-    const chartItems = (await query(`
+    const chartItems = (await queryMysql(`
         SELECT
             id,
             config->>"$.slug" AS slug,
@@ -68,7 +68,7 @@ export const renderChartsPage = async () => {
             AND config->"$.isPublished" IS TRUE
     `)) as ChartIndexItem[]
 
-    const chartTags = await query(`
+    const chartTags = await queryMysql(`
         SELECT ct.chartId, ct.tagId, t.name as tagName, t.parentId as tagParentId FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
@@ -143,7 +143,7 @@ export const renderFrontPage = async () => {
     const entries = await getEntriesByCategory()
     const posts = await getBlogIndex()
     const totalCharts = (
-        await query(
+        await queryMysql(
             `SELECT COUNT(*) AS count
             FROM charts
             WHERE
@@ -243,7 +243,7 @@ ${posts
 
 // These pages exist largely just for Google Scholar
 export const entriesByYearPage = async (year?: number) => {
-    const entries = (await table(Post.table)
+    const entries = (await knexTable(Post.table)
         .where({ status: "publish" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
@@ -271,7 +271,7 @@ export const pagePerVariable = async (
     variableId: number,
     countryName: string
 ) => {
-    const variable = await get(
+    const variable = await mysqlFirst(
         `
         SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
@@ -286,12 +286,12 @@ export const pagePerVariable = async (
     if (!variable) throw new JsonError(`No variable by id '${variableId}'`, 404)
 
     variable.display = JSON.parse(variable.display)
-    variable.source = await get(
+    variable.source = await mysqlFirst(
         `SELECT id, name FROM sources AS s WHERE id = ?`,
         variable.sourceId
     )
 
-    const country = await table("entities")
+    const country = await knexTable("entities")
         .select("id", "name")
         .whereRaw("lower(name) = ?", [countryName])
         .first()

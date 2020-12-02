@@ -516,14 +516,14 @@ function EmbedVariantsTestPage(props: EmbedTestPageProps) {
 }
 
 testPageRouter.get("/previews", async (req, res) => {
-    const rows = await db.query(`SELECT config FROM charts LIMIT 200`)
+    const rows = await db.queryMysql(`SELECT config FROM charts LIMIT 200`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
 })
 
 testPageRouter.get("/embedVariants", async (req, res) => {
-    const rows = await db.query(`SELECT config FROM charts WHERE id=64`)
+    const rows = await db.queryMysql(`SELECT config FROM charts WHERE id=64`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))

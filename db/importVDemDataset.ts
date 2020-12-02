@@ -66,7 +66,9 @@ async function importCodebook() {
 
     // User responsible for uploading this data
     const userId = (
-        await db.get(`SELECT * FROM users WHERE fullName=?`, ["Jaiden Mispy"])
+        await db.mysqlFirst(`SELECT * FROM users WHERE fullName=?`, [
+            "Jaiden Mispy",
+        ])
     ).id
 
     await db.transaction(async (t) => {
@@ -512,7 +514,7 @@ async function main() {
         //    await importCodebook()
         await importData()
     } finally {
-        await db.end()
+        await db.closeTypeOrmAndKnexConnections()
     }
 }
 

@@ -37,10 +37,10 @@ export class Chart extends BaseEntity {
 
     // Only considers published charts, because only in that case the mapping slug -> id is unique
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-        const redirects = await db.query(
+        const redirects = await db.queryMysql(
             `SELECT chart_id, slug FROM chart_slug_redirects`
         )
-        const rows = await db.query(`
+        const rows = await db.queryMysql(`
             SELECT
                 id,
                 JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug
@@ -90,7 +90,7 @@ export class Chart extends BaseEntity {
     }
 
     static async assignTagsForCharts(charts: { id: number; tags: any[] }[]) {
-        const chartTags = await db.query(`
+        const chartTags = await db.queryMysql(`
             SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
@@ -109,7 +109,7 @@ export class Chart extends BaseEntity {
     }
 
     static async all(): Promise<ChartRow[]> {
-        const rows = await db.table(Chart.table)
+        const rows = await db.knexTable(Chart.table)
 
         for (const row of rows) {
             row.config = JSON.parse(row.config)
@@ -148,7 +148,7 @@ export class OldChart {
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {
-        const row = await db.get(
+        const row = await db.mysqlFirst(
             `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`,
             [slug]
         )
@@ -176,7 +176,9 @@ export class OldChart {
 
 export const getGrapherById = async (grapherId: number): Promise<any> => {
     const grapher = (
-        await db.query(`SELECT id, config FROM charts WHERE id=?`, [grapherId])
+        await db.queryMysql(`SELECT id, config FROM charts WHERE id=?`, [
+            grapherId,
+        ])
     )[0]
 
     if (!grapher) return undefined
