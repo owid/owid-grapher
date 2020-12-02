@@ -1,6 +1,7 @@
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
 
+// todo: handle when someone overrides these 3, the derived vars
 const ADMIN_SERVER_PORT = 3030
 const ADMIN_SERVER_HOST = "localhost"
 const BAKED_BASE_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
@@ -32,10 +33,46 @@ const defaultSettings = {
     OPTIMIZE_SVG_EXPORTS: false,
 }
 
-// todo: load overrides
-const localSettings = {}
-
-export const clientSettings = {
+const {
+    ENV,
+    BAKED_GRAPHER_URL,
+    ADMIN_BASE_URL,
+    WORDPRESS_URL,
+    GRAPHER_VERSION,
+    GITHUB_USERNAME,
+    GIT_DEFAULT_USERNAME,
+    GIT_DEFAULT_EMAIL,
+    BLOG_POSTS_PER_PAGE,
+    BLOG_SLUG,
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+    STRIPE_PUBLIC_KEY,
+    DONATE_API_URL,
+    RECAPTCHA_SITE_KEY,
+    OPTIMIZE_SVG_EXPORTS,
+} = {
     ...defaultSettings,
-    ...localSettings,
+    // todo: load overrides
+}
+
+export {
+    ADMIN_SERVER_PORT,
+    ADMIN_SERVER_HOST,
+    BAKED_BASE_URL,
+    ENV,
+    BAKED_GRAPHER_URL,
+    ADMIN_BASE_URL,
+    WORDPRESS_URL,
+    GRAPHER_VERSION,
+    GITHUB_USERNAME,
+    GIT_DEFAULT_USERNAME,
+    GIT_DEFAULT_EMAIL,
+    BLOG_POSTS_PER_PAGE,
+    BLOG_SLUG,
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+    STRIPE_PUBLIC_KEY,
+    DONATE_API_URL,
+    RECAPTCHA_SITE_KEY,
+    OPTIMIZE_SVG_EXPORTS,
 }
