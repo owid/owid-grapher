@@ -19,6 +19,8 @@ const tagSelect = <K extends keyof TagRow>(
     from: (query) => query.select(...args) as any,
 })
 
+const zeroDataString = "0000-00-00 00:00:00"
+
 export namespace Post {
     export const table = "posts"
 
@@ -66,7 +68,7 @@ export namespace Post {
 
 export const syncPostsToGrapher = async () => {
     const rows = await wpdb.singleton.query(
-        "SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'"
+        "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
     )
 
     const doesExistInWordpress = lodash.keyBy(rows, "ID")
@@ -87,11 +89,11 @@ export const syncPostsToGrapher = async () => {
             status: post.post_status,
             content: post.post_content,
             published_at:
-                post.post_date_gmt === "0000-00-00 00:00:00"
+                post.post_date_gmt === zeroDataString
                     ? null
                     : post.post_date_gmt,
             updated_at:
-                post.post_modified_gmt === "0000-00-00 00:00:00"
+                post.post_modified_gmt === zeroDataString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
         }
@@ -107,31 +109,6 @@ export const syncPostsToGrapher = async () => {
             else await t.insert(row).into(Post.table)
         }
     })
-}
-
-export const syncPostTagsToGrapher = async () => {
-    const tagsByPostId = await wpdb.getTagsByPostId()
-    const postRows = await wpdb.singleton.query(
-        "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
-    )
-
-    for (const post of postRows) {
-        const tags = tagsByPostId.get(post.ID) || []
-        const tagNames = tags
-            .map((t) => decodeHTML(t))
-            .concat([post.post_title])
-        const matchingTags = await tagSelect("id", "name", "isBulkImport").from(
-            db
-                .knex()
-                .from("tags")
-                .whereIn("name", tagNames)
-                .andWhere({ isBulkImport: false })
-        )
-        const tagIds = matchingTags.map((t) => t.id)
-        if (matchingTags.map((t) => t.name).includes(post.post_title))
-            tagIds.push(1640)
-        await Post.setTags(post.ID, lodash.uniq(tagIds))
-    }
 }
 
 // Sync post from the wordpress database to OWID database
@@ -156,11 +133,11 @@ export const syncPostToGrapher = async (
               status: wpPost.post_status,
               content: wpPost.post_content,
               published_at:
-                  wpPost.post_date_gmt === "0000-00-00 00:00:00"
+                  wpPost.post_date_gmt === zeroDataString
                       ? null
                       : wpPost.post_date_gmt,
               updated_at:
-                  wpPost.post_modified_gmt === "0000-00-00 00:00:00"
+                  wpPost.post_modified_gmt === zeroDataString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
           } as PostRow)

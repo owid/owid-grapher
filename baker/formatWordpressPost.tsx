@@ -157,7 +157,7 @@ export const formatWordpressPost = async (
             return ReactDOMServer.renderToStaticMarkup(
                 <Tablepress data={table.data} />
             )
-        else return "UNKNOWN TABLE"
+        return "UNKNOWN TABLE"
     })
 
     // No need for wordpress urls

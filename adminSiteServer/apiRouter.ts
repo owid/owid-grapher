@@ -119,6 +119,7 @@ const getReferencesByChartId = async (
             slugs.map(lodash.escapeRegExp)
         )
     } catch (error) {
+        console.warn(`Error in getReferencesByChartId`)
         console.error(error)
         // We can ignore errors due to not being able to connect.
     }
@@ -1236,18 +1237,12 @@ apiRouter.get("/posts.json", async (req) => {
 
     const tagsByPostId = await Post.tagsByPostId()
 
-    // const rows = await wpdb.query(`
-    //     SELECT ID AS id, post_title AS title, post_modified_gmt AS updatedAt, post_type AS type, post_status AS status
-    //     FROM wp_posts
-    //     WHERE (post_type='post' OR post_type='page')
-    //         AND (post_status='publish' OR post_status='pending' OR post_status='private' OR post_status='draft')
-    //     ORDER BY post_modified DESC`)
-
     const authorship = await wpdb.getAuthorship()
 
     for (const post of rows) {
-        ;(post as any).authors = authorship.get(post.id) || []
-        ;(post as any).tags = tagsByPostId.get(post.id) || []
+        const postAsAny = post as any
+        postAsAny.authors = authorship.get(post.id) || []
+        postAsAny.tags = tagsByPostId.get(post.id) || []
     }
 
     return { posts: rows.map((r) => camelCaseProperties(r)) }
