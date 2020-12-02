@@ -25,6 +25,8 @@ export class DimensionCard extends React.Component<{
     editor: ChartEditor
     onEdit?: () => void
     onRemove?: () => void
+    onMouseEnter?: () => void
+    onMouseDown?: () => void
 }> {
     @observable.ref isExpanded: boolean = false
 
@@ -102,7 +104,11 @@ export class DimensionCard extends React.Component<{
         const { column } = dimension
 
         return (
-            <EditableListItem className="DimensionCard">
+            <EditableListItem
+                className="DimensionCard"
+                onMouseDown={() => this.props.onMouseDown?.()}
+                onMouseEnter={() => this.props.onMouseEnter?.()}
+            >
                 <header>
                     <div>
                         {this.hasExpandedOptions && (

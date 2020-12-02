@@ -1,7 +1,14 @@
 import * as React from "react"
-import { observable, action, reaction, IReactionDisposer } from "mobx"
+import { observable, action, reaction, IReactionDisposer, computed } from "mobx"
 import { observer } from "mobx-react"
-import { sample, sampleSize, startCase } from "../clientUtils/Util"
+import {
+    clone,
+    findIndex,
+    sample,
+    sampleSize,
+    sortBy,
+    startCase,
+} from "../clientUtils/Util"
 import {
     EntitySelectionMode,
     ChartTypeName,
@@ -14,6 +21,8 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { ColumnSlug } from "../coreTable/CoreTableConstants"
+import { ChartDimension } from "../grapher/chart/ChartDimension"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -103,11 +112,76 @@ class DimensionSlotView extends React.Component<{
         if (this.dispose) this.dispose()
     }
 
+    @action.bound sortDimensionsBySelection() {
+        const dimensions = sortBy(this.grapher.dimensions, (dim) =>
+            findIndex(this.grapher.selectedColumnSlugs, dim.columnSlug)
+        )
+
+        debugger
+
+        this.grapher.updateAuthoredVersion({
+            dimensions: dimensions.map((dim) => dim.toObject()),
+        })
+        this.grapher.rebuildInputOwidTable()
+    }
+
+    componentDidMount() {
+        debugger
+        if (this.grapher.selectedColumnSlugs.length)
+            this.sortDimensionsBySelection()
+    }
+
+    get grapher() {
+        return this.props.editor.grapher
+    }
+
+    @observable.ref draggingColumnSlug?: ColumnSlug
+
+    @action.bound onStartDrag(targetSlug: ColumnSlug) {
+        console.log(`dragging ${targetSlug}`)
+        this.draggingColumnSlug = targetSlug
+
+        const onDrag = action(() => {
+            this.draggingColumnSlug = undefined
+            window.removeEventListener("mouseup", onDrag)
+
+            this.grapher.updateAuthoredVersion({
+                dimensions: this.dimensions.map((dim) => dim.toObject()),
+            })
+            this.grapher.rebuildInputOwidTable()
+        })
+
+        window.addEventListener("mouseup", onDrag)
+    }
+
+    dimensions: ChartDimension[] = []
+
+    @action.bound onMouseEnter(targetSlug: ColumnSlug) {
+        console.log(`mouseenter ${targetSlug}`)
+        if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
+            return
+
+        debugger
+
+        this.dimensions = clone(this.grapher.dimensions)
+        const dragIndex = this.dimensions.findIndex(
+            (dim) => dim.slug === this.draggingColumnSlug
+        )
+        const targetIndex = this.dimensions.findIndex(
+            (dim) => dim.slug === targetSlug
+        )
+        this.dimensions.splice(dragIndex, 1)
+        this.dimensions.splice(
+            targetIndex,
+            0,
+            this.grapher.dimensions[dragIndex]
+        )
+    }
+
     render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
-        const dimensions = editor.grapher.dimensions
 
         return (
             <div>
@@ -127,6 +201,14 @@ class DimensionSlotView extends React.Component<{
                                                   () =>
                                                       (this.isSelectingVariables = true)
                                               )
+                                    }
+                                    onMouseDown={() =>
+                                        dim.property === "y" &&
+                                        this.onStartDrag(dim.columnSlug)
+                                    }
+                                    onMouseEnter={() =>
+                                        dim.property === "y" &&
+                                        this.onMouseEnter(dim.columnSlug)
                                     }
                                     onRemove={
                                         slot.isOptional

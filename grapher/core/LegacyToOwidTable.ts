@@ -6,8 +6,11 @@ import { ColumnTypeNames, CoreColumnDef } from "../../coreTable/CoreColumnDef"
 import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
     diffDateISOStringInDays,
+    excludeUndefined,
+    findIndex,
     isNumber,
     makeAnnotationsSlug,
+    sortBy,
     trimObject,
     uniqBy,
 } from "../../clientUtils/Util"
@@ -39,7 +42,16 @@ export const legacyToOwidTableAndDimensions = (
     const entityColorMap = new Map<EntityId, Color>()
     const columnColorMap = new Map<ColumnSlug, Color>()
 
-    const dimensions = grapherConfig.dimensions || []
+    const columnSlugs = excludeUndefined(
+        grapherConfig.selectedData?.map((item) => {
+            const columnSlug = grapherConfig.dimensions?.[item.index]?.slug
+            return columnSlug
+        }) ?? []
+    )
+
+    const dimensions = sortBy(grapherConfig.dimensions || [], (dim) =>
+        findIndex(columnSlugs, dim.slug)
+    )
 
     grapherConfig.selectedData
         ?.filter((item) => item.entityId && item.color)
