@@ -22,3 +22,4 @@ public/head.txt
 public/covidChartAndVariableMeta.json
 .storybook/build
 *.tempDeployScript.sh
+.env
