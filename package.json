@@ -5,15 +5,14 @@
         "node": ">=12.13.1"
     },
     "scripts": {
+        "clean": "tsc -b -clean",
         "build": "tsc -b -verbose",
-
-        "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
-
         "test": "jest",
+        "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
+        "tmux": "tmex dev \"yarn serve\" \"yarn webpack-dev-server --no-live-reload\"",
+
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "coverage:ci": "jest --coverage=true --coverageProvider=v8",
-
-        "dev-tmux": "tmex dev \"yarn serve\" \"yarn webpack-dev-server --no-live-reload\"",
 
         "lint": "eslint .",
         "fix": "eslint . --fix",
