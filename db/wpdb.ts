@@ -30,9 +30,11 @@ import {
 let knexInstance: Knex
 
 class WPDB {
-    conn?: DatabaseConnection
+    private conn?: DatabaseConnection
 
-    knex(tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined) {
+    private knex(
+        tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
+    ) {
         if (!knexInstance) {
             knexInstance = Knex({
                 client: "mysql",
@@ -51,7 +53,7 @@ class WPDB {
         return knexInstance(tableName)
     }
 
-    async destroyKnex() {
+    private async destroyKnex() {
         if (knexInstance) await knexInstance.destroy()
     }
 
@@ -557,10 +559,6 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
 
     return cachedTables
 }
-
-export const knex = (
-    tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
-) => singleton.knex(tableName)
 
 export const flushCache = () => {
     cachedAuthorship = undefined
