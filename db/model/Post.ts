@@ -5,42 +5,30 @@ import { QueryBuilder } from "knex"
 import { decodeHTML } from "entities"
 import { PostRow } from "../../clientUtils/owidTypes"
 
-namespace Tag {
-    export interface Row {
-        id: number
-        name: string
-        parentId: number
-        specialType: string
-        isBulkImport: boolean
-    }
-
-    export type Field = keyof Row
-
-    export const table = "tags"
-
-    export function select<K extends keyof Row>(
-        ...args: K[]
-    ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
-        return {
-            from: (query) => query.select(...args) as any,
-        }
-    }
+interface TagRow {
+    id: number
+    name: string
+    parentId: number
+    specialType: string
+    isBulkImport: boolean
 }
 
-export namespace Post {
-    export type Field = keyof PostRow
+const tagSelect = <K extends keyof TagRow>(
+    ...args: K[]
+): { from: (query: QueryBuilder) => Promise<Pick<TagRow, K>[]> } => ({
+    from: (query) => query.select(...args) as any,
+})
 
+export namespace Post {
     export const table = "posts"
 
-    export function select<K extends keyof PostRow>(
+    export const select = <K extends keyof PostRow>(
         ...args: K[]
-    ): { from: (query: QueryBuilder) => Promise<Pick<PostRow, K>[]> } {
-        return {
-            from: (query) => query.select(...args) as any,
-        }
-    }
+    ): { from: (query: QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
+        from: (query) => query.select(...args) as any,
+    })
 
-    export async function tagsByPostId() {
+    export const tagsByPostId = async () => {
         const postTags = await db.queryMysql(`
             SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
             JOIN posts p ON p.id=pt.post_id
@@ -61,7 +49,7 @@ export namespace Post {
         return tagsByPostId
     }
 
-    export async function setTags(postId: number, tagIds: number[]) {
+    export const setTags = async (postId: number, tagIds: number[]) =>
         await db.transaction(async (t) => {
             const tagRows = tagIds.map((tagId) => [tagId, postId])
             await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
@@ -71,18 +59,12 @@ export namespace Post {
                     [tagRows]
                 )
         })
-    }
 
-    export async function bySlug(slug: string): Promise<PostRow | undefined> {
-        return Post.rows(await db.knexTable("posts").where({ slug: slug }))[0]
-    }
-
-    export function rows(plainRows: any): PostRow[] {
-        return plainRows
-    }
+    export const bySlug = async (slug: string): Promise<PostRow | undefined> =>
+        (await db.knexTable("posts").where({ slug: slug }))[0]
 }
 
-export async function syncPostsToGrapher() {
+export const syncPostsToGrapher = async () => {
     const rows = await wpdb.singleton.query(
         "SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'"
     )
@@ -116,9 +98,8 @@ export async function syncPostsToGrapher() {
     }) as PostRow[]
 
     await db.knex().transaction(async (t) => {
-        if (toDelete.length) {
+        if (toDelete.length)
             await t.whereIn("id", toDelete).delete().from(Post.table)
-        }
 
         for (const row of toInsert) {
             if (doesExistInGrapher[row.id])
@@ -128,7 +109,7 @@ export async function syncPostsToGrapher() {
     })
 }
 
-export async function syncPostTagsToGrapher() {
+export const syncPostTagsToGrapher = async () => {
     const tagsByPostId = await wpdb.getTagsByPostId()
     const postRows = await wpdb.singleton.query(
         "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
@@ -139,29 +120,24 @@ export async function syncPostTagsToGrapher() {
         const tagNames = tags
             .map((t) => decodeHTML(t))
             .concat([post.post_title])
-        const matchingTags = await Tag.select(
-            "id",
-            "name",
-            "isBulkImport"
-        ).from(
+        const matchingTags = await tagSelect("id", "name", "isBulkImport").from(
             db
                 .knex()
-                .from(Tag.table)
+                .from("tags")
                 .whereIn("name", tagNames)
                 .andWhere({ isBulkImport: false })
         )
         const tagIds = matchingTags.map((t) => t.id)
-        if (matchingTags.map((t) => t.name).includes(post.post_title)) {
+        if (matchingTags.map((t) => t.name).includes(post.post_title))
             tagIds.push(1640)
-        }
         await Post.setTags(post.ID, lodash.uniq(tagIds))
     }
 }
 
 // Sync post from the wordpress database to OWID database
-export async function syncPostToGrapher(
+export const syncPostToGrapher = async (
     postId: number
-): Promise<string | undefined> {
+): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
         "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
         [postId]
@@ -190,18 +166,17 @@ export async function syncPostToGrapher(
           } as PostRow)
         : undefined
 
-    await db.knex().transaction(async (t) => {
-        if (!postRow && existsInGrapher) {
+    await db.knex().transaction(async (transaction) => {
+        if (!postRow && existsInGrapher)
             // Delete from grapher
-            await t.table(Post.table).where({ id: postId }).delete()
-        } else if (postRow && !existsInGrapher) {
-            await t.table(Post.table).insert(postRow)
-        } else if (postRow && existsInGrapher) {
-            await t
+            await transaction.table(Post.table).where({ id: postId }).delete()
+        else if (postRow && !existsInGrapher)
+            await transaction.table(Post.table).insert(postRow)
+        else if (postRow && existsInGrapher)
+            await transaction
                 .table(Post.table)
                 .where("id", "=", postRow.id)
                 .update(postRow)
-        }
     })
 
     const newPost = (
