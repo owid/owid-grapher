@@ -119,8 +119,6 @@
         "d3-geo-projection": "^3.0.0",
         "dayjs": "^1.9.6",
         "decko": "^1.2.0",
-        "dotenv": "^8.2.0",
-        "dotenv-webpack": "^2.0.0",
         "entities": "^2.0.3",
         "enzyme": "^3.10.0",
         "enzyme-adapter-react-16": "^1.15.1",

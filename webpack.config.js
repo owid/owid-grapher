@@ -2,7 +2,6 @@ const path = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ManifestPlugin = require("webpack-manifest-plugin")
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
-const Dotenv = require("dotenv-webpack")
 
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
@@ -89,10 +88,6 @@ module.exports = (env, argv) => {
             // Remove all moment locales except for "en"
             // This way of doing so is recommended by Moment itself: https://momentjs.com/docs/#/use-it/webpack/
             new MomentLocalesPlugin(),
-
-            // This plugin loads settings from .env so we can import them
-            // Note that this means the settings become part of the client-side JS at webpack build time, not at server run time
-            new Dotenv(),
         ],
         devServer: {
             host: "localhost",

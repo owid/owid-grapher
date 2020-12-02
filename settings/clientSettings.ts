@@ -1,86 +1,41 @@
-/**
- * DEPRECATED!!!! DO NOT USE GLOBAL VARIABLES. GLOBAL VARIABLES ARE BAD. THEY PREVENT US FROM BUILDING GOOD SOFTWARE.
- *
- * GLOBALS BAD. FUNCTIONAL GOOD.
- *
- * IF YOU NEED AN ENVIRONMENTAL VARIABLE PASSED TO A PROCESS, PASS IT WHEN YOU LAUNCH THE PROCESS AT THE TOP LEVEL, NEVER
- * PULL GLOBAL VARIABLES NOT PASSED DOWN FROM THE PARENT. THAT RUINS LOTS OF GREAT PATTERNS WE COULD OTHERWISE LEVERAGE
- * TO BUILD GOOD SOFTWARE.
- */
-
-const parseBool = (input: string) => {
-    const normalized = input.trim().toLowerCase()
-    return normalized === "true" || normalized === "1"
-}
-
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
 
-export const ENV: "production" | "development" =
-    process.env.ENV === "production" || process.env.NODE_ENV === "production"
-        ? "production"
-        : "development"
+const ADMIN_SERVER_PORT = 3030
+const ADMIN_SERVER_HOST = "localhost"
+const BAKED_BASE_URL = `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
 
-export const ADMIN_SERVER_HOST: string =
-    process.env.ADMIN_SERVER_HOST || "localhost"
-export const ADMIN_SERVER_PORT: number = process.env.ADMIN_SERVER_PORT
-    ? parseInt(process.env.ADMIN_SERVER_PORT)
-    : 3030
-export const BAKED_BASE_URL: string =
-    process.env.BAKED_BASE_URL ||
-    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-export const BAKED_GRAPHER_URL: string =
-    process.env.BAKED_GRAPHER_URL || `${BAKED_BASE_URL}/grapher`
-export const ADMIN_BASE_URL: string =
-    process.env.ADMIN_BASE_URL ||
-    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-export const WORDPRESS_URL: string =
-    process.env.WORDPRESS_URL || "https://owid.cloud"
+const defaultSettings = {
+    ENV: "development",
+    ADMIN_SERVER_HOST,
+    ADMIN_SERVER_PORT,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL: `${BAKED_BASE_URL}/grapher`,
+    ADMIN_BASE_URL: `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`,
+    WORDPRESS_URL: "https://owid.cloud",
 
-export const GRAPHER_VERSION: string = "1.0.0" // Ideally the Git hash
+    GRAPHER_VERSION: "1.0.0", // Ideally the Git hash
+    GITHUB_USERNAME: "owid-test",
+    GIT_DEFAULT_USERNAME: "Our World in Data",
+    GIT_DEFAULT_EMAIL: "info@ourworldindata.org",
 
-// Settings for git export and version tracking of database
-export const GITHUB_USERNAME: string =
-    process.env.GITHUB_USERNAME || "owid-test"
-export const GIT_DEFAULT_USERNAME: string =
-    process.env.GIT_DEFAULT_USERNAME || "Our World in Data"
-export const GIT_DEFAULT_EMAIL: string =
-    process.env.GIT_DEFAULT_EMAIL || "info@ourworldindata.org"
+    BLOG_POSTS_PER_PAGE: 20,
+    BLOG_SLUG: "blog",
 
-export const BLOG_POSTS_PER_PAGE: number = 20
-export const BLOG_SLUG: string = "blog"
+    ALGOLIA_ID: "",
+    ALGOLIA_SEARCH_KEY: "",
 
-export const ALGOLIA_ID: string = process.env.ALGOLIA_ID || ""
-export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY || ""
+    STRIPE_PUBLIC_KEY: "pk_test_nIHvmH37zsoltpw3xMssPIYq",
+    DONATE_API_URL: "http://localhost:9000/donate",
 
-export const STRIPE_PUBLIC_KEY: string =
-    process.env.STRIPE_PUBLIC_KEY || "pk_test_nIHvmH37zsoltpw3xMssPIYq"
-export const DONATE_API_URL: string =
-    process.env.DONATE_API_URL || "http://localhost:9000/donate"
-export const RECAPTCHA_SITE_KEY: string =
-    process.env.RECAPTCHA_SITE_KEY || "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
+    RECAPTCHA_SITE_KEY: "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q",
+    OPTIMIZE_SVG_EXPORTS: false,
+}
 
-// XXX hardcoded filtering to public parent tags
-export const PUBLIC_TAG_PARENT_IDS: number[] = [
-    1515,
-    1507,
-    1513,
-    1504,
-    1502,
-    1509,
-    1506,
-    1501,
-    1514,
-    1511,
-    1500,
-    1503,
-    1505,
-    1508,
-    1512,
-    1510,
-]
+// todo: load overrides
+const localSettings = {}
 
-// Settings for optimizations that are applied in the baking step
-export const OPTIMIZE_SVG_EXPORTS = process.env.OPTIMIZE_SVG_EXPORTS
-    ? parseBool(process.env.OPTIMIZE_SVG_EXPORTS)
-    : false
+export const clientSettings = {
+    ...defaultSettings,
+    ...localSettings,
+}

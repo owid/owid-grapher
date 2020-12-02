@@ -296,7 +296,7 @@ rm -rf ${TMP_NEW}
 cp -r ${SYNC_TARGET} ${TMP_NEW}
 
 # Link in all the persistent stuff that needs to stay around between versions
-ln -sf ${FINAL_DATA}/.env ${TMP_NEW}/.env
+# todo: settings file
 mkdir -p ${FINAL_DATA}/bakedSite
 ln -sf ${FINAL_DATA}/bakedSite ${TMP_NEW}/bakedSite
 mkdir -p ${FINAL_DATA}/datasetsExport

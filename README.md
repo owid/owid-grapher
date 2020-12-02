@@ -69,7 +69,7 @@ Remove the password for root by opening the MySQL shell with `mysql` and running
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY ''
 ```
 
-We do this for convenience so we can run `mysql` commands without providing a password each time. You can also set a password, just make sure you include it in the `.env` file later.
+We do this for convenience so we can run `mysql` commands without providing a password each time. You can also set a password, just make sure you include it in your settings file later.
 
 ### Import the latest data extract
 
@@ -96,7 +96,7 @@ We also have [**a rough sketch of the schema**](https://user-images.githubuserco
 
 ## Development server
 
-`cp .env.example .env` and populate `.env` with your database details.
+Setup your settings file.
 
 Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 

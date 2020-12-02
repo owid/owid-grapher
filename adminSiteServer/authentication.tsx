@@ -43,7 +43,7 @@ export async function authCloudflareSSOMiddleware(
     const audTag = CLOUDFLARE_AUD
     if (!audTag) {
         console.error(
-            "Missing or empty audience tag. Please add CLOUDFLARE_AUD key in .env."
+            "Missing or empty audience tag. Please add CLOUDFLARE_AUD key in settings."
         )
         return next()
     }
