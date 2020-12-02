@@ -9,7 +9,7 @@ import { PostRow } from "../clientUtils/owidTypes"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
-export const syncPostsToGrapher = async () => {
+const syncPostsToGrapher = async () => {
     const rows = await wpdb.singleton.query(
         "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
     )

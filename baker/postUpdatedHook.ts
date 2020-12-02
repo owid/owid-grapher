@@ -13,7 +13,7 @@ const argv = parseArgs(process.argv.slice(2))
 const zeroDateString = "0000-00-00 00:00:00"
 
 // Sync post from the wordpress database to OWID database
-export const syncPostToGrapher = async (
+const syncPostToGrapher = async (
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
