@@ -68,9 +68,9 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-async function getReferencesByChartId(
+const getReferencesByChartId = async (
     chartId: number
-): Promise<PostReference[]> {
+): Promise<PostReference[]> => {
     const rows = await db.queryMysql(
         `
         SELECT config->"$.slug" AS slug
@@ -88,19 +88,20 @@ async function getReferencesByChartId(
         (row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, "")
     )
 
-    if (slugs && slugs.length > 0) {
-        let posts = []
-        // Hacky approach to find all the references to a chart by searching for
-        // the chart URL through the Wordpress database.
-        // The Grapher should work without the Wordpress database, so we need to
-        // handle failures gracefully.
-        // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
-        // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
-        // careful not to erroneously match those, which is why we switched to a
-        // REGEXP.
-        try {
-            posts = await wpdb.singleton.query(
-                `
+    if (!slugs || slugs.length === 0) return []
+
+    let posts = []
+    // Hacky approach to find all the references to a chart by searching for
+    // the chart URL through the Wordpress database.
+    // The Grapher should work without the Wordpress database, so we need to
+    // handle failures gracefully.
+    // NOTE: Sometimes slugs can be substrings of other slugs, e.g.
+    // `grapher/gdp` is a substring of `grapher/gdp-maddison`. We need to be
+    // careful not to erroneously match those, which is why we switched to a
+    // REGEXP.
+    try {
+        posts = await wpdb.singleton.query(
+            `
                 SELECT ID, post_title, post_name
                 FROM wp_posts
                 WHERE
@@ -115,31 +116,28 @@ async function getReferencesByChartId(
                             .join(" OR ")}
                     )
             `,
-                slugs.map(lodash.escapeRegExp)
-            )
-        } catch (error) {
-            console.error(error)
-            // We can ignore errors due to not being able to connect.
-        }
-        const permalinks = await wpdb.getPermalinks()
-        return posts.map((post) => {
-            const slug = permalinks.get(post.ID, post.post_name)
-            return {
-                id: post.ID,
-                title: post.post_title,
-                slug: slug,
-                url: `${BAKED_BASE_URL}/${slug}`,
-            }
-        })
-    } else {
-        return []
+            slugs.map(lodash.escapeRegExp)
+        )
+    } catch (error) {
+        console.error(error)
+        // We can ignore errors due to not being able to connect.
     }
+    const permalinks = await wpdb.getPermalinks()
+    return posts.map((post) => {
+        const slug = permalinks.get(post.ID, post.post_name)
+        return {
+            id: post.ID,
+            title: post.post_title,
+            slug: slug,
+            url: `${BAKED_BASE_URL}/${slug}`,
+        }
+    })
 }
 
-async function getRedirectsByChartId(
+const getRedirectsByChartId = async (
     chartId: number
-): Promise<ChartRedirect[]> {
-    const redirects = await db.queryMysql(
+): Promise<ChartRedirect[]> =>
+    await db.queryMysql(
         `
         SELECT id, slug, chart_id as chartId
         FROM chart_slug_redirects
@@ -147,23 +145,20 @@ async function getRedirectsByChartId(
         ORDER BY id ASC`,
         [chartId]
     )
-    return redirects
-}
 
-async function expectChartById(chartId: any): Promise<GrapherInterface> {
+const expectChartById = async (chartId: any): Promise<GrapherInterface> => {
     const chart = await getGrapherById(expectInt(chartId))
-
     if (chart) return chart
 
     throw new JsonError(`No chart found for id ${chartId}`, 404)
 }
 
-async function saveGrapher(
+const saveGrapher = async (
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface
-) {
-    return db.transaction(async (t) => {
+) =>
+    db.transaction(async (t) => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
         async function isSlugUsedInRedirect() {
             const rows = await t.query(
@@ -183,17 +178,17 @@ async function saveGrapher(
 
         // When a chart is published, check for conflicts
         if (newConfig.isPublished) {
-            if (!isValidSlug(newConfig.slug)) {
+            if (!isValidSlug(newConfig.slug))
                 throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
-            } else if (await isSlugUsedInRedirect()) {
+            else if (await isSlugUsedInRedirect())
                 throw new JsonError(
                     `This chart slug was previously used by another chart: ${newConfig.slug}`
                 )
-            } else if (await isSlugUsedInOtherGrapher()) {
+            else if (await isSlugUsedInOtherGrapher())
                 throw new JsonError(
                     `This chart slug is in use by another published chart: ${newConfig.slug}`
                 )
-            } else if (
+            else if (
                 existingConfig &&
                 existingConfig.isPublished &&
                 existingConfig.slug !== newConfig.slug
@@ -210,28 +205,26 @@ async function saveGrapher(
             }
         }
 
-        if (existingConfig) {
+        if (existingConfig)
             // Bump chart version, very important for cachebusting
             newConfig.version = existingConfig.version! + 1
-        } else if (newConfig.version) {
+        else if (newConfig.version)
             // If a chart is republished, we want to keep incrementing the old version number,
             // otherwise it can lead to clients receiving cached versions of the old data.
             newConfig.version += 1
-        } else {
-            newConfig.version = 1
-        }
+        else newConfig.version = 1
 
         // Execute the actual database update or creation
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
         const newJsonConfig = JSON.stringify(newConfig)
         // todo: drop "isExplorable"
-        if (existingConfig) {
+        if (existingConfig)
             await t.query(
                 `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
                 [newJsonConfig, now, now, user.id, false, chartId]
             )
-        } else {
+        else {
             const result = await t.execute(
                 `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
                 [[newJsonConfig, now, now, now, user.id, false, false]]
@@ -263,11 +256,10 @@ async function saveGrapher(
         }
 
         // So we can generate country profiles including this chart data
-        if (newConfig.isPublished) {
+        if (newConfig.isPublished)
             await denormalizeLatestCountryData(
                 newConfig.dimensions!.map((d) => d.variableId)
             )
-        }
 
         if (
             newConfig.isPublished &&
@@ -293,13 +285,11 @@ async function saveGrapher(
                 user,
                 `Unpublishing chart ${newConfig.slug}`
             )
-        } else if (newConfig.isPublished) {
+        } else if (newConfig.isPublished)
             await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
-        }
 
         return chartId
     })
-}
 
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     const limit =
@@ -321,9 +311,7 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
 
 apiRouter.get(
     "/charts/:chartId.config.json",
-    async (req: Request, res: Response) => {
-        return expectChartById(req.params.chartId)
-    }
+    async (req: Request, res: Response) => expectChartById(req.params.chartId)
 )
 
 apiRouter.get(
@@ -351,32 +339,23 @@ apiRouter.get(
 
 apiRouter.get(
     "/charts/:chartId.logs.json",
-    async (req: Request, res: Response) => {
-        const logs = await getLogsByChartId(req.params.chartId)
-        return {
-            logs: logs,
-        }
-    }
+    async (req: Request, res: Response) => ({
+        logs: await getLogsByChartId(req.params.chartId),
+    })
 )
 
 apiRouter.get(
     "/charts/:chartId.references.json",
-    async (req: Request, res: Response) => {
-        const references = await getReferencesByChartId(req.params.chartId)
-        return {
-            references: references,
-        }
-    }
+    async (req: Request, res: Response) => ({
+        references: await getReferencesByChartId(req.params.chartId),
+    })
 )
 
 apiRouter.get(
     "/charts/:chartId.redirects.json",
-    async (req: Request, res: Response) => {
-        const redirects = await getRedirectsByChartId(req.params.chartId)
-        return {
-            redirects: redirects,
-        }
-    }
+    async (req: Request, res: Response) => ({
+        redirects: await getRedirectsByChartId(req.params.chartId),
+    })
 )
 
 apiRouter.get("/countries.json", async (req: Request, res: Response) => {
@@ -559,27 +538,8 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.get("/users.json", async (req: Request, res: Response) => {
-    return {
-        users: await User.find({
-            select: [
-                "id",
-                "email",
-                "fullName",
-                "isActive",
-                "isSuperuser",
-                "createdAt",
-                "updatedAt",
-                "lastLogin",
-                "lastSeen",
-            ],
-            order: { lastSeen: "DESC" },
-        }),
-    }
-})
-
-apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
-    const user = await User.findOne(req.params.userId, {
+apiRouter.get("/users.json", async (req: Request, res: Response) => ({
+    users: await User.find({
         select: [
             "id",
             "email",
@@ -591,14 +551,29 @@ apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
             "lastLogin",
             "lastSeen",
         ],
-    })
-    return { user: user }
-})
+        order: { lastSeen: "DESC" },
+    }),
+}))
+
+apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => ({
+    user: await User.findOne(req.params.userId, {
+        select: [
+            "id",
+            "email",
+            "fullName",
+            "isActive",
+            "isSuperuser",
+            "createdAt",
+            "updatedAt",
+            "lastLogin",
+            "lastSeen",
+        ],
+    }),
+}))
 
 apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
-    if (!res.locals.user.isSuperuser) {
+    if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
-    }
 
     const userId = expectInt(req.params.userId)
     await db.transaction(async (t) => {
@@ -609,9 +584,8 @@ apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
 })
 
 apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
-    if (!res.locals.user.isSuperuser) {
+    if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
-    }
 
     const user = await User.findOne(req.params.userId)
     if (!user) throw new JsonError("No such user", 404)
@@ -624,9 +598,8 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
 })
 
 apiRouter.post("/users/invite", async (req: Request, res: Response) => {
-    if (!res.locals.user.isSuperuser) {
+    if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
-    }
 
     const { email } = req.body
 
@@ -778,11 +751,9 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
         [variableId]
     )
 
-    if (!variable) {
-        throw new JsonError(`No variable by id ${variableId}`, 404)
-    } else if (variable.namespace !== "owid") {
+    if (!variable) throw new JsonError(`No variable by id ${variableId}`, 404)
+    else if (variable.namespace !== "owid")
         throw new JsonError(`Cannot delete bulk import variable`, 400)
-    }
 
     await db.transaction(async (t) => {
         await t.execute(`DELETE FROM data_values WHERE variableId=?`, [
@@ -833,9 +804,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
         [datasetId]
     )
 
-    if (!dataset) {
-        throw new JsonError(`No dataset by id '${datasetId}'`, 404)
-    }
+    if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
     const zipFile = await db.mysqlFirst(
         `SELECT filename FROM dataset_files WHERE datasetId=?`,
@@ -1077,16 +1046,12 @@ apiRouter.post(
 )
 
 // Get a list of redirects that map old slugs to charts
-apiRouter.get("/redirects.json", async (req: Request, res: Response) => {
-    const redirects = await db.queryMysql(`
+apiRouter.get("/redirects.json", async (req: Request, res: Response) => ({
+    redirects: await db.queryMysql(`
         SELECT r.id, r.slug, r.chart_id as chartId, JSON_UNQUOTE(JSON_EXTRACT(charts.config, "$.slug")) AS chartSlug
         FROM chart_slug_redirects AS r JOIN charts ON charts.id = r.chart_id
-        ORDER BY r.id DESC`)
-
-    return {
-        redirects: redirects,
-    }
-})
+        ORDER BY r.id DESC`),
+}))
 
 apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId) as number | null
@@ -1179,7 +1144,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     tag.possibleParents = possibleParents
 
     return {
-        tag: tag,
+        tag,
     }
 })
 
@@ -1212,7 +1177,7 @@ apiRouter.get("/tags.json", async (req: Request, res: Response) => {
     `)
 
     return {
-        tags: tags,
+        tags,
     }
 })
 
@@ -1249,9 +1214,7 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
         [id]
     )
 
-    if (!redirect) {
-        throw new JsonError(`No redirect found for id ${id}`, 404)
-    }
+    if (!redirect) throw new JsonError(`No redirect found for id ${id}`, 404)
 
     await db.execute(`DELETE FROM chart_slug_redirects WHERE id=?`, [id])
     await triggerStaticBuild(
@@ -1324,7 +1287,7 @@ apiRouter.get("/newsletterPosts.json", async (req) => {
         }
     })
 
-    return { posts: posts }
+    return { posts }
 })
 
 apiRouter.post(
@@ -1359,7 +1322,7 @@ apiRouter.get("/importData.json", async (req) => {
         await db.queryMysql(`SELECT name FROM entities`)
     ).map((e: any) => e.name)
 
-    return { datasets: datasets, existingEntities: existingEntities }
+    return { datasets, existingEntities }
 })
 
 apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
@@ -1374,9 +1337,7 @@ apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
         [datasetId]
     )
 
-    if (!dataset) {
-        throw new JsonError(`No dataset by id '${datasetId}'`, 404)
-    }
+    if (!dataset) throw new JsonError(`No dataset by id '${datasetId}'`, 404)
 
     const variables = await db.queryMysql(
         `
@@ -1389,27 +1350,8 @@ apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
 
     dataset.variables = variables
 
-    return { dataset: dataset }
+    return { dataset }
 })
-
-// Currently unused, may be useful later
-/*api.post('/importValidate', async req => {
-    const entities: string[] = req.body.entities
-
-    // https://stackoverflow.com/questions/440615/best-way-to-check-that-a-list-of-items-exists-in-an-sql-database-column
-    return db.transaction(async t => {
-        await t.execute(`CREATE TEMPORARY TABLE entitiesToCheck (name VARCHAR(255))`)
-        await t.execute(`INSERT INTO entitiesToCheck VALUES ${Array(entities.length).fill("(?)").join(",")}`, entities)
-
-        const rows = await t.query(`
-            SELECT ec.name FROM entitiesToCheck ec LEFT OUTER JOIN entities e ON ec.name = e.name WHERE e.name IS NULL
-        `)
-
-        await t.execute(`DROP TEMPORARY TABLE entitiesToCheck`)
-
-        return { unknownEntities: rows.map((e: any) => e.name) }
-    })
-})*/
 
 interface ImportPostData {
     dataset: {
@@ -1613,25 +1555,14 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     return { source: source }
 })
 
-apiRouter.get("/deploys.json", async () => {
-    return {
-        deploys: await getDeploys(),
-    }
-})
+apiRouter.get("/deploys.json", async () => ({
+    deploys: await getDeploys(),
+}))
 
 Object.keys(ExplorerApiRoutes).forEach((route) =>
     apiRouter.get(route, ExplorerApiRoutes[route])
 )
 
 addGitCmsApiRoutes(apiRouter.router)
-
-// Legacy code, preventing modification, just in case
-//
-// api.put('/sources/:sourceId', async (req: Request) => {
-//     const sourceId = expectInt(req.params.sourceId)
-//     const source = (req.body as { source: any }).source
-//     await db.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [source.name, JSON.stringify(source.description), sourceId])
-//     return { success: true }
-// })
 
 export { apiRouter }
