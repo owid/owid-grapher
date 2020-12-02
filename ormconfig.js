@@ -8,10 +8,8 @@ module.exports = {
     username: DB_USER || "root",
     password: DB_PASS || "",
     database: DB_NAME,
-    entities: ["db/model/**/*.ts"],
-    migrations: ["db/migration/**/*.ts"],
+    entities: ["itsJustJavascript/db/model/**/*.js"],
     cli: {
         entitiesDir: "db/model",
-        migrationsDir: "db/migration",
     },
 }

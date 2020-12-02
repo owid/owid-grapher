@@ -5,6 +5,5 @@
         "rootDir": ".",
         "emitDecoratorMetadata": true // must be enabled for typeorm
     },
-    "exclude": ["migration/*", "knexMigrations/*"],
     "references": [{ "path": "../clientUtils" }, { "path": "../settings" }]
 }

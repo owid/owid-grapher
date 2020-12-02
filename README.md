@@ -102,10 +102,6 @@ Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is goi
 
 This development server will rebuild and live-reload the site upon changes, so you can just make changes to the code, save the file and see the result in the browser right away.
 
-## Migrations
-
-If you need to make changes to the MySQL database structure, these are specified by [typeorm](http://typeorm.io/#/) migration files. Use `yarn typeorm migration:create -n MigrationName` and then populate the file with the SQL statements to alter the tables, using past migration files for reference if needed. Then run migrations with `yarn migrate`.
-
 ## Architecture notes
 
 owid-grapher is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.

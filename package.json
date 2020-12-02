@@ -15,7 +15,6 @@
         "dev-tmux": "tmex dev \"node ./itsJustJavascript/adminSiteServer/app.js\" \"yarn webpack-dev-server --no-live-reload\"",
         "typeorm": "yarn tsn node_modules/.bin/typeorm",
         "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
-        "migrate": "yarn knex migrate:latest && yarn typeorm migration:run",
         "lint": "eslint .",
         "fix": "eslint . --fix",
         "prettify": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
