@@ -67,7 +67,7 @@ export class SiteBaker {
 
     private async bakeEmbeds() {
         // Find all grapher urls used as embeds in all posts on the site
-        const rows = await wpdb.query(
+        const rows = await wpdb.singleton.query(
             `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
         )
         let grapherUrls = []
@@ -456,7 +456,7 @@ export class SiteBaker {
     }
 
     endDbConnections() {
-        wpdb.end()
+        wpdb.singleton.end()
         db.closeTypeOrmAndKnexConnections()
     }
 

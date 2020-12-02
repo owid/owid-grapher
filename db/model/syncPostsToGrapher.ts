@@ -9,7 +9,7 @@ const main = async () => {
     try {
         await syncPostsToGrapher()
     } finally {
-        await wpdb.end()
+        await wpdb.singleton.end()
         await db.closeTypeOrmAndKnexConnections()
     }
 }

@@ -17,7 +17,7 @@ const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
 
 const dataExport = async () => {
-    await db.connect()
+    await db.getConnection()
 
     const variablesToExportQuery = `
         SELECT DISTINCT cd.variableId FROM chart_dimensions cd

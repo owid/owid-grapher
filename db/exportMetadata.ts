@@ -30,7 +30,7 @@ const excludeTables = [
 ]
 
 async function dataExport() {
-    await db.connect()
+    await db.getConnection()
 
     console.log(`Exporting database structure and metadata to ${filePath}...`)
 

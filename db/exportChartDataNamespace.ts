@@ -24,7 +24,7 @@ if (!namespacesArg) {
 const namespaces: string[] = namespacesArg.split(",")
 
 async function dataExport() {
-    await db.connect()
+    await db.getConnection()
 
     const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(
         ","

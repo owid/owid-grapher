@@ -90,7 +90,7 @@ const indexToAlgolia = async () => {
 
     index.replaceAllObjects(records)
 
-    await wpdb.end()
+    await wpdb.singleton.end()
     await db.closeTypeOrmAndKnexConnections()
 }
 

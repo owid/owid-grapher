@@ -47,7 +47,7 @@ export const getRedirects = async () => {
     )
 
     // Redirects from Wordpress admin UI
-    const rows = await wpdb.query(
+    const rows = await wpdb.singleton.query(
         `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
     )
     redirects.push(

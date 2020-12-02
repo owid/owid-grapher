@@ -509,7 +509,7 @@ async function importData() {
 }
 
 async function main() {
-    await db.connect()
+    await db.getConnection()
     try {
         //    await importCodebook()
         await importData()

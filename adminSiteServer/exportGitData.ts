@@ -3,7 +3,7 @@ import { syncDatasetToGitRepo } from "./gitDataExport"
 import { Dataset } from "../db/model/Dataset"
 
 const main = async () => {
-    await db.connect()
+    await db.getConnection()
     for (const dataset of await Dataset.find({ namespace: "owid" })) {
         if (!dataset.isPrivate)
             await syncDatasetToGitRepo(dataset.id, { commitOnly: true })

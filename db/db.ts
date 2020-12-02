@@ -11,9 +11,7 @@ import {
 import { registerExitHandler } from "./cleanup"
 let typeormConnection: typeorm.Connection
 
-export const connect = async () => getConnection()
-
-const getConnection = async () => {
+export const getConnection = async () => {
     if (typeormConnection) return typeormConnection
 
     try {

@@ -27,6 +27,8 @@ import {
     FullPost,
 } from "../clientUtils/owidTypes"
 
+let knexInstance: Knex
+
 class WPDB {
     conn?: DatabaseConnection
 
@@ -43,12 +45,14 @@ class WPDB {
                 },
             })
 
-            registerExitHandler(async () => {
-                if (knexInstance) await knexInstance.destroy()
-            })
+            registerExitHandler(async () => this.destroyKnex())
         }
 
         return knexInstance(tableName)
+    }
+
+    async destroyKnex() {
+        if (knexInstance) await knexInstance.destroy()
     }
 
     async connect() {
@@ -66,6 +70,11 @@ class WPDB {
         })
     }
 
+    async end() {
+        if (this.conn) this.conn.end()
+        this.destroyKnex()
+    }
+
     async query(queryStr: string, params?: any[]): Promise<any[]> {
         if (!this.conn) await this.connect()
 
@@ -79,7 +88,7 @@ class WPDB {
     }
 }
 
-const wpdb = new WPDB()
+export const singleton = new WPDB()
 
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
@@ -116,25 +125,12 @@ const apiQuery = async (
     return fetch(url.toString())
 }
 
-export const query = async (queryStr: string, params?: any[]): Promise<any[]> =>
-    wpdb.query(queryStr, params)
-
-export const get = async (queryStr: string, params?: any[]): Promise<any> =>
-    wpdb.get(queryStr, params)
-
-export const connect = async () => await wpdb.connect()
-
-export const end = async () => {
-    if (wpdb.conn) wpdb.conn.end()
-    if (knexInstance) await knexInstance.destroy()
-}
-
 // Retrieve a map of post ids to authors
 let cachedAuthorship: Map<number, string[]> | undefined
 export const getAuthorship = async (): Promise<Map<number, string[]>> => {
     if (cachedAuthorship) return cachedAuthorship
 
-    const authorRows = await wpdb.query(`
+    const authorRows = await singleton.query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
         LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
         WHERE terms.taxonomy='author'
@@ -155,30 +151,9 @@ export const getAuthorship = async (): Promise<Map<number, string[]>> => {
     return authorship
 }
 
-export const etCategoriesByPostId = async (): Promise<
-    Map<number, string[]>
-> => {
-    const categoriesByPostId = new Map<number, string[]>()
-    const rows = await wpdb.query(`
-        SELECT object_id, terms.name FROM wp_term_relationships AS rels
-        LEFT JOIN wp_terms AS terms ON terms.term_id=rels.term_taxonomy_id
-    `)
-
-    for (const row of rows) {
-        let cats = categoriesByPostId.get(row.object_id)
-        if (!cats) {
-            cats = []
-            categoriesByPostId.set(row.object_id, cats)
-        }
-        cats.push(row.name)
-    }
-
-    return categoriesByPostId
-}
-
 export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
     const tagsByPostId = new Map<number, string[]>()
-    const rows = await wpdb.query(`
+    const rows = await singleton.query(`
         SELECT p.id, t.name
         FROM wp_posts p
         JOIN wp_term_relationships tr
@@ -342,22 +317,17 @@ export const getPageType = async (post: FullPost): Promise<PageType> => {
     return isEntry ? PageType.Entry : PageType.Standard
 }
 
-export const getPermalinks = async () => {
-    return {
-        // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-        get: (ID: number, postName: string) =>
-            postName
-                .replace(/\/+$/g, "")
-                .replace(/--/g, "/")
-                .replace(/__/g, "/"),
-    }
-}
+export const getPermalinks = async () => ({
+    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
+    get: (ID: number, postName: string) =>
+        postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
+})
 
 let cachedFeaturedImages: Map<number, string> | undefined
 export const getFeaturedImages = async () => {
     if (cachedFeaturedImages) return cachedFeaturedImages
 
-    const rows = await wpdb.query(
+    const rows = await singleton.query(
         `SELECT wp_postmeta.post_id, wp_posts.guid FROM wp_postmeta INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value WHERE wp_postmeta.meta_key='_thumbnail_id'`
     )
 
@@ -423,9 +393,7 @@ export const getPostType = async (search: number | string): Promise<string> => {
     const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, {
         searchParams: [[paramName, search]],
     })
-    const type = await response.json()
-
-    return type
+    return await response.json()
 }
 
 export const getPostBySlug = async (slug: string): Promise<any[]> => {
@@ -491,7 +459,9 @@ export const getRelatedCharts = async (
         ORDER BY title ASC
     `)
 
-export async function getBlockContent(id: number): Promise<string | undefined> {
+export const getBlockContent = async (
+    id: number
+): Promise<string | undefined> => {
     const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
     const query = `
     query getBlock($id: ID!) {
@@ -517,46 +487,37 @@ export async function getBlockContent(id: number): Promise<string | undefined> {
     return json.data.post?.content ?? undefined
 }
 
-export async function getFullPost(
+export const getFullPost = async (
     postApi: any,
     excludeContent?: boolean
-): Promise<FullPost> {
-    return {
-        id: postApi.id,
-        type: postApi.type,
-        slug: postApi.slug,
-        path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
-        title: decodeHTML(postApi.title.rendered),
-        date: new Date(postApi.date),
-        modifiedDate: new Date(postApi.modified),
-        authors: postApi.authors_name || [],
-        content: excludeContent ? "" : postApi.content.rendered,
-        excerpt: decodeHTML(postApi.excerpt.rendered),
-        imageUrl: `${BAKED_BASE_URL}${
-            postApi.featured_media_path ?? "/default-thumbnail.jpg"
-        }`,
-        relatedCharts:
-            postApi.type === "page"
-                ? await getRelatedCharts(postApi.id)
-                : undefined,
-        glossary: postApi.meta.owid_glossary_meta_field,
-    }
-}
+): Promise<FullPost> => ({
+    id: postApi.id,
+    type: postApi.type,
+    slug: postApi.slug,
+    path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
+    title: decodeHTML(postApi.title.rendered),
+    date: new Date(postApi.date),
+    modifiedDate: new Date(postApi.modified),
+    authors: postApi.authors_name || [],
+    content: excludeContent ? "" : postApi.content.rendered,
+    excerpt: decodeHTML(postApi.excerpt.rendered),
+    imageUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_path ?? "/default-thumbnail.jpg"
+    }`,
+    relatedCharts:
+        postApi.type === "page"
+            ? await getRelatedCharts(postApi.id)
+            : undefined,
+    glossary: postApi.meta.owid_glossary_meta_field,
+})
 
 let cachedPosts: Promise<FullPost[]> | undefined
-export async function getBlogIndex(): Promise<FullPost[]> {
+export const getBlogIndex = async (): Promise<FullPost[]> => {
     if (cachedPosts) return cachedPosts
 
     // TODO: do not get post content in the first place
     const posts = await getPosts(["post"])
-
-    cachedPosts = Promise.all(
-        posts.map((post) => {
-            return getFullPost(post, true)
-        })
-    )
-
-    return cachedPosts
+    return Promise.all(posts.map((post) => getFullPost(post, true)))
 }
 
 interface TablepressTable {
@@ -565,16 +526,16 @@ interface TablepressTable {
 }
 
 let cachedTables: Map<string, TablepressTable> | undefined
-export async function getTables(): Promise<Map<string, TablepressTable>> {
+export const getTables = async (): Promise<Map<string, TablepressTable>> => {
     if (cachedTables) return cachedTables
 
-    const optRows = await wpdb.query(`
+    const optRows = await singleton.query(`
         SELECT option_value AS json FROM wp_options WHERE option_name='tablepress_tables'
     `)
 
     const tableToPostIds = JSON.parse(optRows[0].json).table_post
 
-    const rows = await wpdb.query(`
+    const rows = await singleton.query(`
         SELECT ID, post_content FROM wp_posts WHERE post_type='tablepress_table'
     `)
 
@@ -597,11 +558,9 @@ export async function getTables(): Promise<Map<string, TablepressTable>> {
     return cachedTables
 }
 
-let knexInstance: Knex
-
 export const knex = (
     tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
-) => wpdb.knex(tableName)
+) => singleton.knex(tableName)
 
 export const flushCache = () => {
     cachedAuthorship = undefined

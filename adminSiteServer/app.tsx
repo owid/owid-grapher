@@ -105,13 +105,13 @@ app.use(async (err: any, req: any, res: express.Response, next: any) => {
     }
 })
 
-async function main() {
+const main = async () => {
     try {
-        await db.connect()
+        await db.getConnection()
 
         // The Grapher should be able to work without Wordpress being set up.
         try {
-            await wpdb.connect()
+            await wpdb.singleton.connect()
         } catch (error) {
             console.error(error)
             console.log(
