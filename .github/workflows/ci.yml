@@ -2,7 +2,7 @@ name: Continuous Integration
 on: [push]
 
 jobs:
-    # Runs `yarn testcheck` on the code, which checks for TypeScript errors and runs Jest tests.
+    # Checks for prettify errors, TypeScript errors and runs Jest tests.
     testcheck:
         runs-on: ubuntu-latest
 
@@ -48,7 +48,7 @@ jobs:
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
 
             - name: Run tests & checks
-              run: yarn testcheck
+              run: yarn prettify-all:check && tsc -b && jest
 
     # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
     bundlewatch:

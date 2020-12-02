@@ -46,7 +46,7 @@ const runPreDeployChecksRemotely = async (
 
     const script = `cd ${SYNC_TARGET_TESTS}
 yarn install --production=false --frozen-lockfile
-yarn testcheck`
+yarn prettify-all:check`
     return await execWrapper(`ssh -t ${HOST} 'bash -e -s' ${script}`)
 }
 
@@ -171,7 +171,7 @@ const main = async () => {
         progressBar.tick({ name: "✅ finished checks because we skipped them" })
     } else {
         await runAndTick(`yarn prettify:check`, progressBar)
-        await runAndTick(`yarn typecheck`, progressBar)
+        await runAndTick(`yarn build`, progressBar)
         await runAndTick(`jest`, progressBar)
     }
 
@@ -308,7 +308,7 @@ const makeScriptToDoYarnStuff = (
 ) => `# Install dependencies, build assets and migrate
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
-yarn build
+yarn build-webpack
 yarn migrate
 yarn tsn baker/algolia/configureAlgolia.ts`
 

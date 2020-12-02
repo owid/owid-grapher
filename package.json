@@ -5,46 +5,42 @@
         "node": ">=12.13.1"
     },
     "scripts": {
-        "tsn": "ts-node --transpile-only -r tsconfig-paths/register -r dotenv/config",
-        "tsnd": "ts-node-dev --transpileOnly --respawn --no-notify --no-deps -r tsconfig-paths/register -r source-map-support/register -r dotenv/config",
-        "dev-admin": "yarn tsnd adminSiteServer/app.tsx",
-        "tsnd:inspect": "ts-node-dev --inspect --transpileOnly --respawn --no-notify --no-deps -r tsconfig-paths/register -r source-map-support/register -r dotenv/config",
-        "dev-admin:inspect": "yarn tsnd:inspect adminSiteServer/app.tsx",
-        "dev-webpack": "webpack-dev-server -d",
-        "dev": "npm-run-all --race --parallel dev-admin dev-webpack",
-        "dev-tmux": "tmex dev \"node ./itsJustJavascript/adminSiteServer/app.js\" \"yarn webpack-dev-server --no-live-reload\"",
-        "typeorm": "yarn tsn node_modules/.bin/typeorm",
-        "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
+        "build": "tsc -b -verbose",
+
+        "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
+
+        "test": "jest",
+        "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
+        "coverage:ci": "jest --coverage=true --coverageProvider=v8",
+
+        "dev-tmux": "tmex dev \"yarn serve\" \"yarn webpack-dev-server --no-live-reload\"",
+
         "lint": "eslint .",
         "fix": "eslint . --fix",
+
         "prettify": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "prettify:check": "yarn prettify --check",
         "prettify-all": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "prettify-all:check": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
-        "typecheck": "tsc --noEmit",
-        "build": "rm -rf dist && ENV=production webpack -p --progress",
-        "build-ts": "tsc -b -verbose",
-        "test": "jest",
-        "test-watch": "jest --watch",
-        "test-single-process": "jest --maxWorkers=1",
-        "test-compact": "jest 2>&1 | grep 'FAIL'",
-        "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
-        "coverage:ci": "jest --coverage=true --coverageProvider=v8",
-        "test-leaks": "jest --detectLeaks",
-        "cypress:open": "yarn cypress open --project .",
-        "testcheck": "./baker/testcheck.sh",
-        "deploy": "yarn tsn baker/deploy.ts",
-        "deploy:wordpress": "./wordpress/scripts/deploy.sh",
-        "refresh": "cd wordpress && lando refresh",
-        "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
-        "bakeAndDeploy": "yarn tsn baker/bakeAndDeploySite.ts",
-        "post-update": "yarn tsn baker/postUpdatedHook.ts",
-        "deploy-queue": "yarn tsn baker/watch.ts",
+
+        "deploy": "node ./itsJustJavascript/baker/deploy.js",
+        "bakeAndDeploy": "node ./itsJustJavascript/baker/bakeAndDeploySite.js",
+        "deploy-queue": "node ./itsJustJavascript/baker/watch.js",
+        "post-update": "node ./itsJustJavascript/baker/postUpdatedHook.js",
+        "live-commit": "node ./itsJustJavascript/baker/liveCommit.js",
+
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",
+
+        "deploy:wordpress": "./wordpress/scripts/deploy.sh",
+        "refresh": "cd wordpress && lando refresh",
+
+        "cypress:open": "yarn cypress open --project .",
+
+        "dev-webpack": "webpack-dev-server -d",
+        "build-webpack": "rm -rf dist && ENV=production webpack -p --progress",
         "bundlewatch": "ENV=production webpack -p && bundlewatch --config .bundlewatch.config.json",
-        "bundlewatch-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
-        "live-commit": "yarn tsn baker/liveCommit.ts"
+        "bundlewatch-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.30",
