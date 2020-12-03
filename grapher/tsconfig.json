@@ -4,5 +4,9 @@
         "outDir": "../itsJustJavascript/grapher",
         "rootDir": "."
     },
-    "references": [{ "path": "../coreTable" }, { "path": "../clientUtils" }]
+    "references": [
+        { "path": "../coreTable" },
+        { "path": "../clientUtils" },
+        { "path": "../settings" }
+    ]
 }

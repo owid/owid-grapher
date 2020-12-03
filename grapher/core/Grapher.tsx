@@ -151,6 +151,10 @@ import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
 import { GlobalEntityRegistry } from "../controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../../settings/clientSettings"
 
 declare const window: any
 
@@ -289,10 +293,8 @@ export class Grapher
     analytics = new GrapherAnalytics(this.props.env ?? "")
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-
-    @computed get adminBaseUrl() {
-        return this.props.adminBaseUrl
-    }
+    @observable bakedGrapherURL = BAKED_GRAPHER_URL
+    adminBaseUrl = ADMIN_BASE_URL
 
     @observable.ref inputTable: OwidTable
 
@@ -858,7 +860,7 @@ export class Grapher
     }
 
     @computed get dataUrl() {
-        return `${this.props.bakedGrapherURL ?? ""}/data/variables/${
+        return `${this.bakedGrapherURL ?? ""}/data/variables/${
             this.dataFileName
         }`
     }
@@ -2082,7 +2084,7 @@ export class Grapher
 
     @computed get baseUrl() {
         return this.isPublished
-            ? `${this.props.bakedGrapherURL ?? ""}/${this.displaySlug}`
+            ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
             : undefined
     }
 
