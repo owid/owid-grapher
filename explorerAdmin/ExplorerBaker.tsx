@@ -26,7 +26,7 @@ import {
 import simpleGit from "simple-git"
 import { slugify } from "../clientUtils/Util"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { Grapher } from "../grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { GitCommit } from "../clientUtils/owidTypes"
 import ReactDOMServer from "react-dom/server"
 
@@ -202,8 +202,9 @@ export const renderExplorerPage = async (
         : undefined
 
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
-        const config = JSON.parse(row.config)
+        const config: GrapherProgrammaticInterface = JSON.parse(row.config)
         config.id = row.id // Ensure each grapher has an id
+        config.manuallyProvideData = true
         return new Grapher(config).toObject()
     })
 
