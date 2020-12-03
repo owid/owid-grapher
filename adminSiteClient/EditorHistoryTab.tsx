@@ -67,7 +67,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         // Due to mobx memoizing computed values, the JSON can be mutated.
         const chartConfigObject = {
             ...this.props.editor.grapher.object,
-            externalDataUrl: this.props.editor.grapher.dataUrl,
         }
         return (
             <div>

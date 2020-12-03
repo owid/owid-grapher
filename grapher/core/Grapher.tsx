@@ -172,7 +172,6 @@ const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    externalDataUrl?: string // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
@@ -283,9 +282,8 @@ export class Grapher
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
 
-    externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
-    manuallyProvideData?: boolean = false // This will be removed.
+    manuallyProvideData? = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = this.props.env === "development"
@@ -381,8 +379,6 @@ export class Grapher
         if (this.manuallyProvideData) {
         } else if (this.owidDataset)
             this._receiveLegacyDataAndApplySelection(this.owidDataset)
-        else if (this.externalDataUrl)
-            this.downloadLegacyDataFromUrl(this.externalDataUrl)
         else this.downloadLegacyDataFromOwidVariableIds()
     }
 
