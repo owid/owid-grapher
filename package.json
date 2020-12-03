@@ -9,7 +9,8 @@
         "build": "tsc -b -verbose",
         "test": "jest",
         "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
-        "tmux": "tmex dev \"yarn serve\" \"yarn webpack-dev-server --no-live-reload\"",
+        "serve-pack": "webpack-dev-server --no-live-reload",
+        "tmux": "tmex dev \"yarn serve\" \"yarn serve-pack\"",
 
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "coverage:ci": "jest --coverage=true --coverageProvider=v8",
