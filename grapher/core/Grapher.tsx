@@ -14,7 +14,6 @@ import {
     uniqWith,
     isEqual,
     uniq,
-    fetchJSON,
     slugify,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
@@ -613,11 +612,6 @@ export class Grapher
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @action.bound private async downloadLegacyDataFromUrl(url: string) {
-        const json = await fetchJSON(url)
-        this._receiveLegacyDataAndApplySelection(json)
-    }
-
     /**
      * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
      */
@@ -648,9 +642,13 @@ export class Grapher
                 )
                 this._receiveLegacyDataAndApplySelection(json)
             } else {
-                await this.downloadLegacyDataFromUrl(this.dataUrl)
+                const response = await fetch(this.dataUrl)
+                if (!response.ok) throw new Error(response.statusText)
+                const json = await response.json()
+                this._receiveLegacyDataAndApplySelection(json)
             }
         } catch (err) {
+            console.log(`Error fetching '${this.dataUrl}'`)
             console.error(err)
         }
     }

@@ -500,6 +500,7 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
+// todo: can we ditch this in favor of a simple fetch?
 export const getCountryCodeFromNetlifyRedirect = async (): Promise<
     string | undefined
 > =>
@@ -512,24 +513,6 @@ export const getCountryCodeFromNetlifyRedirect = async (): Promise<
             reject(new Error("Couldn't retrieve country code"))
         )
         req.open("GET", "/detect-country-redirect")
-        req.send()
-    })
-
-// DO NOT USE: use fetch instead
-export const fetchJSON = async (url: string): Promise<any> =>
-    new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", function () {
-            resolve(JSON.parse(this.responseText))
-        })
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200) {
-                    reject(new Error(`${req.status} ${req.statusText}`))
-                }
-            }
-        })
-        req.open("GET", url)
         req.send()
     })
 
