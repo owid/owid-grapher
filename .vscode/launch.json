@@ -5,6 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Admin Server",
+            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "request": "launch",
+            "type": "pwa-node"
+        },
+        {
             "name": "Attach to node",
             "type": "node",
             "request": "attach",
