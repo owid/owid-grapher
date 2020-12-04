@@ -12,7 +12,7 @@ const bakeDomainToFolder = async (baseUrl: string, dir: string) => {
 const args = parseArgs(process.argv.slice(2))
 const theArgs = args._
 if (theArgs.length !== 2) {
-    console.error(`Usage: yarn bake-custom http://owid.org /home/user/owid.org`)
+    console.error(`Usage: yarn bake-local http://owid.org /home/user/owid.org`)
     process.exit()
 }
 
