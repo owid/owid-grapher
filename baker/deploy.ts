@@ -196,7 +196,7 @@ const main = async () => {
         bake: `pm2 stop ${NAME}-deploy-queue
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-node baker/bakeSite.js`,
+node itsJustJavascript/baker/bakeSite.js`,
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitEmail,
@@ -309,7 +309,7 @@ const makeScriptToDoYarnStuff = (
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
 yarn build-webpack
-node baker/algolia/configureAlgolia.js`
+node itsJustJavascript/baker/algolia/configureAlgolia.js`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
     NAME: string,
@@ -338,7 +338,7 @@ const makeScriptToDeployToNetlifyDoQueue = (
     GIT_NAME: string,
     FINAL_TARGET: string
 ) => `cd ${FINAL_TARGET}
-node baker/deploySite.js "${GIT_EMAIL}" "${GIT_NAME}"
+node itsJustJavascript/baker/deploySite.js "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
 
