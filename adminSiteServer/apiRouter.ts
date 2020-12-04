@@ -1558,6 +1558,11 @@ Object.keys(ExplorerApiRoutes).forEach((route) =>
     apiRouter.get(route, ExplorerApiRoutes[route])
 )
 
-addGitCmsApiRoutes(apiRouter.router)
+/**
+ * todo: fix typings. There's a nice pattern in Functional Router where instead of res.send the middleware methods
+ * return object literals. That's nice for testing. Just need to clean that up a bit and get a good interface in at a high
+ * leve.
+ */
+addGitCmsApiRoutes(apiRouter as any)
 
 export { apiRouter }
