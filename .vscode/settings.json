@@ -9,7 +9,6 @@
         "**/itsJustJavascript": true
     },
     "search.exclude": {
-        "dist": true,
         "**/itsJustJavascript": true,
         "bakedSite": true,
         "yarn.lock": true

@@ -8,7 +8,6 @@ yarn-error.log
 .vscode/tags
 .awcache
 data
-dist
 itsJustJavascript/
 .netlify
 *.swp

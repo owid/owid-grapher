@@ -8,10 +8,8 @@ logs/*
 datasetsExport
 tmp
 .tscache
-/test
 *.test.ts
 *.test.tsx
-dist
 .queue
 .pending
 /wordpress

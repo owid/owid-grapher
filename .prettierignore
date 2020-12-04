@@ -1,7 +1,7 @@
 .tscache
 /bakedSite
 datasetsExport
-dist
+itsJustJavascript
 package.json
 covidChartAndVariableMeta.json
 /.storybook/build
