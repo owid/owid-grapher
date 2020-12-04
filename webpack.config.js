@@ -28,9 +28,8 @@ module.exports = (env, argv) => {
             minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
         },
         output: {
-            path: path.join(__dirname, "dist/webpack"),
-            filename: "js/[name].js",
-            //filename: (isProduction ? "js/[name].bundle.[hash].js" : "js/[name].js")
+            path: path.join(__dirname, "itsJustJavascript/webpack"),
+            filename: "[name].js",
         },
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
@@ -80,7 +79,7 @@ module.exports = (env, argv) => {
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
-            new MiniCssExtractPlugin({ filename: "css/[name].css" }),
+            new MiniCssExtractPlugin({ filename: "[name].css" }),
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),

@@ -1,11 +1,11 @@
 {
     "files": [
         {
-            "path": "./dist/webpack/js/commons.js",
+            "path": "./itsJustJavascript/webpack/commons.js",
             "maxSize": "1.6 MB"
         },
         {
-            "path": "./dist/webpack/js/owid.js",
+            "path": "./itsJustJavascript/webpack/owid.js",
             "maxSize": "400 KB"
         }
     ],

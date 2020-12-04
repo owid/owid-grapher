@@ -27,7 +27,7 @@ module.exports = ({ config }: { config: any }) => {
         }),
     ]
     config.plugins = config.plugins.concat([
-        new MiniCssExtractPlugin({ filename: "css/[name].css" }),
+        new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
 
     return config

@@ -298,7 +298,7 @@ export class SiteBaker {
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
         await execWrapper(
-            `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist/webpack ${this.bakedSiteDir}/assets`
+            `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/itsJustJavascript/webpack ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`

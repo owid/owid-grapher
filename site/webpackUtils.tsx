@@ -5,7 +5,7 @@ import * as path from "path"
 const WEBPACK_DEV_URL = process.env.WEBPACK_DEV_URL ?? "http://localhost:8090"
 const WEBPACK_OUTPUT_PATH =
     process.env.WEBPACK_OUTPUT_PATH ??
-    path.join(__dirname + "/../", "dist/webpack")
+    path.join(__dirname + "/../", "itsJustJavascript/webpack")
 
 let manifest: { [key: string]: string }
 export const webpackUrl = (
@@ -25,12 +25,6 @@ export const webpackUrl = (
             )
         return urljoin(baseUrl, "/assets", manifest[assetName])
     }
-
-    if (assetName.match(/\.js$/))
-        return urljoin(WEBPACK_DEV_URL, `js/${assetName}`)
-
-    if (assetName.match(/\.css$/))
-        return urljoin(WEBPACK_DEV_URL, `css/${assetName}`)
 
     return urljoin(WEBPACK_DEV_URL, assetName)
 }
