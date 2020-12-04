@@ -28,6 +28,7 @@
         "deploy-queue": "node ./itsJustJavascript/baker/watch.js",
         "post-update": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "live-commit": "node ./itsJustJavascript/baker/liveCommit.js",
+        "bake-local": "node ./itsJustJavascript/baker/bakeLocal.js",
 
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",
