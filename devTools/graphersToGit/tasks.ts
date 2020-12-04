@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env node
 
 import * as fs from "fs"
 import * as db from "../../db/db"

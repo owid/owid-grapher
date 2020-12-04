@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env node
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 
 /**

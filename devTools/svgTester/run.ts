@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env node
 
 import { bakeAndSaveResultsFile } from "./SVGTester"
 const limit =

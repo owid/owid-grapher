@@ -1,4 +1,4 @@
-#! /usr/bin/env yarn tsn
+#! /usr/bin/env node
 
 import * as fs from "fs-extra"
 import os from "os"
@@ -106,7 +106,7 @@ const main = async () => {
     const firstArg = parsedArgs["_"][0]
 
     const USER = os.userInfo().username
-    const DIR = path.normalize(__dirname + "/../")
+    const DIR = path.normalize(__dirname + "/../../")
     const NAME = firstArg
     const stagingServers = new Set([
         "staging",
@@ -196,7 +196,7 @@ const main = async () => {
         bake: `pm2 stop ${NAME}-deploy-queue
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-yarn tsn baker/bakeSite.ts`,
+node baker/bakeSite.js`,
         deploy: makeScriptToDeployToNetlifyDoQueue(
             NAME,
             gitEmail,
@@ -309,8 +309,7 @@ const makeScriptToDoYarnStuff = (
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
 yarn build-webpack
-yarn migrate
-yarn tsn baker/algolia/configureAlgolia.ts`
+node baker/algolia/configureAlgolia.js`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
     NAME: string,
@@ -339,7 +338,7 @@ const makeScriptToDeployToNetlifyDoQueue = (
     GIT_NAME: string,
     FINAL_TARGET: string
 ) => `cd ${FINAL_TARGET}
-yarn tsn baker/deploySite.ts "${GIT_EMAIL}" "${GIT_NAME}"
+node baker/deploySite.js "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`
 
