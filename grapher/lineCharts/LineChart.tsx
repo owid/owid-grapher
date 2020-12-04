@@ -639,7 +639,9 @@ export class LineChart
         this.colorScheme.assignColors(
             arrOfSeries,
             this.manager.invertColorScheme,
-            this.inputTable.entityNameColorIndex,
+            this.seriesStrategy === SeriesStrategy.entity
+                ? this.inputTable.entityNameColorIndex
+                : this.inputTable.columnDisplayNameToColorMap,
             this.manager.seriesColorMap
         )
         return arrOfSeries
