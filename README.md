@@ -111,3 +111,21 @@ The OWID tech stack has evolved over time as we've found different ways to solve
 ---
 
 Cross-browser testing provided by <a href="https://www.browserstack.com"><img src="https://3fxtqy18kygf3on3bu39kh93-wpengine.netdna-ssl.com/wp-content/themes/browserstack/img/bs-logo.svg" /> BrowserStack</a>
+
+## Recommended Dev Tools
+
+Everyone use VS Code and it seems the key extensions are:
+
+-   ESLint
+-   Prettier
+-   GitLens
+
+Additionally, here are some other tools people like:
+
+Novelty/Fun to try:
+
+-   breck: SandDance, Rainbow CSV
+
+Other Recommended apps:
+
+-   breck: Sublime Merge 2, Sublime Text 3, tldr, tmux
