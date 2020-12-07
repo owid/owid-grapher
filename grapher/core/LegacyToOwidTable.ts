@@ -42,11 +42,11 @@ export const legacyToOwidTableAndDimensions = (
     const entityColorMap = new Map<EntityId, Color>()
     const columnColorMap = new Map<ColumnSlug, Color>()
 
-    const selectionOrder = excludeUndefined(
-        grapherConfig.selectedData?.map((item) => {
-            return grapherConfig.dimensions?.[item.index].variableId
-        }) ?? []
-    )
+    // const selectionOrder = excludeUndefined(
+    //     grapherConfig.selectedData?.map((item) => {
+    //         return grapherConfig.dimensions?.[item.index].variableId
+    //     }) ?? []
+    // )
 
     const dimensions = grapherConfig.dimensions || []
 
