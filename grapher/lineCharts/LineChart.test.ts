@@ -111,7 +111,7 @@ describe("colors", () => {
         ])
     })
 
-    it("uses column color selections when series strategy is columnar", () => {
+    it("uses column color selections when series strategy is column", () => {
         const table = new OwidTable(
             {
                 entityName: ["usa", "usa"],
