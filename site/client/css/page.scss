@@ -43,14 +43,23 @@
         }
     }
 
+    .article-titles {
+        margin-top: $vertical-spacing;
+        margin-bottom: $vertical-spacing * 2;
+    }
+
     .supertitle {
         font-family: $sans-serif-font-stack;
         font-weight: lighter;
     }
 
+    .subtitle {
+        font-size: 1.1rem;
+        margin-top: $vertical-spacing / 2;
+    }
+
     h1 {
-        margin-top: 0;
-        margin-bottom: $vertical-spacing * 2;
+        margin: 0;
         font-family: $serif-font-stack;
         font-weight: 400;
         line-height: 1.2;
@@ -110,7 +119,7 @@
             background-color: $primary-color-100;
         }
         .article-header {
-            padding-top: 3rem;
+            padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
 
             @include titling(2.5rem);
