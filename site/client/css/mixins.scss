@@ -228,3 +228,13 @@
 @mixin hide {
     display: none;
 }
+
+@mixin titling($h1-font-size) {
+    .supertitle {
+        margin-bottom: -($h1-font-size / 10);
+        font-size: $h1-font-size * 40 / 100;
+    }
+    h1 {
+        font-size: $h1-font-size;
+    }
+}
