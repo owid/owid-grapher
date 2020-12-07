@@ -48,13 +48,15 @@ export const legacyToOwidTableAndDimensions = (
         }) ?? []
     )
 
-    const dimensions = sortBy(grapherConfig.dimensions || [], (dim) => {
-        const idx = findIndex(
-            selectionOrder,
-            (variableId) => dim.variableId === variableId
-        )
-        return idx
-    })
+    const dimensions = grapherConfig.dimensions || []
+
+    // const dimensions = sortBy(grapherConfig.dimensions || [], (dim) => {
+    //     const idx = findIndex(
+    //         selectionOrder,
+    //         (variableId) => dim.variableId === variableId
+    //     )
+    //     return idx
+    // })
 
     grapherConfig.selectedData
         ?.filter((item) => item.entityId && item.color)
