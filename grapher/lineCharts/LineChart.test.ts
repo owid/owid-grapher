@@ -8,7 +8,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
 import { ChartManager } from "../chart/ChartManager"
-import { ScaleType } from "../core/GrapherConstants"
+import { ScaleType, SeriesStrategy } from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { SelectionArray } from "../selection/SelectionArray"
 
@@ -109,6 +109,30 @@ describe("colors", () => {
             "blue",
             "red",
         ])
+    })
+
+    it("uses column color selections when series strategy is columnar", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa"],
+                year: [2000, 2001],
+                gdp: [100, 200],
+                entityColor: ["blue", "blue"],
+            },
+            [{ slug: "gdp", color: "green" }]
+        )
+
+        const manager: ChartManager = {
+            yColumnSlugs: ["gdp"],
+            table: table,
+            selection,
+            seriesStrategy: SeriesStrategy.column,
+        }
+        const chart = new LineChart({ manager })
+        const series = chart.series
+
+        expect(series).toHaveLength(1)
+        expect(series[0].color).toEqual("green")
     })
 
     it("can assign colors to selected entities and preserve those colors when selection changes when using a color map", () => {
