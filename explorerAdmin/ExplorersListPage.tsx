@@ -294,7 +294,7 @@ export class ExplorersIndexPage extends React.Component<{
     private async getData() {
         const { searchInput } = this
 
-        const response = await fetch(`/api/${ExplorersRoute}`, {
+        const response = await fetch(`/admin/api/${ExplorersRoute}`, {
             method: "GET",
         })
         const json = (await response.json()) as ExplorersRouteResponse
