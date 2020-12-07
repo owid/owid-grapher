@@ -233,20 +233,20 @@ export async function formatWordpressPost(
         $lastUpdated.remove()
     }
 
-    // Extract page subtitle
-    let pageSubtitle
-    const $pageSubtitle = $(".wp-block-page-subtitle")
-    if ($pageSubtitle.length) {
-        pageSubtitle = $pageSubtitle.text()
-        $pageSubtitle.remove()
+    // Extract page supertitle
+    let supertitle
+    const $supertitle = $(".wp-block-owid-supertitle")
+    if ($supertitle.length) {
+        supertitle = $supertitle.text()
+        $supertitle.remove()
     }
 
-    // Extract page supertitle
-    let pageSupertitle
-    const $pageSupertitle = $(".wp-block-page-supertitle")
-    if ($pageSupertitle.length) {
-        pageSupertitle = $pageSupertitle.text()
-        $pageSupertitle.remove()
+    // Extract page subtitle
+    let subtitle
+    const $subtitle = $(".wp-block-owid-subtitle")
+    if ($subtitle.length) {
+        subtitle = $subtitle.text()
+        $subtitle.remove()
     }
 
     // Extract page byline
@@ -631,8 +631,8 @@ export async function formatWordpressPost(
         slug: post.slug,
         path: post.path,
         title: post.title,
-        subtitle: pageSubtitle,
-        supertitle: pageSupertitle,
+        subtitle: subtitle,
+        supertitle: supertitle,
         date: post.date,
         modifiedDate: post.modifiedDate,
         lastUpdated: lastUpdated,

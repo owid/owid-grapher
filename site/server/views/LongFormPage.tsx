@@ -131,6 +131,11 @@ export const LongFormPage = (props: {
                                     </div>
                                 )}
                                 <h1 className="entry-title">{pageTitle}</h1>
+                                {post.subtitle && (
+                                    <div className="subtitle">
+                                        {post.subtitle}
+                                    </div>
+                                )}
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
                                         {post.byline ? (
