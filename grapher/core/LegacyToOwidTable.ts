@@ -42,16 +42,19 @@ export const legacyToOwidTableAndDimensions = (
     const entityColorMap = new Map<EntityId, Color>()
     const columnColorMap = new Map<ColumnSlug, Color>()
 
-    const columnSlugs = excludeUndefined(
+    const selectionOrder = excludeUndefined(
         grapherConfig.selectedData?.map((item) => {
-            const columnSlug = grapherConfig.dimensions?.[item.index]?.slug
-            return columnSlug
+            return grapherConfig.dimensions?.[item.index].variableId
         }) ?? []
     )
 
-    const dimensions = sortBy(grapherConfig.dimensions || [], (dim) =>
-        findIndex(columnSlugs, dim.slug)
-    )
+    const dimensions = sortBy(grapherConfig.dimensions || [], (dim) => {
+        const idx = findIndex(
+            selectionOrder,
+            (variableId) => dim.variableId === variableId
+        )
+        return idx
+    })
 
     grapherConfig.selectedData
         ?.filter((item) => item.entityId && item.color)

@@ -126,9 +126,9 @@ class DimensionSlotView extends React.Component<{
     }
 
     componentDidMount() {
-        debugger
-        if (this.grapher.selectedColumnSlugs.length)
-            this.sortDimensionsBySelection()
+        // debugger
+        // if (this.grapher.selectedColumnSlugs.length)
+        //     this.sortDimensionsBySelection()
     }
 
     get grapher() {
@@ -161,7 +161,7 @@ class DimensionSlotView extends React.Component<{
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        debugger
+        // debugger
 
         this.dimensions = clone(this.grapher.dimensions)
         const dragIndex = this.dimensions.findIndex(
