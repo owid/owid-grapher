@@ -52,6 +52,7 @@ export interface FormattedPost {
     path: string
     title: string
     subtitle?: string | null
+    supertitle?: string | null
     date: Date
     modifiedDate: Date
     lastUpdated?: string | null
@@ -238,6 +239,14 @@ export async function formatWordpressPost(
     if ($pageSubtitle.length) {
         pageSubtitle = $pageSubtitle.text()
         $pageSubtitle.remove()
+    }
+
+    // Extract page supertitle
+    let pageSupertitle
+    const $pageSupertitle = $(".wp-block-page-supertitle")
+    if ($pageSupertitle.length) {
+        pageSupertitle = $pageSupertitle.text()
+        $pageSupertitle.remove()
     }
 
     // Extract page byline
@@ -623,6 +632,7 @@ export async function formatWordpressPost(
         path: post.path,
         title: post.title,
         subtitle: pageSubtitle,
+        supertitle: pageSupertitle,
         date: post.date,
         modifiedDate: post.modifiedDate,
         lastUpdated: lastUpdated,
