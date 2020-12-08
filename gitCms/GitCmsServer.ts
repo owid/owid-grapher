@@ -102,6 +102,11 @@ export class GitCmsServer {
     private branchesToAutoPush = new Set(["master", "staging"])
 }
 
+const validateFilePath = (filename: string) => {
+    if (filename.includes(".."))
+        throw new Error(`Invalid filepath: ${filename}`)
+}
+
 export const addGitCmsApiRoutes = (app: Router) => {
     const server = new GitCmsServer(GIT_CMS_DIR)
 
@@ -113,15 +118,11 @@ export const addGitCmsApiRoutes = (app: Router) => {
             res: ResponseWithUserInfo
         ): Promise<GitCmsResponse> => {
             const request = req.body as WriteRequest
-            const filename = request.filepath
-            if (filename.includes(".."))
-                return {
-                    success: false,
-                    errorMessage: `Invalid filepath: ${filename}`,
-                }
+            const { filepath } = request
             try {
+                validateFilePath(filepath)
                 await server.saveFileToGitContentDirectory(
-                    filename,
+                    filepath,
                     request.content,
                     res.locals.user.fullName,
                     res.locals.user.email,
@@ -130,9 +131,9 @@ export const addGitCmsApiRoutes = (app: Router) => {
 
                 await server.autopush()
                 return { success: true }
-            } catch (err) {
-                console.log(err)
-                return { success: false, errorMessage: err }
+            } catch (error) {
+                console.log(error)
+                return { success: false, error }
             }
         }
     )
@@ -145,9 +146,9 @@ export const addGitCmsApiRoutes = (app: Router) => {
                 success: true,
                 stdout: JSON.stringify(res.summary, null, 2),
             } as GitPullResponse
-        } catch (err) {
-            console.log(err)
-            return { success: false, errorMessage: err }
+        } catch (error) {
+            console.log(error)
+            return { success: false, error }
         }
     })
 
@@ -157,22 +158,22 @@ export const addGitCmsApiRoutes = (app: Router) => {
         async (req: Request): Promise<GitCmsReadResponse> => {
             const request = req.query as ReadRequest
             const filepath = `/${request.filepath.replace(/\~/g, "/")}`
-            if (filepath.includes(".."))
+            try {
+                validateFilePath(filepath)
+
+                const path = GIT_CMS_DIR + filepath
+                const exists = fs.existsSync(path)
+                if (!exists) throw new Error(`File '${filepath}' not found`)
+                const content = await fs.readFile(path, "utf8")
+                return { success: true, content }
+            } catch (error) {
+                console.log(error)
                 return {
                     success: false,
-                    errorMessage: `Invalid filepath: ${filepath}`,
+                    error,
                     content: "",
                 }
-            const path = GIT_CMS_DIR + filepath
-            const exists = fs.existsSync(path)
-            if (!exists)
-                return {
-                    success: false,
-                    errorMessage: `File '${filepath}' not found`,
-                    content: "",
-                }
-            const content = await fs.readFile(path, "utf8")
-            return { success: true, content }
+            }
         }
     )
 
@@ -207,12 +208,8 @@ export const addGitCmsApiRoutes = (app: Router) => {
         ): Promise<GitCmsResponse> => {
             const request = req.query as DeleteRequest
             const filepath = request.filepath.replace(/\~/g, "/")
-            if (filepath.includes(".."))
-                return {
-                    success: false,
-                    errorMessage: `Invalid filepath: ${filepath}`,
-                }
             try {
+                validateFilePath(filepath)
                 await server.deleteFileFromGitContentDirectory(
                     filepath,
                     res.locals.user.fullName,
@@ -220,9 +217,9 @@ export const addGitCmsApiRoutes = (app: Router) => {
                 )
                 await server.autopush()
                 return { success: true }
-            } catch (err) {
-                console.log(err)
-                return { success: false, errorMessage: err }
+            } catch (error) {
+                console.log(error)
+                return { success: false, error }
             }
         }
     )

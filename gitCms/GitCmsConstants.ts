@@ -28,7 +28,7 @@ export interface DeleteRequest {
 
 export interface GitCmsResponse {
     success: boolean
-    errorMessage?: string
+    error?: any
 }
 
 export interface GitCmsReadResponse extends GitCmsResponse {
