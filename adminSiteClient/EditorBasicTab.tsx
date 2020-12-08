@@ -23,6 +23,7 @@ import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
 import { ColumnSlug } from "../coreTable/CoreTableConstants"
 import { ChartDimension } from "../grapher/chart/ChartDimension"
+import { thresholdSturges } from "d3"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -139,7 +140,7 @@ class DimensionSlotView extends React.Component<{
         window.addEventListener("mouseup", onDrag)
     }
 
-    dimensions: ChartDimension[] = []
+    @observable dimensions: ChartDimension[] = []
 
     toName(slug: string) {
         return this.grapher.table.get(slug).displayName
@@ -201,6 +202,12 @@ class DimensionSlotView extends React.Component<{
         this.selectedDataInNewOrder
     }
 
+    @computed get sortedDimensions() {
+        return this.dimensions.length
+            ? this.dimensions
+            : this.props.slot.dimensionsWithData
+    }
+
     render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
@@ -210,7 +217,7 @@ class DimensionSlotView extends React.Component<{
             <div>
                 <h5>{slot.name}</h5>
                 <EditableList>
-                    {slot.dimensionsWithData.map((dim) => {
+                    {this.sortedDimensions.map((dim) => {
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
