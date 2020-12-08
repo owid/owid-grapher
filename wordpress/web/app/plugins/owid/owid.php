@@ -166,18 +166,22 @@ function graphql_register_types()
         },
     ]);
 
-    register_graphql_field('', 'glossary', [
-        'type' => 'Boolean',
-        'description' => 'Glossary',
-        'resolve' => function ($post) {
-            $glossary_post_meta = get_post_meta(
-                $post->ID,
-                GLOSSARY_META_FIELD,
-                true
-            );
-            return !!$glossary_post_meta;
-        },
-    ]);
+    // If needed, make sure to register on both "Page" and "Post" types (only
+    // set to "Page" below in the first argument of the register_graphql_field
+    // function)
+    // register_graphql_field('Page', 'glossary', [
+    //     'type' => 'Boolean',
+    //     'description' => 'Glossary',
+    //     'resolve' => function ($post) {
+    //         $glossary_post_meta = get_post_meta(
+    //             $post->ID,
+    //             GLOSSARY_META_FIELD,
+    //             true
+    //         );
+    //         return !!$glossary_post_meta;
+    //     },
+    // ]);
+
     // Not needed for now, subtitles are only queried through the REST API.
     // register_graphql_field('Post', 'subtitle', [
     //     'type' => 'String',
