@@ -4,7 +4,14 @@ import {
     GIT_DEFAULT_EMAIL,
 } from "../settings/clientSettings"
 import simpleGit, { SimpleGit } from "simple-git"
-import * as fs from "fs-extra"
+import {
+    writeFile,
+    existsSync,
+    readFile,
+    unlink,
+    readFileSync,
+    mkdirSync,
+} from "fs-extra"
 import {
     GIT_CMS_DIR,
     GIT_CMS_FILE_ROUTE,
@@ -19,7 +26,7 @@ import {
     GIT_CMS_GLOB_ROUTE,
     GitCmsGlobResponse,
 } from "./GitCmsConstants"
-import * as glob from "glob"
+import { sync } from "glob"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {
@@ -27,13 +34,27 @@ interface ResponseWithUserInfo extends Response {
 }
 
 export class GitCmsServer {
-    private git: SimpleGit
+    private baseDir: string
     constructor(baseDir: string) {
-        this.git = simpleGit({
-            baseDir,
-            binary: "git",
-            maxConcurrentProcesses: 1,
-        })
+        this.baseDir = baseDir
+    }
+
+    private _git?: SimpleGit
+    private get git() {
+        if (!this._git)
+            this._git = simpleGit({
+                baseDir: this.baseDir,
+                binary: "git",
+                maxConcurrentProcesses: 1,
+            })
+        return this._git
+    }
+
+    async createDirAndInitIfNeeded() {
+        const { baseDir } = this
+        if (!existsSync(baseDir)) mkdirSync(baseDir)
+        await this.git.init()
+        return this
     }
 
     private async saveFileToGitContentDirectory(
@@ -44,11 +65,11 @@ export class GitCmsServer {
         commitMsg?: string
     ) {
         const path = GIT_CMS_DIR + "/" + filename
-        await fs.writeFile(path, content, "utf8")
+        await writeFile(path, content, "utf8")
 
         commitMsg = commitMsg
             ? commitMsg
-            : fs.existsSync(path)
+            : existsSync(path)
             ? `Updating ${filename}`
             : `Adding ${filename}`
 
@@ -61,7 +82,7 @@ export class GitCmsServer {
         authorEmail = GIT_DEFAULT_EMAIL
     ) {
         const path = GIT_CMS_DIR + "/" + filename
-        await fs.unlink(path)
+        await unlink(path)
         return this.commitFile(
             filename,
             `Deleted ${filename}`,
@@ -119,9 +140,9 @@ export class GitCmsServer {
             validateFilePath(filepath)
 
             const path = GIT_CMS_DIR + filepath
-            const exists = fs.existsSync(path)
+            const exists = existsSync(path)
             if (!exists) throw new Error(`File '${filepath}' not found`)
-            const content = await fs.readFile(path, "utf8")
+            const content = await readFile(path, "utf8")
             return { success: true, content }
         } catch (error) {
             console.log(error)
@@ -136,14 +157,14 @@ export class GitCmsServer {
     async globCommand(globStr: string, folder: string) {
         const query = globStr.replace(/[^a-zA-Z\*]/, "")
         const cwd = GIT_CMS_DIR + "/" + folder
-        const results = glob.sync(query, {
+        const results = sync(query, {
             cwd,
         })
 
         const files = results.map((filename) => {
             return {
                 filename,
-                content: fs.readFileSync(cwd + "/" + filename, "utf8"),
+                content: readFileSync(cwd + "/" + filename, "utf8"),
             }
         })
 
@@ -204,6 +225,7 @@ const validateFilePath = (filename: string) => {
 
 export const addGitCmsApiRoutes = (app: Router) => {
     const server = new GitCmsServer(GIT_CMS_DIR)
+    server.createDirAndInitIfNeeded()
 
     // Update/create file, commit, and push(unless on local dev brach)
     app.post(
