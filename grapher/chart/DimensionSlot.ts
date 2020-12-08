@@ -45,19 +45,15 @@ export class DimensionSlot {
     @computed get dimensionsWithData() {
         const legacyConfig = this.grapher.legacyConfigAsAuthored
         const selectionOrder = excludeUndefined(
-            legacyConfig.selectedData?.map((item) => {
-                return legacyConfig.dimensions?.[item.index].variableId
-            }) ?? []
+            legacyConfig.selectedData?.map(
+                (item) => legacyConfig.dimensions?.[item.index].variableId
+            ) ?? []
         )
-        const dimensions = sortBy(
-            this.grapher.filledDimensions || [],
-            (dim) => {
-                const idx = findIndex(
-                    selectionOrder,
-                    (variableId) => dim.variableId === variableId
-                )
-                return idx
-            }
+        const dimensions = sortBy(this.grapher.filledDimensions || [], (dim) =>
+            findIndex(
+                selectionOrder,
+                (variableId) => dim.variableId === variableId
+            )
         )
         return dimensions.filter((d) => d.property === this.property)
     }

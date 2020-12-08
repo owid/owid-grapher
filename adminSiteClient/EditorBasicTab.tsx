@@ -33,6 +33,10 @@ class DimensionSlotView extends React.Component<{
 
     @observable.ref isSelectingVariables: boolean = false
 
+    get grapher() {
+        return this.props.editor.grapher
+    }
+
     @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
         const { grapher } = this.props.editor
@@ -112,11 +116,8 @@ class DimensionSlotView extends React.Component<{
         if (this.dispose) this.dispose()
     }
 
-    get grapher() {
-        return this.props.editor.grapher
-    }
-
     @observable.ref draggingColumnSlug?: ColumnSlug
+    @observable dimensions: ChartDimension[] = []
 
     @action.bound onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
@@ -126,7 +127,7 @@ class DimensionSlotView extends React.Component<{
             window.removeEventListener("mouseup", onDrag)
 
             this.grapher.updateAuthoredVersion({
-                selectedData: this.selectedDataInNewOrder,
+                selectedData: this.selectedDataInAuthorOrder,
             })
             this.grapher.rebuildInputOwidTable()
         })
@@ -134,27 +135,17 @@ class DimensionSlotView extends React.Component<{
         window.addEventListener("mouseup", onDrag)
     }
 
-    @observable dimensions: ChartDimension[] = []
-
-    toName(slug: string) {
-        return this.grapher.table.get(slug).displayName
-    }
-
-    get selectedDataInNewOrder() {
-        const order = sortBy(
+    get selectedDataInAuthorOrder() {
+        return sortBy(
             this.grapher.legacyConfigAsAuthored.selectedData || [],
-            (selectedDatum) => {
-                const columnSlug = this.grapher.dimensions[selectedDatum.index]
-                    ?.columnSlug
-                const index = findIndex(
+            (selectedDatum) =>
+                findIndex(
                     this.dimensions,
-                    (dim) => dim.columnSlug === columnSlug
+                    (dim) =>
+                        dim.columnSlug ===
+                        this.grapher.dimensions[selectedDatum.index]?.columnSlug
                 )
-                return index
-            }
         )
-
-        return order
     }
 
     @action.bound onMouseEnter(targetSlug: ColumnSlug) {
@@ -178,8 +169,6 @@ class DimensionSlotView extends React.Component<{
         )
 
         this.dimensions = dimensionsClone
-
-        this.selectedDataInNewOrder
     }
 
     @computed get sortedDimensions() {
