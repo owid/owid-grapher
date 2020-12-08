@@ -524,7 +524,6 @@ export async function getRelatedCharts(
 }
 
 export async function getBlockContent(id: number): Promise<string | undefined> {
-    const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
     const query = `
     query getBlock($id: ID!) {
         post(id: $id, idType: DATABASE_ID) {
