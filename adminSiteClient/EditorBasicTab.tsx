@@ -23,7 +23,6 @@ import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
 import { ColumnSlug } from "../coreTable/CoreTableConstants"
 import { ChartDimension } from "../grapher/chart/ChartDimension"
-import { thresholdSturges } from "d3"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -109,10 +108,6 @@ class DimensionSlotView extends React.Component<{
         )
     }
 
-    componentDidMount() {
-        ;(window as any).testa = this
-    }
-
     componentWillUnmount() {
         if (this.dispose) this.dispose()
     }
@@ -192,12 +187,6 @@ class DimensionSlotView extends React.Component<{
         )
 
         this.dimensions = dimensionsClone
-
-        // console.log(
-        //     `New order is ${this.dimensions.map((dim) =>
-        //         this.toName(dim.columnSlug)
-        //     )}`
-        // )
 
         this.selectedDataInNewOrder
     }

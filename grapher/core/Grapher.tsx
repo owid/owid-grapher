@@ -29,8 +29,6 @@ import {
     findClosestTime,
     excludeUndefined,
     debounce,
-    findIndex,
-    sortBy,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -1746,28 +1744,6 @@ export class Grapher
         }
 
         return []
-    }
-
-    @computed get dimensionsInSelectionOrder() {
-        const selectionOrder = excludeUndefined(
-            this.legacyConfigAsAuthored.selectedData?.map((item) => {
-                return this.legacyConfigAsAuthored.dimensions?.[item.index]
-                    .variableId
-            }) ?? []
-        )
-        return sortBy(this.filledDimensions || [], (dim) =>
-            findIndex(
-                selectionOrder,
-                (variableId) => dim.variableId === variableId
-            )
-        )
-    }
-
-    @computed get selectedDataInDimensionOrder() {
-        return sortBy(
-            this.legacyConfigAsAuthored.selectedData || [],
-            (selectedDatum) => selectedDatum.index
-        )
     }
 
     @computed private get availableFacetStrategies() {
