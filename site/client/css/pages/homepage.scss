@@ -358,49 +358,12 @@
     flex: 1;
     padding: 1.5rem 0 1.75rem;
 
-    @include lg-up {
-        padding: 2.5rem 0 2.75rem;
-    }
-}
-
-
-.homepage-posts--explainers {
     ul {
         @include posts-list(8);
     }
 
-    .thumbnail {
-        border: 1px solid rgba($primary-color, 0.15);
-        transition: border-color 150ms ease;
-    }
-
-    li a {
-        color: $primary-color-700;
-        transition: color 150ms ease;
-        font-family: $serif-font-stack;
-
-        &:hover {
-            color: $primary-color-900;
-
-            .thumbnail {
-                border-color: $primary-color-600;
-            }
-        }
-    }
-
-    .info {
-        padding: 0.5rem 0;
-    }
-
-    h3 {
-        font-size: 1.125rem;
-        font-weight: 700;
-        line-height: 1.3;
-        margin: 0;
-
-        @include lg-up {
-            font-size: 1.25rem;
-        }
+    @include lg-up {
+        padding: 2.5rem 0 2.75rem;
     }
 }
 

@@ -1,0 +1,36 @@
+.post-card {
+    color: inherit;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 0;
+        font-size: 19px;
+        line-height: 24px;
+        font-family: $serif-font-stack;
+        font-weight: 400;
+    }
+
+    &:hover h3 {
+        color: #d10a11;
+    }
+
+    .entry-meta {
+        font-size: 14px;
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 0;
+        padding-bottom: 52.5%;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        background-color: rgba(white, 0.05);
+
+        border: 1px solid #e0e0e0;
+    }
+
+    &:hover .cover-image {
+        border: 1px solid #999;
+    }
+}
