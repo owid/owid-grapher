@@ -183,7 +183,11 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
     },
     {
         id: 4490,
-        slugs: ["daily-covid-cases-7-day", "daily-covid-cases-7-day-average"],
+        slugs: [
+            "daily-covid-cases-7-day",
+            "daily-covid-cases-7-day-average",
+            "daily-covid-cases-3-day-average",
+        ],
         explorerQueryStr:
             "zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc",
     },
