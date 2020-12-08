@@ -116,26 +116,30 @@ class DimensionSlotView extends React.Component<{
         if (this.dispose) this.dispose()
     }
 
-    @observable.ref draggingColumnSlug?: ColumnSlug
-    @observable dimensions: ChartDimension[] = []
+    @observable.ref private draggingColumnSlug?: ColumnSlug
+    @observable private dimensions: ChartDimension[] = []
 
-    @action.bound onStartDrag(targetSlug: ColumnSlug) {
+    @action.bound private updateLegacySelectionAndRebuildTable() {
+        this.grapher.updateAuthoredVersion({
+            selectedData: this.selectedDataInAuthorOrder,
+        })
+        this.grapher.rebuildInputOwidTable()
+    }
+
+    @action.bound private onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
 
         const onDrag = action(() => {
             this.draggingColumnSlug = undefined
             window.removeEventListener("mouseup", onDrag)
 
-            this.grapher.updateAuthoredVersion({
-                selectedData: this.selectedDataInAuthorOrder,
-            })
-            this.grapher.rebuildInputOwidTable()
+            this.updateLegacySelectionAndRebuildTable()
         })
 
         window.addEventListener("mouseup", onDrag)
     }
 
-    get selectedDataInAuthorOrder() {
+    private get selectedDataInAuthorOrder() {
         return sortBy(
             this.grapher.legacyConfigAsAuthored.selectedData || [],
             (selectedDatum) =>
@@ -148,7 +152,7 @@ class DimensionSlotView extends React.Component<{
         )
     }
 
-    @action.bound onMouseEnter(targetSlug: ColumnSlug) {
+    @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
@@ -171,7 +175,7 @@ class DimensionSlotView extends React.Component<{
         this.dimensions = dimensionsClone
     }
 
-    @computed get sortedDimensions() {
+    @computed private get sortedDimensions() {
         return this.dimensions.length
             ? this.dimensions
             : this.props.slot.dimensionsWithData
