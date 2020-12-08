@@ -130,10 +130,10 @@ class DimensionSlotView extends React.Component<{
             this.draggingColumnSlug = undefined
             window.removeEventListener("mouseup", onDrag)
 
-            // this.grapher.updateAuthoredVersion({
-            //     selectedData: this.selectedDataInNewOrder,
-            // })
-            // this.grapher.rebuildInputOwidTable()
+            this.grapher.updateAuthoredVersion({
+                selectedData: this.selectedDataInNewOrder,
+            })
+            this.grapher.rebuildInputOwidTable()
         })
 
         window.addEventListener("mouseup", onDrag)
@@ -145,7 +145,7 @@ class DimensionSlotView extends React.Component<{
         return this.grapher.table.get(slug).displayName
     }
 
-    @computed get selectedDataInNewOrder() {
+    get selectedDataInNewOrder() {
         const order = sortBy(
             this.grapher.legacyConfigAsAuthored.selectedData || [],
             (selectedDatum) => {
@@ -155,10 +155,12 @@ class DimensionSlotView extends React.Component<{
                     this.dimensions,
                     (dim) => dim.columnSlug === columnSlug
                 )
-                return index === -1 ? Number.MAX_VALUE : index
+                if (index === -1) console.log("MISSING COLSLUG?")
+                return index
             }
         )
 
+        console.log("new order")
         console.log(
             order.map((ent) =>
                 this.toName(this.grapher.dimensions[ent.index].columnSlug)
@@ -190,11 +192,13 @@ class DimensionSlotView extends React.Component<{
 
         this.dimensions = dimensionsClone
 
-        console.log(
-            `New order is ${this.dimensions.map((dim) =>
-                this.toName(dim.columnSlug)
-            )}`
-        )
+        // console.log(
+        //     `New order is ${this.dimensions.map((dim) =>
+        //         this.toName(dim.columnSlug)
+        //     )}`
+        // )
+
+        this.selectedDataInNewOrder
     }
 
     render() {
