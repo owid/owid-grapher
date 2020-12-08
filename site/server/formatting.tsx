@@ -241,14 +241,6 @@ export async function formatWordpressPost(
         $supertitle.remove()
     }
 
-    // Extract page subtitle
-    let subtitle
-    const $subtitle = $(".wp-block-owid-subtitle")
-    if ($subtitle.length) {
-        subtitle = $subtitle.text()
-        $subtitle.remove()
-    }
-
     // Extract page byline
     let byline
     const $byline = $(".wp-block-owid-byline")
@@ -631,7 +623,7 @@ export async function formatWordpressPost(
         slug: post.slug,
         path: post.path,
         title: post.title,
-        subtitle: subtitle,
+        subtitle: post.subtitle,
         supertitle: supertitle,
         date: post.date,
         modifiedDate: post.modifiedDate,

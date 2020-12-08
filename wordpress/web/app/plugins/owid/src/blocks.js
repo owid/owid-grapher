@@ -4,7 +4,6 @@ import AdditionalInformation from "./AdditionalInformation/AdditionalInformation
 import Help from "./Help/Help"
 import LastUpdated from "./LastUpdated/LastUpdated"
 import Byline from "./Byline/Byline"
-import Subtitle from "./Subtitle/Subtitle"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -15,7 +14,6 @@ registerBlockType("owid/additional-information", AdditionalInformation)
 registerBlockType("owid/help", Help)
 registerBlockType("owid/last-updated", LastUpdated)
 registerBlockType("owid/byline", Byline)
-registerBlockType("owid/subtitle", Subtitle)
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",
