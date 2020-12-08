@@ -42,19 +42,18 @@ export class DimensionSlot {
         )
     }
 
-    @computed get dimensionsWithData() {
+    @computed get dimensionsInLegacySelectionOrder() {
         const legacyConfig = this.grapher.legacyConfigAsAuthored
         const selectionOrder = excludeUndefined(
             legacyConfig.selectedData?.map(
                 (item) => legacyConfig.dimensions?.[item.index].variableId
             ) ?? []
         )
-        const dimensions = sortBy(this.grapher.filledDimensions || [], (dim) =>
+        return sortBy(this.grapher.filledDimensions || [], (dim) =>
             findIndex(
                 selectionOrder,
                 (variableId) => dim.variableId === variableId
             )
-        )
-        return dimensions.filter((d) => d.property === this.property)
+        ).filter((dim) => dim.property === this.property)
     }
 }

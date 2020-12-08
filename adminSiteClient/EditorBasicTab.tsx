@@ -116,7 +116,7 @@ class DimensionSlotView extends React.Component<{
         if (this.dispose) this.dispose()
     }
 
-    @observable.ref private draggingColumnSlug?: ColumnSlug
+    @observable private draggingColumnSlug?: ColumnSlug
     @observable private dimensions: ChartDimension[] = []
 
     @action.bound private updateLegacySelectionAndRebuildTable() {
@@ -156,7 +156,9 @@ class DimensionSlotView extends React.Component<{
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        const dimensionsClone = clone(this.props.slot.dimensionsWithData)
+        const dimensionsClone = clone(
+            this.props.slot.dimensionsInLegacySelectionOrder
+        )
 
         const dragIndex = dimensionsClone.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
@@ -169,16 +171,16 @@ class DimensionSlotView extends React.Component<{
         dimensionsClone.splice(
             targetIndex,
             0,
-            this.props.slot.dimensionsWithData[dragIndex]
+            this.props.slot.dimensionsInLegacySelectionOrder[dragIndex]
         )
 
         this.dimensions = dimensionsClone
     }
 
-    @computed private get sortedDimensions() {
+    @computed private get dimensionsInSelectionOrder() {
         return this.dimensions.length
             ? this.dimensions
-            : this.props.slot.dimensionsWithData
+            : this.props.slot.dimensionsInLegacySelectionOrder
     }
 
     render() {
@@ -190,7 +192,7 @@ class DimensionSlotView extends React.Component<{
             <div>
                 <h5>{slot.name}</h5>
                 <EditableList>
-                    {this.sortedDimensions.map((dim) => {
+                    {this.dimensionsInSelectionOrder.map((dim) => {
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
