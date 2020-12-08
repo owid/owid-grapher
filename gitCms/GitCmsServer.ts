@@ -22,79 +22,88 @@ import {
 } from "./GitCmsConstants"
 import * as glob from "glob"
 
-const IS_PROD = ENV === "production"
-
-const isFolderOnStagingBranch = async (git: SimpleGit) => {
-    const branches = await git.branchLocal()
-    const gitCmsBranchName = await branches.current
-    return gitCmsBranchName === "staging"
-}
-
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {
     locals: { user: any; session: any }
 }
 
-// Push if on owid.cloud or staging. Do not push if on a differen branch (so you can set your local dev branch to something else to not push changes automatically)
-const shouldPush = async (git: SimpleGit) =>
-    IS_PROD ? true : await isFolderOnStagingBranch(git)
+export class GitCmsServer {
+    private git: SimpleGit
+    constructor(baseDir: string) {
+        this.git = simpleGit({
+            baseDir,
+            binary: "git",
+            maxConcurrentProcesses: 1,
+        })
+    }
 
-const saveFileToGitContentDirectory = async (
-    git: SimpleGit,
-    filename: string,
-    content: string,
-    authorName = GIT_DEFAULT_USERNAME,
-    authorEmail = GIT_DEFAULT_EMAIL,
-    commitMsg?: string
-) => {
-    const path = GIT_CMS_DIR + "/" + filename
-    await fs.writeFile(path, content, "utf8")
+    async saveFileToGitContentDirectory(
+        filename: string,
+        content: string,
+        authorName = GIT_DEFAULT_USERNAME,
+        authorEmail = GIT_DEFAULT_EMAIL,
+        commitMsg?: string
+    ) {
+        const path = GIT_CMS_DIR + "/" + filename
+        await fs.writeFile(path, content, "utf8")
 
-    commitMsg = commitMsg
-        ? commitMsg
-        : fs.existsSync(path)
-        ? `Updating ${filename}`
-        : `Adding ${filename}`
+        commitMsg = commitMsg
+            ? commitMsg
+            : fs.existsSync(path)
+            ? `Updating ${filename}`
+            : `Adding ${filename}`
 
-    return commitFile(git, filename, commitMsg, authorName, authorEmail)
-}
+        return this.commitFile(filename, commitMsg, authorName, authorEmail)
+    }
 
-const commitFile = async (
-    git: SimpleGit,
-    filename: string,
-    commitMsg: string,
-    authorName: string,
-    authorEmail: string
-) => {
-    await git.add(filename)
-    return await git.commit(commitMsg, filename, {
-        "--author": `${authorName} <${authorEmail}>`,
-    })
-}
+    async deleteFileFromGitContentDirectory(
+        filename: string,
+        authorName = GIT_DEFAULT_USERNAME,
+        authorEmail = GIT_DEFAULT_EMAIL
+    ) {
+        const path = GIT_CMS_DIR + "/" + filename
+        await fs.unlink(path)
+        return this.commitFile(
+            filename,
+            `Deleted ${filename}`,
+            authorName,
+            authorEmail
+        )
+    }
 
-const deleteFileFromGitContentDirectory = async (
-    git: SimpleGit,
-    filename: string,
-    authorName = GIT_DEFAULT_USERNAME,
-    authorEmail = GIT_DEFAULT_EMAIL
-) => {
-    const path = GIT_CMS_DIR + "/" + filename
-    await fs.unlink(path)
-    return commitFile(
-        git,
-        filename,
-        `Deleted ${filename}`,
-        authorName,
-        authorEmail
-    )
+    async pull() {
+        return await this.git.pull()
+    }
+
+    private async commitFile(
+        filename: string,
+        commitMsg: string,
+        authorName: string,
+        authorEmail: string
+    ) {
+        await this.git.add(filename)
+        return await this.git.commit(commitMsg, filename, {
+            "--author": `${authorName} <${authorEmail}>`,
+        })
+    }
+
+    async autopush() {
+        if (await this.shouldAutoPush()) this.git.push()
+    }
+
+    private async shouldAutoPush() {
+        const branches = await this.git.branchLocal()
+        const gitCmsBranchName = await branches.current
+        return this.branchesToAutoPush.has(gitCmsBranchName)
+    }
+
+    // Push if on owid.cloud or staging. Do not push if on a differen branch (so you can set your local dev branch to something else to not push changes automatically)
+    // todo: probably want a better stragegy?
+    private branchesToAutoPush = new Set(["master", "staging"])
 }
 
 export const addGitCmsApiRoutes = (app: Router) => {
-    const git = simpleGit({
-        baseDir: GIT_CMS_DIR,
-        binary: "git",
-        maxConcurrentProcesses: 1,
-    })
+    const server = new GitCmsServer(GIT_CMS_DIR)
 
     // Update/create file, commit, and push(unless on local dev brach)
     app.post(
@@ -111,8 +120,7 @@ export const addGitCmsApiRoutes = (app: Router) => {
                     errorMessage: `Invalid filepath: ${filename}`,
                 }
             try {
-                await saveFileToGitContentDirectory(
-                    git,
+                await server.saveFileToGitContentDirectory(
                     filename,
                     request.content,
                     res.locals.user.fullName,
@@ -120,7 +128,7 @@ export const addGitCmsApiRoutes = (app: Router) => {
                     request.commitMessage
                 )
 
-                if (await shouldPush(git)) await git.push()
+                await server.autopush()
                 return { success: true }
             } catch (err) {
                 console.log(err)
@@ -132,7 +140,7 @@ export const addGitCmsApiRoutes = (app: Router) => {
     // Pull latest from remote
     app.post(GIT_CMS_PULL_ROUTE, async () => {
         try {
-            const res = await git.pull()
+            const res = await server.pull()
             return {
                 success: true,
                 stdout: JSON.stringify(res.summary, null, 2),
@@ -205,13 +213,12 @@ export const addGitCmsApiRoutes = (app: Router) => {
                     errorMessage: `Invalid filepath: ${filepath}`,
                 }
             try {
-                await deleteFileFromGitContentDirectory(
-                    git,
+                await server.deleteFileFromGitContentDirectory(
                     filepath,
                     res.locals.user.fullName,
                     res.locals.user.email
                 )
-                if (await shouldPush(git)) await git.push()
+                await server.autopush()
                 return { success: true }
             } catch (err) {
                 console.log(err)
