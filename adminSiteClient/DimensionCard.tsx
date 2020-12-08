@@ -105,7 +105,7 @@ export class DimensionCard extends React.Component<{
 
         return (
             <EditableListItem
-                className="DimensionCard"
+                className="DimensionCard draggable"
                 onMouseDown={() => this.props.onMouseDown?.()}
                 onMouseEnter={() => this.props.onMouseEnter?.()}
             >
