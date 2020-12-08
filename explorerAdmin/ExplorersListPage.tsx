@@ -11,11 +11,7 @@ import {
 import { debounce, orderBy } from "../clientUtils/Util"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import {
-    deleteRemoteFile,
-    pullFromGithub,
-    writeRemoteFile,
-} from "../gitCms/GitCmsClient"
+import { GitCmsClient } from "../gitCms/GitCmsClient"
 import {
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
@@ -203,6 +199,7 @@ export class ExplorersIndexPage extends React.Component<{
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
+    private gitCmsClient = new GitCmsClient()
 
     @computed get explorersToShow(): ExplorerProgram[] {
         return orderBy(
@@ -217,7 +214,7 @@ export class ExplorersIndexPage extends React.Component<{
     }
 
     @action.bound private async pullFromGithub() {
-        const result = await pullFromGithub()
+        const result = await this.gitCmsClient.pullFromGithub()
         alert(JSON.stringify(result))
         window.location.reload()
     }
@@ -333,7 +330,7 @@ export class ExplorersIndexPage extends React.Component<{
         const newVersion = explorer.setPublished(!explorer.isPublished)
 
         this.loadingModalOn()
-        await writeRemoteFile({
+        await this.gitCmsClient.writeRemoteFile({
             filepath: newVersion.fullPath,
             content: newVersion.toString(),
             commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
@@ -346,7 +343,7 @@ export class ExplorersIndexPage extends React.Component<{
         if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
 
         this.loadingModalOn()
-        await deleteRemoteFile({
+        await this.gitCmsClient.deleteRemoteFile({
             filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
         })
         this.resetLoadingModal()

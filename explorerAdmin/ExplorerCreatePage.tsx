@@ -7,11 +7,7 @@ import {
     EXPLORER_FILE_SUFFIX,
     makeFullPath,
 } from "../explorer/ExplorerProgram"
-import {
-    readRemoteFile,
-    readRemoteFiles,
-    writeRemoteFile,
-} from "../gitCms/GitCmsClient"
+import { GitCmsClient } from "../gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "../coreTable/CoreTableConstants"
@@ -80,9 +76,11 @@ export class ExplorerCreatePage extends React.Component<{
         this.resetLoadingModal()
     }
 
+    private gitCmsClient = new GitCmsClient()
+
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
-        const response = await readRemoteFile({
+        const response = await this.gitCmsClient.readRemoteFile({
             filepath: makeFullPath(slug),
         })
         this.programOnDisk = new ExplorerProgram("", response.content ?? "")
@@ -118,7 +116,7 @@ export class ExplorerCreatePage extends React.Component<{
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
         this.program.slug = slug
-        await writeRemoteFile({
+        await this.gitCmsClient.writeRemoteFile({
             filepath: this.program.fullPath,
             content: this.program.toString(),
             commitMessage,
@@ -434,8 +432,10 @@ class TemplatesComponent extends React.Component<{
         if (this.props.isNewFile) this.fetchTemplatesOnLoad()
     }
 
+    private gitCmsClient = new GitCmsClient()
+
     @action.bound private async fetchTemplatesOnLoad() {
-        const response = await readRemoteFiles({
+        const response = await this.gitCmsClient.readRemoteFiles({
             glob: "*template*",
             folder: "explorers",
         })
