@@ -33,7 +33,7 @@ class DimensionSlotView extends React.Component<{
 
     @observable.ref isSelectingVariables: boolean = false
 
-    get grapher() {
+    private get grapher() {
         return this.props.editor.grapher
     }
 
