@@ -126,17 +126,17 @@ class DimensionSlotView extends React.Component<{
         this.grapher.rebuildInputOwidTable()
     }
 
+    @action.bound private onMouseUp() {
+        this.draggingColumnSlug = undefined
+        window.removeEventListener("mouseup", this.onMouseUp)
+
+        this.updateLegacySelectionAndRebuildTable()
+    }
+
     @action.bound private onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
 
-        const onDrag = action(() => {
-            this.draggingColumnSlug = undefined
-            window.removeEventListener("mouseup", onDrag)
-
-            this.updateLegacySelectionAndRebuildTable()
-        })
-
-        window.addEventListener("mouseup", onDrag)
+        window.addEventListener("mouseup", this.onMouseUp)
     }
 
     private get legacySelectionOrderedAsDisplayed() {
