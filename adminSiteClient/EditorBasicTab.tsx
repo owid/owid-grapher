@@ -110,7 +110,6 @@ class DimensionSlotView extends React.Component<{
 
     componentDidMount() {
         ;(window as any).testa = this
-        this.dimensions = clone(this.props.slot.dimensionsWithData)
     }
 
     componentWillUnmount() {
@@ -131,10 +130,10 @@ class DimensionSlotView extends React.Component<{
             this.draggingColumnSlug = undefined
             window.removeEventListener("mouseup", onDrag)
 
-            this.grapher.updateAuthoredVersion({
-                selectedData: this.selectedDataInNewOrder,
-            })
-            this.grapher.rebuildInputOwidTable()
+            // this.grapher.updateAuthoredVersion({
+            //     selectedData: this.selectedDataInNewOrder,
+            // })
+            // this.grapher.rebuildInputOwidTable()
         })
 
         window.addEventListener("mouseup", onDrag)
@@ -166,37 +165,35 @@ class DimensionSlotView extends React.Component<{
             )
         )
 
-        return sortBy(
-            this.grapher.legacyConfigAsAuthored.selectedData || [],
-            (selectedDatum) => {
-                const columnSlug = this.grapher.dimensions[selectedDatum.index]
-                    ?.columnSlug
-                const index = findIndex(
-                    this.dimensions,
-                    (dim) => dim.columnSlug === columnSlug
-                )
-                return index === -1 ? Number.MAX_VALUE : index
-            }
-        )
+        return order
     }
 
     @action.bound onMouseEnter(targetSlug: ColumnSlug) {
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        console.log(`mouseenter ${this.toName(targetSlug)}`)
+        const dimensionsClone = clone(this.props.slot.dimensionsWithData)
 
-        const dragIndex = this.dimensions.findIndex(
+        const dragIndex = dimensionsClone.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
         )
-        const targetIndex = this.dimensions.findIndex(
+        const targetIndex = dimensionsClone.findIndex(
             (dim) => dim.slug === targetSlug
         )
-        this.dimensions.splice(dragIndex, 1)
-        this.dimensions.splice(
+
+        dimensionsClone.splice(dragIndex, 1)
+        dimensionsClone.splice(
             targetIndex,
             0,
-            this.grapher.dimensions[dragIndex]
+            this.props.slot.dimensionsWithData[dragIndex]
+        )
+
+        this.dimensions = dimensionsClone
+
+        console.log(
+            `New order is ${this.dimensions.map((dim) =>
+                this.toName(dim.columnSlug)
+            )}`
         )
     }
 
