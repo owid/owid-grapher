@@ -63,7 +63,7 @@ class DimensionSlotView extends React.Component<{
         const { slot } = this.props
         const { grapher } = this.props.editor
 
-        this.props.editor.grapher.setDimensionsForProperty(
+        this.grapher.setDimensionsForProperty(
             slot.property,
             this.props.slot.dimensions.filter(
                 (d) => d.variableId !== variableId
@@ -119,7 +119,6 @@ class DimensionSlotView extends React.Component<{
     @observable.ref draggingColumnSlug?: ColumnSlug
 
     @action.bound onStartDrag(targetSlug: ColumnSlug) {
-        console.log(`dragging ${this.toName(targetSlug)}`)
         this.draggingColumnSlug = targetSlug
 
         const onDrag = action(() => {
@@ -151,16 +150,8 @@ class DimensionSlotView extends React.Component<{
                     this.dimensions,
                     (dim) => dim.columnSlug === columnSlug
                 )
-                if (index === -1) console.log("MISSING COLSLUG?")
                 return index
             }
-        )
-
-        console.log("new order")
-        console.log(
-            order.map((ent) =>
-                this.toName(this.grapher.dimensions[ent.index].columnSlug)
-            )
         )
 
         return order
