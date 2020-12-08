@@ -42,16 +42,16 @@ export class DimensionSlot {
         )
     }
 
-    @computed get dimensionsInLegacySelectionOrder() {
+    @computed get dimensionsOrderedAsInPersistedSelection() {
         const legacyConfig = this.grapher.legacyConfigAsAuthored
-        const selectionOrder = excludeUndefined(
+        const variableIDsInSelectionOrder = excludeUndefined(
             legacyConfig.selectedData?.map(
                 (item) => legacyConfig.dimensions?.[item.index].variableId
             ) ?? []
         )
         return sortBy(this.grapher.filledDimensions || [], (dim) =>
             findIndex(
-                selectionOrder,
+                variableIDsInSelectionOrder,
                 (variableId) => dim.variableId === variableId
             )
         ).filter((dim) => dim.property === this.property)

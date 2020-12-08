@@ -416,7 +416,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound private initChosenVariables() {
-        this.chosenVariables = this.props.slot.dimensionsInLegacySelectionOrder.map(
+        this.chosenVariables = this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,

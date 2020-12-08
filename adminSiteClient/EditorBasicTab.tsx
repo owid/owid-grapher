@@ -117,11 +117,11 @@ class DimensionSlotView extends React.Component<{
     }
 
     @observable private draggingColumnSlug?: ColumnSlug
-    @observable private dimensions: ChartDimension[] = []
+    @observable private dimensionsOrderedAsDisplayed: ChartDimension[] = []
 
     @action.bound private updateLegacySelectionAndRebuildTable() {
         this.grapher.updateAuthoredVersion({
-            selectedData: this.selectedDataInAuthorOrder,
+            selectedData: this.legacySelectionOrderedAsDisplayed,
         })
         this.grapher.rebuildInputOwidTable()
     }
@@ -139,12 +139,12 @@ class DimensionSlotView extends React.Component<{
         window.addEventListener("mouseup", onDrag)
     }
 
-    private get selectedDataInAuthorOrder() {
+    private get legacySelectionOrderedAsDisplayed() {
         return sortBy(
             this.grapher.legacyConfigAsAuthored.selectedData || [],
             (selectedDatum) =>
                 findIndex(
-                    this.dimensions,
+                    this.dimensionsOrderedAsDisplayed,
                     (dim) =>
                         dim.columnSlug ===
                         this.grapher.dimensions[selectedDatum.index]?.columnSlug
@@ -157,7 +157,7 @@ class DimensionSlotView extends React.Component<{
             return
 
         const dimensionsClone = clone(
-            this.props.slot.dimensionsInLegacySelectionOrder
+            this.props.slot.dimensionsOrderedAsInPersistedSelection
         )
 
         const dragIndex = dimensionsClone.findIndex(
@@ -171,16 +171,16 @@ class DimensionSlotView extends React.Component<{
         dimensionsClone.splice(
             targetIndex,
             0,
-            this.props.slot.dimensionsInLegacySelectionOrder[dragIndex]
+            this.props.slot.dimensionsOrderedAsInPersistedSelection[dragIndex]
         )
 
-        this.dimensions = dimensionsClone
+        this.dimensionsOrderedAsDisplayed = dimensionsClone
     }
 
     @computed private get dimensionsInSelectionOrder() {
-        return this.dimensions.length
-            ? this.dimensions
-            : this.props.slot.dimensionsInLegacySelectionOrder
+        return this.dimensionsOrderedAsDisplayed.length
+            ? this.dimensionsOrderedAsDisplayed
+            : this.props.slot.dimensionsOrderedAsInPersistedSelection
     }
 
     render() {
