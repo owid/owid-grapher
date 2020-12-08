@@ -45,5 +45,5 @@ export interface GitCmsGlobResponse extends GitCmsResponse {
 }
 
 export interface GitPullResponse extends GitCmsResponse {
-    stdout: string
+    stdout?: string
 }

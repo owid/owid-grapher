@@ -37,7 +37,7 @@ export class GitCmsServer {
         })
     }
 
-    async saveFileToGitContentDirectory(
+    private async saveFileToGitContentDirectory(
         filename: string,
         content: string,
         authorName = GIT_DEFAULT_USERNAME,
@@ -56,7 +56,7 @@ export class GitCmsServer {
         return this.commitFile(filename, commitMsg, authorName, authorEmail)
     }
 
-    async deleteFileFromGitContentDirectory(
+    private async deleteFileFromGitContentDirectory(
         filename: string,
         authorName = GIT_DEFAULT_USERNAME,
         authorEmail = GIT_DEFAULT_EMAIL
@@ -71,7 +71,7 @@ export class GitCmsServer {
         )
     }
 
-    async pull() {
+    private async pull() {
         return await this.git.pull()
     }
 
@@ -87,7 +87,7 @@ export class GitCmsServer {
         })
     }
 
-    async autopush() {
+    private async autopush() {
         if (await this.shouldAutoPush()) this.git.push()
     }
 
@@ -100,6 +100,102 @@ export class GitCmsServer {
     // Push if on owid.cloud or staging. Do not push if on a differen branch (so you can set your local dev branch to something else to not push changes automatically)
     // todo: probably want a better stragegy?
     private branchesToAutoPush = new Set(["master", "staging"])
+
+    async pullCommand() {
+        try {
+            const res = await this.pull()
+            return {
+                success: true,
+                stdout: JSON.stringify(res.summary, null, 2),
+            } as GitPullResponse
+        } catch (error) {
+            console.log(error)
+            return { success: false, error }
+        }
+    }
+
+    async getFileCommand(rawFilepath: string) {
+        const filepath = `/${rawFilepath.replace(/\~/g, "/")}`
+        try {
+            validateFilePath(filepath)
+
+            const path = GIT_CMS_DIR + filepath
+            const exists = fs.existsSync(path)
+            if (!exists) throw new Error(`File '${filepath}' not found`)
+            const content = await fs.readFile(path, "utf8")
+            return { success: true, content }
+        } catch (error) {
+            console.log(error)
+            return {
+                success: false,
+                error,
+                content: "",
+            }
+        }
+    }
+
+    async globCommand(globStr: string, folder: string) {
+        const query = globStr.replace(/[^a-zA-Z\*]/, "")
+        const cwd = GIT_CMS_DIR + "/" + folder
+        const results = glob.sync(query, {
+            cwd,
+        })
+
+        const files = results.map((filename) => {
+            return {
+                filename,
+                content: fs.readFileSync(cwd + "/" + filename, "utf8"),
+            }
+        })
+
+        return { success: true, files }
+    }
+
+    async deleteFileCommand(
+        rawFilepath: string,
+        username: string,
+        email: string
+    ) {
+        const filepath = rawFilepath.replace(/\~/g, "/")
+        try {
+            validateFilePath(filepath)
+            await this.deleteFileFromGitContentDirectory(
+                filepath,
+                username,
+                email
+            )
+            await this.autopush()
+            return { success: true }
+        } catch (error) {
+            console.log(error)
+            return { success: false, error }
+        }
+    }
+
+    async writeFileCommand(
+        filepath: string,
+        content: string,
+        userName: string,
+        email: string,
+        commitMessage: string
+    ) {
+        try {
+            validateFilePath(filepath)
+            await this.saveFileToGitContentDirectory(
+                filepath,
+                content,
+                userName,
+                email,
+                commitMessage
+            )
+
+            await this.autopush()
+            return { success: true }
+        } catch (error) {
+            console.log(error)
+            return { success: false, error }
+        }
+    }
 }
 
 const validateFilePath = (filename: string) => {
@@ -118,84 +214,33 @@ export const addGitCmsApiRoutes = (app: Router) => {
             res: ResponseWithUserInfo
         ): Promise<GitCmsResponse> => {
             const request = req.body as WriteRequest
-            const { filepath } = request
-            try {
-                validateFilePath(filepath)
-                await server.saveFileToGitContentDirectory(
-                    filepath,
-                    request.content,
-                    res.locals.user.fullName,
-                    res.locals.user.email,
-                    request.commitMessage
-                )
-
-                await server.autopush()
-                return { success: true }
-            } catch (error) {
-                console.log(error)
-                return { success: false, error }
-            }
+            const { filepath, content, commitMessage } = request
+            return server.writeFileCommand(
+                filepath,
+                content,
+                res.locals.user.fullName,
+                res.locals.user.email,
+                commitMessage
+            )
         }
     )
 
     // Pull latest from remote
-    app.post(GIT_CMS_PULL_ROUTE, async () => {
-        try {
-            const res = await server.pull()
-            return {
-                success: true,
-                stdout: JSON.stringify(res.summary, null, 2),
-            } as GitPullResponse
-        } catch (error) {
-            console.log(error)
-            return { success: false, error }
-        }
-    })
+    app.post(GIT_CMS_PULL_ROUTE, async () => await server.pullCommand())
 
     // Get file contents
     app.get(
         GIT_CMS_FILE_ROUTE,
-        async (req: Request): Promise<GitCmsReadResponse> => {
-            const request = req.query as ReadRequest
-            const filepath = `/${request.filepath.replace(/\~/g, "/")}`
-            try {
-                validateFilePath(filepath)
-
-                const path = GIT_CMS_DIR + filepath
-                const exists = fs.existsSync(path)
-                if (!exists) throw new Error(`File '${filepath}' not found`)
-                const content = await fs.readFile(path, "utf8")
-                return { success: true, content }
-            } catch (error) {
-                console.log(error)
-                return {
-                    success: false,
-                    error,
-                    content: "",
-                }
-            }
-        }
+        async (req: Request): Promise<GitCmsReadResponse> =>
+            server.getFileCommand((req.query as ReadRequest).filepath)
     )
 
-    // Get file contents
+    // Get multiple file contents
     app.get(
         GIT_CMS_GLOB_ROUTE,
         async (req: Request): Promise<GitCmsGlobResponse> => {
             const request = req.query as GlobRequest
-            const query = request.glob.replace(/[^a-zA-Z\*]/, "")
-            const cwd = GIT_CMS_DIR + "/" + request.folder
-            const results = glob.sync(query, {
-                cwd,
-            })
-
-            const files = results.map((filename) => {
-                return {
-                    filename,
-                    content: fs.readFileSync(cwd + "/" + filename, "utf8"),
-                }
-            })
-
-            return { success: true, files }
+            return server.globCommand(request.glob, request.folder)
         }
     )
 
@@ -207,20 +252,11 @@ export const addGitCmsApiRoutes = (app: Router) => {
             res: ResponseWithUserInfo
         ): Promise<GitCmsResponse> => {
             const request = req.query as DeleteRequest
-            const filepath = request.filepath.replace(/\~/g, "/")
-            try {
-                validateFilePath(filepath)
-                await server.deleteFileFromGitContentDirectory(
-                    filepath,
-                    res.locals.user.fullName,
-                    res.locals.user.email
-                )
-                await server.autopush()
-                return { success: true }
-            } catch (error) {
-                console.log(error)
-                return { success: false, error }
-            }
+            return server.deleteFileCommand(
+                request.filepath,
+                res.locals.user.fullName,
+                res.locals.user.email
+            )
         }
     )
 }
