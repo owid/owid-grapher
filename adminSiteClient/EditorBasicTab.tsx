@@ -108,27 +108,13 @@ class DimensionSlotView extends React.Component<{
         )
     }
 
+    componentDidMount() {
+        ;(window as any).testa = this
+        this.dimensions = clone(this.props.slot.dimensionsWithData)
+    }
+
     componentWillUnmount() {
         if (this.dispose) this.dispose()
-    }
-
-    @action.bound sortDimensionsBySelection() {
-        const dimensions = sortBy(this.grapher.dimensions, (dim) =>
-            findIndex(this.grapher.selectedColumnSlugs, dim.columnSlug)
-        )
-
-        debugger
-
-        this.grapher.updateAuthoredVersion({
-            dimensions: dimensions.map((dim) => dim.toObject()),
-        })
-        this.grapher.rebuildInputOwidTable()
-    }
-
-    componentDidMount() {
-        // debugger
-        // if (this.grapher.selectedColumnSlugs.length)
-        //     this.sortDimensionsBySelection()
     }
 
     get grapher() {
@@ -138,7 +124,7 @@ class DimensionSlotView extends React.Component<{
     @observable.ref draggingColumnSlug?: ColumnSlug
 
     @action.bound onStartDrag(targetSlug: ColumnSlug) {
-        console.log(`dragging ${targetSlug}`)
+        console.log(`dragging ${this.toName(targetSlug)}`)
         this.draggingColumnSlug = targetSlug
 
         const onDrag = action(() => {
@@ -146,7 +132,7 @@ class DimensionSlotView extends React.Component<{
             window.removeEventListener("mouseup", onDrag)
 
             this.grapher.updateAuthoredVersion({
-                dimensions: this.dimensions.map((dim) => dim.toObject()),
+                selectedData: this.selectedDataInNewOrder,
             })
             this.grapher.rebuildInputOwidTable()
         })
@@ -156,14 +142,50 @@ class DimensionSlotView extends React.Component<{
 
     dimensions: ChartDimension[] = []
 
+    toName(slug: string) {
+        return this.grapher.table.get(slug).displayName
+    }
+
+    @computed get selectedDataInNewOrder() {
+        const order = sortBy(
+            this.grapher.legacyConfigAsAuthored.selectedData || [],
+            (selectedDatum) => {
+                const columnSlug = this.grapher.dimensions[selectedDatum.index]
+                    ?.columnSlug
+                const index = findIndex(
+                    this.dimensions,
+                    (dim) => dim.columnSlug === columnSlug
+                )
+                return index === -1 ? Number.MAX_VALUE : index
+            }
+        )
+
+        console.log(
+            order.map((ent) =>
+                this.toName(this.grapher.dimensions[ent.index].columnSlug)
+            )
+        )
+
+        return sortBy(
+            this.grapher.legacyConfigAsAuthored.selectedData || [],
+            (selectedDatum) => {
+                const columnSlug = this.grapher.dimensions[selectedDatum.index]
+                    ?.columnSlug
+                const index = findIndex(
+                    this.dimensions,
+                    (dim) => dim.columnSlug === columnSlug
+                )
+                return index === -1 ? Number.MAX_VALUE : index
+            }
+        )
+    }
+
     @action.bound onMouseEnter(targetSlug: ColumnSlug) {
-        console.log(`mouseenter ${targetSlug}`)
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        // debugger
+        console.log(`mouseenter ${this.toName(targetSlug)}`)
 
-        this.dimensions = clone(this.grapher.dimensions)
         const dragIndex = this.dimensions.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
         )
