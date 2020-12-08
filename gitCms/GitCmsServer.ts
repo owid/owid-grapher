@@ -2,7 +2,6 @@ import { Router, Request, Response } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
-    ENV,
 } from "../settings/clientSettings"
 import simpleGit, { SimpleGit } from "simple-git"
 import * as fs from "fs-extra"
