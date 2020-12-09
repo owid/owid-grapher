@@ -15,7 +15,7 @@ const PostCard = ({ post }: { post: FullPost }) => {
                     />
                 )}
                 <h3>{post.title}</h3>
-                {post.subtitle && <h4>{post.subtitle}</h4>}
+                {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
                 <div className="entry-meta">
                     <span className="authors">{`By ${formatAuthors(
                         post.authors

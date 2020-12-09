@@ -24,14 +24,13 @@
 
     h3 {
         margin: 0;
-        // margin-bottom: $vertical-spacing;
         font-size: 1.3rem;
         line-height: 1.2;
         font-weight: 400;
     }
 
-    h4 {
-        margin: 0;
+    .excerpt {
+        margin-top: $vertical-spacing;
         font-weight: lighter;
         line-height: 1.2;
     }
