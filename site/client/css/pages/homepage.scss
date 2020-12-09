@@ -296,7 +296,7 @@
 }
 
 .homepage-posts {
-    background-color: $primary-color-200;
+    background-color: $primary-color-100;
 
     h2 {
         font-family: $serif-font-stack;
@@ -305,22 +305,6 @@
         line-height: 1.2;
         margin: 0 0 2rem;
         color: $primary-color-800;
-    }
-
-    .divider {
-        flex: 1;
-        border-left: 2px solid $primary-color-800;
-        // margin: 2rem 0;
-    }
-
-    .cover-image {
-        width: 100%;
-        height: 0;
-        padding-bottom: 52.5%;
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-size: cover;
-        background-color: rgba(white, 0.05);
     }
 
     .see-all {

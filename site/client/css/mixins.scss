@@ -209,7 +209,7 @@
     @media (min-width: 30rem) {
         /* autoprefixer grid: autoplace */
         display: grid;
-        grid-gap: 1.5rem 1.25rem;
+        row-gap: $vertical-spacing;
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(ceil($posts-num / 2), auto);
 

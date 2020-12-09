@@ -4,8 +4,8 @@ import { formatAuthors, formatDate } from "site/server/formatting"
 
 const PostCard = ({ post }: { post: FullPost }) => {
     return (
-        <>
-            <a className="post-card" href={`/${post.path}`}>
+        <article className="post-card">
+            <a href={`/${post.path}`}>
                 {post.imageUrl && (
                     <div
                         className="cover-image"
@@ -21,7 +21,7 @@ const PostCard = ({ post }: { post: FullPost }) => {
                     {formatAuthors(post.authors)}
                 </div>
             </a>
-        </>
+        </article>
     )
 }
 
