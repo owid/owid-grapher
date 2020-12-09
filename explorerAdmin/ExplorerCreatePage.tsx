@@ -26,7 +26,7 @@ import {
 } from "./ExplorerCommands"
 import { isEmpty } from "../gridLang/GrammarUtils"
 import classNames from "classnames"
-import { GitCmsFile } from "../gitCms/GitCmsConstants"
+import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants"
 import { AdminManager } from "./AdminManager"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
@@ -76,7 +76,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.resetLoadingModal()
     }
 
-    private gitCmsClient = new GitCmsClient()
+    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
     @action.bound private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
@@ -432,7 +432,7 @@ class TemplatesComponent extends React.Component<{
         if (this.props.isNewFile) this.fetchTemplatesOnLoad()
     }
 
-    private gitCmsClient = new GitCmsClient()
+    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
     @action.bound private async fetchTemplatesOnLoad() {
         const response = await this.gitCmsClient.readRemoteFiles({
