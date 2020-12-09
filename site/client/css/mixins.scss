@@ -198,6 +198,14 @@
     margin-left: calc(50% - 50vw);
 }
 
+@mixin posts-heading {
+    font-family: $serif-font-stack;
+    font-size: 1.75rem;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 2 * $vertical-spacing;
+}
+
 @mixin posts-list($posts-num) {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;

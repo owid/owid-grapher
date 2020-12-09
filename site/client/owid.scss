@@ -118,9 +118,7 @@ header.blog-header h1 > a {
 }
 
 body.blog h2 {
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    margin-bottom: 14px;
+    @include posts-heading;
 }
 
 body.blog ul.posts {

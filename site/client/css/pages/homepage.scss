@@ -299,12 +299,7 @@
     background-color: $primary-color-100;
 
     h2 {
-        font-family: $serif-font-stack;
-        font-size: 1.75rem;
-        font-weight: 700;
-        line-height: 1.2;
-        margin: 0 0 2rem;
-        color: $primary-color-800;
+        @include posts-heading;
     }
 
     .see-all {
