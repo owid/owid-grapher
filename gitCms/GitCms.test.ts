@@ -39,12 +39,13 @@ describe("client/server integration tests", () => {
         const content = "bar"
         expect(server).toBeTruthy()
 
-        it("can write files", async () => {
+        it("can write a file", async () => {
             const response = await client.writeRemoteFile({
                 filepath,
                 content,
                 commitMessage: "created file",
             })
+            if (!response.success) console.log(response) // Dump for easier debugging in CI
             expect(response.success).toBeTruthy()
         })
 
@@ -82,6 +83,7 @@ describe("client/server integration tests", () => {
 
         it("can delete a file", async () => {
             const response = await client.deleteRemoteFile({ filepath })
+            if (!response.success) console.log(response) // Dump for easier debugging in CI
             expect(response.success).toBeTruthy()
         })
 
