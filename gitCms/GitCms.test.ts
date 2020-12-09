@@ -46,7 +46,7 @@ describe("client/server integration tests", () => {
             content,
             commitMessage: "created file",
         })
-        if (!response.success) console.log(response) // Dump for easier debugging in CI
+        if (!response.success) console.log(JSON.stringify(response)) // Dump for easier debugging in CI
         expect(response.success).toBeTruthy()
     })
 
@@ -84,7 +84,7 @@ describe("client/server integration tests", () => {
 
     it("can delete a file", async () => {
         const response = await client.deleteRemoteFile({ filepath })
-        if (!response.success) console.log(response) // Dump for easier debugging in CI
+        if (!response.success) console.log(JSON.stringify(response)) // Dump for easier debugging in CI
         expect(response.success).toBeTruthy()
     })
 
