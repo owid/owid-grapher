@@ -47,10 +47,7 @@ describe("client/server integration tests", () => {
             commitMessage: "created file",
         })
 
-        // todo: this test is failing in CI. Maybe a race condition? Not sure. Commenting it out for now.
-        expect(response).toBeTruthy()
-        // if (!response.success) console.log(JSON.stringify(response)) // Dump for easier debugging in CI
-        // expect(response.success).toBeTruthy()
+        expect(response.success).toBeTruthy()
     })
 
     it("fails write gracefully when given a bad path", async () => {
@@ -88,10 +85,7 @@ describe("client/server integration tests", () => {
     it("can delete a file", async () => {
         const response = await client.deleteRemoteFile({ filepath })
 
-        // todo: this test is failing in CI. Maybe a race condition? Not sure. Commenting it out for now.
-        expect(response).toBeTruthy()
-        // if (!response.success) console.log(JSON.stringify(response)) // Dump for easier debugging in CI
-        // expect(response.success).toBeTruthy()
+        expect(response.success).toBeTruthy()
     })
 
     it("can fail delete gracefully", async () => {

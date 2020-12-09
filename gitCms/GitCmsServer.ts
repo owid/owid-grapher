@@ -71,6 +71,11 @@ export class GitCmsServer {
         const { baseDir } = this
         if (!existsSync(baseDir)) mkdirSync(baseDir)
         await this.git.init()
+
+        // Needed since git won't let you commit if there's no user name config present (i.e. CI), even if you always
+        // specify `author=` in every command. See https://stackoverflow.com/q/29685337/10670163 for example.
+        await this.git.addConfig("user.name", GIT_DEFAULT_USERNAME)
+        await this.git.addConfig("user.email", GIT_DEFAULT_EMAIL)
     }
 
     private async commitFile(
