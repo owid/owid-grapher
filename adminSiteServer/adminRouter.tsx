@@ -227,16 +227,11 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
 
 addExplorerAdminRoutes(adminRouter, BAKED_BASE_URL)
 
-/**
- * todo: fix typings. There's a nice pattern in Functional Router where instead of res.send the middleware methods
- * return object literals. That's nice for testing. Just need to clean that up a bit and get a good interface in at a high
- * leve.
- */
 const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,
     shouldAutoPush: true,
 })
 gitCmsServer.createDirAndInitIfNeeded()
-gitCmsServer.addToRouter(adminRouter as any)
+gitCmsServer.addToRouter(adminRouter)
 
 export { adminRouter }
