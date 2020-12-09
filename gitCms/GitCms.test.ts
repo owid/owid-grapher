@@ -40,7 +40,7 @@ describe("client/server integration tests", () => {
     const content = "bar"
     expect(server).toBeTruthy()
 
-    it("can write a file", async () => {
+    it.skip("can write a file", async () => {
         const response = await client.writeRemoteFile({
             filepath,
             content,
@@ -82,7 +82,7 @@ describe("client/server integration tests", () => {
         expect(response.success).toBeFalsy()
     })
 
-    it("can delete a file", async () => {
+    it.skip("can delete a file", async () => {
         const response = await client.deleteRemoteFile({ filepath })
         if (!response.success) console.log(JSON.stringify(response)) // Dump for easier debugging in CI
         expect(response.success).toBeTruthy()
