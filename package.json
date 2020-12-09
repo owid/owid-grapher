@@ -10,7 +10,6 @@
         "test": "jest",
         "serve": "node ./itsJustJavascript/adminSiteServer/app.js",
         "serve-pack": "webpack-dev-server --no-live-reload",
-        "tmux": "tmex dev \"yarn serve\" \"yarn serve-pack\"",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "coverage:ci": "jest --coverage=true --coverageProvider=v8",
         "lint": "eslint .",
