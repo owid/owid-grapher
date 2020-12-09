@@ -8,11 +8,12 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
+    const javascriptDir = path.resolve(__dirname, "itsJustJavascript")
     return {
-        context: __dirname,
+        context: javascriptDir,
         entry: {
-            admin: "./adminSiteClient/admin.entry.ts",
-            owid: "./site/owid.entry.ts",
+            admin: "./adminSiteClient/admin.entry.js",
+            owid: "./site/owid.entry.js",
         },
         optimization: {
             splitChunks: {
@@ -28,26 +29,20 @@ module.exports = (env, argv) => {
             minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
         },
         output: {
-            path: path.join(__dirname, "itsJustJavascript/webpack"),
+            path: path.join(javascriptDir, "webpack"),
             filename: "[name].js",
         },
         resolve: {
-            extensions: [".ts", ".tsx", ".js", ".css"],
-            modules: ["node_modules", __dirname],
+            extensions: [".js", ".css"],
+            modules: ["node_modules", javascriptDir, __dirname], // __dirname is required for resolving *.scss files
         },
         module: {
             rules: [
                 {
-                    test: /\.tsx?$/,
-                    loader: "ts-loader",
-                    exclude: /serverSettings/,
-                    options: {
-                        transpileOnly: true,
-                        configFile: path.join(
-                            __dirname,
-                            "tsconfig.client.json"
-                        ),
-                    },
+                    test: /\.js$/,
+                    enforce: "pre",
+                    use: ["source-map-loader"],
+                    exclude: /node_modules/,
                 },
                 {
                     test: /\.s?css$/,
@@ -76,6 +71,7 @@ module.exports = (env, argv) => {
                 },
             ],
         },
+        devtool: "source-map",
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
