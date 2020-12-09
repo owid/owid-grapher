@@ -13,6 +13,7 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
 import { GitCmsClient } from "../gitCms/GitCmsClient"
 import {
+    GIT_CMS_BASE_ROUTE,
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants"
@@ -199,7 +200,7 @@ export class ExplorersIndexPage extends React.Component<{
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
-    private gitCmsClient = new GitCmsClient()
+    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
     @computed get explorersToShow(): ExplorerProgram[] {
         return orderBy(

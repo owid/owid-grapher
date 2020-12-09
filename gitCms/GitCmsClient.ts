@@ -1,5 +1,5 @@
 import {
-    GIT_CMS_FILE_ROUTE,
+    GIT_CMS_READ_ROUTE,
     WriteRequest,
     ReadRequest,
     GitCmsResponse,
@@ -10,58 +10,60 @@ import {
     GlobRequest,
     GitCmsGlobResponse,
     GIT_CMS_GLOB_ROUTE,
+    GIT_CMS_DELETE_ROUTE,
+    GIT_CMS_WRITE_ROUTE,
 } from "./GitCmsConstants"
-const adminPath = `/admin/api`
-const gitCmsApiPath = `${adminPath}${GIT_CMS_FILE_ROUTE}`
 
+// todo: clarify what is going on here. i already forget.
 const validateFilePath = (path: string) => {
     if (path.includes("~")) throw new Error(`Filenames with ~ not supported`)
 }
 
 export class GitCmsClient {
+    private basePath: string
+    constructor(basePath: string) {
+        this.basePath = basePath
+    }
+
     async pullFromGithub() {
-        const response = await fetch(`${adminPath}${GIT_CMS_PULL_ROUTE}`, {
+        const response = await fetch(`${this.basePath}${GIT_CMS_PULL_ROUTE}`, {
             method: "POST",
         })
-        const parsed: GitPullResponse = await response.json()
-        return parsed
+        return (await response.json()) as GitPullResponse
+    }
+
+    async readRemoteFiles(request: GlobRequest) {
+        const response = await fetch(
+            `${this.basePath}${GIT_CMS_GLOB_ROUTE}?glob=${request.glob}&folder=${request.folder}`
+        )
+        return (await response.json()) as GitCmsGlobResponse
     }
 
     async deleteRemoteFile(request: DeleteRequest) {
         validateFilePath(request.filepath)
         request.filepath = request.filepath.replace(/\//g, "~")
         const response = await fetch(
-            `${gitCmsApiPath}?filepath=${request.filepath}`,
+            `${this.basePath}${GIT_CMS_DELETE_ROUTE}?filepath=${request.filepath}`,
             {
                 method: "DELETE",
             }
         )
-        const parsed: GitCmsResponse = await response.json()
-        return parsed
+        return (await response.json()) as GitCmsResponse
     }
 
     async readRemoteFile(request: ReadRequest) {
         validateFilePath(request.filepath)
         request.filepath = request.filepath.replace(/\//g, "~")
         const response = await fetch(
-            `${gitCmsApiPath}?filepath=${request.filepath}`
+            `${this.basePath}${GIT_CMS_READ_ROUTE}?filepath=${request.filepath}`
         )
 
-        const parsed: GitCmsReadResponse = await response.json()
-        return parsed
-    }
-
-    async readRemoteFiles(request: GlobRequest) {
-        const response = await fetch(
-            `${adminPath}${GIT_CMS_GLOB_ROUTE}?glob=${request.glob}&folder=${request.folder}`
-        )
-        const parsed: GitCmsGlobResponse = await response.json()
-        return parsed
+        return (await response.json()) as GitCmsReadResponse
     }
 
     async writeRemoteFile(request: WriteRequest) {
         validateFilePath(request.filepath)
-        const response = await fetch(gitCmsApiPath, {
+        const response = await fetch(`${this.basePath}${GIT_CMS_WRITE_ROUTE}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -69,7 +71,6 @@ export class GitCmsClient {
             body: JSON.stringify(request),
         })
 
-        const parsed: GitCmsResponse = await response.json()
-        return parsed
+        return (await response.json()) as GitCmsResponse
     }
 }

@@ -33,7 +33,6 @@ import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
 import { enqueueChange, getDeploys } from "../baker/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { ExplorerApiRoutes } from "../explorerAdmin/ExplorerBaker"
-import { addGitCmsApiRoutes } from "../gitCms/GitCmsServer"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
 
 const apiRouter = new FunctionalRouter()
@@ -1557,12 +1556,5 @@ apiRouter.get("/deploys.json", async () => ({
 Object.keys(ExplorerApiRoutes).forEach((route) =>
     apiRouter.get(route, ExplorerApiRoutes[route])
 )
-
-/**
- * todo: fix typings. There's a nice pattern in Functional Router where instead of res.send the middleware methods
- * return object literals. That's nice for testing. Just need to clean that up a bit and get a good interface in at a high
- * leve.
- */
-addGitCmsApiRoutes(apiRouter as any)
 
 export { apiRouter }

@@ -16,6 +16,8 @@ import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
 import { addExplorerAdminRoutes } from "../explorerAdmin/ExplorerBaker"
 import { renderPreview } from "../baker/siteRenderers"
 import { JsonError } from "../clientUtils/owidTypes"
+import { GitCmsServer } from "../gitCms/GitCmsServer"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -224,5 +226,12 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
 })
 
 addExplorerAdminRoutes(adminRouter, BAKED_BASE_URL)
+
+const gitCmsServer = new GitCmsServer({
+    baseDir: GIT_CMS_DIR,
+    shouldAutoPush: true,
+})
+gitCmsServer.createDirAndInitIfNeeded()
+gitCmsServer.addToRouter(adminRouter)
 
 export { adminRouter }
