@@ -1,8 +1,8 @@
-import path from "path"
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin"
-import MiniCssExtractPlugin from "mini-css-extract-plugin"
+const path = require("path")
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
-module.exports = ({ config }: { config: any }) => {
+module.exports = ({ config }) => {
     config.module.rules = config.module.rules.concat([
         {
             test: /\.scss$/,
