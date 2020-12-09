@@ -233,10 +233,6 @@ h6:hover .deep-link {
 /* Homepage
 --------------------------------------------- */
 
-#homepage-content {
-    padding: 30px 0;
-}
-
 .social a {
     font-size: 24px;
     background-color: #c0023e;
@@ -260,113 +256,7 @@ h6:hover .deep-link {
     background-color: #5b011d;
 }
 
-#homepage-content h3 {
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    margin-bottom: 14px;
-}
-
-#homepage-content h3 > a {
-    color: #c0023e;
-}
-
-#homepage-content h3 > a:hover {
-    color: #5b011d;
-}
-
-#homepage-content iframe {
-    margin-bottom: 20px;
-}
-
-#homepage-latest {
-    padding: 10px 20px;
-}
-
-#homepage-blog h4 {
-    font-family: $serif-font-stack;
-    font-weight: 400;
-    margin-bottom: 0.25rem;
-    font-size: 20px;
-}
-
-#homepage-blog li {
-    list-style-type: none;
-}
-
-#homepage-blog li a {
-    color: #222;
-}
-
-#homepage-blog li a:hover {
-    color: #d10a11;
-}
-
-#homepage-blog > a {
-    color: #c0023e;
-}
-
-#homepage-blog > a:hover {
-    color: #5b011d;
-}
-
-#homepage-blog a.more {
-    font-size: 17px;
-}
-
 @include lg-up {
-    #homepage-blog {
-        float: right;
-        width: 30%;
-        padding: 10px 20px;
-    }
-
-    #homepage-entries {
-        float: left;
-        width: 70%;
-        padding: 10px 20px;
-    }
-
-    #homepage-entries p {
-        font-size: 17px;
-    }
-
-    #homepage-entries div > a {
-        font-size: 14px;
-    }
-
-    #homepage-entries span {
-        margin-right: 0;
-    }
-
-    #homepage-entries span::after {
-        content: "";
-    }
-
-    #homepage-content .owid-presentations {
-        float: right;
-        width: 30%;
-        padding: 10px 20px;
-    }
-
-    #homepage-content .owid-presentations p {
-        text-align: left;
-        font-size: 16px;
-    }
-
-    #homepage-content .owid-presentations div > a {
-        width: 100%;
-    }
-
-    #homepage-twitter {
-        float: right;
-        width: 30%;
-        padding: 10px 20px;
-    }
-
-    #homepage-twitter .social {
-        margin-bottom: 10px;
-    }
-
     .owid-data .link-container {
         display: flex;
         flex-flow: row wrap;
@@ -379,16 +269,6 @@ h6:hover .deep-link {
     .owid-data li a {
         width: 33.3333%;
         display: inline-block;
-    }
-}
-
-@include sm-only {
-    #homepage-twitter {
-        display: none;
-    }
-
-    #homepage-blog {
-        margin-bottom: 20px;
     }
 }
 
@@ -521,10 +401,6 @@ h6:hover .deep-link {
     list-style-type: none !important;
     margin-top: 5px;
     margin-bottom: 5px;
-}
-
-#homepage-entries li:last-child {
-    margin-bottom: 30px;
 }
 
 .owid-data h4 {
