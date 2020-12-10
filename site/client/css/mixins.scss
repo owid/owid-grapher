@@ -210,7 +210,7 @@
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax($grid-card-min-width, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax($grid-card-min-width, 1fr));
 
     li {
         margin-bottom: $vertical-spacing;
