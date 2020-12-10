@@ -510,24 +510,19 @@
     }
 
     .category-entries {
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax($grid-card-min-width, 1fr)
+        );
+        gap: 0.5rem;
+
         .entry-item-container {
             position: relative;
             display: block;
             padding: 1rem;
-            @include sm-only {
-                margin-bottom: 1.2rem;
-                border: 1px solid currentColor;
-            }
-        }
 
-        @include md-up {
-            /* autoprefixer grid: autoplace */
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(5, auto);
-            grid-gap: 0.5rem;
-
-            .entry-item-container {
+            @include md-up {
                 padding: 1.5rem;
                 transition: box-shadow 300ms ease;
 
