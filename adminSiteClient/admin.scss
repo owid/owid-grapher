@@ -244,9 +244,14 @@ body {
     .DimensionCard {
         header {
             display: flex;
-            justify-content: space-between;
             color: #666;
             text-align: center;
+
+            > div {
+                &:not(:first-child) {
+                    margin-left: 4%;
+                }
+            }
         }
 
         > div {
