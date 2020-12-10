@@ -1,7 +1,14 @@
 import * as React from "react"
-import { observable, action, reaction, IReactionDisposer } from "mobx"
+import { observable, action, reaction, IReactionDisposer, computed } from "mobx"
 import { observer } from "mobx-react"
-import { sample, sampleSize, startCase } from "../clientUtils/Util"
+import {
+    clone,
+    findIndex,
+    sample,
+    sampleSize,
+    sortBy,
+    startCase,
+} from "../clientUtils/Util"
 import {
     EntitySelectionMode,
     ChartTypeName,
@@ -14,6 +21,8 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { ColumnSlug } from "../coreTable/CoreTableConstants"
+import { ChartDimension } from "../grapher/chart/ChartDimension"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -23,6 +32,10 @@ class DimensionSlotView extends React.Component<{
     dispose!: IReactionDisposer
 
     @observable.ref isSelectingVariables: boolean = false
+
+    private get grapher() {
+        return this.props.editor.grapher
+    }
 
     @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
@@ -54,7 +67,7 @@ class DimensionSlotView extends React.Component<{
         const { slot } = this.props
         const { grapher } = this.props.editor
 
-        this.props.editor.grapher.setDimensionsForProperty(
+        this.grapher.setDimensionsForProperty(
             slot.property,
             this.props.slot.dimensions.filter(
                 (d) => d.variableId !== variableId
@@ -103,17 +116,83 @@ class DimensionSlotView extends React.Component<{
         if (this.dispose) this.dispose()
     }
 
+    @observable private draggingColumnSlug?: ColumnSlug
+    @observable private dimensionsOrderedAsDisplayed: ChartDimension[] = []
+
+    @action.bound private updateLegacySelectionAndRebuildTable() {
+        this.grapher.updateAuthoredVersion({
+            selectedData: this.legacySelectionOrderedAsDisplayed,
+        })
+        this.grapher.rebuildInputOwidTable()
+    }
+
+    @action.bound private onMouseUp() {
+        this.draggingColumnSlug = undefined
+        window.removeEventListener("mouseup", this.onMouseUp)
+
+        this.updateLegacySelectionAndRebuildTable()
+    }
+
+    @action.bound private onStartDrag(targetSlug: ColumnSlug) {
+        this.draggingColumnSlug = targetSlug
+
+        window.addEventListener("mouseup", this.onMouseUp)
+    }
+
+    private get legacySelectionOrderedAsDisplayed() {
+        return sortBy(
+            this.grapher.legacyConfigAsAuthored.selectedData || [],
+            (selectedDatum) =>
+                findIndex(
+                    this.dimensionsOrderedAsDisplayed,
+                    (dim) =>
+                        dim.columnSlug ===
+                        this.grapher.dimensions[selectedDatum.index]?.columnSlug
+                )
+        )
+    }
+
+    @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
+        if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
+            return
+
+        const dimensionsClone = clone(
+            this.props.slot.dimensionsOrderedAsInPersistedSelection
+        )
+
+        const dragIndex = dimensionsClone.findIndex(
+            (dim) => dim.slug === this.draggingColumnSlug
+        )
+        const targetIndex = dimensionsClone.findIndex(
+            (dim) => dim.slug === targetSlug
+        )
+
+        dimensionsClone.splice(dragIndex, 1)
+        dimensionsClone.splice(
+            targetIndex,
+            0,
+            this.props.slot.dimensionsOrderedAsInPersistedSelection[dragIndex]
+        )
+
+        this.dimensionsOrderedAsDisplayed = dimensionsClone
+    }
+
+    @computed private get dimensionsInSelectionOrder() {
+        return this.dimensionsOrderedAsDisplayed.length
+            ? this.dimensionsOrderedAsDisplayed
+            : this.props.slot.dimensionsOrderedAsInPersistedSelection
+    }
+
     render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
-        const dimensions = editor.grapher.dimensions
 
         return (
             <div>
                 <h5>{slot.name}</h5>
                 <EditableList>
-                    {slot.dimensionsWithData.map((dim) => {
+                    {this.dimensionsInSelectionOrder.map((dim) => {
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
@@ -127,6 +206,14 @@ class DimensionSlotView extends React.Component<{
                                                   () =>
                                                       (this.isSelectingVariables = true)
                                               )
+                                    }
+                                    onMouseDown={() =>
+                                        dim.property === "y" &&
+                                        this.onStartDrag(dim.columnSlug)
+                                    }
+                                    onMouseEnter={() =>
+                                        dim.property === "y" &&
+                                        this.onMouseEnter(dim.columnSlug)
                                     }
                                     onRemove={
                                         slot.isOptional

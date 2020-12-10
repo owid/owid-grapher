@@ -3,6 +3,7 @@
 import { Grapher } from "../core/Grapher"
 import { computed } from "mobx"
 import { DimensionProperty } from "../core/GrapherConstants"
+import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util"
 
 export class DimensionSlot {
     private grapher: Grapher
@@ -41,9 +42,18 @@ export class DimensionSlot {
         )
     }
 
-    @computed get dimensionsWithData() {
-        return this.grapher.filledDimensions.filter(
-            (d) => d.property === this.property
+    @computed get dimensionsOrderedAsInPersistedSelection() {
+        const legacyConfig = this.grapher.legacyConfigAsAuthored
+        const variableIDsInSelectionOrder = excludeUndefined(
+            legacyConfig.selectedData?.map(
+                (item) => legacyConfig.dimensions?.[item.index].variableId
+            ) ?? []
         )
+        return sortBy(this.grapher.filledDimensions || [], (dim) =>
+            findIndex(
+                variableIDsInSelectionOrder,
+                (variableId) => dim.variableId === variableId
+            )
+        ).filter((dim) => dim.property === this.property)
     }
 }
