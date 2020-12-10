@@ -18,6 +18,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { DimensionProperty } from "../grapher/core/GrapherConstants"
 import { OwidTable } from "../coreTable/OwidTable"
+import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -125,6 +126,9 @@ export class DimensionCard extends React.Component<{
                                 />
                             </span>
                         )}
+                    </div>
+                    <div>
+                        <FontAwesomeIcon icon={faArrowsAltV} />
                     </div>
                     <ColorBox color={this.color} onColor={this.onColor} />
                     <div>
