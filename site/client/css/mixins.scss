@@ -206,30 +206,14 @@
     margin: 0 0 2 * $vertical-spacing;
 }
 
-@mixin posts-list($posts-num) {
+@mixin posts-list {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax($grid-card-min-width, 1fr));
 
     li {
         margin-bottom: $vertical-spacing;
-    }
-
-    @media (min-width: 30rem) {
-        /* autoprefixer grid: autoplace */
-        display: grid;
-        row-gap: $vertical-spacing;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(ceil($posts-num / 2), auto);
-
-        li {
-            margin-bottom: 0;
-        }
-    }
-
-    @include md-up {
-        /* autoprefixer grid: autoplace */
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(ceil($posts-num / 4), auto);
     }
 }
 

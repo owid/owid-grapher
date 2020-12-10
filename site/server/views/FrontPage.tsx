@@ -280,7 +280,7 @@ export const FrontPage = (props: {
                                         <h2>Latest publications</h2>
                                     </div>
                                     <ul>
-                                        {posts.slice(0, 8).map((post) => (
+                                        {posts.slice(0, 6).map((post) => (
                                             <li key={post.slug}>
                                                 <PostCard post={post} />
                                             </li>

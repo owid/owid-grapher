@@ -338,7 +338,7 @@
     padding: 1.5rem 0 1.75rem;
 
     ul {
-        @include posts-list(8);
+        @include posts-list;
     }
 
     @include lg-up {
