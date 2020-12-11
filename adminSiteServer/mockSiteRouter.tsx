@@ -33,16 +33,13 @@ import { makeSitemap } from "../baker/sitemap"
 import { OldChart } from "../db/model/Chart"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "../explorerAdmin/legacyCovidExplorerRedirects"
-import {
-    getAllPublishedExplorers,
-    renderExplorerPage,
-} from "../explorerAdmin/ExplorerBaker"
+import { ExplorerAdminServer } from "../explorerAdmin/ExplorerAdminServer"
 import { grapherToSVG } from "../baker/GrapherImageBaker"
 import { getVariableData } from "../db/model/Variable"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { JsonError } from "../clientUtils/owidTypes"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
 require("express-async-errors")
 
@@ -95,6 +92,9 @@ mockSiteRouter.get("/grapher/latest", async (req, res) => {
     else throw new JsonError("No latest chart", 404)
 })
 
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+explorerAdminServer.addMockBakedSiteRoutes(mockSiteRouter)
+
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
@@ -102,23 +102,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         req.params.slug
     )
     if (!explorerProgram) res.send(await grapherSlugToHtmlPage(req.params.slug))
-    else res.send(await renderExplorerPage(explorerProgram, BAKED_BASE_URL))
-})
-
-mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
-    // XXX add dev-prod parity for this
-    res.set("Access-Control-Allow-Origin", "*")
-    const explorers = await getAllPublishedExplorers()
-    const explorerProgram = explorers.find(
-        (program) => program.slug === req.params.slug
-    )
-    if (explorerProgram)
-        res.send(await renderExplorerPage(explorerProgram, BAKED_BASE_URL))
-    else
-        throw new JsonError(
-            "A published explorer with that slug was not found",
-            404
-        )
+    else res.send(await explorerAdminServer.renderExplorerPage(explorerProgram))
 })
 
 mockSiteRouter.get("/", async (req, res) => res.send(await renderFrontPage()))

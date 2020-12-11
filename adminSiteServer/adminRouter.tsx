@@ -13,7 +13,7 @@ import { Dataset } from "../db/model/Dataset"
 import { User } from "../db/model/User"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
-import { addExplorerAdminRoutes } from "../explorerAdmin/ExplorerBaker"
+import { ExplorerAdminServer } from "../explorerAdmin/ExplorerAdminServer"
 import { renderPreview } from "../baker/siteRenderers"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GitCmsServer } from "../gitCms/GitCmsServer"
@@ -225,7 +225,9 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
     res.send(await renderPreview(postId))
 })
 
-addExplorerAdminRoutes(adminRouter, BAKED_BASE_URL)
+new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL).addMockBakedSiteRoutes(
+    adminRouter
+)
 
 const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,

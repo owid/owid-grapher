@@ -76,6 +76,7 @@ export class GitCmsServer {
         // specify `author=` in every command. See https://stackoverflow.com/q/29685337/10670163 for example.
         await this.git.addConfig("user.name", GIT_DEFAULT_USERNAME)
         await this.git.addConfig("user.email", GIT_DEFAULT_EMAIL)
+        return this
     }
 
     private async commitFile(
