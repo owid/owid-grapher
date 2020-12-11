@@ -1,4 +1,5 @@
-export enum StagingDeployTarget {
+export enum DeployTarget {
+    live = "live",
     staging = "staging",
     hans = "hans",
     playfair = "playfair",
@@ -9,3 +10,5 @@ export enum StagingDeployTarget {
     tufte = "tufte",
     roser = "roser",
 }
+
+export const ProdTarget = "live"
