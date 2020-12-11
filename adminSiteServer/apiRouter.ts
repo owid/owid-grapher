@@ -32,7 +32,6 @@ import { BAKED_BASE_URL } from "../settings/clientSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
 import { enqueueChange, getDeploys } from "../baker/queue"
 import { FunctionalRouter } from "./FunctionalRouter"
-import { ExplorerApiRoutes } from "../explorerAdmin/ExplorerBaker"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
 
 const apiRouter = new FunctionalRouter()
@@ -1552,9 +1551,5 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
 apiRouter.get("/deploys.json", async () => ({
     deploys: await getDeploys(),
 }))
-
-Object.keys(ExplorerApiRoutes).forEach((route) =>
-    apiRouter.get(route, ExplorerApiRoutes[route])
-)
 
 export { apiRouter }

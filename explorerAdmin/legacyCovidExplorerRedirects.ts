@@ -4,7 +4,8 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram"
-import { getExplorerFromFile } from "./ExplorerBaker"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { ExplorerAdminServer } from "./ExplorerAdminServer"
 
 // Todo: remove this file eventually. Would server side redirects do it?
 // this runs only at bake/wordpress/dev time and is not a clientside file.
@@ -130,11 +131,12 @@ export const getLegacyCovidExplorerAsExplorerProgramForSlug = async (
     }).firstRow
     if (!row) return undefined
 
-    if (!cached)
-        cached = await getExplorerFromFile(
-            undefined,
+    if (!cached) {
+        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, "")
+        cached = await explorerAdminServer.getExplorerFromFile(
             legacyCovidDashboardSlug + EXPLORER_FILE_SUFFIX
         )
+    }
 
     // todo: use querystring
     return cached

@@ -44,16 +44,14 @@ import {
     legacyGrapherToCovidExplorerRedirectTable,
 } from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import {
-    bakeAllPublishedExplorers,
-    renderExplorerPage,
-} from "../explorerAdmin/ExplorerBaker"
+import { ExplorerAdminServer } from "../explorerAdmin/ExplorerAdminServer"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { formatPost } from "./formatWordpressPost"
 import { FullPost } from "../clientUtils/owidTypes"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -239,10 +237,13 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        await bakeAllPublishedExplorers(
-            undefined,
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+        const explorerAdminServer = new ExplorerAdminServer(
+            GIT_CMS_DIR,
             this.baseUrl
+        )
+
+        await explorerAdminServer.bakeAllPublishedExplorers(
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`
         )
     }
 
@@ -312,6 +313,10 @@ export class SiteBaker {
     }
 
     private async bakeGrapherToExplorerRedirects() {
+        const explorerAdminServer = new ExplorerAdminServer(
+            GIT_CMS_DIR,
+            this.baseUrl
+        )
         const rows = legacyGrapherToCovidExplorerRedirectTable.rows
         for (const row of rows) {
             const { slug, explorerQueryStr } = row
@@ -319,7 +324,7 @@ export class SiteBaker {
             const program = await getLegacyCovidExplorerAsExplorerProgramForSlug(
                 slug
             )
-            const html = await renderExplorerPage(program!, this.baseUrl)
+            const html = await explorerAdminServer.renderExplorerPage(program!)
             await this.stageWrite(
                 `${this.bakedSiteDir}/grapher/${slug}.html`,
                 html
