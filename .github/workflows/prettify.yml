@@ -53,7 +53,7 @@ jobs:
               run: yarn --frozen-lockfile --network-concurrency 1
 
             - name: Run prettier
-              run: yarn prettify-all
+              run: yarn fixPrettierAll
 
             - uses: stefanzweifel/git-auto-commit-action@v4
               with:

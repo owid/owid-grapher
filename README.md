@@ -98,7 +98,7 @@ We also have [**a rough sketch of the schema**](https://user-images.githubuserco
 
 Setup your settings file.
 
-Finally, run `yarn dev` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
+Finally, run `yarn startAdminServer` and head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is "admin@example.com" with a password of "admin".
 
 This development server will rebuild and live-reload the site upon changes, so you can just make changes to the code, save the file and see the result in the browser right away.
 
@@ -129,6 +129,14 @@ Novelty/Fun to try:
 Other Recommended apps:
 
 -   breck: Sublime Merge 2, Sublime Text 3, tldr, tmux
+
+## Package.json style guide
+
+Like most Javascript projects, we currently have dozens of scripts in `package.json`. Untyped javascript strings are not the ideal programming language, but for now we can make do like everyone else. Until we move those commands to a language that provides better typing and organization, here are some suggested conventions:
+
+1. camelCase the command names. This ensures that these command names are also valid identifiers in TypeScript and will allow us to do cool things later on when we strengthen the typings.
+2. Use longer unique names like "buildSiteCss" instead of "style". With untyped languages we have to rely on global string matches for finding uses, so command names should be unique.
+3. Identify what "kind" of command your script is and choose an existing decorator, unless it's of a new kind. Think of the "build" and "start" prefixes as function decorators and choose an appropriate one. For example, if your script starts a long lived process, it should be named something like "startXXXServer"; if it generates output to disk, something like "buildXXX".
 
 ## Alternatives Considered
 
