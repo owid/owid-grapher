@@ -48,7 +48,7 @@ jobs:
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
 
             - name: Run tests & checks
-              run: yarn checkPrettierAll && tsc -b && yarn checkTests
+              run: yarn checkPrettierAll && tsc -b && yarn checkJest
 
     # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
     bundlewatch:
