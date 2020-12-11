@@ -72,7 +72,7 @@ export class Deployer {
 
         const script = `cd ${rsyncTargetDirForTests}
 yarn install --production=false --frozen-lockfile
-yarn prettify-all:check`
+yarn checkPrettierAll`
         await execWrapper(`ssh -t ${this.sshHost} 'bash -e -s' ${script}`)
 
         this.progressBar.tick({
@@ -171,9 +171,9 @@ yarn prettify-all:check`
                 name: "✅ finished checks because we skipped them",
             })
         } else {
-            await this.runAndTick(`yarn prettify:check`)
-            await this.runAndTick(`yarn build`)
-            await this.runAndTick(`jest`)
+            await this.runAndTick(`yarn checkPrettierChanged`)
+            await this.runAndTick(`yarn buildTsc`)
+            await this.runAndTick(`yarn checkJest`)
         }
 
         await this.writeHeadDotText()
@@ -217,7 +217,7 @@ yarn prettify-all:check`
             bake: `pm2 stop ${target}-deploy-queue
 # Static build to update the public frontend code
 cd ${FINAL_TARGET}
-node itsJustJavascript/baker/bakeSite.js`,
+node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
             deploy: makeScriptToDeployToNetlifyDoQueue(
                 target,
                 gitEmail,
@@ -328,7 +328,7 @@ const makeScriptToDoYarnStuff = (
 ) => `# Install dependencies, build assets and migrate
 cd ${TMP_NEW}
 yarn install --production --frozen-lockfile
-yarn build-webpack
+yarn buildWebpack
 node itsJustJavascript/baker/algolia/configureAlgolia.js`
 
 const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
@@ -358,6 +358,6 @@ const makeScriptToDeployToNetlifyDoQueue = (
     GIT_NAME: string,
     FINAL_TARGET: string
 ) => `cd ${FINAL_TARGET}
-node itsJustJavascript/baker/deploySite.js "${GIT_EMAIL}" "${GIT_NAME}"
+node itsJustJavascript/baker/deploySiteFromStagingServer.js "${GIT_EMAIL}" "${GIT_NAME}"
 # Restart the deploy queue
 pm2 start ${NAME}-deploy-queue`

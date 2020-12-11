@@ -48,7 +48,7 @@ jobs:
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
 
             - name: Run tests & checks
-              run: yarn prettify-all:check && tsc -b && yarn test
+              run: yarn checkPrettierAll && tsc -b && yarn checkJest
 
     # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
     bundlewatch:
@@ -93,9 +93,9 @@ jobs:
               run: yarn --frozen-lockfile --network-concurrency 1
 
             - name: Run tsc
-              run: yarn build
+              run: yarn buildTsc
 
             - name: Run bundlewatch
-              run: yarn bundlewatch
+              run: yarn checkBundlewatch
               env:
                   BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
