@@ -25,8 +25,8 @@ interface DeployerOptions {
     owidGrapherRootDir: string
     userRunningTheDeploy: string
     target: DeployTarget
-    skipChecks: boolean
-    runChecksRemotely: boolean
+    skipChecks?: boolean
+    runChecksRemotely?: boolean
 }
 
 const OWID_STAGING_DROPLET_IP = "165.22.127.239"
@@ -62,7 +62,7 @@ export class Deployer {
         return new Set(Object.values(DeployTarget)).has(this.options.target)
     }
 
-    private get targetIsProd() {
+    get targetIsProd() {
         return this.options.target.toString() === "live"
     }
 
