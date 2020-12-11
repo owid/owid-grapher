@@ -6,25 +6,14 @@ import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"
 import { WriteStream } from "tty"
 import { ProgressStream } from "./ProgressStream"
+import { StagingDeployTarget } from "./StagingDeployTarget"
 
 const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
-
-enum DeployTarget {
-    staging = "staging",
-    hans = "hans",
-    playfair = "playfair",
-    jefferson = "jefferson",
-    nightingale = "nightingale",
-    explorer = "explorer",
-    exemplars = "exemplars",
-    tufte = "tufte",
-    roser = "roser",
-}
 
 interface DeployerOptions {
     owidGrapherRootDir: string
     userRunningTheDeploy: string
-    target: DeployTarget
+    target: StagingDeployTarget
     skipChecks?: boolean
     runChecksRemotely?: boolean
 }
@@ -59,7 +48,9 @@ export class Deployer {
     }
 
     private get targetIsStaging() {
-        return new Set(Object.values(DeployTarget)).has(this.options.target)
+        return new Set(Object.values(StagingDeployTarget)).has(
+            this.options.target
+        )
     }
 
     get targetIsProd() {
