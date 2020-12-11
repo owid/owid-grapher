@@ -162,18 +162,7 @@ yarn prettify-all:check`
 
     // 📡 indicates that a task is running/ran on the remote server
     async deploy() {
-        const { simpleGit } = this
-        const {
-            target,
-            skipChecks,
-            runChecksRemotely,
-            userRunningTheDeploy,
-            owidGrapherRootDir,
-        } = this.options
-
-        const gitConfig = await simpleGit.listConfig()
-        const gitName = `${gitConfig.all["user.name"]}`
-        const gitEmail = `${gitConfig.all["user.email"]}`
+        const { skipChecks, runChecksRemotely } = this.options
 
         if (this.targetIsProd) await this.runLiveSafetyChecks()
         else if (!this.targetIsStaging)
@@ -184,12 +173,6 @@ yarn prettify-all:check`
         this.progressBar.tick({
             name: "✅ finished validating deploy arguments",
         })
-
-        const ROOT = "/home/owid"
-        const ROOT_TMP = `${ROOT}/tmp`
-        const SYNC_TARGET = `${ROOT_TMP}/${target}-${userRunningTheDeploy}`
-        const TMP_NEW = `${ROOT_TMP}/${target}-${userRunningTheDeploy}-tmp`
-        const FINAL_TARGET = `${ROOT}/${target}`
 
         if (runChecksRemotely) await this.runPreDeployChecksRemotely()
         else if (skipChecks) {
@@ -206,6 +189,32 @@ yarn prettify-all:check`
 
         await this.writeHeadDotText()
         await this.ensureTmpDirExistsOnServer()
+        await this.generateShellScriptsAndRunThemOnServer()
+
+        this.progressBar.tick({
+            name: `✅ 📡 finished everything`,
+        })
+        this.stream.replay()
+    }
+
+    // todo: the old deploy script would generete BASH on the fly and run it on the server. we should clean that up and remove these shell scripts.
+    private async generateShellScriptsAndRunThemOnServer() {
+        const { simpleGit } = this
+        const {
+            target,
+            userRunningTheDeploy,
+            owidGrapherRootDir,
+        } = this.options
+
+        const gitConfig = await simpleGit.listConfig()
+        const gitName = `${gitConfig.all["user.name"]}`
+        const gitEmail = `${gitConfig.all["user.email"]}`
+
+        const ROOT = "/home/owid"
+        const ROOT_TMP = `${ROOT}/tmp`
+        const SYNC_TARGET = `${ROOT_TMP}/${target}-${userRunningTheDeploy}`
+        const TMP_NEW = `${ROOT_TMP}/${target}-${userRunningTheDeploy}-tmp`
+        const FINAL_TARGET = `${ROOT}/${target}`
 
         const scripts: any = {
             file: makeScriptToDoFileStuff(ROOT, target, SYNC_TARGET, TMP_NEW),
@@ -242,11 +251,6 @@ node itsJustJavascript/baker/bakeSite.js`,
                 `${SYNC_TARGET}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
             )
         }
-
-        this.progressBar.tick({
-            name: `✅ 📡 finished everything`,
-        })
-        this.stream.replay()
     }
 
     printAndExit(message: string) {
