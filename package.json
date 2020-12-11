@@ -12,6 +12,7 @@
         "serve-pack": "webpack-dev-server --no-live-reload",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "coverage:ci": "jest --coverage=true --coverageProvider=v8",
+        "tmux": "tmex dev \"tsc -b -watch -verbose\" \"yarn serve\" \"yarn serve-pack\"",
         "lint": "eslint .",
         "fix": "eslint . --fix",
         "prettify": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
