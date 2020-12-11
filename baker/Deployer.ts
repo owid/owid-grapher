@@ -1,5 +1,3 @@
-#! /usr/bin/env node
-
 import * as fs from "fs-extra"
 import * as prompts from "prompts"
 import ProgressBar = require("progress")
