@@ -4,6 +4,7 @@ import fetch from "node-fetch"
 import opener from "opener"
 import * as timeago from "timeago.js"
 import { execWrapper } from "../db/execWrapper"
+import { StagingDeployTarget } from "./StagingDeployTarget"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.
@@ -19,18 +20,7 @@ import { execWrapper } from "../db/execWrapper"
  *  If it still doesn't work, the live commit is not pushed to GitHub yet. That should only happen on a staging server, never on live.
  */
 
-const servers = [
-    "live",
-    "staging",
-    "explorer",
-    "exemplars",
-    "hans",
-    "playfair",
-    "jefferson",
-    "nightingale",
-    "tufte",
-    "roser",
-]
+const servers = [...Object.values(StagingDeployTarget), "live"]
 
 const args = parseArgs(process.argv.slice(2))
 
