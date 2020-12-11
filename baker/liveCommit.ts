@@ -4,7 +4,7 @@ import fetch from "node-fetch"
 import opener from "opener"
 import * as timeago from "timeago.js"
 import { execWrapper } from "../db/execWrapper"
-import { StagingDeployTarget } from "./StagingDeployTarget"
+import { DeployTarget, ProdTarget } from "./DeployTarget"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.
@@ -20,7 +20,7 @@ import { StagingDeployTarget } from "./StagingDeployTarget"
  *  If it still doesn't work, the live commit is not pushed to GitHub yet. That should only happen on a staging server, never on live.
  */
 
-const servers = [...Object.values(StagingDeployTarget), "live"]
+const servers = Object.values(DeployTarget)
 
 const args = parseArgs(process.argv.slice(2))
 
@@ -28,16 +28,16 @@ const showTree = args["tree"]
 const showCommit = args["show"]
 const openInBrowser = args["open"] || !(showCommit || showTree)
 
-const getServerUrl = (server: string) => {
-    if (server === "live") return "https://ourworldindata.org"
-    else return `https://${server}-owid.netlify.com`
-}
+const getServerUrl = (server: string) =>
+    server === ProdTarget
+        ? "https://ourworldindata.org"
+        : `https://${server}-owid.netlify.com`
 
 const fetchCommitSha = async (server: string) =>
     fetch(`${getServerUrl(server)}/head.txt`)
         .then((res) => {
             if (res.ok) return res
-            else throw Error(`Request rejected with status ${res.status}`)
+            throw Error(`Request rejected with status ${res.status}`)
         })
         .then(async (resp) => ({
             commitSha: await resp.text(),
