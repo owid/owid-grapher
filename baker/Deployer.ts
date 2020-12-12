@@ -35,7 +35,7 @@ export class Deployer {
         this.progressBar = new ProgressBar(
             `Baking and deploying to ${target} [:bar] :current/:total :elapseds :name\n`,
             {
-                total: 11 + testSteps,
+                total: 20 + testSteps,
                 renderThrottle: 0, // print on every tick
                 stream: (this.stream as unknown) as WriteStream,
             }
@@ -128,6 +128,8 @@ yarn checkPrettierAll`
             rsyncTargetDirTmp: `${owidUserHomeTmpDir}/${target}-${userRunningTheDeploy}-tmp`,
             rsyncTargetDirForTests: `${owidUserHomeTmpDir}/${target}-tests`,
             finalTargetDir: `${owidUserHomeDir}/${target}`,
+            oldRepoBackupDir: `${owidUserHomeTmpDir}-old`,
+            dataDir: `${owidUserHomeTmpDir}/${target}-data`,
         }
     }
 
@@ -189,46 +191,41 @@ yarn checkPrettierAll`
     // todo: the old deploy script would generete BASH on the fly and run it on the server. we should clean that up and remove these shell scripts.
     private async generateShellScriptsAndRunThemOnServer() {
         const { simpleGit } = this
+        const { target, owidGrapherRootDir } = this.options
+
         const {
-            target,
-            userRunningTheDeploy,
-            owidGrapherRootDir,
-        } = this.options
+            rsyncTargetDirTmp,
+            finalTargetDir,
+            rsyncTargetDir,
+            owidUserHomeTmpDir,
+            owidUserHomeDir,
+            oldRepoBackupDir,
+            dataDir,
+        } = this.pathsOnTarget
 
         const gitConfig = await simpleGit.listConfig()
         const gitName = `${gitConfig.all["user.name"]}`
         const gitEmail = `${gitConfig.all["user.email"]}`
 
-        const ROOT = "/home/owid"
-        const ROOT_TMP = `${ROOT}/tmp`
-        const SYNC_TARGET = `${ROOT_TMP}/${target}-${userRunningTheDeploy}`
-        const TMP_NEW = `${ROOT_TMP}/${target}-${userRunningTheDeploy}-tmp`
-        const FINAL_TARGET = `${ROOT}/${target}`
-
         const scripts: any = {
-            file: makeScriptToDoFileStuff(ROOT, target, SYNC_TARGET, TMP_NEW),
-            yarn: makeScriptToDoYarnStuff(TMP_NEW),
-            adminServerStuff: makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff(
-                target,
-                ROOT_TMP,
-                TMP_NEW,
-                FINAL_TARGET
-            ),
-            bake: `pm2 stop ${target}-deploy-queue
-# Static build to update the public frontend code
-cd ${FINAL_TARGET}
-node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
-            deploy: makeScriptToDeployToNetlifyDoQueue(
-                target,
-                gitEmail,
-                gitName,
-                FINAL_TARGET
-            ),
+            clearOldTemporaryRepo: `rm -rf ${rsyncTargetDirTmp}`,
+            copySyncedRepo: `cp -r ${rsyncTargetDir} ${rsyncTargetDirTmp}`, // Copy the synced repo-- this is because we're about to move it, and we want the original target to stay around to make future syncs faster
+            createDataSoftlinks: `mkdir -p ${dataDir}/bakedSite && ln -sf ${dataDir}/bakedSite ${rsyncTargetDir}/bakedSite`,
+            createDatasetSoftlinks: `mkdir -p ${dataDir}/datasetsExport && ln -sf ${dataDir}/datasetsExport ${rsyncTargetDir}/datasetsExport`,
+            yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
+            webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
+            algolia: `cd ${rsyncTargetDirTmp} && node itsJustJavascript/baker/algolia/configureAlgolia.js`,
+            createQueueFile: `cd ${finalTargetDir} && touch .queue && chmod 0666 .queue`,
+            swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
+            restartAdminServer: `pm2 restart ${target}`,
+            stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
+            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
+            deployToNetlify: `cd ${finalTargetDir} && node itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
+            restartQueue: `pm2 start ${target}-deploy-queue`,
         }
 
         Object.keys(scripts).forEach((name) => {
-            const fullName = `${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
-            const localPath = `${owidGrapherRootDir}/${fullName}`
+            const localPath = `${owidGrapherRootDir}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
             fs.writeFileSync(localPath, scripts[name], "utf8")
             fs.chmodSync(localPath, "755")
         })
@@ -237,7 +234,7 @@ node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
 
         for await (const name of Object.keys(scripts)) {
             await this.runAndStreamScriptOnRemoteServerViaSSH(
-                `${SYNC_TARGET}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
+                `${rsyncTargetDir}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
             )
         }
     }
@@ -299,65 +296,3 @@ node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
         })
     }
 }
-
-const makeScriptToDoFileStuff = (
-    ROOT: string,
-    NAME: string,
-    SYNC_TARGET: string,
-    TMP_NEW: string
-) => {
-    const FINAL_DATA = `${ROOT}/${NAME}-data`
-
-    return `# Remove any previous temporary repo
-rm -rf ${TMP_NEW}
-
-# Copy the synced repo-- this is because we're about to move it, and we want the
-# original target to stay around to make future syncs faster
-cp -r ${SYNC_TARGET} ${TMP_NEW}
-
-# Link in all the persistent stuff that needs to stay around between versions
-# todo: settings file
-mkdir -p ${FINAL_DATA}/bakedSite
-ln -sf ${FINAL_DATA}/bakedSite ${TMP_NEW}/bakedSite
-mkdir -p ${FINAL_DATA}/datasetsExport
-ln -sf ${FINAL_DATA}/datasetsExport ${TMP_NEW}/datasetsExport`
-}
-
-const makeScriptToDoYarnStuff = (
-    TMP_NEW: string
-) => `# Install dependencies, build assets and migrate
-cd ${TMP_NEW}
-yarn install --production --frozen-lockfile
-yarn buildWebpack
-node itsJustJavascript/baker/algolia/configureAlgolia.js`
-
-const makeScriptToDoQueueStuffDoFileStuffDoAdminServerStuff = (
-    NAME: string,
-    ROOT_TMP: string,
-    TMP_NEW: string,
-    FINAL_TARGET: string
-) => {
-    const OLD_REPO_BACKUP = `${ROOT_TMP}/${NAME}-old`
-
-    return `# Create deploy queue file writable by any user
-touch .queue
-chmod 0666 .queue
-
-# Atomically swap the old and new versions
-rm -rf ${OLD_REPO_BACKUP}
-mv ${FINAL_TARGET} ${OLD_REPO_BACKUP} || true
-mv ${TMP_NEW} ${FINAL_TARGET}
-
-# Restart the admin
-pm2 restart ${NAME}`
-}
-
-const makeScriptToDeployToNetlifyDoQueue = (
-    NAME: string,
-    GIT_EMAIL: string,
-    GIT_NAME: string,
-    FINAL_TARGET: string
-) => `cd ${FINAL_TARGET}
-node itsJustJavascript/baker/deploySiteFromStagingServer.js "${GIT_EMAIL}" "${GIT_NAME}"
-# Restart the deploy queue
-pm2 start ${NAME}-deploy-queue`
