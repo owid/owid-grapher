@@ -30,14 +30,14 @@ import { log } from "../baker/slackLog"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
-import { enqueueChange, getDeploys } from "../baker/queue"
+import { DeployQueueServer } from "../baker/DeployQueueServer"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
 
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
-async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
+const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
     if (!BAKE_ON_CHANGE) {
         console.log(
             "Not triggering static build because BAKE_ON_CHANGE is false"
@@ -45,7 +45,7 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
         return
     }
 
-    enqueueChange({
+    new DeployQueueServer().enqueueChange({
         timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
@@ -1549,7 +1549,7 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
 })
 
 apiRouter.get("/deploys.json", async () => ({
-    deploys: await getDeploys(),
+    deploys: await new DeployQueueServer().getDeploys(),
 }))
 
 export { apiRouter }

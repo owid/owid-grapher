@@ -5,7 +5,7 @@
         "node": ">=12.13.1"
     },
     "scripts": {
-        "buildAndDeploySite": "node ./itsJustJavascript/baker/bakeAndDeploySite.js",
+        "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "node ./itsJustJavascript/baker/bakeLocal.js",
         "buildStorybook": "build-storybook -o .storybook/build",
@@ -27,7 +27,7 @@
         "refreshLando": "cd wordpress && lando refresh",
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
-        "startDeployQueueServer": "node ./itsJustJavascript/baker/startQueueServer.js",
+        "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startStorybookServer": "start-storybook -p 6006",
         "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
