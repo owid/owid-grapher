@@ -1,119 +1,60 @@
 // This is where server-side only, potentially sensitive settings enter from the environment
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
-// todo: handle when someone overrides these 3, the derived vars
-const DB_NAME = "owid"
-const DB_USER = "root"
-const DB_PASS = ""
-const DB_HOST = "localhost"
-const DB_PORT = 3306
-const BASE_DIR = __dirname + "/../../"
+import { existsSync, readFileSync } from "fs-extra"
 
-const defaultSettings = {
-    ENV: "development",
-    BASE_DIR,
-    BAKED_SITE_DIR: `${BASE_DIR}/bakedSite`, // Where the static build output goes
-    SECRET_KEY: "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj",
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
-    WORDPRESS_DB_NAME: DB_NAME,
-    WORDPRESS_DB_USER: DB_USER,
-    WORDPRESS_DB_PASS: DB_PASS,
-    WORDPRESS_DB_HOST: DB_HOST,
-    WORDPRESS_DB_PORT: DB_PORT,
-    WORDPRESS_API_USER: "",
-    WORDPRESS_API_PASS: "",
-    SESSION_COOKIE_AGE: 1209600,
-    ALGOLIA_SECRET_KEY: "",
-    STRIPE_SECRET_KEY: "",
-    // Settings for automated email sending, e.g. for admin invites
-    EMAIL_HOST: "smtp.mail.com",
-    EMAIL_PORT: 443,
-    EMAIL_HOST_USER: "user",
-    EMAIL_HOST_PASSWORD: "password",
-    // Wordpress target settings
-    WORDPRESS_DIR: "",
-    HTTPS_ONLY: true,
-    // Node slack webhook to report errors to using express-error-slack
-    SLACK_ERRORS_WEBHOOK_URL: "",
-    GIT_DATASETS_DIR: `${BASE_DIR}/datasetsExport`, //  Where the git exports go
-    TMP_DIR: "/tmp",
-    UNCATEGORIZED_TAG_ID: 375,
-    // Should the static site output be baked when relevant database items change?
-    BAKE_ON_CHANGE: false,
-    DEPLOY_QUEUE_FILE_PATH: `${BASE_DIR}/.queue`,
-    DEPLOY_PENDING_FILE_PATH: `${BASE_DIR}/.pending`,
-    CLOUDFLARE_AUD: "",
-}
+export const BASE_DIR = __dirname + "/../../"
+const absolueSettingsPath = BASE_DIR + "serverSettings.json"
+const localOverrides: any = existsSync(absolueSettingsPath)
+    ? readFileSync(absolueSettingsPath)
+    : {}
 
-const {
-    ENV,
-    BAKED_SITE_DIR,
-    SECRET_KEY,
-    WORDPRESS_DB_NAME,
-    WORDPRESS_DB_USER,
-    WORDPRESS_DB_PASS,
-    WORDPRESS_DB_HOST,
-    WORDPRESS_DB_PORT,
-    WORDPRESS_API_USER,
-    WORDPRESS_API_PASS,
-    SESSION_COOKIE_AGE,
-    ALGOLIA_SECRET_KEY,
-    STRIPE_SECRET_KEY,
-    EMAIL_HOST,
-    EMAIL_PORT,
-    EMAIL_HOST_USER,
-    EMAIL_HOST_PASSWORD,
-    WORDPRESS_DIR,
-    HTTPS_ONLY,
-    SLACK_ERRORS_WEBHOOK_URL,
-    GIT_DATASETS_DIR,
-    TMP_DIR,
-    UNCATEGORIZED_TAG_ID,
-    BAKE_ON_CHANGE,
-    DEPLOY_QUEUE_FILE_PATH,
-    DEPLOY_PENDING_FILE_PATH,
-    CLOUDFLARE_AUD,
-} = {
-    ...defaultSettings,
-    // todo: load overrides
-}
+export const DB_NAME = localOverrides.DB_NAME ?? "owid"
+export const DB_USER = localOverrides.DB_USER ?? "root"
+export const DB_PASS = localOverrides.DB_PASS ?? ""
+export const DB_HOST = localOverrides.DB_HOST ?? "localhost"
+export const DB_PORT = localOverrides.DB_PORT ?? 3306
 
-export {
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
-    BASE_DIR,
-    ENV,
-    BAKED_SITE_DIR,
-    SECRET_KEY,
-    WORDPRESS_DB_NAME,
-    WORDPRESS_DB_USER,
-    WORDPRESS_DB_PASS,
-    WORDPRESS_DB_HOST,
-    WORDPRESS_DB_PORT,
-    WORDPRESS_API_USER,
-    WORDPRESS_API_PASS,
-    SESSION_COOKIE_AGE,
-    ALGOLIA_SECRET_KEY,
-    STRIPE_SECRET_KEY,
-    EMAIL_HOST,
-    EMAIL_PORT,
-    EMAIL_HOST_USER,
-    EMAIL_HOST_PASSWORD,
-    WORDPRESS_DIR,
-    HTTPS_ONLY,
-    SLACK_ERRORS_WEBHOOK_URL,
-    GIT_DATASETS_DIR,
-    TMP_DIR,
-    UNCATEGORIZED_TAG_ID,
-    BAKE_ON_CHANGE,
-    DEPLOY_QUEUE_FILE_PATH,
-    DEPLOY_PENDING_FILE_PATH,
-    CLOUDFLARE_AUD,
-}
+export const ENV = localOverrides.ENV ?? "development"
+export const BAKED_SITE_DIR =
+    localOverrides.BAKED_SITE_DIR ?? `${BASE_DIR}/bakedSite` // Where the static build output goes
+export const SECRET_KEY =
+    localOverrides.SECRET_KEY ??
+    "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
+export const WORDPRESS_DB_NAME = localOverrides.WORDPRESS_DB_NAME ?? DB_NAME
+export const WORDPRESS_DB_USER = localOverrides.WORDPRESS_DB_USER ?? DB_USER
+export const WORDPRESS_DB_PASS = localOverrides.WORDPRESS_DB_PASS ?? DB_PASS
+export const WORDPRESS_DB_HOST = localOverrides.WORDPRESS_DB_HOST ?? DB_HOST
+export const WORDPRESS_DB_PORT = localOverrides.WORDPRESS_DB_PORT ?? DB_PORT
+export const WORDPRESS_API_USER = localOverrides.WORDPRESS_API_USER ?? ""
+export const WORDPRESS_API_PASS = localOverrides.WORDPRESS_API_PASS ?? ""
+export const SESSION_COOKIE_AGE = localOverrides.SESSION_COOKIE_AGE ?? 1209600
+export const ALGOLIA_SECRET_KEY = localOverrides.ALGOLIA_SECRET_KEY ?? ""
+export const STRIPE_SECRET_KEY = localOverrides.STRIPE_SECRET_KEY ?? ""
+
+// Settings for automated email sending, e.g. for admin invite
+export const EMAIL_HOST = localOverrides.EMAIL_HOST ?? "smtp.mail.com"
+export const EMAIL_PORT = localOverrides.EMAIL_PORT ?? 443
+export const EMAIL_HOST_USER = localOverrides.EMAIL_HOST_USER ?? "user"
+export const EMAIL_HOST_PASSWORD =
+    localOverrides.EMAIL_HOST_PASSWORD ?? "password"
+
+// Wordpress target setting
+export const WORDPRESS_DIR = localOverrides.WORDPRESS_DIR ?? ""
+export const HTTPS_ONLY = localOverrides.HTTPS_ONLY ?? true
+
+// Node slack webhook to report errors to using express-error-slac
+export const SLACK_ERRORS_WEBHOOK_URL =
+    localOverrides.SLACK_ERRORS_WEBHOOK_URL ?? ""
+export const GIT_DATASETS_DIR =
+    localOverrides.GIT_DATASETS_DIR ?? `${BASE_DIR}/datasetsExport` //  Where the git exports go
+export const TMP_DIR = localOverrides.TMP_DIR ?? "/tmp"
+export const UNCATEGORIZED_TAG_ID = localOverrides.UNCATEGORIZED_TAG_ID ?? 375
+
+// Should the static site output be baked when relevant database items change
+export const BAKE_ON_CHANGE = localOverrides.BAKE_ON_CHANGE ?? false
+export const DEPLOY_QUEUE_FILE_PATH =
+    localOverrides.DEPLOY_QUEUE_FILE_PATH ?? `${BASE_DIR}/.queue`
+export const DEPLOY_PENDING_FILE_PATH =
+    localOverrides.DEPLOY_PENDING_FILE_PATH ?? `${BASE_DIR}/.pending`
+export const CLOUDFLARE_AUD = localOverrides.CLOUDFLARE_AUD ?? ""
