@@ -269,17 +269,28 @@ yarn checkPrettierAll`
     private async runAndStreamScriptOnRemoteServerViaSSH(path: string) {
         // eslint-disable-next-line no-console
         console.log(`📡 Running ${path} on ${this.sshHost}`)
-        const params = [`-t`, this.sshHost, "bash -e", path]
+        const bashTerminateIfAnyNonZero = "bash -e" // https://stackoverflow.com/questions/9952177/whats-the-meaning-of-the-parameter-e-for-bash-shell-command-line/9952249
+        const pseudoTty = "-tt" // https://stackoverflow.com/questions/7114990/pseudo-terminal-will-not-be-allocated-because-stdin-is-not-a-terminal
+        const params = [
+            pseudoTty,
+            this.sshHost,
+            bashTerminateIfAnyNonZero,
+            path,
+        ]
         const child = spawn(`ssh`, params)
 
         child.stdout.on("data", (data) => {
+            const trimmed = data.toString().trim()
+            if (!trimmed) return
             // eslint-disable-next-line no-console
-            console.log(data.toString())
+            console.log(trimmed)
         })
 
         child.stderr.on("data", (data) => {
+            const trimmed = data.toString().trim()
+            if (!trimmed) return
             // eslint-disable-next-line no-console
-            console.log(data.toString())
+            console.error(trimmed)
         })
 
         const exitCode = await new Promise((resolve) => {
