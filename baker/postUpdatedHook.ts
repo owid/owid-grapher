@@ -2,7 +2,7 @@
 
 import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings"
-import { enqueueChange } from "./queue"
+import { DeployQueueServer } from "./DeployQueueServer"
 import { exit } from "../db/cleanup"
 import { PostRow } from "../clientUtils/owidTypes"
 import { Post } from "../db/model/Post"
@@ -75,7 +75,7 @@ const main = async (
     const slug = await syncPostToGrapher(postId)
 
     if (BAKE_ON_CHANGE)
-        await enqueueChange({
+        await new DeployQueueServer().enqueueChange({
             timeISOString: new Date().toISOString(),
             authorName: name,
             authorEmail: email,

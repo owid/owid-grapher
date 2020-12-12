@@ -1,17 +1,12 @@
 import fs from "fs-extra"
 import { SiteBaker } from "../baker/SiteBaker"
 import { log } from "./slackLog"
-import {
-    queueIsEmpty,
-    readQueuedAndPendingFiles,
-    clearQueueFile,
-    deletePendingFile,
-    writePendingFile,
-    parseQueueContent,
-} from "./queue"
+import { DeployQueueServer } from "./DeployQueueServer"
 import { BAKED_SITE_DIR } from "../settings/serverSettings"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
 import { DeployChange } from "../clientUtils/owidTypes"
+
+const deployQueueServer = new DeployQueueServer()
 
 const defaultCommitMessage = async (): Promise<string> => {
     let message = "Automated update"
@@ -115,19 +110,24 @@ export const deployIfQueueIsNotEmpty = async () => {
     if (deploying) return
     deploying = true
     let failures = 0
-    while (!(await queueIsEmpty()) && failures < MAX_SUCCESSIVE_FAILURES) {
-        const deployContent = await readQueuedAndPendingFiles()
+    while (
+        !(await deployQueueServer.queueIsEmpty()) &&
+        failures < MAX_SUCCESSIVE_FAILURES
+    ) {
+        const deployContent = await deployQueueServer.readQueuedAndPendingFiles()
         // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
         // possible that another process writes to this file in the meantime...
-        await clearQueueFile()
+        await deployQueueServer.clearQueueFile()
         // Write to `.deploying` file to be able to recover the deploy message
         // in case of failure.
-        await writePendingFile(deployContent)
-        const message = generateCommitMsg(parseQueueContent(deployContent))
+        await deployQueueServer.writePendingFile(deployContent)
+        const message = generateCommitMsg(
+            deployQueueServer.parseQueueContent(deployContent)
+        )
         console.log(`Deploying site...\n---\n${message}\n---`)
         try {
             await bakeAndDeploy(message)
-            await deletePendingFile()
+            await deployQueueServer.deletePendingFile()
         } catch (err) {
             failures++
             // The error is already sent to Slack inside the deploy() function.

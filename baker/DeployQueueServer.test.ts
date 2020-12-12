@@ -1,15 +1,16 @@
 #! /usr/bin/env jest
 
 import fs from "fs-extra"
-import { parseQueueContent, getDeploys } from "./queue"
+import { DeployQueueServer } from "./DeployQueueServer"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
 } from "../settings/serverSettings"
 
-describe(parseQueueContent, () => {
+describe("parseQueueContent", () => {
+    const server = new DeployQueueServer()
     it("parses newline delimited JSON objects", async () => {
-        const output = parseQueueContent(
+        const output = server.parseQueueContent(
             [
                 `{"authorName": "Tester", "message": "Updated chart test-chart-please-ignore"}`,
                 `{"authorName": "Tester", "message": "something one"}`,
@@ -29,14 +30,15 @@ describe(parseQueueContent, () => {
 
 // todo: pretty sure Spyon is an antipattern. Create a deploy class that takes an interface with the subset of fs instead, and then can pass
 // a tiny mock FS for testing.
-describe(getDeploys, () => {
+describe("getDeploys", () => {
+    const server = new DeployQueueServer()
     it("is empty when nothing is in the queues", async () => {
         jest.spyOn(fs, "readFile").mockImplementation(
             (async (): Promise<string> => {
                 return ``
             }) as any
         )
-        expect(await getDeploys()).toEqual([])
+        expect(await server.getDeploys()).toEqual([])
     })
 
     it("parses queued deploy file", async () => {
@@ -51,7 +53,7 @@ describe(getDeploys, () => {
                 return ``
             }) as any
         )
-        expect(await getDeploys()).toEqual([
+        expect(await server.getDeploys()).toEqual([
             {
                 status: "queued",
                 changes: [{ message: "test2" }, { message: "test1" }],
@@ -77,7 +79,7 @@ describe(getDeploys, () => {
             }) as any
         )
 
-        expect(await getDeploys()).toEqual([
+        expect(await server.getDeploys()).toEqual([
             {
                 status: "queued",
                 changes: [{ message: "test2" }, { message: "test1" }],
