@@ -4,9 +4,9 @@
 import { existsSync, readFileSync } from "fs-extra"
 
 export const BASE_DIR = __dirname + "/../../"
-const absolueSettingsPath = BASE_DIR + "serverSettings.json"
-const localOverrides: any = existsSync(absolueSettingsPath)
-    ? JSON.parse(readFileSync(absolueSettingsPath, "utf8"))
+const absoluteSettingsPath = BASE_DIR + "serverSettings.json"
+const localOverrides: any = existsSync(absoluteSettingsPath)
+    ? JSON.parse(readFileSync(absoluteSettingsPath, "utf8"))
     : {}
 
 export const DB_NAME = localOverrides.DB_NAME ?? "owid"
