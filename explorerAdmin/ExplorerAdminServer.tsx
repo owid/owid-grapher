@@ -53,7 +53,6 @@ export class ExplorerAdminServer {
     }
 
     private async getAllExplorersCommand() {
-        // http://localhost:3030/admin/api/explorers.json
         // Download all explorers for the admin index page
         try {
             const explorers = await this.getAllExplorers()
@@ -109,7 +108,7 @@ export class ExplorerAdminServer {
 
     addAdminRoutes(app: Router) {
         app.get("/errorTest.csv", async (req, res) => {
-            // Add `table http://localhost:3030/admin/api/errorTest.csv?code=404` to test fetch download failures
+            // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
             const code =
                 req.query.code && !isNaN(parseInt(req.query.code))
                     ? req.query.code
@@ -134,7 +133,6 @@ export class ExplorerAdminServer {
             )
         })
 
-        // i.e. http://localhost:3030/admin/explorers/preview/some-slug
         app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
             const slug = slugify(req.params.slug)
             const filename = slug + EXPLORER_FILE_SUFFIX
