@@ -1,4 +1,6 @@
-const path = require("path")
+import webpack from "webpack"
+import path from "path"
+
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ManifestPlugin = require("webpack-manifest-plugin")
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
@@ -6,7 +8,7 @@ const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 
-module.exports = (env, argv) => {
+const config: webpack.ConfigurationFactory = (env, argv) => {
     const isProduction = argv.mode === "production"
     const javascriptDir = path.resolve(__dirname, "itsJustJavascript")
     return {
@@ -99,3 +101,5 @@ module.exports = (env, argv) => {
         },
     }
 }
+
+export default config

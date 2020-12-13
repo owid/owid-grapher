@@ -1,9 +1,11 @@
+import webpack from "webpack"
+
 const path = require("path")
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
-module.exports = ({ config }) => {
-    config.module.rules = config.module.rules.concat([
+const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
+    config.module!.rules = config.module!.rules.concat([
         {
             test: /\.scss$/,
             use: [
@@ -21,14 +23,16 @@ module.exports = ({ config }) => {
             ],
         },
     ])
-    config.resolve.plugins = [
+    config.resolve!.plugins = [
         new TsconfigPathsPlugin({
             configFile: path.join(__dirname, "../tsconfig.client.json"),
         }),
     ]
-    config.plugins = config.plugins.concat([
+    config.plugins = config.plugins!.concat([
         new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
 
     return config
 }
+
+export default configAdjuster
