@@ -53,7 +53,10 @@ const redirectTableTsv = `id	slug	explorerQueryStr
 4225	daily-new-confirmed-cases-of-covid-19-tests-per-case	yScale=log&zoomToSelection=true&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true
 4236	daily-new-confirmed-cases-of-covid-19-per-million-tests-per-case	yScale=log&zoomToSelection=true&minPopulationFilter=1000000&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true
 4490	daily-covid-cases-7-day	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true
-4490	daily-covid-cases-7-day-average	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true`
+4490	daily-covid-cases-7-day-average	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true
+4490	daily-covid-cases-3-day-average	zoomToSelection=true&time=2020-10-16..latest&country=USA~IND~GBR~DEU~BRA~MEX&region=World&casesMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_cases&pickerSort=desc&hideControls=true
+4119	daily-covid-cases-per-million-three-day-avg	zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc
+4120	daily-covid-deaths-per-million-3-day-avg	zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&deathsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc`
 
 export const legacyGrapherToCovidExplorerRedirectTable = new CoreTable(
     redirectTableTsv
