@@ -33,7 +33,7 @@ import { SerializedGridProgram } from "../clientUtils/owidTypes"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { GrapherGrammar } from "../explorer/GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
-import { objectToPatch, objectFromPatch } from "./Patch"
+import { Patch } from "../patch/Patch"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -417,7 +417,7 @@ export class DecisionMatrix {
             this.choiceNames.forEach((name) => {
                 patchObject[name] = row[name]
             })
-            return objectToPatch(patchObject)
+            return new Patch(patchObject)
         })
     }
 
@@ -491,7 +491,7 @@ export class DecisionMatrix {
 
     @action.bound setValuesFromPatch(patch = "") {
         return this.setValuesFromPatchObject(
-            objectFromPatch(decodeURIComponent(patch)) as DecisionsPatchObject
+            new Patch(decodeURIComponent(patch)).object as DecisionsPatchObject
         )
     }
 
