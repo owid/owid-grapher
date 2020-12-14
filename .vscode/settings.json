@@ -5,9 +5,6 @@
     "editor.detectIndentation": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
-    "files.exclude": {
-        "**/itsJustJavascript": true
-    },
     "search.exclude": {
         "**/itsJustJavascript": true,
         "bakedSite": true,
