@@ -72,7 +72,7 @@ export class Deployer {
 
         const script = `cd ${rsyncTargetDirForTests}
 yarn install --production=false --frozen-lockfile
-yarn checkPrettierAll`
+yarn testPrettierAll`
         await execWrapper(`ssh -t ${this.sshHost} 'bash -e -s' ${script}`)
 
         this.progressBar.tick({
@@ -173,9 +173,9 @@ yarn checkPrettierAll`
                 name: "✅ finished checks because we skipped them",
             })
         } else {
-            await this.runAndTick(`yarn checkPrettierChanged`)
+            await this.runAndTick(`yarn testPrettierChanged`)
             await this.runAndTick(`yarn buildTsc`)
-            await this.runAndTick(`yarn checkJest`)
+            await this.runAndTick(`yarn testJest`)
         }
 
         await this.writeHeadDotText()
