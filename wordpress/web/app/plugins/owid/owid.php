@@ -54,7 +54,8 @@ function register()
             'wp-components',
             'wp-data',
             'wp-compose',
-        ]
+        ],
+        filemtime(plugin_dir_path(__FILE__) . 'build/plugins.js')
     );
 
     wp_register_style(
