@@ -368,10 +368,11 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         iso3166: "CY",
     },
     {
-        name: "Czech Republic",
+        name: "Czechia",
         code: "CZE",
         slug: "czech-republic",
         iso3166: "CZ",
+        variantNames: ["Czech Republic"],
     },
     {
         name: "Germany",
@@ -882,10 +883,11 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         iso3166: "MH",
     },
     {
-        name: "Macedonia",
+        name: "North Macedonia",
         code: "MKD",
         slug: "macedonia",
         iso3166: "MK",
+        variantNames: ["Macedonia"],
     },
     {
         name: "Mali",
@@ -1285,10 +1287,11 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         iso3166: "SE",
     },
     {
-        name: "Swaziland",
+        name: "Eswatini",
         code: "SWZ",
         slug: "swaziland",
         iso3166: "SZ",
+        variantNames: ["Swaziland"],
     },
     {
         name: "Seychelles",

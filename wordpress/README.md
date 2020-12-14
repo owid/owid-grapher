@@ -20,9 +20,9 @@ See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 ## Installation
 
-0. Install [Lando](https://lando.dev/)
+_Note: the following commands need to run in the current folder, not the root of the project._
 
-_Docker comes packaged with the installer, which is the recommended way to install both._
+0. Install [Lando](https://lando.dev/) (Docker comes packaged with the installer, which is the recommended way to install both).
 
 1. Configure (no updates necessary at this point)
 
