@@ -1,5 +1,6 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
 import Glossary from "./Glossary/Glossary"
+import Subtitle from "./Subtitle/Subtitle"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
 const { select } = wp.data
@@ -33,6 +34,24 @@ registerPlugin("owid-glossary", {
                     className="owid-glossary"
                 >
                     <Glossary />
+                </PluginDocumentSettingPanel>
+            )
+        )
+    },
+    icon: false,
+})
+
+registerPlugin("owid-subtitle", {
+    render: () => {
+        const postType = select("core/editor").getCurrentPostType()
+        return (
+            postType === "post" && (
+                <PluginDocumentSettingPanel
+                    name="owid-subtitle"
+                    title="Subtitle"
+                    className="owid-subtitle"
+                >
+                    <Subtitle />
                 </PluginDocumentSettingPanel>
             )
         )

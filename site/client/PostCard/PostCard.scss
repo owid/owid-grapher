@@ -1,0 +1,47 @@
+.post-card {
+    a {
+        display: block;
+        padding: $padding-x-sm / 2;
+        transition: all 0.2s;
+        color: inherit;
+
+        &:hover {
+            @include block-shadow;
+            background-color: $white;
+        }
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 0;
+        margin-bottom: $vertical-spacing;
+        padding-bottom: 52.5%;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        background-color: rgba(white, 0.05);
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        line-height: 1.2;
+        font-weight: 400;
+    }
+
+    .excerpt {
+        margin-top: $vertical-spacing;
+        font-weight: lighter;
+        line-height: 1.2;
+    }
+
+    .entry-meta {
+        margin-top: $vertical-spacing;
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    .authors {
+        font-weight: bold;
+    }
+}

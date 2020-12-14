@@ -17,6 +17,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "site/client/NewsletterSubscription"
+import PostCard from "site/client/PostCard/PostCard"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -279,28 +280,9 @@ export const FrontPage = (props: {
                                         <h2>Latest publications</h2>
                                     </div>
                                     <ul>
-                                        {posts.slice(0, 8).map((post) => (
+                                        {posts.slice(0, 6).map((post) => (
                                             <li key={post.slug}>
-                                                <a
-                                                    href={`/${post.path}`}
-                                                    data-track-note="homepage-explainer"
-                                                >
-                                                    <div className="thumbnail">
-                                                        <div
-                                                            className="cover-image"
-                                                            style={{
-                                                                backgroundImage:
-                                                                    post.imageUrl &&
-                                                                    `url(${post.imageUrl})`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div className="info">
-                                                        <h3 className="title">
-                                                            {post.title}
-                                                        </h3>
-                                                    </div>
-                                                </a>
+                                                <PostCard post={post} />
                                             </li>
                                         ))}
                                     </ul>

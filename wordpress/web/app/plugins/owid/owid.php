@@ -25,6 +25,7 @@ include 'src/Byline/byline.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
+const SUBTITLE_META_FIELD = "owid_subtitle_meta_field";
 
 function setup()
 {
@@ -98,6 +99,14 @@ function register()
         'show_in_rest' => true,
     ]);
 
+    // Add support for subtitles. This is used by the editor (see also the
+    // GraphQL registration of that field below)
+    register_post_meta('', SUBTITLE_META_FIELD, [
+        'single' => true,
+        'type' => 'string',
+        'show_in_rest' => true,
+    ]);
+
     wp_register_script(
         'owid-blocks-script',
         plugins_url('build/blocks.js', __FILE__),
@@ -157,18 +166,35 @@ function graphql_register_types()
         },
     ]);
 
-    register_graphql_field('', 'glossary', [
-        'type' => 'Boolean',
-        'description' => 'Glossary',
-        'resolve' => function ($post) {
-            $glossary_post_meta = get_post_meta(
-                $post->ID,
-                GLOSSARY_META_FIELD,
-                true
-            );
-            return !!$glossary_post_meta;
-        },
-    ]);
+    // If needed, make sure to register on both "Page" and "Post" types (only
+    // set to "Page" below in the first argument of the register_graphql_field
+    // function)
+    // register_graphql_field('Page', 'glossary', [
+    //     'type' => 'Boolean',
+    //     'description' => 'Glossary',
+    //     'resolve' => function ($post) {
+    //         $glossary_post_meta = get_post_meta(
+    //             $post->ID,
+    //             GLOSSARY_META_FIELD,
+    //             true
+    //         );
+    //         return !!$glossary_post_meta;
+    //     },
+    // ]);
+
+    // Not needed for now, subtitles are only queried through the REST API.
+    // register_graphql_field('Post', 'subtitle', [
+    //     'type' => 'String',
+    //     'description' => 'Subtitle',
+    //     'resolve' => function ($post) {
+    //         $subtitle_post_meta = get_post_meta(
+    //             $post->ID,
+    //             SUBTITLE_META_FIELD,
+    //             true
+    //         );
+    //         return $subtitle_post_meta;
+    //     },
+    // ]);
 }
 
 function assets_enqueue()

@@ -43,7 +43,7 @@ export const LongFormPage = (props: {
 
     const pageTitle = overrides?.pageTitle ?? post.title
     const pageTitleSEO = `${pageTitle}${
-        post.subtitle ? ` - ${post.subtitle}` : ""
+        post.supertitle ? ` - ${post.supertitle}` : ""
     }`
     const pageDesc = overrides?.excerpt ?? post.excerpt
     const canonicalUrl =
@@ -125,12 +125,19 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
-                                <h1 className="entry-title">
-                                    <span>{pageTitle}</span>
-                                    {post.subtitle && (
-                                        <span>{post.subtitle}</span>
+                                <div className="article-titles">
+                                    {post.supertitle && (
+                                        <div className="supertitle">
+                                            {post.supertitle}
+                                        </div>
                                     )}
-                                </h1>
+                                    <h1 className="entry-title">{pageTitle}</h1>
+                                    {post.subtitle && (
+                                        <div className="subtitle">
+                                            {post.subtitle}
+                                        </div>
+                                    )}
+                                </div>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
                                         {post.byline ? (

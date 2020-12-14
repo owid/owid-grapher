@@ -524,7 +524,6 @@ export async function getRelatedCharts(
 }
 
 export async function getBlockContent(id: number): Promise<string | undefined> {
-    const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
     const query = `
     query getBlock($id: ID!) {
         post(id: $id, idType: DATABASE_ID) {
@@ -555,6 +554,7 @@ export interface FullPost {
     slug: string
     path: string
     title: string
+    subtitle?: string
     date: Date
     modifiedDate: Date
     authors: string[]
@@ -576,6 +576,7 @@ export async function getFullPost(
         slug: postApi.slug,
         path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
         title: decodeHTML(postApi.title.rendered),
+        subtitle: postApi.meta.owid_subtitle_meta_field,
         date: new Date(postApi.date),
         modifiedDate: new Date(postApi.modified),
         authors: postApi.authors_name || [],

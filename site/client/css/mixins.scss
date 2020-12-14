@@ -198,33 +198,35 @@
     margin-left: calc(50% - 50vw);
 }
 
-@mixin posts-list($posts-num) {
+@mixin posts-heading {
+    font-family: $serif-font-stack;
+    font-size: 1.75rem;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 0 0 2 * $vertical-spacing;
+}
+
+@mixin posts-list {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax($grid-card-min-width, 1fr));
 
     li {
         margin-bottom: $vertical-spacing;
-    }
-
-    @media (min-width: 30rem) {
-        /* autoprefixer grid: autoplace */
-        display: grid;
-        grid-gap: 1.5rem 1.25rem;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(ceil($posts-num / 2), auto);
-
-        li {
-            margin-bottom: 0;
-        }
-    }
-
-    @include md-up {
-        /* autoprefixer grid: autoplace */
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(ceil($posts-num / 4), auto);
     }
 }
 
 @mixin hide {
     display: none;
+}
+
+@mixin titling($h1-font-size) {
+    .supertitle {
+        margin-bottom: -($h1-font-size / 10);
+        font-size: $h1-font-size * 40 / 100;
+    }
+    h1 {
+        font-size: $h1-font-size;
+    }
 }
