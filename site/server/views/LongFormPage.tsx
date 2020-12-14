@@ -255,21 +255,50 @@ export const LongFormPage = (props: {
                                                             Reuse our work
                                                             freely
                                                         </h3>
+
                                                         <p>
-                                                            You can use all of
-                                                            what you find here
-                                                            for your own
-                                                            research or writing.
-                                                            We{" "}
-                                                            <a href="/how-to-use-our-world-in-data#how-is-our-work-copyrighted">
-                                                                license all
-                                                                charts under{" "}
-                                                                <em>
-                                                                    Creative
-                                                                    Commons BY
-                                                                </em>
-                                                                .
+                                                            All visualizations,
+                                                            data, and code
+                                                            produced by Our
+                                                            World in Data are
+                                                            completely open
+                                                            access under the{" "}
+                                                            <a
+                                                                href="https://creativecommons.org/licenses/by/4.0/"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                Creative Commons
+                                                                BY license
                                                             </a>
+                                                            . You have the
+                                                            permission to use,
+                                                            distribute, and
+                                                            reproduce these in
+                                                            any medium, provided
+                                                            the source and
+                                                            authors are
+                                                            credited.
+                                                        </p>
+                                                        <p>
+                                                            The data produced by
+                                                            third parties and
+                                                            made available by
+                                                            Our World in Data is
+                                                            subject to the
+                                                            license terms from
+                                                            the original
+                                                            third-party authors.
+                                                            We will always
+                                                            indicate the
+                                                            original source of
+                                                            the data in our
+                                                            documentation, so
+                                                            you should always
+                                                            check the license of
+                                                            any such third-party
+                                                            data before use and
+                                                            redistribution.
                                                         </p>
                                                         <p>
                                                             All of{" "}
