@@ -13,6 +13,7 @@
         { "path": "./explorer" },
         { "path": "./coreTable" },
         { "path": "./site" },
+        { "path": "./patch" },
         { "path": "./settings" },
         { "path": "./adminSiteClient" },
         { "path": "./adminSiteServer" },

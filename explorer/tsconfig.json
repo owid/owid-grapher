@@ -8,6 +8,7 @@
         { "path": "../clientUtils" },
         { "path": "../grapher" },
         { "path": "../gridLang" },
-        { "path": "../coreTable" }
+        { "path": "../coreTable" },
+        { "path": "../patch" }
     ]
 }

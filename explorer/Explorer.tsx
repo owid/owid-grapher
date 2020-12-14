@@ -51,12 +51,8 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
 import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
-import {
-    getPatchFromQueryString,
-    objectFromPatch,
-    objectToPatch,
-} from "./Patch"
-import { setWindowQueryStr } from "../clientUtils/url"
+import { Patch } from "../patch/Patch"
+import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -83,7 +79,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                patch={getPatchFromQueryString(window.location.search)}
+                patch={strToQueryParams(window.location.search).patch}
                 key={Date.now()}
             />,
             document.getElementById(ExplorerContainerId)
@@ -116,7 +112,7 @@ export class Explorer
         ReactDOM.render(
             <Explorer
                 {...props}
-                patch={getPatchFromQueryString(window.location.search)}
+                patch={strToQueryParams(window.location.search).patch}
             />,
             document.getElementById(ExplorerContainerId)
         )
@@ -126,9 +122,8 @@ export class Explorer
         this.props.patch
     )
 
-    private initialPatchObject = objectFromPatch(
-        this.props.patch
-    ) as ExplorerPatchObject
+    private initialPatchObject = new Patch(this.props.patch)
+        .object as ExplorerPatchObject
 
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
@@ -205,7 +200,9 @@ export class Explorer
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
-                this.explorerProgram.decisionMatrix.allDecisionsAsPatches(),
+                this.explorerProgram.decisionMatrix
+                    .allDecisionsAsPatches()
+                    .map((patch) => patch.string),
                 0,
                 this
             )
@@ -320,12 +317,12 @@ export class Explorer
     }
 
     @computed private get patch() {
-        return objectToPatch(this.params)
+        return new Patch(this.params).string
     }
 
     // Just for debugging
     @computed private get patchAsTsv() {
-        return objectToPatch(this.params, "\n", "\t")
+        return new Patch(this.params, "\n", "\t").string
     }
 
     @computed get params(): ExplorerPatchObject {
@@ -347,7 +344,7 @@ export class Explorer
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
-                objectToPatch(decisionsPatchObject)
+                new Patch(decisionsPatchObject).string
             )
 
         const patchObject = {
