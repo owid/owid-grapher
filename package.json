@@ -31,7 +31,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "jest",
+        "testJest": "jest"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.30",
