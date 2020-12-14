@@ -38,10 +38,7 @@ export const EXPLORER_EMBEDDED_FIGURE_SELECTOR = "data-explorer-src"
 
 export const ExplorerContainerId = "ExplorerContainer"
 
-export const ExplorersRoute = "allExplorersForAdminListPage.json"
-export const ExplorersRouteGrapherConfigs =
-    "allGrapherConfigsNeedForThisExplorer.json"
-export const ExplorersRouteQueryParam = "grapherIds"
+export const GetAllExplorersRoute = "allExplorers.json"
 
 export const EXPLORERS_ROUTE_FOLDER = "explorers" // Url path: http://owid.org/{explorers}
 export const EXPLORERS_GIT_CMS_FOLDER = "explorers" // Disk path: /home/owid/git-content/{explorers}

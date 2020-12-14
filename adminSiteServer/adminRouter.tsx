@@ -225,9 +225,9 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
     res.send(await renderPreview(postId))
 })
 
-new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL).addMockBakedSiteRoutes(
-    adminRouter
-)
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+explorerAdminServer.addMockBakedSiteRoutes(adminRouter)
+explorerAdminServer.addAdminRoutes(adminRouter)
 
 const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,

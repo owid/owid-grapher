@@ -20,7 +20,7 @@ import {
 import moment from "moment"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
-    ExplorersRoute,
+    GetAllExplorersRoute,
     EXPLORERS_ROUTE_FOLDER,
     ExplorersRouteResponse,
     EXPLORERS_PREVIEW_ROUTE,
@@ -30,7 +30,7 @@ import {
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { AdminManager } from "./AdminManager"
 
-const BAKED_BASE_URL = `https://ourworldindata.org/`
+const BAKED_BASE_URL = `https://ourworldindata.org/` // todo: pass as a param
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -289,12 +289,10 @@ export class ExplorersIndexPage extends React.Component<{
 
     @observable isReady = false
 
-    private async getData() {
+    private async fetchAllExplorers() {
         const { searchInput } = this
 
-        const response = await fetch(`/admin/api/${ExplorersRoute}`, {
-            method: "GET",
-        })
+        const response = await fetch(GetAllExplorersRoute)
         const json = (await response.json()) as ExplorersRouteResponse
         if (!json.success) alert(JSON.stringify(json.errorMessage))
         this.needsPull = json.needsPull
@@ -337,7 +335,7 @@ export class ExplorersIndexPage extends React.Component<{
             commitMessage: `Setting publish status of ${filename} to ${newVersion.isPublished}`,
         })
         this.resetLoadingModal()
-        this.getData()
+        this.fetchAllExplorers()
     }
 
     @action.bound async deleteFile(filename: string) {
@@ -348,16 +346,16 @@ export class ExplorersIndexPage extends React.Component<{
             filepath: `${EXPLORERS_GIT_CMS_FOLDER}/${filename}`,
         })
         this.resetLoadingModal()
-        this.getData()
+        this.fetchAllExplorers()
     }
 
     dispose!: IReactionDisposer
     componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
-            debounce(() => this.getData(), 200)
+            debounce(() => this.fetchAllExplorers(), 200)
         )
-        this.getData()
+        this.fetchAllExplorers()
     }
 
     componentWillUnmount() {

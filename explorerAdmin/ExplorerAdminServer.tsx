@@ -2,7 +2,6 @@ import React from "react"
 import { existsSync, readdir, writeFile, mkdirp, readFile } from "fs-extra"
 import { dirname } from "path"
 import { queryMysql } from "../db/db"
-import { getGrapherById } from "../db/model/Chart"
 import { getBlockContent } from "../db/wpdb"
 import {
     EXPLORER_FILE_SUFFIX,
@@ -13,9 +12,7 @@ import { ExplorerPage } from "../site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
-    ExplorersRoute,
-    ExplorersRouteGrapherConfigs,
-    ExplorersRouteQueryParam,
+    GetAllExplorersRoute,
     ExplorersRouteResponse,
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
@@ -75,19 +72,6 @@ export class ExplorerAdminServer {
         }
     }
 
-    private async getGrapherConfigsForExplorerCommand(grapherIds: number[]) {
-        // Download all chart configs for Explorer create page
-        const configs = []
-        for (const grapherId of grapherIds) {
-            try {
-                configs.push(await getGrapherById(grapherId))
-            } catch (err) {
-                console.log(`Error with grapherId '${grapherId}'`)
-            }
-        }
-        return configs
-    }
-
     addMockBakedSiteRoutes(app: Router) {
         app.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
             // XXX add dev-prod parity for this
@@ -119,18 +103,8 @@ export class ExplorerAdminServer {
             return `Simulating code ${code}`
         })
 
-        app.get(`/${ExplorersRoute}`, async (req, res) => {
-            res.send(this.getAllExplorersCommand())
-        })
-
-        app.get(`/${ExplorersRouteGrapherConfigs}`, async (req, res) => {
-            res.send(
-                this.getGrapherConfigsForExplorerCommand(
-                    req.query[ExplorersRouteQueryParam].split(
-                        "~"
-                    ).map((id: string) => parseInt(id))
-                )
-            )
+        app.get(`/${GetAllExplorersRoute}`, async (req, res) => {
+            res.send(await this.getAllExplorersCommand())
         })
 
         app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
