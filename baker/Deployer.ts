@@ -8,7 +8,7 @@ import { WriteStream } from "tty"
 import { ProgressStream } from "./ProgressStream"
 import { DeployTarget, ProdTarget } from "./DeployTarget"
 
-const TEMP_DEPLOY_SCRIPT_SUFFIX = `.tempDeployScript.sh`
+const TEMP_DEPLOY_SCRIPT_PREFIX = `tempDeployScript.`
 
 interface DeployerOptions {
     owidGrapherRootDir: string
@@ -225,7 +225,7 @@ yarn testPrettierAll`
         }
 
         Object.keys(scripts).forEach((name) => {
-            const localPath = `${owidGrapherRootDir}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
+            const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             fs.writeFileSync(localPath, scripts[name], "utf8")
             fs.chmodSync(localPath, "755")
         })
@@ -234,8 +234,10 @@ yarn testPrettierAll`
 
         for await (const name of Object.keys(scripts)) {
             await this.runAndStreamScriptOnRemoteServerViaSSH(
-                `${rsyncTargetDir}/${name}${TEMP_DEPLOY_SCRIPT_SUFFIX}`
+                `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
+            const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
+            fs.unlinkSync(localPath)
         }
     }
 

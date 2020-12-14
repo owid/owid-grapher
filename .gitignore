@@ -20,7 +20,7 @@ coverage/
 public/head.txt
 public/covidChartAndVariableMeta.json
 .storybook/build
-*.tempDeployScript.sh
+*tempDeployScript.*
 .env
 clientSettings.json
 serverSettings.json
