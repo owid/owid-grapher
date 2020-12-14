@@ -10,7 +10,15 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 
 const config: webpack.ConfigurationFactory = (env, argv) => {
     const isProduction = argv.mode === "production"
-    const javascriptDir = path.resolve(__dirname, "itsJustJavascript")
+
+    // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
+    // transpiled JS form
+    const baseDir =
+        path.basename(__dirname) === "itsJustJavascript"
+            ? path.resolve(__dirname, "..")
+            : __dirname
+
+    const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
     return {
         context: javascriptDir,
         entry: {
@@ -36,7 +44,7 @@ const config: webpack.ConfigurationFactory = (env, argv) => {
         },
         resolve: {
             extensions: [".js", ".css"],
-            modules: ["node_modules", javascriptDir, __dirname], // __dirname is required for resolving *.scss files
+            modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
         },
         module: {
             rules: [
