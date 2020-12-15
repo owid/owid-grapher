@@ -1,30 +1,92 @@
 #! /usr/bin/env jest
 
-import { DEFAULT_COLUMN_DELIMITER, DEFAULT_ROW_DELIMITER, Patch } from "./Patch"
+import { DefaultPatchGrammar, Patch } from "./Patch"
 
 describe(Patch, () => {
-    const tests = [
-        { string: `foo${DEFAULT_COLUMN_DELIMITER}bar`, object: { foo: "bar" } },
-        { string: "", object: {} },
+    const encodeString = (str: string) =>
+        str
+            .replace(/\.\.\./g, DefaultPatchGrammar.rowDelimiter)
+            .replace(/~/g, DefaultPatchGrammar.columnDelimiter)
+    const tests: { string: string; object?: any; array: string[][] }[] = [
         {
-            string: `Country+Name${DEFAULT_COLUMN_DELIMITER}United+States`,
+            string: encodeString(`foo~bar`),
+            object: { foo: "bar" },
+            array: [["foo", "bar"]],
+        },
+        { string: "", object: {}, array: [[""]] },
+        {
+            string: encodeString(`Country+Name~United+States`),
             object: { "Country Name": "United States" },
+            array: [["Country Name", "United States"]],
         },
         {
-            string: `countries${DEFAULT_COLUMN_DELIMITER}United+States${DEFAULT_COLUMN_DELIMITER}Germany${DEFAULT_ROW_DELIMITER}chart${DEFAULT_COLUMN_DELIMITER}Map`,
+            string: encodeString(`countries~United+States~Germany...chart~Map`),
             object: {
                 countries: ["United States", "Germany"],
                 chart: "Map",
             },
+            array: [
+                ["countries", "United States", "Germany"],
+                ["chart", "Map"],
+            ],
+        },
+        {
+            string: `group~HighIncome~Canada~Norway...group~MediumIncome~Spain~Greece`,
+            array: [
+                ["group", "HighIncome", "Canada", "Norway"],
+                ["group", "MediumIncome", "Spain", "Greece"],
+            ],
+        },
+        {
+            string: `filters~...~time~lastMonth`,
+            array: [
+                [`filters`, ""],
+                ["", `time`, `lastMonth`],
+            ],
+            object: {
+                filters: "",
+                "": [`time`, `lastMonth`],
+            },
+        },
+        {
+            string: `paragraph${DefaultPatchGrammar.columnDelimiter}${DefaultPatchGrammar.encodedRowDelimiter}${DefaultPatchGrammar.encodedColumnDelimiter}`,
+            object: {
+                paragraph: `${DefaultPatchGrammar.rowDelimiter}${DefaultPatchGrammar.columnDelimiter}`,
+            },
+            array: [
+                [
+                    "paragraph",
+                    `${DefaultPatchGrammar.rowDelimiter}${DefaultPatchGrammar.columnDelimiter}`,
+                ],
+            ],
         },
     ]
     tests.forEach((test) => {
-        it("can encode objects", () => {
-            expect(new Patch(test.object).uriEncodedString).toEqual(test.string)
+        if (test.object) {
+            it("can encode objects to strings", () => {
+                expect(new Patch(test.object).uriEncodedString).toEqual(
+                    test.string
+                )
+            })
+            it("can encode objects to arrays", () => {
+                expect(new Patch(test.object).array).toEqual(test.array)
+            })
+
+            it("can encode strings to objects", () => {
+                expect(new Patch(test.string).object).toEqual(test.object)
+            })
+
+            it("can encode arrays to objects", () => {
+                expect(new Patch(test.array).object).toEqual(test.object)
+            })
+        }
+
+        it("can encode strings to arrays", () => {
+            expect(new Patch(test.string).array).toEqual(test.array)
         })
 
-        it("can decode objects", () => {
-            expect(new Patch(test.string).object).toEqual(test.object)
+        it("can encode arrays to strings", () => {
+            expect(new Patch(test.array).uriEncodedString).toEqual(test.string)
         })
     })
 })

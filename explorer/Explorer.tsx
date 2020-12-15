@@ -316,13 +316,8 @@ export class Explorer
     }
 
     @computed private get encodedQueryString() {
-        const encodedPatch = new Patch(this.patchObject).uriEncodedString
+        const encodedPatch = new Patch(this.patchObject as any).uriEncodedString
         return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
-    }
-
-    // Just for debugging
-    @computed private get patchAsTsv() {
-        return new Patch(this.patchObject, "\n", "\t").uriEncodedString
     }
 
     @computed get patchObject(): ExplorerPatchObject {
