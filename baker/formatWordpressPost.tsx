@@ -226,12 +226,12 @@ export const formatWordpressPost = async (
         $lastUpdated.remove()
     }
 
-    // Extract page subtitle
-    let pageSubtitle
-    const $pageSubtitle = cheerioEl(".wp-block-page-subtitle")
-    if ($pageSubtitle.length) {
-        pageSubtitle = $pageSubtitle.text()
-        $pageSubtitle.remove()
+    // Extract page supertitle
+    let supertitle
+    const $supertitle = $(".wp-block-owid-supertitle")
+    if ($supertitle.length) {
+        supertitle = $supertitle.text()
+        $supertitle.remove()
     }
 
     // Extract page byline
@@ -623,7 +623,8 @@ export const formatWordpressPost = async (
         slug: post.slug,
         path: post.path,
         title: post.title,
-        subtitle: pageSubtitle,
+        subtitle: post.subtitle,
+        supertitle: supertitle,
         date: post.date,
         modifiedDate: post.modifiedDate,
         lastUpdated: lastUpdated,

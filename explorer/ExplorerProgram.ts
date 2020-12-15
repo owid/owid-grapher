@@ -33,7 +33,7 @@ import { SerializedGridProgram } from "../clientUtils/owidTypes"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { GrapherGrammar } from "../explorer/GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
-import { objectToPatch, objectFromPatch } from "./Patch"
+import { Patch } from "../patch/Patch"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -82,8 +82,8 @@ export class ExplorerProgram extends GridProgram {
         return this.slug + EXPLORER_FILE_SUFFIX
     }
 
-    initDecisionMatrix(patch = "") {
-        this.decisionMatrix.setValuesFromPatch(patch)
+    initDecisionMatrix(uriEncodedPatch = "") {
+        this.decisionMatrix.setValuesFromPatch(uriEncodedPatch)
         return this
     }
 
@@ -141,7 +141,9 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get selection() {
-        return this.getLineValue(ExplorerGrammar.selection.keyword)
+        return this.getLine(ExplorerGrammar.selection.keyword)
+            ?.split(this.cellDelimiter)
+            .slice(1)
     }
 
     get pickerColumnSlugs() {
@@ -417,7 +419,7 @@ export class DecisionMatrix {
             this.choiceNames.forEach((name) => {
                 patchObject[name] = row[name]
             })
-            return objectToPatch(patchObject)
+            return new Patch(patchObject)
         })
     }
 
@@ -489,9 +491,9 @@ export class DecisionMatrix {
         return this
     }
 
-    @action.bound setValuesFromPatch(patch = "") {
+    @action.bound setValuesFromPatch(uriEncodedPatch = "") {
         return this.setValuesFromPatchObject(
-            objectFromPatch(decodeURIComponent(patch)) as DecisionsPatchObject
+            new Patch(uriEncodedPatch).object as DecisionsPatchObject
         )
     }
 

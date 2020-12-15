@@ -28,7 +28,7 @@ export const GIT_DEFAULT_USERNAME =
 export const GIT_DEFAULT_EMAIL =
     clientSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
 
-export const BLOG_POSTS_PER_PAGE = clientSettings.BLOG_POSTS_PER_PAGE ?? 20
+export const BLOG_POSTS_PER_PAGE = clientSettings.BLOG_POSTS_PER_PAGE ?? 21
 export const BLOG_SLUG = clientSettings.BLOG_SLUG ?? "blog"
 
 export const ALGOLIA_ID = clientSettings.ALGOLIA_ID ?? ""

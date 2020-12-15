@@ -2,9 +2,9 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "./formatting"
 import { range } from "../clientUtils/Util"
 import { FullPost } from "../clientUtils/owidTypes"
+import PostCard from "./PostCard/PostCard"
 
 export const BlogIndexPage = (props: {
     posts: FullPost[]
@@ -34,21 +34,7 @@ export const BlogIndexPage = (props: {
                         <ul className="posts">
                             {posts.map((post) => (
                                 <li key={post.slug} className="post">
-                                    <a href={`/${post.path}`}>
-                                        {post.imageUrl && (
-                                            <div
-                                                className="cover-image"
-                                                style={{
-                                                    backgroundImage: `url(${post.imageUrl})`,
-                                                }}
-                                            />
-                                        )}
-                                        <h3>{post.title}</h3>
-                                        <div className="entry-meta">
-                                            <time>{formatDate(post.date)}</time>{" "}
-                                            by {formatAuthors(post.authors)}
-                                        </div>
-                                    </a>
+                                    <PostCard post={post} />
                                 </li>
                             ))}
                         </ul>

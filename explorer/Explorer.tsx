@@ -12,7 +12,6 @@ import {
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import { ENTITY_V2_DELIMITER } from "../grapher/core/EntityUrlBuilder"
 import {
     Grapher,
     GrapherManager,
@@ -32,6 +31,7 @@ import {
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
+    PATCH_QUERY_PARAM,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "./ExplorerConstants"
@@ -51,16 +51,12 @@ import classNames from "classnames"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
 import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
-import {
-    getPatchFromQueryString,
-    objectFromPatch,
-    objectToPatch,
-} from "./Patch"
-import { setWindowQueryStr } from "../clientUtils/url"
+import { Patch } from "../patch/Patch"
+import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
-    patch?: string
+    uriEncodedPatch?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     canonicalUrl?: string
@@ -83,7 +79,9 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                patch={getPatchFromQueryString(window.location.search)}
+                uriEncodedPatch={
+                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
+                }
                 key={Date.now()}
             />,
             document.getElementById(ExplorerContainerId)
@@ -116,25 +114,26 @@ export class Explorer
         ReactDOM.render(
             <Explorer
                 {...props}
-                patch={getPatchFromQueryString(window.location.search)}
+                uriEncodedPatch={
+                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
+                }
             />,
             document.getElementById(ExplorerContainerId)
         )
     }
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
-        this.props.patch
+        this.props.uriEncodedPatch
     )
 
-    private initialPatchObject = objectFromPatch(
-        this.props.patch
-    ) as ExplorerPatchObject
+    private initialPatchObject = new Patch(this.props.uriEncodedPatch)
+        .object as ExplorerPatchObject
 
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
     selection = new SelectionArray(
-        this.explorerProgram.selection?.split(ENTITY_V2_DELIMITER),
+        this.explorerProgram.selection,
         undefined,
         this.explorerProgram.entityType
     )
@@ -200,12 +199,14 @@ export class Explorer
                 ...grapher.params,
             }
         }
-        const queryStr =
+        const queryParams =
             grapher.id !== undefined ? grapher.params : this.initialPatchObject
 
         if (!grapher.slideShow)
             grapher.slideShow = new SlideShowController(
-                this.explorerProgram.decisionMatrix.allDecisionsAsPatches(),
+                this.explorerProgram.decisionMatrix
+                    .allDecisionsAsPatches()
+                    .map((patch) => patch.uriEncodedString),
                 0,
                 this
             )
@@ -228,7 +229,7 @@ export class Explorer
         grapher.updateFromObject(config)
         this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
-        grapher.populateFromQueryParams(queryStr)
+        grapher.populateFromQueryParams(queryParams)
         grapher.downloadData()
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
@@ -306,7 +307,7 @@ export class Explorer
         const debouncedPushParams = debounce(pushParams, 100)
 
         reaction(
-            () => this.params,
+            () => this.patchObject,
             () =>
                 this.grapher?.debounceMode
                     ? debouncedPushParams()
@@ -315,20 +316,11 @@ export class Explorer
     }
 
     @computed private get encodedQueryString() {
-        const encodedPatch = encodeURIComponent(this.patch)
-        return encodedPatch ? `?patch=` + encodedPatch : ""
+        const encodedPatch = new Patch(this.patchObject as any).uriEncodedString
+        return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
     }
 
-    @computed private get patch() {
-        return objectToPatch(this.params)
-    }
-
-    // Just for debugging
-    @computed private get patchAsTsv() {
-        return objectToPatch(this.params, "\n", "\t")
-    }
-
-    @computed get params(): ExplorerPatchObject {
+    @computed get patchObject(): ExplorerPatchObject {
         if (!this.grapher) return {}
 
         const { decisionMatrix } = this.explorerProgram
@@ -347,14 +339,15 @@ export class Explorer
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
-                objectToPatch(decisionsPatchObject)
+                new Patch(decisionsPatchObject).uriEncodedString
             )
 
         const patchObject = {
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
+            // todo: handle selection
             selection: this.selection.hasSelection
-                ? this.selection.selectedEntityNames.join(ENTITY_V2_DELIMITER)
+                ? this.selection.selectedEntityNames
                 : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,

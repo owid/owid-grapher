@@ -20,7 +20,9 @@ export const CovidPage = (props: { baseUrl: string }) => (
                 <article className="page no-sidebar large-banner">
                     <div className="offset-header">
                         <header className="article-header">
-                            <h1 className="entry-title">COVID-19</h1>
+                            <div className="article-titles">
+                                <h1 className="entry-title">COVID-19</h1>
+                            </div>
                         </header>
                     </div>
 

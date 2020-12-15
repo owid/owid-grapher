@@ -21,7 +21,7 @@ describe(Explorer, () => {
 
     it("maintains changed params in url even if a user switches to a chart where the param is the default", () => {
         const explorer = element.instance() as Explorer
-        expect(explorer.params.stackMode).toEqual(undefined)
+        expect(explorer.patchObject.stackMode).toEqual(undefined)
         // todo: add more tests
     })
 })

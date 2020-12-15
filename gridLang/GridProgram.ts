@@ -161,10 +161,14 @@ export class GridProgram {
         return obj
     }
 
-    getLineValue(keyword: string) {
-        const line = this.lines.find((line) =>
+    getLine(keyword: string) {
+        return this.lines.find((line) =>
             line.startsWith(keyword + this.cellDelimiter)
         )
+    }
+
+    getLineValue(keyword: string) {
+        const line = this.getLine(keyword)
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
 
