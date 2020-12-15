@@ -53,6 +53,7 @@ import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
 import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
+import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -535,8 +536,15 @@ export class Explorer
         return `${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
     }
 
+    @computed get baseUrl() {
+        return `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
+    }
+
     @computed get canonicalUrl() {
-        return (this.props.canonicalUrl ?? "") + this.encodedQueryString
+        return (
+            this.props.canonicalUrl ??
+            (this.baseUrl ? this.baseUrl + this.encodedQueryString : undefined)
+        )
     }
 
     @computed get entityPickerTable() {
