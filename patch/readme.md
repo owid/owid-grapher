@@ -2,35 +2,70 @@
 
 Patch is a tiny library with no external dependencies that provides an **immutable** object that maps a subset of Javascript object literals to a URI encoded string.
 
-A Patch is isomorphic to a TSV. With Patch, you design your query params so that they map to a TSV document. Then Patch encodes and decodes that document.
+Patch gets its power from its isomorphisms. With Patch, you design your query params so that they map to a TSV document. Then Patch encodes and decodes that document.
 
 ## Quick Example
 
 ```json
 {
     "selection": "Canada",
-    "year": 2000,
+    "year": "2000",
     "tab": "map"
 }
 ```
 
 Serializing this Object Literal into a URL looks like:
 
-**Before Patch** `selection=Canada&year=2000&tab=map`
+**Without Patch** `selection=Canada&year=2000&tab=map`
 
-**After Patch** `patch=selection-is-Canada-and-year-is-2000-and-tab-is-map`
+**With Patch** `patch=selection~Canada...year~2000...tab~map`
 
 The Patch is isomorphic to this TSV:
 
 ```tsv
-selection	Canada
-year	2000
-tab	map
+selection\tCanada
+year\t2000
+tab\tmap
 ```
 
 ## Specification
 
-**Data Structure** Patch maps to a TSV, which could also be thought of as `(string: string | string[])[]
+### The 4 Isomorphisms of Patch
+
+A Patch object has 4 forms:
+
+1. URI encoded string form
+
+```
+countries~Canada~France...year~2020
+```
+
+2.  TSV form (or any similarly delimited form)
+
+```
+countries\tCanada\tFrance
+year\t2020
+```
+
+3.  JSON Superset Form (AKA Object Literal Form)
+
+```
+{
+    "countries": ["Canada", "France"],
+    "years": ["2020"],
+}
+```
+
+4.  Javascript Matrix Form
+
+```
+[
+    ["countries", "Canada", "France"],
+    ["years", "2020", "France],
+]
+```
+
+Note: if you use form #3 and have duplicate identifiers, be sure to parse yourself as JSON does not support duplicate identifiers.
 
 **URI Encoding** String inputs to the Patch constructor are assumed to be encoded with `encodeURIComponent` and will be decoded before parsing. Similarly the string output is always encoded.
 
@@ -66,7 +101,7 @@ It is a very low level DSL; arguably adds little to no value on top of just a si
 
 Patch is a DSL let's you use any data structure you want and handles the compiling/decompiling to QueryString, while preserving human readability.
 
-JSON would be a similar alternative to Patch, except you completely lose human readability in query strings, and it suffers from JSONs lack of certain data structures.
+JSON would be a similar alternative to Patch, except you completely lose human readability in query strings, and it suffers from JSONs lack of certain data structures, like tuple arrays.
 
 Some benefits of Patch:
 
