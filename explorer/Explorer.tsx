@@ -57,7 +57,7 @@ import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
-    patch?: string
+    uriEncodedPatch?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     canonicalUrl?: string
@@ -80,7 +80,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                patch={
+                uriEncodedPatch={
                     strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
                 }
                 key={Date.now()}
@@ -115,7 +115,7 @@ export class Explorer
         ReactDOM.render(
             <Explorer
                 {...props}
-                patch={
+                uriEncodedPatch={
                     strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
                 }
             />,
@@ -124,10 +124,10 @@ export class Explorer
     }
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
-        this.props.patch
+        this.props.uriEncodedPatch
     )
 
-    private initialPatchObject = new Patch(this.props.patch)
+    private initialPatchObject = new Patch(this.props.uriEncodedPatch)
         .object as ExplorerPatchObject
 
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
@@ -207,7 +207,7 @@ export class Explorer
             grapher.slideShow = new SlideShowController(
                 this.explorerProgram.decisionMatrix
                     .allDecisionsAsPatches()
-                    .map((patch) => patch.string),
+                    .map((patch) => patch.uriEncodedString),
                 0,
                 this
             )
@@ -317,17 +317,13 @@ export class Explorer
     }
 
     @computed private get encodedQueryString() {
-        const encodedPatch = encodeURIComponent(this.patch)
+        const encodedPatch = new Patch(this.patchObject).uriEncodedString
         return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
-    }
-
-    @computed private get patch() {
-        return new Patch(this.patchObject).string
     }
 
     // Just for debugging
     @computed private get patchAsTsv() {
-        return new Patch(this.patchObject, "\n", "\t").string
+        return new Patch(this.patchObject, "\n", "\t").uriEncodedString
     }
 
     @computed get patchObject(): ExplorerPatchObject {
@@ -349,7 +345,7 @@ export class Explorer
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
-                new Patch(decisionsPatchObject).string
+                new Patch(decisionsPatchObject).uriEncodedString
             )
 
         const patchObject = {

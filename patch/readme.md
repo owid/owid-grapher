@@ -1,69 +1,53 @@
-# Patch: instead of query params use a TSV
+# Patch: a tiny DSL for query strings
 
-Patch is a tiny immutable data structure and DSL for encoding Javascript object literals into query strings. Patch has no external dependencies.
+Patch is a tiny library with no external dependencies that provides an **immutable** object that maps a subset of Javascript object literals to a URI encoded string.
 
-With Patch, you design your query params so that they map to a TSV document. Then Patch encodes and decodes that document.
+A Patch is isomorphic to a TSV. With Patch, you design your query params so that they map to a TSV document. Then Patch encodes and decodes that document.
 
-Quick example:
-
-Instead of turning this:
+## Quick Example
 
 ```json
 {
-    "selection": ["USA", "Canada"],
+    "selection": "Canada",
     "year": 2000,
     "tab": "map"
 }
 ```
 
-into this:
+Serializing this Object Literal into a URL looks like:
 
-```
-country=USA~Canada&year=2000&tab=map
-```
+**Before Patch** `selection=Canada&year=2000&tab=map`
 
-Turn this:
+**After Patch** `patch=selection-is-Canada-and-year-is-2000-and-tab-is-map`
+
+The Patch is isomorphic to this TSV:
 
 ```tsv
-selection	USA	Canada
+selection	Canada
 year	2000
 tab	map
 ```
 
-into this:
+## Specification
 
-```
-patch=selection-is-USA~Canada-and-year-is-2000-and-tab-is-map
-```
+**URI Encoding** String inputs to the Patch constructor are assumed to be encoded with `encodeURIComponent` and will be decoded before parsing. Similarly the string output is always encoded.
 
-Tabs become "-is-"
-Newlines become -and-"
+**Delimiters** Patch requires 2 delimiters, one for separating "rows" and one for separating "columns". Patch is isomorphic to TSVs. Currently for the delimiters
+we use "-is-" for tabs and "-and-" for newlines. You can change those to suit your own preferences or needs.
 
-(But the delimiters are params that you can define yourself)
+**Versioning** Just use semantic versioning, only caring about breaking changes so only a major version: `patchVersion=2&patch=...`
 
-## Benefits
+**No Escape Characters** Patch does not have an escape character mechanism. You may need to change the Delimiters to support rare use cases.
 
-1. A single place to encode and decode your params. Just encode/decode the whole patch. Do not decode/encode N times for every parameter nor invent a special encoding scheme for each param.
-2. Cleanly encodes arrays and nested structures.
-3. Improved human readability for short params; greatly improved readability for complex params.
-4. Versioning with easy upgrading.
-5. Very easy to debug—it's just a patch!
+**Spaces** Patch encodes spaces to "+" instead of "%20" and uses the standard encoding of "+" to "%2B".
 
-## How to use
+## When to use
 
-1. Patch comes in handy when you have GridLangs that:
+Patch comes in handy when you have GridLangs that:
 
 -   have state
 -   that the user can change
--   that the user should be able to take with them and rehydrate the class with
-
-2. Bind your patch to the window.
-
-## Versioning
-
-Just use semantic versioning, only caring about breaking changes so only a major version:
-
-patchVersion=2&patch=...
+-   that the user should be able to take with them and rehydrate the class with via URLs
 
 ## Context
 
@@ -78,6 +62,14 @@ It has a one very restricted string type, and does not have any concept of numbe
 
 It is a very low level DSL; arguably adds little to no value on top of just a single string.
 
-Patch is a DSL let's us use any data structure we want and handles the compiling/decompiling to QueryString, while preserving human readability.
+Patch is a DSL let's you use any data structure you want and handles the compiling/decompiling to QueryString, while preserving human readability.
 
 JSON would be a similar alternative to Patch, except you completely lose human readability in query strings, and it suffers from JSONs lack of certain data structures.
+
+Some benefits of Patch:
+
+1. A single place to encode and decode your params. Just encode/decode the whole patch. Do not decode/encode N times for every parameter nor invent a special encoding scheme for each param.
+2. Cleanly encodes arrays and nested structures.
+3. Improved human readability for short params; greatly improved readability for complex params.
+4. Versioning with easy upgrading.
+5. Very easy to debug—it's just a patch!

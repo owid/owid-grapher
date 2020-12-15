@@ -3,7 +3,7 @@ export const DEFAULT_COLUMN_DELIMITER = "-is-"
 
 export class Patch {
     object: any
-    string: string
+    uriEncodedString: string
     private rowDelimiter: string
     private columnDelimiter: string
     constructor(
@@ -17,7 +17,9 @@ export class Patch {
             (typeof strOrObjLiteral === "string"
                 ? this.fromString(strOrObjLiteral)
                 : strOrObjLiteral) ?? {}
-        this.string = this.toString(this.object)
+        this.uriEncodedString = encodeURIComponent(
+            this.toString(this.object)
+        ).replace(/\%20/g, "+")
     }
 
     // Note: assumes that neither no key nor value in obj has a newline or tab character
@@ -27,8 +29,9 @@ export class Patch {
             .join(this.rowDelimiter)
     }
 
-    private fromString(str: string) {
+    private fromString(uriEncodedPatch: string) {
         const obj: any = {}
+        const str = decodeURIComponent(uriEncodedPatch.replace(/\+/g, "%20"))
         str.split(this.rowDelimiter).forEach((line) => {
             line = line.trim()
             if (!line) return
