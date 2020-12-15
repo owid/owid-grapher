@@ -43,7 +43,7 @@ tooling:
     build:
         description: Installs dependencies and builds app
         service: node
-        cmd: cd web/app/plugins/owid && yarn buildWebpack
+        cmd: cd web/app/plugins/owid && yarn build
     dev:
         description: Starts development for OWID plugin
         service: node
