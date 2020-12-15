@@ -12,7 +12,6 @@ import {
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import { ENTITY_V2_DELIMITER } from "../grapher/core/EntityUrlBuilder"
 import {
     Grapher,
     GrapherManager,
@@ -134,7 +133,7 @@ export class Explorer
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
     selection = new SelectionArray(
-        this.explorerProgram.selection?.split(ENTITY_V2_DELIMITER),
+        this.explorerProgram.selection,
         undefined,
         this.explorerProgram.entityType
     )
@@ -200,7 +199,7 @@ export class Explorer
                 ...grapher.params,
             }
         }
-        const queryStr =
+        const queryParams =
             grapher.id !== undefined ? grapher.params : this.initialPatchObject
 
         if (!grapher.slideShow)
@@ -230,7 +229,7 @@ export class Explorer
         grapher.updateFromObject(config)
         this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
-        grapher.populateFromQueryParams(queryStr)
+        grapher.populateFromQueryParams(queryParams)
         grapher.downloadData()
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
@@ -351,8 +350,9 @@ export class Explorer
         const patchObject = {
             ...this.grapherParamsChangedThisSession,
             ...this.grapher.params,
+            // todo: handle selection
             selection: this.selection.hasSelection
-                ? this.selection.selectedEntityNames.join(ENTITY_V2_DELIMITER)
+                ? this.selection.selectedEntityNames
                 : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
