@@ -8,7 +8,9 @@ const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 
-const config: webpack.ConfigurationFactory = (env, argv) => {
+import { readClientSettings } from "./settings/clientSettingsReader"
+
+const config: webpack.ConfigurationFactory = async (env, argv) => {
     const isProduction = argv.mode === "production"
 
     // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
@@ -89,6 +91,18 @@ const config: webpack.ConfigurationFactory = (env, argv) => {
 
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
+
+            // Provide clientSettings object to our build output, read from clientSettings.json
+            new webpack.DefinePlugin({
+                "process.env.clientSettings": JSON.stringify(
+                    await readClientSettings(baseDir)
+                ),
+            }),
+
+            // Ensure serverSettings.ts and clientSettingsReader.ts never end up in a webpack build by accident
+            new webpack.IgnorePlugin(
+                /settings\/(serverSettings|clientSettingsReader)/
+            ),
 
             // Remove all moment locales except for "en"
             // This way of doing so is recommended by Moment itself: https://momentjs.com/docs/#/use-it/webpack/

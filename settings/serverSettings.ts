@@ -1,12 +1,12 @@
 // This is where server-side only, potentially sensitive settings enter from the environment
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
-import { existsSync, readFileSync } from "fs-extra"
+import fs from "fs-extra"
 
 export const BASE_DIR = __dirname + "/../../"
 const absoluteSettingsPath = BASE_DIR + "serverSettings.json"
-const localOverrides: any = existsSync(absoluteSettingsPath)
-    ? JSON.parse(readFileSync(absoluteSettingsPath, "utf8"))
+const localOverrides: any = fs.existsSync(absoluteSettingsPath)
+    ? fs.readJsonSync(absoluteSettingsPath)
     : {}
 
 export const DB_NAME = localOverrides.DB_NAME ?? "owid"
