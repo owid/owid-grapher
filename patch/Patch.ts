@@ -36,7 +36,6 @@ export class Patch {
         else this.uriEncodedString = this.objectToEncodedString(patchInput)
     }
 
-    // Note: assumes that neither no key nor value in obj has a newline or tab character
     private objectToEncodedString(obj: PatchCompatibleObjectLiteral) {
         return Object.keys(obj)
             .map((identifierCell) => {
