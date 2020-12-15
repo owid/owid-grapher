@@ -89,4 +89,13 @@ describe(Patch, () => {
             expect(new Patch(test.array).uriEncodedString).toEqual(test.string)
         })
     })
+
+    it("can pass the devils test case", () => {
+        const original = {
+            title: "!*'();:@&=+$,/?#[]-_.~|\"\\",
+        }
+        expect(new Patch(new Patch(original).uriEncodedString).object).toEqual(
+            original
+        )
+    })
 })
