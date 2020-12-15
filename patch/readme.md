@@ -30,6 +30,8 @@ tab	map
 
 ## Specification
 
+**Data Structure** Patch maps to a TSV, which could also be thought of as `(string: string | string[])[]
+
 **URI Encoding** String inputs to the Patch constructor are assumed to be encoded with `encodeURIComponent` and will be decoded before parsing. Similarly the string output is always encoded.
 
 **Delimiters** Patch requires 2 delimiters, one for separating "rows" and one for separating "columns". Patch is isomorphic to TSVs. Currently for the delimiters

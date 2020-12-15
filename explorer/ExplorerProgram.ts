@@ -141,7 +141,9 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get selection() {
-        return this.getLineValue(ExplorerGrammar.selection.keyword)
+        return this.getLine(ExplorerGrammar.selection.keyword)
+            ?.split(this.cellDelimiter)
+            .slice(1)
     }
 
     get pickerColumnSlugs() {
