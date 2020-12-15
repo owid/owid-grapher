@@ -48,6 +48,7 @@ export interface FormattedPost {
     path: string
     title: string
     subtitle?: string | null
+    supertitle?: string | null
     date: Date
     modifiedDate: Date
     lastUpdated?: string | null
@@ -150,6 +151,7 @@ export interface FullPost {
     slug: string
     path: string
     title: string
+    subtitle?: string
     date: Date
     modifiedDate: Date
     authors: string[]

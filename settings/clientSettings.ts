@@ -20,7 +20,7 @@ const defaultSettings = {
     GIT_DEFAULT_USERNAME: "Our World in Data",
     GIT_DEFAULT_EMAIL: "info@ourworldindata.org",
 
-    BLOG_POSTS_PER_PAGE: 20,
+    BLOG_POSTS_PER_PAGE: 21,
     BLOG_SLUG: "blog",
 
     ALGOLIA_ID: "",
