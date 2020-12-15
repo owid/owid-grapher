@@ -32,6 +32,7 @@ import {
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
+    PATCH_QUERY_PARAM,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_PATCH,
 } from "./ExplorerConstants"
@@ -79,7 +80,9 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                patch={strToQueryParams(window.location.search).patch}
+                patch={
+                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
+                }
                 key={Date.now()}
             />,
             document.getElementById(ExplorerContainerId)
@@ -112,7 +115,9 @@ export class Explorer
         ReactDOM.render(
             <Explorer
                 {...props}
-                patch={strToQueryParams(window.location.search).patch}
+                patch={
+                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
+                }
             />,
             document.getElementById(ExplorerContainerId)
         )
@@ -303,7 +308,7 @@ export class Explorer
         const debouncedPushParams = debounce(pushParams, 100)
 
         reaction(
-            () => this.params,
+            () => this.patchObject,
             () =>
                 this.grapher?.debounceMode
                     ? debouncedPushParams()
@@ -313,19 +318,19 @@ export class Explorer
 
     @computed private get encodedQueryString() {
         const encodedPatch = encodeURIComponent(this.patch)
-        return encodedPatch ? `?patch=` + encodedPatch : ""
+        return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
     }
 
     @computed private get patch() {
-        return new Patch(this.params).string
+        return new Patch(this.patchObject).string
     }
 
     // Just for debugging
     @computed private get patchAsTsv() {
-        return new Patch(this.params, "\n", "\t").string
+        return new Patch(this.patchObject, "\n", "\t").string
     }
 
-    @computed get params(): ExplorerPatchObject {
+    @computed get patchObject(): ExplorerPatchObject {
         if (!this.grapher) return {}
 
         const { decisionMatrix } = this.explorerProgram
