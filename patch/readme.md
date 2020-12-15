@@ -1,6 +1,6 @@
-# Patch: a tiny DSL for query strings
+# Patch: a tiny DSL for isomorphic query strings
 
-Patch is a tiny library with no external dependencies that provides an **immutable** object that maps a subset of Javascript object literals to a URI encoded string.
+Patch is a tiny library with no external dependencies that provides an **immutable** object with 4 isomorphisms that maps to URI encoded query strings.
 
 Patch gets its power from its isomorphisms. With Patch, you design your query params so that they map to a TSV document. Then Patch encodes and decodes that document.
 
@@ -67,16 +67,14 @@ year\t2020
 
 Note: if you use form #3 and have duplicate identifiers, be sure to parse yourself as JSON does not support duplicate identifiers.
 
-**URI Encoding** String inputs to the Patch constructor are assumed to be encoded with `encodeURIComponent` and will be decoded before parsing. Similarly the string output is always encoded.
+**Delimiters** Patch requires 2 delimiters, one for separating "rows" and one for separating "columns". Currently for the delimiters
+we use "~" for tabs and "..." for newlines. You can change those to suit your own preferences or needs.
 
-**Delimiters** Patch requires 2 delimiters, one for separating "rows" and one for separating "columns". Patch is isomorphic to TSVs. Currently for the delimiters
-we use "-is-" for tabs and "-and-" for newlines. You can change those to suit your own preferences or needs.
-
-**Versioning** Just use semantic versioning, only caring about breaking changes so only a major version: `patchVersion=2&patch=...`
-
-**No Escape Characters** Patch does not have an escape character mechanism. You may need to change the Delimiters to support rare use cases.
+**Versioning** Just use semantic versioning, only caring about breaking changes so only a major version: `patchVersion=2&patch=`
 
 **Spaces** Patch encodes spaces to "+" instead of "%20" and uses the standard encoding of "+" to "%2B".
+
+**URI Encoding** String inputs to the Patch constructor are assumed to be encoded and will be decoded before parsing. Similarly the string output is always encoded.
 
 ## When to use
 
