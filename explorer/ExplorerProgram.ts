@@ -82,8 +82,8 @@ export class ExplorerProgram extends GridProgram {
         return this.slug + EXPLORER_FILE_SUFFIX
     }
 
-    initDecisionMatrix(patch = "") {
-        this.decisionMatrix.setValuesFromPatch(patch)
+    initDecisionMatrix(uriEncodedPatch = "") {
+        this.decisionMatrix.setValuesFromPatch(uriEncodedPatch)
         return this
     }
 
@@ -489,9 +489,9 @@ export class DecisionMatrix {
         return this
     }
 
-    @action.bound setValuesFromPatch(patch = "") {
+    @action.bound setValuesFromPatch(uriEncodedPatch = "") {
         return this.setValuesFromPatchObject(
-            new Patch(decodeURIComponent(patch)).object as DecisionsPatchObject
+            new Patch(uriEncodedPatch).object as DecisionsPatchObject
         )
     }
 
