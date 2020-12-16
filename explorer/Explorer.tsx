@@ -66,6 +66,7 @@ interface ExplorerProps extends SerializedGridProgram {
 interface ExplorerPatchObject extends GrapherQueryParams {
     pickerSort?: SortOrder
     pickerMetric?: ColumnSlug
+    hideControls?: string
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -360,6 +361,7 @@ export class Explorer
                 : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
+            hideControls: this.initialPatchObject.hideControls || undefined,
             ...decisionsPatchObject,
         }
 
@@ -417,7 +419,11 @@ export class Explorer
     @observable private isNarrow = isNarrow()
 
     @computed private get showExplorerControls() {
-        if (this.explorerProgram.hideControls) return false
+        if (
+            this.explorerProgram.hideControls ||
+            this.initialPatchObject.hideControls === "true"
+        )
+            return false
 
         return this.props.isEmbeddedInAnOwidPage ? false : true
     }
