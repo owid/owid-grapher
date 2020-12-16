@@ -215,7 +215,7 @@ export class ColorScale {
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed private get sortedNumericValuesWithoutOutliers() {
+    @computed get sortedNumericValuesWithoutOutliers() {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
