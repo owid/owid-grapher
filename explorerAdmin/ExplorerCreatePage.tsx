@@ -61,6 +61,10 @@ export class ExplorerCreatePage extends React.Component<{
         if (this.props.doNotFetch) return
 
         this.fetchExplorerProgramOnLoad()
+        this.startPollingLocalStorageForPreviewChanges()
+    }
+
+    @action.bound private startPollingLocalStorageForPreviewChanges() {
         setInterval(() => {
             const patch = localStorage.getItem(
                 `${UNSAVED_EXPLORER_PREVIEW_PATCH}${this.program.slug}`

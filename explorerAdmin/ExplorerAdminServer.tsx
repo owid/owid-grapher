@@ -49,7 +49,7 @@ export class ExplorerAdminServer {
         return this._simpleGit
     }
 
-    private async getAllExplorersCommand() {
+    async getAllExplorersCommand() {
         // Download all explorers for the admin index page
         try {
             const explorers = await this.getAllExplorers()
@@ -74,7 +74,6 @@ export class ExplorerAdminServer {
 
     addMockBakedSiteRoutes(app: Router) {
         app.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
-            // XXX add dev-prod parity for this
             res.set("Access-Control-Allow-Origin", "*")
             const explorers = await this.getAllPublishedExplorers()
             const explorerProgram = explorers.find(

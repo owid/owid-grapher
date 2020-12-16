@@ -18,4 +18,10 @@ describe(ExplorerCreatePage, () => {
     it("renders", () => {
         expect(element.find(`.loading-indicator`).length).toEqual(1)
     })
+
+    const explorerCreatePage = element.instance() as ExplorerCreatePage
+
+    it("edit methods work", () => {
+        expect(explorerCreatePage.isModified).toEqual(false)
+    })
 })
