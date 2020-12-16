@@ -233,7 +233,10 @@ export class ColorScale {
             (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
         )
 
-        if (deviation(withoutOutliers) === 0) {
+        // d3-array returns a deviation of `undefined` for arrays of length <= 1, so set it to 0 in that case
+        const deviationWithoutOutliers = deviation(withoutOutliers) ?? 0
+
+        if (deviationWithoutOutliers === 0) {
             // if after removing outliers we end up in a state where the std. dev. is 0, i.e. we only
             // have one distinct value, then we actually want to _keep_ the outliers in
             return sortedNumericValues
