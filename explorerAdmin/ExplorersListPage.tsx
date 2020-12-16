@@ -53,6 +53,7 @@ class ExplorerRow extends React.Component<{
             googleSheet,
             isPublished,
             explorerTitle,
+            title,
             grapherCount,
             tableCount,
             inlineTableCount,
@@ -61,6 +62,8 @@ class ExplorerRow extends React.Component<{
         const publishedUrl = `https://${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
         const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/${EXPLORERS_GIT_CMS_FOLDER}/`
         const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
+
+        const titleToShow = explorerTitle ?? title ?? ""
 
         const fileHistoryButton = (
             <a key="explorers" href={repoPath + filename}>
@@ -96,8 +99,8 @@ class ExplorerRow extends React.Component<{
                 </td>
                 <td>
                     {searchHighlight
-                        ? searchHighlight(explorerTitle || "")
-                        : explorerTitle}
+                        ? searchHighlight(titleToShow)
+                        : titleToShow}
                     <div style={{ fontSize: "80%", opacity: 0.8 }}>
                         {`${grapherCount} grapher${
                             grapherCount > 1 ? "s" : ""
