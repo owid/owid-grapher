@@ -153,11 +153,11 @@ export class Explorer
 
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
-        this.updateGrapher()
+        this.reactToUserChangingSelection()
         // Whenever the selected row changes, update Grapher.
         autorun(() => {
             this.explorerProgram.decisionMatrix.selectedRow
-            this.updateGrapher()
+            this.reactToUserChangingSelection()
         })
 
         exposeInstanceOnWindow(this, "explorer")
@@ -174,11 +174,33 @@ export class Explorer
             window.removeEventListener("resize", this.onResizeThrottled)
     }
 
-    // todo: break this method up and unit test more
-    @action.bound private updateGrapher() {
-        const grapher = this.grapher
-        if (!grapher) return // todo: can we remove this?
+    private snapshotCurrentChangedGrapherParams() {
+        // only start storing params after first grapher load
+        // todo: ideally we can factor this thingy out
+        this.grapherParamsChangedSincePageLoad = {
+            ...this.grapherParamsChangedSincePageLoad,
+            ...this.grapher!.changedParams,
+        }
+    }
 
+    private initSlideshow() {
+        const grapher = this.grapher
+        if (!grapher || grapher.slideShow) return
+
+        grapher.slideShow = new SlideShowController(
+            this.explorerProgram.decisionMatrix
+                .allDecisionsAsPatches()
+                .map((patch) => patch.uriEncodedString),
+            0,
+            this
+        )
+    }
+
+    // todo: break this method up and unit test more. this is pretty ugly right now.
+    @action.bound private reactToUserChangingSelection() {
+        if (!this.grapher) return // todo: can we remove this?
+        const grapher = this.grapher
+        this.initSlideshow()
         const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
 
         const {
@@ -192,24 +214,12 @@ export class Explorer
 
         if (hasGrapherId && grapher.id === grapherId) return
 
-        if (grapher.id !== undefined) {
-            // only start storing after first grapher load
-            this.grapherParamsChangedThisSession = {
-                ...this.grapherParamsChangedThisSession,
-                ...grapher.params,
-            }
-        }
-        const queryParams =
-            grapher.id !== undefined ? grapher.params : this.initialPatchObject
+        if (grapher.id !== undefined) this.snapshotCurrentChangedGrapherParams()
 
-        if (!grapher.slideShow)
-            grapher.slideShow = new SlideShowController(
-                this.explorerProgram.decisionMatrix
-                    .allDecisionsAsPatches()
-                    .map((patch) => patch.uriEncodedString),
-                0,
-                this
-            )
+        const queryParams =
+            grapher.id !== undefined
+                ? grapher.changedParams
+                : this.initialPatchObject
 
         const grapherConfig =
             grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
@@ -223,7 +233,6 @@ export class Explorer
 
         grapher.setAuthoredVersion(config)
         grapher.reset()
-
         grapher.yAxis.canChangeScaleType = yScaleToggle
         grapher.yAxis.min = yAxisMin
         grapher.updateFromObject(config)
@@ -342,10 +351,9 @@ export class Explorer
                 new Patch(decisionsPatchObject).uriEncodedString
             )
 
-        const patchObject = {
-            ...this.grapherParamsChangedThisSession,
-            ...this.grapher.params,
-            // todo: handle selection
+        const explorerPatchObject = {
+            ...this.grapherParamsChangedSincePageLoad,
+            ...this.grapher.changedParams,
             selection: this.selection.hasSelection
                 ? this.selection.selectedEntityNames
                 : undefined,
@@ -354,7 +362,7 @@ export class Explorer
             ...decisionsPatchObject,
         }
 
-        return trimObject(patchObject)
+        return trimObject(explorerPatchObject)
     }
 
     /**
@@ -368,7 +376,7 @@ export class Explorer
      *
      * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
      */
-    private grapherParamsChangedThisSession: ExplorerPatchObject = {}
+    private grapherParamsChangedSincePageLoad: ExplorerPatchObject = {}
 
     private get panels() {
         return this.explorerProgram.decisionMatrix.choicesWithAvailability.map(

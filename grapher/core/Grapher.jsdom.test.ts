@@ -191,17 +191,17 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
         map: { time: 5000 },
     })
     if (props) grapher.updateFromObject(props)
-    return grapher.params
+    return grapher.changedParams
 }
 
 it("can serialize scaleType if it changes", () => {
-    expect(new Grapher().params.xScale).toEqual(undefined)
+    expect(new Grapher().changedParams.xScale).toEqual(undefined)
     const grapher = new Grapher({
         xAxis: { scaleType: ScaleType.linear },
     })
-    expect(grapher.params.xScale).toEqual(undefined)
+    expect(grapher.changedParams.xScale).toEqual(undefined)
     grapher.xAxis.scaleType = ScaleType.log
-    expect(grapher.params.xScale).toEqual(ScaleType.log)
+    expect(grapher.changedParams.xScale).toEqual(ScaleType.log)
 })
 
 describe("currentTitle", () => {
@@ -485,7 +485,7 @@ describe("time parameter", () => {
                 minTime: 0,
                 maxTime: 75,
             })
-            expect(grapher.params.time).toEqual(undefined)
+            expect(grapher.changedParams.time).toEqual(undefined)
         })
 
         it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
@@ -493,7 +493,7 @@ describe("time parameter", () => {
                 minTime: undefined,
                 maxTime: 75,
             })
-            expect(grapher.params.time).toEqual(undefined)
+            expect(grapher.changedParams.time).toEqual(undefined)
         })
     })
 
@@ -618,7 +618,7 @@ describe("time parameter", () => {
                         minTime: test.param[0],
                         maxTime: test.param[1],
                     })
-                    const params = grapher.params
+                    const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
                 })
             }
@@ -740,7 +740,7 @@ describe("year parameter (applies to map only)", () => {
                         tab: GrapherTabOption.map,
                         map: { time: test.param },
                     })
-                    const params = grapher.params
+                    const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
                 })
             }

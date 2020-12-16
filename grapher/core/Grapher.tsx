@@ -1902,11 +1902,11 @@ export class Grapher
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = () =>
-            setWindowQueryStr(queryParamsToStr(this.params))
+            setWindowQueryStr(queryParamsToStr(this.changedParams))
         const debouncedPushParams = debounce(pushParams, 100)
 
         reaction(
-            () => this.params,
+            () => this.changedParams,
             () => (this.debounceMode ? debouncedPushParams() : pushParams())
         )
 
@@ -2058,8 +2058,13 @@ export class Grapher
         return undefined
     }
 
-    @computed get params() {
-        return this.changedParams
+    // Autocomputed url params to reflect difference between current grapher state
+    // and original config state
+    @computed.struct get changedParams() {
+        return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
+            this.allParams,
+            this.authorsVersion.allParams
+        )
     }
 
     // If you want to compare current state against the published grapher.
@@ -2071,17 +2076,8 @@ export class Grapher
         })
     }
 
-    // Autocomputed url params to reflect difference between current grapher state
-    // and original config state
-    @computed.struct private get changedParams() {
-        return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
-            this.allParams,
-            this.authorsVersion.allParams
-        )
-    }
-
     @computed get queryStr() {
-        return queryParamsToStr(this.params)
+        return queryParamsToStr(this.changedParams)
     }
 
     @computed get baseUrl() {
