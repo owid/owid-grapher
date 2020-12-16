@@ -46,9 +46,6 @@ export class GrapherAnalytics {
     logGrapherViewError(error: any, info: any) {
         this.logToAmplitude(EventNames.grapherViewError, { error, info })
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
-        this.logToSA(
-            `${Categories.GrapherError} :: ${EventNames.grapherViewError}`
-        )
     }
 
     logIndicatorExplorerViewError(error: any, info: any) {
@@ -60,9 +57,6 @@ export class GrapherAnalytics {
             Categories.GrapherError,
             EventNames.indicatorExplorerViewError
         )
-        this.logToSA(
-            `${Categories.GrapherError} :: ${EventNames.indicatorExplorerViewError}`
-        )
     }
 
     logEntitiesNotFoundError(entities: string[]) {
@@ -72,25 +66,14 @@ export class GrapherAnalytics {
             EventNames.entitiesNotFound,
             JSON.stringify(entities)
         )
-        this.logToSA(
-            `${Categories.GrapherError} :: ${
-                EventNames.entitiesNotFound
-            } :: ${JSON.stringify(entities)}`
-        )
     }
 
     logGrapherTimelinePlay(slug?: string) {
         this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
-        this.logToSA(
-            `${Categories.GrapherUsage} :: ${EventNames.timelinePlay} :: ${slug}`
-        )
     }
 
     logGlobalEntityControl(action: entityControlEvent, note?: string) {
         this.logToGA(Categories.GlobalEntityControlUsage, action, note)
-        this.logToSA(
-            `${Categories.GlobalEntityControlUsage} :: ${action} :: ${note}`
-        )
     }
 
     logCountrySelectorEvent(
@@ -103,9 +86,6 @@ export class GrapherAnalytics {
             action,
             note
         )
-        this.logToSA(
-            `${countryPickerName}DataExplorerCountrySelector :: ${action} :: ${note}`
-        )
     }
 
     logSiteClick(text: string, note?: string, href?: string) {
@@ -114,18 +94,10 @@ export class GrapherAnalytics {
             note || href || "unknown-category",
             text
         )
-        this.logToSA(
-            `${Categories.SiteClick} :: ${
-                note || "unknown-category"
-            } :: ${text}`
-        )
     }
 
     logKeyboardShortcut(shortcut: string, combo: string) {
         this.logToGA(Categories.KeyboardShortcut, shortcut, combo)
-        this.logToSA(
-            `${Categories.KeyboardShortcut} :: ${shortcut} :: ${combo}`
-        )
     }
 
     startClickTracking() {
@@ -202,16 +174,5 @@ export class GrapherAnalytics {
             // -@danielgavrilov 2020-04-23
             if (tracker) tracker.send(event as any)
         })
-    }
-
-    protected logToSA(eventLabel: string) {
-        if (DEBUG && this.isDev) {
-            // eslint-disable-next-line no-console
-            console.log("Analytics.logToSA", name, eventLabel)
-            return
-        }
-        if (!window.sa_event) return
-
-        window.sa_event(eventLabel)
     }
 }
