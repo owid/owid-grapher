@@ -21,7 +21,12 @@ export const ExpandableInlineBlock = ({
 
     return (
         <span className="expandable-inline-block">
-            <button onClick={toggleVisibility}>{label}</button>
+            <button
+                data-track-note="glossary-toggle"
+                onClick={toggleVisibility}
+            >
+                {label}
+            </button>
             {isVisible && <span>{children}</span>}
         </span>
     )
