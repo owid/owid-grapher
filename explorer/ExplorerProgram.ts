@@ -109,6 +109,10 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.explorerTitle.keyword)
     }
 
+    get title() {
+        return this.getLineValue(ExplorerGrammar.title.keyword)
+    }
+
     get subNavId(): SubNavId | undefined {
         return this.getLineValue(ExplorerGrammar.subNavId.keyword) as SubNavId
     }

@@ -115,7 +115,7 @@ export class ExplorerCreatePage extends React.Component<{
 
     @observable.ref private programOnDisk = new ExplorerProgram("", "")
 
-    @observable.ref program = new ExplorerProgram(this.props.slug, "")
+    @observable.ref private program = new ExplorerProgram(this.props.slug, "")
 
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
