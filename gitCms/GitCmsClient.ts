@@ -33,44 +33,41 @@ export class GitCmsClient {
     }
 
     async readRemoteFiles(request: GlobRequest) {
-        const response = await fetch(
-            `${this.basePath}${GIT_CMS_GLOB_ROUTE}?glob=${request.glob}&folder=${request.folder}`
-        )
-        return (await response.json()) as GitCmsGlobResponse
+        return (await this.post(
+            GIT_CMS_GLOB_ROUTE,
+            request
+        )) as GitCmsGlobResponse
     }
 
-    async deleteRemoteFile(request: DeleteRequest) {
-        validateFilePath(request.filepath)
-        request.filepath = request.filepath.replace(/\//g, "~")
-        const response = await fetch(
-            `${this.basePath}${GIT_CMS_DELETE_ROUTE}?filepath=${request.filepath}`,
-            {
-                method: "DELETE",
-            }
-        )
-        return (await response.json()) as GitCmsResponse
-    }
-
-    async readRemoteFile(request: ReadRequest) {
-        validateFilePath(request.filepath)
-        request.filepath = request.filepath.replace(/\//g, "~")
-        const response = await fetch(
-            `${this.basePath}${GIT_CMS_READ_ROUTE}?filepath=${request.filepath}`
-        )
-
-        return (await response.json()) as GitCmsReadResponse
-    }
-
-    async writeRemoteFile(request: WriteRequest) {
-        validateFilePath(request.filepath)
-        const response = await fetch(`${this.basePath}${GIT_CMS_WRITE_ROUTE}`, {
+    private async post(route: string, request: any) {
+        const response = await fetch(`${this.basePath}${route}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(request),
         })
+        return await response.json()
+    }
 
-        return (await response.json()) as GitCmsResponse
+    async deleteRemoteFile(request: DeleteRequest) {
+        validateFilePath(request.filepath)
+        return (await this.post(
+            GIT_CMS_DELETE_ROUTE,
+            request
+        )) as GitCmsResponse
+    }
+
+    async readRemoteFile(request: ReadRequest) {
+        validateFilePath(request.filepath)
+        return (await this.post(
+            GIT_CMS_READ_ROUTE,
+            request
+        )) as GitCmsReadResponse
+    }
+
+    async writeRemoteFile(request: WriteRequest) {
+        validateFilePath(request.filepath)
+        return (await this.post(GIT_CMS_WRITE_ROUTE, request)) as GitCmsResponse
     }
 }
