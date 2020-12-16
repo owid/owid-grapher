@@ -1,5 +1,6 @@
 // Misc non-SPA views
 import { Request, Response, Router } from "express"
+import * as express from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import * as React from "react"
@@ -31,6 +32,9 @@ const limiterMiddleware = (
     })
 
 const adminRouter = Router()
+
+// Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
+adminRouter.use(express.json({ limit: "50mb" }))
 
 // None of these should be google indexed
 adminRouter.use(async (req, res, next) => {
