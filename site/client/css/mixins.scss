@@ -211,10 +211,7 @@
     list-style-type: none;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax($grid-card-min-width, 1fr));
-
-    li {
-        margin-bottom: $vertical-spacing;
-    }
+    gap: 1rem;
 }
 
 @mixin hide {
