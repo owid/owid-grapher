@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express"
+import { Router, Request, Response, RequestHandler } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
@@ -109,9 +109,8 @@ export class GitCmsServer {
     }
 
     private async readFileCommand(
-        rawFilepath: string
+        filepath: string
     ): Promise<GitCmsReadResponse> {
-        const filepath = `/${rawFilepath.replace(/\~/g, "/")}` // todo: I forget. why do we do this?
         try {
             ensureNoParentLinksInFilePath(filepath)
 
@@ -205,65 +204,65 @@ export class GitCmsServer {
     }
 
     addToRouter(app: Router) {
-        // Pull latest from remote
-        app.post(
-            GIT_CMS_PULL_ROUTE,
-            async (req: Request, res: ResponseWithUserInfo) =>
-                res.send(await this.pullCommand())
-        )
+        const routes: { [route: string]: RequestHandler } = {}
 
-        // Get multiple file contents
-        app.get(
-            GIT_CMS_GLOB_ROUTE,
-            async (req: Request, res: ResponseWithUserInfo) => {
-                const request = req.query as GlobRequest
-                res.send(await this.globCommand(request.glob, request.folder))
-            }
-        )
+        routes[GIT_CMS_PULL_ROUTE] = async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ) => res.send(await this.pullCommand()) // Pull latest from github
 
-        // Get file contents
-        app.get(
-            GIT_CMS_READ_ROUTE,
-            async (req: Request, res: ResponseWithUserInfo) =>
-                res.send(
-                    await this.readFileCommand(
-                        (req.query as ReadRequest).filepath
-                    )
+        routes[GIT_CMS_GLOB_ROUTE] = async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ) => {
+            // Get multiple file contents
+            const request = req.body as GlobRequest
+            res.send(await this.globCommand(request.glob, request.folder))
+        }
+
+        routes[GIT_CMS_READ_ROUTE] = async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ) => {
+            const request = req.body as ReadRequest
+            res.send(await this.readFileCommand(request.filepath))
+        }
+
+        routes[GIT_CMS_WRITE_ROUTE] = async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ) => {
+            // Update/create file, commit, and push(unless on local dev brach)
+            const request = req.body as WriteRequest
+            const { filepath, content, commitMessage } = request
+            res.send(
+                await this.writeFileCommand(
+                    filepath,
+                    content,
+                    res.locals.user?.fullName, // todo: these are specific to our admin app
+                    res.locals.user?.email,
+                    commitMessage
                 )
-        )
+            )
+        }
 
-        // Update/create file, commit, and push(unless on local dev brach)
-        app.post(
-            GIT_CMS_WRITE_ROUTE,
-            async (req: Request, res: ResponseWithUserInfo) => {
-                const request = req.body as WriteRequest
-                const { filepath, content, commitMessage } = request
-                res.send(
-                    await this.writeFileCommand(
-                        filepath,
-                        content,
-                        res.locals.user?.fullName, // todo: these are specific to our admin app
-                        res.locals.user?.email,
-                        commitMessage
-                    )
+        routes[GIT_CMS_DELETE_ROUTE] = async (
+            req: Request,
+            res: ResponseWithUserInfo
+        ) => {
+            // Delete file, commit, and and push(unless on local dev brach)
+            const request = req.body as DeleteRequest
+            res.send(
+                await this.deleteFileCommand(
+                    request.filepath,
+                    res.locals.user?.fullName,
+                    res.locals.user?.email
                 )
-            }
-        )
+            )
+        }
 
-        // Delete file, commit, and and push(unless on local dev brach)
-        app.delete(
-            GIT_CMS_DELETE_ROUTE,
-            async (req: Request, res: ResponseWithUserInfo) => {
-                const request = req.query as DeleteRequest
-                res.send(
-                    await this.deleteFileCommand(
-                        request.filepath,
-                        res.locals.user?.fullName,
-                        res.locals.user?.email
-                    )
-                )
-            }
-        )
+        // Note: these are all POST routes, because we never want to cache any of them (even the 2 read ops)
+        Object.keys(routes).forEach((route) => app.post(route, routes[route]))
     }
 }
 
