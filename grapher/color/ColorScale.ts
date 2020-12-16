@@ -229,9 +229,15 @@ export class ColorScale {
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) as number
-        return sortedNumericValues.filter(
+        const withoutOutliers = sortedNumericValues.filter(
             (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
         )
+
+        if (deviation(withoutOutliers) === 0) {
+            // if after removing outliers we end up in a state where the std. dev. is 0, i.e. we only
+            // have one distinct value, then we actually want to _keep_ the outliers in
+            return sortedNumericValues
+        } else return withoutOutliers
     }
 
     /** Sorted numeric values passed onto the binning algorithms */
