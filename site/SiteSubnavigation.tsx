@@ -72,6 +72,11 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "policy-responses",
         },
         {
+            label: "Vaccinations",
+            href: "/covid-vaccinations",
+            id: "vaccinations",
+        },
+        {
             label: "Exemplars",
             href: "/identify-covid-exemplars",
             id: "exemplars",

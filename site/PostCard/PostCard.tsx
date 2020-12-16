@@ -14,13 +14,19 @@ const PostCard = ({ post }: { post: FullPost }) => {
                         }}
                     />
                 )}
-                <h3>{post.title}</h3>
-                {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
-                <div className="entry-meta">
-                    <span className="authors">{`By ${formatAuthors(
-                        post.authors
-                    )}`}</span>{" "}
-                    &mdash; <time>{formatDate(post.date)}</time>
+                <div className="content">
+                    <div>
+                        <h3>{post.title}</h3>
+                        {post.excerpt && (
+                            <div className="excerpt">{post.excerpt}</div>
+                        )}
+                    </div>
+                    <div className="entry-meta">
+                        <span className="authors">{`By ${formatAuthors(
+                            post.authors
+                        )}`}</span>{" "}
+                        &mdash; <time>{formatDate(post.date)}</time>
+                    </div>
                 </div>
             </a>
         </article>
