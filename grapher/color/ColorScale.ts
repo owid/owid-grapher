@@ -228,7 +228,7 @@ export class ColorScale {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
-        const sampleDeviation = deviation(sortedNumericValues) as number
+        const sampleDeviation = deviation(sortedNumericValues) ?? 0
         const withoutOutliers = sortedNumericValues.filter(
             (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
         )
