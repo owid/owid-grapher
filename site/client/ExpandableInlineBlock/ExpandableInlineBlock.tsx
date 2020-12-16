@@ -10,9 +10,11 @@ export const ExpandableInlineBlock_name = "ExpandableInlineBlock"
 
 export const ExpandableInlineBlock = ({
     label,
+    type,
     children,
 }: {
     label: string
+    type: string
     children: ReactElement
 }) => {
     const [isVisible, setVisible] = useState(false)
@@ -22,7 +24,7 @@ export const ExpandableInlineBlock = ({
     return (
         <span className="expandable-inline-block">
             <button
-                data-track-note="glossary-toggle"
+                data-track-note={`${type.toLowerCase()}-toggle`}
                 onClick={toggleVisibility}
             >
                 {label}
@@ -45,7 +47,7 @@ export const runExpandableInlineBlock = () => {
         const Component = availableComponents[subComponent]
 
         ReactDOM.render(
-            <ExpandableInlineBlock label={label}>
+            <ExpandableInlineBlock label={label} type={subComponent}>
                 <Component {...props} label={label} />
             </ExpandableInlineBlock>,
             expandableInlineBlock.parentElement
