@@ -59,6 +59,11 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "hospitalizations",
         },
         {
+            label: "Vaccinations",
+            href: "/covid-vaccinations",
+            id: "vaccinations",
+        },
+        {
             label: "Mortality risk",
             href: "/mortality-risk-covid",
             id: "mortality-risk",
@@ -72,11 +77,6 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "Policy responses",
             href: "/policy-responses-covid",
             id: "policy-responses",
-        },
-        {
-            label: "Vaccinations",
-            href: "/covid-vaccinations",
-            id: "vaccinations",
         },
         {
             label: "Exemplars",
