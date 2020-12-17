@@ -13,18 +13,20 @@ export type CellCoordinate = number // An integer >= 0
 
 export type Grammar = { [keywordSlug: string]: CellDef }
 
+// A CellDef is a tuple: part keyword and the other half is the contents. The contents can be 1 cell, a list of cells, and/or a subtable.
 export interface CellDef {
-    terminalOptions?: CellDef[]
+    keyword: string
     cssClass: string
     description: string
-    keyword: string
     grammar?: Grammar
     headerCellDef?: CellDef
-    catchAllKeyword?: CellDef
-    regex?: RegExp // A validation regex a value must pass
-    requirements?: string
-    placeholder?: string
-    rest?: readonly CellDef[] // Additional cell types as positional arguments.
+    terminalOptions?: CellDef[]
+    catchAllCellDef?: CellDef // Only used by vertical grammars, this cell def, if present, will be used if a keyword is unrecognized during parsing.
+    regex?: RegExp // A validation regex a value must pass. todo: seems like this is overloaded and used for testing keywords and contents.
+    requirementsDescription?: string
+    valuePlaceholder?: string
+    positionalCellDefs?: readonly CellDef[] // Additional cell types as positional arguments.
+    isHorizontalList?: boolean // a list type, such as "colors\tred\torange\tgreen"
     parse?: (value: any) => any
 }
 
@@ -35,7 +37,7 @@ export interface ParsedCell {
     comment?: string
     cellDef?: CellDef
     placeholder?: string
-    value?: any
+    contents?: any
 }
 
 export interface CellPosition {
@@ -88,8 +90,8 @@ export const NumericCellDef: CellDef = {
     cssClass: "NumericCellDef",
     description: "",
     regex: /^-?\d+\.?\d*$/,
-    requirements: `Must be a number`,
-    placeholder: "98.6",
+    requirementsDescription: `Must be a number`,
+    valuePlaceholder: "98.6",
     parse: (value: any) => parseFloat(value),
 }
 
@@ -98,8 +100,8 @@ export const IntegerCellDef: CellDef = {
     cssClass: "IntegerCellDef",
     description: "",
     regex: /^[0-9]+$/,
-    requirements: `Must be an integer`,
-    placeholder: "12345",
+    requirementsDescription: `Must be an integer`,
+    valuePlaceholder: "12345",
     parse: (value: any) => parseInt(value),
 }
 
@@ -155,7 +157,7 @@ export const SlugDeclarationCellDef: CellDef = {
     cssClass: "SlugDeclarationType",
     description: "A unique URL-friendly name.",
     regex: /^[a-zA-Z0-9-_]+$/,
-    requirements: `Can only contain the characters a-zA-Z0-9-_`,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_`,
 }
 
 // This is the name for a cell that is on the "frontier", where the next user input is expected to go. Okay to rename if you have a better word.
@@ -166,7 +168,7 @@ export const SlugsDeclarationCellDef: CellDef = {
     cssClass: "SlugDeclarationType",
     description: "Unique URL-friendly names.",
     regex: /^[a-zA-Z0-9-_ ]+$/,
-    requirements: `Can only contain the characters a-zA-Z0-9-_ `,
+    requirementsDescription: `Can only contain the characters a-zA-Z0-9-_ `,
 }
 
 export type MatrixLine = string[]

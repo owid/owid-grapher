@@ -19,13 +19,13 @@ export const GrapherGrammar: Grammar = {
         ...StringCellDef,
         keyword: "title",
         description: "Chart title",
-        placeholder: "Life Expectancy around the world.",
+        valuePlaceholder: "Life Expectancy around the world.",
     },
     subtitle: {
         ...StringCellDef,
         keyword: "subtitle",
         description: "Chart subtitle",
-        placeholder: "Life Expectancy has risen over time.",
+        valuePlaceholder: "Life Expectancy has risen over time.",
     },
     ySlugs: {
         ...SlugsDeclarationCellDef,

@@ -61,8 +61,8 @@ export class GridProgram {
 
     findNext(position: CellPosition) {
         const cell = this.getCell(position)
-        const { value } = cell
-        return this.grepFirst(value, {
+        const { contents } = cell
+        return this.grepFirst(contents, {
             ...position,
             column: position.column + 1,
         })
@@ -70,8 +70,8 @@ export class GridProgram {
 
     findAll(position: CellPosition) {
         const cell = this.getCell(position)
-        const { value } = cell
-        return this.grep(value, {
+        const { contents } = cell
+        return this.grep(contents, {
             ...position,
             column: position.column + 1,
         })
@@ -127,13 +127,13 @@ export class GridProgram {
 
     valuesFrom(position = Origin) {
         return Array.from(this.ring(position)).map((next) =>
-            this.getCellValue(next)
+            this.getCellContents(next)
         )
     }
 
     grepFirst(key: string, position = Origin) {
         for (const next of this.ring(position)) {
-            if (this.getCellValue(next) === key) return next
+            if (this.getCellContents(next) === key) return next
         }
         return undefined
     }
@@ -141,7 +141,7 @@ export class GridProgram {
     grep(key: string, position = Origin) {
         const hits: CellPosition[] = []
         for (const next of this.ring(position)) {
-            if (this.getCellValue(next) === key) hits.push(next)
+            if (this.getCellContents(next) === key) hits.push(next)
         }
         return hits
     }
@@ -191,7 +191,7 @@ export class GridProgram {
         return new GridCell(this.matrix, position, this.grammar!)
     }
 
-    getCellValue(position: CellPosition) {
+    getCellContents(position: CellPosition) {
         const line = this.matrix[position.row]
         return line ? line[position.column] : undefined
     }

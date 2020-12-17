@@ -60,8 +60,8 @@ export class SelectAllHitsCommand extends HotCommand {
         const cell = this.cell(hot)
         if (!cell) return `Nothing selected`
         const searchResults = this.searchResults(hot)
-        if (searchResults.length === 1) return `1 match of '${cell.value}'`
-        return `Select ${searchResults.length} matches of '${cell.value}'`
+        if (searchResults.length === 1) return `1 match of '${cell.contents}'`
+        return `Select ${searchResults.length} matches of '${cell.contents}'`
     }
 
     callback(hot: Handsontable) {
@@ -108,7 +108,7 @@ export class AutofillColDefCommand extends HotCommand {
 
         // todo: figure out typings. we need keyof ExplorerProgram but only if key is to a callable method.
         const newProgram = await (program as any)[commandName](
-            tableSlugCell.value
+            tableSlugCell.contents
         )
         this.setProgramCallback!(newProgram.toString())
     }

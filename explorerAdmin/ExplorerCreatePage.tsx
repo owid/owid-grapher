@@ -307,20 +307,24 @@ class HotEditor extends React.Component<{
                 cssClasses,
                 optionKeywords,
                 placeholder,
-                value,
+                contents,
             } = program.getCell({ row, column })
 
-            const diskValue = programOnDisk.getCellValue({ row, column })
+            const cellContentsOnDisk = programOnDisk.getCellContents({
+                row,
+                column,
+            })
 
             const cellProperties: Partial<Handsontable.CellProperties> = {}
 
             const allClasses = cssClasses?.slice() ?? []
 
-            if (diskValue !== value) {
-                if (value === "" && diskValue === undefined)
+            if (cellContentsOnDisk !== contents) {
+                if (contents === "" && cellContentsOnDisk === undefined)
                     allClasses.push("cellCreated")
-                else if (isEmpty(value)) allClasses.push("cellDeleted")
-                else if (isEmpty(diskValue)) allClasses.push("cellCreated")
+                else if (isEmpty(contents)) allClasses.push("cellDeleted")
+                else if (isEmpty(cellContentsOnDisk))
+                    allClasses.push("cellCreated")
                 else allClasses.push("cellChanged")
             }
 
