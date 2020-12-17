@@ -44,8 +44,8 @@ export class GridCell implements ParsedCell {
     }
 
     private get isCommentCell() {
-        const { value } = this
-        return value && CommentCellDef.regex!.test(value)
+        const { contents } = this
+        return contents && CommentCellDef.regex!.test(contents)
     }
 
     private get cellTerminalTypeDefinition(): CellDef | undefined {
@@ -61,10 +61,12 @@ export class GridCell implements ParsedCell {
 
         if (!isFirstWordAKeyword) return undefined
 
-        // It has a keyword but it is column 2+
+        // It has a keyword but it is column >1
         const def = grammar[firstWordOnLine!]
-        const cellTypeDef = def.rest && def.rest[this.column - 2]
-        if (cellTypeDef) return cellTypeDef
+        const positionalCellTypeDef =
+            def.positionalCellDefs && def.positionalCellDefs[this.column - 2]
+        if (positionalCellTypeDef) return positionalCellTypeDef
+        if (def.isHorizontalList && this.contents) return def // For now only return a def for lists if it is non-empty
         return NothingGoesThereCellDef
     }
 
@@ -192,33 +194,33 @@ export class GridCell implements ParsedCell {
 
     get errorMessage() {
         if (!this.line) return ""
-        const { cellDef, value, optionKeywords } = this
-        const { regex, requirements, catchAllKeyword } = cellDef
-        const catchAllKeywordRegex = catchAllKeyword?.regex
+        const { cellDef, contents, optionKeywords } = this
+        const { regex, requirementsDescription, catchAllCellDef } = cellDef
+        const catchAllKeywordRegex = catchAllCellDef?.regex
 
-        if (value === undefined || value === "") return ""
+        if (contents === undefined || contents === "") return ""
 
         const regexResult = regex
-            ? validate(value, regex, requirements)
+            ? validate(contents, regex, requirementsDescription)
             : undefined
         const catchAllRegexResult = catchAllKeywordRegex
             ? validate(
-                  value,
+                  contents,
                   catchAllKeywordRegex,
-                  catchAllKeyword!.requirements
+                  catchAllCellDef!.requirementsDescription
               )
             : undefined
 
         if (optionKeywords) {
-            if (optionKeywords.includes(value)) return ""
+            if (optionKeywords.includes(contents)) return ""
 
             if (regex) return regexResult
             if (catchAllKeywordRegex) return catchAllRegexResult
 
-            const guess = didYouMean(value, optionKeywords)
+            const guess = didYouMean(contents, optionKeywords)
             if (guess) return `Did you mean '${guess}'?`
 
-            return `Error: '${value}' is not a valid option. Valid options are ${optionKeywords
+            return `Error: '${contents}' is not a valid option. Valid options are ${optionKeywords
                 .map((opt) => `'${opt}'`)
                 .join(", ")}`
         }
@@ -229,17 +231,17 @@ export class GridCell implements ParsedCell {
         return ""
     }
 
-    get value() {
+    get contents() {
         return this.line ? this.line[this.column] : undefined
     }
 
     get comment() {
-        const { value, errorMessage, cellDef } = this
-        if (isEmpty(value)) return undefined
+        const { contents, errorMessage, cellDef } = this
+        if (isEmpty(contents)) return undefined
         if (errorMessage) return errorMessage
 
         if (cellDef.grammar) {
-            const def = cellDef.grammar[value!] ?? cellDef.catchAllKeyword
+            const def = cellDef.grammar[contents!] ?? cellDef.catchAllCellDef
             return def.description
         }
 
@@ -260,12 +262,14 @@ export class GridCell implements ParsedCell {
     }
 
     get placeholder() {
-        const { value, cellDef } = this
+        const { contents, cellDef } = this
         const { terminalOptions } = cellDef
         const firstOption = terminalOptions && terminalOptions[0]
         const firstOptionName = firstOption && firstOption.keyword
-        const placeholder = cellDef.placeholder ?? firstOptionName
-        return isEmpty(value) && placeholder ? `eg "${placeholder}"` : undefined
+        const placeholder = cellDef.valuePlaceholder ?? firstOptionName
+        return isEmpty(contents) && placeholder
+            ? `eg "${placeholder}"`
+            : undefined
     }
 
     get optionKeywords() {

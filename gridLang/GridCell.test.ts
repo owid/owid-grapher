@@ -15,7 +15,7 @@ const TestGrammar: Grammar = {
     title: {
         ...StringCellDef,
         keyword: "title",
-        placeholder: "A whole new world",
+        valuePlaceholder: "A whole new world",
         description: "Some description",
     },
 } as const

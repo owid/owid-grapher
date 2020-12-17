@@ -20,7 +20,7 @@ const ExplorerFormControlCellDeff: CellDef = {
     ...StringDeclarationDef,
     description: "A form input for the user.",
     regex: /^.+ (Dropdown|Radio|Checkbox)$/,
-    requirements: `Must end with 'Dropdown', 'Radio', or 'Checkbox'`,
+    requirementsDescription: `Must end with 'Dropdown', 'Radio', or 'Checkbox'`,
 }
 
 export const ExplorerGrammar: Grammar = {
@@ -32,9 +32,9 @@ export const ExplorerGrammar: Grammar = {
             description: "",
             cssClass: "",
         })),
-        placeholder: "",
+        valuePlaceholder: "",
         description: "A link to a CSV or TSV or the name of an OWID dataset.",
-        rest: [
+        positionalCellDefs: [
             {
                 ...SlugDeclarationCellDef,
                 description:
@@ -45,7 +45,7 @@ export const ExplorerGrammar: Grammar = {
             ...SlugDeclarationCellDef,
             cssClass: "SubTableHeaderCellDef",
             grammar: {},
-            catchAllKeyword: {
+            catchAllCellDef: {
                 ...SlugDeclarationCellDef,
                 description: "A column slug.",
             },
@@ -54,14 +54,14 @@ export const ExplorerGrammar: Grammar = {
     explorerTitle: {
         ...StringCellDef,
         keyword: "explorerTitle",
-        placeholder: "Life Expectancy Data Explorer",
+        valuePlaceholder: "Life Expectancy Data Explorer",
         description:
             "The title will appear in the top left corner of the Explorer.",
     },
     explorerSubtitle: {
         ...StringCellDef,
         keyword: "explorerSubtitle",
-        placeholder: "All our data from various sources.",
+        valuePlaceholder: "All our data from various sources.",
         description: "The subtitle will appear under the explorerTitle.",
     },
     columns: {
@@ -81,13 +81,13 @@ export const ExplorerGrammar: Grammar = {
         headerCellDef: {
             ...SubTableHeaderCellDef,
             grammar: GrapherGrammar,
-            catchAllKeyword: ExplorerFormControlCellDeff,
+            catchAllCellDef: ExplorerFormControlCellDeff,
         },
     },
     googleSheet: {
         ...UrlCellDef,
         keyword: "googleSheet",
-        placeholder: "https://docs.google.com/spreadsheets/d/1qeX...",
+        valuePlaceholder: "https://docs.google.com/spreadsheets/d/1qeX...",
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
@@ -131,20 +131,21 @@ export const ExplorerGrammar: Grammar = {
     selection: {
         ...StringCellDef,
         keyword: "selection",
-        placeholder: "USA~Canada",
+        valuePlaceholder: "Canada",
         description: "The default selected entities.",
+        isHorizontalList: true,
     },
     entityType: {
         ...StringCellDef,
         keyword: "entityType",
-        placeholder: "region",
+        valuePlaceholder: "region",
         description:
             "Default is 'country', but you can specify a different one such as 'state' or 'region'.",
     },
     pickerColumnSlugs: {
         ...SlugsDeclarationCellDef,
         keyword: "pickerColumnSlugs",
-        placeholder: "gdp population gdp_per_capita",
+        valuePlaceholder: "gdp population gdp_per_capita",
         description:
             "You can manually set the column slug(s) to show in the entity picker or else they will be automatically chosen.",
     },
