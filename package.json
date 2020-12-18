@@ -7,7 +7,7 @@
     "scripts": {
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
-        "buildLocalBake": "node ./itsJustJavascript/baker/bakeLocal.js",
+        "buildLocalBake": "node ./itsJustJavascript/baker/buildLocalBake.js",
         "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
         "buildTsc": "tsc -b -verbose",
         "buildWebpack": "rm -rf itsJustJavascript/webpack && ENV=production webpack --config ./itsJustJavascript/webpack.config.js -p --progress",
