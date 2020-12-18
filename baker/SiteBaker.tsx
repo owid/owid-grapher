@@ -57,10 +57,17 @@ export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
     baseUrl: string
+    progressBar: ProgressBar
 
     constructor(bakedSiteDir: string, baseUrl: string) {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
+        this.progressBar = new ProgressBar(
+            "BakeAll [:bar] :current/:total :elapseds :name\n",
+            {
+                total: 15,
+            }
+        )
     }
 
     private async bakeEmbeds() {
@@ -85,6 +92,7 @@ export class SiteBaker {
         await bakeGrapherUrls(grapherUrls)
 
         this.grapherExports = await getGrapherExportsByUrl()
+        this.progressBar.tick({ name: "✅ baked embeds" })
     }
 
     private async bakeCountryProfiles() {
@@ -114,6 +122,7 @@ export class SiteBaker {
                 }
             }
         })
+        this.progressBar.tick({ name: "✅ baked country profiles" })
     }
 
     // Bake an individual post/page
@@ -196,6 +205,7 @@ export class SiteBaker {
             await fs.unlink(outPath)
             this.stage(outPath, `DELETING ${outPath}`)
         }
+        this.progressBar.tick({ name: "✅ baked posts" })
     }
 
     // Bake unique individual pages
@@ -245,6 +255,7 @@ export class SiteBaker {
         await explorerAdminServer.bakeAllPublishedExplorers(
             `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`
         )
+        this.progressBar.tick({ name: "✅ baked special pages" })
     }
 
     // Pages that are expected by google scholar for indexing
@@ -271,6 +282,8 @@ export class SiteBaker {
                 await entriesByYearPage(year)
             )
         }
+
+        this.progressBar.tick({ name: "✅ baked google scholar" })
     }
 
     // Bake the blog index
@@ -283,6 +296,7 @@ export class SiteBaker {
             const html = await renderBlogByPageNum(i)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
+        this.progressBar.tick({ name: "✅ baked blog index" })
     }
 
     // Bake the RSS feed
@@ -291,6 +305,7 @@ export class SiteBaker {
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed()
         )
+        this.progressBar.tick({ name: "✅ baked rss" })
     }
 
     // Bake the static assets
@@ -310,6 +325,7 @@ export class SiteBaker {
             bakeEmbedSnippet()
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
+        this.progressBar.tick({ name: "✅ baked assets" })
     }
 
     private async bakeGrapherToExplorerRedirects() {
@@ -330,56 +346,49 @@ export class SiteBaker {
                 html
             )
         }
+        this.progressBar.tick({ name: "✅ bakeGrapherToExplorerRedirects" })
     }
 
-    async bakeAll() {
-        const progressBar = new ProgressBar(
-            "BakeAll [:bar] :current/:total :elapseds :name\n",
-            {
-                total: 15,
-            }
-        )
-
-        // Ensure caches are correctly initialized
-        this.flushCache()
-        progressBar.tick({ name: "✅ cache flushed" })
+    async bakeRedirects() {
         const redirects = await getRedirects()
-        progressBar.tick({ name: "✅ got redirects" })
+        this.progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
             path.join(this.bakedSiteDir, `_redirects`),
             redirects.join("\n")
         )
-        progressBar.tick({ name: "✅ baked redirects" })
+        this.progressBar.tick({ name: "✅ baked redirects" })
+    }
+
+    async bakeWordpressPages() {
+        await this.bakeRedirects()
         await this.bakeEmbeds()
-        progressBar.tick({ name: "✅ baked embeds" })
         await this.bakeBlogIndex()
-        progressBar.tick({ name: "✅ baked blog index" })
-        await bakeCountries(this)
-        progressBar.tick({ name: "✅ baked countries" })
         await this.bakeRSS()
-        progressBar.tick({ name: "✅ baked rss" })
         await this.bakeAssets()
-        progressBar.tick({ name: "✅ baked assets" })
-        await this.bakeSpecialPages()
-        progressBar.tick({ name: "✅ baked special pages" })
         await this.bakeGoogleScholar()
-        progressBar.tick({ name: "✅ baked google scholar" })
-        await this.bakeCountryProfiles()
-        progressBar.tick({ name: "✅ baked country profiles" })
         await this.bakePosts()
-        progressBar.tick({ name: "✅ baked posts" })
+    }
+
+    async bakeNonWordpressPages() {
+        await bakeCountries(this)
+        await this.bakeSpecialPages()
+        await this.bakeCountryProfiles()
         await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             this.bakedSiteDir
         )
-        progressBar.tick({
+        this.progressBar.tick({
             name:
                 "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
         await this.bakeGrapherToExplorerRedirects()
-        progressBar.tick({ name: "✅ bakeGrapherToExplorerRedirects" })
-        // Clear caches to allow garbage collection while waiting for next run
+    }
+
+    async bakeAll() {
+        // Ensure caches are correctly initialized
         this.flushCache()
-        progressBar.tick({ name: "✅ cache flushed" })
+        await this.bakeWordpressPages()
+        await this.bakeNonWordpressPages()
+        this.flushCache()
     }
 
     async ensureDir(relPath: string) {
@@ -466,7 +475,9 @@ export class SiteBaker {
     }
 
     private flushCache() {
+        // Clear caches to allow garbage collection while waiting for next run
         wpdb.flushCache()
         siteBakingFlushCache()
+        this.progressBar.tick({ name: "✅ cache flushed" })
     }
 }

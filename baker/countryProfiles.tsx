@@ -209,4 +209,6 @@ export const bakeCountries = async (baker: SiteBaker) => {
         const html = await countryProfilePage(country.slug, baker.baseUrl)
         await baker.writeFile(path, html)
     }
+
+    baker.progressBar.tick({ name: "✅ baked countries" })
 }
