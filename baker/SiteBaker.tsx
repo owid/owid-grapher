@@ -369,7 +369,7 @@ export class SiteBaker {
         await this.bakePosts()
     }
 
-    async bakeNonWordpressPages() {
+    private async _bakeNonWordpressPages() {
         await bakeCountries(this)
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
@@ -383,11 +383,21 @@ export class SiteBaker {
         await this.bakeGrapherToExplorerRedirects()
     }
 
+    async bakeNonWordpressPages() {
+        this.progressBar = new ProgressBar(
+            "BakeAll [:bar] :current/:total :elapseds :name\n",
+            {
+                total: 5,
+            }
+        )
+        await this._bakeNonWordpressPages()
+    }
+
     async bakeAll() {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.bakeWordpressPages()
-        await this.bakeNonWordpressPages()
+        await this._bakeNonWordpressPages()
         this.flushCache()
     }
 
