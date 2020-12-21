@@ -134,6 +134,8 @@ export class Explorer
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
+    @observable embedHideControls = true
+
     selection = new SelectionArray(
         this.explorerProgram.selection,
         undefined,
@@ -551,6 +553,38 @@ export class Explorer
             this.props.canonicalUrl ??
             (this.baseUrl ? this.baseUrl + this.encodedQueryString : undefined)
         )
+    }
+
+    @computed get embedUrl() {
+        const embedPatch = new Patch({
+            ...(this.patchObject as any),
+            hideControls: this.embedHideControls.toString(),
+        }).uriEncodedString
+        const embedPatchEncoded = embedPatch
+            ? `?${PATCH_QUERY_PARAM}=` + embedPatch
+            : ""
+
+        return this.baseUrl ? this.baseUrl + embedPatchEncoded : undefined
+    }
+
+    @computed get embedAdditionalElements() {
+        return () => {
+            const toggleHideControls = () =>
+                (this.embedHideControls = !this.embedHideControls)
+
+            return (
+                <div style={{ marginTop: ".5rem" }}>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={this.embedHideControls}
+                            onChange={toggleHideControls}
+                        />{" "}
+                        Hide controls
+                    </label>
+                </div>
+            )
+        }
     }
 
     @computed get entityPickerTable() {
