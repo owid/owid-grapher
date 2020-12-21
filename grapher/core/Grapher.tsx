@@ -197,8 +197,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 
 export interface GrapherManager {
     canonicalUrl?: string
-    embedUrl?: string
-    embedAdditionalElements?: () => React.ReactElement
+    embedDialogUrl?: string
+    embedDialogAdditionalElements?: React.ReactElement
     selection?: SelectionArray
     editUrl?: string
 }
@@ -2101,11 +2101,11 @@ export class Grapher
     }
 
     @computed get embedUrl() {
-        return this.manager.embedUrl ?? this.canonicalUrl
+        return this.manager.embedDialogUrl ?? this.canonicalUrl
     }
 
-    @computed get embedAdditionalElements() {
-        return this.manager.embedAdditionalElements
+    @computed get embedDialogAdditionalElements() {
+        return this.manager.embedDialogAdditionalElements
     }
 
     @computed private get hasUserChangedTimeHandles() {

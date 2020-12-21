@@ -134,7 +134,8 @@ export class Explorer
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
 
-    @observable embedHideControls = true
+    // only used for the checkbox at the bottom of the embed dialog
+    @observable embedDialogHideControls = true
 
     selection = new SelectionArray(
         this.explorerProgram.selection,
@@ -555,10 +556,10 @@ export class Explorer
         )
     }
 
-    @computed get embedUrl() {
+    @computed get embedDialogUrl() {
         const embedPatch = new Patch({
             ...(this.patchObject as any),
-            hideControls: this.embedHideControls.toString(),
+            hideControls: this.embedDialogHideControls.toString(),
         }).uriEncodedString
         const embedPatchEncoded = embedPatch
             ? `?${PATCH_QUERY_PARAM}=` + embedPatch
@@ -567,24 +568,23 @@ export class Explorer
         return this.baseUrl ? this.baseUrl + embedPatchEncoded : undefined
     }
 
-    @computed get embedAdditionalElements() {
-        return () => {
-            const toggleHideControls = () =>
-                (this.embedHideControls = !this.embedHideControls)
+    @action.bound embedDialogToggleHideControls() {
+        this.embedDialogHideControls = !this.embedDialogHideControls
+    }
 
-            return (
-                <div style={{ marginTop: ".5rem" }}>
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={this.embedHideControls}
-                            onChange={toggleHideControls}
-                        />{" "}
-                        Hide controls
-                    </label>
-                </div>
-            )
-        }
+    @computed get embedDialogAdditionalElements() {
+        return (
+            <div style={{ marginTop: ".5rem" }}>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={this.embedDialogHideControls}
+                        onChange={this.embedDialogToggleHideControls}
+                    />{" "}
+                    Hide controls
+                </label>
+            </div>
+        )
     }
 
     @computed get entityPickerTable() {
