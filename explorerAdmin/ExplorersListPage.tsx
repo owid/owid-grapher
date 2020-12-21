@@ -29,8 +29,7 @@ import {
 } from "../explorer/ExplorerConstants"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { AdminManager } from "./AdminManager"
-
-const BAKED_BASE_URL = `https://ourworldindata.org/` // todo: pass as a param
+import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -59,7 +58,7 @@ class ExplorerRow extends React.Component<{
             inlineTableCount,
         } = explorer
 
-        const publishedUrl = `https://${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
+        const publishedUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`
         const repoPath = `${GIT_CMS_REPO_URL}/commits/${gitCmsBranchName}/${EXPLORERS_GIT_CMS_FOLDER}/`
         const lastCommitLink = `${GIT_CMS_REPO_URL}/commit/${lastCommit?.hash}`
 
