@@ -1183,14 +1183,38 @@ export class Grapher
     }
 
     @computed get columnsWithSources() {
-        return this.inputTable.getColumns(this.newSlugs).filter((column) => {
-            if (
-                column.name === "Countries Continents" ||
-                column.name === "Total population (Gapminder)"
+        const {
+            yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        } = this
+
+        // Only use dimensions/columns that are actually part of the visualization
+        // In Explorers, this also ensures that only columns which are currently in use will be shown in Sources tab
+        const columnSlugs = uniq(
+            excludeUndefined([
+                ...yColumnSlugs,
+                xColumnSlug,
+                sizeColumnSlug,
+                colorColumnSlug,
+            ])
+        )
+
+        // exclude some columns that are "too common" (they are used in most scatter plots for color & size)
+        // todo: this sort of conditional we could do in a smarter editor, and not at runtime
+        const excludedColumnSlugs = [
+            "72", // "Total population (Gapminder, HYDE & UN)", usually used as "size" dimension in scatter plots
+            "123", // "Countries Continent", usually used as color in scatter plots, slope charts, etc.
+        ]
+
+        return this.inputTable
+            .getColumns(columnSlugs)
+            .filter(
+                (column) =>
+                    !!column.source.name &&
+                    !excludedColumnSlugs.includes(column.slug)
             )
-                return false // todo: this sort of conditional we could do in a smarter editor, and not at runtime
-            return !!column.source.name
-        })
     }
 
     @computed private get defaultSourcesLine() {
