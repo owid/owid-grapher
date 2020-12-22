@@ -3,7 +3,6 @@ recipe: wordpress
 env_file:
     - .env
 config:
-    composer_version: "1.10.19"
     webroot: web
     via: nginx
     xdebug: true
