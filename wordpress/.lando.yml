@@ -1,4 +1,4 @@
-name: our-world-in-data
+name: owid
 recipe: wordpress
 env_file:
     - .env
