@@ -73,6 +73,7 @@ export const configureAlgolia = async () => {
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
         ["price", "cost"],
+        ["vaccine", "vaccination"],
     ]
 
     // Send all our country variant names to algolia as synonyms

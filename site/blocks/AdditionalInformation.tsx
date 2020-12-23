@@ -104,7 +104,10 @@ const AdditionalInformation = ({
             ref={refContainer}
             className={classes.join(" ")}
         >
-            <h3 onClick={onClickHandler}>
+            <h3
+                onClick={onClickHandler}
+                data-track-note="additional-information-toggle"
+            >
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}
             </h3>
