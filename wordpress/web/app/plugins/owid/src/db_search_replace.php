@@ -17,7 +17,7 @@ function get_post_admin_links($post)
     $preview = "https://owid.cloud/admin/posts/preview/$post->ID";
     $edit = "https://owid.cloud/wp/wp-admin/post.php?post=$post->ID&action=edit";
     // $view = "http://localhost:3099/$post->post_name";
-    // $edit = "http://our-world-in-data.lndo.site/wp/wp-admin/post.php?post=$post->ID&action=edit";
+    // $edit = "http://owid.lndo.site/wp/wp-admin/post.php?post=$post->ID&action=edit";
 
     return "$name ; $view ; $preview ; $edit";
 }
