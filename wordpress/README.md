@@ -95,5 +95,7 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 
 ### Wordpress, Wordpress plugins
 
-1. Update composer.json with the new pinned version
-2. `lando composer update`
+1. `lando composer outdated --direct` to find the latest versions of
+   direct dependencies
+2. Update composer.json with the new pinned version
+3. `lando composer update`
