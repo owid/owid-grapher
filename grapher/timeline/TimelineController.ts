@@ -55,16 +55,6 @@ export class TimelineController {
         return (this.endTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
-    snapTimes() {
-        const { startTime, endTime } = this
-        if (startTime === endTime) return
-
-        if (endTime - startTime > 1) return
-
-        // if handles within 1 time of each other, snap to closest time.
-        this.manager.startHandleTimeBound = this.manager.endHandleTimeBound
-    }
-
     getNextTime(time: number) {
         // Todo: speed up?
         return this.timesAsc[this.timesAsc.indexOf(time) + 1] ?? this.maxTime
