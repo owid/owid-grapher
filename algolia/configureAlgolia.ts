@@ -74,7 +74,7 @@ export async function configureAlgolia() {
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
         ["price", "cost"],
-        ["vaccine", "vaccination"],
+        ["vaccine", "vaccination", "vacuna"],
         ["ghg", "greenhouse gas"],
     ]
 
