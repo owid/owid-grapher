@@ -196,6 +196,12 @@ export class CovidExplorerTable {
                 name: "continent",
                 slug: "continent",
             },
+            vaccinations: {
+                ...owidVariableSpecs[sourceVariables.vaccinations],
+                isDailyMeasurement: true,
+                description:
+                    "This is counted as a single dose, and may not equal the total number of people vaccinated, depending on the specific dose regime (e.g. people receive multiple doses).",
+            },
         }
         Object.keys(this.columnSpecs).forEach((key) => {
             this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
@@ -287,6 +293,7 @@ export class CovidExplorerTable {
             positive_test_rate: 3,
             case_fatality_rate: 4,
             tests_per_case: 5,
+            vaccinations: 6,
         }
         const parts = [
             arbitraryStartingPrefix,
@@ -416,6 +423,13 @@ export class CovidExplorerTable {
             })
     }
 
+    initVaccinationsColumn(params: CovidConstrainedQueryParams) {
+        if (params.interval === "smoothed")
+            this.initColumn(params, (row) => row.new_vaccinations)
+        else if (params.interval === "total")
+            this.initColumn(params, (row) => row.total_vaccinations)
+    }
+
     initCfrColumn(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
         if (params.interval === "total")
@@ -511,14 +525,15 @@ export class CovidExplorerTable {
         if (params.deathsMetric) this.initDeathsColumn(params)
         if (params.testsMetric) this.initTestingColumn(params)
         if (params.testsPerCaseMetric) this.initTestsPerCaseColumn(params)
+        if (params.vaccinationsMetric) this.initVaccinationsColumn(params)
         if (params.cfrMetric) this.initCfrColumn(params)
         if (params.positiveTestRate) this.initTestRateColumn(params)
 
         // Init tests per case for the country picker
-        const tpc = new CovidQueryParams("")
-        tpc.interval = "smoothed"
-        tpc.testsPerCaseMetric = true
-        this.initTestsPerCaseColumn(tpc.toConstrainedParams())
+        // const tpc = new CovidQueryParams("")
+        // tpc.interval = "smoothed"
+        // tpc.testsPerCaseMetric = true
+        // this.initTestsPerCaseColumn(tpc.toConstrainedParams())
 
         if (params.aligned) {
             // If we are an aligned chart showing tests, we need to make a start of
@@ -753,6 +768,11 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-export function perCapitaDivisorByMetric(metric: MetricKind) {
-    return metric === "tests" ? 1e3 : 1e6
+export function perCapitaDivisorByMetricAndInterval(
+    metric: MetricKind,
+    interval: IntervalOption
+) {
+    if (metric === "tests") return 1e3
+    if (metric === "vaccinations" && interval === "total") return 1e2
+    return 1e6
 }

@@ -19,7 +19,10 @@ import {
     IntervalOption,
     intervalOptions,
 } from "./CovidConstants"
-import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
+import {
+    buildColumnSlug,
+    perCapitaDivisorByMetricAndInterval,
+} from "./CovidExplorerTable"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
@@ -50,6 +53,7 @@ export class CovidQueryParams {
     @observable positiveTestRate: boolean = false
     @observable deathsMetric: boolean = false
     @observable cfrMetric: boolean = false
+    @observable vaccinationsMetric: boolean = false
 
     @observable yColumn?: string
     @observable xColumn?: string
@@ -81,6 +85,7 @@ export class CovidQueryParams {
             "testsMetric",
             "testsPerCaseMetric",
             "positiveTestRate",
+            "vaccinationsMetric",
         ]
         const perCapita = [true, false]
         const aligned = [true, false]
@@ -128,6 +133,7 @@ export class CovidQueryParams {
         this.positiveTestRate = params.positiveTestRate === "true"
         this.deathsMetric = params.deathsMetric === "true"
         this.cfrMetric = params.cfrMetric === "true"
+        this.vaccinationsMetric = params.vaccinationsMetric === "true"
         this.perCapita = params.perCapita === "true"
         this.hideControls = params.hideControls === "true"
         this.aligned = params.aligned === "true"
@@ -185,6 +191,7 @@ export class CovidQueryParams {
         if (this.deathsMetric) return "deaths"
         if (this.cfrMetric) return "case_fatality_rate"
         if (this.testsPerCaseMetric) return "tests_per_case"
+        if (this.vaccinationsMetric) return "vaccinations"
         return "positive_test_rate"
     }
 
@@ -213,6 +220,7 @@ export class CovidQueryParams {
         params.cfrMetric = this.cfrMetric ? true : undefined
         params.testsPerCaseMetric = this.testsPerCaseMetric ? true : undefined
         params.positiveTestRate = this.positiveTestRate ? true : undefined
+        params.vaccinationsMetric = this.vaccinationsMetric ? true : undefined
         params.interval = this.interval // or undefined?
         params.aligned = this.aligned ? true : undefined
         params.hideControls = this.hideControls ? true : undefined
@@ -231,7 +239,12 @@ export class CovidQueryParams {
 
     /** If perCapita is enabled, will return size of divisor i.e. 1000, else 1 */
     @computed get perCapitaAdjustment() {
-        return this.perCapita ? perCapitaDivisorByMetric(this.metricName) : 1
+        return this.perCapita
+            ? perCapitaDivisorByMetricAndInterval(
+                  this.metricName,
+                  this.interval
+              )
+            : 1
     }
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
@@ -312,6 +325,7 @@ export class CovidQueryParams {
         this.cfrMetric = option === "case_fatality_rate"
         this.testsPerCaseMetric = option === "tests_per_case"
         this.positiveTestRate = option === "positive_test_rate"
+        this.vaccinationsMetric = option === "vaccinations"
     }
 
     setTimeline(option: IntervalOption) {
@@ -366,6 +380,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             this.testsMetric,
             this.testsPerCaseMetric,
             this.positiveTestRate,
+            this.vaccinationsMetric,
         ].some((i) => i)
         if (!hasMetric) this.casesMetric = true
 
@@ -417,8 +432,8 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         const isWeekly = (this.isWeekly || this.isBiweekly) && weekly // If weekly is set AND available
         const constraints = {
             perCapita: !this.isRate && !isWeekly,
-            aligned: !this.isRate && !isWeekly,
-            daily: !this.isRate,
+            aligned: !this.isRate && !isWeekly && !this.vaccinationsMetric,
+            daily: !this.isRate && !this.vaccinationsMetric,
             smoothed: !this.cfrMetric,
             weekly,
         }

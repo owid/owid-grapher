@@ -44,7 +44,7 @@ import {
     CovidExplorerTable,
     fetchCovidChartAndVariableMeta,
     buildColumnSlug,
-    perCapitaDivisorByMetric,
+    perCapitaDivisorByMetricAndInterval,
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -213,15 +213,15 @@ export class CovidExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: metricLabels.tests_per_case,
-                checked: this.constrainedParams.testsPerCaseMetric,
-                value: "tests_per_case",
-            },
-            {
-                available: true,
                 label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
                 value: "positive_test_rate",
+            },
+            {
+                available: true,
+                label: metricLabels.vaccinations,
+                checked: this.constrainedParams.vaccinationsMetric,
+                value: "vaccinations",
             },
         ]
         return (
@@ -574,20 +574,27 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get perCapitaDivisor() {
-        return perCapitaDivisorByMetric(this.constrainedParams.metricName)
+        return perCapitaDivisorByMetricAndInterval(
+            this.constrainedParams.metricName,
+            this.constrainedParams.interval
+        )
     }
 
     @computed private get perCapitaOptions() {
         return {
             1: "",
+            1e2: "per 100 people",
             1e3: "per 1,000 people",
             1e6: "per million people",
         }
     }
 
-    private perCapitaTitle(metric: MetricKind) {
+    private perCapitaTitle(metric: MetricKind, interval: IntervalOption) {
         return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
+            ? " " +
+                  this.perCapitaOptions[
+                      perCapitaDivisorByMetricAndInterval(metric, interval)
+                  ]
             : ""
     }
 
@@ -615,8 +622,10 @@ export class CovidExplorer extends React.Component<{
         else if (params.deathsMetric)
             title = `${freq} confirmed COVID-19 deaths`
         else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
+        else if (params.vaccinationsMetric)
+            title = `${freq} COVID-19 vaccination doses administered`
 
-        return title + this.perCapitaTitle(params.metricName)
+        return title + this.perCapitaTitle(params.metricName, params.interval)
     }
 
     @computed private get weekSubtitle() {
@@ -1151,7 +1160,7 @@ export class CovidExplorer extends React.Component<{
         const colSlug = buildColumnSlug(
             metric,
             this.constrainedParams.perCapita && isCountMetric(metric)
-                ? perCapitaDivisorByMetric(metric)
+                ? perCapitaDivisorByMetricAndInterval(metric, interval)
                 : 1,
             interval,
             intervalSpecs[interval].smoothing
@@ -1167,7 +1176,9 @@ export class CovidExplorer extends React.Component<{
                 tolerance: column?.spec.display?.tolerance ?? 10,
                 name:
                     metricLabels[metric] +
-                    (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
+                    (isCountMetric(metric)
+                        ? this.perCapitaTitle(metric, interval)
+                        : ""),
                 unit: intervalSpecs[interval].label,
                 shortUnit:
                     (interval === "weeklyChange" ||
