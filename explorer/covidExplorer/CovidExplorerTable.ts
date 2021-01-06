@@ -69,7 +69,9 @@ export const buildColumnSlug = (
 ) =>
     [
         name,
-        perCapita === 1e3
+        perCapita === 1e2
+            ? "perHundred"
+            : perCapita === 1e3
             ? "perThousand"
             : perCapita === 1e6
             ? "perMil"
@@ -317,6 +319,7 @@ export class CovidExplorerTable {
 
         const messages: { [index: number]: string } = {
             1: "",
+            1e2: " per hundred people",
             1e3: " per thousand people",
             1e6: " per million people",
         }
