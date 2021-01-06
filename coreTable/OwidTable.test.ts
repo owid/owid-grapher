@@ -459,7 +459,9 @@ describe("linear interpolation", () => {
             ])
         )
         expect(
-            interpolatedTable.rows.filter((row) => isNaN(row.year)).length
+            interpolatedTable.rows.filter(
+                (row) => row.year !== undefined && isNaN(row.year)
+            ).length
         ).toEqual(0)
     })
 })
@@ -539,7 +541,9 @@ describe("tolerance", () => {
             ])
         )
         expect(
-            toleranceTable.rows.filter((row) => isNaN(row.year)).length
+            toleranceTable.rows.filter(
+                (row) => row.year !== undefined && isNaN(row.year)
+            ).length
         ).toEqual(0)
     })
 

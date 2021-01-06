@@ -346,7 +346,7 @@ export class CoreTable<
     }
 
     @imemo get rows() {
-        return columnStoreToRows(this.columnStore)
+        return columnStoreToRows(this.columnStore) as ROW_TYPE[]
     }
 
     @imemo get indices() {
@@ -371,11 +371,14 @@ export class CoreTable<
     }
 
     @imemo get firstRow() {
-        return makeRowFromColumnStore(0, this.columnStore)
+        return makeRowFromColumnStore(0, this.columnStore) as ROW_TYPE
     }
 
     @imemo get lastRow() {
-        return makeRowFromColumnStore(this.numRows - 1, this.columnStore)
+        return makeRowFromColumnStore(
+            this.numRows - 1,
+            this.columnStore
+        ) as ROW_TYPE
     }
 
     @imemo get numRows() {
@@ -1427,11 +1430,11 @@ export class CoreTable<
 
     reduce(reductionMap: ReductionMap) {
         const lastRow = { ...this.lastRow }
-        Object.keys(reductionMap).forEach((slug) => {
+        Object.keys(reductionMap).forEach((slug: keyof ROW_TYPE) => {
             const prop = reductionMap[slug]
             const col = this.get(slug)
             if (typeof prop === "string") lastRow[slug] = col[prop]
-            else lastRow[slug] = prop(col)
+            else lastRow[slug] = prop(col) as any
         })
         return this.transform(
             rowsToColumnStore([lastRow]),
