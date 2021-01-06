@@ -58,9 +58,15 @@ const redirectTableTsv = `id	slug	explorerQueryStr
 4119	daily-covid-cases-per-million-three-day-avg	zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc
 4120	daily-covid-deaths-per-million-3-day-avg	zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&deathsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc`
 
-export const legacyGrapherToCovidExplorerRedirectTable = new CoreTable(
-    redirectTableTsv
-)
+interface RedirectRow {
+    id: string
+    slug: string
+    explorerQueryStr: string
+}
+
+export const legacyGrapherToCovidExplorerRedirectTable = new CoreTable<
+    RedirectRow
+>(redirectTableTsv)
 
 // In addition to the query strings above, the below ones are ones we need to redirect to the new Covid Explorer.
 // It is about 80 different ones, but it may just be like a 10 liner map function that takes old params and converts
@@ -129,7 +135,7 @@ let cached: ExplorerProgram
 export const getLegacyCovidExplorerAsExplorerProgramForSlug = async (
     slug: string
 ) => {
-    const { row } = legacyGrapherToCovidExplorerRedirectTable.where({
+    const row = legacyGrapherToCovidExplorerRedirectTable.where({
         slug,
     }).firstRow
     if (!row) return undefined
