@@ -243,10 +243,10 @@ export interface ParsedCovidCsvRow {
     male_smokers: number
     handwashing_facilities: number
     hospital_beds_per_thousand: number
-    total_vaccinations: number
-    total_vaccinations_per_hundred: number
-    new_vaccinations: number
-    new_vaccinations_per_million: number
+    total_vaccinations: number | undefined
+    total_vaccinations_per_hundred: number | undefined
+    new_vaccinations: number | undefined
+    new_vaccinations_per_million: number | undefined
 }
 
 export interface CovidGrapherRow extends ParsedCovidCsvRow {
