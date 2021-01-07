@@ -21,8 +21,7 @@ export const GrapherPage = (props: {
     relatedCharts?: RelatedChart[]
     relatedArticles?: PostReference[]
 }) => {
-    const { grapher, post, relatedCharts, relatedArticles } = props
-
+    const { grapher, relatedCharts, relatedArticles } = props
     const pageTitle = grapher.title
     const pageDesc =
         grapher.subtitle ||
@@ -94,10 +93,11 @@ try {
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {post && (
+                    {((relatedArticles && relatedArticles.length != 0) ||
+                        (relatedCharts && relatedCharts.length != 0)) && (
                         <div className="related-research-data">
-                            <h2>All our research and data on {post.title}</h2>
-                            {relatedArticles && (
+                            <h2>All our related research and data</h2>
+                            {relatedArticles && relatedArticles.length != 0 && (
                                 <RelatedArticles articles={relatedArticles} />
                             )}
                             {relatedCharts && relatedCharts.length !== 0 && (

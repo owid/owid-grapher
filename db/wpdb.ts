@@ -23,6 +23,8 @@ import {
     CountryProfileSpec,
     countryProfileSpecs,
 } from "site/server/countryProfileProjects"
+import { getContentGraph } from "site/server/contentGraph"
+import { PostReference } from "adminSite/client/ChartEditor"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -521,6 +523,28 @@ export async function getRelatedCharts(
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
     `)
+}
+
+export const getRelatedArticles = async (chartSlug: string) => {
+    const graph = await getContentGraph()
+
+    const chartRecord = await graph.find("chart", chartSlug)
+
+    if (!chartRecord.payload.count) return
+
+    const chart = chartRecord.payload.records[0]
+    const relatedArticles: PostReference[] = await Promise.all(
+        chart.research.map(async (postId: any) => {
+            const postRecord = await graph.find("post", postId)
+            const post = postRecord.payload.records[0]
+            return {
+                id: postId,
+                title: post.title,
+                slug: post.slug,
+            }
+        })
+    )
+    return relatedArticles
 }
 
 export async function getBlockContent(id: number): Promise<string | undefined> {
