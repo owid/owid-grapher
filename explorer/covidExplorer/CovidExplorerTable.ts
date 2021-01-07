@@ -368,7 +368,8 @@ export class CovidExplorerTable {
         const alreadySmoothed =
             (columnName === "tests" ||
                 columnName === "tests_per_case" ||
-                columnName === "positive_test_rate") &&
+                columnName === "positive_test_rate" ||
+                columnName === "vaccinations") &&
             smoothing === 7
 
         // Per-capita transform done after rolling average to preserve precision.
