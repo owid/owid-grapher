@@ -23,7 +23,8 @@ const store = fortune(
         adapter: [
             MemoryAdapter,
             {
-                recordsPerType: 2000,
+                // see https://github.com/fortunejs/fortune/commit/70593721efae304ff2db40d1b8f9b43295fed79b#diff-ebb028a2d1528eac83ee833036ef6e50bed6fb7b2b7137f59ac1fb567a5e6ec2R25
+                recordsPerType: Infinity,
             },
         ],
     }
