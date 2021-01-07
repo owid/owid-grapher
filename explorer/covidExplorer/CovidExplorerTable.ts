@@ -688,6 +688,10 @@ export class CovidExplorerTable {
             // Once we add a country to a group, we assume we will always have data for that country, so even if the
             // country is late in reporting the data keep that country in the population count.
             row.population = maxPopulation
+
+            // We want to drop new_vaccinations for aggregates, but we need them initially to
+            // calculate the total (this is a very very dirty fix)
+            row.new_vaccinations = undefined
         })
         return newRows
     }
