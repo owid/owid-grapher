@@ -646,6 +646,7 @@ export class CovidExplorerTable {
                     entityCode: groupName.replace(" ", ""),
                     entityId: generateEntityId(groupName),
                     new_deaths: 0,
+                    new_vaccinations: 0,
                     population: 0,
                 } as CovidGrapherRow)
             }
@@ -653,18 +654,22 @@ export class CovidExplorerTable {
             newRow.population += row.population
             newRow.new_cases += row.new_cases || 0
             newRow.new_deaths += row.new_deaths || 0
+            newRow.new_vaccinations += row.new_vaccinations || 0
         })
         const newRows = Array.from(rowsByDay.values())
         let total_cases = 0
         let total_deaths = 0
+        let total_vaccinations = 0
         let maxPopulation = 0
         const group_members = Array.from(groupMembers).join("")
         // We need to compute cumulatives again because sometimes data will stop for a country.
         newRows.forEach((row) => {
             total_cases += row.new_cases
             total_deaths += row.new_deaths
+            total_vaccinations += row.new_vaccinations
             row.total_cases = total_cases
             row.total_deaths = total_deaths
+            row.total_vaccinations = total_vaccinations
             row.group_members = group_members
             if (row.population > maxPopulation) maxPopulation = row.population
 
