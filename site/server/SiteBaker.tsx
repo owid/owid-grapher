@@ -51,7 +51,10 @@ import {
     covidChartAndVariableMetaFilename,
 } from "explorer/covidExplorer/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
+import {
+    chartExplorerRedirects,
+    chartExplorerRedirectsBySlug,
+} from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
@@ -512,7 +515,13 @@ export class SiteBaker {
             grapher.id = row.id
             newSlugs.push(grapher.slug)
 
-            requests.push(this.bakeGrapher(grapher))
+            // Only bake grapher if its slug is not an explorer redirect
+            if (
+                grapher.slug !== undefined &&
+                !(grapher.slug in chartExplorerRedirectsBySlug)
+            ) {
+                requests.push(this.bakeGrapher(grapher))
+            }
             // Execute in batches
             if (requests.length > 50) {
                 await Promise.all(requests)

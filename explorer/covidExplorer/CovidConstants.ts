@@ -78,6 +78,7 @@ export declare type MetricKind =
     | "case_fatality_rate"
     | "tests_per_case"
     | "positive_test_rate"
+    | "vaccinations"
 
 export const MetricOptions: MetricKind[] = [
     "deaths",
@@ -86,6 +87,7 @@ export const MetricOptions: MetricKind[] = [
     "case_fatality_rate",
     "tests_per_case",
     "positive_test_rate",
+    "vaccinations",
 ]
 
 export const sourceCharts = {
@@ -117,6 +119,11 @@ export const sourceCharts = {
     positive_test_rate_daily: 4198,
 
     case_fatality_rate_total: 4056,
+
+    vaccinations_total: 4702,
+    vaccinations_total_per_capita: 4703,
+    vaccinations_daily: 4718,
+    vaccinations_daily_per_capita: 4719,
 }
 
 export const sourceVariables = {
@@ -126,6 +133,7 @@ export const sourceVariables = {
     cases: 145450,
     deaths: 145451,
     tests: 142601,
+    vaccinations: 145569,
     days_since: 145465,
     continents: 123,
 }
@@ -175,6 +183,7 @@ export const metricLabels: { [key in MetricKind]: string } = {
     case_fatality_rate: "Case fatality rate",
     tests_per_case: "Tests per confirmed case",
     positive_test_rate: "Share of positive tests",
+    vaccinations: "Vaccinations",
 }
 
 export const intervalsAvailableByMetric: Map<
@@ -187,6 +196,7 @@ export const intervalsAvailableByMetric: Map<
     ["case_fatality_rate", new Set(["total"])],
     ["tests_per_case", new Set(["total", "smoothed"])],
     ["positive_test_rate", new Set(["total", "smoothed"])],
+    ["vaccinations", new Set(["total", "smoothed"])],
 ])
 
 // todo: auto import from covid repo.
@@ -233,6 +243,10 @@ export interface ParsedCovidCsvRow {
     male_smokers: number
     handwashing_facilities: number
     hospital_beds_per_thousand: number
+    total_vaccinations: number | undefined
+    total_vaccinations_per_hundred: number | undefined
+    new_vaccinations: number | undefined
+    new_vaccinations_per_million: number | undefined
 }
 
 export interface CovidGrapherRow extends ParsedCovidCsvRow {
@@ -328,6 +342,22 @@ export const metricPickerColumnSpecs: Partial<Record<
     },
     new_cases_per_million: {
         name: "New cases (per 1M)",
+        type: ColumnTypeNames.Ratio,
+    },
+    total_vaccinations: {
+        name: "Total vaccinations",
+        type: ColumnTypeNames.Integer,
+    },
+    total_vaccinations_per_hundred: {
+        name: "Total vaccinations (per 100)",
+        type: ColumnTypeNames.Ratio,
+    },
+    new_vaccinations: {
+        name: "New vaccinations",
+        type: ColumnTypeNames.Integer,
+    },
+    new_vaccinations_per_million: {
+        name: "New vaccinations (per 1M)",
         type: ColumnTypeNames.Ratio,
     },
 }

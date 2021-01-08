@@ -61,6 +61,12 @@ const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
 )
 
+const addOrUndefined = (sum: number | undefined, value: number | undefined) => {
+    if (sum === undefined) return value
+    if (value === undefined) return sum
+    return sum + value
+}
+
 export const buildColumnSlug = (
     name: MetricKind,
     perCapita: number,
@@ -69,7 +75,9 @@ export const buildColumnSlug = (
 ) =>
     [
         name,
-        perCapita === 1e3
+        perCapita === 1e2
+            ? "perHundred"
+            : perCapita === 1e3
             ? "perThousand"
             : perCapita === 1e6
             ? "perMil"
@@ -196,6 +204,12 @@ export class CovidExplorerTable {
                 name: "continent",
                 slug: "continent",
             },
+            vaccinations: {
+                ...owidVariableSpecs[sourceVariables.vaccinations],
+                isDailyMeasurement: true,
+                description:
+                    "This is counted as a single dose, and may not equal the total number of people vaccinated, depending on the specific dose regime (e.g. people receive multiple doses).",
+            },
         }
         Object.keys(this.columnSpecs).forEach((key) => {
             this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
@@ -287,6 +301,7 @@ export class CovidExplorerTable {
             positive_test_rate: 3,
             case_fatality_rate: 4,
             tests_per_case: 5,
+            vaccinations: 6,
         }
         const parts = [
             arbitraryStartingPrefix,
@@ -310,6 +325,7 @@ export class CovidExplorerTable {
 
         const messages: { [index: number]: string } = {
             1: "",
+            1e2: " per hundred people",
             1e3: " per thousand people",
             1e6: " per million people",
         }
@@ -352,7 +368,8 @@ export class CovidExplorerTable {
         const alreadySmoothed =
             (columnName === "tests" ||
                 columnName === "tests_per_case" ||
-                columnName === "positive_test_rate") &&
+                columnName === "positive_test_rate" ||
+                columnName === "vaccinations") &&
             smoothing === 7
 
         // Per-capita transform done after rolling average to preserve precision.
@@ -414,6 +431,13 @@ export class CovidExplorerTable {
                 const tpc = row.total_tests / row.total_cases
                 return tpc >= 1 ? tpc : undefined
             })
+    }
+
+    initVaccinationsColumn(params: CovidConstrainedQueryParams) {
+        if (params.interval === "smoothed")
+            this.initColumn(params, (row) => row.new_vaccinations)
+        else if (params.interval === "total")
+            this.initColumn(params, (row) => row.total_vaccinations)
     }
 
     initCfrColumn(params: CovidConstrainedQueryParams) {
@@ -511,14 +535,15 @@ export class CovidExplorerTable {
         if (params.deathsMetric) this.initDeathsColumn(params)
         if (params.testsMetric) this.initTestingColumn(params)
         if (params.testsPerCaseMetric) this.initTestsPerCaseColumn(params)
+        if (params.vaccinationsMetric) this.initVaccinationsColumn(params)
         if (params.cfrMetric) this.initCfrColumn(params)
         if (params.positiveTestRate) this.initTestRateColumn(params)
 
         // Init tests per case for the country picker
-        const tpc = new CovidQueryParams("")
-        tpc.interval = "smoothed"
-        tpc.testsPerCaseMetric = true
-        this.initTestsPerCaseColumn(tpc.toConstrainedParams())
+        // const tpc = new CovidQueryParams("")
+        // tpc.interval = "smoothed"
+        // tpc.testsPerCaseMetric = true
+        // this.initTestsPerCaseColumn(tpc.toConstrainedParams())
 
         if (params.aligned) {
             // If we are an aligned chart showing tests, we need to make a start of
@@ -635,24 +660,38 @@ export class CovidExplorerTable {
             newRow.population += row.population
             newRow.new_cases += row.new_cases || 0
             newRow.new_deaths += row.new_deaths || 0
+            newRow.new_vaccinations = addOrUndefined(
+                newRow.new_vaccinations,
+                row.new_vaccinations
+            )
         })
         const newRows = Array.from(rowsByDay.values())
         let total_cases = 0
         let total_deaths = 0
+        let total_vaccinations: number | undefined = undefined
         let maxPopulation = 0
         const group_members = Array.from(groupMembers).join("")
         // We need to compute cumulatives again because sometimes data will stop for a country.
         newRows.forEach((row) => {
             total_cases += row.new_cases
             total_deaths += row.new_deaths
+            total_vaccinations = addOrUndefined(
+                total_vaccinations,
+                row.new_vaccinations
+            )
             row.total_cases = total_cases
             row.total_deaths = total_deaths
+            row.total_vaccinations = total_vaccinations
             row.group_members = group_members
             if (row.population > maxPopulation) maxPopulation = row.population
 
             // Once we add a country to a group, we assume we will always have data for that country, so even if the
             // country is late in reporting the data keep that country in the population count.
             row.population = maxPopulation
+
+            // We want to drop new_vaccinations for aggregates, but we need them initially to
+            // calculate the total (this is a very very dirty fix)
+            row.new_vaccinations = undefined
         })
         return newRows
     }
@@ -753,6 +792,11 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-export function perCapitaDivisorByMetric(metric: MetricKind) {
-    return metric === "tests" ? 1e3 : 1e6
+export function perCapitaDivisorByMetricAndInterval(
+    metric: MetricKind,
+    interval: IntervalOption
+) {
+    if (metric === "tests") return 1e3
+    if (metric === "vaccinations" && interval === "total") return 1e2
+    return 1e6
 }

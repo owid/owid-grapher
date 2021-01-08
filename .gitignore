@@ -23,4 +23,5 @@ public/head.txt
 public/covidChartAndVariableMeta.json
 .storybook/build
 /serverSettings.json
+/clientSettings.json
 /itsJustJavascript/
