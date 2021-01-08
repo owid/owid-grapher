@@ -1,4 +1,4 @@
-import { getFullPost, getPosts } from "db/wpdb"
+import { ENTRIES_CATEGORY_ID, getDocumentsInfo, WP_PostType } from "db/wpdb"
 import { once } from "grapher/utils/Util"
 import * as cheerio from "cheerio"
 
@@ -8,15 +8,20 @@ const {
     errors: { ConflictError },
 } = fortune
 
+export enum GraphType {
+    Document = "document",
+    Chart = "chart",
+}
+
 const store = fortune(
     {
-        post: {
+        [GraphType.Document]: {
             title: String,
             slug: String,
             data: [Array("chart"), "research"],
         },
-        chart: {
-            research: [Array("post"), "data"],
+        [GraphType.Chart]: {
+            research: [Array("document"), "data"],
         },
     },
     {
@@ -31,16 +36,20 @@ const store = fortune(
 )
 
 export const getContentGraph = once(async () => {
-    const postsApi = await getPosts()
-    for (const postApi of postsApi) {
-        const post = await getFullPost(postApi)
-
-        // Add posts to the content graph
+    const entries = await getDocumentsInfo(
+        WP_PostType.Page,
+        "",
+        `categoryId: ${ENTRIES_CATEGORY_ID}`
+    )
+    const posts = await getDocumentsInfo(WP_PostType.Post)
+    const documents = [...entries, ...posts]
+    for (const document of documents) {
+        // Add posts and entries to the content graph
         try {
-            await store.create("post", {
-                id: post.id,
-                title: post.title,
-                slug: post.slug,
+            await store.create(GraphType.Document, {
+                id: document.id,
+                title: document.title,
+                slug: document.slug,
             })
         } catch (err) {
             // There shouldn't be any ConflictErrors here as the posts are
@@ -50,7 +59,7 @@ export const getContentGraph = once(async () => {
         }
 
         // Add charts within that post to the content graph
-        const $ = cheerio.load(post.content)
+        const $ = cheerio.load(document.content || "")
         const grapherRegex = /\/grapher\//
         const grapherSlugs = $("iframe")
             .toArray()
@@ -64,9 +73,9 @@ export const getContentGraph = once(async () => {
             .filter((el) => el !== null)
         for (const slug of grapherSlugs) {
             try {
-                await store.create("chart", {
+                await store.create(GraphType.Chart, {
                     id: slug,
-                    research: [post.id],
+                    research: [document.id],
                 })
             } catch (err) {
                 // ConflictErrors occur when attempting to create a chart that
@@ -75,9 +84,9 @@ export const getContentGraph = once(async () => {
                     throw err
                 }
                 try {
-                    await store.update("chart", {
+                    await store.update(GraphType.Chart, {
                         id: slug,
-                        push: { research: post.id },
+                        push: { research: document.id },
                     })
                 } catch (err) {
                     // ConflictErrors occur here when a chart <-> post
