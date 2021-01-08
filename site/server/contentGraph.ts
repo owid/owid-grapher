@@ -35,13 +35,25 @@ const store = fortune(
     }
 )
 
+export const getGrapherSlugs = (content: string | null): Set<string> => {
+    const slugs = new Set<string>()
+    if (!content) return slugs
+
+    const matches = content.matchAll(/\/grapher\/([a-zA-Z0-9-]+)/g)
+    for (const match of matches) {
+        slugs.add(match[1])
+    }
+    return slugs
+}
+
 export const getContentGraph = once(async () => {
+    const orderBy = "orderby:{field:MODIFIED, order:DESC}"
     const entries = await getDocumentsInfo(
         WP_PostType.Page,
         "",
-        `categoryId: ${ENTRIES_CATEGORY_ID}`
+        `categoryId: ${ENTRIES_CATEGORY_ID}, ${orderBy}`
     )
-    const posts = await getDocumentsInfo(WP_PostType.Post)
+    const posts = await getDocumentsInfo(WP_PostType.Post, "", orderBy)
     const documents = [...entries, ...posts]
     for (const document of documents) {
         // Add posts and entries to the content graph
@@ -59,18 +71,7 @@ export const getContentGraph = once(async () => {
         }
 
         // Add charts within that post to the content graph
-        const $ = cheerio.load(document.content || "")
-        const grapherRegex = /\/grapher\//
-        const grapherSlugs = $("iframe")
-            .toArray()
-            .filter((el) => grapherRegex.test(el.attribs["src"]))
-            .map((el) => {
-                const matchedGrapherUrl = el.attribs["src"].match(
-                    /\/grapher\/([a-zA-Z0-9-]+)/
-                )
-                return matchedGrapherUrl ? matchedGrapherUrl[1] ?? null : null
-            })
-            .filter((el) => el !== null)
+        const grapherSlugs = getGrapherSlugs(document.content)
         for (const slug of grapherSlugs) {
             try {
                 await store.create(GraphType.Chart, {
