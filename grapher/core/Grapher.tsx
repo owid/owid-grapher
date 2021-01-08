@@ -756,9 +756,7 @@ export class Grapher
     @computed get newSlugs() {
         const { xSlug, colorSlug, sizeSlug } = this
         const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
-        return [...ySlugs, xSlug, colorSlug, sizeSlug].filter(
-            (slug) => slug
-        ) as ColumnSlug[]
+        return excludeUndefined([...ySlugs, xSlug, colorSlug, sizeSlug])
     }
 
     @computed private get loadingDimensions() {
@@ -1182,7 +1180,8 @@ export class Grapher
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
-    @computed get columnsWithSources() {
+    // All columns that are _currently_ part of the visualization
+    @computed get activeColumnSlugs() {
         const {
             yColumnSlugs,
             xColumnSlug,
@@ -1190,16 +1189,18 @@ export class Grapher
             colorColumnSlug,
         } = this
 
+        return excludeUndefined([
+            ...yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        ])
+    }
+
+    @computed get columnsWithSources() {
         // Only use dimensions/columns that are actually part of the visualization
         // In Explorers, this also ensures that only columns which are currently in use will be shown in Sources tab
-        const columnSlugs = uniq(
-            excludeUndefined([
-                ...yColumnSlugs,
-                xColumnSlug,
-                sizeColumnSlug,
-                colorColumnSlug,
-            ])
-        )
+        const columnSlugs = uniq(this.activeColumnSlugs)
 
         // exclude some columns that are "too common" (they are used in most scatter plots for color & size)
         // todo: this sort of conditional we could do in a smarter editor, and not at runtime
