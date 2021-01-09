@@ -13,3 +13,5 @@ tmp
 .queue
 .pending
 /wordpress
+clientSettings.json
+serverSettings.json
