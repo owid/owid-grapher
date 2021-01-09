@@ -2,9 +2,10 @@
 // DO NOT store sensitive strings in this file itself, as it is checked in to git!
 
 import fs from "fs-extra"
+import path from "path"
 
-export const BASE_DIR = __dirname + "/../../"
-const absoluteSettingsPath = BASE_DIR + "serverSettings.json"
+export const BASE_DIR = path.resolve(__dirname, "../..")
+const absoluteSettingsPath = path.resolve(BASE_DIR, "serverSettings.json")
 const localOverrides: any = fs.existsSync(absoluteSettingsPath)
     ? fs.readJsonSync(absoluteSettingsPath)
     : {}
