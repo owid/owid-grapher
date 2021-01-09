@@ -12,6 +12,7 @@ import {
     fetchText,
     fetchJSON,
     max,
+    sum,
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
@@ -60,12 +61,6 @@ interface AnnotationsRow {
 const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
 )
-
-const addOrUndefined = (sum: number | undefined, value: number | undefined) => {
-    if (sum === undefined) return value
-    if (value === undefined) return sum
-    return sum + value
-}
 
 export const buildColumnSlug = (
     name: MetricKind,
@@ -636,6 +631,7 @@ export class CovidExplorerTable {
         const rowsByDay = new Map<string, CovidGrapherRow>()
         const rows = sortBy(group, (row) => dateToYear(row.date))
         const groupMembers = new Set()
+        const totalVaccinationsByLocation = new Map<string, number>()
         rows.forEach((row) => {
             const day = row.date
             groupMembers.add(row.iso_code)
@@ -660,38 +656,33 @@ export class CovidExplorerTable {
             newRow.population += row.population
             newRow.new_cases += row.new_cases || 0
             newRow.new_deaths += row.new_deaths || 0
-            newRow.new_vaccinations = addOrUndefined(
-                newRow.new_vaccinations,
-                row.new_vaccinations
+            if (row.total_vaccinations !== undefined) {
+                totalVaccinationsByLocation.set(
+                    row.location,
+                    row.total_vaccinations
+                )
+            }
+            newRow.total_vaccinations = sum(
+                Array.from(totalVaccinationsByLocation.values())
             )
         })
         const newRows = Array.from(rowsByDay.values())
         let total_cases = 0
         let total_deaths = 0
-        let total_vaccinations: number | undefined = undefined
         let maxPopulation = 0
         const group_members = Array.from(groupMembers).join("")
         // We need to compute cumulatives again because sometimes data will stop for a country.
         newRows.forEach((row) => {
             total_cases += row.new_cases
             total_deaths += row.new_deaths
-            total_vaccinations = addOrUndefined(
-                total_vaccinations,
-                row.new_vaccinations
-            )
             row.total_cases = total_cases
             row.total_deaths = total_deaths
-            row.total_vaccinations = total_vaccinations
             row.group_members = group_members
             if (row.population > maxPopulation) maxPopulation = row.population
 
             // Once we add a country to a group, we assume we will always have data for that country, so even if the
             // country is late in reporting the data keep that country in the population count.
             row.population = maxPopulation
-
-            // We want to drop new_vaccinations for aggregates, but we need them initially to
-            // calculate the total (this is a very very dirty fix)
-            row.new_vaccinations = undefined
         })
         return newRows
     }
