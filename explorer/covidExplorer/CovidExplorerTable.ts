@@ -661,10 +661,10 @@ export class CovidExplorerTable {
                     row.location,
                     row.total_vaccinations
                 )
+                newRow.total_vaccinations = sum(
+                    Array.from(totalVaccinationsByLocation.values())
+                )
             }
-            newRow.total_vaccinations = sum(
-                Array.from(totalVaccinationsByLocation.values())
-            )
         })
         const newRows = Array.from(rowsByDay.values())
         let total_cases = 0
