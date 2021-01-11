@@ -43,7 +43,7 @@ export type LegacyVariableId = Integer // remove.
 export interface FormattedPost {
     id: number
     postId?: number
-    type: "post" | "page"
+    type: WP_PostType
     slug: string
     path: string
     title: string
@@ -109,7 +109,7 @@ export interface PostRow {
     id: number
     title: string
     slug: string
-    type: "post" | "page"
+    type: WP_PostType
     status: string
     content: string
     published_at: Date | null
@@ -165,7 +165,7 @@ export interface PostReference {
 
 export interface FullPost {
     id: number
-    type: "post" | "page"
+    type: WP_PostType
     slug: string
     path: string
     title: string
