@@ -228,7 +228,7 @@ export const formatWordpressPost = async (
 
     // Extract page supertitle
     let supertitle
-    const $supertitle = $(".wp-block-owid-supertitle")
+    const $supertitle = cheerioEl(".wp-block-owid-supertitle")
     if ($supertitle.length) {
         supertitle = $supertitle.text()
         $supertitle.remove()
