@@ -130,6 +130,11 @@ export interface CategoryWithEntries {
     subcategories: CategoryWithEntries[]
 }
 
+export enum WP_PostType {
+    Post = "post",
+    Page = "page",
+}
+
 export enum PageType {
     Entry = "ENTRY",
     SubEntry = "SUBENTRY",
@@ -143,6 +148,19 @@ export interface EntryNode {
     // null instead of an empty string)
     excerpt: string | null
     kpi: string
+}
+
+export interface DocumentNode {
+    id: number
+    title: string
+    slug: string
+    content: string | null // if content is empty
+}
+
+export interface PostReference {
+    id: number
+    title: string
+    slug: string
 }
 
 export interface FullPost {

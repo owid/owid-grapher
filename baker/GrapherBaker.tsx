@@ -6,7 +6,7 @@ import { renderToHtmlPage } from "../baker/siteRenderers"
 import { Post } from "../db/model/Post"
 import { urlToSlug, without } from "../clientUtils/Util"
 import { isPresent } from "../clientUtils/isPresent"
-import { getRelatedCharts } from "../db/wpdb"
+import { getRelatedArticles, getRelatedCharts } from "../db/wpdb"
 import { getVariableData } from "../db/model/Variable"
 import * as fs from "fs-extra"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers"
@@ -22,16 +22,22 @@ import * as db from "../db/db"
 import * as glob from "glob"
 import { hasLegacyGrapherToCovidExplorerRedirect } from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { JsonError } from "../clientUtils/owidTypes"
+import { RelatedArticles } from "../site/RelatedArticles/RelatedArticles"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
     const relatedCharts = post ? await getRelatedCharts(post.id) : undefined
+    const relatedArticles = grapher.slug
+        ? await getRelatedArticles(grapher.slug)
+        : undefined
+
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
             post={post}
             relatedCharts={relatedCharts}
+            relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
         />

@@ -25,7 +25,11 @@ import {
     PageType,
     EntryNode,
     FullPost,
+    WP_PostType,
+    DocumentNode,
+    PostReference,
 } from "../clientUtils/owidTypes"
+import { getContentGraph, GraphType } from "./contentGraph"
 
 let knexInstance: Knex
 
@@ -95,6 +99,24 @@ export const singleton = new WPDB()
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
 const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
+
+export const ENTRIES_CATEGORY_ID = 44
+
+const graphqlQuery = async (query: string, variables: any = {}) => {
+    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify({
+            query,
+            variables,
+        }),
+    })
+    const json = await response.json()
+    return json
+}
 
 const apiQuery = async (
     endpoint: string,
@@ -179,6 +201,40 @@ export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
     return tagsByPostId
 }
 
+export const getDocumentsInfo = async (
+    type: WP_PostType,
+    cursor: string = "",
+    where: string = ""
+): Promise<DocumentNode[]> => {
+    const typePlural = `${type}s`
+    const query = `
+    query($cursor: String){
+        ${typePlural}(first:50, after: $cursor, where:{${where}}) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                id: databaseId
+                title
+                slug
+                content
+            }
+        }
+    }
+    `
+    const documents = await graphqlQuery(query, { cursor })
+    const pageInfo = documents?.data[typePlural].pageInfo
+    const nodes = documents?.data[typePlural].nodes
+    if (pageInfo.hasNextPage) {
+        return nodes.concat(
+            await getDocumentsInfo(type, pageInfo.endCursor, where)
+        )
+    } else {
+        return nodes
+    }
+}
+
 // Retrieve a list of categories and their associated entries
 let cachedEntries: CategoryWithEntries[] = []
 export const getEntriesByCategory = async (): Promise<
@@ -194,7 +250,7 @@ export const getEntriesByCategory = async (): Promise<
 
     const query = `
     query getEntriesByCategory($first: Int, $orderby: TermObjectsConnectionOrderbyEnum!) {
-        categories(first: $first, where: {termTaxonomId: 44, orderby: $orderby}) {
+        categories(first: $first, where: {termTaxonomId: ${ENTRIES_CATEGORY_ID}, orderby: $orderby}) {
           nodes {
             name
             children(first: $first, where: {orderby: $orderby}) {
@@ -350,7 +406,7 @@ const getEndpointSlugFromType = (type: string) => `${type}s`
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
 // will be a predominance of a certain post type.
 export const getPosts = async (
-    postTypes: string[] = ["post", "page"],
+    postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     limit?: number
 ): Promise<any[]> => {
     const perPage = 50
@@ -460,6 +516,28 @@ export const getRelatedCharts = async (
         AND charts.config->>"$.isPublished" = "true"
         ORDER BY title ASC
     `)
+
+export const getRelatedArticles = async (chartSlug: string) => {
+    const graph = await getContentGraph()
+
+    const chartRecord = await graph.find(GraphType.Chart, chartSlug)
+
+    if (!chartRecord.payload.count) return
+
+    const chart = chartRecord.payload.records[0]
+    const relatedArticles: PostReference[] = await Promise.all(
+        chart.research.map(async (postId: any) => {
+            const postRecord = await graph.find(GraphType.Document, postId)
+            const post = postRecord.payload.records[0]
+            return {
+                id: postId,
+                title: post.title,
+                slug: post.slug,
+            }
+        })
+    )
+    return relatedArticles
+}
 
 export const getBlockContent = async (
     id: number

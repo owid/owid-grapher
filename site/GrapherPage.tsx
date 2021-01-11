@@ -1,28 +1,33 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 import * as React from "react"
 import urljoin from "url-join"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
-import { PostRow, RelatedChart } from "../clientUtils/owidTypes"
+import { PostReference, PostRow, RelatedChart } from "../clientUtils/owidTypes"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "./IframeDetector"
 import { serializeJSONForHTML } from "../clientUtils/serializers"
 import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants"
 import { uniq } from "../clientUtils/Util"
+import { RelatedArticles } from "./RelatedArticles/RelatedArticles"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
     post?: PostRow
     relatedCharts?: RelatedChart[]
+    relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
 }) => {
-    const { grapher, post, relatedCharts, baseGrapherUrl, baseUrl } = props
-
+    const {
+        grapher,
+        relatedCharts,
+        relatedArticles,
+        baseGrapherUrl,
+        baseUrl,
+    } = props
     const pageTitle = grapher.title
     const pageDesc =
         grapher.subtitle ||
@@ -78,15 +83,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {post && (
+                    {((relatedArticles && relatedArticles.length != 0) ||
+                        (relatedCharts && relatedCharts.length != 0)) && (
                         <div className="related-research-data">
-                            <h2>All our research and data on {post.title}</h2>
-                            <div className="research">
-                                <a href={`/${post.slug}`}>
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                    Read the article
-                                </a>
-                            </div>
+                            <h2>All our related research and data</h2>
+                            {relatedArticles && relatedArticles.length != 0 && (
+                                <RelatedArticles articles={relatedArticles} />
+                            )}
                             {relatedCharts && relatedCharts.length !== 0 && (
                                 <>
                                     <h3>Charts</h3>
