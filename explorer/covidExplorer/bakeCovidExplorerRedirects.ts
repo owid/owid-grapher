@@ -203,30 +203,31 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
         explorerQueryStr:
             "zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&deathsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
     },
-    {
-        id: 4702,
-        slugs: ["cumulative-covid-vaccinations"],
-        explorerQueryStr:
-            "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=total&smoothing=0&pickerMetric=total_vaccinations&pickerSort=desc",
-    },
-    {
-        id: 4703,
-        slugs: ["covid-vaccination-doses-per-capita"],
-        explorerQueryStr:
-            "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=total_vaccinations_per_hundred&pickerSort=desc",
-    },
-    {
-        id: 4718,
-        slugs: ["daily-covid-19-vaccination-doses"],
-        explorerQueryStr:
-            "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_vaccinations&pickerSort=desc",
-    },
-    {
-        id: 4719,
-        slugs: ["daily-covid-vaccination-doses-per-capita"],
-        explorerQueryStr:
-            "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_vaccinations_per_hundred&pickerSort=desc",
-    },
+    // // Disabled because of performance issues
+    // {
+    //     id: 4702,
+    //     slugs: ["cumulative-covid-vaccinations"],
+    //     explorerQueryStr:
+    //         "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=total&smoothing=0&pickerMetric=total_vaccinations&pickerSort=desc",
+    // },
+    // {
+    //     id: 4703,
+    //     slugs: ["covid-vaccination-doses-per-capita"],
+    //     explorerQueryStr:
+    //         "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=total_vaccinations_per_hundred&pickerSort=desc",
+    // },
+    // {
+    //     id: 4718,
+    //     slugs: ["daily-covid-19-vaccination-doses"],
+    //     explorerQueryStr:
+    //         "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=smoothed&smoothing=7&pickerMetric=total_vaccinations&pickerSort=desc",
+    // },
+    // {
+    //     id: 4719,
+    //     slugs: ["daily-covid-vaccination-doses-per-capita"],
+    //     explorerQueryStr:
+    //         "zoomToSelection=true&time=earliest..latest&country=CHN~USA~RUS~MEX~DEU~GBR~FRA~ITA~ISR~DNK&region=World&vaccinationsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_vaccinations_per_hundred&pickerSort=desc",
+    // },
 ].map((redirect) => ({
     ...redirect,
     // Ensure all have hideControls=true, unless specified otherwise.
