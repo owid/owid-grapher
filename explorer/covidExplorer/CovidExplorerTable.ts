@@ -443,7 +443,7 @@ export class CovidExplorerTable {
                     ? undefined
                     : row.total_deaths && row.total_cases
                     ? (100 * row.total_deaths) / row.total_cases
-                    : 0
+                    : undefined
             )
     }
 
