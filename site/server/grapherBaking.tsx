@@ -8,7 +8,7 @@ import { renderToHtmlPage } from "site/server/siteRenderers"
 import { getVariableData } from "db/model/Variable"
 import { Post } from "db/model/Post"
 import { urlToSlug } from "grapher/utils/Util"
-import { getRelatedCharts } from "db/wpdb"
+import { getRelatedArticles, getRelatedCharts } from "db/wpdb"
 
 export async function chartDataJson(variableIds: number[]) {
     return await getVariableData(variableIds)
@@ -18,11 +18,16 @@ export async function grapherPageFromConfig(grapher: GrapherInterface) {
     const postSlug = urlToSlug(grapher.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
     const relatedCharts = post ? await getRelatedCharts(post.id) : undefined
+    const relatedArticles = grapher.slug
+        ? await getRelatedArticles(grapher.slug)
+        : undefined
+
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
             post={post}
             relatedCharts={relatedCharts}
+            relatedArticles={relatedArticles}
         />
     )
 }

@@ -1,7 +1,4 @@
 import { BAKED_GRAPHER_URL } from "settings"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
-
 import * as React from "react"
 import urljoin from "url-join"
 import * as lodash from "lodash"
@@ -15,14 +12,16 @@ import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 import { serializeJSONForHTML } from "utils/serializers"
+import { RelatedArticles } from "site/RelatedArticles/RelatedArticles"
+import { PostReference } from "adminSite/client/ChartEditor"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
     post?: Post.Row
     relatedCharts?: RelatedChart[]
+    relatedArticles?: PostReference[]
 }) => {
-    const { grapher, post, relatedCharts } = props
-
+    const { grapher, relatedCharts, relatedArticles } = props
     const pageTitle = grapher.title
     const pageDesc =
         grapher.subtitle ||
@@ -94,15 +93,13 @@ try {
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {post && (
+                    {((relatedArticles && relatedArticles.length != 0) ||
+                        (relatedCharts && relatedCharts.length != 0)) && (
                         <div className="related-research-data">
-                            <h2>All our research and data on {post.title}</h2>
-                            <div className="research">
-                                <a href={`/${post.slug}`}>
-                                    <FontAwesomeIcon icon={faFileAlt} />
-                                    Read the article
-                                </a>
-                            </div>
+                            <h2>All our related research and data</h2>
+                            {relatedArticles && relatedArticles.length != 0 && (
+                                <RelatedArticles articles={relatedArticles} />
+                            )}
                             {relatedCharts && relatedCharts.length !== 0 && (
                                 <>
                                     <h3>Charts</h3>

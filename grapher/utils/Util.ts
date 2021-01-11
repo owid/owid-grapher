@@ -28,6 +28,7 @@ import min from "lodash/min"
 import minBy from "lodash/minBy"
 import noop from "lodash/noop"
 import omit from "lodash/omit"
+import once from "lodash/once"
 import orderBy from "lodash/orderBy"
 import partition from "lodash/partition"
 import pick from "lodash/pick"
@@ -82,6 +83,7 @@ export {
     minBy,
     noop,
     omit,
+    once,
     orderBy,
     partition,
     pick,

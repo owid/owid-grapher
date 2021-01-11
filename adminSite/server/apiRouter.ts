@@ -74,7 +74,7 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     return logs
 }
 
-async function getReferencesByChartId(
+export async function getReferencesByChartId(
     chartId: number
 ): Promise<PostReference[]> {
     const rows = await db.query(
