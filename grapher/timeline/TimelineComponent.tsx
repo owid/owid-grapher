@@ -134,8 +134,6 @@ export class TimelineComponent extends React.Component<{
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
-
-        this.controller.snapTimes()
     }
 
     private mouseHoveringOverTimeline: boolean = false
