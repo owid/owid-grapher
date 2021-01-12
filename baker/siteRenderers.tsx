@@ -338,6 +338,7 @@ const getCountryProfilePost = memoize(
 const getPostBySlugOrThrow = async (slug: string) => {
     const post = await getPostBySlug(slug)
     if (!post) throw new JsonError(`No page found by slug ${slug}`, 404)
+    return post
 }
 
 // todo: we used to flush cache of this thing.
