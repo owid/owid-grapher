@@ -240,10 +240,7 @@ export class CovidQueryParams {
     /** If perCapita is enabled, will return size of divisor i.e. 1000, else 1 */
     @computed get perCapitaAdjustment() {
         return this.perCapita
-            ? perCapitaDivisorByMetricAndInterval(
-                  this.metricName,
-                  this.interval
-              )
+            ? perCapitaDivisorByMetricAndInterval(this.metricName)
             : 1
     }
 

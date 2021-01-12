@@ -575,8 +575,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed private get perCapitaDivisor() {
         return perCapitaDivisorByMetricAndInterval(
-            this.constrainedParams.metricName,
-            this.constrainedParams.interval
+            this.constrainedParams.metricName
         )
     }
 
@@ -589,11 +588,11 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    private perCapitaTitle(metric: MetricKind, interval: IntervalOption) {
+    private perCapitaTitle(metric: MetricKind) {
         return this.constrainedParams.perCapita
             ? " " +
                   this.perCapitaOptions[
-                      perCapitaDivisorByMetricAndInterval(metric, interval)
+                      perCapitaDivisorByMetricAndInterval(metric)
                   ]
             : ""
     }
@@ -625,7 +624,7 @@ export class CovidExplorer extends React.Component<{
         else if (params.vaccinationsMetric)
             title = `${freq} COVID-19 vaccination doses administered`
 
-        return title + this.perCapitaTitle(params.metricName, params.interval)
+        return title + this.perCapitaTitle(params.metricName)
     }
 
     @computed private get weekSubtitle() {
@@ -1160,7 +1159,7 @@ export class CovidExplorer extends React.Component<{
         const colSlug = buildColumnSlug(
             metric,
             this.constrainedParams.perCapita && isCountMetric(metric)
-                ? perCapitaDivisorByMetricAndInterval(metric, interval)
+                ? perCapitaDivisorByMetricAndInterval(metric)
                 : 1,
             interval,
             intervalSpecs[interval].smoothing
@@ -1176,9 +1175,7 @@ export class CovidExplorer extends React.Component<{
                 tolerance: column?.spec.display?.tolerance ?? 10,
                 name:
                     metricLabels[metric] +
-                    (isCountMetric(metric)
-                        ? this.perCapitaTitle(metric, interval)
-                        : ""),
+                    (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
                 unit: intervalSpecs[interval].label,
                 shortUnit:
                     (interval === "weeklyChange" ||

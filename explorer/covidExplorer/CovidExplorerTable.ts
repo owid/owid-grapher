@@ -783,11 +783,8 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-export function perCapitaDivisorByMetricAndInterval(
-    metric: MetricKind,
-    interval: IntervalOption
-) {
+export function perCapitaDivisorByMetricAndInterval(metric: MetricKind) {
     if (metric === "tests") return 1e3
-    if (metric === "vaccinations" && interval === "total") return 1e2
+    if (metric === "vaccinations") return 1e2
     return 1e6
 }
