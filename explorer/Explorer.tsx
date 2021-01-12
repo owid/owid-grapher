@@ -53,6 +53,7 @@ import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
 import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
+import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -65,6 +66,7 @@ interface ExplorerProps extends SerializedGridProgram {
 interface ExplorerPatchObject extends GrapherQueryParams {
     pickerSort?: SortOrder
     pickerMetric?: ColumnSlug
+    hideControls?: string
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -131,6 +133,9 @@ export class Explorer
 
     @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
     @observable entityPickerSort? = this.initialPatchObject.pickerSort
+
+    // only used for the checkbox at the bottom of the embed dialog
+    @observable embedDialogHideControls = true
 
     selection = new SelectionArray(
         this.explorerProgram.selection,
@@ -359,6 +364,7 @@ export class Explorer
                 : undefined,
             pickerSort: this.entityPickerSort,
             pickerMetric: this.entityPickerMetric,
+            hideControls: this.initialPatchObject.hideControls || undefined,
             ...decisionsPatchObject,
         }
 
@@ -416,7 +422,11 @@ export class Explorer
     @observable private isNarrow = isNarrow()
 
     @computed private get showExplorerControls() {
-        if (this.explorerProgram.hideControls) return false
+        if (
+            this.explorerProgram.hideControls ||
+            this.initialPatchObject.hideControls === "true"
+        )
+            return false
 
         return this.props.isEmbeddedInAnOwidPage ? false : true
     }
@@ -535,8 +545,46 @@ export class Explorer
         return `${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
     }
 
+    @computed get baseUrl() {
+        return `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
+    }
+
     @computed get canonicalUrl() {
-        return (this.props.canonicalUrl ?? "") + this.encodedQueryString
+        return (
+            this.props.canonicalUrl ??
+            (this.baseUrl ? this.baseUrl + this.encodedQueryString : undefined)
+        )
+    }
+
+    @computed get embedDialogUrl() {
+        const embedPatch = new Patch({
+            ...(this.patchObject as any),
+            hideControls: this.embedDialogHideControls.toString(),
+        }).uriEncodedString
+        const embedPatchEncoded = embedPatch
+            ? `?${PATCH_QUERY_PARAM}=` + embedPatch
+            : ""
+
+        return this.baseUrl ? this.baseUrl + embedPatchEncoded : undefined
+    }
+
+    @action.bound embedDialogToggleHideControls() {
+        this.embedDialogHideControls = !this.embedDialogHideControls
+    }
+
+    @computed get embedDialogAdditionalElements() {
+        return (
+            <div style={{ marginTop: ".5rem" }}>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={this.embedDialogHideControls}
+                        onChange={this.embedDialogToggleHideControls}
+                    />{" "}
+                    Hide controls
+                </label>
+            </div>
+        )
     }
 
     @computed get entityPickerTable() {
