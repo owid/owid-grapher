@@ -107,7 +107,7 @@ export const sourceCharts = {
     deaths_weeklys: 4196,
     deaths_weeklys_change: 4193,
 
-    tests_total: 4191,
+    tests_total: 4164,
     tests_daily: 4307,
     tests_total_per_capita: 4162,
     tests_daily_per_capita: 4191,
