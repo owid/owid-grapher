@@ -430,7 +430,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         const constraints = {
             perCapita: !this.isRate && !isWeekly,
             aligned: !this.isRate && !isWeekly && !this.vaccinationsMetric,
-            daily: !this.isRate && !this.vaccinationsMetric,
+            daily: !this.isRate,
             smoothed: !this.cfrMetric,
             weekly,
         }

@@ -196,7 +196,7 @@ export const intervalsAvailableByMetric: Map<
     ["case_fatality_rate", new Set(["total"])],
     ["tests_per_case", new Set(["total", "smoothed"])],
     ["positive_test_rate", new Set(["total", "smoothed"])],
-    ["vaccinations", new Set(["total", "smoothed"])],
+    ["vaccinations", new Set(["total", "smoothed", "daily"])],
 ])
 
 // todo: auto import from covid repo.
@@ -246,6 +246,7 @@ export interface ParsedCovidCsvRow {
     total_vaccinations: number | undefined
     total_vaccinations_per_hundred: number | undefined
     new_vaccinations: number | undefined
+    new_vaccinations_smoothed: number | undefined
     new_vaccinations_per_million: number | undefined
 }
 

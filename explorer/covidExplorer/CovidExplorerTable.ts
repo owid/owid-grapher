@@ -429,8 +429,10 @@ export class CovidExplorerTable {
     }
 
     initVaccinationsColumn(params: CovidConstrainedQueryParams) {
-        if (params.interval === "smoothed")
+        if (params.interval === "daily")
             this.initColumn(params, (row) => row.new_vaccinations)
+        if (params.interval === "smoothed")
+            this.initColumn(params, (row) => row.new_vaccinations_smoothed)
         else if (params.interval === "total")
             this.initColumn(params, (row) => row.total_vaccinations)
     }
