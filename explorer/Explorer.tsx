@@ -174,15 +174,6 @@ export class Explorer
             window.removeEventListener("resize", this.onResizeThrottled)
     }
 
-    private snapshotCurrentChangedGrapherParams() {
-        // only start storing params after first grapher load
-        // todo: ideally we can factor this thingy out
-        this.grapherParamsChangedSincePageLoad = {
-            ...this.grapherParamsChangedSincePageLoad,
-            ...this.grapher!.changedParams,
-        }
-    }
-
     private initSlideshow() {
         const grapher = this.grapher
         if (!grapher || grapher.slideShow) return
@@ -195,6 +186,11 @@ export class Explorer
             this
         )
     }
+
+    private persistedQueryParamsByGrapher: Map<
+        number,
+        Partial<GrapherQueryParams>
+    > = new Map()
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
     @action.bound private reactToUserChangingSelection() {
@@ -214,12 +210,19 @@ export class Explorer
 
         if (hasGrapherId && grapher.id === grapherId) return
 
-        if (grapher.id !== undefined) this.snapshotCurrentChangedGrapherParams()
-
-        const queryParams =
+        const preChangeQueryParams =
             grapher.id !== undefined
                 ? grapher.changedParams
                 : this.initialPatchObject
+
+        if (grapherId)
+            this.persistedQueryParamsByGrapher.set(
+                grapherId,
+                preChangeQueryParams
+            )
+
+        const persistedParams =
+            grapher.id && this.persistedQueryParamsByGrapher.get(grapher.id)
 
         const grapherConfig =
             grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
@@ -238,7 +241,7 @@ export class Explorer
         grapher.updateFromObject(config)
         this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
-        grapher.populateFromQueryParams(queryParams)
+        persistedParams && grapher.populateFromQueryParams(persistedParams)
         grapher.downloadData()
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
@@ -352,7 +355,6 @@ export class Explorer
             )
 
         const explorerPatchObject = {
-            ...this.grapherParamsChangedSincePageLoad,
             ...this.grapher.changedParams,
             selection: this.selection.hasSelection
                 ? this.selection.selectedEntityNames
@@ -365,19 +367,6 @@ export class Explorer
 
         return trimObject(explorerPatchObject)
     }
-
-    /**
-     * The complicated code here is for situations like the below:
-     *
-     * 1. User lands on page and is shown line chart
-     * 2. User clicks map tab.
-     * 3. User clicks a radio that takes them to a chart where the default tab is map tab.
-     * 4. tab=map should still be in URL, even though the default in #3 is map tab.
-     * 5. So if user clicks a radio to go back to #2, it should bring them back to map tab.
-     *
-     * To accomplish this, we need to maintain a little state containing all the url params that have changed during this user's session.
-     */
-    private grapherParamsChangedSincePageLoad: ExplorerPatchObject = {}
 
     private get panels() {
         return this.explorerProgram.decisionMatrix.choicesWithAvailability.map(
