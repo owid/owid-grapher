@@ -479,6 +479,10 @@ export class DecisionMatrix {
     ) {
         if (value === "") delete this.currentPatch[choiceName]
         else this.currentPatch[choiceName] = value
+        this.selectedRow = trimAndParseObject(
+            this.table.rowsAt([this.selectedRowIndex])[0],
+            GrapherGrammar
+        )
     }
 
     @action.bound private setValuesFromPatchObject(
@@ -564,24 +568,19 @@ export class DecisionMatrix {
         return this.table.findRows(modifiedQuery)
     }
 
-    @computed private get firstMatch() {
+    private get firstMatch() {
         const query = this.toConstrainedOptions()
         const hits = this.rowsWith(query)
         return hits[0]
     }
 
-    @computed get selectedRowIndex() {
+    get selectedRowIndex() {
         return this.firstMatch === undefined
             ? 0
             : this.table.indexOf(this.firstMatch)
     }
 
-    @computed get selectedRow() {
-        return trimAndParseObject(
-            this.table.rowsAt([this.selectedRowIndex])[0],
-            GrapherGrammar
-        )
-    }
+    @observable selectedRow: any = {}
 
     private toControlOption(
         choiceName: ChoiceName,

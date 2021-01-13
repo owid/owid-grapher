@@ -159,11 +159,6 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.reactToUserChangingSelection()
-        // Whenever the selected row changes, update Grapher.
-        autorun(() => {
-            this.explorerProgram.decisionMatrix.selectedRow
-            this.reactToUserChangingSelection()
-        })
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -396,6 +391,7 @@ export class Explorer
                             choice.title,
                             value
                         )
+                        this.reactToUserChangingSelection()
                     }}
                 />
             )
