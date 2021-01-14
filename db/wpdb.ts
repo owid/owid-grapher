@@ -28,6 +28,8 @@ import {
     WP_PostType,
     DocumentNode,
     PostReference,
+    JsonError,
+    CategoryNode,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
 
@@ -102,26 +104,39 @@ const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
 
 export const ENTRIES_CATEGORY_ID = 44
 
+/* Wordpress GraphQL API query
+ *
+ * Note: in contrast to the REST API query, the GQL query does not throw when a
+ * resource is not found, as GQL returns a 200, with a shape that is different between
+ * every query. So it is the caller's responsibility to throw (if necessary) on
+ * "faux 404".
+ */
 const graphqlQuery = async (query: string, variables: any = {}) => {
     const response = await fetch(WP_GRAPHQL_ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            Authorization: `Basic ${Base64.encode(
+                WORDPRESS_API_USER + ":" + WORDPRESS_API_PASS
+            )}`,
         },
         body: JSON.stringify({
             query,
             variables,
         }),
     })
-    const json = await response.json()
-    return json
+    return response.json()
 }
 
+/* Wordpress REST API query
+ *
+ * Note: throws on response.status >= 200 && response.status < 300.
+ */
 const apiQuery = async (
     endpoint: string,
     params?: {
-        isAuthenticated?: boolean
+        returnResponseHeadersOnly?: boolean
         searchParams?: Array<[string, string | number]>
     }
 ): Promise<any> => {
@@ -132,21 +147,23 @@ const apiQuery = async (
             url.searchParams.append(param[0], String(param[1]))
         })
     }
+    const response = await fetch(url.toString(), {
+        headers: {
+            Authorization: `Basic ${Base64.encode(
+                WORDPRESS_API_USER + ":" + WORDPRESS_API_PASS
+            )}`,
+            Accept: "application/json",
+        },
+    })
 
-    if (params && params.isAuthenticated)
-        return fetch(url.toString(), {
-            headers: [
-                [
-                    "Authorization",
-                    "Basic " +
-                        Base64.encode(
-                            `${WORDPRESS_API_USER}:${WORDPRESS_API_PASS}`
-                        ),
-                ],
-            ],
-        })
+    if (!response.ok)
+        throw new JsonError(
+            `HTTP Error Response: ${response.status} ${response.statusText}`
+        )
 
-    return fetch(url.toString())
+    return params && params.returnResponseHeadersOnly
+        ? response.headers
+        : response.json()
 }
 
 // Retrieve a map of post ids to authors
@@ -235,6 +252,21 @@ export const getDocumentsInfo = async (
     }
 }
 
+const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
+    slug,
+    title: decodeHTML(title),
+    excerpt: excerpt === null ? "" : decodeHTML(excerpt),
+    kpi,
+})
+
+const isEntryInSubcategories = (entry: EntryNode, subcategories: any) => {
+    return subcategories.some((subcategory: any) => {
+        return subcategory.pages.nodes.some(
+            (node: EntryNode) => entry.slug === node.slug
+        )
+    })
+}
+
 // Retrieve a list of categories and their associated entries
 let cachedEntries: CategoryWithEntries[] = []
 export const getEntriesByCategory = async (): Promise<
@@ -280,43 +312,9 @@ export const getEntriesByCategory = async (): Promise<
         }
       }
       `
+    const categories = await graphqlQuery(query, { first, orderby })
 
-    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-        },
-        body: JSON.stringify({
-            query,
-            variables: { first, orderby },
-        }),
-    })
-    const json = await response.json()
-
-    interface CategoryNode {
-        name: string
-        slug: string
-        pages: any
-        children: any
-    }
-
-    const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
-        slug,
-        title: decodeHTML(title),
-        excerpt: excerpt === null ? "" : decodeHTML(excerpt),
-        kpi,
-    })
-
-    const isEntryInSubcategories = (entry: EntryNode, subcategories: any) => {
-        return subcategories.some((subcategory: any) => {
-            return subcategory.pages.nodes.some(
-                (node: EntryNode) => entry.slug === node.slug
-            )
-        })
-    }
-
-    cachedEntries = json.data.categories.nodes[0].children.nodes.map(
+    cachedEntries = categories.data.categories.nodes[0].children.nodes.map(
         ({ name, slug, pages, children }: CategoryNode) => ({
             name: decodeHTML(name),
             slug,
@@ -411,7 +409,6 @@ export const getPosts = async (
 ): Promise<any[]> => {
     const perPage = 50
     let posts: any[] = []
-    let response
 
     for (const postType of postTypes) {
         const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
@@ -419,18 +416,20 @@ export const getPosts = async (
         )}`
 
         // Get number of items to retrieve
-        response = await apiQuery(endpoint, { searchParams: [["per_page", 1]] })
-        const maxAvailable = response.headers.get("X-WP-TotalPages")
+        const headers = await apiQuery(endpoint, {
+            searchParams: [["per_page", 1]],
+            returnResponseHeadersOnly: true,
+        })
+        const maxAvailable = headers.get("X-WP-TotalPages")
         const count = limit && limit < maxAvailable ? limit : maxAvailable
 
         for (let page = 1; page <= Math.ceil(count / perPage); page++) {
-            response = await apiQuery(endpoint, {
+            const postsCurrentPage = await apiQuery(endpoint, {
                 searchParams: [
                     ["per_page", perPage],
                     ["page", page],
                 ],
             })
-            const postsCurrentPage = await response.json()
             posts.push(...postsCurrentPage)
         }
     }
@@ -448,22 +447,24 @@ export const getPosts = async (
 
 export const getPostType = async (search: number | string): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
-    const response = await apiQuery(`${OWID_API_ENDPOINT}/type`, {
+    return apiQuery(`${OWID_API_ENDPOINT}/type`, {
         searchParams: [[paramName, search]],
     })
-    return await response.json()
 }
 
 export const getPostBySlug = async (slug: string): Promise<any[]> => {
-    const type = await getPostType(slug)
-    const response = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
-        {
-            searchParams: [["slug", slug]],
-        }
-    )
-    const postApiArray = await response.json()
-    return postApiArray[0]
+    try {
+        const type = await getPostType(slug)
+        const postArr = await apiQuery(
+            `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
+            {
+                searchParams: [["slug", slug]],
+            }
+        )
+        return postArr[0]
+    } catch (err) {
+        throw new JsonError(`No page found by slug ${slug}`, 404)
+    }
 }
 
 // the /revisions endpoint does not send back all the metadata required for
@@ -472,18 +473,13 @@ export const getLatestPostRevision = async (id: number): Promise<any> => {
     const type = await getPostType(id)
     const endpointSlug = getEndpointSlugFromType(type)
 
-    let response = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`, {
-        isAuthenticated: true,
-    })
-    const postApi = await response.json()
+    const postApi = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`)
 
-    response = await apiQuery(
-        `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`,
-        {
-            isAuthenticated: true,
-        }
-    )
-    const revision = (await response.json())[0]
+    const revision = (
+        await apiQuery(
+            `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`
+        )
+    )[0]
 
     return {
         // Since WP does not store metadata for revisions, some elements of a
@@ -549,21 +545,9 @@ export const getBlockContent = async (
         }
       }
     `
+    const post = await graphqlQuery(query, { id })
 
-    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-        },
-        body: JSON.stringify({
-            query,
-            variables: { id },
-        }),
-    })
-    const json = await response.json()
-
-    return json.data.post?.content ?? undefined
+    return post.data.post?.content ?? undefined
 }
 
 export const getFullPost = async (
