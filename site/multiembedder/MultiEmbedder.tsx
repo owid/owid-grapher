@@ -52,14 +52,14 @@ class EmbeddedFigure {
                 ),
             }
             ReactDOM.render(<Explorer {...props} />, this.container)
-            return
+        } else {
+            this.container.classList.remove("grapherPreview")
+            const config: GrapherProgrammaticInterface = {
+                ...deserializeJSONFromHTML(html),
+                ...common,
+            }
+            Grapher.renderGrapherIntoContainer(config, this.container)
         }
-        this.container.classList.remove("grapherPreview")
-        const config: GrapherProgrammaticInterface = {
-            ...deserializeJSONFromHTML(html),
-            ...common,
-        }
-        Grapher.renderGrapherIntoContainer(config, this.container)
     }
 
     protected _isLoaded = false
