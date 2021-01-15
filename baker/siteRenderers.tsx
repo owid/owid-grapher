@@ -95,7 +95,7 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderPageBySlug = async (slug: string) => {
-    const postApi = await getPostBySlugOrThrow(slug)
+    const postApi = await getPostBySlug(slug)
     return renderPage(postApi)
 }
 
@@ -314,7 +314,7 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePostApi = await getPostBySlugOrThrow(
+        const genericCountryProfilePostApi = await getPostBySlug(
             profileSpec.genericProfileSlug
         )
 
@@ -335,16 +335,10 @@ const getCountryProfilePost = memoize(
     }
 )
 
-const getPostBySlugOrThrow = async (slug: string) => {
-    const post = await getPostBySlug(slug)
-    if (!post) throw new JsonError(`No page found by slug ${slug}`, 404)
-    return post
-}
-
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        const landingPagePostApi = await getPostBySlugOrThrow(
+        const landingPagePostApi = await getPostBySlug(
             profileSpec.landingPageSlug
         )
         const landingPost = getFullPost(landingPagePostApi)

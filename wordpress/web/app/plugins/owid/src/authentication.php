@@ -129,3 +129,58 @@ add_filter(
     10,
     0
 );
+
+/* Prevent unauthenticated requests to the REST API
+ *
+ * https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests
+ */
+add_filter('rest_authentication_errors', function ($result) {
+    // If a previous authentication check was applied,
+    // pass that result along without modification.
+    if (true === $result || is_wp_error($result)) {
+        return $result;
+    }
+
+    // No authentication has been performed yet.
+    // Return an error if user is not logged in.
+    if (!is_user_logged_in()) {
+        return new \WP_Error(
+            'rest_not_logged_in',
+            __('You are not currently logged in.'),
+            ['status' => 401]
+        );
+    }
+
+    // Our custom authentication check should have no effect
+    // on logged-in requests
+    return $result;
+});
+
+/* Prevent unauthenticated requests to the GraphQL API
+ *
+ * https://www.wpgraphql.com/2019/01/30/preventing-unauthenticated-requests-to-your-wpgraphql-api/
+ */
+
+add_action(
+    'do_graphql_request',
+    function ($query) {
+        if (!defined('GRAPHQL_HTTP_REQUEST') || true !== GRAPHQL_HTTP_REQUEST) {
+            return;
+        }
+
+        $introspection_query = \GraphQL\Type\Introspection::getIntrospectionQuery();
+        $is_introspection_query = trim($query) === trim($introspection_query);
+
+        if ($is_introspection_query) {
+            return;
+        }
+
+        if (!get_current_user_id()) {
+            throw new \GraphQL\Error\UserError(
+                __('You do not have permission to access the API')
+            );
+        }
+    },
+    10,
+    1
+);

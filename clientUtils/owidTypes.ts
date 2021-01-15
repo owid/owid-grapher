@@ -157,6 +157,13 @@ export interface DocumentNode {
     content: string | null // if content is empty
 }
 
+export interface CategoryNode {
+    name: string
+    slug: string
+    pages: any
+    children: any
+}
+
 export interface PostReference {
     id: number
     title: string

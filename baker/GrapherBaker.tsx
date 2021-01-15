@@ -22,7 +22,6 @@ import * as db from "../db/db"
 import * as glob from "glob"
 import { hasLegacyGrapherToCovidExplorerRedirect } from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { JsonError } from "../clientUtils/owidTypes"
-import { RelatedArticles } from "../site/RelatedArticles/RelatedArticles"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
