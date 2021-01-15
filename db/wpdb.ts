@@ -614,7 +614,7 @@ export const getRelatedArticles = async (chartSlug: string) => {
 export async function getBlockContent(id: number): Promise<string | undefined> {
     const query = `
     query getBlock($id: ID!) {
-        post(id: $id, idType: DATABASE_ID) {
+        wp_block(id: $id, idType: DATABASE_ID) {
           content
         }
       }
@@ -633,7 +633,7 @@ export async function getBlockContent(id: number): Promise<string | undefined> {
     })
     const json = await response.json()
 
-    return json.data.post?.content ?? undefined
+    return json.data.wp_block?.content ?? undefined
 }
 
 export interface FullPost {

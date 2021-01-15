@@ -198,6 +198,22 @@ function graphql_register_types()
     // ]);
 }
 
+// Show reusable blocks in GraphQL
+// https://www.wpgraphql.com/docs/custom-post-types/#filtering-an-existing-post-type
+add_filter(
+    'register_post_type_args',
+    function ($args, $post_type) {
+        if ($post_type === 'wp_block') {
+            $args['show_in_graphql'] = true;
+            $args['graphql_single_name'] = 'wp_block';
+            $args['graphql_plural_name'] = 'wp_blocks';
+        }
+        return $args;
+    },
+    10,
+    2
+);
+
 function assets_enqueue()
 {
     // $post_type = get_current_screen()->post_type;
