@@ -360,7 +360,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeColumnSlug = this.timeColumn.slug
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
-                return { ...def, type: ColumnTypeNames.PercentChangeOverTime }
+                return toPercentageColumnDef(
+                    def,
+                    ColumnTypeNames.PercentChangeOverTime
+                )
             return def
         })
         const newRows = flatten(
