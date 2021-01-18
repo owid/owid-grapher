@@ -538,7 +538,6 @@ export const getRelatedArticles = async (chartSlug: string) => {
 export const getBlockContent = async (
     id: number
 ): Promise<string | undefined> => {
-    console.log(id)
     const query = `
     query getBlock($id: ID!) {
         wp_block(id: $id, idType: DATABASE_ID) {
