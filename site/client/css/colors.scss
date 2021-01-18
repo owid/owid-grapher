@@ -1,0 +1,73 @@
+/*******************************************************************************
+ * Colors
+ */
+
+/* Oxford Blue */
+$primary-color: #002147;
+$primary-color-1000: $primary-color;
+$primary-color-900: #0d2e54;
+$primary-color-800: #1d3d63;
+$primary-color-700: #365578;
+$primary-color-600: #577291;
+$primary-color-500: #6e87a2;
+$primary-color-400: #92a5bb;
+$primary-color-300: #c0ccda;
+$primary-color-200: #d8e0e9;
+$primary-color-100: #ebeef2;
+$primary-color-50: #f4f5f7;
+$primary-color-30: #fafbfd;
+
+/* Blood Orange */
+$secondary-color: #d42b21;
+
+/* Yellow */
+$tertiary-color: #f8c723;
+$tertiary-color-brighter: #f9cf44;
+$tertiary-color-100: #f4eddb;
+$tertiary-color-400: $tertiary-color;
+$tertiary-color-700: #d8b43b;
+
+/* Highlight color */
+$highlight-color: #f8c723;
+
+/* Default background color */
+$body-bg: #fafafa;
+
+/* White */
+$white: #ffffff;
+
+/* Text colors */
+$text-color: $primary-color-800;
+$secondary-text-color: $primary-color-600;
+$tertiary-text-color: $tertiary-color;
+$error-text-color: $secondary-color;
+$grey-text-color: #616161;
+$bluish-grey-text-color: $primary-color-500;
+
+/* Hyperlink colors */
+$link-color: #2162e6;
+$link-hover-color: $link-color;
+$link-visited-color: #7c45d8;
+
+/* Category colors */
+$population-color: #2082a2;
+$health-color: #bf1b1b;
+$food-color: #588a0f;
+$energy-color: #ca6f34;
+$environment-color: #0c6947;
+$technology-color: #2774c6;
+$growth-inequality-color: #009655;
+$work-life-color: #ab348a;
+$public-sector-color: #eb6400;
+$global-connections-color: #17393d;
+$war-peace-color: #660000;
+$politics-color: #1b0655;
+$violence-rights-color: #cc235c;
+$education-color: #253f77;
+$media-color: #0089be;
+$culture-color: #af488f;
+
+/* Controls color */
+$controls-color: #0073e6;
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;

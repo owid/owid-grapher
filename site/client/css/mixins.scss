@@ -9,6 +9,17 @@
     }
 }
 
+@mixin cancel-link-styles {
+    color: $primary-color-800;
+    &:visited {
+        color: $primary-color-800;
+    }
+    &:hover {
+        text-decoration: none;
+        color: $primary-color;
+    }
+}
+
 @mixin info {
     font-size: 0.875rem;
 
