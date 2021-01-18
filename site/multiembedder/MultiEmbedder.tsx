@@ -9,7 +9,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
 } from "../../grapher/core/Grapher"
-import { Explorer } from "../../explorer/Explorer"
+import { Explorer, ExplorerProps } from "../../explorer/Explorer"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
@@ -42,7 +42,7 @@ class EmbeddedFigure {
 
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
-            const props = {
+            const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
                 queryString: this.props.queryStr,
