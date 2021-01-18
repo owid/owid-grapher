@@ -538,16 +538,17 @@ export const getRelatedArticles = async (chartSlug: string) => {
 export const getBlockContent = async (
     id: number
 ): Promise<string | undefined> => {
+    console.log(id)
     const query = `
     query getBlock($id: ID!) {
-        post(id: $id, idType: DATABASE_ID) {
+        wp_block(id: $id, idType: DATABASE_ID) {
           content
         }
       }
     `
     const post = await graphqlQuery(query, { id })
 
-    return post.data.post?.content ?? undefined
+    return post.data.wp_block?.content ?? undefined
 }
 
 export const getFullPost = async (
