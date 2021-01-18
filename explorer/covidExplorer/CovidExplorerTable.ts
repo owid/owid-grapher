@@ -695,7 +695,7 @@ export class CovidExplorerTable {
         "Bulgaria",
         "Croatia",
         "Cyprus",
-        "Czech Republic",
+        "Czechia",
         "Denmark",
         "Estonia",
         "Finland",
