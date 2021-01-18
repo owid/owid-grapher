@@ -8844,6 +8844,11 @@ extsprintf@^1.2.0:
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
   integrity sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
 
+fast-cartesian@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/fast-cartesian/-/fast-cartesian-5.1.0.tgz#496ff07b4d60d9e4ba6888d0f04a97b2115f4aca"
+  integrity sha512-sZqtZoSpvB64whoAfZYaHY2EMF4yX039MlXoL7UpXpy38OxaN2ZJcZbS1qu7hsEkPrrReqTi0EBrfx5bd+HNBQ==
+
 fast-deep-equal@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.1.tgz#545145077c501491e33b15ec408c294376e94ae4"
