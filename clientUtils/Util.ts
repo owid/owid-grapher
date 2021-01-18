@@ -990,8 +990,10 @@ export function getClosestTimePairs(
     return decidedPairs
 }
 
-export const omitUndefinedValues = <T>(object: T): Partial<T> => {
-    const result: Partial<T> = {}
+type NoUndefinedValues<T> = { [P in keyof T]: Required<NonNullable<T[P]>> }
+
+export const omitUndefinedValues = <T>(object: T): NoUndefinedValues<T> => {
+    const result: any = {}
     for (const key in object) {
         if (object[key] !== undefined) result[key] = object[key]
     }
