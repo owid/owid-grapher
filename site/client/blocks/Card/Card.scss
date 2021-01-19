@@ -1,0 +1,47 @@
+.wp-block-owid-card {
+    border: 1px solid $primary-color-200;
+    background-color: $white;
+    transition: all 0.1s;
+
+    &:hover {
+        @include block-shadow;
+        border: 1px solid $primary-color-400;
+    }
+
+    .text-wrapper {
+        padding: $padding-x-sm / 2;
+        padding-top: $vertical-spacing / 2;
+    }
+
+    figure,
+    img {
+        margin: 0;
+        padding: 0;
+    }
+
+    img {
+        box-shadow: none;
+        border-bottom: 1px solid $primary-color-100;
+    }
+
+    .title {
+        margin-bottom: $vertical-spacing / 2;
+        font-family: $serif-font-stack;
+        font-size: 1.3rem;
+        font-weight: bold;
+        line-height: 1.2;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        line-height: normal;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        @include cancel-link-styles;
+    }
+}

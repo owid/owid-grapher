@@ -21,21 +21,14 @@
     }
 
     a {
-        display: block;
-        color: $primary-color-800;
-        &:visited {
-            color: $primary-color-800;
-        }
-        &:hover {
-            text-decoration: none;
-            color: $primary-color;
-        }
+        @include cancel-link-styles;
     }
 
     &.is-style-default {
         @include left-media-columns;
         margin-bottom: 2rem;
         a {
+            display: block;
             padding: $padding-x-sm;
             @include md-up {
                 padding: $padding-x-md;
