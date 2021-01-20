@@ -85,6 +85,7 @@ it("will combine entity and column name when we set multi country multi column",
     const manager = {
         table,
         selection: table.availableEntityNames,
+        canSelectMultipleEntities: true,
     }
     const chart = new LineChart({ manager })
     expect(chart.series[0].seriesName).toContain(" - ")
