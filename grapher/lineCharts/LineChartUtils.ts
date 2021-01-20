@@ -4,16 +4,16 @@ import { LineChartSeries } from "./LineChartConstants"
 
 export const columnToLineChartSeriesArray = (
     col: CoreColumn,
-    seriesStrategy: SeriesStrategy
+    seriesStrategy: SeriesStrategy,
+    canSelectMultipleEntities: boolean
 ): LineChartSeries[] => {
     const { isProjection, owidRowsByEntityName } = col
     const entityNames = Array.from(owidRowsByEntityName.keys())
-    const isMultiEntity = entityNames.length > 1
     return entityNames.map((entityName) => {
         const seriesName =
             seriesStrategy === SeriesStrategy.entity
                 ? entityName
-                : isMultiEntity
+                : canSelectMultipleEntities
                 ? `${entityName} - ${col.displayName}`
                 : col.displayName
         return {

@@ -632,7 +632,11 @@ export class LineChart
     @computed get series(): LineChartSeries[] {
         const arrOfSeries: LineChartSeries[] = flatten(
             this.yColumns.map((col) =>
-                columnToLineChartSeriesArray(col, this.seriesStrategy)
+                columnToLineChartSeriesArray(
+                    col,
+                    this.seriesStrategy,
+                    !!this.manager.canSelectMultipleEntities
+                )
             )
         )
 
