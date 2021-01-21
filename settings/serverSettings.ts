@@ -10,6 +10,39 @@ const localOverrides: any = fs.existsSync(absoluteSettingsPath)
     ? fs.readJsonSync(absoluteSettingsPath)
     : {}
 
+export const ADMIN_SERVER_PORT = localOverrides.ADMIN_SERVER_PORT ?? 3030
+export const ADMIN_SERVER_HOST = localOverrides.ADMIN_SERVER_HOST ?? "localhost"
+export const BAKED_BASE_URL =
+    localOverrides.BAKED_BASE_URL ??
+    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
+
+export const BAKED_GRAPHER_URL =
+    localOverrides.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
+
+export const ADMIN_BASE_URL =
+    localOverrides.ADMIN_BASE_URL ??
+    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
+
+export const WORDPRESS_URL =
+    localOverrides.WORDPRESS_URL ?? "https://owid.cloud"
+
+export const ALGOLIA_ID = localOverrides.ALGOLIA_ID ?? ""
+
+export const RECAPTCHA_SITE_KEY =
+    localOverrides.RECAPTCHA_SITE_KEY ??
+    "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
+
+export const OPTIMIZE_SVG_EXPORTS = localOverrides.OPTIMIZE_SVG_EXPORTS ?? false
+
+export const GITHUB_USERNAME = localOverrides.GITHUB_USERNAME ?? "owid-test"
+export const GIT_DEFAULT_USERNAME =
+    localOverrides.GIT_DEFAULT_USERNAME ?? "Our World in Data"
+export const GIT_DEFAULT_EMAIL =
+    localOverrides.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
+
+export const BLOG_POSTS_PER_PAGE = localOverrides.BLOG_POSTS_PER_PAGE ?? 21
+export const BLOG_SLUG = localOverrides.BLOG_SLUG ?? "blog"
+
 export const DB_NAME = localOverrides.DB_NAME ?? "owid"
 export const DB_USER = localOverrides.DB_USER ?? "root"
 export const DB_PASS = localOverrides.DB_PASS ?? ""

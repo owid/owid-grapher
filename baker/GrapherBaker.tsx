@@ -16,7 +16,7 @@ import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import ProgressBar = require("progress")
 import * as db from "../db/db"
 import * as glob from "glob"

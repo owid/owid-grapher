@@ -1,7 +1,7 @@
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
 import urljoin from "url-join"
-import { ADMIN_BASE_URL } from "../settings/clientSettings"
+import { ADMIN_BASE_URL } from "../settings/serverSettings"
 import { JsonError } from "../clientUtils/owidTypes"
 
 // Fail-fast integer conversion, for e.g. ids in url params

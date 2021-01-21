@@ -11,7 +11,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import * as querystring from "querystring"
 import * as lodash from "lodash"
 import * as url from "url"

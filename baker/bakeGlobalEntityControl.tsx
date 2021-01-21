@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import { ENV } from "../settings/clientSettings"
+import { ENV } from "../settings/serverSettings"
 import { GlobalEntityControl } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
 import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,

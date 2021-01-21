@@ -7,7 +7,7 @@ import * as cheerio from "cheerio"
 import ProgressBar = require("progress")
 import * as wpdb from "../db/wpdb"
 import * as db from "../db/db"
-import { BLOG_POSTS_PER_PAGE } from "../settings/clientSettings"
+import { BLOG_POSTS_PER_PAGE } from "../settings/serverSettings"
 import { extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "../site/LongFormPage"
 import { BASE_DIR, WORDPRESS_DIR } from "../settings/serverSettings"

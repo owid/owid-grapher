@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import {
     BAKED_BASE_URL,
     OPTIMIZE_SVG_EXPORTS,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import { BAKED_SITE_DIR } from "../settings/serverSettings"
 import * as db from "../db/db"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"

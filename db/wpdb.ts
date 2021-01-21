@@ -13,7 +13,7 @@ import {
     WORDPRESS_URL,
     BAKED_BASE_URL,
     BLOG_SLUG,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import * as db from "./db"
 import Knex from "knex"
 import fetch from "node-fetch"
@@ -547,7 +547,7 @@ export const getBlockContent = async (
     `
     const post = await graphqlQuery(query, { id })
 
-    return post.data.wp_block?.content ?? undefined
+    return post.data?.wp_block?.content ?? undefined
 }
 
 export const getFullPost = async (

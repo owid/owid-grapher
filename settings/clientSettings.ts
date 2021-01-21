@@ -21,16 +21,6 @@ export const ADMIN_BASE_URL =
 export const WORDPRESS_URL =
     clientSettings.WORDPRESS_URL ?? "https://owid.cloud"
 
-export const GRAPHER_VERSION = clientSettings.GRAPHER_VERSION ?? "1.0.0" // Ideally the Git hash
-export const GITHUB_USERNAME = clientSettings.GITHUB_USERNAME ?? "owid-test"
-export const GIT_DEFAULT_USERNAME =
-    clientSettings.GIT_DEFAULT_USERNAME ?? "Our World in Data"
-export const GIT_DEFAULT_EMAIL =
-    clientSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
-
-export const BLOG_POSTS_PER_PAGE = clientSettings.BLOG_POSTS_PER_PAGE ?? 21
-export const BLOG_SLUG = clientSettings.BLOG_SLUG ?? "blog"
-
 export const ALGOLIA_ID = clientSettings.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY = clientSettings.ALGOLIA_SEARCH_KEY ?? ""
 
