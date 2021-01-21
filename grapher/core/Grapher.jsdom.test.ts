@@ -178,9 +178,7 @@ function fromQueryParams(
     props?: Partial<GrapherInterface>
 ) {
     const grapher = new Grapher(props)
-    grapher.populateFromQueryParams(
-        legacyToCurrentGrapherQueryParams(params)
-    )
+    grapher.populateFromQueryParams(legacyToCurrentGrapherQueryParams(params))
     return grapher
 }
 
@@ -332,9 +330,9 @@ describe("urls", () => {
     })
 
     it("can upgrade legacy urls", () => {
-        expect(
-            legacyToCurrentGrapherQueryParams({ year: "2000" })
-        ).toEqual({ time: "2000" })
+        expect(legacyToCurrentGrapherQueryParams({ year: "2000" })).toEqual({
+            time: "2000",
+        })
 
         // Do not override time if set
         expect(
