@@ -9,6 +9,7 @@ import {
     ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT,
     ENV,
+    SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings"
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
@@ -19,7 +20,7 @@ import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
 import { renderToHtmlPage } from "./serverUtil"
-import { SLACK_ERRORS_WEBHOOK_URL } from "../settings/serverSettings"
+
 import { publicApiRouter } from "./publicApiRouter"
 import { mockSiteRouter } from "./mockSiteRouter"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
@@ -49,7 +50,7 @@ app.use("/api", publicApiRouter.router)
 app.use("/admin/api", apiRouter.router)
 app.use("/admin/test", testPageRouter)
 
-app.use("/admin/build", express.static("itsJustJavascript/webpack"))
+app.use("/admin/assets", express.static("itsJustJavascript/webpack"))
 app.use("/admin/storybook", express.static(".storybook/build"))
 app.use("/admin", adminRouter)
 

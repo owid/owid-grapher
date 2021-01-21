@@ -23,7 +23,7 @@ export const webpackUrl = (
                     )
                     .toString("utf8")
             )
-        return urljoin(baseUrl, "/", "assets", manifest[assetName])
+        return urljoin(baseUrl, "/assets", manifest[assetName])
     }
 
     return urljoin(WEBPACK_DEV_URL, assetName)

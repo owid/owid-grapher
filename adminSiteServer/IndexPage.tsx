@@ -27,20 +27,24 @@ export const IndexPage = (props: {
                     rel="stylesheet"
                 />
                 <link
-                    href={webpackUrl("commons.css")}
+                    href={webpackUrl("commons.css", undefined, "/admin")}
                     rel="stylesheet"
                     type="text/css"
                 />
                 <link
-                    href={webpackUrl("admin.css")}
+                    href={webpackUrl("admin.css", undefined, "/admin")}
                     rel="stylesheet"
                     type="text/css"
                 />
             </head>
             <body>
                 <div id="app"></div>
-                <script src={webpackUrl("commons.js")}></script>
-                <script src={webpackUrl("admin.js")}></script>
+                <script
+                    src={webpackUrl("commons.js", undefined, "/admin")}
+                ></script>
+                <script
+                    src={webpackUrl("admin.js", undefined, "/admin")}
+                ></script>
                 <script
                     type="text/javascript"
                     dangerouslySetInnerHTML={{ __html: script }}
