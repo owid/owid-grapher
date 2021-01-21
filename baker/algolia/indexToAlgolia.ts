@@ -2,7 +2,7 @@ import algoliasearch from "algoliasearch"
 
 import * as db from "../../db/db"
 import * as wpdb from "../../db/wpdb"
-import { ALGOLIA_ID } from "../../settings/clientSettings"
+import { ALGOLIA_ID } from "../../settings/serverSettings"
 import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
 import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search"
 import { countries } from "../../clientUtils/countries"

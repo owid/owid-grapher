@@ -2,7 +2,7 @@ import { Router, Request, Response, RequestHandler } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import simpleGit, { SimpleGit } from "simple-git"
 import {
     writeFile,

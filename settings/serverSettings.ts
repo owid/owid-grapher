@@ -10,6 +10,12 @@ const localOverrides: any = fs.existsSync(absoluteSettingsPath)
     ? fs.readJsonSync(absoluteSettingsPath)
     : {}
 
+export const ADMIN_SERVER_PORT = localOverrides.ADMIN_SERVER_PORT ?? 3030
+export const ADMIN_SERVER_HOST = localOverrides.ADMIN_SERVER_HOST ?? "localhost"
+export const BAKED_BASE_URL =
+    localOverrides.BAKED_BASE_URL ??
+    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
+
 export const DB_NAME = localOverrides.DB_NAME ?? "owid"
 export const DB_USER = localOverrides.DB_USER ?? "root"
 export const DB_PASS = localOverrides.DB_PASS ?? ""

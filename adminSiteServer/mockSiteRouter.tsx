@@ -17,7 +17,7 @@ import {
     countryProfileCountryPage,
 } from "../baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
-import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "../settings/clientSettings"
+import { BAKED_BASE_URL, BAKED_GRAPHER_URL } from "../settings/serverSettings"
 import {
     WORDPRESS_DIR,
     BASE_DIR,

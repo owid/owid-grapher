@@ -22,7 +22,7 @@ import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
     RECAPTCHA_SITE_KEY,
-} from "../settings/clientSettings"
+} from "../settings/serverSettings"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
