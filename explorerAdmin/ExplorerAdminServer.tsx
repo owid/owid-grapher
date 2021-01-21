@@ -1,6 +1,6 @@
 import React from "react"
 import { existsSync, readdir, writeFile, mkdirp, readFile } from "fs-extra"
-import { dirname } from "path"
+import path from "path"
 import { queryMysql } from "../db/db"
 import { getBlockContent } from "../db/wpdb"
 import {
@@ -23,6 +23,14 @@ import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { GitCommit, JsonError } from "../clientUtils/owidTypes"
 import ReactDOMServer from "react-dom/server"
+import {
+    explorerRedirectTable,
+    getExplorerRedirectForPath,
+} from "./ExplorerRedirects"
+import {
+    ExplorerPageUrlMigrationSpec,
+    explorerUrlMigrationsById,
+} from "../explorer/ExplorerUrlMigrations"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string, baseUrl: string) {
@@ -87,6 +95,20 @@ export class ExplorerAdminServer {
                     404
                 )
         })
+        app.get("/*", async (req, res, next) => {
+            const explorerRedirect = getExplorerRedirectForPath(req.path)
+            if (!explorerRedirect) return next()
+
+            const { migrationId, baseQueryStr } = explorerRedirect
+            const { explorerSlug } = explorerUrlMigrationsById[migrationId]
+            const program = await this.getExplorerFromSlug(explorerSlug)
+            res.send(
+                await this.renderExplorerPage(program, {
+                    explorerUrlMigrationId: migrationId,
+                    baseQueryStr,
+                })
+            )
+        })
     }
 
     addAdminRoutes(app: Router) {
@@ -134,7 +156,14 @@ export class ExplorerAdminServer {
         )
     }
 
-    async renderExplorerPage(program: ExplorerProgram) {
+    async getExplorerFromSlug(slug: string) {
+        return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
+    }
+
+    async renderExplorerPage(
+        program: ExplorerProgram,
+        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+    ) {
         const { requiredGrapherIds } = program.decisionMatrix
         let grapherConfigRows: any[] = []
         if (requiredGrapherIds.length)
@@ -166,6 +195,7 @@ export class ExplorerAdminServer {
                     program={program}
                     wpContent={wpContent}
                     baseUrl={this.baseUrl}
+                    urlMigrationSpec={urlMigrationSpec}
                 />
             )
         )
@@ -198,7 +228,7 @@ export class ExplorerAdminServer {
     }
 
     private async write(outPath: string, content: string) {
-        await mkdirp(dirname(outPath))
+        await mkdirp(path.dirname(outPath))
         await writeFile(outPath, content)
         console.log(outPath)
     }
@@ -211,6 +241,34 @@ export class ExplorerAdminServer {
             await this.write(
                 `${directory}/${explorer.slug}.html`,
                 await this.renderExplorerPage(explorer)
+            )
+        }
+    }
+
+    async bakeAllExplorerRedirects(outputFolder: string) {
+        const explorers = await this.getAllExplorers()
+        const redirects = explorerRedirectTable.rows
+        for (const redirect of redirects) {
+            const { migrationId, path: redirectPath, baseQueryStr } = redirect
+            const transform = explorerUrlMigrationsById[migrationId]
+            if (!transform) {
+                throw new Error(
+                    `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
+                )
+            }
+            const { explorerSlug, migrateUrl } = transform
+            const program = explorers.find(
+                (program) => program.slug === explorerSlug
+            )
+            if (!program) {
+                throw new Error(
+                    `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
+                )
+            }
+            const html = await this.renderExplorerPage(program)
+            await this.write(
+                path.join(outputFolder, `${redirectPath}.html`),
+                html
             )
         }
     }

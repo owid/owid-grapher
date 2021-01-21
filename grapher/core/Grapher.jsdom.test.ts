@@ -10,7 +10,7 @@ import {
 import {
     GrapherInterface,
     LegacyGrapherQueryParams,
-    legacyQueryParamsToCurrentQueryParams,
+    legacyToCurrentGrapherQueryParams,
 } from "../core/GrapherInterface"
 import {
     TimeBoundValue,
@@ -179,7 +179,7 @@ function fromQueryParams(
 ) {
     const grapher = new Grapher(props)
     grapher.populateFromQueryParams(
-        legacyQueryParamsToCurrentQueryParams(params)
+        legacyToCurrentGrapherQueryParams(params)
     )
     return grapher
 }
@@ -333,12 +333,12 @@ describe("urls", () => {
 
     it("can upgrade legacy urls", () => {
         expect(
-            legacyQueryParamsToCurrentQueryParams({ year: "2000" })
+            legacyToCurrentGrapherQueryParams({ year: "2000" })
         ).toEqual({ time: "2000" })
 
         // Do not override time if set
         expect(
-            legacyQueryParamsToCurrentQueryParams({
+            legacyToCurrentGrapherQueryParams({
                 year: "2000",
                 time: "2001..2002",
             })
@@ -718,7 +718,7 @@ describe("year parameter (applies to map only)", () => {
             describe(`parse ${test.name}`, () => {
                 const grapher = getGrapher()
                 grapher.populateFromQueryParams(
-                    legacyQueryParamsToCurrentQueryParams({
+                    legacyToCurrentGrapherQueryParams({
                         year: test.query,
                     })
                 )

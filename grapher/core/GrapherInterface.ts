@@ -21,11 +21,12 @@ import {
     ColumnSlugs,
     Time,
 } from "../../coreTable/CoreTableConstants"
-import { omit } from "../../clientUtils/Util"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { QueryParams } from "../../clientUtils/url"
+import { Url } from "../../urls/Url"
+import { UrlMigration, performUrlMigrations } from "../../urls/UrlMigration"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -173,14 +174,31 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
 ]
 
-export const legacyQueryParamsToCurrentQueryParams = (
+export const grapherUrlMigrations: UrlMigration[] = [
+    (url) => {
+        const { year, time } = url.queryParams
+        if (!year) return url
+        return url.updateQueryParams({
+            year: undefined,
+            time: time ?? year,
+        })
+    },
+    (url) => {
+        const { country } = url.queryParams
+        if (!country) return url
+        return url.updateQueryParams({
+            country: undefined,
+            selection: EntityUrlBuilder.migrateLegacyCountryParam(country!),
+        })
+    },
+]
+
+export const legacyToCurrentGrapherUrl = (url: Url) =>
+    performUrlMigrations(grapherUrlMigrations, url)
+
+export const legacyToCurrentGrapherQueryParams = (
     params: LegacyGrapherQueryParams
-) => {
-    const obj = omit(params, "year", "country") as GrapherQueryParams
-    if (params.year !== undefined) obj.time = obj.time ?? params.year
-    if (params.country !== undefined)
-        obj.selection = EntityUrlBuilder.migrateLegacyCountryParam(
-            params.country
-        )
-    return obj
+): QueryParams => {
+    const url = Url.fromQueryParams(params)
+    return legacyToCurrentGrapherUrl(url).queryParams
 }

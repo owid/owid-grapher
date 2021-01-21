@@ -78,7 +78,7 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    legacyQueryParamsToCurrentQueryParams,
+    legacyToCurrentGrapherQueryParams,
 } from "../core/GrapherInterface"
 import { DimensionSlot } from "../chart/DimensionSlot"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
@@ -343,7 +343,7 @@ export class Grapher
         if (!props.table) this.downloadData()
 
         this.populateFromQueryParams(
-            legacyQueryParamsToCurrentQueryParams(
+            legacyToCurrentGrapherQueryParams(
                 strToQueryParams(props.queryStr)
             )
         )

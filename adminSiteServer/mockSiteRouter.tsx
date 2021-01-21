@@ -32,7 +32,6 @@ import {
 import { makeSitemap } from "../baker/sitemap"
 import { OldChart } from "../db/model/Chart"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { getLegacyCovidExplorerAsExplorerProgramForSlug } from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { ExplorerAdminServer } from "../explorerAdmin/ExplorerAdminServer"
 import { grapherToSVG } from "../baker/GrapherImageBaker"
 import { getVariableData } from "../db/model/Variable"
@@ -98,11 +97,7 @@ explorerAdminServer.addMockBakedSiteRoutes(mockSiteRouter)
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    const explorerProgram = await getLegacyCovidExplorerAsExplorerProgramForSlug(
-        req.params.slug
-    )
-    if (!explorerProgram) res.send(await grapherSlugToHtmlPage(req.params.slug))
-    else res.send(await explorerAdminServer.renderExplorerPage(explorerProgram))
+    res.send(await grapherSlugToHtmlPage(req.params.slug))
 })
 
 mockSiteRouter.get("/", async (req, res) => res.send(await renderFrontPage()))

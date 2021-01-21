@@ -9,6 +9,7 @@
         { "path": "../grapher" },
         { "path": "../gridLang" },
         { "path": "../coreTable" },
-        { "path": "../patch" }
+        { "path": "../patch" },
+        { "path": "../urls" }
     ]
 }

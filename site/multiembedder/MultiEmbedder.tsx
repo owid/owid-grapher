@@ -16,6 +16,7 @@ import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants"
 import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+import { Url } from "../../urls/Url"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -42,14 +43,16 @@ class EmbeddedFigure {
 
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
+            const patchParam = Url.fromQueryStr(this.props.queryStr || "")
+                .queryParams.patch
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
-                queryString: this.props.queryStr,
                 grapherConfigs: deserializeJSONFromHTML(
                     html,
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
+                uriEncodedPatch: patchParam,
             }
             ReactDOM.render(<Explorer {...props} />, this.container)
         } else {
@@ -96,21 +99,13 @@ const figuresFromDOM = (
         .map((element) => {
             const dataSrc = element.getAttribute(selector)
             if (!dataSrc) return undefined
-            const { path, queryString } = splitURLintoPathAndQueryString(
-                dataSrc
-            )
-            const standaloneUrl = path
-            const queryStr = queryString
-            const container = element
+            const { pathname, queryStr } = Url.fromURL(dataSrc)
+            if (!pathname) return undefined
             const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
-
-            if (isExplorer && !standaloneUrl.includes("explorer"))
-                return undefined
-
             return new EmbeddedFigure(
                 {
-                    container,
-                    standaloneUrl,
+                    container: element,
+                    standaloneUrl: pathname,
                     queryStr,
                 },
                 isExplorer
