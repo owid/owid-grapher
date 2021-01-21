@@ -5,7 +5,11 @@ require("express-async-errors")
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
 
-import { ADMIN_SERVER_PORT, ENV } from "../settings/serverSettings"
+import {
+    ADMIN_SERVER_HOST,
+    ADMIN_SERVER_PORT,
+    ENV,
+} from "../settings/serverSettings"
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { log } from "../baker/slackLog"
