@@ -1,16 +1,16 @@
 import * as fs from "fs-extra" // todo: this should not be here.
 import urljoin from "url-join"
 import * as path from "path"
+import { ENV } from "../settings/serverSettings"
 
 const WEBPACK_DEV_URL = process.env.WEBPACK_DEV_URL ?? "http://localhost:8090"
 const WEBPACK_OUTPUT_PATH =
-    process.env.WEBPACK_OUTPUT_PATH ??
-    path.join(__dirname + "/../", "itsJustJavascript/webpack")
+    process.env.WEBPACK_OUTPUT_PATH ?? path.join(__dirname + "/../", "webpack")
 
 let manifest: { [key: string]: string }
 export const webpackUrl = (
     assetName: string,
-    isProduction = false,
+    isProduction = ENV === "production",
     baseUrl = ""
 ) => {
     if (isProduction) {
@@ -23,7 +23,7 @@ export const webpackUrl = (
                     )
                     .toString("utf8")
             )
-        return urljoin(baseUrl, "/assets", manifest[assetName])
+        return urljoin(baseUrl, "/", "assets", manifest[assetName])
     }
 
     return urljoin(WEBPACK_DEV_URL, assetName)
