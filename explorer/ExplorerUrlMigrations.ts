@@ -26,7 +26,7 @@ const metricFromLegacyQueryParams = (queryParams: QueryParams) => {
     } else if (queryParams.deathsMetric) {
         return "Confirmed deaths"
     } else if (queryParams.cfrMetric) {
-        return "Case Fatality Rate"
+        return "Case fatality rate"
     } else if (queryParams.testsMetric) {
         return "Tests"
     } else if (queryParams.testsPerCaseMetric) {
@@ -89,7 +89,7 @@ const legacyToCurrentCovidQueryParams = (
     ) as QueryParams
 
     const explorerQueryParams: QueryParams = {
-        "Metric Radio":
+        "Metric Dropdown":
             metricFromLegacyQueryParams(queryParams) ??
             metricFromLegacyQueryParams(baseQueryParams),
         "Interval Dropdown":
