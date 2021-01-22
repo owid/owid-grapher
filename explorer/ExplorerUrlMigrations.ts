@@ -1,10 +1,9 @@
-import { Url } from "../urls/Url"
-
 import {
     QueryParams,
     queryParamsToStr,
     strToQueryParams,
 } from "../clientUtils/url"
+import { Url } from "../urls/Url"
 import { omit, omitUndefinedValues } from "../clientUtils/Util"
 import { DefaultPatchGrammar, Patch } from "../patch/Patch"
 import { legacyToCurrentGrapherUrl } from "../grapher/core/GrapherInterface"

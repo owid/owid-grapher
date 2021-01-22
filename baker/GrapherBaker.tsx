@@ -161,7 +161,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         grapher.id = row.id
         newSlugs.push(grapher.slug)
 
-        // todo: eventually remove
+        // Avoid baking paths that have an Explorer redirect.
+        // Redirects take precedence.
         if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
             progressBar.tick({ name: `✅ ${grapher.slug}` })
             continue

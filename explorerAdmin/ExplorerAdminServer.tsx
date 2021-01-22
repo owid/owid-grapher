@@ -97,6 +97,7 @@ export class ExplorerAdminServer {
         })
         app.get("/*", async (req, res, next) => {
             const explorerRedirect = getExplorerRedirectForPath(req.path)
+            // If no explorer redirect exists, continue to next express handler
             if (!explorerRedirect) return next()
 
             const { migrationId, baseQueryStr } = explorerRedirect
@@ -249,14 +250,14 @@ export class ExplorerAdminServer {
         const explorers = await this.getAllExplorers()
         const redirects = explorerRedirectTable.rows
         for (const redirect of redirects) {
-            const { migrationId, path: redirectPath, baseQueryStr } = redirect
+            const { migrationId, path: redirectPath } = redirect
             const transform = explorerUrlMigrationsById[migrationId]
             if (!transform) {
                 throw new Error(
                     `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
                 )
             }
-            const { explorerSlug, migrateUrl } = transform
+            const { explorerSlug } = transform
             const program = explorers.find(
                 (program) => program.slug === explorerSlug
             )

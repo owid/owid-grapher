@@ -4,9 +4,5 @@
         "outDir": "../itsJustJavascript/urls",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../clientUtils" },
-        { "path": "../coreTable" },
-        { "path": "../patch" }
-    ]
+    "references": [{ "path": "../clientUtils" }]
 }

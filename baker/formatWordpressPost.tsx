@@ -240,7 +240,7 @@ export const formatWordpressPost = async (
         $byline.remove()
     }
 
-    // Replace grapher iframes with explorer iframes. todo: remove this.
+    // Replace URLs pointing to Explorer redirect URLs with the destination URLs
     replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
     // Replace grapher iframes with static previews
