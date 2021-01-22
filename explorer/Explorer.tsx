@@ -28,6 +28,7 @@ import {
     SlideShowManager,
 } from "../grapher/slideshowController/SlideShowController"
 import {
+    ExplorerChoice,
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
@@ -375,16 +376,15 @@ export class Explorer
                     key={choice.title}
                     explorerSlug={this.explorerProgram.slug}
                     choice={choice}
-                    onChange={(value) => {
-                        this.explorerProgram.decisionMatrix.setValueCommand(
-                            choice.title,
-                            value
-                        )
-                        this.reactToUserChangingSelection()
-                    }}
+                    onChange={this.onChangeChoice(choice.title)}
                 />
             )
         )
+    }
+
+    onChangeChoice = (choiceTitle: string) => (value: string) => {
+        this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
+        this.reactToUserChangingSelection()
     }
 
     private renderHeaderElement() {
