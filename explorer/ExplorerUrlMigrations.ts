@@ -82,7 +82,7 @@ const legacyToCurrentCovidQueryParams = (
         "testsPerCaseMetric",
         "positiveTestRate",
         "vaccinationsMetric",
-        "interval: intervalQueryParam",
+        "interval",
         "smoothing",
         "totalFreq",
         "dailyFreq"
