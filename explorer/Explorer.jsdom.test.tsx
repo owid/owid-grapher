@@ -5,6 +5,7 @@ import { SampleExplorer } from "./Explorer.sample"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
+import { GrapherTabOption } from "../grapher/core/GrapherConstants"
 configure({ adapter: new Adapter() })
 
 describe(Explorer, () => {
@@ -19,9 +20,17 @@ describe(Explorer, () => {
         expect(element.text()).toContain("Kingdom")
     })
 
-    it("maintains changed params in url even if a user switches to a chart where the param is the default", () => {
+    it("each grapher has its own set of URL params/options are preserved even when the grapher changes", () => {
         const explorer = element.instance() as Explorer
-        expect(explorer.patchObject.stackMode).toEqual(undefined)
-        // todo: add more tests
+        expect(explorer.patchObject.tab).toBeUndefined()
+
+        explorer.onChangeChoice("Gas Radio")("All GHGs (CO₂eq)")
+
+        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.table
+        else throw Error("where's the grapher?")
+        expect(explorer.patchObject.tab).toEqual("table")
+
+        explorer.onChangeChoice("Gas Radio")("CO₂")
+        expect(explorer.patchObject.tab).toBeUndefined()
     })
 })
