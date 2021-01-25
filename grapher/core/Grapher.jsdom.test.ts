@@ -10,7 +10,6 @@ import {
 import {
     GrapherInterface,
     LegacyGrapherQueryParams,
-    legacyToCurrentGrapherQueryParams,
 } from "../core/GrapherInterface"
 import {
     TimeBoundValue,
@@ -22,6 +21,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
 import { orderBy } from "../../clientUtils/Util"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })

@@ -78,7 +78,6 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    legacyToCurrentGrapherQueryParams,
 } from "../core/GrapherInterface"
 import { DimensionSlot } from "../chart/DimensionSlot"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
@@ -155,6 +154,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 
 declare const window: any
 

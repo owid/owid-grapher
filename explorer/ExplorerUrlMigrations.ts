@@ -6,8 +6,8 @@ import {
 import { Url } from "../urls/Url"
 import { omit, omitUndefinedValues } from "../clientUtils/Util"
 import { DefaultPatchGrammar, Patch } from "../patch/Patch"
-import { legacyToCurrentGrapherUrl } from "../grapher/core/GrapherInterface"
 import { EXPLORERS_ROUTE_FOLDER } from "./ExplorerConstants"
+import { legacyToCurrentGrapherUrl } from "../grapher/core/GrapherUrlMigrations"
 
 const legacyIntervalToNewValue = {
     daily: "New per day",
