@@ -29,11 +29,13 @@ export const webpackUrl = (
     return urljoin(WEBPACK_DEV_URL, assetName)
 }
 
-export const bakeEmbedSnippet = () => `const embedSnippet = () => {
+export const bakeEmbedSnippet = (
+    baseUrl: string
+) => `const embedSnippet = () => {
 const link = document.createElement('link')
 link.type = 'text/css'
 link.rel = 'stylesheet'
-link.href = '${webpackUrl("commons.css")}'
+link.href = '${webpackUrl("commons.css", undefined, baseUrl)}'
 document.head.appendChild(link)
 
 let loadedScripts = 0;
@@ -44,8 +46,10 @@ const checkReady = () => {
 }
 
 const coreScripts = ['https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch', '${webpackUrl(
-    "commons.js"
-)}', '${webpackUrl("owid.js")}']
+    "commons.js",
+    undefined,
+    baseUrl
+)}', '${webpackUrl("owid.js", undefined, baseUrl)}']
 
 coreScripts.forEach(url => {
     const script = document.createElement('script')

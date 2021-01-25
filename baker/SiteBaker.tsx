@@ -7,10 +7,14 @@ import * as cheerio from "cheerio"
 import ProgressBar = require("progress")
 import * as wpdb from "../db/wpdb"
 import * as db from "../db/db"
-import { BLOG_POSTS_PER_PAGE } from "../settings/serverSettings"
+import {
+    BLOG_POSTS_PER_PAGE,
+    BASE_DIR,
+    WORDPRESS_DIR,
+} from "../settings/serverSettings"
 import { extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "../site/LongFormPage"
-import { BASE_DIR, WORDPRESS_DIR } from "../settings/serverSettings"
+
 import {
     renderToHtmlPage,
     renderFrontPage,
@@ -322,7 +326,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            bakeEmbedSnippet()
+            bakeEmbedSnippet(this.baseUrl)
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })
