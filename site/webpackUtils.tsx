@@ -46,10 +46,11 @@ const checkReady = () => {
         window.MultiEmbedderSingleton.embedAll()
 }
 
-const coreScripts = ['https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch', '${webpackUrl(
-    "commons.js",
-    baseUrl
-)}', '${webpackUrl("owid.js", baseUrl)}']
+const coreScripts = [
+    'https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch',
+    '${webpackUrl("commons.js", baseUrl)}',
+    '${webpackUrl("owid.js", baseUrl)}'
+]
 
 coreScripts.forEach(url => {
     const script = document.createElement('script')
