@@ -5,8 +5,9 @@ import * as lodash from "lodash"
 import {
     BAKED_BASE_URL,
     OPTIMIZE_SVG_EXPORTS,
+    BAKED_SITE_DIR,
 } from "../settings/serverSettings"
-import { BAKED_SITE_DIR } from "../settings/serverSettings"
+
 import * as db from "../db/db"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"
 import { log } from "./slackLog"
@@ -71,7 +72,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
     }
 
     if (toBake.length > 0) {
-        for (const grapherUrls of lodash.chunk(toBake, 50)) {
+        for (const grapherUrls of lodash.chunk(toBake, 20)) {
             await bakeGraphersToSvgs(
                 grapherUrls,
                 `${BAKED_SITE_DIR}/exports`,
