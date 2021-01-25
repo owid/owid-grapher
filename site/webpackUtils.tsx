@@ -10,8 +10,8 @@ const WEBPACK_OUTPUT_PATH =
 let manifest: { [key: string]: string }
 export const webpackUrl = (
     assetName: string,
-    isProduction = ENV === "production",
-    baseUrl = ""
+    baseUrl = "",
+    isProduction = ENV === "production"
 ) => {
     if (isProduction) {
         // Read the real asset name from the manifest in case it has a hashed filename
@@ -23,7 +23,8 @@ export const webpackUrl = (
                     )
                     .toString("utf8")
             )
-        return urljoin(baseUrl, "/assets", manifest[assetName])
+        if (baseUrl) return urljoin(baseUrl, "/assets", manifest[assetName])
+        else return urljoin("/", "assets", manifest[assetName])
     }
 
     return urljoin(WEBPACK_DEV_URL, assetName)
@@ -35,7 +36,7 @@ export const bakeEmbedSnippet = (
 const link = document.createElement('link')
 link.type = 'text/css'
 link.rel = 'stylesheet'
-link.href = '${webpackUrl("commons.css", undefined, baseUrl)}'
+link.href = '${webpackUrl("commons.css", baseUrl)}'
 document.head.appendChild(link)
 
 let loadedScripts = 0;
@@ -47,9 +48,8 @@ const checkReady = () => {
 
 const coreScripts = ['https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch', '${webpackUrl(
     "commons.js",
-    undefined,
     baseUrl
-)}', '${webpackUrl("owid.js", undefined, baseUrl)}']
+)}', '${webpackUrl("owid.js", baseUrl)}']
 
 coreScripts.forEach(url => {
     const script = document.createElement('script')
