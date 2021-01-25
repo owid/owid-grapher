@@ -55,8 +55,13 @@ import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/Gl
 import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
+import {
+    ExplorerPageUrlMigrationSpec,
+    explorerUrlMigrationsById,
+} from "./ExplorerUrlMigrations"
+import { setWindowUrl, Url } from "../urls/Url"
 
-interface ExplorerProps extends SerializedGridProgram {
+export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
     uriEncodedPatch?: string
     isEmbeddedInAnOwidPage?: boolean
@@ -100,7 +105,8 @@ export class Explorer
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
-        grapherConfigs: GrapherInterface[]
+        grapherConfigs: GrapherInterface[],
+        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
             ...program,
@@ -114,12 +120,25 @@ export class Explorer
             return
         }
 
+        let url = Url.fromURL(window.location.href)
+
+        if (urlMigrationSpec) {
+            const { explorerUrlMigrationId, baseQueryStr } = urlMigrationSpec
+            const migration = explorerUrlMigrationsById[explorerUrlMigrationId]
+            if (migration) {
+                url = migration.migrateUrl(url, baseQueryStr)
+                setWindowUrl(url)
+            } else {
+                console.error(
+                    `No explorer URL migration with id ${explorerUrlMigrationId}`
+                )
+            }
+        }
+
         ReactDOM.render(
             <Explorer
                 {...props}
-                uriEncodedPatch={
-                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
-                }
+                uriEncodedPatch={url.queryParams[PATCH_QUERY_PARAM]}
             />,
             document.getElementById(ExplorerContainerId)
         )

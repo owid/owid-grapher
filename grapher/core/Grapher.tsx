@@ -78,7 +78,6 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    legacyQueryParamsToCurrentQueryParams,
 } from "../core/GrapherInterface"
 import { DimensionSlot } from "../chart/DimensionSlot"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
@@ -155,6 +154,7 @@ import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 
 declare const window: any
 
@@ -343,9 +343,7 @@ export class Grapher
         if (!props.table) this.downloadData()
 
         this.populateFromQueryParams(
-            legacyQueryParamsToCurrentQueryParams(
-                strToQueryParams(props.queryStr)
-            )
+            legacyToCurrentGrapherQueryParams(strToQueryParams(props.queryStr))
         )
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()

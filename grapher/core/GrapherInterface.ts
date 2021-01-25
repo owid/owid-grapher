@@ -21,10 +21,8 @@ import {
     ColumnSlugs,
     Time,
 } from "../../coreTable/CoreTableConstants"
-import { omit } from "../../clientUtils/Util"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { QueryParams } from "../../clientUtils/url"
 
 // This configuration represents the entire persistent state of a grapher
@@ -172,15 +170,3 @@ export const grapherKeysToSerialize = [
     "comparisonLines",
     "relatedQuestions",
 ]
-
-export const legacyQueryParamsToCurrentQueryParams = (
-    params: LegacyGrapherQueryParams
-) => {
-    const obj = omit(params, "year", "country") as GrapherQueryParams
-    if (params.year !== undefined) obj.time = obj.time ?? params.year
-    if (params.country !== undefined)
-        obj.selection = EntityUrlBuilder.migrateLegacyCountryParam(
-            params.country
-        )
-    return obj
-}

@@ -39,10 +39,6 @@ import { bakeCountries } from "../baker/countryProfiles"
 import { countries } from "../clientUtils/countries"
 import { execWrapper } from "../db/execWrapper"
 import { log } from "./slackLog"
-import {
-    getLegacyCovidExplorerAsExplorerProgramForSlug,
-    legacyGrapherToCovidExplorerRedirectTable,
-} from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { ExplorerAdminServer } from "../explorerAdmin/ExplorerAdminServer"
 import { getRedirects } from "./redirects"
@@ -252,6 +248,8 @@ export class SiteBaker {
             this.baseUrl
         )
 
+        await explorerAdminServer.bakeAllExplorerRedirects(this.bakedSiteDir)
+
         await explorerAdminServer.bakeAllPublishedExplorers(
             `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`
         )
@@ -328,31 +326,6 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
-    private async bakeGrapherToExplorerRedirects() {
-        const explorerAdminServer = new ExplorerAdminServer(
-            GIT_CMS_DIR,
-            this.baseUrl
-        )
-        const rows = legacyGrapherToCovidExplorerRedirectTable.rows
-        for (const row of rows) {
-            const { slug, explorerQueryStr } = row
-            // todo: restore functionality
-            const program = await getLegacyCovidExplorerAsExplorerProgramForSlug(
-                slug
-            )
-            if (program) {
-                const html = await explorerAdminServer.renderExplorerPage(
-                    program
-                )
-                await this.stageWrite(
-                    `${this.bakedSiteDir}/grapher/${slug}.html`,
-                    html
-                )
-            } else console.error(`Explorer program undefined for ${slug}`)
-        }
-        this.progressBar.tick({ name: "✅ bakeGrapherToExplorerRedirects" })
-    }
-
     async bakeRedirects() {
         const redirects = await getRedirects()
         this.progressBar.tick({ name: "✅ got redirects" })
@@ -384,7 +357,6 @@ export class SiteBaker {
             name:
                 "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
-        await this.bakeGrapherToExplorerRedirects()
     }
 
     async bakeNonWordpressPages() {

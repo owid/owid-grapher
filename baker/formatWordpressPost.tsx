@@ -21,10 +21,6 @@ import { bakeGlobalEntityControl } from "../baker/bakeGlobalEntityControl"
 import { Footnote } from "../site/Footnote"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
-import {
-    replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost,
-    legacyCovidDashboardSlug,
-} from "../explorerAdmin/legacyCovidExplorerRedirects"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { formatGlossaryTerms } from "../site/formatGlossary"
 import { getMutableGlossary, glossary } from "../site/glossary"
@@ -40,6 +36,8 @@ import { SVG } from "mathjax-full/js/output/svg"
 import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor"
 import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
 import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
+import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -242,8 +240,8 @@ export const formatWordpressPost = async (
         $byline.remove()
     }
 
-    // Replace grapher iframes with explorer iframes. todo: remove this.
-    replaceLegacyGrapherIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
+    // Replace URLs pointing to Explorer redirect URLs with the destination URLs
+    replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"
@@ -300,7 +298,7 @@ export const formatWordpressPost = async (
     const explorerIframes = cheerioEl("iframe")
         .toArray()
         .filter((el) =>
-            (el.attribs["src"] || "").includes(legacyCovidDashboardSlug)
+            (el.attribs["src"] || "").includes(`/${EXPLORERS_ROUTE_FOLDER}/`)
         )
     for (const el of explorerIframes) {
         const $el = cheerioEl(el)
