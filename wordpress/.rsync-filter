@@ -13,6 +13,10 @@
 # Logs
 - *.log
 
+# Dotenv
+- /.env*
+# Empty line
+
 # Composer
 - /vendor
 
