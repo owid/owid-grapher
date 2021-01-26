@@ -426,13 +426,12 @@ export class Explorer
     @observable private isNarrow = isNarrow()
 
     @computed private get showExplorerControls() {
-        if (
+        if (!this.props.isEmbeddedInAnOwidPage) return true
+        // Only allow hiding controls on embedded pages
+        return !(
             this.explorerProgram.hideControls ||
             this.initialPatchObject.hideControls === "true"
         )
-            return false
-
-        return this.props.isEmbeddedInAnOwidPage ? false : true
     }
 
     @observable private grapherContainerRef: React.RefObject<
