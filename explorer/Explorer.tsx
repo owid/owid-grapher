@@ -20,6 +20,7 @@ import {
 import {
     debounce,
     exposeInstanceOnWindow,
+    isInIFrame,
     throttle,
     trimObject,
 } from "../clientUtils/Util"
@@ -426,8 +427,12 @@ export class Explorer
 
     @observable private isNarrow = isNarrow()
 
+    @computed private get isInIFrame() {
+        return isInIFrame()
+    }
+
     @computed private get showExplorerControls() {
-        if (!this.props.isEmbeddedInAnOwidPage) return true
+        if (!this.props.isEmbeddedInAnOwidPage && !this.isInIFrame) return true
         // Only allow hiding controls on embedded pages
         return !(
             this.explorerProgram.hideControls ||
