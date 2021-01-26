@@ -72,7 +72,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
     }
 
     if (toBake.length > 0) {
-        for (const grapherUrls of lodash.chunk(toBake, 20)) {
+        for (const grapherUrls of lodash.chunk(toBake, 5)) {
             await bakeGraphersToSvgs(
                 grapherUrls,
                 `${BAKED_SITE_DIR}/exports`,
