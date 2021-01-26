@@ -241,8 +241,9 @@ export class Explorer
                 preChangeQueryParams
             )
 
-        const persistedParams =
-            grapher.id && this.persistedQueryParamsByGrapher.get(grapher.id)
+        const persistedParams = grapher.id
+            ? this.persistedQueryParamsByGrapher.get(grapher.id)
+            : preChangeQueryParams
 
         const grapherConfig =
             grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
