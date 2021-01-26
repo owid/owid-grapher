@@ -63,7 +63,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
   composer install --no-dev
   cd $TMP_NEW/$PATH_OWID_PLUGIN
   yarn install
-  yarn buildWebpack
+  yarn build
 
   # Link in all the persistent stuff that needs to stay around between versions
   ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
