@@ -1,4 +1,4 @@
-#! /usr/bin/env jest
+#! yarn testJest
 
 import { Explorer } from "./Explorer"
 import { SampleExplorer } from "./Explorer.sample"
@@ -32,5 +32,13 @@ describe(Explorer, () => {
 
         explorer.onChangeChoice("Gas Radio")("CO₂")
         expect(explorer.patchObject.tab).toBeUndefined()
+    })
+
+    it("recovers country selection from URL params", () => {
+        const element = mount(
+            SampleExplorer({ uriEncodedPatch: "selection~Ireland" })
+        )
+        const explorer = element.instance() as Explorer
+        expect(explorer.selection.selectedEntityNames).toEqual(["Ireland"])
     })
 })

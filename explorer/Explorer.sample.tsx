@@ -4,7 +4,7 @@ import {
     DimensionProperty,
     GrapherTabOption,
 } from "../grapher/core/GrapherConstants"
-import { Explorer } from "./Explorer"
+import { Explorer, ExplorerProps } from "./Explorer"
 
 const SampleExplorerProgram = `explorerTitle	CO₂ Data Explorer
 isPublished	false
@@ -45,7 +45,7 @@ graphers
 	4224	Nitrous oxide	Production-based		Per country
 	4244	Nitrous oxide	Production-based		Per capita`
 
-export const SampleExplorer = () => {
+export const SampleExplorer = (props?: Partial<ExplorerProps>) => {
     const title = "AlphaBeta"
     const first = {
         id: 488,
@@ -86,6 +86,7 @@ export const SampleExplorer = () => {
             slug="test-slug"
             program={SampleExplorerProgram}
             grapherConfigs={grapherConfigs}
+            {...props}
         />
     )
 }
