@@ -250,7 +250,7 @@ export class ExplorerAdminServer {
         const explorers = await this.getAllExplorers()
         const redirects = explorerRedirectTable.rows
         for (const redirect of redirects) {
-            const { migrationId, path: redirectPath } = redirect
+            const { migrationId, path: redirectPath, baseQueryStr } = redirect
             const transform = explorerUrlMigrationsById[migrationId]
             if (!transform) {
                 throw new Error(
@@ -266,7 +266,10 @@ export class ExplorerAdminServer {
                     `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
                 )
             }
-            const html = await this.renderExplorerPage(program)
+            const html = await this.renderExplorerPage(program, {
+                explorerUrlMigrationId: migrationId,
+                baseQueryStr,
+            })
             await this.write(
                 path.join(outputFolder, `${redirectPath}.html`),
                 html
