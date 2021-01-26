@@ -999,3 +999,11 @@ export const omitUndefinedValues = <T>(object: T): NoUndefinedValues<T> => {
     }
     return result
 }
+
+export const isInIFrame = (): boolean => {
+    try {
+        return window.self !== window.top
+    } catch (e) {
+        return false
+    }
+}

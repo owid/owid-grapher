@@ -77,7 +77,9 @@ const grapherConfigs = ${serializeJSONForHTML(
         grapherConfigs,
         EMBEDDED_EXPLORER_GRAPHER_CONFIGS
     )};
-const urlMigrationSpec = ${JSON.stringify(urlMigrationSpec || {})};
+const urlMigrationSpec = ${
+        urlMigrationSpec ? JSON.stringify(urlMigrationSpec) : "undefined"
+    };
 window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, urlMigrationSpec);`
 
     return (

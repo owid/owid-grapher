@@ -186,12 +186,12 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/grapher/daily-covid-cases-per-million-three-day-avg",
-        "zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
+        "zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
         "/grapher/daily-covid-deaths-per-million-3-day-avg",
-        "zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&deathsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
+        "zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP&deathsMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",

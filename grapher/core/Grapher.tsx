@@ -29,6 +29,7 @@ import {
     findClosestTime,
     excludeUndefined,
     debounce,
+    isInIFrame,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -766,7 +767,7 @@ export class Grapher
     }
 
     @computed get isInIFrame() {
-        return window.self !== window.top
+        return isInIFrame()
     }
 
     @computed get times(): Time[] {

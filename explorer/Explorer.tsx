@@ -20,6 +20,7 @@ import {
 import {
     debounce,
     exposeInstanceOnWindow,
+    isInIFrame,
     throttle,
     trimObject,
 } from "../clientUtils/Util"
@@ -241,8 +242,9 @@ export class Explorer
                 preChangeQueryParams
             )
 
-        const persistedParams =
-            grapher.id && this.persistedQueryParamsByGrapher.get(grapher.id)
+        const persistedParams = grapher.id
+            ? this.persistedQueryParamsByGrapher.get(grapher.id)
+            : preChangeQueryParams
 
         const grapherConfig =
             grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
@@ -425,14 +427,17 @@ export class Explorer
 
     @observable private isNarrow = isNarrow()
 
+    @computed private get isInIFrame() {
+        return isInIFrame()
+    }
+
     @computed private get showExplorerControls() {
-        if (
+        if (!this.props.isEmbeddedInAnOwidPage && !this.isInIFrame) return true
+        // Only allow hiding controls on embedded pages
+        return !(
             this.explorerProgram.hideControls ||
             this.initialPatchObject.hideControls === "true"
         )
-            return false
-
-        return this.props.isEmbeddedInAnOwidPage ? false : true
     }
 
     @observable private grapherContainerRef: React.RefObject<

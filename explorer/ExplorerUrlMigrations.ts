@@ -8,6 +8,7 @@ import { omit, omitUndefinedValues } from "../clientUtils/Util"
 import { DefaultPatchGrammar, Patch } from "../patch/Patch"
 import { EXPLORERS_ROUTE_FOLDER } from "./ExplorerConstants"
 import { legacyToCurrentGrapherUrl } from "../grapher/core/GrapherUrlMigrations"
+import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
 
 const legacyIntervalToNewValue = {
     daily: "New per day",
@@ -104,7 +105,9 @@ const legacyToCurrentCovidQueryParams = (
             ...explorerQueryParams,
             // If we don't encode it as an array,
             // Patch will escape the column delimiter.
-            selection: selection?.split(DefaultPatchGrammar.columnDelimiter),
+            selection: selection
+                ? EntityUrlBuilder.queryParamToEntityNames(selection)
+                : undefined,
         })
     )
 
