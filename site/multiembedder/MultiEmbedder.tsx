@@ -99,13 +99,12 @@ const figuresFromDOM = (
         .map((element) => {
             const dataSrc = element.getAttribute(selector)
             if (!dataSrc) return undefined
-            const { pathname, queryStr } = Url.fromURL(dataSrc)
-            if (!pathname) return undefined
+            const { fullUrl, queryStr } = Url.fromURL(dataSrc)
             const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
             return new EmbeddedFigure(
                 {
                     container: element,
-                    standaloneUrl: pathname,
+                    standaloneUrl: fullUrl,
                     queryStr,
                 },
                 isExplorer
