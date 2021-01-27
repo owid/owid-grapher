@@ -619,7 +619,7 @@ export class ScatterPlotChart
 
     @computed get colorScaleConfig() {
         return (
-            ColorScaleConfig.fromDSL(this.yColumn.def) ??
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
             this.manager.colorScale
         )
     }
