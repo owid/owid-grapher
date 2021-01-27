@@ -132,6 +132,11 @@ export const ColumnGrammar: Grammar = {
         })),
         description: "The binning strategy to use",
     },
+    colorScaleNoDataLabel: {
+        ...StringCellDef,
+        keyword: "colorScaleNoDataLabel",
+        description: "Custom label for the 'No data' bin",
+    },
     colorScaleNumericBins: {
         ...StringCellDef,
         keyword: "colorScaleNumericBins",

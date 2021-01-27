@@ -10,6 +10,7 @@ import {
 import { extend, isEmpty, trimObject } from "../../clientUtils/Util"
 import { ColorSchemeName } from "./ColorConstants"
 import { BinningStrategy } from "./BinningStrategy"
+import { NO_DATA_LABEL } from "./ColorScale"
 
 export class ColorScaleConfigDefaults {
     // Color scheme
@@ -116,7 +117,6 @@ export class ColorScaleConfig
         const customCategoryColors: {
             [key: string]: string | undefined
         } = {}
-
         const customCategoryLabels: {
             [key: string]: string | undefined
         } = {}
@@ -127,12 +127,15 @@ export class ColorScaleConfig
                 customCategoryColors[value] = color
                 customCategoryLabels[value] = label.join(INTRA_BIN_DELIMITER)
             })
+        if (scale.colorScaleNoDataLabel) {
+            customCategoryLabels[NO_DATA_LABEL] = scale.colorScaleNoDataLabel
+        }
 
         // Use user-defined binning strategy, otherwise set to manual if user has
         // defined custom bins
         const binningStrategy = scale.colorScaleBinningStrategy
             ? (scale.colorScaleBinningStrategy as BinningStrategy)
-            : customNumericValues.length > 0 || !isEmpty(customCategoryColors)
+            : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
             ? BinningStrategy.manual
             : undefined
 

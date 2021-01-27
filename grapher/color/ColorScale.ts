@@ -18,7 +18,7 @@ import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { getBinMaximums } from "./BinningStrategies"
 import { BinningStrategy } from "./BinningStrategy"
 
-const NO_DATA_LABEL = "No data"
+export const NO_DATA_LABEL = "No data"
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface

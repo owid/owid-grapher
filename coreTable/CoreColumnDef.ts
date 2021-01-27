@@ -36,6 +36,7 @@ export interface ColumnColorScale {
     colorScaleBinningStrategy?: string
     colorScaleNumericBins?: string
     colorScaleCategoricalBins?: string
+    colorScaleNoDataLabel?: string
 }
 
 export interface CoreColumnDef extends ColumnColorScale {
