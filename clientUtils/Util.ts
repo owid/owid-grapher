@@ -129,6 +129,8 @@ import { queryParamsToStr, strToQueryParams } from "./url"
 export type SVGElement = any
 export type VNode = any
 
+type NoUndefinedValues<T> = { [P in keyof T]: Required<NonNullable<T[P]>> }
+
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
@@ -470,15 +472,18 @@ export const urlToSlug = (url: string) =>
 export const sign = (num: number) => (num > 0 ? 1 : num < 0 ? -1 : 0)
 
 // Removes all undefineds from an object.
-export const trimObject = (obj: any = {}, trimStringEmptyStrings = false) => {
+export const trimObject = <Obj>(
+    obj: Obj,
+    trimStringEmptyStrings = false
+): NoUndefinedValues<Obj> => {
     const clone: any = {}
-    Object.keys(obj).forEach((key) => {
-        const val = obj[key]
+    for (const key in obj) {
+        const val = obj[key] as any
         if (isObject(val) && isEmpty(val)) {
             // Drop empty objects
         } else if (trimStringEmptyStrings && val === "") {
         } else if (val !== undefined) clone[key] = obj[key]
-    })
+    }
     return clone
 }
 
@@ -989,8 +994,6 @@ export function getClosestTimePairs(
 
     return decidedPairs
 }
-
-type NoUndefinedValues<T> = { [P in keyof T]: Required<NonNullable<T[P]>> }
 
 export const omitUndefinedValues = <T>(object: T): NoUndefinedValues<T> => {
     const result: any = {}

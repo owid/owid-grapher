@@ -668,7 +668,7 @@ export const makeFullPath = (slug: string) =>
 
 const trimAndParseObject = (config: any, grammar: Grammar) => {
     // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
-    const trimmedRow = trimObject(config, true)
+    const trimmedRow = trimObject(config, true) as any
 
     // parse types
     Object.keys(trimmedRow).forEach((key) => {

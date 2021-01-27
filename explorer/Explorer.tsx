@@ -376,7 +376,7 @@ export class Explorer
                 new Patch(decisionsPatchObject).uriEncodedString
             )
 
-        const explorerPatchObject = {
+        const explorerPatchObject: ExplorerPatchObject = {
             ...this.grapher.changedParams,
             selection: this.selection.hasSelection
                 ? this.selection.selectedEntityNames

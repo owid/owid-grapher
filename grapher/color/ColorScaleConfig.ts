@@ -86,8 +86,10 @@ export class ColorScaleConfig
         extend(this, obj)
     }
 
-    toObject() {
-        const obj = objectWithPersistablesToObject(this)
+    toObject(): ColorScaleConfigInterface {
+        const obj: ColorScaleConfigInterface = objectWithPersistablesToObject(
+            this
+        )
         deleteRuntimeAndUnchangedProps(obj, new ColorScaleConfigDefaults())
         return trimObject(obj)
     }
@@ -97,7 +99,7 @@ export class ColorScaleConfig
         updatePersistables(this, obj)
     }
 
-    static fromDSL(scale: ColumnColorScale) {
+    static fromDSL(scale: ColumnColorScale): ColorScaleConfig | undefined {
         const colorSchemeInvert = scale.colorScaleInvert
         const baseColorScheme = scale.colorScaleScheme as ColorSchemeName
 
@@ -125,14 +127,15 @@ export class ColorScaleConfig
                 customCategoryColors[value] = color
                 customCategoryLabels[value] = label.join(INTRA_BIN_DELIMITER)
             })
-        const trimmed = trimObject({
+        const trimmed: Partial<ColorScaleConfig> = trimObject({
             colorSchemeInvert,
             baseColorScheme,
             customNumericColors,
             customNumericLabels,
             customNumericValues,
         })
-        return isEmpty(trimmed) ? undefined : trimmed
+
+        return isEmpty(trimmed) ? undefined : new ColorScaleConfig(trimmed)
     }
 
     toDSL(): ColumnColorScale {
@@ -147,7 +150,7 @@ export class ColorScaleConfig
             customCategoryColors,
         } = this.toObject()
 
-        return trimObject({
+        const columnColorScale: ColumnColorScale = {
             colorScaleScheme: baseColorScheme,
             colorScaleInvert: colorSchemeInvert,
             colorScaleBinningStrategy: binningStrategy,
@@ -169,9 +172,11 @@ export class ColorScaleConfig
                     ].join(INTRA_BIN_DELIMITER)
                 )
                 .join(INTER_BIN_DELIMITER),
-        })
+        }
+
+        return trimObject(columnColorScale)
     }
 }
 
 const INTER_BIN_DELIMITER = ";"
-const INTRA_BIN_DELIMITER = ";"
+const INTRA_BIN_DELIMITER = ","
