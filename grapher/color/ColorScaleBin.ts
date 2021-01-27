@@ -42,17 +42,11 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
     get max() {
         return this.props.max
     }
-    get color() {
-        return this.props.color
-    }
     get minText() {
         return (this.props.isOpenLeft ? `<` : "") + this.props.displayMin
     }
     get maxText() {
         return (this.props.isOpenRight ? `>` : "") + this.props.displayMax
-    }
-    get label() {
-        return this.props.label
     }
     get text() {
         return this.props.label || ""

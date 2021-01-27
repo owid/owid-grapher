@@ -27,11 +27,9 @@ import {
     BindString,
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
-import {
-    BinningStrategy,
-    binningStrategyLabels,
-} from "../grapher/color/BinningStrategies"
+import { binningStrategyLabels } from "../grapher/color/BinningStrategies"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
+import { BinningStrategy } from "../grapher/color/BinningStrategy"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean

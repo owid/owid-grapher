@@ -1,11 +1,16 @@
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { AvailableTransforms } from "../coreTable/Transforms"
+import { BinningStrategy } from "../grapher/color/BinningStrategy"
+import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import {
     Grammar,
     SlugDeclarationCellDef,
     StringCellDef,
     IntegerCellDef,
     UrlCellDef,
+    BooleanCellDef,
+    EnumCellDef,
+    NumericCellDef,
 } from "../gridLang/GridLangConstants"
 
 export const ColumnGrammar: Grammar = {
@@ -102,5 +107,69 @@ export const ColumnGrammar: Grammar = {
         keyword: "additionalInfo",
         description:
             "Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like.",
+    },
+    colorScaleScheme: {
+        ...EnumCellDef,
+        keyword: "colorScaleScheme",
+        terminalOptions: Object.values(ColorSchemeName).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+        description: "The color scheme to use",
+    },
+    colorScaleInvert: {
+        ...BooleanCellDef,
+        keyword: "colorScaleInvert",
+        description: "Invert the color scale?",
+    },
+    colorScaleBinningStrategy: {
+        ...EnumCellDef,
+        keyword: "colorScaleBinningStrategy",
+        terminalOptions: Object.values(BinningStrategy).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+        description: "The binning strategy to use",
+    },
+    colorScaleNoDataLabel: {
+        ...StringCellDef,
+        keyword: "colorScaleNoDataLabel",
+        description: "Custom label for the 'No data' bin",
+    },
+    colorScaleLegendDescription: {
+        ...StringCellDef,
+        keyword: "colorScaleLegendDescription",
+        description: "Legend title for ScatterPlot",
+    },
+    colorScaleEqualSizeBins: {
+        ...BooleanCellDef,
+        keyword: "colorScaleEqualSizeBins",
+        description: "Disable visual scaling of the bins based on values?",
+    },
+    colorScaleNumericMinValue: {
+        ...NumericCellDef,
+        keyword: "colorScaleNumericMinValue",
+        description:
+            "Minimum value of the first bin (leaving blank will infer the minimum from the data)",
+    },
+    colorScaleNumericBins: {
+        ...StringCellDef,
+        keyword: "colorScaleNumericBins",
+        description: [
+            "Custom numeric bins",
+            "  Format: [binMax],[color],[label]; [binMax],[color],[label]; ...",
+            "  Example: 0.1,#ccc,example label; 0.2,,; 0.3,,prev has no label",
+        ].join("\n"),
+    },
+    colorScaleCategoricalBins: {
+        ...StringCellDef,
+        keyword: "colorScaleCategoricalBins",
+        description: [
+            "Custom categorical bins",
+            "  Format: [data value],[color],[label]; [data value],[color],[label]; ...",
+            "  Example: one,#ccc,uno; two,,dos",
+        ].join("\n"),
     },
 } as const

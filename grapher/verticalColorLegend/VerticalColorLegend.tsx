@@ -22,6 +22,8 @@ export interface VerticalColorLegendManager {
 
 interface LegendItem {
     label?: string
+    minText?: string
+    maxText?: string
     color: Color
 }
 
@@ -74,10 +76,15 @@ export class VerticalColorLegend extends React.Component<{
 
         return manager.legendItems
             .map((series) => {
+                let label = series.label
+                // infer label for numeric bins
+                if (!label && series.minText && series.maxText) {
+                    label = `${series.minText} – ${series.maxText}`
+                }
                 const textWrap = new TextWrap({
                     maxWidth: this.maxLegendWidth,
                     fontSize,
-                    text: series.label ?? "",
+                    text: label ?? "",
                 })
                 return {
                     textWrap,

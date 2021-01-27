@@ -1,7 +1,7 @@
-import { SeriesStrategy } from "../core/GrapherConstants"
-import { Box } from "../../clientUtils/owidTypes"
-import { SelectionArray } from "../selection/SelectionArray"
 import React from "react"
+import { Box } from "../../clientUtils/owidTypes"
+import { SeriesStrategy } from "../core/GrapherConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager) => {

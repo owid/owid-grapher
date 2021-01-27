@@ -1,6 +1,7 @@
 #! /usr/bin/env jest
 
-import { getBinMaximums, BinningStrategy } from "./BinningStrategies"
+import { getBinMaximums } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 
 describe(getBinMaximums, () => {
     it("returns no bins for empty array", () => {
