@@ -32,6 +32,7 @@ import {
     CategoryNode,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
+import { memoize } from "../clientUtils/Util"
 
 let knexInstance: Knex
 
@@ -575,14 +576,13 @@ export const getFullPost = async (
     glossary: postApi.meta.owid_glossary_meta_field,
 })
 
-let cachedPosts: Promise<FullPost[]> | undefined
-export const getBlogIndex = async (): Promise<FullPost[]> => {
-    if (cachedPosts) return cachedPosts
-
-    // TODO: do not get post content in the first place
-    const posts = await getPosts(["post"])
-    return Promise.all(posts.map((post) => getFullPost(post, true)))
-}
+export const getBlogIndex = memoize(
+    async (): Promise<FullPost[]> => {
+        // TODO: do not get post content in the first place
+        const posts = await getPosts(["post"])
+        return Promise.all(posts.map((post) => getFullPost(post, true)))
+    }
+)
 
 interface TablepressTable {
     tableId: string
@@ -626,6 +626,6 @@ export const flushCache = () => {
     cachedAuthorship = undefined
     cachedEntries = []
     cachedFeaturedImages = undefined
-    cachedPosts = undefined
+    getBlogIndex.cache.clear?.()
     cachedTables = undefined
 }
