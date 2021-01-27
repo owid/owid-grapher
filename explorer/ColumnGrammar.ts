@@ -157,11 +157,19 @@ export const ColumnGrammar: Grammar = {
     colorScaleNumericBins: {
         ...StringCellDef,
         keyword: "colorScaleNumericBins",
-        description: "Custom numeric bins",
+        description: [
+            "Custom numeric bins",
+            "  Format: [binMax],[color],[label]; [binMax],[color],[label]; ...",
+            "  Example: 0.1,#ccc,example label; 0.2,,; 0.3,,prev has no label",
+        ].join("\n"),
     },
     colorScaleCategoricalBins: {
         ...StringCellDef,
         keyword: "colorScaleCategoricalBins",
-        description: "Custom categorical bins",
+        description: [
+            "Custom categorical bins",
+            "  Format: [data value],[color],[label]; [data value],[color],[label]; ...",
+            "  Example: one,#ccc,uno; two,,dos",
+        ].join("\n"),
     },
 } as const
