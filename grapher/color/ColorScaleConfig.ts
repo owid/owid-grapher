@@ -127,9 +127,19 @@ export class ColorScaleConfig
                 customCategoryColors[value] = color
                 customCategoryLabels[value] = label.join(INTRA_BIN_DELIMITER)
             })
+
+        // Use user-defined binning strategy, otherwise set to manual if user has
+        // defined custom bins
+        const binningStrategy = scale.colorScaleBinningStrategy
+            ? (scale.colorScaleBinningStrategy as BinningStrategy)
+            : customNumericValues.length > 0 || !isEmpty(customCategoryColors)
+            ? BinningStrategy.manual
+            : undefined
+
         const trimmed: Partial<ColorScaleConfig> = trimObject({
             colorSchemeInvert,
             baseColorScheme,
+            binningStrategy,
             customNumericColors,
             customNumericLabels,
             customNumericValues,
