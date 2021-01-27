@@ -179,7 +179,8 @@ export class Explorer
 
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
-        this.reactToUserChangingSelection()
+        this.updateGrapherFromExplorer()
+        this.grapher?.populateFromQueryParams(this.initialPatchObject)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -216,10 +217,36 @@ export class Explorer
     // todo: break this method up and unit test more. this is pretty ugly right now.
     @action.bound private reactToUserChangingSelection() {
         if (!this.grapher) return // todo: can we remove this?
-        const grapher = this.grapher
         this.initSlideshow()
-        const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
 
+        const newGrapherId = this.explorerProgram.grapherConfig.grapherId
+        const oldGrapherId = this.grapher.id
+        const newGrapherHasId = newGrapherId && isNotErrorValue(newGrapherId)
+        if (newGrapherHasId && oldGrapherId === newGrapherId) return
+
+        const oldGrapherQueryParams =
+            oldGrapherId !== undefined ? this.grapher.changedParams : undefined
+
+        if (oldGrapherId && oldGrapherQueryParams)
+            this.persistedQueryParamsByGrapher.set(
+                oldGrapherId,
+                oldGrapherQueryParams
+            )
+
+        const paramsToRestore = newGrapherId
+            ? this.persistedQueryParamsByGrapher.get(newGrapherId)
+            : undefined
+
+        this.updateGrapherFromExplorer()
+
+        if (paramsToRestore)
+            this.grapher.populateFromQueryParams(paramsToRestore)
+    }
+
+    @action.bound updateGrapherFromExplorer() {
+        const grapher = this.grapher
+        if (!grapher) return
+        const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
         const {
             grapherId,
             tableSlug,
@@ -229,25 +256,9 @@ export class Explorer
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
-        if (hasGrapherId && grapher.id === grapherId) return
-
-        const preChangeQueryParams =
-            grapher.id !== undefined
-                ? grapher.changedParams
-                : this.initialPatchObject
-
-        if (grapherId)
-            this.persistedQueryParamsByGrapher.set(
-                grapherId,
-                preChangeQueryParams
-            )
-
-        const persistedParams = grapher.id
-            ? this.persistedQueryParamsByGrapher.get(grapher.id)
-            : preChangeQueryParams
-
-        const grapherConfig =
-            grapherId && hasGrapherId ? this.grapherConfigs.get(grapherId)! : {}
+        const grapherConfig = hasGrapherId
+            ? this.grapherConfigs.get(grapherId!) ?? {}
+            : {}
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
@@ -263,7 +274,6 @@ export class Explorer
         grapher.updateFromObject(config)
         this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
         this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
-        persistedParams && grapher.populateFromQueryParams(persistedParams)
         grapher.downloadData()
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
