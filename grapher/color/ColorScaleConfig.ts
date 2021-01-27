@@ -127,7 +127,8 @@ export class ColorScaleConfig
             ? parseFloat(scale.colorScaleNumericMinValue as any)
             : undefined
 
-        const customNumericColorsActive = customNumericColors.length > 0
+        const customNumericColorsActive =
+            customNumericColors.length > 0 ? true : undefined
 
         const customCategoryColors: {
             [key: string]: string | undefined

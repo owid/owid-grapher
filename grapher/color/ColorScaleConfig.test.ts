@@ -39,6 +39,10 @@ describe("fromDSL", () => {
         expect(colorScale.legendDescription).toEqual("Legend")
     })
 
+    it("returns undefined when called with empty object", () => {
+        expect(ColorScaleConfig.fromDSL({})).toBeUndefined()
+    })
+
     it("handles a custom binning strategy", () => {
         const colorScale = ColorScaleConfig.fromDSL({
             colorScaleBinningStrategy: BinningStrategy.quantiles,
