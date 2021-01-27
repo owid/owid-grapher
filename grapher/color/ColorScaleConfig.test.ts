@@ -114,4 +114,21 @@ describe("fromDSL", () => {
         })!
         expect(colorScale.customNumericLabels).toEqual(["a,label,with,commas"])
     })
+
+    it("trims whitespace in bin definitions", () => {
+        const colorScale = ColorScaleConfig.fromDSL({
+            colorScaleNumericBins: "1, #ccc, a label that may, have spaces  ",
+            colorScaleCategoricalBins: "one, , a label that may, have spaces  ",
+        })!
+        expect(colorScale.customNumericLabels).toEqual([
+            "a label that may, have spaces",
+        ])
+        expect(colorScale.customNumericColors).toEqual(["#ccc"])
+        expect(colorScale.customCategoryLabels).toEqual({
+            one: "a label that may, have spaces",
+        })
+        expect(colorScale.customCategoryColors).toEqual({
+            one: undefined,
+        })
+    })
 })

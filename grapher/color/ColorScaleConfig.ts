@@ -107,14 +107,19 @@ export class ColorScaleConfig
         const customNumericValues: number[] = []
         const customNumericLabels: (string | undefined)[] = []
         const customNumericColors: (Color | undefined)[] = []
-        scale.colorScaleNumericBins?.split(INTER_BIN_DELIMITER).map((bin) => {
-            const [value, color, ...label] = bin.split(INTRA_BIN_DELIMITER)
-            customNumericValues.push(parseFloat(value))
-            customNumericColors.push(color || undefined)
-            customNumericLabels.push(
-                label.join(INTRA_BIN_DELIMITER) || undefined
-            )
-        })
+        scale.colorScaleNumericBins
+            ?.split(INTER_BIN_DELIMITER)
+            .forEach((bin) => {
+                const [value, color, ...label] = bin.split(
+                    INTRA_BIN_DELIMITER
+                ) as (string | undefined)[]
+                if (!value) return
+                customNumericValues.push(parseFloat(value))
+                customNumericColors.push(color?.trim() || undefined)
+                customNumericLabels.push(
+                    label.join(INTRA_BIN_DELIMITER).trim() || undefined
+                )
+            })
 
         // TODO: once Grammar#parse() is called for all values, we can remove parseFloat() here
         // See issue: https://www.notion.so/owid/ColumnGrammar-parse-function-does-not-get-applied-67b578b8af7642c5859a1db79c8d5712
@@ -132,11 +137,14 @@ export class ColorScaleConfig
         } = {}
         scale.colorScaleCategoricalBins
             ?.split(INTER_BIN_DELIMITER)
-            .map((bin) => {
-                const [value, color, ...label] = bin.split(INTRA_BIN_DELIMITER)
-                customCategoryColors[value] = color || undefined
+            .forEach((bin) => {
+                const [value, color, ...label] = bin.split(
+                    INTRA_BIN_DELIMITER
+                ) as (string | undefined)[]
+                if (!value) return
+                customCategoryColors[value] = color?.trim() || undefined
                 customCategoryLabels[value] =
-                    label.join(INTRA_BIN_DELIMITER) || undefined
+                    label.join(INTRA_BIN_DELIMITER).trim() || undefined
             })
         if (scale.colorScaleNoDataLabel) {
             customCategoryLabels[NO_DATA_LABEL] = scale.colorScaleNoDataLabel
