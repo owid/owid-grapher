@@ -105,14 +105,19 @@ export class ColorScaleConfig
         const baseColorScheme = scale.colorScaleScheme as ColorSchemeName
 
         const customNumericValues: number[] = []
-        const customNumericLabels: string[] = []
-        const customNumericColors: Color[] = []
+        const customNumericLabels: (string | undefined)[] = []
+        const customNumericColors: (Color | undefined)[] = []
         scale.colorScaleNumericBins?.split(INTER_BIN_DELIMITER).map((bin) => {
-            const [color, value, ...label] = bin.split(INTRA_BIN_DELIMITER)
+            const [value, color, ...label] = bin.split(INTRA_BIN_DELIMITER)
             customNumericValues.push(parseFloat(value))
-            customNumericLabels.push(label.join(INTRA_BIN_DELIMITER))
-            customNumericColors.push(color)
+            customNumericColors.push(color || undefined)
+            customNumericLabels.push(
+                label.join(INTRA_BIN_DELIMITER) || undefined
+            )
         })
+
+        const customNumericMinValue = scale.colorScaleNumericMinValue
+        const customNumericColorsActive = customNumericColors.length > 0
 
         const customCategoryColors: {
             [key: string]: string | undefined
@@ -123,9 +128,10 @@ export class ColorScaleConfig
         scale.colorScaleCategoricalBins
             ?.split(INTER_BIN_DELIMITER)
             .map((bin) => {
-                const [color, value, ...label] = bin.split(INTRA_BIN_DELIMITER)
-                customCategoryColors[value] = color
-                customCategoryLabels[value] = label.join(INTRA_BIN_DELIMITER)
+                const [value, color, ...label] = bin.split(INTRA_BIN_DELIMITER)
+                customCategoryColors[value] = color || undefined
+                customCategoryLabels[value] =
+                    label.join(INTRA_BIN_DELIMITER) || undefined
             })
         if (scale.colorScaleNoDataLabel) {
             customCategoryLabels[NO_DATA_LABEL] = scale.colorScaleNoDataLabel
@@ -139,13 +145,23 @@ export class ColorScaleConfig
             ? BinningStrategy.manual
             : undefined
 
+        const equalSizeBins = scale.colorScaleEqualSizeBins
+
+        const legendDescription = scale.colorScaleLegendDescription
+
         const trimmed: Partial<ColorScaleConfig> = trimObject({
             colorSchemeInvert,
             baseColorScheme,
             binningStrategy,
-            customNumericColors,
-            customNumericLabels,
             customNumericValues,
+            customNumericColors,
+            customNumericColorsActive,
+            customNumericLabels,
+            customNumericMinValue,
+            customCategoryLabels,
+            customCategoryColors,
+            equalSizeBins,
+            legendDescription,
         })
 
         return isEmpty(trimmed) ? undefined : new ColorScaleConfig(trimmed)
@@ -153,34 +169,41 @@ export class ColorScaleConfig
 
     toDSL(): ColumnColorScale {
         const {
+            colorSchemeInvert,
             baseColorScheme,
             binningStrategy,
-            colorSchemeInvert,
             customNumericValues,
             customNumericColors,
             customNumericLabels,
+            customNumericMinValue,
             customCategoryLabels,
             customCategoryColors,
+            equalSizeBins,
+            legendDescription,
         } = this.toObject()
 
         const columnColorScale: ColumnColorScale = {
             colorScaleScheme: baseColorScheme,
             colorScaleInvert: colorSchemeInvert,
             colorScaleBinningStrategy: binningStrategy,
+            colorScaleEqualSizeBins: equalSizeBins,
+            colorScaleLegendDescription: legendDescription,
+            colorScaleNumericMinValue: customNumericMinValue,
             colorScaleNumericBins: (customNumericValues ?? [])
                 .map((value: any, index: number) =>
                     [
-                        customNumericColors[index] ?? "",
                         value,
+                        customNumericColors[index] ?? "",
                         customNumericLabels[index],
                     ].join(INTRA_BIN_DELIMITER)
                 )
                 .join(INTER_BIN_DELIMITER),
+            colorScaleNoDataLabel: customCategoryLabels[NO_DATA_LABEL],
             colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
                 .map((value) =>
                     [
-                        customCategoryColors[value],
                         value,
+                        customCategoryColors[value],
                         customCategoryLabels[value],
                     ].join(INTRA_BIN_DELIMITER)
                 )

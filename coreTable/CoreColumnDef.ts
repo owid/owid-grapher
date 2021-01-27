@@ -34,9 +34,12 @@ export interface ColumnColorScale {
     colorScaleScheme?: string
     colorScaleInvert?: boolean
     colorScaleBinningStrategy?: string
+    colorScaleEqualSizeBins?: boolean
+    colorScaleNumericMinValue?: number
     colorScaleNumericBins?: string
     colorScaleCategoricalBins?: string
     colorScaleNoDataLabel?: string
+    colorScaleLegendDescription?: string
 }
 
 export interface CoreColumnDef extends ColumnColorScale {

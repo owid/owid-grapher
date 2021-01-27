@@ -10,6 +10,7 @@ import {
     UrlCellDef,
     BooleanCellDef,
     EnumCellDef,
+    NumericCellDef,
 } from "../gridLang/GridLangConstants"
 
 export const ColumnGrammar: Grammar = {
@@ -136,6 +137,22 @@ export const ColumnGrammar: Grammar = {
         ...StringCellDef,
         keyword: "colorScaleNoDataLabel",
         description: "Custom label for the 'No data' bin",
+    },
+    colorScaleLegendDescription: {
+        ...StringCellDef,
+        keyword: "colorScaleLegendDescription",
+        description: "Legend title for ScatterPlot",
+    },
+    colorScaleEqualSizeBins: {
+        ...BooleanCellDef,
+        keyword: "colorScaleEqualSizeBins",
+        description: "Disable visual scaling of the bins based on values?",
+    },
+    colorScaleNumericMinValue: {
+        ...NumericCellDef,
+        keyword: "colorScaleNumericMinValue",
+        description:
+            "Minimum value of the first bin (leaving blank will infer the minimum from the data)",
     },
     colorScaleNumericBins: {
         ...StringCellDef,
