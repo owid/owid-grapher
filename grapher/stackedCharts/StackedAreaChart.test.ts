@@ -83,7 +83,7 @@ it("can filter a series when there are no points", () => {
         },
     })
 
-    expect(chart.series.length).toEqual(1)
+    expect(chart.series.length).toEqual(0)
 })
 
 it("filters non-numeric values", () => {

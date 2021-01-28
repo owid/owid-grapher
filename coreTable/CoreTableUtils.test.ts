@@ -143,7 +143,23 @@ describe(toleranceInterpolation, () => {
 })
 
 describe(linearInterpolation, () => {
-    it("interpolates", () => {
+    it("interpolates, with extrapolation", () => {
+        const values = [
+            4,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            1,
+            ErrorValueTypes.MissingValuePlaceholder,
+        ]
+        const timesAsc = [0, 1, 2, 3, 4]
+        linearInterpolation(values, timesAsc, {
+            extrapolateAtStart: true,
+            extrapolateAtEnd: true,
+        })
+        expect(values).toEqual([4, 3, 2, 1, 1])
+    })
+
+    it("interpolates, without extrapolation", () => {
         const values = [
             4,
             ErrorValueTypes.MissingValuePlaceholder,
@@ -153,7 +169,13 @@ describe(linearInterpolation, () => {
         ]
         const timesAsc = [0, 1, 2, 3, 4]
         linearInterpolation(values, timesAsc, {})
-        expect(values).toEqual([4, 3, 2, 1, 1])
+        expect(values).toEqual([
+            4,
+            3,
+            2,
+            1,
+            ErrorValueTypes.NoValueForInterpolation,
+        ])
     })
 })
 
