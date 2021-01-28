@@ -191,7 +191,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // A method for formatting for CSV
     formatForCsv(value: JS_TYPE): string {
-        return csvEscape(this.formatValue(value))
+        return csvEscape(anyToString(value))
     }
 
     @imemo get numDecimalPlaces(): number {
