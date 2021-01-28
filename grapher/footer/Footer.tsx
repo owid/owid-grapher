@@ -266,7 +266,9 @@ export class Footer extends React.Component<{
                             Our World in Data charts are licensed under Creative
                             Commons; you are free to use, share, and adapt this
                             material. Click through to the CC BY page for more
-                            information.
+                            information. Please bear in mind that the underlying
+                            source data for all our charts might be subject to
+                            different license terms from third-party authors.
                         </p>
                     </Tooltip>
                 )}

@@ -191,14 +191,23 @@ export const SiteFooter = (props: SiteFooterProps) => (
                     <div className="owid-col flex-2">
                         <div className="legal">
                             <p>
-                                License: All of Our World in Data is completely
-                                open access and all work is licensed under the{" "}
-                                <a href="https://creativecommons.org/licenses/by/4.0/">
+                                License: All the material produced by Our World
+                                in Data, including interactive visualizations
+                                and code, are completely open access under the{" "}
+                                <a
+                                    href="https://creativecommons.org/licenses/by/4.0/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     Creative Commons BY license
                                 </a>
                                 . You have the permission to use, distribute,
-                                and reproduce in any medium, provided the source
-                                and authors are credited.
+                                and reproduce these in any medium, provided the
+                                source and authors are credited. All other
+                                material, including data produced by third
+                                parties and made available by Our World in Data,
+                                is subject to the license terms from the
+                                original third-party authors.
                             </p>
                             <p>
                                 Please consult our full{" "}
