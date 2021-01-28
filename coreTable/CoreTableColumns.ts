@@ -646,11 +646,6 @@ class YearColumn extends TimeColumn {
         // Include BCE
         return formatYear(value)
     }
-
-    formatForCsv(value: number) {
-        // Don't include BCE in CSV exports.
-        return anyToString(value)
-    }
 }
 
 class DayColumn extends TimeColumn {
@@ -683,11 +678,11 @@ class DateColumn extends DayColumn {
 }
 
 class QuarterColumn extends TimeColumn {
-    regEx = /^([+-]?\d+)-Q([1-4])$/
+    private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
     parse(val: any): number | ErrorValue {
         if (typeof val === "string") {
-            const match = val.match(this.regEx)
+            const match = val.match(QuarterColumn.regEx)
             if (match) {
                 const [, year, quarter] = match
                 return parseInt(year) * 4 + (parseInt(quarter) - 1)
@@ -696,12 +691,20 @@ class QuarterColumn extends TimeColumn {
         return ErrorValueTypes.InvalidQuarterValue
     }
 
+    private static numToQuarter(value: number) {
+        const year = Math.floor(value / 4)
+        const quarter = (Math.abs(value) % 4) + 1
+        return [year, quarter]
+    }
+
     formatValue(value: number) {
-        const [year, quarter] = [
-            Math.floor(value / 4),
-            (Math.abs(value) % 4) + 1,
-        ]
+        const [year, quarter] = QuarterColumn.numToQuarter(value)
         return `Q${quarter}/${year}`
+    }
+
+    formatForCsv(value: number) {
+        const [year, quarter] = QuarterColumn.numToQuarter(value)
+        return `${year}-Q${quarter}`
     }
 }
 
