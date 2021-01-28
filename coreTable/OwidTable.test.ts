@@ -134,7 +134,7 @@ it("can synth numerics", () => {
 })
 
 const basicTableCsv = `entityName,entityCode,entityId,gdp,pop
-iceland,ice,1,123,3
+iceland,ice,1,123123456.2,3
 usa,us,2,23,
 france,fr,3,23,4`
 
@@ -150,7 +150,7 @@ it("can export a clean csv", () => {
     const table = new OwidTable(basicTableCsv)
     expect(table.toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
 france,fr,23,4
-iceland,ice,123,3
+iceland,ice,123123456.2,3
 usa,us,23,`)
 })
 
@@ -160,7 +160,7 @@ it("can handle columns with commas", () => {
     expect(table.toPrettyCsv())
         .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
-iceland,ice,123,3
+iceland,ice,123123456.2,3
 usa,us,23,`)
 })
 
