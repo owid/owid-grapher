@@ -424,8 +424,49 @@ describe("linear interpolation", () => {
         ]
     )
 
-    it("applies interpolation", () => {
-        const interpolatedTable = table.interpolateColumnLinearly("gdp")
+    it("applies interpolation without extrapolation", () => {
+        const interpolatedTable = table.interpolateColumnLinearly("gdp", false)
+
+        expect(interpolatedTable.get("gdp").valuesIncludingErrorValues).toEqual(
+            [
+                // France
+                10,
+                0,
+                2,
+                4,
+                6,
+                8,
+                ErrorValueTypes.NoValueForInterpolation,
+                // UK
+                2,
+                2.25,
+                2.5,
+                2.75,
+                3,
+                ErrorValueTypes.NoValueForInterpolation,
+                ErrorValueTypes.NoValueForInterpolation,
+            ]
+        )
+
+        // Check that not only the gdp values are correct but also the other fields
+        expect(interpolatedTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "france",
+                    gdp: 2,
+                    year: 2002,
+                }),
+            ])
+        )
+        expect(
+            interpolatedTable.rows.filter(
+                (row) => row.year !== undefined && isNaN(row.year)
+            ).length
+        ).toEqual(0)
+    })
+
+    it("applies interpolation with extrapolation", () => {
+        const interpolatedTable = table.interpolateColumnLinearly("gdp", true)
 
         expect(interpolatedTable.get("gdp").valuesIncludingErrorValues).toEqual(
             [

@@ -43,19 +43,20 @@ export class AbstactStackedChart
         )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        // Drop rows for which no valid data points exist for any display column, so
-        // we don't interpolate these values and display a misleading chart
-        // Important: needs to be run after replaceNonNumericCellsWithErrorValues, so
-        // undefined and empty values are already replaced with error values
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+        table = table
+            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
         if (!this.props.disableLinearInterpolation) {
             this.yColumnSlugs.forEach((slug) => {
                 table = table.interpolateColumnLinearly(slug)
             })
         }
+
+        // Drop rows for which no valid data points exist for any display column
+        // after interpolation, which most likely means they lie at the start/end
+        // of the time range and were not extrapolated
+        table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
 
         if (this.manager.isRelativeMode) {
             table = this.isEntitySeries

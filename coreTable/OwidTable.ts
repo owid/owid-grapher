@@ -701,7 +701,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    interpolateColumnLinearly(columnSlug: ColumnSlug) {
+    interpolateColumnLinearly(
+        columnSlug: ColumnSlug,
+        extrapolate: boolean = false
+    ) {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
 
@@ -726,7 +729,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             columnSlug,
             timeColumn.slug,
             linearInterpolation,
-            {}
+            { extrapolateAtStart: extrapolate, extrapolateAtEnd: extrapolate }
         )
 
         const columnStore = {

@@ -37,7 +37,7 @@ export const withZeroesAsInterpolatedPoints = (
                     x,
                     y,
                     yOffset: 0,
-                    fake: !!point,
+                    fake: !point,
                 }
             }),
         }

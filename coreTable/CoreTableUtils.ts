@@ -184,6 +184,14 @@ function isNotErrorValueOrEmptyCell<K>(
 
 export interface InterpolationContext {}
 
+export interface LinearInterpolationContext extends InterpolationContext {
+    // whether to extrapolate a variable at the start or end, where we cannot do linear interpolation
+    // but need to just copy over the first/last value present over to empty fields.
+    // e.g. [Error, Error, 2, 3, 4] would become [2, 2, 2, 3, 4] with extrapolateAtStart=true.
+    extrapolateAtStart?: boolean
+    extrapolateAtEnd?: boolean
+}
+
 export interface ToleranceInterpolationContext extends InterpolationContext {
     timeTolerance: number
 }
@@ -199,7 +207,7 @@ export type InterpolationProvider<C extends InterpolationContext> = (
 export function linearInterpolation(
     valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
-    context: InterpolationContext,
+    context: LinearInterpolationContext,
     start: number = 0,
     end: number = valuesSortedByTimeAsc.length
 ) {
@@ -237,8 +245,16 @@ export function linearInterpolation(
             value =
                 (prevValue * distRight + nextValue * distLeft) /
                 (distLeft + distRight)
-        } else if (isNotErrorValueOrEmptyCell(prevValue)) value = prevValue
-        else if (isNotErrorValueOrEmptyCell(nextValue)) value = nextValue
+        } else if (
+            isNotErrorValueOrEmptyCell(prevValue) &&
+            context.extrapolateAtEnd
+        )
+            value = prevValue
+        else if (
+            isNotErrorValueOrEmptyCell(nextValue) &&
+            context.extrapolateAtStart
+        )
+            value = nextValue
         else value = ErrorValueTypes.NoValueForInterpolation
 
         prevNonBlankIndex = index
