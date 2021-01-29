@@ -27,6 +27,12 @@ import {
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
 import { GlobalEntityRegistry } from "./GlobalEntityRegistry"
+import {
+    setWindowQueryStr,
+    queryParamsToStr,
+    getWindowQueryParams,
+} from "../../../clientUtils/url"
+import { EntityUrlBuilder } from "../../core/EntityUrlBuilder"
 
 enum GlobalEntitySelectionModes {
     none = "none",
@@ -133,8 +139,6 @@ export class GlobalEntityControl extends React.Component<{
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
-    private isBoundToWindow = false
-
     @observable mode = GlobalEntitySelectionModes.none
 
     @observable private isNarrow = true
@@ -159,6 +163,7 @@ export class GlobalEntityControl extends React.Component<{
             )
         )
         this.populateLocalEntity()
+        this.updateAllGraphersAndExplorersOnPage()
     }
 
     componentWillUnmount() {
@@ -234,6 +239,10 @@ export class GlobalEntityControl extends React.Component<{
             this.selection.selectedEntityNames.join(",")
         )
         this.updateAllGraphersAndExplorersOnPage()
+
+        setWindowQueryStr(
+            queryParamsToStr({ selection: this.selection.asParam })
+        )
     }
 
     @action.bound private updateAllGraphersAndExplorersOnPage() {
@@ -387,13 +396,14 @@ export const hydrateGlobalEntityControlIfAny = () => {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (!element) return
 
+    const selectionParam = getWindowQueryParams().selection
+
+    const initialSelection = selectionParam
+        ? EntityUrlBuilder.queryParamToEntityNames(selectionParam).join(" ")
+        : element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ?? ""
+
     ReactDOM.hydrate(
-        <GlobalEntityControl
-            initialSelection={
-                element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ??
-                ""
-            }
-        />,
+        <GlobalEntityControl initialSelection={initialSelection} />,
         element
     )
 }
