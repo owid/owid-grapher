@@ -216,7 +216,7 @@ yarn testPrettierAll`
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
             algolia: `cd ${rsyncTargetDirTmp} && node itsJustJavascript/baker/algolia/configureAlgolia.js`,
-            createQueueFile: `cd ${finalTargetDir} && touch .queue && chmod 0666 .queue`,
+            createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
