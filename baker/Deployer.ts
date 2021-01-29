@@ -238,7 +238,7 @@ yarn testPrettierAll`
                 `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
             const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
-            fs.unlinkSync(localPath)
+            fs.removeSync(localPath)
         }
     }
 
