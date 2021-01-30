@@ -61,6 +61,7 @@ export class ExplorerControlPanel extends React.Component<{
     comment?: string
     onChange: (value: string) => void
     hideTitle?: boolean
+    isMobile: boolean
 }> {
     renderOption(option: ControlOption, index: number) {
         const {
@@ -130,7 +131,8 @@ export class ExplorerControlPanel extends React.Component<{
                 className="intervalDropdown"
                 classNamePrefix="intervalDropdown"
                 isDisabled={options.length < 2}
-                menuPlacement="auto"
+                // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
+                menuPlacement={this.props.isMobile ? "top" : "auto"}
                 options={options}
                 value={
                     options.find(
@@ -143,6 +145,7 @@ export class ExplorerControlPanel extends React.Component<{
                 }}
                 styles={styles}
                 isSearchable={false}
+                menuPosition={this.props.isMobile ? "fixed" : "absolute"}
             />
         )
     }
