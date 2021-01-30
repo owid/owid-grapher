@@ -31,6 +31,7 @@ describe(ExplorerControlPanel, () => {
                 type: ExplorerControlType.Radio,
             }}
             explorerSlug="explorer_slug"
+            isMobile={false}
         />
     )
 

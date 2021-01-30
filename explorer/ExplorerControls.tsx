@@ -58,6 +58,7 @@ export class ExplorerControlPanel extends React.Component<{
     choice: ExplorerChoice
     explorerSlug?: string
     onChange?: (value: string) => void
+    isMobile: boolean
 }> {
     private renderCheckboxOrRadio(option: ExplorerChoiceOption, index: number) {
         const { explorerSlug, choice } = this.props
@@ -128,7 +129,9 @@ export class ExplorerControlPanel extends React.Component<{
                 className={EXPLORER_DROPDOWN_CLASS}
                 classNamePrefix={EXPLORER_DROPDOWN_CLASS}
                 isDisabled={options.length < 2}
-                menuPlacement="auto"
+                // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
+                menuPlacement={this.props.isMobile ? "top" : "auto"}
+                menuPosition={this.props.isMobile ? "fixed" : "absolute"}
                 options={options}
                 value={value}
                 onChange={(option: any) => this.customOnChange(option.value)}

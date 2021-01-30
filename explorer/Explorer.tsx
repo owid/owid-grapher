@@ -408,6 +408,7 @@ export class Explorer
                     explorerSlug={this.explorerProgram.slug}
                     choice={choice}
                     onChange={this.onChangeChoice(choice.title)}
+                    isMobile={this.isNarrow}
                 />
             )
         )
