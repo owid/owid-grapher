@@ -23,6 +23,7 @@ export class ExplorerShell extends React.Component<{
     headerElement: JSX.Element
     params: ExplorerQueryParams
     isEmbed: boolean
+    onResize?: (isMobile: boolean) => void
 }> {
     get keyboardShortcuts(): Command[] {
         return []
@@ -39,6 +40,8 @@ export class ExplorerShell extends React.Component<{
     @action.bound onResize() {
         this.isMobile = this._isMobile()
         this.chartBounds = this.getChartBounds()
+
+        this.props.onResize?.(this.isMobile)
     }
 
     private _isMobile() {

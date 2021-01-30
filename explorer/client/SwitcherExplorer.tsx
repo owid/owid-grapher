@@ -57,6 +57,8 @@ export class SwitcherExplorer extends React.Component<{
     @observable private _grapher?: Grapher = undefined
     @observable availableEntities: string[] = []
 
+    @observable private isMobile = false
+
     private get explorerRuntime() {
         return this.props.program.explorerRuntime
     }
@@ -159,6 +161,7 @@ export class SwitcherExplorer extends React.Component<{
                 onChange={(value) => {
                     this.switcherRuntime.setValue(group.title, value)
                 }}
+                isMobile={this.isMobile}
             />
         ))
     }
@@ -183,6 +186,10 @@ export class SwitcherExplorer extends React.Component<{
         return false
     }
 
+    @action.bound onShellResize(isMobile: boolean) {
+        this.isMobile = isMobile
+    }
+
     render() {
         return (
             <ExplorerShell
@@ -193,6 +200,7 @@ export class SwitcherExplorer extends React.Component<{
                 grapher={this._grapher!}
                 params={this.explorerRuntime}
                 isEmbed={this.isEmbed}
+                onResize={this.onShellResize}
             />
         )
     }

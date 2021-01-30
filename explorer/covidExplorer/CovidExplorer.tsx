@@ -233,6 +233,7 @@ export class CovidExplorer extends React.Component<{
                     options={options}
                     onChange={this.changeMetric}
                     isCheckbox={false}
+                    isMobile={this.isMobile}
                 />
                 <ExplorerControlPanel
                     title="Metric"
@@ -242,6 +243,7 @@ export class CovidExplorer extends React.Component<{
                     onChange={this.changeMetric}
                     options={optionsColumn2}
                     isCheckbox={false}
+                    isMobile={this.isMobile}
                 />
             </>
         )
@@ -304,6 +306,7 @@ export class CovidExplorer extends React.Component<{
                     this.renderControlsThenUpdateChart()
                 }}
                 explorerSlug="covid"
+                isMobile={this.isMobile}
             />
         )
     }
@@ -333,6 +336,7 @@ export class CovidExplorer extends React.Component<{
                     this.props.params.perCapita = value === "true"
                     this.renderControlsThenUpdateChart()
                 }}
+                isMobile={this.isMobile}
             />
         )
     }
@@ -359,6 +363,7 @@ export class CovidExplorer extends React.Component<{
                 }}
                 comment={this.constrainedParams.trajectoryColumnOption.name}
                 explorerSlug="covid"
+                isMobile={this.isMobile}
             />
         )
     }
