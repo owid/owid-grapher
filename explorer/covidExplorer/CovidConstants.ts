@@ -201,7 +201,7 @@ export const intervalsAvailableByMetric: Map<
 
 // todo: auto import from covid repo.
 export const covidAnnotations = `location,date,cases_annotations,deaths_annotations
-Sweden,,Incomplete for the last 2 weeks,Incomplete for the last 2 weeks`
+Sweden,,Incomplete for last 5 days,Incomplete for last 2 weeks`
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidCsvRow {
