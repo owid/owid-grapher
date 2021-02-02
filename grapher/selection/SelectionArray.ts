@@ -129,7 +129,9 @@ export class SelectionArray {
     }
 
     @action.bound selectEntity(entityName: EntityName) {
-        return this.addToSelection([entityName])
+        if (!this.selectedSet.has(entityName))
+            return this.addToSelection([entityName])
+        return this
     }
 
     // Mainly for testing
