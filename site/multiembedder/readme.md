@@ -20,6 +20,11 @@ Authors can drop one of two kinds of tags into their Wordpress posts:
 
 On page load, and/or during scrolls, we can render a Grapher or Explorer into those containers, respectively.
 
+## Testing
+
+There is a test route in the mocksiterouter called `/multiEmbedderTest` for
+testing things.
+
 ## Benefits
 
 1. Doing it this way instead of iframes means they can be more performant? (is this true?)
