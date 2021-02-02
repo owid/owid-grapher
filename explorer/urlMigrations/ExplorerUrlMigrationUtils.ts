@@ -2,6 +2,8 @@ import { QueryParams } from "../../clientUtils/url"
 import { omitUndefinedValues } from "../../clientUtils/Util"
 import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
 import { Patch } from "../../patch/Patch"
+import { Url } from "../../urls/Url"
+import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
 
 export const patchFromQueryParams = (queryParams: QueryParams): Patch => {
     return new Patch(
@@ -41,4 +43,13 @@ export const transformQueryParams = (
         delete newQueryParams[oldParamName]
     }
     return newQueryParams
+}
+
+export const getExplorerSlugFromUrl = (url: Url): string | undefined => {
+    if (!url.pathname) return undefined
+    const match = url.pathname.match(
+        new RegExp(`^\/+${EXPLORERS_ROUTE_FOLDER}\/+([^\/]+)`)
+    )
+    if (match && match[1]) return match[1]
+    return undefined
 }

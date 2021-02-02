@@ -3,17 +3,15 @@ import { Url } from "../../urls/Url"
 import { UrlMigration } from "../../urls/UrlMigration"
 import {
     decodeURIComponentOrUndefined,
+    getExplorerSlugFromUrl,
     patchFromQueryParams,
+    QueryParamTransformMap,
     transformQueryParams,
 } from "./ExplorerUrlMigrationUtils"
 
-const co2QueryParamTransformMap: Record<
-    string,
-    {
-        newName: string
-        transformValue: (value: string | undefined) => string | undefined
-    }
-> = {
+const EXPLORER_SLUG = "co2"
+
+const co2QueryParamTransformMap: QueryParamTransformMap = {
     [encodeURIComponent("Gas ")]: {
         newName: "Gas Radio",
         transformValue: decodeURIComponentOrUndefined,
@@ -37,6 +35,10 @@ const co2QueryParamTransformMap: Record<
 }
 
 export const co2UrlMigration: UrlMigration = (url: Url) => {
+    // if it's not the /explorer/co2 path, skip it
+    const explorerSlug = getExplorerSlugFromUrl(url)
+    if (explorerSlug !== EXPLORER_SLUG) return url
+
     // if there is no patch param, then it's an old URL
     if (!url.queryParams.patch) {
         url = legacyToCurrentGrapherUrl(url)

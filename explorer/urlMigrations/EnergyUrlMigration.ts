@@ -3,10 +3,13 @@ import { Url } from "../../urls/Url"
 import { UrlMigration } from "../../urls/UrlMigration"
 import {
     decodeURIComponentOrUndefined,
+    getExplorerSlugFromUrl,
     patchFromQueryParams,
     QueryParamTransformMap,
     transformQueryParams,
 } from "./ExplorerUrlMigrationUtils"
+
+const EXPLORER_SLUG = "energy"
 
 const energyQueryParamTransformMap: QueryParamTransformMap = {
     [encodeURIComponent("Total or Breakdown ")]: {
@@ -28,6 +31,10 @@ const energyQueryParamTransformMap: QueryParamTransformMap = {
 }
 
 export const energyUrlMigration: UrlMigration = (url: Url) => {
+    // if it's not the /explorer/energy path, skip it
+    const explorerSlug = getExplorerSlugFromUrl(url)
+    if (explorerSlug !== EXPLORER_SLUG) return url
+
     // if there is no patch param, then it's an old URL
     if (!url.queryParams.patch) {
         url = legacyToCurrentGrapherUrl(url)
