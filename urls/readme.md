@@ -74,3 +74,17 @@ url = url.updateQueryParams({
 })
 console.log(url.pathname) // { country: "USA~DEU" }
 ```
+
+### `Url.setQueryParams()`
+
+Wipes all query params before setting them:
+
+```ts
+let url = Url.fromQueryStr("stackMode=relative&country=USA~DEU")
+
+console.log(url.queryParams) // { stackMode: "relative", country: "USA~DEU" }
+url = url.setQueryParams({
+    selection: "~USA",
+})
+console.log(url.queryParams) // { selection: "~USA" }
+```
