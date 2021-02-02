@@ -1,4 +1,7 @@
-import { explorerUrlMigrationsById } from "../explorer/ExplorerUrlMigrations"
+import {
+    explorerUrlMigrationsById,
+    migrateExplorerUrl,
+} from "../explorer/ExplorerUrlMigrations"
 import { getExplorerRedirectForPath } from "../explorerAdmin/ExplorerRedirects"
 import { Url } from "../urls/Url"
 
@@ -12,10 +15,13 @@ export const replaceIframesWithExplorerRedirectsInWordPressPost = (
             if (!url.pathname) return
 
             const explorerRedirect = getExplorerRedirectForPath(url.pathname)
-            if (!explorerRedirect) return
+            if (explorerRedirect) {
+                const { migrationId, baseQueryStr } = explorerRedirect
+                const { migrateUrl } = explorerUrlMigrationsById[migrationId]
+                url = migrateUrl(url, baseQueryStr)
+            }
 
-            const { migrationId, baseQueryStr } = explorerRedirect
-            const { migrateUrl } = explorerUrlMigrationsById[migrationId]
-            url = migrateUrl(url, baseQueryStr)
+            url = migrateExplorerUrl(url)
+
             el.attribs["src"] = url.fullUrl
         })

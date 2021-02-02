@@ -59,6 +59,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings"
 import {
     ExplorerPageUrlMigrationSpec,
     explorerUrlMigrationsById,
+    migrateExplorerUrl,
 } from "./ExplorerUrlMigrations"
 import { setWindowUrl, Url } from "../urls/Url"
 
@@ -123,18 +124,28 @@ export class Explorer
 
         let url = Url.fromURL(window.location.href)
 
+        // Handle redirect spec that's baked on the page.
+        // e.g. the old COVID Grapher to Explorer redirects are implemented this way.
         if (urlMigrationSpec) {
             const { explorerUrlMigrationId, baseQueryStr } = urlMigrationSpec
             const migration = explorerUrlMigrationsById[explorerUrlMigrationId]
             if (migration) {
                 url = migration.migrateUrl(url, baseQueryStr)
-                setWindowUrl(url)
             } else {
                 console.error(
                     `No explorer URL migration with id ${explorerUrlMigrationId}`
                 )
             }
         }
+
+        // Handle explorer-specific migrations.
+        // This is how we migrate the old CO2 explorer to the new CO2 explorer.
+        // Because they are on the same path, we can't handle it like we handle
+        // the COVID explorer redirects above.
+        url = migrateExplorerUrl(url)
+
+        // Update the window URL
+        setWindowUrl(url)
 
         ReactDOM.render(
             <Explorer
