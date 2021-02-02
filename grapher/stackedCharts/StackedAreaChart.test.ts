@@ -14,6 +14,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { isNumber } from "../../clientUtils/Util"
+import { SeriesStrategy } from "../core/GrapherConstants"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -53,6 +54,23 @@ describe("column charts", () => {
             SampleColumnSlugs.Vegetables,
             SampleColumnSlugs.Fruit,
         ])
+    })
+
+    it("assigns valid colors to columns without pre-defined colors", () => {
+        const table = SynthesizeFruitTable()
+        const columnsChart: ChartManager = {
+            table,
+            selection: table.sampleEntityName(1),
+            yColumnSlugs: [
+                SampleColumnSlugs.Fruit,
+                SampleColumnSlugs.Vegetables,
+            ],
+        }
+        const chart = new StackedAreaChart({ manager: columnsChart })
+        const assignedColors = chart.series.map((series) => series.color)
+        expect(assignedColors).toHaveLength(2)
+        for (const color of assignedColors)
+            expect(color).toMatch(/^#[0-9a-f]{6}$/i) // valid hex color string
     })
 })
 

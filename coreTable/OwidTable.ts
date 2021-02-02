@@ -566,15 +566,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @imemo get columnDisplayNameToColorMap() {
         return new Map(
-            this.columnsAsArray.map((col) => [
-                col.displayName,
-                col.def.color ?? "",
-            ])
+            this.columnsAsArray
+                .filter((col) => col.def.color)
+                .map((col) => [col.displayName, col.def.color!])
         )
     }
 
     getColorForColumnByDisplayName(displayName: string) {
-        return this.columnDisplayNameToColorMap.get(displayName) ?? ""
+        return this.columnDisplayNameToColorMap.get(displayName)
     }
 
     // This assumes the table is sorted where the times for entity names go in asc order.
