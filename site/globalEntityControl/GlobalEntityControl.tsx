@@ -30,6 +30,7 @@ import {
 import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -427,7 +428,9 @@ export function runGlobalEntityControl(
             countryAttr &&
             globalEntitySelection.selectedEntities.length === 0
         ) {
-            const countryCodes = countryAttr.split(/[+,]/g)
+            const countryCodes = EntityUrlBuilder.queryParamToEntities(
+                countryAttr
+            )
             globalEntitySelection.selectByCountryCodes(countryCodes)
             globalEntitySelection.mode = GlobalEntitySelectionModes.override
         }
