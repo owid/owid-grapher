@@ -13,6 +13,7 @@ import {
     fetchJSON,
     max,
     sum,
+    uniq,
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
@@ -262,9 +263,21 @@ export class CovidExplorerTable {
 
     static async fetchAndParseData(): Promise<CovidGrapherRow[]> {
         const rawData = (await csv(covidDataPath)) as any
-        const filtered: CovidGrapherRow[] = rawData
-            .map(CovidExplorerTable.parseCovidRow)
-            .filter((row: CovidGrapherRow) => row.location !== "International")
+        const rows: CovidGrapherRow[] = rawData.map(
+            CovidExplorerTable.parseCovidRow
+        )
+
+        const continents = uniq(rows.map((row) => row.continent)).filter(
+            (v) => v
+        )
+        const locationsToDrop = new Set([
+            "International",
+            "European Union",
+            ...continents,
+        ])
+        const filtered = rows.filter(
+            (row) => !locationsToDrop.has(row.location)
+        )
 
         const latestDate = max(filtered.map((row) => row.date))
 
