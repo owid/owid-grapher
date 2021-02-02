@@ -113,6 +113,13 @@ export class Url {
         })
     }
 
+    setQueryParams(queryParams: QueryParams) {
+        return new Url({
+            ...this.props,
+            queryStr: queryParamsToStr(queryParams),
+        })
+    }
+
     updateQueryParams(queryParams: QueryParams) {
         return this.update({
             queryStr: queryParamsToStr(
