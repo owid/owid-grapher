@@ -92,3 +92,33 @@ describe("co2 explorer", () => {
         })
     })
 })
+
+describe("energy explorer", () => {
+    const legacyUrl = Url.fromURL(
+        "https://ourworldindata.org/explorers/energy?tab=chart&xScale=linear&yScale=linear&time=earliest..latest&country=United%20States~United%20Kingdom~China~World~India~Brazil~South%20Africa&Total%20or%20Breakdown%20=Select%20a%20source&Select%20a%20source%20=Fossil%20fuels&Energy%20or%20Electricity%20=Electricity%20only&Metric%20=Per%20capita%20generation"
+    )
+    const migratedUrl = migrateExplorerUrl(legacyUrl)
+
+    it("generates correct patch param", () => {
+        const patch = new Patch(migratedUrl.queryParams.patch)
+        expect(patch.object).toEqual({
+            "Energy or Electricity Radio": "Electricity only",
+            "Metric Dropdown": "Per capita generation",
+            "Select a source Dropdown": "Fossil fuels",
+            "Total or Breakdown Radio": "Select a source",
+            selection: [
+                "United States",
+                "United Kingdom",
+                "China",
+                "World",
+                "India",
+                "Brazil",
+                "South Africa",
+            ],
+            tab: "chart",
+            time: "earliest..latest",
+            xScale: "linear",
+            yScale: "linear",
+        })
+    })
+})
