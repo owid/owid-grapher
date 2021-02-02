@@ -46,7 +46,7 @@ export class DimensionSlot {
         const legacyConfig = this.grapher.legacyConfigAsAuthored
         const variableIDsInSelectionOrder = excludeUndefined(
             legacyConfig.selectedData?.map(
-                (item) => legacyConfig.dimensions?.[item.index].variableId
+                (item) => legacyConfig.dimensions?.[item.index]?.variableId
             ) ?? []
         )
         return sortBy(this.grapher.filledDimensions || [], (dim) =>
