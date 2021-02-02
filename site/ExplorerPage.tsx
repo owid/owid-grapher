@@ -15,7 +15,7 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { serializeJSONForHTML } from "../clientUtils/serializers"
 import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/ExplorerUrlMigrations"
+import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram

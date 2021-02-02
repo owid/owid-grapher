@@ -57,11 +57,11 @@ import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
 import {
-    ExplorerPageUrlMigrationSpec,
     explorerUrlMigrationsById,
     migrateExplorerUrl,
-} from "./ExplorerUrlMigrations"
+} from "./urlMigrations/ExplorerUrlMigrations"
 import { setWindowUrl, Url } from "../urls/Url"
+import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

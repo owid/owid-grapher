@@ -1,7 +1,7 @@
 #! yarn testJest
 
-import { Patch } from "../patch/Patch"
-import { Url } from "../urls/Url"
+import { Patch } from "../../patch/Patch"
+import { Url } from "../../urls/Url"
 import {
     explorerUrlMigrationsById,
     ExplorerUrlMigrationId,

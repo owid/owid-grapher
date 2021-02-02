@@ -27,10 +27,8 @@ import {
     explorerRedirectTable,
     getExplorerRedirectForPath,
 } from "./ExplorerRedirects"
-import {
-    ExplorerPageUrlMigrationSpec,
-    explorerUrlMigrationsById,
-} from "../explorer/ExplorerUrlMigrations"
+import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
+import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string, baseUrl: string) {
