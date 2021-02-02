@@ -4,45 +4,36 @@ import { UrlMigration } from "../../urls/UrlMigration"
 import {
     decodeURIComponentOrUndefined,
     patchFromQueryParams,
+    QueryParamTransformMap,
     transformQueryParams,
 } from "./ExplorerUrlMigrationUtils"
 
-const co2QueryParamTransformMap: Record<
-    string,
-    {
-        newName: string
-        transformValue: (value: string | undefined) => string | undefined
-    }
-> = {
-    [encodeURIComponent("Gas ")]: {
-        newName: "Gas Radio",
+const energyQueryParamTransformMap: QueryParamTransformMap = {
+    [encodeURIComponent("Total or Breakdown ")]: {
+        newName: "Total or Breakdown Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Accounting ")]: {
-        newName: "Accounting Radio",
+    [encodeURIComponent("Select a source ")]: {
+        newName: "Select a source Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Fuel ")]: {
-        newName: "Fuel Dropdown",
+    [encodeURIComponent("Energy or Electricity ")]: {
+        newName: "Energy or Electricity Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Count ")]: {
-        newName: "Count Dropdown",
+    [encodeURIComponent("Metric ")]: {
+        newName: "Metric Dropdown",
         transformValue: decodeURIComponentOrUndefined,
-    },
-    [encodeURIComponent("Relative to world total ")]: {
-        newName: "Relative to world total Checkbox",
-        transformValue: (value) => (value ? "true" : "false"),
     },
 }
 
-export const co2UrlMigration: UrlMigration = (url: Url) => {
+export const energyUrlMigration: UrlMigration = (url: Url) => {
     // if there is no patch param, then it's an old URL
     if (!url.queryParams.patch) {
         url = legacyToCurrentGrapherUrl(url)
         const queryParams = transformQueryParams(
             url.queryParams,
-            co2QueryParamTransformMap
+            energyQueryParamTransformMap
         )
         return url.setQueryParams({
             patch: patchFromQueryParams(queryParams).uriEncodedString,

@@ -20,3 +20,25 @@ export const patchFromQueryParams = (queryParams: QueryParams): Patch => {
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>
     value !== undefined ? decodeURIComponent(value) : undefined
+
+export type QueryParamTransformMap = Record<
+    string,
+    {
+        newName: string
+        transformValue: (value: string | undefined) => string | undefined
+    }
+>
+
+export const transformQueryParams = (
+    queryParams: Readonly<QueryParams>,
+    transformMap: QueryParamTransformMap
+) => {
+    const newQueryParams = { ...queryParams }
+    for (const oldParamName in transformMap) {
+        if (!(oldParamName in newQueryParams)) continue
+        const { newName, transformValue } = transformMap[oldParamName]
+        newQueryParams[newName] = transformValue(queryParams[oldParamName])
+        delete newQueryParams[oldParamName]
+    }
+    return newQueryParams
+}

@@ -3,6 +3,7 @@ import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
 import { UrlMigration } from "../../urls/UrlMigration"
 import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration"
 import { co2UrlMigration } from "./CO2UrlMigration"
+import { energyUrlMigration } from "./EnergyUrlMigration"
 
 export enum ExplorerUrlMigrationId {
     legacyToGridCovidExplorer = "legacyToGridCovidExplorer",
@@ -22,6 +23,7 @@ export const explorerUrlMigrationsById: Record<
 
 const explorerUrlMigrationsByExplorerSlug: Record<string, UrlMigration> = {
     co2: co2UrlMigration,
+    energy: energyUrlMigration,
 }
 
 const getExplorerSlugFromPath = (path: string): string | undefined => {
