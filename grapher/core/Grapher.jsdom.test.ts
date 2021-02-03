@@ -22,6 +22,7 @@ import {
 } from "../../coreTable/OwidTableSynthesizers"
 import { orderBy } from "../../clientUtils/Util"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
+import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -341,6 +342,17 @@ describe("urls", () => {
                 time: "2001..2002",
             })
         ).toEqual({ time: "2001..2002" })
+    })
+
+    it("doesn't apply selection if addCountryMode is 'disabled'", () => {
+        const grapher = new Grapher({
+            selectedEntityNames: ["usa", "canada"],
+            addCountryMode: EntitySelectionMode.Disabled,
+        })
+        grapher.populateFromQueryParams({
+            selection: EntityUrlBuilder.entityNamesToEncodedQueryParam(["usa"]),
+        })
+        expect(grapher.selection.selectedEntityNames).toEqual(["usa", "canada"])
     })
 })
 

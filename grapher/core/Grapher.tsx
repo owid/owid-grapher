@@ -460,7 +460,10 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
-        if (params.selection)
+        if (
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            params.selection
+        )
             this.selection.setSelectedEntities(
                 typeof params.selection === "string"
                     ? EntityUrlBuilder.queryParamToEntityNames(params.selection)
