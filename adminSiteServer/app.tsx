@@ -27,10 +27,23 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
 const expressErrorSlack = require("express-error-slack") // todo: why the require?
 
+interface OwidAdminAppOptions {
+    slackErrorsWebHookUrl?: string
+    gitCmsDir: string
+    isDev: boolean
+}
+
 export class OwidAdminApp {
+    constructor(options: OwidAdminAppOptions) {
+        this.options = options
+    }
+
+    app = express()
+    private options: OwidAdminAppOptions
+
     private async getGitCmsBranchName() {
         const git = simpleGit({
-            baseDir: GIT_CMS_DIR,
+            baseDir: this.options.gitCmsDir,
             binary: "git",
             maxConcurrentProcesses: 1,
         })
@@ -39,10 +52,11 @@ export class OwidAdminApp {
         return gitCmsBranchName
     }
 
-    private gitCmsBranchName?: string
+    private gitCmsBranchName = ""
 
-    async start() {
-        const app = express()
+    async startListening(adminServerPort: number, adminServerHost: string) {
+        this.gitCmsBranchName = await this.getGitCmsBranchName()
+        const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"
         // the X-Forwarded-For header in order to get the real request IP
@@ -59,21 +73,15 @@ export class OwidAdminApp {
         // Require authentication (only for /admin requests)
         app.use(authMiddleware)
 
-        //app.use(express.urlencoded())
-
         app.use("/api", publicApiRouter.router)
-
         app.use("/admin/api", apiRouter.router)
         app.use("/admin/test", testPageRouter)
-
         app.use("/admin/assets", express.static("itsJustJavascript/webpack"))
         app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
 
         // Default route: single page admin app
         app.get("/admin/*", async (req, res) => {
-            if (!this.gitCmsBranchName)
-                this.gitCmsBranchName = await this.getGitCmsBranchName()
             res.send(
                 renderToHtmlPage(
                     <IndexPage
@@ -87,11 +95,15 @@ export class OwidAdminApp {
 
         // Send errors to Slack
         // The middleware passes all errors onto the next error-handling middleware
-        if (SLACK_ERRORS_WEBHOOK_URL)
-            app.use(expressErrorSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
+        if (this.options.slackErrorsWebHookUrl)
+            app.use(
+                expressErrorSlack({
+                    webhookUri: this.options.slackErrorsWebHookUrl,
+                })
+            )
 
-        const IS_DEV = ENV === "development"
-        if (IS_DEV) app.use("/", mockSiteRouter)
+        // todo: we probably always want to have this, and can remove the isDev
+        if (this.options.isDev) app.use("/", mockSiteRouter)
 
         // Give full error messages, including in production
         app.use(
@@ -118,35 +130,39 @@ export class OwidAdminApp {
             }
         )
 
+        const server = app.listen(adminServerPort, adminServerHost, () => {
+            console.log(
+                `owid-admin server started on http://${adminServerPort}:${adminServerHost}`
+            )
+        })
+        // Increase server timeout for long-running uploads
+        server.timeout = 5 * 60 * 1000
+
         try {
             await db.getConnection()
-
-            // The Grapher should be able to work without Wordpress being set up.
-            try {
-                await wpdb.singleton.connect()
-            } catch (error) {
-                console.error(error)
-                console.log(
-                    "Could not connect to Wordpress database. Continuing without Wordpress..."
-                )
-            }
-
-            const server = app.listen(
-                ADMIN_SERVER_PORT,
-                ADMIN_SERVER_HOST,
-                () => {
-                    console.log(
-                        `owid-admin server started on http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-                    )
-                }
-            )
-            // Increase server timeout for long-running uploads
-            server.timeout = 5 * 60 * 1000
-        } catch (e) {
-            log.logErrorAndMaybeSendToSlack(e)
+        } catch (err) {
+            console.log(`Failed to connect to grapher mysql database.`)
+            log.logErrorAndMaybeSendToSlack(err)
             process.exit(1)
         }
+
+        // The Grapher should be able to work without Wordpress being set up.
+        try {
+            await wpdb.singleton.connect()
+        } catch (error) {
+            console.error(error)
+            console.log(
+                "Could not connect to Wordpress database. Continuing without Wordpress..."
+            )
+        }
+
+        return server
     }
 }
 
-if (!module.parent) new OwidAdminApp().start()
+if (!module.parent)
+    new OwidAdminApp({
+        slackErrorsWebHookUrl: SLACK_ERRORS_WEBHOOK_URL,
+        gitCmsDir: GIT_CMS_DIR,
+        isDev: ENV === "development",
+    }).startListening(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST)
