@@ -8,8 +8,7 @@ We have a number of Wordpress blog posts that embeds multiple Graphers. If a use
 
 ## Testing
 
-There is a test route in the mocksiterouter called `/multiEmbedderTest` for
-testing things.
+Visit the test page at http://localhost:3030/multiEmbedderTest
 
 ## How to use
 

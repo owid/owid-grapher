@@ -22,8 +22,7 @@ On page load, and/or during scrolls, we can render a Grapher or Explorer into th
 
 ## Testing
 
-There is a test route in the mocksiterouter called `/multiEmbedderTest` for
-testing things.
+Visit the test page at http://localhost:3030/multiEmbedderTest
 
 ## Benefits
 
