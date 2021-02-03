@@ -4,6 +4,7 @@ import express from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
+import * as http from "http"
 
 import {
     ADMIN_SERVER_HOST,
@@ -54,6 +55,13 @@ export class OwidAdminApp {
     }
 
     private gitCmsBranchName = ""
+
+    server?: http.Server
+    async stopListening() {
+        if (!this.server) return
+
+        this.server.close()
+    }
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
@@ -155,15 +163,32 @@ export class OwidAdminApp {
             }
         }
 
-        const server = app.listen(adminServerPort, adminServerHost, () => {
+        this.server = await this.listenPromise(
+            app,
+            adminServerPort,
+            adminServerHost
+        )
+        this.server.timeout = 5 * 60 * 1000 // Increase server timeout for long-running uploads
+
+        if (!this.options.quiet)
             console.log(
                 `owid-admin server started on http://${adminServerHost}:${adminServerPort}`
             )
-        })
-        // Increase server timeout for long-running uploads
-        server.timeout = 5 * 60 * 1000
+    }
 
-        return server
+    // Server.listen does not seem to have an async/await form yet.
+    // https://github.com/expressjs/express/pull/3675
+    // https://github.com/nodejs/node/issues/21482
+    private listenPromise(
+        app: express.Express,
+        adminServerPort: number,
+        adminServerHost: string
+    ): Promise<http.Server> {
+        return new Promise((resolve, reject) => {
+            const server = app.listen(adminServerPort, adminServerHost, () => {
+                resolve(server)
+            })
+        })
     }
 }
 
