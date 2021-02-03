@@ -7,4 +7,3 @@ describe(OwidAdminApp, () => {
         expect(app).toBeTruthy()
     })
 })
-
