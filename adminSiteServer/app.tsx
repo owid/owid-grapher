@@ -31,6 +31,7 @@ interface OwidAdminAppOptions {
     slackErrorsWebHookUrl?: string
     gitCmsDir: string
     isDev: boolean
+    quiet?: boolean
 }
 
 export class OwidAdminApp {
@@ -130,31 +131,37 @@ export class OwidAdminApp {
             }
         )
 
-        const server = app.listen(adminServerPort, adminServerHost, () => {
-            console.log(
-                `owid-admin server started on http://${adminServerPort}:${adminServerHost}`
-            )
-        })
-        // Increase server timeout for long-running uploads
-        server.timeout = 5 * 60 * 1000
-
         try {
             await db.getConnection()
         } catch (err) {
-            console.log(`Failed to connect to grapher mysql database.`)
-            log.logErrorAndMaybeSendToSlack(err)
-            process.exit(1)
+            if (!this.options.quiet) {
+                console.log(`Failed to connect to grapher mysql database.`)
+                console.error(err)
+                console.log(
+                    "Could not connect to Wordpress database. Continuing without DB..."
+                )
+            }
         }
 
         // The Grapher should be able to work without Wordpress being set up.
         try {
             await wpdb.singleton.connect()
         } catch (error) {
-            console.error(error)
-            console.log(
-                "Could not connect to Wordpress database. Continuing without Wordpress..."
-            )
+            if (!this.options.quiet) {
+                console.error(error)
+                console.log(
+                    "Could not connect to Wordpress database. Continuing without Wordpress..."
+                )
+            }
         }
+
+        const server = app.listen(adminServerPort, adminServerHost, () => {
+            console.log(
+                `owid-admin server started on http://${adminServerHost}:${adminServerPort}`
+            )
+        })
+        // Increase server timeout for long-running uploads
+        server.timeout = 5 * 60 * 1000
 
         return server
     }
