@@ -58,7 +58,8 @@ class ProminentLink extends React.Component<{
     }
 
     @computed private get entitiesInGlobalEntitySelection() {
-        return GlobalEntityControl.singleton().selectedEntityNames
+        return []
+        // return GlobalEntityControl.singleton().selectedEntityNames
     }
 
     @computed private get updatedEntityQueryParam(): string {
