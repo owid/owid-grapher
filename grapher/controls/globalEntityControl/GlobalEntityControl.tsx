@@ -134,6 +134,7 @@ function SelectedItems(props: {
 @observer
 export class GlobalEntityControl extends React.Component<{
     initialSelection?: string
+    selection: SelectionArray
     environment?: string
 }> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
@@ -145,11 +146,7 @@ export class GlobalEntityControl extends React.Component<{
     @observable private isOpen = false
     @observable private localEntityName: EntityName | undefined
 
-    selection = new SelectionArray(
-        this.props.initialSelection
-            ? this.props.initialSelection.split(" ")
-            : undefined
-    )
+    selection = this.props.selection
 
     @observable.ref private optionGroups: GroupedOptionsType<any> = []
 
@@ -163,7 +160,7 @@ export class GlobalEntityControl extends React.Component<{
             )
         )
         this.populateLocalEntity()
-        this.updateAllGraphersAndExplorersOnPage()
+        // this.updateAllGraphersAndExplorersOnPage()
     }
 
     componentWillUnmount() {
@@ -385,14 +382,10 @@ export class GlobalEntityControl extends React.Component<{
             </div>
         )
     }
-
-    static singleton() {
-        return new GlobalEntityControl({}).selection
-    }
 }
 
 // todo: add analytics back
-export const hydrateGlobalEntityControlIfAny = () => {
+export const hydrateGlobalEntityControlIfAny = (selection: SelectionArray) => {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (!element) return
 
@@ -403,7 +396,10 @@ export const hydrateGlobalEntityControlIfAny = () => {
         : element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ?? ""
 
     ReactDOM.hydrate(
-        <GlobalEntityControl initialSelection={initialSelection} />,
+        <GlobalEntityControl
+            initialSelection={initialSelection}
+            selection={selection}
+        />,
         element
     )
 }
