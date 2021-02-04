@@ -14,7 +14,7 @@ import {
     getAttributesOfHTMLElement,
 } from "../../clientUtils/Util"
 import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
-import { GlobalEntityControl } from "../../grapher/controls/globalEntityControl/GlobalEntityControl"
+import { SelectionArray } from "../../grapher/selection/SelectionArray"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -22,6 +22,7 @@ export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 class ProminentLink extends React.Component<{
     originalAnchorAttributes: { [key: string]: string }
     innerHTML: string | null
+    globalEntitySelection?: SelectionArray
 }> {
     @computed get originalURLPath() {
         return splitURLintoPathAndQueryString(
@@ -58,8 +59,7 @@ class ProminentLink extends React.Component<{
     }
 
     @computed private get entitiesInGlobalEntitySelection() {
-        return []
-        // return GlobalEntityControl.singleton().selectedEntityNames
+        return this.props.globalEntitySelection?.selectedEntityNames ?? []
     }
 
     @computed private get updatedEntityQueryParam(): string {
@@ -97,7 +97,7 @@ class ProminentLink extends React.Component<{
     }
 }
 
-export const renderProminentLink = () =>
+export const renderProminentLink = (globalEntitySelection?: SelectionArray) =>
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
         .forEach((el) => {
@@ -110,6 +110,7 @@ export const renderProminentLink = () =>
                         anchorTag
                     )}
                     innerHTML={anchorTag.innerHTML}
+                    globalEntitySelection={globalEntitySelection}
                 />
             )
 

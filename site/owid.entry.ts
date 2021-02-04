@@ -33,6 +33,7 @@ import { Grapher } from "../grapher/core/Grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
+import { renderProminentLink } from "./blocks/ProminentLink"
 
 declare var window: any
 window.Grapher = Grapher
@@ -58,9 +59,13 @@ window.runSiteFooterScripts = () => {
     runCookiePreferencesManager()
     runCovid()
     runFootnotes()
+    renderProminentLink()
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.embedAll()
         hydrateGlobalEntityControlIfAny(MultiEmbedderSingleton.selection)
+        renderProminentLink(MultiEmbedderSingleton.selection)
+    } else {
+        renderProminentLink()
     }
 }
 
