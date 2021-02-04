@@ -60,7 +60,7 @@ window.runSiteFooterScripts = () => {
     runFootnotes()
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.embedAll()
-        hydrateGlobalEntityControlIfAny()
+        hydrateGlobalEntityControlIfAny(MultiEmbedderSingleton.selection)
     }
 }
 
