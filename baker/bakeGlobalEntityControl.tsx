@@ -6,6 +6,7 @@ import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
 } from "../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+import { SelectionArray } from "../grapher/selection/SelectionArray"
 
 export const bakeGlobalEntityControl = (cheerioEl: CheerioStatic) => {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
@@ -16,7 +17,10 @@ export const bakeGlobalEntityControl = (cheerioEl: CheerioStatic) => {
             const $section = $el.closest("section")
 
             const rendered = ReactDOMServer.renderToString(
-                <GlobalEntityControl environment={ENV} />
+                <GlobalEntityControl
+                    environment={ENV}
+                    selection={new SelectionArray()}
+                />
             )
 
             // Move the element to top-level where <section>s are,
