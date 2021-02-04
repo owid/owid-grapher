@@ -1,4 +1,5 @@
 import * as React from "react"
+import { SelectionArray } from "../../selection/SelectionArray"
 import { GlobalEntityControl } from "./GlobalEntityControl"
 
 export default {
@@ -6,4 +7,6 @@ export default {
     component: GlobalEntityControl,
 }
 
-export const WithNoGraphers = () => <GlobalEntityControl />
+export const WithNoGraphers = () => (
+    <GlobalEntityControl selection={new SelectionArray()} />
+)
