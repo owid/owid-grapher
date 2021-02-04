@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { throttle, fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
-import { splitURLintoPathAndQueryString } from "../../clientUtils/url"
+import { getWindowQueryParams } from "../../clientUtils/url"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
@@ -15,8 +15,14 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants"
-import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+import {
+    GLOBAL_ENTITY_CONTROL_DATA_ATTR,
+    GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_CONTROL_SELECTOR,
+} from "../../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
 import { Url } from "../../urls/Url"
+import { SelectionArray } from "../../grapher/selection/SelectionArray"
+import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -32,7 +38,7 @@ class EmbeddedFigure {
         this.isExplorer = isExplorer
     }
 
-    async renderIntoContainer() {
+    async renderIntoContainer(globalSelection: SelectionArray) {
         if (this._isLoaded) return
         this._isLoaded = true
 
@@ -53,6 +59,9 @@ class EmbeddedFigure {
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
                 uriEncodedPatch: patchParam,
+                selection: globalSelection.hasSelection
+                    ? new SelectionArray(globalSelection.selectedEntityNames)
+                    : undefined,
             }
             ReactDOM.render(<Explorer {...props} />, this.container)
         } else {
@@ -60,6 +69,13 @@ class EmbeddedFigure {
             const config: GrapherProgrammaticInterface = {
                 ...deserializeJSONFromHTML(html),
                 ...common,
+                manager: globalSelection.hasSelection
+                    ? {
+                          selection: new SelectionArray(
+                              globalSelection.selectedEntityNames
+                          ),
+                      }
+                    : undefined,
             }
             Grapher.renderGrapherIntoContainer(config, this.container)
         }
@@ -125,6 +141,25 @@ const pageContainsGlobalEntityControl = () =>
 
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []
+    selection: SelectionArray = new SelectionArray(["China"])
+
+    constructor() {
+        const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
+        if (!element) return
+
+        const selectionParam = getWindowQueryParams().selection
+        const defaultCountry = element.getAttribute(
+            GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
+        )
+
+        this.selection = new SelectionArray(
+            selectionParam
+                ? EntityUrlBuilder.queryParamToEntityNames(selectionParam)
+                : defaultCountry
+                ? [defaultCountry]
+                : undefined
+        )
+    }
 
     private shouldLoadFigure(figure: EmbeddedFigure) {
         if (figure.isLoaded) return false
@@ -159,7 +194,7 @@ class MultiEmbedder {
     loadVisibleFigures() {
         this.figures
             .filter(this.shouldLoadFigure)
-            .forEach((figure) => figure.renderIntoContainer())
+            .forEach((figure) => figure.renderIntoContainer(this.selection))
     }
 
     /**
