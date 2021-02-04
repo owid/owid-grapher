@@ -69,6 +69,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     canonicalUrl?: string
+    selection?: SelectionArray
 }
 
 interface ExplorerPatchObject extends GrapherQueryParams {
@@ -169,11 +170,13 @@ export class Explorer
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
-    selection = new SelectionArray(
-        this.explorerProgram.selection,
-        undefined,
-        this.explorerProgram.entityType
-    )
+    selection =
+        this.props.selection ??
+        new SelectionArray(
+            this.explorerProgram.selection,
+            undefined,
+            this.explorerProgram.entityType
+        )
 
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
@@ -191,7 +194,14 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
-        this.grapher?.populateFromQueryParams(this.initialPatchObject)
+
+        const initialPatchObject = {
+            ...this.initialPatchObject,
+            selection: this.props.selection
+                ? this.props.selection.asParam
+                : this.initialPatchObject.selection,
+        }
+        this.grapher?.populateFromQueryParams(initialPatchObject)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
