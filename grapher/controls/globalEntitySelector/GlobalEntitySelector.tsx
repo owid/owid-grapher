@@ -20,18 +20,10 @@ import {
 } from "../../../clientUtils/Util"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WorldEntityName } from "../../core/GrapherConstants"
-import {
-    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_SELECTOR_SELECTOR,
-} from "./GlobalEntitySelectorConstants"
+import { GLOBAL_ENTITY_SELECTOR_SELECTOR } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
-import {
-    setWindowQueryStr,
-    queryParamsToStr,
-    getWindowQueryParams,
-} from "../../../clientUtils/url"
-import { EntityUrlBuilder } from "../../core/EntityUrlBuilder"
+import { setWindowQueryVariable } from "../../../clientUtils/url"
 
 enum GlobalEntitySelectionModes {
     none = "none",
@@ -225,14 +217,14 @@ export class GlobalEntitySelector extends React.Component<{
         this.props.environment ?? "development"
     )
 
+    @action.bound private updateURL() {
+        setWindowQueryVariable("selection", this.selection.asParam)
+    }
+
     @action.bound updateSelection(newSelectedEntities: string[]) {
         this.selection.setSelectedEntities(newSelectedEntities)
-
         this.updateAllGraphersAndExplorersOnPage()
-
-        setWindowQueryStr(
-            queryParamsToStr({ selection: this.selection.asParam })
-        )
+        this.updateURL()
     }
 
     @action.bound private onChange(options: ValueType<any>) {
@@ -256,6 +248,7 @@ export class GlobalEntitySelector extends React.Component<{
     @action.bound private onRemove(option: EntityName) {
         this.selection.toggleSelection(option)
         this.updateAllGraphersAndExplorersOnPage()
+        this.updateURL()
     }
 
     @action.bound private onMenuOpen() {
