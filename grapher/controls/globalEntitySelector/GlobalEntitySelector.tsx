@@ -132,7 +132,6 @@ function SelectedItems(props: {
 
 @observer
 export class GlobalEntitySelector extends React.Component<{
-    initialSelection?: string
     selection: SelectionArray
     graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string
@@ -393,15 +392,8 @@ export const hydrateGlobalEntitySelectorIfAny = (
     const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
     if (!element) return
 
-    const selectionParam = getWindowQueryParams().selection
-
-    const initialSelection = selectionParam
-        ? EntityUrlBuilder.queryParamToEntityNames(selectionParam).join(" ")
-        : element.getAttribute(GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY) ?? ""
-
     ReactDOM.hydrate(
         <GlobalEntitySelector
-            initialSelection={initialSelection}
             selection={selection}
             graphersAndExplorersToUpdate={graphersAndExplorersToUpdate}
         />,
