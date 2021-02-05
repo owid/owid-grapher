@@ -159,7 +159,6 @@ export class GlobalEntitySelector extends React.Component<{
             )
         )
         this.populateLocalEntity()
-        // this.updateAllGraphersAndExplorersOnPage()
     }
 
     componentWillUnmount() {
