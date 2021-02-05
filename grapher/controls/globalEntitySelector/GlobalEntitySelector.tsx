@@ -225,18 +225,22 @@ export class GlobalEntitySelector extends React.Component<{
         this.props.environment ?? "development"
     )
 
-    @action.bound private onChange(options: ValueType<any>) {
-        this.selection.setSelectedEntities(
-            options.map((option: any) => option.label)
-        )
-        this.analytics.logGlobalEntitySelector(
-            "change",
-            this.selection.selectedEntityNames.join(",")
-        )
+    @action.bound updateSelection(newSelectedEntities: string[]) {
+        this.selection.setSelectedEntities(newSelectedEntities)
+
         this.updateAllGraphersAndExplorersOnPage()
 
         setWindowQueryStr(
             queryParamsToStr({ selection: this.selection.asParam })
+        )
+    }
+
+    @action.bound private onChange(options: ValueType<any>) {
+        this.updateSelection(options.map((option: any) => option.label))
+
+        this.analytics.logGlobalEntitySelector(
+            "change",
+            this.selection.selectedEntityNames.join(",")
         )
     }
 

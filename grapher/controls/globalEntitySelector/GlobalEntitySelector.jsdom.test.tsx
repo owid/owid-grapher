@@ -15,4 +15,21 @@ describe("when you render a GlobalEntitySelector", () => {
         )
         expect(view.find(".global-entity-control")).not.toHaveLength(0)
     })
+
+    test("graphers/explorers are properly updated", () => {
+        const grapherSelection = new SelectionArray()
+        const explorerSelection = new SelectionArray()
+
+        const graphersToUpdate = new Set([grapherSelection, explorerSelection])
+
+        const selector = new GlobalEntitySelector({
+            selection: new SelectionArray(),
+            graphersAndExplorersToUpdate: graphersToUpdate,
+        })
+
+        selector.updateSelection(["Breckistan"])
+
+        expect(grapherSelection.selectedEntityNames).toEqual(["Breckistan"])
+        expect(explorerSelection.selectedEntityNames).toEqual(["Breckistan"])
+    })
 })
