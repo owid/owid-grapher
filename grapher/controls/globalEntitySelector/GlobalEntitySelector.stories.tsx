@@ -3,7 +3,7 @@ import { SelectionArray } from "../../selection/SelectionArray"
 import { GlobalEntitySelector } from "./GlobalEntitySelector"
 
 export default {
-    title: "GlobalEntityControl",
+    title: "GlobalEntitySelector",
     component: GlobalEntitySelector,
 }
 

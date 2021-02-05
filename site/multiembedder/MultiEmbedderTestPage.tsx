@@ -1,5 +1,5 @@
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "../../explorer/ExplorerConstants"
-import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
+import { GLOBAL_ENTITY_SELECTOR_DATA_ATTR } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
 import React from "react"
 import { Head } from "../../site/Head"
@@ -7,7 +7,7 @@ import { SiteFooter } from "../../site/SiteFooter"
 import { SiteHeader } from "../../site/SiteHeader"
 
 export const MultiEmbedderTestPage = (
-    globalEntityControl = false,
+    globalEntitySelector = false,
     slug = "embed-test-page",
     title = "MultiEmbedderTestPage"
 ) => {
@@ -22,13 +22,13 @@ export const MultiEmbedderTestPage = (
             <body>
                 <SiteHeader baseUrl={""} />
                 <main>
-                    {globalEntityControl ? (
+                    {globalEntitySelector ? (
                         <div
-                            {...{ [GLOBAL_ENTITY_CONTROL_DATA_ATTR]: true }}
+                            {...{ [GLOBAL_ENTITY_SELECTOR_DATA_ATTR]: true }}
                         ></div>
                     ) : null}
                     <p>
-                        <a href="?globalEntityControl=true">
+                        <a href="?globalEntitySelector=true">
                             With Global Entity Control
                         </a>
                     </p>

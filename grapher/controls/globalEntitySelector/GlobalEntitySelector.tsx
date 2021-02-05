@@ -21,8 +21,8 @@ import {
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WorldEntityName } from "../../core/GrapherConstants"
 import {
-    GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_CONTROL_SELECTOR,
+    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_SELECTOR_SELECTOR,
 } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
@@ -231,7 +231,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.selection.setSelectedEntities(
             options.map((option: any) => option.label)
         )
-        this.analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntitySelector(
             "change",
             this.selection.selectedEntityNames.join(",")
         )
@@ -267,7 +267,7 @@ export class GlobalEntitySelector extends React.Component<{
     @action.bound private onButtonOpen(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        this.analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntitySelector(
             "open",
             event.currentTarget.innerText
         )
@@ -277,7 +277,7 @@ export class GlobalEntitySelector extends React.Component<{
     @action.bound private onButtonClose(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        this.analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntitySelector(
             "close",
             event.currentTarget.innerText
         )
@@ -386,18 +386,18 @@ export class GlobalEntitySelector extends React.Component<{
 }
 
 // todo: add analytics back
-export const hydrateGlobalEntityControlIfAny = (
+export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,
     graphersAndExplorersToUpdate: Set<SelectionArray>
 ) => {
-    const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
+    const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
     if (!element) return
 
     const selectionParam = getWindowQueryParams().selection
 
     const initialSelection = selectionParam
         ? EntityUrlBuilder.queryParamToEntityNames(selectionParam).join(" ")
-        : element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ?? ""
+        : element.getAttribute(GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY) ?? ""
 
     ReactDOM.hydrate(
         <GlobalEntitySelector

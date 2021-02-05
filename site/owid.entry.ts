@@ -60,7 +60,7 @@ window.runSiteFooterScripts = () => {
     runFootnotes()
     renderProminentLink()
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
-        MultiEmbedderSingleton.setUpGlobalEntityControlForEmbeds()
+        MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
         MultiEmbedderSingleton.embedAll()
         renderProminentLink(MultiEmbedderSingleton.selection)
     } else {

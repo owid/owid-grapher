@@ -14,7 +14,7 @@ interface GAEvent {
 enum Categories {
     GrapherError = "GrapherErrors",
     GrapherUsage = "GrapherUsage",
-    GlobalEntityControlUsage = "GlobalEntityControl",
+    GlobalEntitySelectorUsage = "GlobalEntitySelector",
     SiteClick = "SiteClick",
     KeyboardShortcut = "KeyboardShortcut",
 }
@@ -62,8 +62,8 @@ export class GrapherAnalytics {
         this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
     }
 
-    logGlobalEntityControl(action: entityControlEvent, note?: string) {
-        this.logToGA(Categories.GlobalEntityControlUsage, action, note)
+    logGlobalEntitySelector(action: entityControlEvent, note?: string) {
+        this.logToGA(Categories.GlobalEntitySelectorUsage, action, note)
     }
 
     logEntityPickerEvent(

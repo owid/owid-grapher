@@ -16,14 +16,14 @@ import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants"
 import {
-    GLOBAL_ENTITY_CONTROL_DATA_ATTR,
-    GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_CONTROL_SELECTOR,
+    GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
+    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_SELECTOR_SELECTOR,
 } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { Url } from "../../urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
-import { hydrateGlobalEntityControlIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
+import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -140,13 +140,13 @@ const figuresFromDOM = (
 export const shouldProgressiveEmbed = () =>
     !isMobile() ||
     window.screen.width > 680 ||
-    pageContainsGlobalEntityControl()
+    pageContainsGlobalEntitySelector()
 
-const pageContainsGlobalEntityControl = () =>
-    document.querySelector(`[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`) !== null
+const pageContainsGlobalEntitySelector = () =>
+    document.querySelector(`[${GLOBAL_ENTITY_SELECTOR_DATA_ATTR}]`) !== null
 
-const globalEntityControlSelector = () =>
-    document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
+const globalEntitySelectorSelector = () =>
+    document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
 
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []
@@ -233,13 +233,13 @@ class MultiEmbedder {
         this.addFiguresFromDOM().watchScroll()
     }
 
-    setUpGlobalEntityControlForEmbeds() {
-        const element = globalEntityControlSelector()
+    setUpGlobalEntitySelectorForEmbeds() {
+        const element = globalEntitySelectorSelector()
         if (!element) return
 
         const selectionParam = getWindowQueryParams().selection
         const defaultCountry = element.getAttribute(
-            GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
+            GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
         )
 
         this.selection = new SelectionArray(
@@ -250,7 +250,7 @@ class MultiEmbedder {
                 : undefined
         )
 
-        hydrateGlobalEntityControlIfAny(
+        hydrateGlobalEntitySelectorIfAny(
             this.selection,
             this.graphersAndExplorersToUpdate
         )
