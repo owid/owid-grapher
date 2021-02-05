@@ -29,7 +29,6 @@ import {
     SlideShowManager,
 } from "../grapher/slideshowController/SlideShowController"
 import {
-    ExplorerChoice,
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
@@ -52,7 +51,6 @@ import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
-import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
@@ -209,7 +207,6 @@ export class Explorer
         this.onResize() // call resize for the first time to initialize chart
 
         if (this.props.isInStandalonePage) this.bindToWindow()
-        else GlobalEntityRegistry.add(this)
     }
 
     componentWillUnmount() {

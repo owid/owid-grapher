@@ -1,5 +1,5 @@
 import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "../../explorer/ExplorerConstants"
-import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
 import React from "react"
 import { Head } from "../../site/Head"

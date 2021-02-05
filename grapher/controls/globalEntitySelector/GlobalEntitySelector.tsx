@@ -23,7 +23,7 @@ import { WorldEntityName } from "../../core/GrapherConstants"
 import {
     GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
-} from "./GlobalEntityControlConstants"
+} from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
 import {
@@ -131,7 +131,7 @@ function SelectedItems(props: {
 }
 
 @observer
-export class GlobalEntityControl extends React.Component<{
+export class GlobalEntitySelector extends React.Component<{
     initialSelection?: string
     selection: SelectionArray
     graphersAndExplorersToUpdate?: Set<SelectionArray>
@@ -400,7 +400,7 @@ export const hydrateGlobalEntityControlIfAny = (
         : element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ?? ""
 
     ReactDOM.hydrate(
-        <GlobalEntityControl
+        <GlobalEntitySelector
             initialSelection={initialSelection}
             selection={selection}
             graphersAndExplorersToUpdate={graphersAndExplorersToUpdate}

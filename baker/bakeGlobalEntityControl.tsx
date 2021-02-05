@@ -1,11 +1,11 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { ENV } from "../settings/serverSettings"
-import { GlobalEntityControl } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
+import { GlobalEntitySelector } from "../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 import {
     GLOBAL_ENTITY_CONTROL_DATA_ATTR,
     GLOBAL_ENTITY_CONTROL_SELECTOR,
-} from "../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+} from "../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
 
 export const bakeGlobalEntityControl = (cheerioEl: CheerioStatic) => {
@@ -17,7 +17,7 @@ export const bakeGlobalEntityControl = (cheerioEl: CheerioStatic) => {
             const $section = $el.closest("section")
 
             const rendered = ReactDOMServer.renderToString(
-                <GlobalEntityControl
+                <GlobalEntitySelector
                     environment={ENV}
                     selection={new SelectionArray()}
                 />

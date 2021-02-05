@@ -16,7 +16,7 @@ import * as CollapsibleList from "./controls/CollapsibleList/CollapsibleList.sto
 import * as CommandPalette from "./controls/CommandPalette.stories"
 import * as EntityPicker from "./controls/entityPicker/EntityPicker.stories"
 import * as ScaleSelector from "./controls/ScaleSelector.stories"
-import * as GlobalEntityControl from "./controls/globalEntityControl/GlobalEntityControl.stories"
+import * as GlobalEntityControl from "./controls/globalEntitySelector/GlobalEntitySelector.stories"
 import * as Grapher from "./core/Grapher.stories"
 import * as DataTable from "./dataTable/DataTable.stories"
 import * as FacetChart from "./facetChart/FacetChart.stories"

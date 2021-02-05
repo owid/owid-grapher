@@ -148,7 +148,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
-import { GlobalEntityRegistry } from "../controls/globalEntityControl/GlobalEntityRegistry"
 import classNames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import {
@@ -1948,7 +1947,6 @@ export class Grapher
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
-        else GlobalEntityRegistry.add(this)
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
