@@ -26,7 +26,6 @@ import {
 } from "./GlobalEntityControlConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
-import { GlobalEntityRegistry } from "./GlobalEntityRegistry"
 import {
     setWindowQueryStr,
     queryParamsToStr,
@@ -135,6 +134,7 @@ function SelectedItems(props: {
 export class GlobalEntityControl extends React.Component<{
     initialSelection?: string
     selection: SelectionArray
+    graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string
 }> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
@@ -243,11 +243,12 @@ export class GlobalEntityControl extends React.Component<{
     }
 
     @action.bound private updateAllGraphersAndExplorersOnPage() {
-        Array.from(GlobalEntityRegistry.values()).forEach((value) => {
-            value.selection.setSelectedEntities(
-                this.selection.selectedEntityNames
-            )
-        })
+        if (!this.props.graphersAndExplorersToUpdate) return
+        Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
+            (value) => {
+                value.setSelectedEntities(this.selection.selectedEntityNames)
+            }
+        )
     }
 
     @action.bound private onRemove(option: EntityName) {
@@ -385,7 +386,10 @@ export class GlobalEntityControl extends React.Component<{
 }
 
 // todo: add analytics back
-export const hydrateGlobalEntityControlIfAny = (selection: SelectionArray) => {
+export const hydrateGlobalEntityControlIfAny = (
+    selection: SelectionArray,
+    graphersAndExplorersToUpdate: Set<SelectionArray>
+) => {
     const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
     if (!element) return
 
@@ -399,6 +403,7 @@ export const hydrateGlobalEntityControlIfAny = (selection: SelectionArray) => {
         <GlobalEntityControl
             initialSelection={initialSelection}
             selection={selection}
+            graphersAndExplorersToUpdate={graphersAndExplorersToUpdate}
         />,
         element
     )

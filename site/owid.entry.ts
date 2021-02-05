@@ -21,7 +21,6 @@ import { runRelatedCharts } from "./blocks/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
-import { hydrateGlobalEntityControlIfAny } from "../grapher/controls/globalEntityControl/GlobalEntityControl"
 import { runFootnotes } from "./Footnote"
 import { Explorer } from "../explorer/Explorer"
 import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
@@ -61,8 +60,8 @@ window.runSiteFooterScripts = () => {
     runFootnotes()
     renderProminentLink()
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
+        MultiEmbedderSingleton.setUpGlobalEntityControlForEmbeds()
         MultiEmbedderSingleton.embedAll()
-        hydrateGlobalEntityControlIfAny(MultiEmbedderSingleton.selection)
         renderProminentLink(MultiEmbedderSingleton.selection)
     } else {
         renderProminentLink()

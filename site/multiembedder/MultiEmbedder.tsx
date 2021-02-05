@@ -23,6 +23,7 @@ import {
 import { Url } from "../../urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
+import { hydrateGlobalEntityControlIfAny } from "../../grapher/controls/globalEntityControl/GlobalEntityControl"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -38,7 +39,10 @@ class EmbeddedFigure {
         this.isExplorer = isExplorer
     }
 
-    async renderIntoContainer(globalSelection: SelectionArray) {
+    async renderIntoContainer(
+        globalSelection: SelectionArray,
+        graphersAndExplorersToUpdate: Set<SelectionArray>
+    ) {
         if (this._isLoaded) return
         this._isLoaded = true
 
@@ -63,6 +67,8 @@ class EmbeddedFigure {
                     ? new SelectionArray(globalSelection.selectedEntityNames)
                     : undefined,
             }
+            if (props.selection)
+                graphersAndExplorersToUpdate.add(props.selection)
             ReactDOM.render(<Explorer {...props} />, this.container)
         } else {
             this.container.classList.remove("grapherPreview")
@@ -77,6 +83,8 @@ class EmbeddedFigure {
                       }
                     : undefined,
             }
+            if (config.manager?.selection)
+                graphersAndExplorersToUpdate.add(config.manager.selection)
             Grapher.renderGrapherIntoContainer(config, this.container)
         }
     }
@@ -139,27 +147,13 @@ export const shouldProgressiveEmbed = () =>
 const pageContainsGlobalEntityControl = () =>
     document.querySelector(`[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`) !== null
 
+const globalEntityControlSelector = () =>
+    document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
+
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []
-    selection: SelectionArray = new SelectionArray(["China"])
-
-    constructor() {
-        const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
-        if (!element) return
-
-        const selectionParam = getWindowQueryParams().selection
-        const defaultCountry = element.getAttribute(
-            GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
-        )
-
-        this.selection = new SelectionArray(
-            selectionParam
-                ? EntityUrlBuilder.queryParamToEntityNames(selectionParam)
-                : defaultCountry
-                ? [defaultCountry]
-                : undefined
-        )
-    }
+    selection: SelectionArray = new SelectionArray()
+    graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     private shouldLoadFigure(figure: EmbeddedFigure) {
         if (figure.isLoaded) return false
@@ -194,7 +188,12 @@ class MultiEmbedder {
     loadVisibleFigures() {
         this.figures
             .filter(this.shouldLoadFigure)
-            .forEach((figure) => figure.renderIntoContainer(this.selection))
+            .forEach((figure) =>
+                figure.renderIntoContainer(
+                    this.selection,
+                    this.graphersAndExplorersToUpdate
+                )
+            )
     }
 
     /**
@@ -234,6 +233,29 @@ class MultiEmbedder {
      */
     embedAll() {
         this.addFiguresFromDOM().watchScroll()
+    }
+
+    setUpGlobalEntityControlForEmbeds() {
+        const element = globalEntityControlSelector()
+        if (!element) return
+
+        const selectionParam = getWindowQueryParams().selection
+        const defaultCountry = element.getAttribute(
+            GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY
+        )
+
+        this.selection = new SelectionArray(
+            selectionParam
+                ? EntityUrlBuilder.queryParamToEntityNames(selectionParam)
+                : defaultCountry
+                ? [defaultCountry]
+                : undefined
+        )
+
+        hydrateGlobalEntityControlIfAny(
+            this.selection,
+            this.graphersAndExplorersToUpdate
+        )
     }
 }
 
