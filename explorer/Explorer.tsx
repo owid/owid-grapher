@@ -197,7 +197,7 @@ export class Explorer
 
         const initialPatchObject = {
             ...this.initialPatchObject,
-            selection: this.props.selection
+            selection: this.props.selection?.hasSelection
                 ? this.props.selection.asParam
                 : this.initialPatchObject.selection,
         }

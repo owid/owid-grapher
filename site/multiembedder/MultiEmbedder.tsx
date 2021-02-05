@@ -63,9 +63,9 @@ class EmbeddedFigure {
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
                 uriEncodedPatch: patchParam,
-                selection: globalSelection.hasSelection
-                    ? new SelectionArray(globalSelection.selectedEntityNames)
-                    : undefined,
+                selection: new SelectionArray(
+                    globalSelection.selectedEntityNames
+                ),
             }
             if (props.selection)
                 graphersAndExplorersToUpdate.add(props.selection)
@@ -75,13 +75,11 @@ class EmbeddedFigure {
             const config: GrapherProgrammaticInterface = {
                 ...deserializeJSONFromHTML(html),
                 ...common,
-                manager: globalSelection.hasSelection
-                    ? {
-                          selection: new SelectionArray(
-                              globalSelection.selectedEntityNames
-                          ),
-                      }
-                    : undefined,
+                manager: {
+                    selection: new SelectionArray(
+                        globalSelection.selectedEntityNames
+                    ),
+                },
             }
             if (config.manager?.selection)
                 graphersAndExplorersToUpdate.add(config.manager.selection)
