@@ -9,7 +9,7 @@ interface SubnavItem {
     highlight?: boolean
 }
 
-const SubNavIds = ["about", "coronavirus", "co2", "energy"] as const
+const SubNavIds = ["about", "coronavirus", "co2", "energy", "forests"] as const
 export type SubNavId = typeof SubNavIds[number]
 
 const subnavs: { [key in SubNavId]: SubnavItem[] } = {
