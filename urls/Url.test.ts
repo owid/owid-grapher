@@ -52,4 +52,9 @@ describe(Url, () => {
         expect(url.base).toBeUndefined()
         expect(url.pathname).toBeUndefined()
     })
+
+    it("Url with empty query string drops query string", () => {
+        const url = Url.fromURL("https://owid.cloud/?")
+        expect(url.fullUrl).toEqual("https://owid.cloud/")
+    })
 })
