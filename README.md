@@ -24,26 +24,40 @@ The owid-grapher visualization frontend code can run isomorphically under node t
     ```sh
     brew tap homebrew/services
     ```
+    
+3. Install nvm:
 
-3. Install MySQL 5.7 and Node 12.13.1+:
+    ```sh
+    brew update
+    brew install nvm
+    source $(brew --prefix nvm)/nvm.sh
+    ```
+    
+4. Install Node 12.13.1+:
+
+    ```sh
+    nvm install 12.13.1
+    ```
+
+5. Install MySQL 5.7:
 
     ```sh
     brew install mysql@5.7 node
     ```
 
-4. Start the MySQL service:
+6. Start the MySQL service:
 
     ```sh
     brew services start mysql@5.7
     ```
 
-5. Install yarn:
+7. Install yarn:
 
     ```sh
     npm install -g yarn
     ```
 
-6. Inside the repo folder, install all dependencies by running:
+8. Inside the repo folder, install all dependencies by running:
 
     ```sh
     yarn
