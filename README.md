@@ -42,7 +42,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 5. Install MySQL 5.7:
 
     ```sh
-    brew install mysql@5.7 node
+    brew install mysql@5.7
     ```
 
 6. Start the MySQL service:
