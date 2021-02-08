@@ -9,7 +9,7 @@ interface SubnavItem {
     highlight?: boolean
 }
 
-const SubNavIds = ["about", "coronavirus", "co2", "energy"] as const
+const SubNavIds = ["about", "coronavirus", "co2", "energy", "forests"] as const
 export type SubNavId = typeof SubNavIds[number]
 
 const subnavs: { [key in SubNavId]: SubnavItem[] } = {
@@ -158,6 +158,43 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "renewable-energy",
         },
         { label: "Nuclear", href: "/nuclear-energy", id: "nuclear-energy" },
+    ],
+    forests: [
+        {
+            label: "Forests",
+            href: "/forests",
+            id: "forests",
+        },
+        {
+            label: "Forest area",
+            href: "/forest-area",
+            id: "forest-area",
+        },
+        {
+            label: "Deforestation",
+            href: "/deforestation",
+            id: "deforestation",
+        },
+        {
+            label: "Afforestation",
+            href: "/afforestation",
+            id: "afforestation",
+        },
+        {
+            label: "Drivers of Deforestation",
+            href: "/drivers-of-deforestation",
+            id: "drivers-of-deforestation",
+        },
+        {
+            label: "Palm oil",
+            href: "/palm-oil",
+            id: "palm-oil",
+        },
+        {
+            label: "Soy",
+            href: "/soy",
+            id: "soy",
+        },
     ],
 }
 
