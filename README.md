@@ -24,7 +24,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
     ```sh
     brew tap homebrew/services
     ```
-    
+
 3. Install nvm:
 
     ```sh
@@ -32,7 +32,7 @@ The owid-grapher visualization frontend code can run isomorphically under node t
     brew install nvm
     source $(brew --prefix nvm)/nvm.sh
     ```
-    
+
 4. Install Node 12.13.1+:
 
     ```sh
