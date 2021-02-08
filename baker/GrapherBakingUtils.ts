@@ -1,5 +1,4 @@
 import * as glob from "glob"
-import parseUrl from "url-parse"
 import * as path from "path"
 import * as lodash from "lodash"
 import {
@@ -13,6 +12,7 @@ import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"
 import { log } from "./slackLog"
 import { Chart } from "../db/model/Chart"
 import md5 from "md5"
+import { Url } from "../urls/Url"
 
 interface ChartExportMeta {
     key: string
@@ -22,13 +22,22 @@ interface ChartExportMeta {
     height: number
 }
 
-// Given a grapher url with query string, create a key to match export filenames
-const grapherUrlToFilekey = (grapherUrl: string) => {
-    const url = parseUrl(grapherUrl)
-    const slug = lodash.last(url.pathname.split("/")) as string
-    const queryStr = (url.query as unknown) as string
-    return `${slug}${queryStr ? "-" + md5(queryStr) : ""}`
+// Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
+// into its slug (soil-lifespans) and queryStr (?tab=chart)
+export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
+    const url = Url.fromURL(grapherUrl)
+    const slug = lodash.last(url.pathname?.split("/")) as string
+    const queryStr = url.queryStr
+    return { slug, queryStr }
 }
+
+// Combines a grapher slug, and potentially its query string, to _part_ of an export file
+// name. It's called fileKey and not fileName because the actual export filename also includes
+// other parts, like chart version and width/height.
+export const grapherSlugToExportFileKey = (
+    slug: string,
+    queryStr: string | undefined
+) => `${slug}${queryStr ? `-${md5(queryStr)}` : ""}`
 
 export interface GrapherExports {
     get: (grapherUrl: string) => ChartExportMeta | undefined
@@ -47,7 +56,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
             continue
         }
 
-        const slug = lodash.last(parseUrl(url).pathname.split("/"))
+        const slug = lodash.last(Url.fromURL(url).pathname?.split("/"))
         if (!slug) {
             log.warn(`Invalid chart url ${url}`)
             continue
@@ -107,8 +116,9 @@ export const getGrapherExportsByUrl = async (): Promise<GrapherExports> => {
 
     return {
         get(grapherUrl: string) {
+            const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
             return exportsByKey.get(
-                grapherUrlToFilekey(grapherUrl).toLowerCase()
+                grapherSlugToExportFileKey(slug, queryStr).toLowerCase()
             )
         },
     }
