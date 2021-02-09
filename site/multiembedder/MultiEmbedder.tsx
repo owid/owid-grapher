@@ -18,7 +18,7 @@ import {
 import {
     GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_SELECTOR_SELECTOR,
+    GLOBAL_ENTITY_SELECTOR_ELEMENT,
 } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { Url } from "../../urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
@@ -146,7 +146,7 @@ const pageContainsGlobalEntitySelector = () =>
     document.querySelector(`[${GLOBAL_ENTITY_SELECTOR_DATA_ATTR}]`) !== null
 
 const globalEntitySelectorElement = () =>
-    document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
+    document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
 
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []

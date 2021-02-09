@@ -20,7 +20,7 @@ import {
 } from "../../../clientUtils/Util"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WorldEntityName } from "../../core/GrapherConstants"
-import { GLOBAL_ENTITY_SELECTOR_SELECTOR } from "./GlobalEntitySelectorConstants"
+import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
 import { setWindowQueryVariable } from "../../../clientUtils/url"
@@ -384,7 +384,7 @@ export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,
     graphersAndExplorersToUpdate: Set<SelectionArray>
 ) => {
-    const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
+    const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
     if (!element) return
 
     ReactDOM.hydrate(

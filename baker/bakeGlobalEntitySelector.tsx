@@ -4,14 +4,14 @@ import { ENV } from "../settings/serverSettings"
 import { GlobalEntitySelector } from "../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 import {
     GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
-    GLOBAL_ENTITY_SELECTOR_SELECTOR,
+    GLOBAL_ENTITY_SELECTOR_ELEMENT,
 } from "../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
 
 export const bakeGlobalEntitySelector = (cheerioEl: CheerioStatic) => {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
     // But we should still support the old attribute.
-    cheerioEl(`*[data-entity-select], ${GLOBAL_ENTITY_SELECTOR_SELECTOR}`).each(
+    cheerioEl(`*[data-entity-select], ${GLOBAL_ENTITY_SELECTOR_ELEMENT}`).each(
         (_, el) => {
             const $el = cheerioEl(el)
             const $section = $el.closest("section")
