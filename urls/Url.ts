@@ -9,7 +9,7 @@ import { excludeUndefined, omitUndefinedValues } from "../clientUtils/Util"
 
 const parseUrl = (url: string) => {
     const parsed = urlParseLib(url, {})
-    // The library returns an unparsed string for `query`, its types are quite right.
+    // The library returns an unparsed string for `query`, its types aren't quite right.
     const query = parsed.query.toString()
     return {
         ...parsed,
@@ -85,7 +85,10 @@ export class Url {
 
     get queryStr(): string {
         const { queryStr } = this.props
-        return queryStr !== undefined ? ensureQueryStrFormat(queryStr) : ""
+        // Drop a single trailing `?`, if there is one
+        return queryStr && queryStr !== "?"
+            ? ensureQueryStrFormat(queryStr)
+            : ""
     }
 
     get hash(): string {

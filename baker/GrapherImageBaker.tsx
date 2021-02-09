@@ -1,14 +1,16 @@
 import * as lodash from "lodash"
-import parseUrl from "url-parse"
 import * as db from "../db/db"
 import { getVariableData } from "../db/model/Variable"
 import * as fs from "fs-extra"
 import svgo from "svgo"
-import md5 from "md5"
 import sharp from "sharp"
 import * as path from "path"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher } from "../grapher/core/Grapher"
+import {
+    grapherSlugToExportFileKey,
+    grapherUrlToSlugAndQueryStr,
+} from "./GrapherBakingUtils"
 
 export async function bakeGraphersToPngs(
     outDir: string,
@@ -85,9 +87,8 @@ export async function bakeGrapherToSvg(
     })
     grapher.isExportingtoSvgOrPng = true
     const { width, height } = grapher.idealBounds
-    const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${
-        jsonConfig.version
-    }_${width}x${height}.svg`
+    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
+    const outPath = `${outDir}/${fileKey}_v${jsonConfig.version}_${width}x${height}.svg`
     if (verbose) console.log(outPath)
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
@@ -112,16 +113,15 @@ export async function bakeGraphersToSvgs(
     const graphersBySlug = await getGraphersAndRedirectsBySlug()
 
     return Promise.all(
-        Array.from(grapherUrls).map((urlStr) => {
-            const url = parseUrl(urlStr)
-            const slug = lodash.last(url.pathname.split("/")) as string
+        Array.from(grapherUrls).map((grapherUrl) => {
+            const { slug, queryStr } = grapherUrlToSlugAndQueryStr(grapherUrl)
             const jsonConfig = graphersBySlug.get(slug)
             if (jsonConfig) {
                 return bakeGrapherToSvg(
                     jsonConfig,
                     outDir,
                     slug,
-                    (url.query as unknown) as string,
+                    queryStr,
                     optimizeSvgs
                 )
             }
