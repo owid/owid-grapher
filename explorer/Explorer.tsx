@@ -193,10 +193,12 @@ export class Explorer
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
 
-        const { initialPatchObject } = this
-        if (this.props.selection?.hasSelection)
-            initialPatchObject.selection = this.props.selection.asParam
-
+        const initialPatchObject = {
+            ...this.initialPatchObject,
+            selection: this.props.selection?.hasSelection
+                ? this.props.selection.asParam
+                : this.initialPatchObject.selection,
+        }
         this.grapher?.populateFromQueryParams(initialPatchObject)
 
         exposeInstanceOnWindow(this, "explorer")
