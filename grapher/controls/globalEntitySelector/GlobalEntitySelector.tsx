@@ -380,7 +380,6 @@ export class GlobalEntitySelector extends React.Component<{
     }
 }
 
-// todo: add analytics back
 export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,
     graphersAndExplorersToUpdate: Set<SelectionArray>
