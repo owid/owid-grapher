@@ -145,7 +145,7 @@ export const shouldProgressiveEmbed = () =>
 const pageContainsGlobalEntitySelector = () =>
     document.querySelector(`[${GLOBAL_ENTITY_SELECTOR_DATA_ATTR}]`) !== null
 
-const globalEntitySelectorSelector = () =>
+const globalEntitySelectorElement = () =>
     document.querySelector(GLOBAL_ENTITY_SELECTOR_SELECTOR)
 
 class MultiEmbedder {
@@ -234,7 +234,7 @@ class MultiEmbedder {
     }
 
     setUpGlobalEntitySelectorForEmbeds() {
-        const element = globalEntitySelectorSelector()
+        const element = globalEntitySelectorElement()
         if (!element) return
 
         const selectionParam = getWindowQueryParams().selection
