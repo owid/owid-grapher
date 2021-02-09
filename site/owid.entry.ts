@@ -58,7 +58,6 @@ window.runSiteFooterScripts = () => {
     runCookiePreferencesManager()
     runCovid()
     runFootnotes()
-    renderProminentLink()
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
         MultiEmbedderSingleton.embedAll()
