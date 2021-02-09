@@ -143,7 +143,7 @@ export const shouldProgressiveEmbed = () =>
     pageContainsGlobalEntitySelector()
 
 const pageContainsGlobalEntitySelector = () =>
-    document.querySelector(`[${GLOBAL_ENTITY_SELECTOR_DATA_ATTR}]`) !== null
+    globalEntitySelectorElement() !== null
 
 const globalEntitySelectorElement = () =>
     document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
