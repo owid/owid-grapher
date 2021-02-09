@@ -21,6 +21,7 @@ import { EntitySelectionMode } from "../grapher/core/GrapherConstants"
 interface EntityItemProps extends EditableListItemProps {
     grapher: Grapher
     entityName: EntityName
+    onRemove?: () => void
 }
 
 @observer
@@ -49,13 +50,12 @@ class EntityItem extends React.Component<EntityItemProps> {
     }
 
     @action.bound onRemove() {
-        // todo
-        // this.props.grapher.deselect(this.props.entityName)
+        this.props.onRemove?.()
     }
 
     render() {
         const { props, color } = this
-        const { entityName, ...rest } = props
+        const { entityName, onRemove, ...rest } = props
 
         return (
             <EditableListItem
@@ -124,13 +124,16 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
                     optionLabels={["Select data"].concat(unselectedEntityNames)}
                 />
                 <EditableList>
-                    {selectedEntityNames.map((key) => (
+                    {selectedEntityNames.map((entityName) => (
                         <EntityItem
-                            key={key}
+                            key={entityName}
                             grapher={grapher}
-                            entityName={key}
-                            onMouseDown={() => this.onStartDrag(key)}
-                            onMouseEnter={() => this.onMouseEnter(key)}
+                            entityName={entityName}
+                            onRemove={() =>
+                                selection.deselectEntity(entityName)
+                            }
+                            onMouseDown={() => this.onStartDrag(entityName)}
+                            onMouseEnter={() => this.onMouseEnter(entityName)}
                         />
                     ))}
                 </EditableList>
