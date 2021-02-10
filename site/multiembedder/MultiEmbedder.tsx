@@ -237,20 +237,20 @@ class MultiEmbedder {
         const element = globalEntitySelectorElement()
         if (!element) return
 
-        const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
-            getWindowQueryParams().country ?? getWindowQueryParams().selection
-        )
-
-        const defaultCountries = element.getAttribute(
+        const embeddedDefaultCountriesParam = element.getAttribute(
             GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
+        )
+        const queryParams = getWindowQueryParams()
+
+        const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
+            queryParams.country ??
+                queryParams.selection ??
+                embeddedDefaultCountriesParam ??
+                ""
         )
 
         this.selection = new SelectionArray(
-            selectionParam !== ""
-                ? EntityUrlBuilder.queryParamToEntityNames(selectionParam)
-                : defaultCountries
-                ? EntityUrlBuilder.queryParamToEntityNames(defaultCountries)
-                : undefined
+            EntityUrlBuilder.queryParamToEntityNames(selectionParam)
         )
 
         hydrateGlobalEntitySelectorIfAny(
