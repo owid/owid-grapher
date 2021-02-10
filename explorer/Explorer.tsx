@@ -227,38 +227,33 @@ export class Explorer
         )
     }
 
-    private persistedQueryParamsByGrapher: Map<
+    private persistedQueryParamsBySelectedRow: Map<
         number,
         Partial<GrapherQueryParams>
     > = new Map()
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
-    @action.bound private reactToUserChangingSelection() {
-        if (!this.grapher) return // todo: can we remove this?
+    @action.bound private reactToUserChangingSelection(oldSelectedRow: number) {
+        if (!this.grapher || !this.explorerProgram.currentlySelectedGrapherRow)
+            return // todo: can we remove this?
         this.initSlideshow()
 
-        const newGrapherId = this.explorerProgram.grapherConfig.grapherId
-        const oldGrapherId = this.grapher.id
-        const newGrapherHasId = newGrapherId && isNotErrorValue(newGrapherId)
-        if (newGrapherHasId && oldGrapherId === newGrapherId) return
+        const oldGrapherParams = this.grapher.changedParams
+        this.persistedQueryParamsBySelectedRow.set(
+            oldSelectedRow,
+            oldGrapherParams
+        )
 
-        const oldGrapherQueryParams =
-            oldGrapherId !== undefined ? this.grapher.changedParams : undefined
-
-        if (oldGrapherId && oldGrapherQueryParams)
-            this.persistedQueryParamsByGrapher.set(
-                oldGrapherId,
-                oldGrapherQueryParams
-            )
-
-        const paramsToRestore = newGrapherId
-            ? this.persistedQueryParamsByGrapher.get(newGrapherId)
-            : undefined
+        const newGrapherParams = {
+            ...this.persistedQueryParamsBySelectedRow.get(
+                this.explorerProgram.currentlySelectedGrapherRow
+            ),
+            time: this.grapher.timeParam,
+        }
 
         this.updateGrapherFromExplorer()
 
-        if (paramsToRestore)
-            this.grapher.populateFromQueryParams(paramsToRestore)
+        this.grapher.populateFromQueryParams(newGrapherParams)
     }
 
     @action.bound updateGrapherFromExplorer() {
@@ -433,8 +428,10 @@ export class Explorer
     }
 
     onChangeChoice = (choiceTitle: string) => (value: string) => {
+        const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
-        this.reactToUserChangingSelection()
+        if (currentlySelectedGrapherRow)
+            this.reactToUserChangingSelection(currentlySelectedGrapherRow)
     }
 
     private renderHeaderElement() {
