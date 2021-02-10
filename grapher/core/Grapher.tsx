@@ -680,7 +680,7 @@ export class Grapher
 
         this.appendNewEntitySelectionOptions()
 
-        if (this.manager.selection) {
+        if (this.manager.selection && this.manager.selection.hasSelection) {
             // Selection is managed externally, do nothing.
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
