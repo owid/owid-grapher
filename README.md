@@ -57,13 +57,13 @@ The owid-grapher visualization frontend code can run isomorphically under node t
     npm install -g yarn
     ```
 
-6. Git clone the "owid-content" folder as a sibling to owid-grapher:
+8. Git clone the "owid-content" folder as a sibling to owid-grapher:
 
     ```bash
     git clone https://github.com/owid/owid-content
     ```
 
-7. Inside the repo folder, install all dependencies by running:
+9. Inside the repo folder, install all dependencies by running:
 
     ```sh
     yarn
