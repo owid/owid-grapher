@@ -22,7 +22,6 @@ export const runBlocks = () => {
             .classList.add("is-not-chart-interactive")
     }
     runDataTokens()
-    renderProminentLink()
     runExpandableInlineBlock()
     runSearchCountry()
     hydrateAdditionalInformation()

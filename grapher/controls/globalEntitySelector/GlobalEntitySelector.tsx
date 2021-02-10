@@ -20,13 +20,10 @@ import {
 } from "../../../clientUtils/Util"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WorldEntityName } from "../../core/GrapherConstants"
-import {
-    GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_CONTROL_SELECTOR,
-} from "./GlobalEntityControlConstants"
+import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
-import { GlobalEntityRegistry } from "./GlobalEntityRegistry"
+import { setWindowQueryVariable } from "../../../clientUtils/url"
 
 enum GlobalEntitySelectionModes {
     none = "none",
@@ -126,14 +123,13 @@ function SelectedItems(props: {
 }
 
 @observer
-export class GlobalEntityControl extends React.Component<{
-    initialSelection?: string
+export class GlobalEntitySelector extends React.Component<{
+    selection: SelectionArray
+    graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string
 }> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
-
-    private isBoundToWindow = false
 
     @observable mode = GlobalEntitySelectionModes.none
 
@@ -141,11 +137,7 @@ export class GlobalEntityControl extends React.Component<{
     @observable private isOpen = false
     @observable private localEntityName: EntityName | undefined
 
-    selection = new SelectionArray(
-        this.props.initialSelection
-            ? this.props.initialSelection.split(" ")
-            : undefined
-    )
+    selection = this.props.selection
 
     @observable.ref private optionGroups: GroupedOptionsType<any> = []
 
@@ -225,28 +217,38 @@ export class GlobalEntityControl extends React.Component<{
         this.props.environment ?? "development"
     )
 
+    @action.bound private updateURL() {
+        setWindowQueryVariable("selection", this.selection.asParam)
+    }
+
+    @action.bound updateSelection(newSelectedEntities: string[]) {
+        this.selection.setSelectedEntities(newSelectedEntities)
+        this.updateAllGraphersAndExplorersOnPage()
+        this.updateURL()
+    }
+
     @action.bound private onChange(options: ValueType<any>) {
-        this.selection.setSelectedEntities(
-            options.map((option: any) => option.label)
-        )
-        this.analytics.logGlobalEntityControl(
+        this.updateSelection(options.map((option: any) => option.label))
+
+        this.analytics.logGlobalEntitySelector(
             "change",
             this.selection.selectedEntityNames.join(",")
         )
-        this.updateAllGraphersAndExplorersOnPage()
     }
 
     @action.bound private updateAllGraphersAndExplorersOnPage() {
-        Array.from(GlobalEntityRegistry.values()).forEach((value) => {
-            value.selection.setSelectedEntities(
-                this.selection.selectedEntityNames
-            )
-        })
+        if (!this.props.graphersAndExplorersToUpdate) return
+        Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
+            (value) => {
+                value.setSelectedEntities(this.selection.selectedEntityNames)
+            }
+        )
     }
 
     @action.bound private onRemove(option: EntityName) {
         this.selection.toggleSelection(option)
         this.updateAllGraphersAndExplorersOnPage()
+        this.updateURL()
     }
 
     @action.bound private onMenuOpen() {
@@ -260,7 +262,7 @@ export class GlobalEntityControl extends React.Component<{
     @action.bound private onButtonOpen(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        this.analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntitySelector(
             "open",
             event.currentTarget.innerText
         )
@@ -270,7 +272,7 @@ export class GlobalEntityControl extends React.Component<{
     @action.bound private onButtonClose(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        this.analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntitySelector(
             "close",
             event.currentTarget.innerText
         )
@@ -376,23 +378,19 @@ export class GlobalEntityControl extends React.Component<{
             </div>
         )
     }
-
-    static singleton() {
-        return new GlobalEntityControl({}).selection
-    }
 }
 
-// todo: add analytics back
-export const hydrateGlobalEntityControlIfAny = () => {
-    const element = document.querySelector(GLOBAL_ENTITY_CONTROL_SELECTOR)
+export const hydrateGlobalEntitySelectorIfAny = (
+    selection: SelectionArray,
+    graphersAndExplorersToUpdate: Set<SelectionArray>
+) => {
+    const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
     if (!element) return
 
     ReactDOM.hydrate(
-        <GlobalEntityControl
-            initialSelection={
-                element.getAttribute(GLOBAL_ENTITY_CONTROL_DEFAULT_COUNTRY) ??
-                ""
-            }
+        <GlobalEntitySelector
+            selection={selection}
+            graphersAndExplorersToUpdate={graphersAndExplorersToUpdate}
         />,
         element
     )

@@ -29,7 +29,6 @@ import {
     SlideShowManager,
 } from "../grapher/slideshowController/SlideShowController"
 import {
-    ExplorerChoice,
     ExplorerContainerId,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
@@ -52,7 +51,6 @@ import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
-import { GlobalEntityRegistry } from "../grapher/controls/globalEntityControl/GlobalEntityRegistry"
 import { Patch } from "../patch/Patch"
 import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
@@ -69,6 +67,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     canonicalUrl?: string
+    selection?: SelectionArray
 }
 
 interface ExplorerPatchObject extends GrapherQueryParams {
@@ -169,11 +168,13 @@ export class Explorer
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
-    selection = new SelectionArray(
-        this.explorerProgram.selection,
-        undefined,
-        this.explorerProgram.entityType
-    )
+    selection =
+        this.props.selection ??
+        new SelectionArray(
+            this.explorerProgram.selection,
+            undefined,
+            this.explorerProgram.entityType
+        )
 
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
@@ -191,7 +192,14 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
-        this.grapher?.populateFromQueryParams(this.initialPatchObject)
+
+        const initialPatchObject = {
+            ...this.initialPatchObject,
+            selection: this.props.selection?.hasSelection
+                ? this.props.selection.asParam
+                : this.initialPatchObject.selection,
+        }
+        this.grapher?.populateFromQueryParams(initialPatchObject)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -199,7 +207,6 @@ export class Explorer
         this.onResize() // call resize for the first time to initialize chart
 
         if (this.props.isInStandalonePage) this.bindToWindow()
-        else GlobalEntityRegistry.add(this)
     }
 
     componentWillUnmount() {

@@ -17,7 +17,7 @@ import {
     FullPost,
     TocHeading,
 } from "../clientUtils/owidTypes"
-import { bakeGlobalEntityControl } from "../baker/bakeGlobalEntityControl"
+import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
 import { Footnote } from "../site/Footnote"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
@@ -613,7 +613,7 @@ export const formatWordpressPost = async (
 
     // Render global country selection component.
     // Injects a <section>, which is why it executes last.
-    bakeGlobalEntityControl(cheerioEl)
+    bakeGlobalEntitySelector(cheerioEl)
 
     return {
         id: post.id,

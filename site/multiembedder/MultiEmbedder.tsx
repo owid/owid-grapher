@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { throttle, fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
-import { splitURLintoPathAndQueryString } from "../../clientUtils/url"
+import { getWindowQueryParams } from "../../clientUtils/url"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
@@ -15,8 +15,15 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants"
-import { GLOBAL_ENTITY_CONTROL_DATA_ATTR } from "../../grapher/controls/globalEntityControl/GlobalEntityControlConstants"
+import {
+    GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
+    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_SELECTOR_ELEMENT,
+} from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { Url } from "../../urls/Url"
+import { SelectionArray } from "../../grapher/selection/SelectionArray"
+import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
+import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 
 interface EmbeddedFigureProps {
     standaloneUrl: string
@@ -32,7 +39,10 @@ class EmbeddedFigure {
         this.isExplorer = isExplorer
     }
 
-    async renderIntoContainer() {
+    async renderIntoContainer(
+        globalSelection: SelectionArray,
+        graphersAndExplorersToUpdate: Set<SelectionArray>
+    ) {
         if (this._isLoaded) return
         this._isLoaded = true
 
@@ -53,14 +63,26 @@ class EmbeddedFigure {
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
                 uriEncodedPatch: patchParam,
+                selection: new SelectionArray(
+                    globalSelection.selectedEntityNames
+                ),
             }
+            if (props.selection)
+                graphersAndExplorersToUpdate.add(props.selection)
             ReactDOM.render(<Explorer {...props} />, this.container)
         } else {
             this.container.classList.remove("grapherPreview")
             const config: GrapherProgrammaticInterface = {
                 ...deserializeJSONFromHTML(html),
                 ...common,
+                manager: {
+                    selection: new SelectionArray(
+                        globalSelection.selectedEntityNames
+                    ),
+                },
             }
+            if (config.manager?.selection)
+                graphersAndExplorersToUpdate.add(config.manager.selection)
             Grapher.renderGrapherIntoContainer(config, this.container)
         }
     }
@@ -118,13 +140,18 @@ const figuresFromDOM = (
 export const shouldProgressiveEmbed = () =>
     !isMobile() ||
     window.screen.width > 680 ||
-    pageContainsGlobalEntityControl()
+    pageContainsGlobalEntitySelector()
 
-const pageContainsGlobalEntityControl = () =>
-    document.querySelector(`[${GLOBAL_ENTITY_CONTROL_DATA_ATTR}]`) !== null
+const pageContainsGlobalEntitySelector = () =>
+    globalEntitySelectorElement() !== null
+
+const globalEntitySelectorElement = () =>
+    document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
 
 class MultiEmbedder {
     private figures: EmbeddedFigure[] = []
+    selection: SelectionArray = new SelectionArray()
+    graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     private shouldLoadFigure(figure: EmbeddedFigure) {
         if (figure.isLoaded) return false
@@ -159,7 +186,12 @@ class MultiEmbedder {
     loadVisibleFigures() {
         this.figures
             .filter(this.shouldLoadFigure)
-            .forEach((figure) => figure.renderIntoContainer())
+            .forEach((figure) =>
+                figure.renderIntoContainer(
+                    this.selection,
+                    this.graphersAndExplorersToUpdate
+                )
+            )
     }
 
     /**
@@ -199,6 +231,32 @@ class MultiEmbedder {
      */
     embedAll() {
         this.addFiguresFromDOM().watchScroll()
+    }
+
+    setUpGlobalEntitySelectorForEmbeds() {
+        const element = globalEntitySelectorElement()
+        if (!element) return
+
+        const embeddedDefaultCountriesParam = element.getAttribute(
+            GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
+        )
+        const queryParams = getWindowQueryParams()
+
+        const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
+            queryParams.country ??
+                queryParams.selection ??
+                embeddedDefaultCountriesParam ??
+                ""
+        )
+
+        this.selection = new SelectionArray(
+            EntityUrlBuilder.queryParamToEntityNames(selectionParam)
+        )
+
+        hydrateGlobalEntitySelectorIfAny(
+            this.selection,
+            this.graphersAndExplorersToUpdate
+        )
     }
 }
 
