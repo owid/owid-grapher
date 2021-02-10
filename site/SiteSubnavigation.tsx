@@ -157,6 +157,43 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         },
         { label: "Nuclear", href: "/nuclear-energy", id: "nuclear-energy" },
     ],
+    forests: [
+        {
+            label: "Forests",
+            href: "/forests",
+            id: "forests",
+        },
+        {
+            label: "Forest area",
+            href: "/forest-area",
+            id: "forest-area",
+        },
+        {
+            label: "Deforestation",
+            href: "/deforestation",
+            id: "deforestation",
+        },
+        {
+            label: "Afforestation",
+            href: "/afforestation",
+            id: "afforestation",
+        },
+        {
+            label: "Drivers of Deforestation",
+            href: "/drivers-of-deforestation",
+            id: "drivers-of-deforestation",
+        },
+        {
+            label: "Palm oil",
+            href: "/palm-oil",
+            id: "palm-oil",
+        },
+        {
+            label: "Soy",
+            href: "/soy",
+            id: "soy",
+        },
+    ],
 }
 
 export class SiteSubnavigation extends React.Component<{

@@ -123,6 +123,14 @@ export const LongFormPage = (props: {
                             hasSidebar ? " with-sidebar" : " no-sidebar"
                         }${isPost ? " thin-banner" : " large-banner"}`}
                     >
+                        {formattingOptions.subnavId && (
+                            <SiteSubnavigation
+                                subnavId={formattingOptions.subnavId}
+                                subnavCurrentId={
+                                    formattingOptions.subnavCurrentId
+                                }
+                            />
+                        )}
                         <div className="offset-header">
                             <header className="article-header">
                                 <div className="article-titles">
@@ -195,15 +203,6 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
-                        {formattingOptions.subnavId && (
-                            <SiteSubnavigation
-                                subnavId={formattingOptions.subnavId}
-                                subnavCurrentId={
-                                    formattingOptions.subnavCurrentId
-                                }
-                            />
-                        )}
-
                         <div className="content-wrapper">
                             {hasSidebar && (
                                 <div>

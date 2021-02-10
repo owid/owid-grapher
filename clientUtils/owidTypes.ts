@@ -69,6 +69,7 @@ export enum SubNavId {
     coronavirus = "coronavirus",
     co2 = "co2",
     energy = "energy",
+    forests = "forests",
 }
 
 export interface FormattingOptions {
