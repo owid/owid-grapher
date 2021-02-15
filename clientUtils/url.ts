@@ -1,4 +1,4 @@
-import { isEmpty } from "./Util"
+import { isEmpty, omitUndefinedValues } from "./Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
@@ -12,6 +12,10 @@ export const getQueryParams = (queryStr?: string): QueryParams =>
 export const getWindowQueryParams = (): QueryParams =>
     strToQueryParams(getWindowQueryStr())
 
+/**
+ * Converts a query string into an object of key-value pairs.
+ * Handles URI-decoding of the values.
+ */
 export const strToQueryParams = (queryStr = ""): QueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
@@ -19,25 +23,25 @@ export const strToQueryParams = (queryStr = ""): QueryParams => {
     const params: QueryParams = {}
 
     for (const param of querySplit) {
-        const pair = param.split("=")
-        params[pair[0]] = pair[1]
+        const [key, value] = param.split("=", 2)
+        params[key] =
+            value === undefined ? undefined : decodeURIComponent(value)
     }
 
     return params
 }
 
+/**
+ * Converts an object to a query string.
+ * Expects the input object to not be encoded already, and handles the URI-encoding of the values.
+ */
 export const queryParamsToStr = (params: QueryParams) => {
-    let newQueryStr = ""
+    const newQueryStr = Object.entries(omitUndefinedValues(params))
+        .map(([key, value]) => [key, encodeURIComponent(value)]) // URI-encode values
+        .map(([key, value]) => `${key}=${value}`) // map into key=value string
+        .join("&") // join strings using `&`
 
-    Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined) return
-
-        if (isEmpty(newQueryStr)) newQueryStr += "?"
-        else newQueryStr += "&"
-        newQueryStr += key + "=" + value
-    })
-
-    return newQueryStr
+    return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 
 export const setWindowQueryVariable = (key: string, val: string | null) => {
