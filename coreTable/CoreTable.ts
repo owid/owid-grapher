@@ -13,7 +13,6 @@ import {
     isNumber,
 } from "../clientUtils/Util"
 import { isPresent } from "../clientUtils/isPresent"
-import { queryParamsToStr } from "../clientUtils/url"
 import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
 import {
     ColumnSlug,
@@ -918,12 +917,14 @@ export class CoreTable<
 
     where(query: CoreQuery) {
         const rows = this.findRows(query)
+        const queryDescription = Object.entries(query)
+            .map(([col, value]) => `${col}=${value}`)
+            .join("&")
+
         return this.transform(
             rows,
             this.defs,
-            `Selecting ${rows.length} rows where ${queryParamsToStr(
-                query as any
-            ).substr(1)}`,
+            `Selecting ${rows.length} rows where ${queryDescription}`,
             TransformType.FilterRows
         )
     }
