@@ -9,14 +9,19 @@ const testCases = [
         params: { foo: "bar", baz: "false", bar: "0" },
     },
     {
+        queryStr: "?country=East+Asia+%26+Pacific",
+        params: { country: "East Asia & Pacific" },
+    },
+    {
         queryStr: "?country=East%20Asia%20%26%20Pacific",
         params: { country: "East Asia & Pacific" },
+        ignoreInToQueryStrTest: true,
     },
     { queryStr: "?foo=%2526", params: { foo: "%26" } },
     { queryStr: "?foo=", params: { foo: "" } },
     {
         queryStr: "?foo",
-        params: { foo: undefined },
+        params: { foo: "" },
         ignoreInToQueryStrTest: true,
     },
 ]

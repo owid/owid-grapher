@@ -17,18 +17,8 @@ export const getWindowQueryParams = (): QueryParams =>
  * Handles URI-decoding of the values.
  */
 export const strToQueryParams = (queryStr = ""): QueryParams => {
-    if (queryStr[0] === "?") queryStr = queryStr.substring(1)
-
-    const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
-    const params: QueryParams = {}
-
-    for (const param of querySplit) {
-        const [key, value] = param.split("=", 2)
-        params[key] =
-            value === undefined ? undefined : decodeURIComponent(value)
-    }
-
-    return params
+    const queryParams = new URLSearchParams(queryStr)
+    return Object.fromEntries(queryParams)
 }
 
 /**
@@ -36,11 +26,8 @@ export const strToQueryParams = (queryStr = ""): QueryParams => {
  * Expects the input object to not be encoded already, and handles the URI-encoding of the values.
  */
 export const queryParamsToStr = (params: QueryParams) => {
-    const newQueryStr = Object.entries(omitUndefinedValues(params))
-        .map(([key, value]) => [key, encodeURIComponent(value)]) // URI-encode values
-        .map(([key, value]) => `${key}=${value}`) // map into key=value string
-        .join("&") // join strings using `&`
-
+    const queryParams = new URLSearchParams(omitUndefinedValues(params))
+    const newQueryStr = queryParams.toString()
     return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 
