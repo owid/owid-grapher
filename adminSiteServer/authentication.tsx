@@ -11,7 +11,7 @@ import {
 import { BCryptHasher } from "../db/hashers"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
-import { ENV } from "../settings/serverSettings"
+import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings"
 import { JsonError } from "../clientUtils/owidTypes"
 
 export type CurrentUser = User
@@ -94,7 +94,17 @@ export async function authCloudflareSSOMiddleware(
         sameSite: "lax",
         secure: ENV === "production",
     })
-    return res.redirect("/admin")
+
+    // Prevents redirect to external URLs
+    let redirectTo = "/admin"
+    if (req.query.next) {
+        try {
+            redirectTo = new URL(req.query.next, ADMIN_BASE_URL).pathname
+        } catch (err) {
+            console.error(err)
+        }
+    }
+    return res.redirect(redirectTo)
 }
 
 export async function logOut(
