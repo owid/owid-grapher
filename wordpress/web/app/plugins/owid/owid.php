@@ -385,3 +385,39 @@ add_action('rest_api_init', function () {
         'get_callback' => __NAMESPACE__ . '\getFeaturedMediaPath',
     ]);
 });
+
+/*
+ * Search only posts titles to improve admin search accuracy.
+ *
+ * From
+ * https://developer.wordpress.org/reference/hooks/posts_search/#comment-2213,
+ * with additional check !is_admin().
+ */
+function admin_search_by_title_only($search, $wp_query)
+{
+    global $wpdb;
+    if (!is_admin() || empty($search)) {
+        return $search; // skip processing - no search term in query
+    }
+    $q = $wp_query->query_vars;
+    $n = !empty($q['exact']) ? '' : '%';
+    $search = $searchand = '';
+    foreach ((array) $q['search_terms'] as $term) {
+        $term = esc_sql($wpdb->esc_like($term));
+        $search .= "{$searchand}($wpdb->posts.post_title LIKE '{$n}{$term}{$n}')";
+        $searchand = ' AND ';
+    }
+    if (!empty($search)) {
+        $search = " AND ({$search}) ";
+        if (!is_user_logged_in()) {
+            $search .= " AND ($wpdb->posts.post_password = '') ";
+        }
+    }
+    return $search;
+}
+add_filter(
+    'posts_search',
+    __NAMESPACE__ . '\admin_search_by_title_only',
+    10,
+    2
+);
