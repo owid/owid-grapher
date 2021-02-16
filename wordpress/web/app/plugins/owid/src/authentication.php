@@ -96,7 +96,7 @@ add_action('login_init', function () {
         // This prevents clearing the auth cookies we just set, which
         // would lead to an infinite redirection loop.
         $_REQUEST['reauth'] = 0;
-        wp_redirect(admin_url());
+        wp_redirect($_REQUEST["redirect_to"] ?? admin_url());
     }
 });
 
@@ -115,7 +115,6 @@ add_action('wp_logout', function () {
  * query parameter), it is protected by Cloudflare. Logging out then prompts the
  * user to log in, which we don't want. This filter changes the logout URL to
  * point it to a custom page, where the logout is performed.
- * custom page.
  */
 add_filter(
     'logout_url',
