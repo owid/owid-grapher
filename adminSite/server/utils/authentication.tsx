@@ -93,7 +93,7 @@ export async function authCloudflareSSOMiddleware(
         sameSite: "lax",
         secure: ENV === "production",
     })
-    return res.redirect("/admin")
+    return res.redirect(req.query.next ?? "/admin")
 }
 
 export async function logOut(
