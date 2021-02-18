@@ -6,7 +6,7 @@ export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
 export const coronaDefaultView =
-    "?zoomToSelection=true&time=2020-03-01..latest&country=IND~USA~GBR~CAN~DEU~FRA&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_cases&pickerSort=desc"
+    "?zoomToSelection=true&time=2020-03-01..latest&country=USA~GBR~CAN~DEU~ITA~IND&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=location&pickerSort=asc"
 
 // Since we've received complaints about outdated data being cached by browsers despite the
 // conservative caching headers, we added a `v` param for cachebusting purposes.
