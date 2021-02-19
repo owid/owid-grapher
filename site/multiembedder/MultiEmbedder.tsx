@@ -54,7 +54,7 @@ class EmbeddedFigure {
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
             const patchParam = Url.fromQueryStr(this.props.queryStr || "")
-                .queryParams.patch
+                .queryParams._original.patch
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
@@ -243,8 +243,8 @@ class MultiEmbedder {
         const queryParams = getWindowQueryParams()
 
         const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
-            queryParams.country ??
-                queryParams.selection ??
+            queryParams._original.country ??
+                queryParams._original.selection ??
                 embeddedDefaultCountriesParam ??
                 ""
         )

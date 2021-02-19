@@ -36,10 +36,10 @@ export const energyUrlMigration: UrlMigration = (url: Url) => {
     if (explorerSlug !== EXPLORER_SLUG) return url
 
     // if there is no patch param, then it's an old URL
-    if (!url.queryParams.patch) {
+    if (!url.queryParams._original.patch) {
         url = legacyToCurrentGrapherUrl(url)
         const queryParams = transformQueryParams(
-            url.queryParams,
+            url.queryParams._original,
             energyQueryParamTransformMap
         )
         return url.setQueryParams({
