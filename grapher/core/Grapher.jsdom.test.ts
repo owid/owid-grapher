@@ -23,6 +23,7 @@ import {
 import { orderBy } from "../../clientUtils/Util"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { queryParamsToStr } from "../../clientUtils/url"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -179,7 +180,9 @@ function fromQueryParams(
     props?: Partial<GrapherInterface>
 ) {
     const grapher = new Grapher(props)
-    grapher.populateFromQueryParams(legacyToCurrentGrapherQueryParams(params))
+    grapher.populateFromQueryParams(
+        legacyToCurrentGrapherQueryParams(queryParamsToStr(params))
+    )
     return grapher
 }
 
@@ -331,16 +334,13 @@ describe("urls", () => {
     })
 
     it("can upgrade legacy urls", () => {
-        expect(legacyToCurrentGrapherQueryParams({ year: "2000" })).toEqual({
+        expect(legacyToCurrentGrapherQueryParams("?year=2000")).toEqual({
             time: "2000",
         })
 
         // Do not override time if set
         expect(
-            legacyToCurrentGrapherQueryParams({
-                year: "2000",
-                time: "2001..2002",
-            })
+            legacyToCurrentGrapherQueryParams("?year=2000&time=2001..2002")
         ).toEqual({ time: "2001..2002" })
     })
 
@@ -728,9 +728,7 @@ describe("year parameter (applies to map only)", () => {
             describe(`parse ${test.name}`, () => {
                 const grapher = getGrapher()
                 grapher.populateFromQueryParams(
-                    legacyToCurrentGrapherQueryParams({
-                        year: test.query,
-                    })
+                    legacyToCurrentGrapherQueryParams(`?year=${test.query}`)
                 )
                 expect(grapher.timelineHandleTimeBounds).toEqual([
                     test.param,

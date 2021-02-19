@@ -316,7 +316,7 @@ describe(mergeQueryStr, () => {
                 "yScale=log&testsMetric=true&country=~GBR",
                 "country=GBR~ESP"
             )
-        )
+        ).decoded
         expect(params.yScale).toEqual(ScaleType.log)
         expect(params.country).toEqual("GBR~ESP")
     })

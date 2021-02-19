@@ -54,8 +54,8 @@ export class HighlightToggle extends React.Component<{
         }
 
         const params = {
-            ...getWindowQueryParams(),
-            ...this.highlightParams,
+            ...getWindowQueryParams().decoded,
+            ...this.highlightParams.decoded,
         }
         this.manager.populateFromQueryParams(params)
     }
@@ -64,7 +64,8 @@ export class HighlightToggle extends React.Component<{
         const params = getWindowQueryParams()
         let isActive = true
         Object.keys(this.highlightParams).forEach((key) => {
-            if (params[key] !== this.highlightParams[key]) isActive = false
+            if (params.decoded[key] !== this.highlightParams.decoded[key])
+                isActive = false
         })
         return isActive
     }
