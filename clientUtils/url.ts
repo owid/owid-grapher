@@ -4,21 +4,41 @@ export interface QueryParams {
     [key: string]: string | undefined
 }
 
+export interface EncodedDecodedQueryParams {
+    _original: QueryParams
+    decoded: QueryParams
+}
+
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.
-export const getQueryParams = (queryStr?: string): QueryParams =>
+export const getQueryParams = (queryStr?: string): EncodedDecodedQueryParams =>
     strToQueryParams(queryStr || getWindowQueryStr())
 
-export const getWindowQueryParams = (): QueryParams =>
+export const getWindowQueryParams = (): EncodedDecodedQueryParams =>
     strToQueryParams(getWindowQueryStr())
 
 /**
  * Converts a query string into an object of key-value pairs.
  * Handles URI-decoding of the values.
  */
-export const strToQueryParams = (queryStr = ""): QueryParams => {
-    const queryParams = new URLSearchParams(queryStr)
-    return Object.fromEntries(queryParams)
+export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
+    if (queryStr[0] === "?") queryStr = queryStr.substring(1)
+
+    const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
+    const params: EncodedDecodedQueryParams = { _original: {}, decoded: {} }
+
+    for (const param of querySplit) {
+        const [key, value] = param.split("=", 2)
+        const decoded =
+            value !== undefined
+                ? decodeURIComponent(value.replace(/\+/g, "%20"))
+                : undefined
+
+        params._original[key] = value
+        params.decoded[key] = decoded
+    }
+
+    return params
 }
 
 /**
@@ -32,7 +52,7 @@ export const queryParamsToStr = (params: QueryParams) => {
 }
 
 export const setWindowQueryVariable = (key: string, val: string | null) => {
-    const params = getWindowQueryParams()
+    const params = getWindowQueryParams().decoded
 
     if (val === null || val === "") delete params[key]
     else params[key] = val
