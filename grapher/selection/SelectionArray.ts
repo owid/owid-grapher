@@ -149,7 +149,7 @@ export class SelectionArray {
     }
 
     @computed get asParam() {
-        return EntityUrlBuilder.entityNamesToEncodedQueryParam(
+        return EntityUrlBuilder.entityNamesToQueryParam(
             this.selectedEntityNames
         )
     }

@@ -44,7 +44,7 @@ describe(Url, () => {
     it("updateQueryParams() deletes undefined props", () => {
         expect(
             url.updateQueryParams({ stackMode: undefined }).queryStr
-        ).toEqual("?country=USA%7ESWE")
+        ).toEqual("?country=USA~SWE")
     })
 
     it("fromQueryStr() leaves pathname and base undefined", () => {

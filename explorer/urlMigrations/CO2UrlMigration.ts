@@ -12,23 +12,23 @@ import {
 const EXPLORER_SLUG = "co2"
 
 const co2QueryParamTransformMap: QueryParamTransformMap = {
-    [encodeURIComponent("Gas ")]: {
+    "Gas ": {
         newName: "Gas Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Accounting ")]: {
+    "Accounting ": {
         newName: "Accounting Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Fuel ")]: {
+    "Fuel ": {
         newName: "Fuel Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Count ")]: {
+    "Count ": {
         newName: "Count Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Relative to world total ")]: {
+    "Relative to world total ": {
         newName: "Relative to world total Checkbox",
         transformValue: (value) => (value ? "true" : "false"),
     },

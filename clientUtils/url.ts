@@ -29,13 +29,14 @@ export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
 
     for (const param of querySplit) {
         const [key, value] = param.split("=", 2)
+        const decodedKey = decodeURIComponent(key.replace(/\+/g, "%20"))
         const decoded =
             value !== undefined
                 ? decodeURIComponent(value.replace(/\+/g, "%20"))
                 : undefined
 
-        params._original[key] = value
-        params.decoded[key] = decoded
+        params._original[decodedKey] = value
+        params.decoded[decodedKey] = decoded
     }
 
     return params
