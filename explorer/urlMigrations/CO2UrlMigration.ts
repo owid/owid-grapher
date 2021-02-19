@@ -47,7 +47,7 @@ export const co2UrlMigration: UrlMigration = (url: Url) => {
             co2QueryParamTransformMap
         )
         return url.setQueryParams({
-            patch: patchFromQueryParams(queryParams).uriEncodedString,
+            patch: patchFromQueryParams(queryParams).uriString,
         })
     }
     return url

@@ -24,16 +24,16 @@ export const DefaultPatchGrammar: PatchGrammar = {
 }
 
 export class Patch {
-    uriEncodedString: PatchEncodedString
+    uriString: PatchEncodedString
 
     private grammar: PatchGrammar
     constructor(patchInput: PatchInput = "", grammar = DefaultPatchGrammar) {
         this.grammar = grammar
 
-        if (typeof patchInput === "string") this.uriEncodedString = patchInput
+        if (typeof patchInput === "string") this.uriString = patchInput
         else if (Array.isArray(patchInput))
-            this.uriEncodedString = this.arrayToEncodedString(patchInput)
-        else this.uriEncodedString = this.objectToEncodedString(patchInput)
+            this.uriString = this.arrayToEncodedString(patchInput)
+        else this.uriString = this.objectToEncodedString(patchInput)
     }
 
     private objectToEncodedString(obj: PatchCompatibleObjectLiteral) {
@@ -41,9 +41,7 @@ export class Patch {
             .map((identifierCell) => {
                 const value = obj[identifierCell]
                 const valueCells = value instanceof Array ? value : [value]
-                const row = [identifierCell, ...valueCells].map((cell) =>
-                    this.encodeCell(cell)
-                )
+                const row = [identifierCell, ...valueCells]
                 return row.join(this.grammar.columnDelimiter)
             })
             .join(this.grammar.rowDelimiter)
@@ -51,16 +49,12 @@ export class Patch {
 
     private arrayToEncodedString(arr: PatchCompatibleArray) {
         return arr
-            .map((line) =>
-                line
-                    .map((cell) => this.encodeCell(cell))
-                    .join(this.grammar.columnDelimiter)
-            )
+            .map((line) => line.join(this.grammar.columnDelimiter))
             .join(this.grammar.rowDelimiter)
     }
 
     get array(): PatchCompatibleArray {
-        return this.uriEncodedString
+        return this.uriString
             .split(this.grammar.rowDelimiter)
             .map((line) =>
                 line

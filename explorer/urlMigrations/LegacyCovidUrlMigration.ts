@@ -105,7 +105,7 @@ const legacyToCurrentCovidQueryParams = (
     })
 
     return {
-        patch: patch.uriEncodedString,
+        patch: patch.uriString,
     }
 }
 
