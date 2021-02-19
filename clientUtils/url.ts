@@ -47,7 +47,9 @@ export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
  */
 export const queryParamsToStr = (params: QueryParams) => {
     const queryParams = new URLSearchParams(omitUndefinedValues(params))
-    const newQueryStr = queryParams.toString()
+
+    // we're relying on `~` (%7E) to not be encoded in some places, so make sure that it never is
+    const newQueryStr = queryParams.toString().replace(/%7E/g, "~")
     return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 

@@ -42,7 +42,9 @@ describe("legacyToGridCovidExplorer", () => {
     })
 
     it("only contains patch param", () => {
-        expect(Object.keys(migratedUrl.queryParams)).toEqual(["patch"])
+        expect(Object.keys(migratedUrl.queryParams._original)).toEqual([
+            "patch",
+        ])
     })
 
     it("migrates country param correctly", () => {
