@@ -836,7 +836,12 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
 
 export const mergeQueryStr = (...queryStrs: (string | undefined)[]) =>
     queryParamsToStr(
-        assign({}, ...excludeUndefined(queryStrs).map(strToQueryParams))
+        assign(
+            {},
+            ...excludeUndefined(queryStrs)
+                .map(strToQueryParams)
+                .map((p) => p.decoded)
+        )
     )
 
 export const mapNullToUndefined = <T>(
