@@ -26,7 +26,7 @@ export class EntityUrlBuilder {
     }
 
     private static isV1Link(queryParam: string) {
-        // No entities currently have a v2Delimiter in their name so if a v2Delimiter is present we know it's a v2 link.
+        // No legacy entities have a v2Delimiter in their name, so if a v2Delimiter is present we know it's a v2 link.
         return !decodeURIComponent(queryParam).includes(ENTITY_V2_DELIMITER)
     }
 
@@ -44,6 +44,7 @@ export class EntityUrlBuilder {
     /**
      * Old URLs may contain the selected entities by code or by their full name. In addition, some old urls contain a selection+dimension index combo. This methods
      * migrates those old urls.
+     * Important: Only ever pass not-yet-decoded URI params in here, otherwise the migration will give wrong results for legacy URLs.
      */
     static migrateLegacyCountryParam(countryParam: string) {
         const names = this.queryParamToEntityNames(countryParam)

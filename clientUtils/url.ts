@@ -4,6 +4,12 @@ export interface QueryParams {
     [key: string]: string | undefined
 }
 
+/**
+ * `_original` contains the original, URI-encoded query param as it is in the URL.
+ *   It should only be used if necessary, e.g. for legacy reasons (we need to
+ *   distinguish between `+` and `%20` for legacy URLs, for example).
+ * `decoded` contains the URL-decoded version of the query params instead.
+ */
 export interface EncodedDecodedQueryParams {
     _original: QueryParams
     decoded: QueryParams
