@@ -89,7 +89,9 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
             <Explorer
                 {...newProps}
                 uriEncodedPatch={
-                    strToQueryParams(window.location.search)[PATCH_QUERY_PARAM]
+                    strToQueryParams(window.location.search)._original[
+                        PATCH_QUERY_PARAM
+                    ]
                 }
                 key={Date.now()}
             />,
@@ -149,7 +151,7 @@ export class Explorer
         ReactDOM.render(
             <Explorer
                 {...props}
-                uriEncodedPatch={url.queryParams[PATCH_QUERY_PARAM]}
+                uriEncodedPatch={url.queryParams._original[PATCH_QUERY_PARAM]}
             />,
             document.getElementById(ExplorerContainerId)
         )
@@ -221,7 +223,7 @@ export class Explorer
         grapher.slideShow = new SlideShowController(
             this.explorerProgram.decisionMatrix
                 .allDecisionsAsPatches()
-                .map((patch) => patch.uriEncodedString),
+                .map((patch) => patch.uriString),
             0,
             this
         )
@@ -373,7 +375,7 @@ export class Explorer
     }
 
     @computed private get encodedQueryString() {
-        const encodedPatch = new Patch(this.patchObject as any).uriEncodedString
+        const encodedPatch = new Patch(this.patchObject as any).uriString
         return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
     }
 
@@ -396,7 +398,7 @@ export class Explorer
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
-                new Patch(decisionsPatchObject).uriEncodedString
+                new Patch(decisionsPatchObject).uriString
             )
 
         const explorerPatchObject: ExplorerPatchObject = {
@@ -595,7 +597,7 @@ export class Explorer
         const embedPatch = new Patch({
             ...(this.patchObject as any),
             hideControls: this.embedDialogHideControls.toString(),
-        }).uriEncodedString
+        }).uriString
         const embedPatchEncoded = embedPatch
             ? `?${PATCH_QUERY_PARAM}=` + embedPatch
             : ""

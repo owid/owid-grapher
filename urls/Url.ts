@@ -1,6 +1,7 @@
 import urlParseLib from "url-parse"
 
 import {
+    EncodedDecodedQueryParams,
     QueryParams,
     queryParamsToStr,
     strToQueryParams,
@@ -105,7 +106,7 @@ export class Url {
         ]).join("")
     }
 
-    get queryParams(): QueryParams {
+    get queryParams(): EncodedDecodedQueryParams {
         return strToQueryParams(this.queryStr)
     }
 
@@ -127,7 +128,7 @@ export class Url {
         return this.update({
             queryStr: queryParamsToStr(
                 omitUndefinedValues({
-                    ...this.queryParams,
+                    ...this.queryParams.decoded,
                     ...queryParams,
                 })
             ),

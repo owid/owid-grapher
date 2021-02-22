@@ -29,7 +29,7 @@ describe("legacyToGridCovidExplorer", () => {
     )
     const baseQueryStr = "country=SWE~MKD&yScale=log&year=0"
     const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
-    const migratedPatch = new Patch(migratedUrl.queryParams.patch)
+    const migratedPatch = new Patch(migratedUrl.queryParams._original.patch)
 
     it("has correct explorer slug", () => {
         expect(migration.explorerSlug).toEqual("coronavirus-data-explorer")
@@ -42,7 +42,9 @@ describe("legacyToGridCovidExplorer", () => {
     })
 
     it("only contains patch param", () => {
-        expect(Object.keys(migratedUrl.queryParams)).toEqual(["patch"])
+        expect(Object.keys(migratedUrl.queryParams._original)).toEqual([
+            "patch",
+        ])
     })
 
     it("migrates country param correctly", () => {
@@ -70,7 +72,7 @@ describe("co2 explorer", () => {
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
     it("generates correct patch param", () => {
-        const patch = new Patch(migratedUrl.queryParams.patch)
+        const patch = new Patch(migratedUrl.queryParams._original.patch)
         expect(patch.object).toEqual({
             "Accounting Radio": "Production-based",
             "Count Dropdown": "Cumulative",
@@ -100,7 +102,7 @@ describe("energy explorer", () => {
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
     it("generates correct patch param", () => {
-        const patch = new Patch(migratedUrl.queryParams.patch)
+        const patch = new Patch(migratedUrl.queryParams._original.patch)
         expect(patch.object).toEqual({
             "Energy or Electricity Radio": "Electricity only",
             "Metric Dropdown": "Per capita generation",

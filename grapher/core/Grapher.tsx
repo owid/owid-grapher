@@ -343,7 +343,7 @@ export class Grapher
         if (!props.table) this.downloadData()
 
         this.populateFromQueryParams(
-            legacyToCurrentGrapherQueryParams(strToQueryParams(props.queryStr))
+            legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()

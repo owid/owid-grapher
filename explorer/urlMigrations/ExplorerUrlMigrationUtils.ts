@@ -21,7 +21,9 @@ export const patchFromQueryParams = (queryParams: QueryParams): Patch => {
 }
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>
-    value !== undefined ? decodeURIComponent(value) : undefined
+    value !== undefined
+        ? decodeURIComponent(value.replace(/\+/g, "%20"))
+        : undefined
 
 export type QueryParamTransformMap = Record<
     string,

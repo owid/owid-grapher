@@ -8,9 +8,7 @@ import { action, observable, runInAction } from "mobx"
 
 @observer
 export class SearchPageMain extends React.Component {
-    @observable query: string = decodeURIComponent(
-        (getWindowQueryParams().q || "").replace(/\+/g, " ")
-    )
+    @observable query: string = getWindowQueryParams().decoded.q || ""
     lastQuery?: string
 
     @observable.ref results?: SiteSearchResults

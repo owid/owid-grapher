@@ -40,14 +40,12 @@ class ProminentLink extends React.Component<{
         const { originalURLQueryString } = this
 
         return originalURLQueryString
-            ? strToQueryParams(originalURLQueryString)
+            ? strToQueryParams(originalURLQueryString)._original
             : undefined
     }
 
     @computed private get originalURLSelectedEntities(): string[] {
-        const originalEntityQueryParam = this.originalURLQueryParams?.[
-            "country"
-        ]
+        const originalEntityQueryParam = this.originalURLQueryParams?.country
 
         const entityQueryParamExists =
             originalEntityQueryParam != undefined &&
@@ -68,7 +66,7 @@ class ProminentLink extends React.Component<{
             this.entitiesInGlobalEntitySelection
         )
 
-        return EntityUrlBuilder.entityNamesToEncodedQueryParam(newEntityList)
+        return EntityUrlBuilder.entityNamesToQueryParam(newEntityList)
     }
 
     @computed private get updatedURLParams(): QueryParams {

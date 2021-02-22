@@ -2,11 +2,10 @@ import { QueryParams } from "../../clientUtils/url"
 import { Url } from "../../urls/Url"
 import { UrlMigration, performUrlMigrations } from "../../urls/UrlMigration"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { LegacyGrapherQueryParams } from "./GrapherInterface"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url) => {
-        const { year, time } = url.queryParams
+        const { year, time } = url.queryParams.decoded
         if (!year) return url
         return url.updateQueryParams({
             year: undefined,
@@ -14,7 +13,9 @@ export const grapherUrlMigrations: UrlMigration[] = [
         })
     },
     (url) => {
-        const { country } = url.queryParams
+        // need to use `_original` (still-encoded) URL params because we need to
+        // distinguish between `+` and `%20` in legacy URLs
+        const { country } = url.queryParams._original
         if (!country) return url
         return url.updateQueryParams({
             country: undefined,
@@ -27,8 +28,8 @@ export const legacyToCurrentGrapherUrl = (url: Url) =>
     performUrlMigrations(grapherUrlMigrations, url)
 
 export const legacyToCurrentGrapherQueryParams = (
-    params: LegacyGrapherQueryParams
+    queryStr: string
 ): QueryParams => {
-    const url = Url.fromQueryParams(params)
-    return legacyToCurrentGrapherUrl(url).queryParams
+    const url = Url.fromQueryStr(queryStr)
+    return legacyToCurrentGrapherUrl(url).queryParams.decoded
 }

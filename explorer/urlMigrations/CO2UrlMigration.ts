@@ -12,23 +12,23 @@ import {
 const EXPLORER_SLUG = "co2"
 
 const co2QueryParamTransformMap: QueryParamTransformMap = {
-    [encodeURIComponent("Gas ")]: {
+    "Gas ": {
         newName: "Gas Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Accounting ")]: {
+    "Accounting ": {
         newName: "Accounting Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Fuel ")]: {
+    "Fuel ": {
         newName: "Fuel Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Count ")]: {
+    "Count ": {
         newName: "Count Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Relative to world total ")]: {
+    "Relative to world total ": {
         newName: "Relative to world total Checkbox",
         transformValue: (value) => (value ? "true" : "false"),
     },
@@ -40,14 +40,14 @@ export const co2UrlMigration: UrlMigration = (url: Url) => {
     if (explorerSlug !== EXPLORER_SLUG) return url
 
     // if there is no patch param, then it's an old URL
-    if (!url.queryParams.patch) {
+    if (!url.queryParams._original.patch) {
         url = legacyToCurrentGrapherUrl(url)
         const queryParams = transformQueryParams(
-            url.queryParams,
+            url.queryParams._original,
             co2QueryParamTransformMap
         )
         return url.setQueryParams({
-            patch: patchFromQueryParams(queryParams).uriEncodedString,
+            patch: patchFromQueryParams(queryParams).uriString,
         })
     }
     return url

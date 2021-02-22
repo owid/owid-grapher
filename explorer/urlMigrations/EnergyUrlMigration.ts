@@ -12,19 +12,19 @@ import {
 const EXPLORER_SLUG = "energy"
 
 const energyQueryParamTransformMap: QueryParamTransformMap = {
-    [encodeURIComponent("Total or Breakdown ")]: {
+    "Total or Breakdown ": {
         newName: "Total or Breakdown Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Select a source ")]: {
+    "Select a source ": {
         newName: "Select a source Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Energy or Electricity ")]: {
+    "Energy or Electricity ": {
         newName: "Energy or Electricity Radio",
         transformValue: decodeURIComponentOrUndefined,
     },
-    [encodeURIComponent("Metric ")]: {
+    "Metric ": {
         newName: "Metric Dropdown",
         transformValue: decodeURIComponentOrUndefined,
     },
@@ -36,14 +36,14 @@ export const energyUrlMigration: UrlMigration = (url: Url) => {
     if (explorerSlug !== EXPLORER_SLUG) return url
 
     // if there is no patch param, then it's an old URL
-    if (!url.queryParams.patch) {
+    if (!url.queryParams._original.patch) {
         url = legacyToCurrentGrapherUrl(url)
         const queryParams = transformQueryParams(
-            url.queryParams,
+            url.queryParams._original,
             energyQueryParamTransformMap
         )
         return url.setQueryParams({
-            patch: patchFromQueryParams(queryParams).uriEncodedString,
+            patch: patchFromQueryParams(queryParams).uriString,
         })
     }
     return url
