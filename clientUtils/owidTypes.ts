@@ -9,6 +9,7 @@ export interface Box {
 }
 
 export type Integer = number
+// TODO: remove duplicate definition, also available in CoreTable
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
