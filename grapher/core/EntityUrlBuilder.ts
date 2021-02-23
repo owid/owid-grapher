@@ -1,4 +1,5 @@
 import { EntityName } from "../../coreTable/OwidTableConstants"
+import { Url } from "../../clientUtils/urls/Url"
 import { LegacyEntityCodesToEntityNames } from "./LegacyEntityCodesToEntityNames"
 
 // Todo: ensure EntityName never contains the v2Delimiter
@@ -7,6 +8,17 @@ const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
 const LegacyDimensionRegex = /\-\d+$/
+
+export const upgradeCountryQueryParam = (url: Url) => {
+    // need to use `_original` (still-encoded) URL params because we need to
+    // distinguish between `+` and `%20` in legacy URLs
+    const { country } = url.queryParams._original
+    if (!country) return url
+    return url.updateQueryParams({
+        country: undefined,
+        selection: EntityUrlBuilder.migrateEncodedLegacyCountryParam(country),
+    })
+}
 
 export class EntityUrlBuilder {
     static entityNamesToDecodedQueryParam(entityNames: EntityName[]) {

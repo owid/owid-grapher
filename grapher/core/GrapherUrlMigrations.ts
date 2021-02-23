@@ -2,6 +2,7 @@ import { QueryParams } from "../../clientUtils/url"
 import { Url } from "../../urls/Url"
 import { UrlMigration, performUrlMigrations } from "../../urls/UrlMigration"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { upgradeCountryQueryParam } from "./EntityUrlBuilder"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url) => {
@@ -12,18 +13,7 @@ export const grapherUrlMigrations: UrlMigration[] = [
             time: time ?? year,
         })
     },
-    (url) => {
-        // need to use `_original` (still-encoded) URL params because we need to
-        // distinguish between `+` and `%20` in legacy URLs
-        const { country } = url.queryParams._original
-        if (!country) return url
-        return url.updateQueryParams({
-            country: undefined,
-            selection: EntityUrlBuilder.migrateEncodedLegacyCountryParam(
-                country
-            ),
-        })
-    },
+    upgradeCountryQueryParam,
 ]
 
 export const legacyToCurrentGrapherUrl = (url: Url) =>
