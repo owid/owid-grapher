@@ -53,7 +53,7 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations"
-import { setWindowUrl, Url } from "../urls/Url"
+import { setWindowUrl, Url } from "../clientUtils/urls/Url"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
 import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
 

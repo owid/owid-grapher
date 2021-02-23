@@ -9,6 +9,6 @@
         { "path": "../explorerAdmin" },
         { "path": "../db" },
         { "path": "../settings" },
-        { "path": "../urls" }
+        { "path": "../clientUtils" }
     ]
 }

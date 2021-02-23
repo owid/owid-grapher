@@ -1,5 +1,8 @@
-import { Url } from "../../urls/Url"
-import { performUrlMigrations, UrlMigration } from "../../urls/UrlMigration"
+import { Url } from "../../clientUtils/urls/Url"
+import {
+    performUrlMigrations,
+    UrlMigration,
+} from "../../clientUtils/urls/UrlMigration"
 import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration"
 import { co2UrlMigration } from "./CO2UrlMigration"
 import { energyUrlMigration } from "./EnergyUrlMigration"

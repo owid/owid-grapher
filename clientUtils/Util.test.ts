@@ -8,7 +8,6 @@ import {
     retryPromise,
     rollingMap,
     groupMap,
-    mergeQueryStr,
     next,
     previous,
     intersectionOfSets,
@@ -23,7 +22,6 @@ import {
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
 } from "./Util"
-import { strToQueryParams } from "./url"
 import { SortOrder, ScaleType } from "./owidTypes"
 
 describe(findClosestTime, () => {
@@ -306,23 +304,6 @@ describe(groupMap, () => {
         expect(group.get(0)).toEqual([0])
         expect(group.get(1)).toEqual([1, 1, 1])
         expect(group.get("a")).toEqual(["a"])
-    })
-})
-
-describe(mergeQueryStr, () => {
-    it("chart params override explorer params", () => {
-        const params = strToQueryParams(
-            mergeQueryStr(
-                "yScale=log&testsMetric=true&country=~GBR",
-                "country=GBR~ESP"
-            )
-        ).decoded
-        expect(params.yScale).toEqual(ScaleType.log)
-        expect(params.country).toEqual("GBR~ESP")
-    })
-
-    it("handles undefined", () => {
-        expect(mergeQueryStr(undefined, "")).toEqual("")
     })
 })
 

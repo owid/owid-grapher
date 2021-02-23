@@ -7,7 +7,7 @@ import {
     queryParamsToStr,
     splitURLintoPathAndQueryString,
     QueryParams,
-} from "../../clientUtils/url"
+} from "../../clientUtils/urls/UrlUtils"
 import {
     union,
     isEmpty,

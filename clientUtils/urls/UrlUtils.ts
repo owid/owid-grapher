@@ -1,4 +1,4 @@
-import { isEmpty, omitUndefinedValues } from "./Util"
+import { assign, excludeUndefined, omitUndefinedValues } from "../Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
@@ -30,7 +30,7 @@ export const getWindowQueryParams = (): EncodedDecodedQueryParams =>
 export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
-    const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
+    const querySplit = queryStr.split("&").filter((s) => s)
     const params: EncodedDecodedQueryParams = { _original: {}, decoded: {} }
 
     for (const param of querySplit) {
@@ -85,3 +85,13 @@ export const splitURLintoPathAndQueryString = (
     const [path, queryString] = url.split(/\?/)
     return { path: path, queryString: queryString }
 }
+
+export const mergeQueryStr = (...queryStrs: (string | undefined)[]) =>
+    queryParamsToStr(
+        assign(
+            {},
+            ...excludeUndefined(queryStrs)
+                .map(strToQueryParams)
+                .map((p) => p.decoded)
+        )
+    )

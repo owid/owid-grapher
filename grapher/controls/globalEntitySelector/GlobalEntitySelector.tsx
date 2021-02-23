@@ -23,7 +23,7 @@ import { WorldEntityName } from "../../core/GrapherConstants"
 import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
-import { setWindowQueryVariable } from "../../../clientUtils/url"
+import { setWindowQueryVariable } from "../../../clientUtils/urls/UrlUtils"
 
 enum GlobalEntitySelectionModes {
     none = "none",

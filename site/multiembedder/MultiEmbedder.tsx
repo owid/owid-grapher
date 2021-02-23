@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { throttle, fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
-import { getWindowQueryParams } from "../../clientUtils/url"
+import { getWindowQueryParams } from "../../clientUtils/urls/UrlUtils"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
@@ -20,7 +20,7 @@ import {
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
 } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
-import { Url } from "../../urls/Url"
+import { Url } from "../../clientUtils/urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"

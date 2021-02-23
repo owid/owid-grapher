@@ -23,7 +23,7 @@ import {
 import { orderBy } from "../../clientUtils/Util"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { queryParamsToStr } from "../../clientUtils/url"
+import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })

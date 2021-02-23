@@ -1,6 +1,6 @@
 import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations"
-import { Url } from "../../urls/Url"
-import { UrlMigration } from "../../urls/UrlMigration"
+import { Url } from "../../clientUtils/urls/Url"
+import { UrlMigration } from "../../clientUtils/urls/UrlMigration"
 import {
     decodeURIComponentOrUndefined,
     getExplorerSlugFromUrl,

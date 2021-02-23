@@ -58,6 +58,7 @@ import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
 import xor from "lodash/xor"
 export {
+    assign,
     capitalize,
     clone,
     cloneDeep,
@@ -124,7 +125,6 @@ import linkifyHtml from "linkifyjs/html"
 import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
-import { queryParamsToStr, strToQueryParams } from "./url"
 
 export type SVGElement = any
 export type VNode = any
@@ -833,16 +833,6 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
     }
     return attributes
 }
-
-export const mergeQueryStr = (...queryStrs: (string | undefined)[]) =>
-    queryParamsToStr(
-        assign(
-            {},
-            ...excludeUndefined(queryStrs)
-                .map(strToQueryParams)
-                .map((p) => p.decoded)
-        )
-    )
 
 export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]

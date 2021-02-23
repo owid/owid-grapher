@@ -12,7 +12,7 @@ import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { uniq, capitalize } from "../clientUtils/Util"
 import { Country } from "../clientUtils/countries"
 import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
-import { queryParamsToStr } from "../clientUtils/url"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 class ChartResult extends React.Component<{
     hit: ChartHit

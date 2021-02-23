@@ -1,6 +1,6 @@
 #! yarn testJest
 
-import { Url } from "../../urls/Url"
+import { Url } from "../../clientUtils/urls/Url"
 import {
     explorerUrlMigrationsById,
     ExplorerUrlMigrationId,

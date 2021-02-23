@@ -3,10 +3,10 @@ import {
     QueryParams,
     queryParamsToStr,
     strToQueryParams,
-} from "../../clientUtils/url"
+} from "../../clientUtils/urls/UrlUtils"
 import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations"
 import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations"
-import { Url } from "../../urls/Url"
+import { Url } from "../../clientUtils/urls/Url"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
 
 const legacyIntervalToNewValue = {

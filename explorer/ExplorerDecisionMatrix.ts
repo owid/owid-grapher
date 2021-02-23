@@ -1,5 +1,5 @@
 import { observable, computed, action } from "mobx"
-import { queryParamsToStr } from "../clientUtils/url"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 import { trimObject } from "../clientUtils/Util"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { CoreTable } from "../coreTable/CoreTable"

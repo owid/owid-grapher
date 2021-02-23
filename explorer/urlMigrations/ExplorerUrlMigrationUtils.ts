@@ -1,5 +1,5 @@
-import { QueryParams } from "../../clientUtils/url"
-import { Url } from "../../urls/Url"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils"
+import { Url } from "../../clientUtils/urls/Url"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>

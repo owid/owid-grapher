@@ -16,7 +16,6 @@
         { "path": "./settings" },
         { "path": "./adminSiteClient" },
         { "path": "./adminSiteServer" },
-        { "path": "./urls" },
         { "path": "./.storybook" }
     ]
 }

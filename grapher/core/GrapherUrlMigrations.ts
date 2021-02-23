@@ -1,7 +1,9 @@
-import { QueryParams } from "../../clientUtils/url"
-import { Url } from "../../urls/Url"
-import { UrlMigration, performUrlMigrations } from "../../urls/UrlMigration"
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils"
+import { Url } from "../../clientUtils/urls/Url"
+import {
+    UrlMigration,
+    performUrlMigrations,
+} from "../../clientUtils/urls/UrlMigration"
 import { upgradeCountryQueryParam } from "./EntityUrlBuilder"
 
 export const grapherUrlMigrations: UrlMigration[] = [

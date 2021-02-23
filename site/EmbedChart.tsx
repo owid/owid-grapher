@@ -9,7 +9,7 @@ import {
 } from "mobx"
 import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
-import { splitURLintoPathAndQueryString } from "../clientUtils/url"
+import { splitURLintoPathAndQueryString } from "../clientUtils/urls/UrlUtils"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers"
 
 @observer

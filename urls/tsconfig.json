@@ -1,8 +1,0 @@
-{
-    "extends": "../devTools/tsconfigs/tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "../itsJustJavascript/urls",
-        "rootDir": "."
-    },
-    "references": [{ "path": "../clientUtils" }]
-}
