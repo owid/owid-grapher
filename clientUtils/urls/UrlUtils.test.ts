@@ -18,14 +18,14 @@ const testCases = [
         queryStr: "?country=East+Asia+%26+Pacific",
         params: {
             _original: { country: "East+Asia+%26+Pacific" },
-            decoded: { country: "East Asia & Pacific" },
+            decoded: { country: "~East Asia & Pacific" },
         },
     },
     {
         queryStr: "?country=East%20Asia%20%26%20Pacific",
         params: {
             _original: { country: "East%20Asia%20%26%20Pacific" },
-            decoded: { country: "East Asia & Pacific" },
+            decoded: { country: "~East Asia & Pacific" },
         },
         ignoreInToQueryStrTest: true,
     },
