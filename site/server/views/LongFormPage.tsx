@@ -56,7 +56,10 @@ export const LongFormPage = (props: {
         overrides?.publicationDate ?? post.date
     ).getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(citationAuthors)
+    const citationAuthorsFormatted = formatAuthors(
+        citationAuthors,
+        isEntry || isSubEntry
+    )
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -150,7 +153,7 @@ export const LongFormPage = (props: {
                                             <a href="/team">
                                                 {`by ${formatAuthors(
                                                     post.authors,
-                                                    isEntry
+                                                    isEntry || isSubEntry
                                                 )}`}
                                             </a>
                                         )}
