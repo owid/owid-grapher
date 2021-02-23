@@ -101,6 +101,9 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
     }, 1000)
 }
 
+const isNarrow = () =>
+    window.screen.width < 450 || document.documentElement.clientWidth <= 800
+
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
@@ -649,6 +652,3 @@ export class Explorer
         return this.grapher?.newSlugs ?? []
     }
 }
-
-const isNarrow = () =>
-    window.screen.width < 450 || document.documentElement.clientWidth <= 800

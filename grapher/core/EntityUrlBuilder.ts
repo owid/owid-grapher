@@ -6,6 +6,8 @@ import { LegacyEntityCodesToEntityNames } from "./LegacyEntityCodesToEntityNames
 const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
+const LegacyDimensionRegex = /\-\d+$/
+
 export class EntityUrlBuilder {
     static entityNamesToQueryParam(entityNames: EntityName[]) {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
@@ -62,5 +64,3 @@ export class EntityUrlBuilder {
             .join(ENTITY_V2_DELIMITER)
     }
 }
-
-const LegacyDimensionRegex = /\-\d+$/
