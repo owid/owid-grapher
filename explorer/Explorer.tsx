@@ -107,7 +107,10 @@ const isNarrow = () =>
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements SlideShowManager, EntityPickerManager, GrapherManager {
+    implements
+        SlideShowManager<ExplorerChoiceParams>,
+        EntityPickerManager,
+        GrapherManager {
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,

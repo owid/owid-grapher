@@ -1724,7 +1724,7 @@ export class Grapher
         return shortcuts
     }
 
-    @observable slideShow?: SlideShowController
+    @observable slideShow?: SlideShowController<any>
 
     @action.bound private toggleTimelineCommand() {
         // Todo: add tests for this
