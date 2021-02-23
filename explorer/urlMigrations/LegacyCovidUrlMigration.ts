@@ -66,8 +66,8 @@ const legacyToCurrentCovidQueryParams = (
     queryStr: string,
     baseQueryStr?: string
 ): QueryParams => {
-    const queryParams = strToQueryParams(queryStr).decoded
-    const baseQueryParams = strToQueryParams(baseQueryStr).decoded
+    const queryParams = strToQueryParams(queryStr)
+    const baseQueryParams = strToQueryParams(baseQueryStr)
 
     const { aligned, perCapita, ...restQueryParams } = omit(
         {

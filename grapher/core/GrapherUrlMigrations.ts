@@ -8,7 +8,7 @@ import { migrateCountryQueryParam } from "./EntityUrlBuilder"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url) => {
-        const { year, time } = url.queryParams.decoded
+        const { year, time } = url.queryParams
         if (!year) return url
         return url.updateQueryParams({
             year: undefined,
@@ -25,5 +25,5 @@ export const legacyToCurrentGrapherQueryParams = (
     queryStr: string
 ): QueryParams => {
     const url = Url.fromQueryStr(queryStr)
-    return legacyToCurrentGrapherUrl(url).queryParams.decoded
+    return legacyToCurrentGrapherUrl(url).queryParams
 }

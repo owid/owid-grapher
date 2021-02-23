@@ -40,7 +40,7 @@ export const co2UrlMigration: UrlMigration = (url: Url) => {
 
     url = legacyToCurrentGrapherUrl(url)
     const queryParams = transformQueryParams(
-        url.queryParams._original,
+        url.queryParams,
         co2QueryParamTransformMap
     )
     return url.setQueryParams(queryParams)

@@ -2055,12 +2055,10 @@ export class Grapher
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
-        let url = Url.fromQueryParams(params)
-        url = setCountryQueryParam(
-            url,
+        return setCountryQueryParam(
+            Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors
-        )
-        return url.queryParams.decoded
+        ).queryParams
     }
 
     // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.

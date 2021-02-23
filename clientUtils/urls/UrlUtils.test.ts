@@ -5,41 +5,39 @@ import { queryParamsToStr, strToQueryParams } from "./UrlUtils"
 const testCases = [
     {
         queryStr: "?foo=bar",
-        params: { _original: { foo: "bar" }, decoded: { foo: "bar" } },
+        queryParams: { foo: "bar" },
+        encodedQueryParams: { foo: "bar" },
     },
     {
         queryStr: "?foo=bar&baz=false&bar=0",
-        params: {
-            _original: { foo: "bar", baz: "false", bar: "0" },
-            decoded: { foo: "bar", baz: "false", bar: "0" },
-        },
+        queryParams: { foo: "bar", baz: "false", bar: "0" },
+        encodedQueryParams: { foo: "bar", baz: "false", bar: "0" },
     },
     {
         queryStr: "?country=East+Asia+%26+Pacific",
-        params: {
-            _original: { country: "East+Asia+%26+Pacific" },
-            decoded: { country: "~East Asia & Pacific" },
-        },
+        encodedQueryParams: { country: "East+Asia+%26+Pacific" },
+        queryParams: { country: "East Asia & Pacific" },
     },
     {
         queryStr: "?country=East%20Asia%20%26%20Pacific",
-        params: {
-            _original: { country: "East%20Asia%20%26%20Pacific" },
-            decoded: { country: "~East Asia & Pacific" },
-        },
+        queryParams: { country: "East Asia & Pacific" },
+        encodedQueryParams: { country: "East%20Asia%20%26%20Pacific" },
         ignoreInToQueryStrTest: true,
     },
     {
         queryStr: "?foo=%2526",
-        params: { _original: { foo: "%2526" }, decoded: { foo: "%26" } },
+        queryParams: { foo: "%26" },
+        encodedQueryParams: { foo: "%2526" },
     },
     {
         queryStr: "?foo=",
-        params: { _original: { foo: "" }, decoded: { foo: "" } },
+        queryParams: { foo: "" },
+        encodedQueryParams: { foo: "" },
     },
     {
         queryStr: "?foo",
-        params: { _original: { foo: undefined }, decoded: { foo: undefined } },
+        queryParams: { foo: undefined },
+        encodedQueryParams: { foo: undefined },
         ignoreInToQueryStrTest: true,
     },
 ]
@@ -49,7 +47,7 @@ describe(queryParamsToStr, () => {
         if (testCase.ignoreInToQueryStrTest) continue
 
         it(`can convert query params to a query string: '${testCase.queryStr}'`, () => {
-            expect(queryParamsToStr(testCase.params.decoded)).toEqual(
+            expect(queryParamsToStr(testCase.queryParams)).toEqual(
                 testCase.queryStr
             )
         })
@@ -59,7 +57,12 @@ describe(queryParamsToStr, () => {
 describe(strToQueryParams, () => {
     for (const testCase of testCases) {
         it(`can convert query string to a query params object: '${testCase.queryStr}'`, () => {
-            expect(strToQueryParams(testCase.queryStr)).toEqual(testCase.params)
+            expect(strToQueryParams(testCase.queryStr)).toEqual(
+                testCase.queryParams
+            )
+            expect(strToQueryParams(testCase.queryStr, true)).toEqual(
+                testCase.encodedQueryParams
+            )
         })
     }
 })

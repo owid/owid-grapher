@@ -35,7 +35,7 @@ export const energyUrlMigration: UrlMigration = (url: Url) => {
     if (explorerSlug !== EXPLORER_SLUG) return url
     url = legacyToCurrentGrapherUrl(url)
     const queryParams = transformQueryParams(
-        url.queryParams._original,
+        url.queryParams,
         energyQueryParamTransformMap
     )
     return url.setQueryParams(queryParams)

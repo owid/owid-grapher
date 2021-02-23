@@ -147,7 +147,7 @@ export class Explorer
     }
 
     private initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
-        .queryParams.decoded as ExplorerFullQueryParams
+        .queryParams as ExplorerFullQueryParams
 
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
         this.initialQueryParams
@@ -193,7 +193,7 @@ export class Explorer
             )
         }
 
-        this.grapher?.populateFromQueryParams(url.queryParams.decoded)
+        this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -389,7 +389,7 @@ export class Explorer
                 : undefined
         )
 
-        return url.queryParams.decoded as ExplorerFullQueryParams
+        return url.queryParams as ExplorerFullQueryParams
     }
 
     @computed get currentUrl(): Url {

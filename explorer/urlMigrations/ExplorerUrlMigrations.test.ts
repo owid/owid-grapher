@@ -28,7 +28,7 @@ describe("legacyToGridCovidExplorer", () => {
     )
     const baseQueryStr = "country=SWE~MKD&yScale=log&year=0"
     const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
-    const migratedQueryParams = migratedUrl.queryParams.decoded
+    const migratedQueryParams = migratedUrl.queryParams
 
     it("has correct explorer slug", () => {
         expect(migration.explorerSlug).toEqual("coronavirus-data-explorer")
@@ -62,7 +62,7 @@ describe("co2 explorer", () => {
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
     it("generates correct query params", () => {
-        expect(migratedUrl.queryParams.decoded).toEqual({
+        expect(migratedUrl.queryParams).toEqual({
             "Accounting Radio": "Production-based",
             "Count Dropdown": "Cumulative",
             "Fuel Dropdown": "Coal",
@@ -85,7 +85,7 @@ describe("energy explorer", () => {
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
     it("generates correct query params", () => {
-        expect(migratedUrl.queryParams.decoded).toEqual({
+        expect(migratedUrl.queryParams).toEqual({
             "Energy or Electricity Radio": "Electricity only",
             "Metric Dropdown": "Per capita generation",
             "Select a source Dropdown": "Fossil fuels",

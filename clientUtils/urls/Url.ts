@@ -2,12 +2,7 @@ import urlParseLib from "url-parse"
 
 import { excludeUndefined, omitUndefinedValues } from "../Util"
 
-import {
-    QueryParams,
-    queryParamsToStr,
-    EncodedDecodedQueryParams,
-    strToQueryParams,
-} from "./UrlUtils"
+import { QueryParams, queryParamsToStr, strToQueryParams } from "./UrlUtils"
 
 const parseUrl = (url: string) => {
     const parsed = urlParseLib(url, {})
@@ -107,8 +102,12 @@ export class Url {
         ]).join("")
     }
 
-    get queryParams(): EncodedDecodedQueryParams {
+    get queryParams(): QueryParams {
         return strToQueryParams(this.queryStr)
+    }
+
+    get encodedQueryParams(): QueryParams {
+        return strToQueryParams(this.queryStr, true)
     }
 
     update(props: UrlProps) {
@@ -129,7 +128,7 @@ export class Url {
         return this.update({
             queryStr: queryParamsToStr(
                 omitUndefinedValues({
-                    ...this.queryParams.decoded,
+                    ...this.queryParams,
                     ...queryParams,
                 })
             ),

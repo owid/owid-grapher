@@ -351,7 +351,7 @@ describe("urls", () => {
             addCountryMode: EntitySelectionMode.Disabled,
         })
         const url = setCountryQueryParam(Url.fromQueryParams({}), ["usa"])
-        grapher.populateFromQueryParams(url.queryParams.decoded)
+        grapher.populateFromQueryParams(url.queryParams)
         expect(grapher.selection.selectedEntityNames).toEqual(["usa", "canada"])
     })
 })
