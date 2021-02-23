@@ -2,19 +2,15 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
+import { union, getAttributesOfHTMLElement } from "../../clientUtils/Util"
 import {
-    strToQueryParams,
-    queryParamsToStr,
-    splitURLintoPathAndQueryString,
-    QueryParams,
-} from "../../clientUtils/urls/UrlUtils"
-import {
-    union,
-    isEmpty,
-    getAttributesOfHTMLElement,
-} from "../../clientUtils/Util"
-import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
+    getCountryQueryParam,
+    migrateCountryQueryParam,
+    setCountryQueryParam,
+} from "../../grapher/core/EntityUrlBuilder"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
+import { Url } from "../../clientUtils/urls/Url"
+import { EntityName } from "../../coreTable/OwidTableConstants"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -24,66 +20,26 @@ class ProminentLink extends React.Component<{
     innerHTML: string | null
     globalEntitySelection?: SelectionArray
 }> {
-    @computed get originalURLPath() {
-        return splitURLintoPathAndQueryString(
-            this.props.originalAnchorAttributes.href
-        ).path
+    @computed get originalUrl(): Url {
+        return migrateCountryQueryParam(
+            Url.fromURL(this.props.originalAnchorAttributes.href)
+        )
     }
 
-    @computed private get originalURLQueryString(): string | undefined {
-        return splitURLintoPathAndQueryString(
-            this.props.originalAnchorAttributes.href
-        ).queryString
+    @computed private get originalSelectedEntities(): EntityName[] {
+        return getCountryQueryParam(this.originalUrl) ?? []
     }
 
-    @computed private get originalURLQueryParams(): QueryParams | undefined {
-        const { originalURLQueryString } = this
-
-        return originalURLQueryString
-            ? strToQueryParams(originalURLQueryString)._original
-            : undefined
-    }
-
-    @computed private get originalURLSelectedEntities(): string[] {
-        const originalEntityQueryParam = this.originalURLQueryParams?.country
-
-        const entityQueryParamExists =
-            originalEntityQueryParam != undefined &&
-            !isEmpty(originalEntityQueryParam)
-
-        return entityQueryParamExists
-            ? EntityUrlBuilder.encodedQueryParamToEntityNames(
-                  originalEntityQueryParam
-              )
-            : []
-    }
-
-    @computed private get entitiesInGlobalEntitySelection() {
+    @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
         return this.props.globalEntitySelection?.selectedEntityNames ?? []
     }
 
-    @computed private get updatedEntityQueryParam(): string {
+    @computed private get updatedUrl(): Url {
         const newEntityList = union(
-            this.originalURLSelectedEntities,
+            this.originalSelectedEntities,
             this.entitiesInGlobalEntitySelection
         )
-
-        return EntityUrlBuilder.entityNamesToDecodedQueryParam(newEntityList)
-    }
-
-    @computed private get updatedURLParams(): QueryParams {
-        const { originalURLQueryParams, updatedEntityQueryParam } = this
-
-        return {
-            ...originalURLQueryParams,
-            ...(!isEmpty(updatedEntityQueryParam) && {
-                country: updatedEntityQueryParam,
-            }),
-        }
-    }
-
-    @computed private get updatedURL() {
-        return this.originalURLPath + queryParamsToStr(this.updatedURLParams)
+        return setCountryQueryParam(this.originalUrl, newEntityList)
     }
 
     render() {
@@ -91,7 +47,7 @@ class ProminentLink extends React.Component<{
             <a
                 dangerouslySetInnerHTML={{ __html: this.props.innerHTML ?? "" }}
                 {...this.props.originalAnchorAttributes}
-                href={this.updatedURL}
+                href={this.updatedUrl.fullUrl}
             />
         )
     }

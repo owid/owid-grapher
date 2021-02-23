@@ -23,7 +23,8 @@ import { WorldEntityName } from "../../core/GrapherConstants"
 import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "../../../coreTable/OwidTableConstants"
-import { setWindowQueryVariable } from "../../../clientUtils/urls/UrlUtils"
+import { setCountryQueryParam } from "../../core/EntityUrlBuilder"
+import { getWindowUrl, setWindowUrl } from "../../../clientUtils/urls/Url"
 
 enum GlobalEntitySelectionModes {
     none = "none",
@@ -218,7 +219,12 @@ export class GlobalEntitySelector extends React.Component<{
     )
 
     @action.bound private updateURL() {
-        setWindowQueryVariable("selection", this.selection.asParam)
+        setWindowUrl(
+            setCountryQueryParam(
+                getWindowUrl(),
+                this.selection.selectedEntityNames
+            )
+        )
     }
 
     @action.bound updateSelection(newSelectedEntities: string[]) {

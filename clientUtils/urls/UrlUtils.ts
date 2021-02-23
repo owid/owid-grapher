@@ -60,15 +60,6 @@ export const queryParamsToStr = (params: QueryParams) => {
     return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 
-export const setWindowQueryVariable = (key: string, val: string | null) => {
-    const params = getWindowQueryParams().decoded
-
-    if (val === null || val === "") delete params[key]
-    else params[key] = val
-
-    setWindowQueryStr(queryParamsToStr(params))
-}
-
 export const getWindowQueryStr = () => window.location.search
 
 export const setWindowQueryStr = (str: string) =>

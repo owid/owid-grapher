@@ -65,7 +65,7 @@ export class Url {
         })
     }
 
-    private constructor(props: UrlProps) {
+    private constructor(props: UrlProps = {}) {
         this.props = {
             ...props,
             pathname:
@@ -144,4 +144,8 @@ export const setWindowUrl = (url: Url): void => {
         document.title,
         excludeUndefined([pathname, url.queryStr, url.hash]).join("")
     )
+}
+
+export const getWindowUrl = (): Url => {
+    return Url.fromURL(window.location.href)
 }

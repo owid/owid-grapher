@@ -55,7 +55,7 @@ import {
 } from "./urlMigrations/ExplorerUrlMigrations"
 import { setWindowUrl, Url } from "../clientUtils/urls/Url"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
-import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
+import { setCountryQueryParam } from "../grapher/core/EntityUrlBuilder"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -184,13 +184,16 @@ export class Explorer
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
 
-        const grapherQueryParams = {
-            ...this.initialQueryParams,
-            selection: this.props.selection?.hasSelection
-                ? this.props.selection.asParam
-                : this.initialQueryParams.selection,
+        let url = Url.fromQueryParams(this.initialQueryParams)
+
+        if (this.props.selection?.hasSelection) {
+            url = setCountryQueryParam(
+                url,
+                this.props.selection.selectedEntityNames
+            )
         }
-        this.grapher?.populateFromQueryParams(grapherQueryParams)
+
+        this.grapher?.populateFromQueryParams(url.queryParams.decoded)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -369,18 +372,24 @@ export class Explorer
                 JSON.stringify(this.changedChoiceParams)
             )
 
-        return omitUndefinedValues({
-            ...this.grapher.changedParams,
-            selection: this.selection.hasSelection
-                ? EntityUrlBuilder.entityNamesToDecodedQueryParam(
-                      this.selection.selectedEntityNames
-                  )
-                : undefined,
-            pickerSort: this.entityPickerSort,
-            pickerMetric: this.entityPickerMetric,
-            hideControls: this.initialQueryParams.hideControls || undefined,
-            ...this.changedChoiceParams,
-        }) as ExplorerFullQueryParams
+        let url = Url.fromQueryParams(
+            omitUndefinedValues({
+                ...this.grapher.changedParams,
+                pickerSort: this.entityPickerSort,
+                pickerMetric: this.entityPickerMetric,
+                hideControls: this.initialQueryParams.hideControls || undefined,
+                ...this.changedChoiceParams,
+            })
+        )
+
+        url = setCountryQueryParam(
+            url,
+            this.selection.hasSelection
+                ? this.selection.selectedEntityNames
+                : undefined
+        )
+
+        return url.queryParams.decoded as ExplorerFullQueryParams
     }
 
     @computed get currentUrl(): Url {

@@ -1,5 +1,9 @@
 #! /usr/bin/env jest
 
+import {
+    queryParamsToStr,
+    strToQueryParams,
+} from "../../clientUtils/urls/UrlUtils"
 import { EntityUrlBuilder, ENTITY_V2_DELIMITER } from "./EntityUrlBuilder"
 
 const encodeTests = [
@@ -141,16 +145,18 @@ describe("facebook", () => {
 })
 
 describe("it can handle legacy urls with dimension in selection key", () => {
-    const queryStr = [
-        "United States",
-        "USA",
-        "GBR-0",
-        "1980-1989",
-        "NotFound",
-    ].join(ENTITY_V2_DELIMITER)
+    const queryStr = queryParamsToStr({
+        selection: [
+            "United States",
+            "USA",
+            "GBR-0",
+            "1980-1989",
+            "NotFound",
+        ].join(ENTITY_V2_DELIMITER),
+    })
 
     const results = EntityUrlBuilder.migrateEncodedLegacyCountryParam(
-        encodeURIComponent(queryStr)
+        strToQueryParams(queryStr)._original.selection!
     )
 
     expect(results).toEqual(

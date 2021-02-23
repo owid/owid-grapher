@@ -9,14 +9,59 @@ export const ENTITY_V2_DELIMITER = "~"
 
 const LegacyDimensionRegex = /\-\d+$/
 
-export const upgradeCountryQueryParam = (url: Url) => {
+const dropLegacyDimensionInEntity = (entityName: string) => {
+    // If an entity has the old name-dimension encoding, removing the dimension part and add it as a new selection. So USA-1 becomes USA.
+    // This is only run against the old `country` params
+    if (LegacyDimensionRegex.test(entityName))
+        return entityName.replace(LegacyDimensionRegex, "")
+    return entityName
+}
+
+const codeToEntityName = (codeOrEntityName: string) => {
+    return LegacyEntityCodesToEntityNames[codeOrEntityName] ?? codeOrEntityName
+}
+
+/**
+ * Old URLs may contain the selected entities by code or by their full name. In addition, some old urls contain a selection+dimension index combo. This methods
+ * migrates those old urls.
+ * Important: Only ever pass not-yet-decoded URI params in here, otherwise the migration will give wrong results for legacy URLs.
+ */
+const migrateEncodedLegacyCountryParam = (countryParam: string) => {
+    const entityNames = EntityUrlBuilder.encodedQueryParamToEntityNames(
+        countryParam
+    )
+        .map(dropLegacyDimensionInEntity)
+        .map(codeToEntityName)
+    return EntityUrlBuilder.entityNamesToDecodedQueryParam(entityNames)
+}
+
+export const migrateCountryQueryParam = (url: Url) => {
     // need to use `_original` (still-encoded) URL params because we need to
     // distinguish between `+` and `%20` in legacy URLs
     const { country } = url.queryParams._original
     if (!country) return url
     return url.updateQueryParams({
         country: undefined,
-        selection: EntityUrlBuilder.migrateEncodedLegacyCountryParam(country),
+        selection: migrateEncodedLegacyCountryParam(country),
+    })
+}
+
+/** NOTE: Ensure country query param is migrated first! */
+export const getCountryQueryParam = (url: Url): EntityName[] | undefined => {
+    return url.queryParams.decoded.selection
+        ?.split(ENTITY_V2_DELIMITER)
+        .filter((entityName) => entityName)
+}
+
+export const setCountryQueryParam = (
+    url: Url,
+    entityNames: EntityName[] | undefined
+) => {
+    return url.updateQueryParams({
+        selection:
+            entityNames && entityNames.length > 0
+                ? EntityUrlBuilder.entityNamesToDecodedQueryParam(entityNames)
+                : undefined,
     })
 }
 
@@ -52,31 +97,5 @@ export class EntityUrlBuilder {
         return decodeURIComponent(queryParam.replace(/\+/g, "%20"))
             .split(ENTITY_V2_DELIMITER)
             .filter((item) => item)
-    }
-
-    /**
-     * Old URLs may contain the selected entities by code or by their full name. In addition, some old urls contain a selection+dimension index combo. This methods
-     * migrates those old urls.
-     * Important: Only ever pass not-yet-decoded URI params in here, otherwise the migration will give wrong results for legacy URLs.
-     */
-    static migrateEncodedLegacyCountryParam(countryParam: string) {
-        const entityNames = this.encodedQueryParamToEntityNames(countryParam)
-            .map(this.dropLegacyDimensionInEntity)
-            .map(this.codeToEntityName)
-        return this.entityNamesToDecodedQueryParam(entityNames)
-    }
-
-    private static dropLegacyDimensionInEntity(entityName: string) {
-        // If an entity has the old name-dimension encoding, removing the dimension part and add it as a new selection. So USA-1 becomes USA.
-        // This is only run against the old `country` params
-        if (LegacyDimensionRegex.test(entityName))
-            return entityName.replace(LegacyDimensionRegex, "")
-        return entityName
-    }
-
-    private static codeToEntityName(codeOrEntityName: string) {
-        return (
-            LegacyEntityCodesToEntityNames[codeOrEntityName] ?? codeOrEntityName
-        )
     }
 }
