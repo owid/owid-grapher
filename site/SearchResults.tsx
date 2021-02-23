@@ -12,6 +12,7 @@ import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { uniq, capitalize } from "../clientUtils/Util"
 import { Country } from "../clientUtils/countries"
 import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
+import { queryParamsToStr } from "../clientUtils/url"
 
 class ChartResult extends React.Component<{
     hit: ChartHit
@@ -28,9 +29,12 @@ class ChartResult extends React.Component<{
         else
             return (
                 hit.slug +
-                `?tab=chart&country=${EntityUrlBuilder.entityNamesToDecodedQueryParam(
-                    entities
-                )}`
+                queryParamsToStr({
+                    tab: "chart",
+                    country: EntityUrlBuilder.entityNamesToDecodedQueryParam(
+                        entities
+                    ),
+                })
             )
     }
 
@@ -156,9 +160,12 @@ export class SearchResults extends React.Component<{
         else
             return (
                 bestChartHit.slug +
-                `?tab=chart&country=${EntityUrlBuilder.entityNamesToDecodedQueryParam(
-                    bestChartEntities
-                )}`
+                queryParamsToStr({
+                    tab: "chart",
+                    country: EntityUrlBuilder.entityNamesToDecodedQueryParam(
+                        bestChartEntities
+                    ),
+                })
             )
     }
 
