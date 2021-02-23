@@ -19,7 +19,9 @@ export const grapherUrlMigrations: UrlMigration[] = [
         if (!country) return url
         return url.updateQueryParams({
             country: undefined,
-            selection: EntityUrlBuilder.migrateLegacyCountryParam(country),
+            selection: EntityUrlBuilder.migrateEncodedLegacyCountryParam(
+                country
+            ),
         })
     },
 ]

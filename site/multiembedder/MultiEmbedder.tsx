@@ -240,7 +240,7 @@ class MultiEmbedder {
         )
         const queryParams = getWindowQueryParams()
 
-        const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
+        const selectionParam = EntityUrlBuilder.migrateEncodedLegacyCountryParam(
             queryParams._original.country ??
                 queryParams._original.selection ??
                 embeddedDefaultCountriesParam ??
@@ -248,7 +248,7 @@ class MultiEmbedder {
         )
 
         this.selection = new SelectionArray(
-            EntityUrlBuilder.queryParamToEntityNames(selectionParam)
+            EntityUrlBuilder.encodedQueryParamToEntityNames(selectionParam)
         )
 
         hydrateGlobalEntitySelectorIfAny(

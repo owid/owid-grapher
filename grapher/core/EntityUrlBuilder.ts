@@ -9,7 +9,7 @@ export const ENTITY_V2_DELIMITER = "~"
 const LegacyDimensionRegex = /\-\d+$/
 
 export class EntityUrlBuilder {
-    static entityNamesToQueryParam(entityNames: EntityName[]) {
+    static entityNamesToDecodedQueryParam(entityNames: EntityName[]) {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entityNames.length === 1)
             return ENTITY_V2_DELIMITER + entityNames[0]
@@ -17,7 +17,7 @@ export class EntityUrlBuilder {
         return entityNames.join(ENTITY_V2_DELIMITER)
     }
 
-    static queryParamToEntityNames(queryParam = ""): EntityName[] {
+    static encodedQueryParamToEntityNames(queryParam = ""): EntityName[] {
         // First preserve handling of the old v1 country=USA+FRA style links. If a link does not
         // include a v2Delimiter and includes a + we assume it's a v1 link. Unfortunately link sharing
         // with v1 links did not work on Facebook because FB would replace %20 with "+".
@@ -48,8 +48,8 @@ export class EntityUrlBuilder {
      * migrates those old urls.
      * Important: Only ever pass not-yet-decoded URI params in here, otherwise the migration will give wrong results for legacy URLs.
      */
-    static migrateLegacyCountryParam(countryParam: string) {
-        const names = this.queryParamToEntityNames(countryParam)
+    static migrateEncodedLegacyCountryParam(countryParam: string) {
+        const names = this.encodedQueryParamToEntityNames(countryParam)
         const newNames: string[] = []
         names.forEach((name) => {
             // If an entity has the old name-dimension encoding, removing the dimension part and add it as a new selection. So USA-1 becomes USA.

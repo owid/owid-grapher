@@ -465,7 +465,9 @@ export class Grapher
         )
             this.selection.setSelectedEntities(
                 typeof params.selection === "string"
-                    ? EntityUrlBuilder.queryParamToEntityNames(params.selection)
+                    ? EntityUrlBuilder.encodedQueryParamToEntityNames(
+                          params.selection
+                      )
                     : params.selection
             )
     }

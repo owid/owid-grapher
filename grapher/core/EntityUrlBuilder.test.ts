@@ -72,13 +72,13 @@ const encodeTests = [
 encodeTests.forEach((testCase) => {
     it(`correctly encodes url strings`, () => {
         expect(
-            EntityUrlBuilder.entityNamesToQueryParam(testCase.entities)
+            EntityUrlBuilder.entityNamesToDecodedQueryParam(testCase.entities)
         ).toEqual(testCase.queryParam.decoded)
     })
 
     it(`correctly decodes url strings`, () => {
         expect(
-            EntityUrlBuilder.queryParamToEntityNames(
+            EntityUrlBuilder.encodedQueryParamToEntityNames(
                 testCase.queryParam._original
             )
         ).toEqual(testCase.entities)
@@ -110,7 +110,7 @@ describe("legacyLinks", () => {
     legacyLinks.forEach((testCase) => {
         it(`correctly decodes legacy url strings`, () => {
             expect(
-                EntityUrlBuilder.queryParamToEntityNames(
+                EntityUrlBuilder.encodedQueryParamToEntityNames(
                     testCase.queryParam._original
                 )
             ).toEqual(testCase.entities)
@@ -132,7 +132,7 @@ describe("facebook", () => {
     facebookLinks.forEach((testCase) => {
         it(`correctly decodes Facebook altered links`, () => {
             expect(
-                EntityUrlBuilder.queryParamToEntityNames(
+                EntityUrlBuilder.encodedQueryParamToEntityNames(
                     testCase.queryParam._original
                 )
             ).toEqual(testCase.entities)
@@ -149,7 +149,7 @@ describe("it can handle legacy urls with dimension in selection key", () => {
         "NotFound",
     ].join(ENTITY_V2_DELIMITER)
 
-    const results = EntityUrlBuilder.migrateLegacyCountryParam(
+    const results = EntityUrlBuilder.migrateEncodedLegacyCountryParam(
         encodeURIComponent(queryStr)
     )
 

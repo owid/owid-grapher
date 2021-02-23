@@ -52,7 +52,9 @@ class ProminentLink extends React.Component<{
             !isEmpty(originalEntityQueryParam)
 
         return entityQueryParamExists
-            ? EntityUrlBuilder.queryParamToEntityNames(originalEntityQueryParam)
+            ? EntityUrlBuilder.encodedQueryParamToEntityNames(
+                  originalEntityQueryParam
+              )
             : []
     }
 
@@ -66,7 +68,7 @@ class ProminentLink extends React.Component<{
             this.entitiesInGlobalEntitySelection
         )
 
-        return EntityUrlBuilder.entityNamesToQueryParam(newEntityList)
+        return EntityUrlBuilder.entityNamesToDecodedQueryParam(newEntityList)
     }
 
     @computed private get updatedURLParams(): QueryParams {

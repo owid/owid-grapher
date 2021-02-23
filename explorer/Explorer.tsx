@@ -372,7 +372,7 @@ export class Explorer
         return omitUndefinedValues({
             ...this.grapher.changedParams,
             selection: this.selection.hasSelection
-                ? EntityUrlBuilder.entityNamesToQueryParam(
+                ? EntityUrlBuilder.entityNamesToDecodedQueryParam(
                       this.selection.selectedEntityNames
                   )
                 : undefined,
