@@ -13,7 +13,6 @@ export class EntityUrlBuilder {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entityNames.length === 1)
             return ENTITY_V2_DELIMITER + entityNames[0]
-
         return entityNames.join(ENTITY_V2_DELIMITER)
     }
 
@@ -49,18 +48,23 @@ export class EntityUrlBuilder {
      * Important: Only ever pass not-yet-decoded URI params in here, otherwise the migration will give wrong results for legacy URLs.
      */
     static migrateEncodedLegacyCountryParam(countryParam: string) {
-        const names = this.encodedQueryParamToEntityNames(countryParam)
-        const newNames: string[] = []
-        names.forEach((name) => {
-            // If an entity has the old name-dimension encoding, removing the dimension part and add it as a new selection. So USA-1 becomes USA.
-            // This is only run against the old `country` params
-            if (LegacyDimensionRegex.test(name))
-                newNames.push(name.replace(LegacyDimensionRegex, ""))
-            newNames.push(name)
-        })
+        const entityNames = this.encodedQueryParamToEntityNames(countryParam)
+            .map(this.dropLegacyDimensionInEntity)
+            .map(this.codeToEntityName)
+        return this.entityNamesToDecodedQueryParam(entityNames)
+    }
 
-        return newNames
-            .map((name) => LegacyEntityCodesToEntityNames[name] ?? name)
-            .join(ENTITY_V2_DELIMITER)
+    private static dropLegacyDimensionInEntity(entityName: string) {
+        // If an entity has the old name-dimension encoding, removing the dimension part and add it as a new selection. So USA-1 becomes USA.
+        // This is only run against the old `country` params
+        if (LegacyDimensionRegex.test(entityName))
+            return entityName.replace(LegacyDimensionRegex, "")
+        return entityName
+    }
+
+    private static codeToEntityName(codeOrEntityName: string) {
+        return (
+            LegacyEntityCodesToEntityNames[codeOrEntityName] ?? codeOrEntityName
+        )
     }
 }
