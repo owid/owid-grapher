@@ -1,24 +1,13 @@
 import { trimObject } from "../clientUtils/Util"
-import { queryParamsToStr } from "../clientUtils/url"
-import { action, observable, computed } from "mobx"
 import { GitCommit, SubNavId } from "../clientUtils/owidTypes"
 import {
-    ExplorerControlType,
-    ExplorerChoiceOption,
-    ExplorerControlTypeRegex,
     DefaultNewExplorerSlug,
+    ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
-    ExplorerChoice,
-} from "../explorer/ExplorerConstants"
+} from "./ExplorerConstants"
 import { CoreTable } from "../coreTable/CoreTable"
 import { CoreMatrix, TableSlug } from "../coreTable/CoreTableConstants"
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
-import {
-    detectDelimiter,
-    parseDelimited,
-    isCellEmpty,
-} from "../coreTable/CoreTableUtils"
-import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
+import { ExplorerGrammar } from "./ExplorerGrammar"
 import {
     CellDef,
     GridBoolean,
@@ -31,9 +20,9 @@ import { OwidTable } from "../coreTable/OwidTable"
 import { GridProgram } from "../gridLang/GridProgram"
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { GrapherGrammar } from "../explorer/GrapherGrammar"
+import { GrapherGrammar } from "./GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
-import { Patch } from "../patch/Patch"
+import { DecisionMatrix } from "./ExplorerDecisionMatrix"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -82,8 +71,8 @@ export class ExplorerProgram extends GridProgram {
         return this.slug + EXPLORER_FILE_SUFFIX
     }
 
-    initDecisionMatrix(uriEncodedPatch = "") {
-        this.decisionMatrix.setValuesFromPatch(uriEncodedPatch)
+    initDecisionMatrix(choiceParams: ExplorerChoiceParams) {
+        this.decisionMatrix.setValuesFromChoiceParams(choiceParams)
         return this
     }
 
@@ -373,300 +362,10 @@ export class ExplorerProgram extends GridProgram {
     }
 }
 
-// todo: cleanup
-const makeChoicesMap = (delimited: string) => {
-    const headerLine = delimited.split("\n")[0]
-    const map = new Map<ChoiceName, ExplorerControlType>()
-    headerLine
-        .split(detectDelimiter(headerLine))
-        .filter((name) => ExplorerControlTypeRegex.test(name))
-        .forEach((choiceName) => {
-            const words = choiceName.split(" ")
-            const type = words[words.length - 1] as ExplorerControlType
-            map.set(words.join(" "), type)
-        })
-    return map
-}
-
-type ChoiceName = string
-type ChoiceValue = string
-
-interface DecisionsPatchObject {
-    [choiceName: string]: ChoiceValue
-}
-
-interface ChoiceMap {
-    [choiceName: string]: ChoiceValue[]
-}
-
-// Takes the author's program and the user's current settings and returns an object for
-// allow the user to navigate amongst charts.
-export class DecisionMatrix {
-    private table: CoreTable
-    @observable currentPatch: DecisionsPatchObject = {}
-    constructor(delimited: string, hash = "") {
-        this.choices = makeChoicesMap(delimited)
-        this.table = new CoreTable(parseDelimited(delimited), [
-            // todo: remove col def?
-            {
-                slug: GrapherGrammar.grapherId.keyword,
-                type: ColumnTypeNames.Integer,
-            },
-        ])
-        this.hash = hash
-        this.setValuesFromPatch() // Initialize options
-    }
-
-    allDecisionsAsPatches() {
-        return this.table.rows.map((row) => {
-            const patchObject: DecisionsPatchObject = {}
-            this.choiceNames.forEach((name) => {
-                patchObject[name] = row[name]
-            })
-            return new Patch(patchObject)
-        })
-    }
-
-    get numRows() {
-        return this.table.numRows
-    }
-
-    get requiredGrapherIds() {
-        return this.table.get(GrapherGrammar.grapherId.keyword).uniqValues
-    }
-
-    private choices: Map<ChoiceName, ExplorerControlType>
-    hash: string
-
-    toConstrainedOptions() {
-        const settings = { ...this.currentPatch }
-        this.choiceNames.forEach((choiceName) => {
-            if (!this.isOptionAvailable(choiceName, settings[choiceName]))
-                settings[choiceName] = this.firstAvailableOptionForChoice(
-                    choiceName
-                )!
-        })
-        return settings
-    }
-
-    @computed private get diffBetweenUserSettingsAndConstrained() {
-        const obj = this.toConstrainedOptions()
-        Object.keys(obj).forEach((key) => {
-            if (this.currentPatch[key] === obj[key]) delete obj[key]
-        })
-        return obj
-    }
-
-    @action.bound setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
-        const currentInvalidState = this.diffBetweenUserSettingsAndConstrained
-        this._setValue(choiceName, value)
-        const newInvalidState = this.diffBetweenUserSettingsAndConstrained
-        if (Object.keys(newInvalidState).length) {
-            Object.keys(currentInvalidState).forEach((key) => {
-                /**
-                 * The user navigated to an invalid state. Then they made a change in the new state, but the old invalid props were still set. At this
-                 * point, we should delete the old invalid props. We only want to allow the user to go back 1, not a full undo/redo history.
-                 */
-                if (currentInvalidState[key] === newInvalidState[key])
-                    this._setValue(key, currentInvalidState[key])
-            })
-        }
-    }
-
-    @action.bound private _setValue(
-        choiceName: ChoiceName,
-        value: ChoiceValue
-    ) {
-        if (value === "") delete this.currentPatch[choiceName]
-        else this.currentPatch[choiceName] = value
-        this.selectedRow = trimAndParseObject(
-            this.table.rowsAt([this.selectedRowIndex])[0],
-            GrapherGrammar
-        )
-    }
-
-    @action.bound private setValuesFromPatchObject(
-        patchObject: DecisionsPatchObject
-    ) {
-        this.choiceNames.forEach((choiceName) => {
-            if (patchObject[choiceName] === undefined)
-                this._setValue(
-                    choiceName,
-                    this.firstAvailableOptionForChoice(choiceName)!
-                )
-            else this._setValue(choiceName, patchObject[choiceName]!)
-        })
-        return this
-    }
-
-    @action.bound setValuesFromPatch(uriEncodedPatch = "") {
-        return this.setValuesFromPatchObject(
-            new Patch(uriEncodedPatch).object as DecisionsPatchObject
-        )
-    }
-
-    @computed private get choiceNames(): ChoiceName[] {
-        return Array.from(this.choices.keys())
-    }
-
-    @computed private get allChoiceOptions(): ChoiceMap {
-        const choiceMap: ChoiceMap = {}
-        this.choiceNames.forEach((choiceName) => {
-            choiceMap[choiceName] = this.table
-                .get(choiceName)
-                .uniqValues.filter((cell) => !isCellEmpty(cell)) as string[]
-        })
-        return choiceMap
-    }
-
-    private firstAvailableOptionForChoice(
-        choiceName: ChoiceName
-    ): ChoiceValue | undefined {
-        return this.allChoiceOptions[choiceName].find((option) =>
-            this.isOptionAvailable(choiceName, option)
-        )
-    }
-
-    /**
-     * Note: there is a rare bug in here + rowsWith when an author has a complex decision matrix. If the user vists a url
-     * with invalid options like Metric="Tests", Interval="Weekly", Aligned="false"
-     * we will return first match, which is B1, even though B2 is a better match.
-     *
-     * graphers
-     * title	Metric Radio	Interval Radio	Aligned Checkbox
-     * A1	Cases	Cumulative	true
-     * A2	Cases	Cumulative	false
-     * A3	Cases	Weekly	false
-     *
-     * B1	Tests	Cumulative	true
-     * B2	Tests	Cumulative	false
-     */
-    isOptionAvailable(
-        choiceName: ChoiceName,
-        option: ChoiceValue,
-        currentState = this.currentPatch
-    ) {
-        const query: DecisionsPatchObject = {}
-        this.choiceNames
-            .slice(0, this.choiceNames.indexOf(choiceName))
-            .forEach((name) => {
-                query[name] = currentState[name]
-            })
-        query[choiceName] = option
-        return this.rowsWith(query, choiceName).length > 0
-    }
-
-    private rowsWith(query: DecisionsPatchObject, choiceName?: ChoiceName) {
-        // We allow other options to be blank.
-        const modifiedQuery: any = {}
-        Object.keys(trimObject(query)).forEach((queryColumn) => {
-            if (queryColumn !== choiceName)
-                // Blanks are fine if we are not talking about the column of interest
-                modifiedQuery[queryColumn] = [query[queryColumn], ""]
-            else modifiedQuery[queryColumn] = query[queryColumn]
-        })
-        return this.table.findRows(modifiedQuery)
-    }
-
-    private get firstMatch() {
-        const query = this.toConstrainedOptions()
-        const hits = this.rowsWith(query)
-        return hits[0]
-    }
-
-    get selectedRowIndex() {
-        return this.firstMatch === undefined
-            ? 0
-            : this.table.indexOf(this.firstMatch)
-    }
-
-    @observable selectedRow: any = {}
-
-    private toControlOption(
-        choiceName: ChoiceName,
-        optionName: string,
-        currentValue: ChoiceValue,
-        constrainedOptions: DecisionsPatchObject
-    ): ExplorerChoiceOption {
-        const available = this.isOptionAvailable(
-            choiceName,
-            optionName,
-            constrainedOptions
-        )
-        return {
-            label: optionName,
-            value: optionName,
-            available,
-            checked: currentValue === optionName,
-        }
-    }
-
-    @computed get choicesWithAvailability(): ExplorerChoice[] {
-        const selectedRow = this.selectedRow
-        const constrainedOptions = this.toConstrainedOptions()
-        return this.choiceNames.map((title) => {
-            const value =
-                selectedRow[title] !== undefined
-                    ? selectedRow[title].toString()
-                    : selectedRow[title]
-            const options = this.allChoiceOptions[title].map((optionName) =>
-                this.toControlOption(
-                    title,
-                    optionName,
-                    value,
-                    constrainedOptions
-                )
-            )
-            const type = this.choices.get(title)!
-            const displayTitle = removeChoiceControlTypeInfo(title)
-
-            return {
-                title,
-                displayTitle,
-                type,
-                value,
-                options:
-                    type === ExplorerControlType.Checkbox
-                        ? makeCheckBoxOption(options, displayTitle)
-                        : options,
-            }
-        })
-    }
-
-    toString() {
-        return queryParamsToStr(this.currentPatch)
-    }
-}
-
-// This strips the "Dropdown" or "Checkbox" from "SomeChoice Dropdown" or "SomeChoice Checkbox"
-const removeChoiceControlTypeInfo = (label: string) =>
-    label.replace(ExplorerControlTypeRegex, "")
-
-const makeCheckBoxOption = (
-    options: ExplorerChoiceOption[],
-    choiceName: string
-) => {
-    const checked = options.some(
-        (option) => option.checked === true && option.value === GridBoolean.true
-    )
-
-    const available =
-        new Set(options.filter((opt) => opt.available).map((opt) => opt.label))
-            .size === 2
-    return [
-        {
-            label: choiceName,
-            checked,
-            value: GridBoolean.true,
-            available,
-        } as ExplorerChoiceOption,
-    ]
-}
-
 export const makeFullPath = (slug: string) =>
     `${EXPLORERS_ROUTE_FOLDER}/${slug}${EXPLORER_FILE_SUFFIX}`
 
-const trimAndParseObject = (config: any, grammar: Grammar) => {
+export const trimAndParseObject = (config: any, grammar: Grammar) => {
     // Trim empty properties. Prevents things like clearing "type" which crashes Grapher. The call to grapher.reset will automatically clear things like title, subtitle, if not set.
     const trimmedRow = trimObject(config, true) as any
 

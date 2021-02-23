@@ -53,8 +53,6 @@ class EmbeddedFigure {
 
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
-            const patchParam = Url.fromQueryStr(this.props.queryStr || "")
-                .queryParams._original.patch
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
@@ -62,7 +60,7 @@ class EmbeddedFigure {
                     html,
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
-                uriEncodedPatch: patchParam,
+                queryStr: this.props.queryStr,
                 selection: new SelectionArray(
                     globalSelection.selectedEntityNames
                 ),

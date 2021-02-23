@@ -1,6 +1,5 @@
 #! yarn testJest
 
-import { Patch } from "../../patch/Patch"
 import { Url } from "../../urls/Url"
 import {
     explorerUrlMigrationsById,
@@ -29,7 +28,7 @@ describe("legacyToGridCovidExplorer", () => {
     )
     const baseQueryStr = "country=SWE~MKD&yScale=log&year=0"
     const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
-    const migratedPatch = new Patch(migratedUrl.queryParams._original.patch)
+    const migratedQueryParams = migratedUrl.queryParams.decoded
 
     it("has correct explorer slug", () => {
         expect(migration.explorerSlug).toEqual("coronavirus-data-explorer")
@@ -41,27 +40,18 @@ describe("legacyToGridCovidExplorer", () => {
         )
     })
 
-    it("only contains patch param", () => {
-        expect(Object.keys(migratedUrl.queryParams._original)).toEqual([
-            "patch",
-        ])
-    })
-
     it("migrates country param correctly", () => {
-        expect(migratedPatch.object.country).toBeUndefined()
-        expect(migratedPatch.object.selection).toEqual([
-            "Spain",
-            "North Macedonia",
-        ])
+        expect(migratedQueryParams.country).toBeUndefined()
+        expect(migratedQueryParams.selection).toEqual("Spain~North Macedonia")
     })
 
     it("migrates year param correctly", () => {
-        expect(migratedPatch.object.year).toBeUndefined()
-        expect(migratedPatch.object.time).toEqual("0")
+        expect(migratedQueryParams.year).toBeUndefined()
+        expect(migratedQueryParams.time).toEqual("0")
     })
 
     it("preserves old query params", () => {
-        expect(migratedPatch.object.yScale).toEqual("log")
+        expect(migratedQueryParams.yScale).toEqual("log")
     })
 })
 
@@ -71,21 +61,14 @@ describe("co2 explorer", () => {
     )
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
-    it("generates correct patch param", () => {
-        const patch = new Patch(migratedUrl.queryParams._original.patch)
-        expect(patch.object).toEqual({
+    it("generates correct query params", () => {
+        expect(migratedUrl.queryParams.decoded).toEqual({
             "Accounting Radio": "Production-based",
             "Count Dropdown": "Cumulative",
             "Fuel Dropdown": "Coal",
             "Gas Radio": "CO₂",
             "Relative to world total Checkbox": "true",
-            selection: [
-                "China",
-                "United States",
-                "India",
-                "United Kingdom",
-                "World",
-            ],
+            selection: "China~United States~India~United Kingdom~World",
             stackMode: "absolute",
             tab: "chart",
             time: "earliest..latest",
@@ -101,22 +84,14 @@ describe("energy explorer", () => {
     )
     const migratedUrl = migrateExplorerUrl(legacyUrl)
 
-    it("generates correct patch param", () => {
-        const patch = new Patch(migratedUrl.queryParams._original.patch)
-        expect(patch.object).toEqual({
+    it("generates correct query params", () => {
+        expect(migratedUrl.queryParams.decoded).toEqual({
             "Energy or Electricity Radio": "Electricity only",
             "Metric Dropdown": "Per capita generation",
             "Select a source Dropdown": "Fossil fuels",
             "Total or Breakdown Radio": "Select a source",
-            selection: [
-                "United States",
-                "United Kingdom",
-                "China",
-                "World",
-                "India",
-                "Brazil",
-                "South Africa",
-            ],
+            selection:
+                "United States~United Kingdom~China~World~India~Brazil~South Africa",
             tab: "chart",
             time: "earliest..latest",
             xScale: "linear",

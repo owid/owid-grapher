@@ -4,7 +4,6 @@ import { UrlMigration } from "../../urls/UrlMigration"
 import {
     decodeURIComponentOrUndefined,
     getExplorerSlugFromUrl,
-    patchFromQueryParams,
     QueryParamTransformMap,
     transformQueryParams,
 } from "./ExplorerUrlMigrationUtils"
@@ -34,17 +33,10 @@ export const energyUrlMigration: UrlMigration = (url: Url) => {
     // if it's not the /explorer/energy path, skip it
     const explorerSlug = getExplorerSlugFromUrl(url)
     if (explorerSlug !== EXPLORER_SLUG) return url
-
-    // if there is no patch param, then it's an old URL
-    if (!url.queryParams._original.patch) {
-        url = legacyToCurrentGrapherUrl(url)
-        const queryParams = transformQueryParams(
-            url.queryParams._original,
-            energyQueryParamTransformMap
-        )
-        return url.setQueryParams({
-            patch: patchFromQueryParams(queryParams).uriString,
-        })
-    }
-    return url
+    url = legacyToCurrentGrapherUrl(url)
+    const queryParams = transformQueryParams(
+        url.queryParams._original,
+        energyQueryParamTransformMap
+    )
+    return url.setQueryParams(queryParams)
 }

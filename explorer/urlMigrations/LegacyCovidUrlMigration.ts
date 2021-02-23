@@ -4,7 +4,6 @@ import {
     queryParamsToStr,
     strToQueryParams,
 } from "../../clientUtils/url"
-import { patchFromQueryParams } from "./ExplorerUrlMigrationUtils"
 import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations"
 import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations"
 import { Url } from "../../urls/Url"
@@ -99,13 +98,9 @@ const legacyToCurrentCovidQueryParams = (
         "Relative to Population Checkbox": perCapita ? "true" : "false",
     }
 
-    const patch = patchFromQueryParams({
+    return {
         ...restQueryParams,
         ...explorerQueryParams,
-    })
-
-    return {
-        patch: patch.uriString,
     }
 }
 

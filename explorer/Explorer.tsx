@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun, reaction } from "mobx"
+import { action, observable, computed, reaction } from "mobx"
 import {
     GrapherInterface,
     GrapherQueryParams,
@@ -21,28 +21,25 @@ import {
     debounce,
     exposeInstanceOnWindow,
     isInIFrame,
+    omitUndefinedValues,
     throttle,
-    trimObject,
 } from "../clientUtils/Util"
 import {
     SlideShowController,
     SlideShowManager,
 } from "../grapher/slideshowController/SlideShowController"
 import {
+    ExplorerChoiceParams,
     ExplorerContainerId,
+    ExplorerFullQueryParams,
     EXPLORERS_PREVIEW_ROUTE,
     EXPLORERS_ROUTE_FOLDER,
-    PATCH_QUERY_PARAM,
     UNSAVED_EXPLORER_DRAFT,
-    UNSAVED_EXPLORER_PREVIEW_PATCH,
+    UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
 } from "./ExplorerConstants"
 import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
-import {
-    ColumnSlug,
-    SortOrder,
-    TableSlug,
-} from "../coreTable/CoreTableConstants"
+import { TableSlug } from "../coreTable/CoreTableConstants"
 import { isNotErrorValue } from "../coreTable/ErrorValues"
 import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -51,8 +48,6 @@ import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
-import { Patch } from "../patch/Patch"
-import { setWindowQueryStr, strToQueryParams } from "../clientUtils/url"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
 import {
     explorerUrlMigrationsById,
@@ -60,20 +55,15 @@ import {
 } from "./urlMigrations/ExplorerUrlMigrations"
 import { setWindowUrl, Url } from "../urls/Url"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
+import { EntityUrlBuilder } from "../grapher/core/EntityUrlBuilder"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
-    uriEncodedPatch?: string
+    queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
     canonicalUrl?: string
     selection?: SelectionArray
-}
-
-interface ExplorerPatchObject extends GrapherQueryParams {
-    pickerSort?: SortOrder
-    pickerMetric?: ColumnSlug
-    hideControls?: string
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
@@ -88,11 +78,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
         ReactDOM.render(
             <Explorer
                 {...newProps}
-                uriEncodedPatch={
-                    strToQueryParams(window.location.search)._original[
-                        PATCH_QUERY_PARAM
-                    ]
-                }
+                queryStr={window.location.search}
                 key={Date.now()}
             />,
             document.getElementById(ExplorerContainerId)
@@ -155,23 +141,20 @@ export class Explorer
         setWindowUrl(url)
 
         ReactDOM.render(
-            <Explorer
-                {...props}
-                uriEncodedPatch={url.queryParams._original[PATCH_QUERY_PARAM]}
-            />,
+            <Explorer {...props} queryStr={url.queryStr} />,
             document.getElementById(ExplorerContainerId)
         )
     }
 
+    private initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")
+        .queryParams.decoded as ExplorerFullQueryParams
+
     explorerProgram = ExplorerProgram.fromJson(this.props).initDecisionMatrix(
-        this.props.uriEncodedPatch
+        this.initialQueryParams
     )
 
-    private initialPatchObject = new Patch(this.props.uriEncodedPatch)
-        .object as ExplorerPatchObject
-
-    @observable entityPickerMetric? = this.initialPatchObject.pickerMetric
-    @observable entityPickerSort? = this.initialPatchObject.pickerSort
+    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
+    @observable entityPickerSort? = this.initialQueryParams.pickerSort
 
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
@@ -201,13 +184,13 @@ export class Explorer
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
 
-        const initialPatchObject = {
-            ...this.initialPatchObject,
+        const grapherQueryParams = {
+            ...this.initialQueryParams,
             selection: this.props.selection?.hasSelection
                 ? this.props.selection.asParam
-                : this.initialPatchObject.selection,
+                : this.initialQueryParams.selection,
         }
-        this.grapher?.populateFromQueryParams(initialPatchObject)
+        this.grapher?.populateFromQueryParams(grapherQueryParams)
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -227,15 +210,13 @@ export class Explorer
         if (!grapher || grapher.slideShow) return
 
         grapher.slideShow = new SlideShowController(
-            this.explorerProgram.decisionMatrix
-                .allDecisionsAsPatches()
-                .map((patch) => patch.uriString),
+            this.explorerProgram.decisionMatrix.allDecisionsAsQueryParams(),
             0,
             this
         )
     }
 
-    private persistedQueryParamsBySelectedRow: Map<
+    private persistedGrapherQueryParamsBySelectedRow: Map<
         number,
         Partial<GrapherQueryParams>
     > = new Map()
@@ -247,13 +228,13 @@ export class Explorer
         this.initSlideshow()
 
         const oldGrapherParams = this.grapher.changedParams
-        this.persistedQueryParamsBySelectedRow.set(
+        this.persistedGrapherQueryParamsBySelectedRow.set(
             oldSelectedRow,
             oldGrapherParams
         )
 
         const newGrapherParams = {
-            ...this.persistedQueryParamsBySelectedRow.get(
+            ...this.persistedGrapherQueryParamsBySelectedRow.get(
                 this.explorerProgram.currentlySelectedGrapherRow
             ),
             time: this.grapher.timeParam,
@@ -358,67 +339,67 @@ export class Explorer
         }
     }
 
-    @action.bound setSlide(patch: string) {
-        this.explorerProgram.decisionMatrix.setValuesFromPatch(patch)
+    @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
+        this.explorerProgram.decisionMatrix.setValuesFromChoiceParams(
+            choiceParams
+        )
+    }
+
+    @computed get changedChoiceParams(): ExplorerChoiceParams {
+        const { decisionMatrix } = this.explorerProgram
+        const changedChoiceParams: ExplorerChoiceParams = {
+            ...decisionMatrix.currentParams,
+        }
+        // Remove any unchanged default props
+        const clone = this.explorerProgram.clone.decisionMatrix.currentParams
+        Object.keys(changedChoiceParams).forEach((key) => {
+            if (clone[key] === changedChoiceParams[key])
+                delete changedChoiceParams[key]
+        })
+        return changedChoiceParams
+    }
+
+    @computed get queryParams(): ExplorerFullQueryParams {
+        if (!this.grapher) return {}
+
+        if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
+            localStorage.setItem(
+                UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS +
+                    this.explorerProgram.slug,
+                JSON.stringify(this.changedChoiceParams)
+            )
+
+        return omitUndefinedValues({
+            ...this.grapher.changedParams,
+            selection: this.selection.hasSelection
+                ? EntityUrlBuilder.entityNamesToQueryParam(
+                      this.selection.selectedEntityNames
+                  )
+                : undefined,
+            pickerSort: this.entityPickerSort,
+            pickerMetric: this.entityPickerMetric,
+            hideControls: this.initialQueryParams.hideControls || undefined,
+            ...this.changedChoiceParams,
+        }) as ExplorerFullQueryParams
+    }
+
+    @computed get currentUrl(): Url {
+        return Url.fromURL(this.baseUrl).setQueryParams(this.queryParams)
     }
 
     private bindToWindow() {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = () =>
-            this.encodedQueryString
-                ? setWindowQueryStr(this.encodedQueryString)
-                : null
+        const pushParams = () => setWindowUrl(this.currentUrl)
         const debouncedPushParams = debounce(pushParams, 100)
 
         reaction(
-            () => this.patchObject,
+            () => this.queryParams,
             () =>
                 this.grapher?.debounceMode
                     ? debouncedPushParams()
                     : pushParams()
         )
-    }
-
-    @computed private get encodedQueryString() {
-        const encodedPatch = new Patch(this.patchObject as any).uriString
-        return encodedPatch ? `?${PATCH_QUERY_PARAM}=` + encodedPatch : ""
-    }
-
-    @computed get patchObject(): ExplorerPatchObject {
-        if (!this.grapher) return {}
-
-        const { decisionMatrix } = this.explorerProgram
-
-        const decisionsPatchObject: any = {
-            ...decisionMatrix.currentPatch,
-        }
-
-        // Remove any unchanged default props
-        const clone = this.explorerProgram.clone.decisionMatrix.currentPatch
-        Object.keys(decisionsPatchObject).forEach((key) => {
-            if (clone[key] === decisionsPatchObject[key])
-                delete decisionsPatchObject[key]
-        })
-
-        if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
-            localStorage.setItem(
-                UNSAVED_EXPLORER_PREVIEW_PATCH + this.explorerProgram.slug,
-                new Patch(decisionsPatchObject).uriString
-            )
-
-        const explorerPatchObject: ExplorerPatchObject = {
-            ...this.grapher.changedParams,
-            selection: this.selection.hasSelection
-                ? this.selection.selectedEntityNames
-                : undefined,
-            pickerSort: this.entityPickerSort,
-            pickerMetric: this.entityPickerMetric,
-            hideControls: this.initialPatchObject.hideControls || undefined,
-            ...decisionsPatchObject,
-        }
-
-        return trimObject(explorerPatchObject)
     }
 
     private get panels() {
@@ -470,7 +451,7 @@ export class Explorer
         // Only allow hiding controls on embedded pages
         return !(
             this.explorerProgram.hideControls ||
-            this.initialPatchObject.hideControls === "true"
+            this.initialQueryParams.hideControls === "true"
         )
     }
 
@@ -593,22 +574,13 @@ export class Explorer
     }
 
     @computed get canonicalUrl() {
-        return (
-            this.props.canonicalUrl ??
-            (this.baseUrl ? this.baseUrl + this.encodedQueryString : undefined)
-        )
+        return this.props.canonicalUrl ?? this.currentUrl.fullUrl
     }
 
     @computed get embedDialogUrl() {
-        const embedPatch = new Patch({
-            ...(this.patchObject as any),
+        return this.currentUrl.updateQueryParams({
             hideControls: this.embedDialogHideControls.toString(),
-        }).uriString
-        const embedPatchEncoded = embedPatch
-            ? `?${PATCH_QUERY_PARAM}=` + embedPatch
-            : ""
-
-        return this.baseUrl ? this.baseUrl + embedPatchEncoded : undefined
+        }).fullUrl
     }
 
     @action.bound embedDialogToggleHideControls() {
