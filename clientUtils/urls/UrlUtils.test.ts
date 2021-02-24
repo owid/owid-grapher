@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { mergeQueryStr, queryParamsToStr, strToQueryParams } from "./UrlUtils"
+import { queryParamsToStr, strToQueryParams } from "./UrlUtils"
 
 const testCases = [
     {
@@ -62,21 +62,4 @@ describe(strToQueryParams, () => {
             expect(strToQueryParams(testCase.queryStr)).toEqual(testCase.params)
         })
     }
-})
-
-describe(mergeQueryStr, () => {
-    it("chart params override explorer params", () => {
-        const params = strToQueryParams(
-            mergeQueryStr(
-                "yScale=log&testsMetric=true&country=~GBR",
-                "country=GBR~ESP"
-            )
-        ).decoded
-        expect(params.yScale).toEqual("log")
-        expect(params.country).toEqual("GBR~ESP")
-    })
-
-    it("handles undefined", () => {
-        expect(mergeQueryStr(undefined, "")).toEqual("")
-    })
 })

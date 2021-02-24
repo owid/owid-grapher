@@ -76,13 +76,3 @@ export const splitURLintoPathAndQueryString = (
     const [path, queryString] = url.split(/\?/)
     return { path: path, queryString: queryString }
 }
-
-export const mergeQueryStr = (...queryStrs: (string | undefined)[]) =>
-    queryParamsToStr(
-        assign(
-            {},
-            ...excludeUndefined(queryStrs)
-                .map(strToQueryParams)
-                .map((p) => p.decoded)
-        )
-    )
