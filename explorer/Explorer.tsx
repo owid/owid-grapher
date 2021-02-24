@@ -19,6 +19,7 @@ import {
 } from "../grapher/core/Grapher"
 import {
     debounce,
+    differenceObj,
     exposeInstanceOnWindow,
     isInIFrame,
     omitUndefinedValues,
@@ -348,18 +349,13 @@ export class Explorer
         )
     }
 
-    @computed get changedChoiceParams(): ExplorerChoiceParams {
+    @computed get changedChoiceParams(): Partial<ExplorerChoiceParams> {
         const { decisionMatrix } = this.explorerProgram
-        const changedChoiceParams: ExplorerChoiceParams = {
-            ...decisionMatrix.currentParams,
-        }
-        // Remove any unchanged default props
-        const clone = this.explorerProgram.clone.decisionMatrix.currentParams
-        Object.keys(changedChoiceParams).forEach((key) => {
-            if (clone[key] === changedChoiceParams[key])
-                delete changedChoiceParams[key]
-        })
-        return changedChoiceParams
+        const currentParams: Readonly<ExplorerChoiceParams> =
+            decisionMatrix.currentParams
+        const defaultParams: Readonly<ExplorerChoiceParams> = this
+            .explorerProgram.clone.decisionMatrix.currentParams
+        return differenceObj(currentParams, defaultParams)
     }
 
     @computed get queryParams(): ExplorerFullQueryParams {
