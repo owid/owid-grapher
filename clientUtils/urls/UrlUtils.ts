@@ -1,15 +1,8 @@
-import { assign, excludeUndefined, omitUndefinedValues } from "../Util"
+import { omitUndefinedValues } from "../Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
 }
-
-/**
- * `_original` contains the original, URI-encoded query param as it is in the URL.
- *   It should only be used if necessary, e.g. for legacy reasons (we need to
- *   distinguish between `+` and `%20` for legacy URLs, for example).
- * `decoded` contains the URL-decoded version of the query params instead.
- */
 
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.
@@ -22,6 +15,10 @@ export const getWindowQueryParams = (): QueryParams =>
 /**
  * Converts a query string into an object of key-value pairs.
  * Handles URI-decoding of the values.
+ * @param queryStr
+ * @param doNotDecode Passing `true` will return a QueryParams object with URI-encoded values.
+ *                    Only use when absolutely necessary, for example, to distinguish between
+ *                    `+` and `%20` for legacy URLs.
  */
 export const strToQueryParams = (
     queryStr = "",
