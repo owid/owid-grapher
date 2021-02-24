@@ -408,7 +408,6 @@ export class Grapher
             this.setDimensionsFromConfigs(obj.dimensions)
     }
 
-    // TODO: check if all uses of this method consume migrated query
     @action.bound populateFromQueryParams(params: GrapherQueryParams) {
         // Set tab if specified
         const tab = params.tab
