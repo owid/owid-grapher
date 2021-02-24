@@ -30,6 +30,7 @@ import {
     excludeUndefined,
     debounce,
     isInIFrame,
+    differenceObj,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -2089,10 +2090,7 @@ export class Grapher
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct get changedParams() {
-        return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
-            this.allParams,
-            this.authorsVersion.allParams
-        )
+        return differenceObj(this.allParams, this.authorsVersion.allParams)
     }
 
     // If you want to compare current state against the published grapher.

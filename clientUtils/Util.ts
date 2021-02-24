@@ -1005,3 +1005,19 @@ export const isInIFrame = (): boolean => {
         return false
     }
 }
+
+export const differenceObj = <
+    A extends Record<string, any>,
+    B extends Record<string, any>
+>(
+    obj: A,
+    defaultObj: B
+) => {
+    const result: Partial<A> = {}
+    for (const key in obj) {
+        if (defaultObj[key] !== obj[key]) {
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
