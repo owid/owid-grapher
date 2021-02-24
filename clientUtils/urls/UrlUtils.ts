@@ -68,11 +68,3 @@ export const setWindowQueryStr = (str: string) =>
         document.title,
         window.location.pathname + str + window.location.hash
     )
-
-// TODO: use Url class instead of this utility
-export const splitURLintoPathAndQueryString = (
-    url: string
-): { path: string; queryString: string | undefined } => {
-    const [path, queryString] = url.split(/\?/)
-    return { path: path, queryString: queryString }
-}

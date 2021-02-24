@@ -9,16 +9,20 @@ import {
 } from "mobx"
 import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
-import { splitURLintoPathAndQueryString } from "../clientUtils/urls/UrlUtils"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers"
+import { Url } from "../clientUtils/urls/Url"
+import { excludeUndefined } from "../clientUtils/Util"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
+    @computed private get url(): Url {
+        return Url.fromURL(this.props.src)
+    }
     @computed private get configUrl() {
-        return splitURLintoPathAndQueryString(this.props.src).path
+        return excludeUndefined([this.url.base, this.url.pathname]).join("")
     }
     @computed private get queryStr() {
-        return splitURLintoPathAndQueryString(this.props.src).queryString
+        return this.url.queryStr
     }
     @observable private grapher?: Grapher
 
