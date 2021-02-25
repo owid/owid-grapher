@@ -1,4 +1,4 @@
-import { WORDPRESS_URL } from "../settings/clientSettings"
+import { WORDPRESS_URL } from "../settings/serverSettings"
 import * as React from "react"
 import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"

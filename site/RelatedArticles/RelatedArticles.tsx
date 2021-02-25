@@ -1,6 +1,6 @@
 import React from "react"
 import { PostReference } from "../../clientUtils/owidTypes"
-import { BAKED_BASE_URL } from "../../settings/clientSettings"
+import { BAKED_BASE_URL } from "../../settings/serverSettings"
 
 export const RelatedArticles = ({
     articles,
