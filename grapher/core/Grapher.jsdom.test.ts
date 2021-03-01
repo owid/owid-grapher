@@ -22,8 +22,9 @@ import {
 } from "../../coreTable/OwidTableSynthesizers"
 import { orderBy } from "../../clientUtils/Util"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { queryParamsToStr } from "../../clientUtils/url"
+import { setCountryQueryParam } from "./EntityUrlBuilder"
+import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
+import { Url } from "../../clientUtils/urls/Url"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -349,9 +350,8 @@ describe("urls", () => {
             selectedEntityNames: ["usa", "canada"],
             addCountryMode: EntitySelectionMode.Disabled,
         })
-        grapher.populateFromQueryParams({
-            selection: EntityUrlBuilder.entityNamesToQueryParam(["usa"]),
-        })
+        const url = setCountryQueryParam(Url.fromQueryParams({}), ["usa"])
+        grapher.populateFromQueryParams(url.queryParams)
         expect(grapher.selection.selectedEntityNames).toEqual(["usa", "canada"])
     })
 })

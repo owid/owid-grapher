@@ -1,25 +1,23 @@
 import { action } from "mobx"
 
-type queryString = string
-
-export interface SlideShowManager {
-    setSlide: (slide: queryString) => void
+export interface SlideShowManager<SlideData> {
+    setSlide: (slide: SlideData) => void
 }
 
 // A "slide" is just a query string.
-export class SlideShowController {
+export class SlideShowController<SlideData> {
     constructor(
-        slides: queryString[] = [],
+        slides: SlideData[] = [],
         currentIndex = 0,
-        manager?: SlideShowManager
+        manager?: SlideShowManager<SlideData>
     ) {
         this.currentIndex = currentIndex
         this.slides = slides
         this.manager = manager
     }
-    private slides: queryString[]
+    private slides: SlideData[]
     private currentIndex: number
-    private manager?: SlideShowManager
+    private manager?: SlideShowManager<SlideData>
 
     get isEmpty() {
         return this.slides.length === 0

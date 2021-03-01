@@ -3,7 +3,7 @@ import {
     migrateExplorerUrl,
 } from "../explorer/urlMigrations/ExplorerUrlMigrations"
 import { getExplorerRedirectForPath } from "../explorerAdmin/ExplorerRedirects"
-import { Url } from "../urls/Url"
+import { Url } from "../clientUtils/urls/Url"
 
 export const replaceIframesWithExplorerRedirectsInWordPressPost = (
     cheerio: CheerioStatic

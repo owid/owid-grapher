@@ -58,6 +58,7 @@ import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
 import xor from "lodash/xor"
 export {
+    assign,
     capitalize,
     clone,
     cloneDeep,
@@ -124,7 +125,6 @@ import linkifyHtml from "linkifyjs/html"
 import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
-import { queryParamsToStr, strToQueryParams } from "./url"
 
 export type SVGElement = any
 export type VNode = any
@@ -834,16 +834,6 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
     return attributes
 }
 
-export const mergeQueryStr = (...queryStrs: (string | undefined)[]) =>
-    queryParamsToStr(
-        assign(
-            {},
-            ...excludeUndefined(queryStrs)
-                .map(strToQueryParams)
-                .map((p) => p.decoded)
-        )
-    )
-
 export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
@@ -1014,4 +1004,20 @@ export const isInIFrame = (): boolean => {
     } catch (e) {
         return false
     }
+}
+
+export const differenceObj = <
+    A extends Record<string, any>,
+    B extends Record<string, any>
+>(
+    obj: A,
+    defaultObj: B
+) => {
+    const result: Partial<A> = {}
+    for (const key in obj) {
+        if (defaultObj[key] !== obj[key]) {
+            result[key] = obj[key]
+        }
+    }
+    return result
 }

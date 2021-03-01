@@ -9,21 +9,26 @@ import {
 } from "mobx"
 import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
-import { splitURLintoPathAndQueryString } from "../clientUtils/url"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers"
+import { Url } from "../clientUtils/urls/Url"
+import { excludeUndefined } from "../clientUtils/Util"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
+    @computed private get url(): Url {
+        return Url.fromURL(this.props.src)
+    }
     @computed private get configUrl() {
-        return splitURLintoPathAndQueryString(this.props.src).path
+        return this.url.originAndPath
     }
     @computed private get queryStr() {
-        return splitURLintoPathAndQueryString(this.props.src).queryString
+        return this.url.queryStr
     }
     @observable private grapher?: Grapher
 
     private async loadConfig() {
         const { configUrl } = this
+        if (configUrl === undefined) return
         const resp = await fetch(configUrl)
         if (this.configUrl !== configUrl) {
             // Changed while we were fetching

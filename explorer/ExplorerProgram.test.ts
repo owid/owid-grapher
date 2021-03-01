@@ -1,13 +1,14 @@
 #! /usr/bin/env jest
 
-import { ExplorerProgram, DecisionMatrix } from "./ExplorerProgram"
+import { ExplorerProgram } from "./ExplorerProgram"
 import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
 } from "../gridLang/GridLangConstants"
-import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
-import { GrapherGrammar } from "../explorer/GrapherGrammar"
+import { ExplorerGrammar } from "./ExplorerGrammar"
+import { GrapherGrammar } from "./GrapherGrammar"
+import { DecisionMatrix } from "./ExplorerDecisionMatrix"
 
 const grapherIdKeyword = GrapherGrammar.grapherId.keyword
 const tableSlugKeyword = GrapherGrammar.tableSlug.keyword
@@ -148,8 +149,8 @@ describe(DecisionMatrix, () => {
 
     it("starts with a selected chart", () => {
         expect(decisionMatrix.selectedRow.grapherId).toEqual(21)
-        expect(decisionMatrix.currentPatch[Choices.country]).toEqual("usa")
-        expect(decisionMatrix.currentPatch[Choices.indicator]).toEqual("GDP")
+        expect(decisionMatrix.currentParams[Choices.country]).toEqual("usa")
+        expect(decisionMatrix.currentParams[Choices.indicator]).toEqual("GDP")
     })
 
     it("parses booleans", () => {
@@ -157,7 +158,7 @@ describe(DecisionMatrix, () => {
     })
 
     it("it can get all options", () => {
-        expect(decisionMatrix.allDecisionsAsPatches().length).toBe(7)
+        expect(decisionMatrix.allDecisionsAsQueryParams().length).toBe(7)
     })
 
     it("can detect needed chart configs", () => {
@@ -195,10 +196,10 @@ describe(DecisionMatrix, () => {
         expect(decisionMatrix.toConstrainedOptions()[Choices.interval]).toEqual(
             undefined
         )
-        expect(decisionMatrix.currentPatch[Choices.perCapita]).toEqual(
+        expect(decisionMatrix.currentParams[Choices.perCapita]).toEqual(
             GridBoolean.false
         )
-        expect(decisionMatrix.currentPatch[Choices.interval]).toEqual("annual")
+        expect(decisionMatrix.currentParams[Choices.interval]).toEqual("annual")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(33)
     })
 

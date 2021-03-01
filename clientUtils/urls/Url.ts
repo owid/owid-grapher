@@ -1,12 +1,8 @@
 import urlParseLib from "url-parse"
 
-import {
-    EncodedDecodedQueryParams,
-    QueryParams,
-    queryParamsToStr,
-    strToQueryParams,
-} from "../clientUtils/url"
-import { excludeUndefined, omitUndefinedValues } from "../clientUtils/Util"
+import { excludeUndefined, omitUndefinedValues } from "../Util"
+
+import { QueryParams, queryParamsToStr, strToQueryParams } from "./UrlUtils"
 
 const parseUrl = (url: string) => {
     const parsed = urlParseLib(url, {})
@@ -28,7 +24,7 @@ const ensureQueryStrFormat = (queryStr: string) =>
 const ensureHashFormat = (queryStr: string) => ensureStartsWith(queryStr, "#")
 
 interface UrlProps {
-    readonly base?: string // https://ourworldindata.org
+    readonly origin?: string // https://ourworldindata.org
     readonly pathname?: string // /grapher/abc
     readonly queryStr?: string // ?stackMode=relative
     readonly hash?: string // #articles
@@ -42,10 +38,9 @@ export class Url {
      */
     static fromURL(url: string) {
         const { origin, pathname, query, hash } = parseUrl(url)
-        const base =
-            origin !== undefined && origin !== "null" ? origin : undefined
         return new Url({
-            base,
+            origin:
+                origin !== undefined && origin !== "null" ? origin : undefined,
             pathname,
             queryStr: query,
             hash,
@@ -64,24 +59,30 @@ export class Url {
         })
     }
 
-    private constructor(props: UrlProps) {
+    private constructor(props: UrlProps = {}) {
         this.props = {
             ...props,
             pathname:
                 props.pathname !== undefined
                     ? props.pathname
-                    : props.base
+                    : props.origin
                     ? ""
                     : undefined,
         }
     }
 
-    get base(): string | undefined {
-        return this.props.base
+    get origin(): string | undefined {
+        return this.props.origin
     }
 
     get pathname(): string | undefined {
         return this.props.pathname
+    }
+
+    get originAndPath(): string | undefined {
+        const strings = excludeUndefined([this.origin, this.pathname])
+        if (strings.length === 0) return undefined
+        return strings.join("")
     }
 
     get queryStr(): string {
@@ -99,15 +100,19 @@ export class Url {
 
     get fullUrl(): string {
         return excludeUndefined([
-            this.base,
+            this.origin,
             this.pathname,
             this.queryStr,
             this.hash,
         ]).join("")
     }
 
-    get queryParams(): EncodedDecodedQueryParams {
+    get queryParams(): QueryParams {
         return strToQueryParams(this.queryStr)
+    }
+
+    get encodedQueryParams(): QueryParams {
+        return strToQueryParams(this.queryStr, true)
     }
 
     update(props: UrlProps) {
@@ -128,7 +133,7 @@ export class Url {
         return this.update({
             queryStr: queryParamsToStr(
                 omitUndefinedValues({
-                    ...this.queryParams.decoded,
+                    ...this.queryParams,
                     ...queryParams,
                 })
             ),
@@ -143,4 +148,8 @@ export const setWindowUrl = (url: Url): void => {
         document.title,
         excludeUndefined([pathname, url.queryStr, url.hash]).join("")
     )
+}
+
+export const getWindowUrl = (): Url => {
+    return Url.fromURL(window.location.href)
 }

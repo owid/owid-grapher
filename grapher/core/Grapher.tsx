@@ -30,6 +30,7 @@ import {
     excludeUndefined,
     debounce,
     isInIFrame,
+    differenceObj,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -72,7 +73,7 @@ import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-} from "../../clientUtils/url"
+} from "../../clientUtils/urls/UrlUtils"
 import { populationMap } from "../../coreTable/PopulationMap"
 import {
     GrapherInterface,
@@ -81,7 +82,7 @@ import {
     LegacyGrapherInterface,
 } from "../core/GrapherInterface"
 import { DimensionSlot } from "../chart/DimensionSlot"
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { getCountryQueryParam, setCountryQueryParam } from "./EntityUrlBuilder"
 import { MapProjectionName } from "../mapCharts/MapProjections"
 import { LogoOption } from "../captionedChart/Logos"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -155,6 +156,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
+import { Url } from "../../clientUtils/urls/Url"
 
 declare const window: any
 
@@ -459,15 +461,10 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
-        if (
-            this.addCountryMode !== EntitySelectionMode.Disabled &&
-            params.selection
-        )
-            this.selection.setSelectedEntities(
-                typeof params.selection === "string"
-                    ? EntityUrlBuilder.queryParamToEntityNames(params.selection)
-                    : params.selection
-            )
+        const selection = getCountryQueryParam(Url.fromQueryParams(params))
+
+        if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
+            this.selection.setSelectedEntities(selection)
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string) {
@@ -1724,7 +1721,7 @@ export class Grapher
         return shortcuts
     }
 
-    @observable slideShow?: SlideShowController
+    @observable slideShow?: SlideShowController<any>
 
     @action.bound private toggleTimelineCommand() {
         // Todo: add tests for this
@@ -2047,7 +2044,7 @@ export class Grapher
 
     debounceMode = false
 
-    @computed.struct get allParams() {
+    @computed.struct get allParams(): GrapherQueryParams {
         const params: GrapherQueryParams = {}
         params.tab = this.tab
         params.xScale = this.xAxis.scaleType
@@ -2058,12 +2055,16 @@ export class Grapher
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
-        params.selection = this.selectedEntitiesParamIfDifferentThanAuthors
-        return params
+        return setCountryQueryParam(
+            Url.fromQueryParams(params),
+            this.selectedEntitiesIfDifferentThanAuthors
+        ).queryParams
     }
 
     // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.
-    @computed private get selectedEntitiesParamIfDifferentThanAuthors() {
+    @computed private get selectedEntitiesIfDifferentThanAuthors():
+        | EntityName[]
+        | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
         const originalSelectedEntityIds =
@@ -2080,7 +2081,7 @@ export class Grapher
                 originalSelectedEntityIds.length ||
             entityIdsThatTheUserDeselected.length
         )
-            return this.selection.asParam
+            return this.selection.selectedEntityNames
 
         return undefined
     }
@@ -2088,10 +2089,7 @@ export class Grapher
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct get changedParams() {
-        return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
-            this.allParams,
-            this.authorsVersion.allParams
-        )
+        return differenceObj(this.allParams, this.authorsVersion.allParams)
     }
 
     // If you want to compare current state against the published grapher.

@@ -1,4 +1,6 @@
 import { SerializedGridProgram } from "../clientUtils/owidTypes"
+import { ColumnSlug, SortOrder } from "../coreTable/CoreTableConstants"
+import { GrapherQueryParams } from "../grapher/core/GrapherInterface"
 
 export enum ExplorerControlType {
     Radio = "Radio",
@@ -7,7 +9,6 @@ export enum ExplorerControlType {
 }
 
 export const DefaultNewExplorerSlug = "new"
-export const PATCH_QUERY_PARAM = "patch"
 
 export const ExplorerControlTypeRegex = new RegExp(
     " (" + Object.values(ExplorerControlType).join("|") + ")$"
@@ -28,8 +29,30 @@ export interface ExplorerChoiceOption {
     checked?: boolean
 }
 
+export type ChoiceName = string
+export type ChoiceValue = string
+
+export interface ExplorerChoiceParams {
+    [choiceName: string]: ChoiceValue
+}
+
+export interface ChoiceMap {
+    [choiceName: string]: ChoiceValue[]
+}
+
+/** Query params available in all explorers */
+export interface ExplorerStandardQueryParams extends GrapherQueryParams {
+    pickerSort?: SortOrder
+    pickerMetric?: ColumnSlug
+    hideControls?: string
+}
+
+export type ExplorerFullQueryParams = ExplorerStandardQueryParams &
+    ExplorerChoiceParams
+
 export const UNSAVED_EXPLORER_DRAFT = "UNSAVED_EXPLORER_DRAFT"
-export const UNSAVED_EXPLORER_PREVIEW_PATCH = "UNSAVED_EXPLORER_PREVIEW_PATCH"
+export const UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS =
+    "UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS"
 
 export const EMBEDDED_EXPLORER_DELIMITER = "\n//EMBEDDED_EXPLORER\n"
 export const EMBEDDED_EXPLORER_GRAPHER_CONFIGS =

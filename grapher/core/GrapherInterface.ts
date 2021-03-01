@@ -23,7 +23,7 @@ import {
 } from "../../coreTable/CoreTableConstants"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { QueryParams } from "../../clientUtils/url"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

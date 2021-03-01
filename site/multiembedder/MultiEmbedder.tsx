@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { throttle, fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
-import { getWindowQueryParams } from "../../clientUtils/url"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
@@ -16,13 +15,15 @@ import {
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants"
 import {
-    GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
 } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
-import { Url } from "../../urls/Url"
+import { getWindowUrl, Url } from "../../clientUtils/urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
-import { EntityUrlBuilder } from "../../grapher/core/EntityUrlBuilder"
+import {
+    getCountryQueryParam,
+    migrateCountryQueryParam,
+} from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 
 interface EmbeddedFigureProps {
@@ -53,8 +54,6 @@ class EmbeddedFigure {
 
         const html = await fetchText(this.props.standaloneUrl)
         if (this.isExplorer) {
-            const patchParam = Url.fromQueryStr(this.props.queryStr || "")
-                .queryParams._original.patch
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
@@ -62,7 +61,7 @@ class EmbeddedFigure {
                     html,
                     EMBEDDED_EXPLORER_GRAPHER_CONFIGS
                 ),
-                uriEncodedPatch: patchParam,
+                queryStr: this.props.queryStr,
                 selection: new SelectionArray(
                     globalSelection.selectedEntityNames
                 ),
@@ -240,17 +239,18 @@ class MultiEmbedder {
         const embeddedDefaultCountriesParam = element.getAttribute(
             GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY
         )
-        const queryParams = getWindowQueryParams()
 
-        const selectionParam = EntityUrlBuilder.migrateLegacyCountryParam(
-            queryParams._original.country ??
-                queryParams._original.selection ??
-                embeddedDefaultCountriesParam ??
-                ""
-        )
+        const [defaultEntityNames, windowEntityNames] = [
+            Url.fromQueryParams({
+                country: embeddedDefaultCountriesParam || undefined,
+            }),
+            getWindowUrl(),
+        ]
+            .map(migrateCountryQueryParam)
+            .map(getCountryQueryParam)
 
         this.selection = new SelectionArray(
-            EntityUrlBuilder.queryParamToEntityNames(selectionParam)
+            windowEntityNames ?? defaultEntityNames
         )
 
         hydrateGlobalEntitySelectorIfAny(

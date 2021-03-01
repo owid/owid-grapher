@@ -15,9 +15,10 @@ import { exposeInstanceOnWindow, slugify } from "../clientUtils/Util"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,
+    ExplorerChoiceParams,
     EXPLORERS_PREVIEW_ROUTE,
     UNSAVED_EXPLORER_DRAFT,
-    UNSAVED_EXPLORER_PREVIEW_PATCH,
+    UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
 } from "../explorer/ExplorerConstants"
 import {
     AutofillColDefCommand,
@@ -66,11 +67,13 @@ export class ExplorerCreatePage extends React.Component<{
 
     @action.bound private startPollingLocalStorageForPreviewChanges() {
         setInterval(() => {
-            const patch = localStorage.getItem(
-                `${UNSAVED_EXPLORER_PREVIEW_PATCH}${this.program.slug}`
+            const savedQueryParamsJSON = localStorage.getItem(
+                `${UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS}${this.program.slug}`
             )
-            if (typeof patch === "string")
-                this.program.decisionMatrix.setValuesFromPatch(patch)
+            if (typeof savedQueryParamsJSON === "string")
+                this.program.decisionMatrix.setValuesFromChoiceParams(
+                    JSON.parse(savedQueryParamsJSON) as ExplorerChoiceParams
+                )
         }, 1000)
     }
 

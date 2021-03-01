@@ -1,37 +1,33 @@
-import { isEmpty, omitUndefinedValues } from "./Util"
+import { omitUndefinedValues } from "../Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
 }
 
-/**
- * `_original` contains the original, URI-encoded query param as it is in the URL.
- *   It should only be used if necessary, e.g. for legacy reasons (we need to
- *   distinguish between `+` and `%20` for legacy URLs, for example).
- * `decoded` contains the URL-decoded version of the query params instead.
- */
-export interface EncodedDecodedQueryParams {
-    _original: QueryParams
-    decoded: QueryParams
-}
-
 // Deprecated. Use getWindowQueryParams() to get the params from the global URL,
 // or strToQueryParams(str) to parse an arbtirary query string.
-export const getQueryParams = (queryStr?: string): EncodedDecodedQueryParams =>
+export const getQueryParams = (queryStr?: string): QueryParams =>
     strToQueryParams(queryStr || getWindowQueryStr())
 
-export const getWindowQueryParams = (): EncodedDecodedQueryParams =>
+export const getWindowQueryParams = (): QueryParams =>
     strToQueryParams(getWindowQueryStr())
 
 /**
  * Converts a query string into an object of key-value pairs.
  * Handles URI-decoding of the values.
+ * @param queryStr
+ * @param doNotDecode Passing `true` will return a QueryParams object with URI-encoded values.
+ *                    Only use when absolutely necessary, for example, to distinguish between
+ *                    `+` and `%20` for legacy URLs.
  */
-export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
+export const strToQueryParams = (
+    queryStr = "",
+    doNotDecode: boolean = false
+): QueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
-    const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
-    const params: EncodedDecodedQueryParams = { _original: {}, decoded: {} }
+    const querySplit = queryStr.split("&").filter((s) => s)
+    const params: QueryParams = {}
 
     for (const param of querySplit) {
         const [key, value] = param.split("=", 2)
@@ -41,8 +37,7 @@ export const strToQueryParams = (queryStr = ""): EncodedDecodedQueryParams => {
                 ? decodeURIComponent(value.replace(/\+/g, "%20"))
                 : undefined
 
-        params._original[decodedKey] = value
-        params.decoded[decodedKey] = decoded
+        params[decodedKey] = doNotDecode ? value : decoded
     }
 
     return params
@@ -60,15 +55,6 @@ export const queryParamsToStr = (params: QueryParams) => {
     return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 
-export const setWindowQueryVariable = (key: string, val: string | null) => {
-    const params = getWindowQueryParams().decoded
-
-    if (val === null || val === "") delete params[key]
-    else params[key] = val
-
-    setWindowQueryStr(queryParamsToStr(params))
-}
-
 export const getWindowQueryStr = () => window.location.search
 
 export const setWindowQueryStr = (str: string) =>
@@ -77,10 +63,3 @@ export const setWindowQueryStr = (str: string) =>
         document.title,
         window.location.pathname + str + window.location.hash
     )
-
-export const splitURLintoPathAndQueryString = (
-    url: string
-): { path: string; queryString: string | undefined } => {
-    const [path, queryString] = url.split(/\?/)
-    return { path: path, queryString: queryString }
-}

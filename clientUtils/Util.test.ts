@@ -8,7 +8,6 @@ import {
     retryPromise,
     rollingMap,
     groupMap,
-    mergeQueryStr,
     next,
     previous,
     intersectionOfSets,
@@ -22,8 +21,8 @@ import {
     intersection,
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
+    differenceObj,
 } from "./Util"
-import { strToQueryParams } from "./url"
 import { SortOrder, ScaleType } from "./owidTypes"
 
 describe(findClosestTime, () => {
@@ -309,23 +308,6 @@ describe(groupMap, () => {
     })
 })
 
-describe(mergeQueryStr, () => {
-    it("chart params override explorer params", () => {
-        const params = strToQueryParams(
-            mergeQueryStr(
-                "yScale=log&testsMetric=true&country=~GBR",
-                "country=GBR~ESP"
-            )
-        ).decoded
-        expect(params.yScale).toEqual(ScaleType.log)
-        expect(params.country).toEqual("GBR~ESP")
-    })
-
-    it("handles undefined", () => {
-        expect(mergeQueryStr(undefined, "")).toEqual("")
-    })
-})
-
 describe(roundSigFig, () => {
     it("rounds to 1 sig fig by default", () => {
         expect(roundSigFig(652)).toEqual(700)
@@ -465,5 +447,18 @@ describe(getClosestTimePairs, () => {
         it("case 4", () => {
             expect(getClosestTimePairs([2, 3], [0], 1)).toEqual([])
         })
+    })
+})
+
+describe(differenceObj, () => {
+    it("handles empty objects", () => {
+        expect(differenceObj({}, {})).toEqual({})
+        expect(differenceObj({ a: 1 }, {})).toEqual({ a: 1 })
+        expect(differenceObj({}, { a: 1 })).toEqual({})
+    })
+    it("discards values that don't strictly equal values on reference object", () => {
+        expect(
+            differenceObj({ a: 1, b: 2, c: 3 }, { a: 1, b: 3, d: 4 })
+        ).toEqual({ b: 2, c: 3 })
     })
 })

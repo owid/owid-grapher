@@ -4,7 +4,6 @@ import {
     EntityName,
     OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
-import { EntityUrlBuilder } from "../core/EntityUrlBuilder"
 import { difference, mapBy } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
 import { action, computed, observable } from "mobx"
@@ -146,11 +145,5 @@ export class SelectionArray {
             (name) => name !== entityName
         )
         return this
-    }
-
-    @computed get asParam() {
-        return EntityUrlBuilder.entityNamesToQueryParam(
-            this.selectedEntityNames
-        )
     }
 }
