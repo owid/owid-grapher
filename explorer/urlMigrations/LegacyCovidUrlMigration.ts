@@ -1,23 +1,9 @@
 import { omit } from "../../clientUtils/Util"
-import {
-    QueryParams,
-    queryParamsToStr,
-    strToQueryParams,
-} from "../../clientUtils/urls/UrlUtils"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations"
 import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
-
-const legacyIntervalToNewValue = {
-    daily: "New per day",
-    weekly: "Weekly",
-    total: "Cumulative",
-    smoothed: "7-day rolling average",
-    biweekly: "Biweekly",
-    weeklyChange: "Weekly change",
-    biweeklyChange: "Biweekly change",
-}
 
 const covidMetricFromLegacyQueryParams = (queryParams: QueryParams) => {
     if (queryParams.casesMetric) {
@@ -36,6 +22,16 @@ const covidMetricFromLegacyQueryParams = (queryParams: QueryParams) => {
         return "Vaccinations"
     }
     return undefined
+}
+
+const legacyIntervalToNewValue = {
+    daily: "New per day",
+    weekly: "Weekly",
+    total: "Cumulative",
+    smoothed: "7-day rolling average",
+    biweekly: "Biweekly",
+    weeklyChange: "Weekly change",
+    biweeklyChange: "Biweekly change",
 }
 
 const covidIntervalFromLegacyQueryParams = (queryParams: QueryParams) => {
@@ -63,12 +59,9 @@ const covidIntervalFromLegacyQueryParams = (queryParams: QueryParams) => {
 }
 
 const legacyToCurrentCovidQueryParams = (
-    queryStr: string,
-    baseQueryStr?: string
+    queryParams: QueryParams,
+    baseQueryParams: QueryParams = {}
 ): QueryParams => {
-    const queryParams = strToQueryParams(queryStr)
-    const baseQueryParams = strToQueryParams(baseQueryStr)
-
     const { aligned, perCapita, ...restQueryParams } = omit(
         {
             ...baseQueryParams,
@@ -85,7 +78,7 @@ const legacyToCurrentCovidQueryParams = (
         "smoothing",
         "totalFreq",
         "dailyFreq"
-    ) as QueryParams
+    )
 
     const explorerQueryParams: QueryParams = {
         "Metric Dropdown":
@@ -107,14 +100,21 @@ const legacyToCurrentCovidQueryParams = (
 export const legacyCovidMigrationSpec: ExplorerUrlMigrationSpec = {
     explorerSlug: "coronavirus-data-explorer",
     migrateUrl: (url, baseQueryStr) => {
-        url = legacyToCurrentGrapherUrl(url)
-        let baseUrl = legacyToCurrentGrapherUrl(Url.fromQueryStr(baseQueryStr))
-        url = url.update({
-            pathname: `/${EXPLORERS_ROUTE_FOLDER}/coronavirus-data-explorer`,
-            queryStr: queryParamsToStr(
-                legacyToCurrentCovidQueryParams(url.queryStr, baseUrl.queryStr)
-            ),
-        })
-        return url
+        // Migrate the Grapher query params in both URLs
+        const [explorerUrl, baseUrl] = [
+            url,
+            Url.fromQueryStr(baseQueryStr),
+        ].map(legacyToCurrentGrapherUrl)
+
+        return explorerUrl
+            .setQueryParams(
+                legacyToCurrentCovidQueryParams(
+                    explorerUrl.queryParams,
+                    baseUrl.queryParams
+                )
+            )
+            .update({
+                pathname: `/${EXPLORERS_ROUTE_FOLDER}/coronavirus-data-explorer`,
+            })
     },
 }
