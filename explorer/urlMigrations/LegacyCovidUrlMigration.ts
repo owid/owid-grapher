@@ -81,14 +81,14 @@ const legacyToCurrentCovidQueryParams = (
     )
 
     const explorerQueryParams: QueryParams = {
-        "Metric Dropdown":
+        Metric:
             covidMetricFromLegacyQueryParams(queryParams) ??
             covidMetricFromLegacyQueryParams(baseQueryParams),
-        "Interval Dropdown":
+        Interval:
             covidIntervalFromLegacyQueryParams(queryParams) ??
             covidIntervalFromLegacyQueryParams(baseQueryParams),
-        "Align outbreaks Checkbox": aligned ? "true" : "false",
-        "Relative to Population Checkbox": perCapita ? "true" : "false",
+        "Align outbreaks": aligned ? "true" : "false",
+        "Relative to Population": perCapita ? "true" : "false",
     }
 
     return {

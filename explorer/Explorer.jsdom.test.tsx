@@ -24,13 +24,13 @@ describe(Explorer, () => {
         const explorer = element.instance() as Explorer
         expect(explorer.queryParams.tab).toBeUndefined()
 
-        explorer.onChangeChoice("Gas Radio")("All GHGs (CO₂eq)")
+        explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
 
         if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.table
         else throw Error("where's the grapher?")
         expect(explorer.queryParams.tab).toEqual("table")
 
-        explorer.onChangeChoice("Gas Radio")("CO₂")
+        explorer.onChangeChoice("Gas")("CO₂")
         expect(explorer.queryParams.tab).toBeUndefined()
     })
 

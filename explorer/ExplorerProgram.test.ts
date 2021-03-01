@@ -130,14 +130,14 @@ graphers
 })
 
 enum Choices {
-    country = "country Radio",
-    indicator = "indicator Radio",
-    interval = "interval Radio",
-    perCapita = "perCapita Radio",
+    country = "country",
+    indicator = "indicator",
+    interval = "interval",
+    perCapita = "perCapita",
 }
 
 describe(DecisionMatrix, () => {
-    const code = `${grapherIdKeyword},${Object.values(Choices).join(",")}
+    const code = `${grapherIdKeyword},country Radio,indicator Radio,interval Radio,perCapita Radio
 21,usa,GDP,annual,${GridBoolean.false}
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
@@ -268,7 +268,7 @@ france,Life expectancy`
 
     it("handles columns without options", () => {
         const decisionMatrix = new DecisionMatrix(
-            `${grapherIdKeyword},${Choices.country},${Choices.indicator}
+            `${grapherIdKeyword},country Radio,indicator Radio
 123,usa,
 32,usa,
 23,france,`
@@ -301,7 +301,7 @@ france,Life expectancy`
 488,A,true
 4331,A,true
 4331,B,false`)
-            decisionMatrix.setValueCommand("Other Radio", "A")
+            decisionMatrix.setValueCommand("Other", "A")
             const {
                 available,
                 checked,
@@ -329,8 +329,8 @@ france,Life expectancy`
 488,A,1,true
 4331,A,1,true
 4331,B,2,false`)
-            decisionMatrix.setValueCommand("Letter Radio", "A")
-            decisionMatrix.setValueCommand("Number Radio", "2")
+            decisionMatrix.setValueCommand("Letter", "A")
+            decisionMatrix.setValueCommand("Number", "2")
             const {
                 available,
                 checked,
@@ -349,13 +349,13 @@ france,Life expectancy`
 4331,CO₂,Consumption-based
 4147,GHGs,Production-based`
         )
-        decisionMatrix.setValueCommand("Gas Radio", "CO₂")
-        decisionMatrix.setValueCommand("Accounting Radio", "Consumption-based")
-        decisionMatrix.setValueCommand("Gas Radio", "GHGs")
+        decisionMatrix.setValueCommand("Gas", "CO₂")
+        decisionMatrix.setValueCommand("Accounting", "Consumption-based")
+        decisionMatrix.setValueCommand("Gas", "GHGs")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(4147)
-        expect(
-            decisionMatrix.toConstrainedOptions()["Accounting Radio"]
-        ).toEqual("Production-based")
+        expect(decisionMatrix.toConstrainedOptions()["Accounting"]).toEqual(
+            "Production-based"
+        )
         expect(decisionMatrix.choicesWithAvailability[1].value).toEqual(
             "Production-based"
         )
