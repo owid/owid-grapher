@@ -63,11 +63,11 @@ describe("co2 explorer", () => {
 
     it("generates correct query params", () => {
         expect(migratedUrl.queryParams).toEqual({
-            "Accounting Radio": "Production-based",
-            "Count Dropdown": "Cumulative",
-            "Fuel Dropdown": "Coal",
-            "Gas Radio": "CO₂",
-            "Relative to world total Checkbox": "true",
+            Accounting: "Production-based",
+            Count: "Cumulative",
+            Fuel: "Coal",
+            Gas: "CO₂",
+            "Relative to world total": "true",
             selection: "China~United States~India~United Kingdom~World",
             stackMode: "absolute",
             tab: "chart",
@@ -86,10 +86,10 @@ describe("energy explorer", () => {
 
     it("generates correct query params", () => {
         expect(migratedUrl.queryParams).toEqual({
-            "Energy or Electricity Radio": "Electricity only",
-            "Metric Dropdown": "Per capita generation",
-            "Select a source Dropdown": "Fossil fuels",
-            "Total or Breakdown Radio": "Select a source",
+            "Energy or Electricity": "Electricity only",
+            Metric: "Per capita generation",
+            "Select a source": "Fossil fuels",
+            "Total or Breakdown": "Select a source",
             selection:
                 "United States~United Kingdom~China~World~India~Brazil~South Africa",
             tab: "chart",

@@ -12,23 +12,23 @@ const EXPLORER_SLUG = "co2"
 
 const co2QueryParamTransformMap: QueryParamTransformMap = {
     "Gas ": {
-        newName: "Gas Radio",
+        newName: "Gas",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Accounting ": {
-        newName: "Accounting Radio",
+        newName: "Accounting",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Fuel ": {
-        newName: "Fuel Dropdown",
+        newName: "Fuel",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Count ": {
-        newName: "Count Dropdown",
+        newName: "Count",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Relative to world total ": {
-        newName: "Relative to world total Checkbox",
+        newName: "Relative to world total",
         transformValue: (value) => (value ? "true" : "false"),
     },
 }

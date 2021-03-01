@@ -29,10 +29,13 @@ const makeChoicesMap = (delimited: string) => {
     headerLine
         .split(detectDelimiter(headerLine))
         .filter((name) => ExplorerControlTypeRegex.test(name))
-        .forEach((choiceName) => {
-            const words = choiceName.split(" ")
-            const type = words[words.length - 1] as ExplorerControlType
-            map.set(words.join(" "), type)
+        .forEach((choiceNameAndType) => {
+            const words = choiceNameAndType.split(" ")
+            const [choiceName, choiceType] = [
+                words.slice(0, -1).join(" "),
+                words[words.length - 1],
+            ]
+            map.set(choiceName as ChoiceName, choiceType as ExplorerControlType)
         })
     return map
 }
@@ -40,6 +43,16 @@ const makeChoicesMap = (delimited: string) => {
 // This strips the "Dropdown" or "Checkbox" from "SomeChoice Dropdown" or "SomeChoice Checkbox"
 const removeChoiceControlTypeInfo = (label: string) =>
     label.replace(ExplorerControlTypeRegex, "")
+
+const dropColumnTypes = (delimited: string): string => {
+    const rows = delimited.split("\n")
+    const delimiter = detectDelimiter(rows[0])
+    rows[0] = rows[0]
+        .split(delimiter)
+        .map(removeChoiceControlTypeInfo)
+        .join(delimiter)
+    return rows.join("\n")
+}
 
 const makeCheckBoxOption = (
     options: ExplorerChoiceOption[],
@@ -69,7 +82,7 @@ export class DecisionMatrix {
     @observable currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
         this.choices = makeChoicesMap(delimited)
-        this.table = new CoreTable(parseDelimited(delimited), [
+        this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
             // todo: remove col def?
             {
                 slug: GrapherGrammar.grapherId.keyword,
@@ -275,16 +288,15 @@ export class DecisionMatrix {
                 )
             )
             const type = this.choices.get(title)!
-            const displayTitle = removeChoiceControlTypeInfo(title)
 
             return {
                 title,
-                displayTitle,
+                displayTitle: title,
                 type,
                 value,
                 options:
                     type === ExplorerControlType.Checkbox
-                        ? makeCheckBoxOption(options, displayTitle)
+                        ? makeCheckBoxOption(options, title)
                         : options,
             }
         })

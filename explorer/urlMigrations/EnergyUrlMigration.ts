@@ -12,19 +12,19 @@ const EXPLORER_SLUG = "energy"
 
 const energyQueryParamTransformMap: QueryParamTransformMap = {
     "Total or Breakdown ": {
-        newName: "Total or Breakdown Radio",
+        newName: "Total or Breakdown",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Select a source ": {
-        newName: "Select a source Dropdown",
+        newName: "Select a source",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Energy or Electricity ": {
-        newName: "Energy or Electricity Radio",
+        newName: "Energy or Electricity",
         transformValue: decodeURIComponentOrUndefined,
     },
     "Metric ": {
-        newName: "Metric Dropdown",
+        newName: "Metric",
         transformValue: decodeURIComponentOrUndefined,
     },
 }
