@@ -19,7 +19,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         return Url.fromURL(this.props.src)
     }
     @computed private get configUrl() {
-        return excludeUndefined([this.url.base, this.url.pathname]).join("")
+        return this.url.baseAndPath
     }
     @computed private get queryStr() {
         return this.url.queryStr
@@ -28,6 +28,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
 
     private async loadConfig() {
         const { configUrl } = this
+        if (configUrl === undefined) return
         const resp = await fetch(configUrl)
         if (this.configUrl !== configUrl) {
             // Changed while we were fetching

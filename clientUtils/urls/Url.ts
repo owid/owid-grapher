@@ -80,6 +80,12 @@ export class Url {
         return this.props.pathname
     }
 
+    get baseAndPath(): string | undefined {
+        const strings = excludeUndefined([this.base, this.pathname])
+        if (strings.length === 0) return undefined
+        return strings.join("")
+    }
+
     get queryStr(): string {
         const { queryStr } = this.props
         // Drop a single trailing `?`, if there is one

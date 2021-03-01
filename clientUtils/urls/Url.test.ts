@@ -51,10 +51,21 @@ describe(Url, () => {
         const url = Url.fromQueryStr("a=1&b=2")
         expect(url.base).toBeUndefined()
         expect(url.pathname).toBeUndefined()
+        expect(url.baseAndPath).toBeUndefined()
     })
 
     it("Url with empty query string drops query string", () => {
         const url = Url.fromURL("https://owid.cloud/?")
         expect(url.fullUrl).toEqual("https://owid.cloud/")
+    })
+
+    it("correctly formats baseAndPath", () => {
+        expect(
+            Url.fromURL("https://ourworldindata.org/grapher/123?abc=true#hash")
+                .baseAndPath
+        ).toEqual("https://ourworldindata.org/grapher/123")
+        expect(Url.fromURL("/grapher/123?abc=true#hash").baseAndPath).toEqual(
+            "/grapher/123"
+        )
     })
 })
