@@ -20,7 +20,7 @@ There's a mix of cases where we need to migrate URLs:
 
 In order:
 
-1. **Apply Explorer redirects** ([`ExplorerRedirects.ts`](../../explorerAdmin/ExplorerRedirects.ts))
+1. **Apply Explorer redirects** `(Url, baseQueryStr) → Url` ([`ExplorerRedirects.ts`](../../explorerAdmin/ExplorerRedirects.ts))
 
     This is done **server-side** for Grapher → Explorer redirects and LegacyCovidExplorer → GridCovidExplorer.
 
@@ -28,7 +28,7 @@ In order:
 
     The redirect is done client-side with `window.history.replaceState()`, based on the **baked specification** ([`ExplorerPageUrlMigrationSpec.ts`](./ExplorerPageUrlMigrationSpec.ts)).
 
-2. **Apply Explorer migrations** ([`ExplorerUrlMigrations.ts`](./ExplorerUrlMigrations.ts))
+2. **Apply Explorer migrations** `(Url) → Url` ([`ExplorerUrlMigrations.ts`](./ExplorerUrlMigrations.ts))
 
     This is how we handle Explorer query param changes on **client-side** (e.g. in the old CO2 and Energy explorers).
 
