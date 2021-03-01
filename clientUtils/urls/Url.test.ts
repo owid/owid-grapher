@@ -8,7 +8,7 @@ describe(Url, () => {
     )
 
     it("props", () => {
-        expect(url.base).toEqual("https://ourworldindata.org")
+        expect(url.origin).toEqual("https://ourworldindata.org")
         expect(url.pathname).toEqual("/grapher/abc")
         expect(url.queryStr).toEqual("?stackMode=relative&country=USA~SWE")
         expect(url.hash).toEqual("#heading")
@@ -30,14 +30,14 @@ describe(Url, () => {
         expect(url.update({ hash: "test" }).hash).toEqual("#test")
     })
 
-    it("update() doesn't set pathname to undefined if base is defined", () => {
+    it("update() doesn't set pathname to undefined if origin is defined", () => {
         const newUrl = url.update({ pathname: undefined })
         expect(newUrl.pathname).toEqual("")
     })
 
-    it("update() sets pathname to undefined if base is undefined", () => {
-        const newUrl = url.update({ pathname: undefined, base: undefined })
-        expect(newUrl.base).toBeUndefined()
+    it("update() sets pathname to undefined if origin is undefined", () => {
+        const newUrl = url.update({ pathname: undefined, origin: undefined })
+        expect(newUrl.origin).toBeUndefined()
         expect(newUrl.pathname).toBeUndefined()
     })
 
@@ -47,11 +47,11 @@ describe(Url, () => {
         ).toEqual("?country=USA~SWE")
     })
 
-    it("fromQueryStr() leaves pathname and base undefined", () => {
+    it("fromQueryStr() leaves pathname and origin undefined", () => {
         const url = Url.fromQueryStr("a=1&b=2")
-        expect(url.base).toBeUndefined()
+        expect(url.origin).toBeUndefined()
         expect(url.pathname).toBeUndefined()
-        expect(url.baseAndPath).toBeUndefined()
+        expect(url.originAndPath).toBeUndefined()
     })
 
     it("Url with empty query string drops query string", () => {
@@ -59,12 +59,12 @@ describe(Url, () => {
         expect(url.fullUrl).toEqual("https://owid.cloud/")
     })
 
-    it("correctly formats baseAndPath", () => {
+    it("correctly formats originAndPath", () => {
         expect(
             Url.fromURL("https://ourworldindata.org/grapher/123?abc=true#hash")
-                .baseAndPath
+                .originAndPath
         ).toEqual("https://ourworldindata.org/grapher/123")
-        expect(Url.fromURL("/grapher/123?abc=true#hash").baseAndPath).toEqual(
+        expect(Url.fromURL("/grapher/123?abc=true#hash").originAndPath).toEqual(
             "/grapher/123"
         )
     })

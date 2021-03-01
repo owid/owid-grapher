@@ -24,7 +24,7 @@ const ensureQueryStrFormat = (queryStr: string) =>
 const ensureHashFormat = (queryStr: string) => ensureStartsWith(queryStr, "#")
 
 interface UrlProps {
-    readonly base?: string // https://ourworldindata.org
+    readonly origin?: string // https://ourworldindata.org
     readonly pathname?: string // /grapher/abc
     readonly queryStr?: string // ?stackMode=relative
     readonly hash?: string // #articles
@@ -38,10 +38,9 @@ export class Url {
      */
     static fromURL(url: string) {
         const { origin, pathname, query, hash } = parseUrl(url)
-        const base =
-            origin !== undefined && origin !== "null" ? origin : undefined
         return new Url({
-            base,
+            origin:
+                origin !== undefined && origin !== "null" ? origin : undefined,
             pathname,
             queryStr: query,
             hash,
@@ -66,22 +65,22 @@ export class Url {
             pathname:
                 props.pathname !== undefined
                     ? props.pathname
-                    : props.base
+                    : props.origin
                     ? ""
                     : undefined,
         }
     }
 
-    get base(): string | undefined {
-        return this.props.base
+    get origin(): string | undefined {
+        return this.props.origin
     }
 
     get pathname(): string | undefined {
         return this.props.pathname
     }
 
-    get baseAndPath(): string | undefined {
-        const strings = excludeUndefined([this.base, this.pathname])
+    get originAndPath(): string | undefined {
+        const strings = excludeUndefined([this.origin, this.pathname])
         if (strings.length === 0) return undefined
         return strings.join("")
     }
@@ -101,7 +100,7 @@ export class Url {
 
     get fullUrl(): string {
         return excludeUndefined([
-            this.base,
+            this.origin,
             this.pathname,
             this.queryStr,
             this.hash,

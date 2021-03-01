@@ -19,7 +19,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         return Url.fromURL(this.props.src)
     }
     @computed private get configUrl() {
-        return this.url.baseAndPath
+        return this.url.originAndPath
     }
     @computed private get queryStr() {
         return this.url.queryStr
