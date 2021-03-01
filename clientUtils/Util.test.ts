@@ -21,6 +21,7 @@ import {
     intersection,
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
+    differenceObj,
 } from "./Util"
 import { SortOrder, ScaleType } from "./owidTypes"
 
@@ -446,5 +447,18 @@ describe(getClosestTimePairs, () => {
         it("case 4", () => {
             expect(getClosestTimePairs([2, 3], [0], 1)).toEqual([])
         })
+    })
+})
+
+describe(differenceObj, () => {
+    it("handles empty objects", () => {
+        expect(differenceObj({}, {})).toEqual({})
+        expect(differenceObj({ a: 1 }, {})).toEqual({ a: 1 })
+        expect(differenceObj({}, { a: 1 })).toEqual({})
+    })
+    it("discards values that don't strictly equal values on reference object", () => {
+        expect(
+            differenceObj({ a: 1, b: 2, c: 3 }, { a: 1, b: 3, d: 4 })
+        ).toEqual({ b: 2, c: 3 })
     })
 })
