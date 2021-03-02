@@ -89,8 +89,6 @@ const migrateV1Delimited: UrlMigration = (url) => {
  * We dropped this feature in March 2021 in order to simplify the selection-handling logic, and it
  * was also, in most cases, not desirable to present users with variable-entity options.
  *
- * We will likely re-introduce this in the future, architected better and with the option of which
- *
  */
 
 const LegacyDimensionRegex = /\-\d+$/
