@@ -167,19 +167,20 @@ export class MapChart
     @observable focusBracket?: MapBracket
 
     transformTable(table: OwidTable) {
-        const entityNamesToSelect = table.availableEntityNames.filter(
-            isOnTheMap
-        )
-
         if (!table.has(this.mapColumnSlug)) return table
-
-        return table
-            .filterByEntityNames(entityNamesToSelect)
+        return this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance
             )
+    }
+
+    private dropNonMapEntities(table: OwidTable) {
+        const entityNamesToSelect = table.availableEntityNames.filter(
+            isOnTheMap
+        )
+        return table.filterByEntityNames(entityNamesToSelect)
     }
 
     @computed get inputTable() {
@@ -345,8 +346,9 @@ export class MapChart
     }
 
     @computed get colorScaleColumn() {
-        // Use the table before transform to build the legend. Otherwise the legend jumps around as you slide the timeline handle.
-        return this.inputTable.get(this.mapColumnSlug)
+        // Use the table before transform to build the legend.
+        // Otherwise the legend jumps around as you slide the timeline handle.
+        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
     }
 
     colorScale = new ColorScale(this)
