@@ -1082,15 +1082,8 @@ export class Grapher
         return text.trim()
     }
 
-    @computed private get isOnOverlay() {
-        return (
-            this.currentTab === GrapherTabOption.sources ||
-            this.currentTab === GrapherTabOption.download
-        )
-    }
-
-    @computed get hasTimeline() {
-        // we don't have more than one distinct times in our data, so it doesn't make sense to show a timeline
+    @computed get hasTimeline(): boolean {
+        // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
         switch (this.tab) {
