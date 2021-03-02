@@ -1090,11 +1090,16 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
-            return false
         if (this.isOnOverlay) return false
         if (this.hideTimeline) return false
-        if (this.isOnMapTab && this.map.hideTimeline) return false
+
+        if (this.isOnMapTab) {
+            if (this.map.hideTimeline) return false
+        } else {
+            if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
+                return false
+        }
+
         return this.times.length > 1
     }
 
