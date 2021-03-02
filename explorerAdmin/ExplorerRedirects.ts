@@ -196,7 +196,7 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/coronavirus-data-explorer",
-        "zoomToSelection=true&time=2020-03-01..latest&country=IND~USA~GBR~CAN~DEU~FRA&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_cases&pickerSort=desc",
+        "zoomToSelection=true&time=2020-03-01..latest&country=USA~GBR~CAN~DEU~ITA~IND&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=location&pickerSort=asc",
     ],
 ]
 
