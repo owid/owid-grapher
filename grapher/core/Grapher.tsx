@@ -1090,17 +1090,30 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        if (this.isOnOverlay) return false
-        if (this.hideTimeline) return false
+        // we don't have more than one distinct times in our data, so it doesn't make sense to show a timeline
+        if (this.times.length <= 1) return false
 
-        if (this.isOnMapTab) {
-            if (this.map.hideTimeline) return false
-        } else {
-            if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
+        switch (this.tab) {
+            case GrapherTabOption.map:
+                return !this.map.hideTimeline
+
+            case GrapherTabOption.table:
+                return !this.hideTimeline
+
+            case GrapherTabOption.chart:
+                return (
+                    !this.hideTimeline &&
+                    !(
+                        this.isStackedBar ||
+                        this.isStackedArea ||
+                        this.isDiscreteBar
+                    )
+                )
+
+            case GrapherTabOption.download:
+            case GrapherTabOption.sources:
                 return false
         }
-
-        return this.times.length > 1
     }
 
     @computed private get areHandlesOnSameTime() {
