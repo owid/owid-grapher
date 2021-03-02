@@ -4,9 +4,9 @@ import { observer } from "mobx-react"
 import { computed } from "mobx"
 import { union, getAttributesOfHTMLElement } from "../../clientUtils/Util"
 import {
-    getCountryQueryParam,
-    migrateCountryQueryParam,
-    setCountryQueryParam,
+    getSelectedEntityNamesParam,
+    migrateSelectedEntityNamesParam,
+    setSelectedEntityNamesParam,
 } from "../../grapher/core/EntityUrlBuilder"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { Url } from "../../clientUtils/urls/Url"
@@ -21,13 +21,13 @@ class ProminentLink extends React.Component<{
     globalEntitySelection?: SelectionArray
 }> {
     @computed get originalUrl(): Url {
-        return migrateCountryQueryParam(
+        return migrateSelectedEntityNamesParam(
             Url.fromURL(this.props.originalAnchorAttributes.href)
         )
     }
 
     @computed private get originalSelectedEntities(): EntityName[] {
-        return getCountryQueryParam(this.originalUrl) ?? []
+        return getSelectedEntityNamesParam(this.originalUrl) ?? []
     }
 
     @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
@@ -39,7 +39,7 @@ class ProminentLink extends React.Component<{
             this.originalSelectedEntities,
             this.entitiesInGlobalEntitySelection
         )
-        return setCountryQueryParam(this.originalUrl, newEntityList)
+        return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
     }
 
     render() {

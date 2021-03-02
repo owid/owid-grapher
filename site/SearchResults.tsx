@@ -11,7 +11,7 @@ import { EmbedChart } from "./EmbedChart"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { uniq, capitalize } from "../clientUtils/Util"
 import { Country } from "../clientUtils/countries"
-import { setCountryQueryParam } from "../grapher/core/EntityUrlBuilder"
+import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder"
 import { Url } from "../clientUtils/urls/Url"
 
 class ChartResult extends React.Component<{
@@ -27,7 +27,7 @@ class ChartResult extends React.Component<{
         const { entities } = this
         if (!entities.length) return hit.slug
         else
-            return setCountryQueryParam(
+            return setSelectedEntityNamesParam(
                 Url.fromURL(hit.slug).updateQueryParams({
                     tab: "chart",
                 }),
@@ -155,7 +155,7 @@ export class SearchResults extends React.Component<{
 
         if (!bestChartEntities.length) return bestChartHit.slug
         else
-            return setCountryQueryParam(
+            return setSelectedEntityNamesParam(
                 Url.fromURL(bestChartHit.slug).updateQueryParams({
                     tab: "chart",
                 }),

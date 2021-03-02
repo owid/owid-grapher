@@ -56,7 +56,7 @@ import {
 } from "./urlMigrations/ExplorerUrlMigrations"
 import { setWindowUrl, Url } from "../clientUtils/urls/Url"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
-import { setCountryQueryParam } from "../grapher/core/EntityUrlBuilder"
+import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -188,7 +188,7 @@ export class Explorer
         let url = Url.fromQueryParams(this.initialQueryParams)
 
         if (this.props.selection?.hasSelection) {
-            url = setCountryQueryParam(
+            url = setSelectedEntityNamesParam(
                 url,
                 this.props.selection.selectedEntityNames
             )
@@ -378,7 +378,7 @@ export class Explorer
             })
         )
 
-        url = setCountryQueryParam(
+        url = setSelectedEntityNamesParam(
             url,
             this.selection.hasSelection
                 ? this.selection.selectedEntityNames

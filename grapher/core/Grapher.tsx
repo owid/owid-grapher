@@ -82,7 +82,10 @@ import {
     LegacyGrapherInterface,
 } from "../core/GrapherInterface"
 import { DimensionSlot } from "../chart/DimensionSlot"
-import { getCountryQueryParam, setCountryQueryParam } from "./EntityUrlBuilder"
+import {
+    getSelectedEntityNamesParam,
+    setSelectedEntityNamesParam,
+} from "./EntityUrlBuilder"
 import { MapProjectionName } from "../mapCharts/MapProjections"
 import { LogoOption } from "../captionedChart/Logos"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -461,7 +464,9 @@ export class Grapher
         if (region !== undefined)
             this.map.projection = region as MapProjectionName
 
-        const selection = getCountryQueryParam(Url.fromQueryParams(params))
+        const selection = getSelectedEntityNamesParam(
+            Url.fromQueryParams(params)
+        )
 
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
@@ -2055,7 +2060,7 @@ export class Grapher
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
-        return setCountryQueryParam(
+        return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors
         ).queryParams
