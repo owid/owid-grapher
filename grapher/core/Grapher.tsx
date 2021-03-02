@@ -1087,12 +1087,15 @@ export class Grapher
         if (this.times.length <= 1) return false
 
         switch (this.tab) {
+            // the map tab has its own `hideTimeline` option
             case GrapherTabOption.map:
                 return !this.map.hideTimeline
 
+            // use the chart-level `hideTimeline` option for the table, too
             case GrapherTabOption.table:
                 return !this.hideTimeline
 
+            // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
             case GrapherTabOption.chart:
                 return (
                     !this.hideTimeline &&
@@ -1103,6 +1106,7 @@ export class Grapher
                     )
                 )
 
+            // never show a timeline while we're showing one of these two overlays
             case GrapherTabOption.download:
             case GrapherTabOption.sources:
                 return false
