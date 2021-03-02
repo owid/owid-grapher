@@ -4,7 +4,7 @@ import {
     UrlMigration,
     performUrlMigrations,
 } from "../../clientUtils/urls/UrlMigration"
-import { migrateCountryQueryParam } from "./EntityUrlBuilder"
+import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url) => {
@@ -15,7 +15,7 @@ export const grapherUrlMigrations: UrlMigration[] = [
             time: time ?? year,
         })
     },
-    migrateCountryQueryParam,
+    migrateSelectedEntityNamesParam,
 ]
 
 export const legacyToCurrentGrapherUrl = (url: Url) =>

@@ -76,7 +76,7 @@ const migrateEncodedLegacyCountryParam = (countryParam: string) => {
     return entityNamesToDecodedQueryParam(entityNames)
 }
 
-export const migrateCountryQueryParam = (url: Url) => {
+export const migrateSelectedEntityNamesParam = (url: Url) => {
     // need to use still-encoded URL params because we need to
     // distinguish between `+` and `%20` in legacy URLs
     const { country } = url.encodedQueryParams
@@ -87,17 +87,19 @@ export const migrateCountryQueryParam = (url: Url) => {
     })
 }
 
-export const getCountryQueryParam = (url: Url): EntityName[] | undefined => {
-    return migrateCountryQueryParam(url)
+export const getSelectedEntityNamesParam = (
+    url: Url
+): EntityName[] | undefined => {
+    return migrateSelectedEntityNamesParam(url)
         .queryParams.selection?.split(ENTITY_V2_DELIMITER)
         .filter((entityName) => entityName)
 }
 
-export const setCountryQueryParam = (
+export const setSelectedEntityNamesParam = (
     url: Url,
     entityNames: EntityName[] | undefined
 ) => {
-    return migrateCountryQueryParam(url).updateQueryParams({
+    return migrateSelectedEntityNamesParam(url).updateQueryParams({
         selection: entityNames
             ? entityNamesToDecodedQueryParam(entityNames)
             : undefined,

@@ -3,8 +3,8 @@
 import { Url } from "../../clientUtils/urls/Url"
 import {
     ENTITY_V2_DELIMITER,
-    getCountryQueryParam,
-    setCountryQueryParam,
+    getSelectedEntityNamesParam,
+    setSelectedEntityNamesParam,
 } from "./EntityUrlBuilder"
 
 const encodeTests = [
@@ -66,14 +66,16 @@ const encodeTests = [
 encodeTests.forEach((testCase) => {
     it(`correctly encodes url strings`, () => {
         expect(
-            setCountryQueryParam(Url.fromQueryStr(""), testCase.entities)
+            setSelectedEntityNamesParam(Url.fromQueryStr(""), testCase.entities)
                 .queryStr
         ).toEqual(testCase.outputQueryStr)
     })
 
     it(`correctly decodes url strings`, () => {
         expect(
-            getCountryQueryParam(Url.fromQueryStr(testCase.inputQueryStr))
+            getSelectedEntityNamesParam(
+                Url.fromQueryStr(testCase.inputQueryStr)
+            )
         ).toEqual(testCase.entities)
     })
 })
@@ -97,7 +99,7 @@ describe("legacyLinks", () => {
     legacyLinks.forEach((testCase) => {
         it(`correctly decodes legacy url strings`, () => {
             expect(
-                getCountryQueryParam(Url.fromQueryStr(testCase.queryStr))
+                getSelectedEntityNamesParam(Url.fromQueryStr(testCase.queryStr))
             ).toEqual(testCase.entities)
         })
     })
@@ -114,7 +116,7 @@ describe("facebook", () => {
     facebookLinks.forEach((testCase) => {
         it(`correctly decodes Facebook altered links`, () => {
             expect(
-                getCountryQueryParam(Url.fromQueryStr(testCase.queryStr))
+                getSelectedEntityNamesParam(Url.fromQueryStr(testCase.queryStr))
             ).toEqual(testCase.entities)
         })
     })
@@ -131,7 +133,7 @@ describe("it can handle legacy urls with dimension in selection key", () => {
         ].join(ENTITY_V2_DELIMITER),
     })
 
-    const results = getCountryQueryParam(url)
+    const results = getSelectedEntityNamesParam(url)
 
     expect(results).toEqual([
         "United States",

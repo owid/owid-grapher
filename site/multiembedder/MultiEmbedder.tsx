@@ -21,8 +21,8 @@ import {
 import { getWindowUrl, Url } from "../../clientUtils/urls/Url"
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import {
-    getCountryQueryParam,
-    migrateCountryQueryParam,
+    getSelectedEntityNamesParam,
+    migrateSelectedEntityNamesParam,
 } from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 
@@ -246,8 +246,8 @@ class MultiEmbedder {
             }),
             getWindowUrl(),
         ]
-            .map(migrateCountryQueryParam)
-            .map(getCountryQueryParam)
+            .map(migrateSelectedEntityNamesParam)
+            .map(getSelectedEntityNamesParam)
 
         this.selection = new SelectionArray(
             windowEntityNames ?? defaultEntityNames
