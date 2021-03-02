@@ -102,13 +102,11 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.grapher.startHandleTimeBound =
-            value ?? TimeBoundValue.negativeInfinity
+        this.grapher.minTime = value ?? TimeBoundValue.negativeInfinity
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.grapher.endHandleTimeBound =
-            value ?? TimeBoundValue.positiveInfinity
+        this.grapher.maxTime = value ?? TimeBoundValue.positiveInfinity
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
@@ -137,7 +135,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={grapher.minTime}
+                            value={this.minTime}
                             onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
@@ -148,7 +146,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={grapher.maxTime}
+                        value={this.maxTime}
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
