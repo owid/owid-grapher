@@ -24,7 +24,7 @@ describe("legacyToGridCovidExplorer", () => {
         ]
 
     const legacyUrl = Url.fromURL(
-        "https://ourworldindata.org/coronavirus-data-explorer?country=ESP~MKD"
+        "https://ourworldindata.org/coronavirus-data-explorer?country=ESP~MKD~North+America"
     )
     const baseQueryStr = "country=SWE~MKD&yScale=log&year=0"
     const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
@@ -41,8 +41,7 @@ describe("legacyToGridCovidExplorer", () => {
     })
 
     it("migrates country param correctly", () => {
-        expect(migratedQueryParams.country).toBeUndefined()
-        expect(migratedQueryParams.selection).toEqual("Spain~North Macedonia")
+        expect(migratedQueryParams.country).toEqual("ESP~MKD~North America")
     })
 
     it("migrates year param correctly", () => {
@@ -68,7 +67,7 @@ describe("co2 explorer", () => {
             Fuel: "Coal",
             Gas: "CO₂",
             "Relative to world total": "true",
-            selection: "China~United States~India~United Kingdom~World",
+            country: "China~United States~India~United Kingdom~World",
             stackMode: "absolute",
             tab: "chart",
             time: "earliest..latest",
@@ -90,7 +89,7 @@ describe("energy explorer", () => {
             Metric: "Per capita generation",
             "Select a source": "Fossil fuels",
             "Total or Breakdown": "Select a source",
-            selection:
+            country:
                 "United States~United Kingdom~China~World~India~Brazil~South Africa",
             tab: "chart",
             time: "earliest..latest",

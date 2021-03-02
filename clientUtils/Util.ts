@@ -16,6 +16,7 @@ import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
 import has from "lodash/has"
 import identity from "lodash/identity"
+import invert from "lodash/invert"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 import isNumber from "lodash/isNumber"
@@ -75,6 +76,7 @@ export {
     groupBy,
     has,
     identity,
+    invert,
     isEmpty,
     isEqual,
     isNumber,

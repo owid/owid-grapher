@@ -129,7 +129,7 @@ it("can generate a url with country selection even if there is no entity code", 
     const grapher = new Grapher(config)
     expect(grapher.queryStr).toBe("")
     grapher.selection.selectAll()
-    expect(grapher.queryStr).toContain("Afghanistan")
+    expect(grapher.queryStr).toContain("AFG")
 
     const config2 = {
         ...legacyConfig,
@@ -139,7 +139,7 @@ it("can generate a url with country selection even if there is no entity code", 
     const grapher2 = new Grapher(config2)
     expect(grapher2.queryStr).toBe("")
     grapher2.selection.selectAll()
-    expect(grapher2.queryStr).toContain("Afghanistan")
+    expect(grapher2.queryStr).toContain("AFG")
 })
 
 it("stackedbars should not have timelines", () => {
