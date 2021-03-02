@@ -41,7 +41,8 @@ describe("legacyToGridCovidExplorer", () => {
     })
 
     it("migrates country param correctly", () => {
-        expect(migratedQueryParams.country).toEqual("ESP~MKD~North America")
+        expect(migratedQueryParams.country).toBeUndefined()
+        expect(migratedQueryParams.selection).toEqual("ESP~MKD~North America")
     })
 
     it("migrates year param correctly", () => {
@@ -67,7 +68,7 @@ describe("co2 explorer", () => {
             Fuel: "Coal",
             Gas: "CO₂",
             "Relative to world total": "true",
-            country: "China~United States~India~United Kingdom~World",
+            selection: "China~United States~India~United Kingdom~World",
             stackMode: "absolute",
             tab: "chart",
             time: "earliest..latest",
@@ -89,7 +90,7 @@ describe("energy explorer", () => {
             Metric: "Per capita generation",
             "Select a source": "Fossil fuels",
             "Total or Breakdown": "Select a source",
-            country:
+            selection:
                 "United States~United Kingdom~China~World~India~Brazil~South Africa",
             tab: "chart",
             time: "earliest..latest",

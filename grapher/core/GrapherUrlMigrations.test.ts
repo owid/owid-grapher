@@ -9,7 +9,7 @@ describe(legacyToCurrentGrapherQueryParams, () => {
         const currentQueryParams = legacyToCurrentGrapherQueryParams(queryStr)
 
         expect(currentQueryParams).toEqual({
-            country: "~East Asia & Pacific",
+            selection: "~East Asia & Pacific",
             tab: "chart",
         })
     })
@@ -22,7 +22,7 @@ describe(legacyToCurrentGrapherQueryParams, () => {
         )
 
         expect(currentQueryParams).toEqual({
-            country: "~East Asia & Pacific",
+            selection: "~East Asia & Pacific",
             tab: "chart",
         })
     })

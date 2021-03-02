@@ -35,7 +35,7 @@ describe(Explorer, () => {
     })
 
     it("recovers country selection from URL params", () => {
-        const element = mount(SampleExplorer({ queryStr: "?country=IRL" }))
+        const element = mount(SampleExplorer({ queryStr: "?selection=IRL" }))
         const explorer = element.instance() as Explorer
         expect(explorer.selection.selectedEntityNames).toEqual(["Ireland"])
     })
