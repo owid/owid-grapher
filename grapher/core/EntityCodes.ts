@@ -1,4 +1,7 @@
-export const LegacyEntityCodesToEntityNames: any = {
+import { invert } from "../../clientUtils/Util"
+import { EntityName } from "../../coreTable/OwidTableConstants"
+
+export const entityCodesToEntityNames: Record<string, string> = {
     ABW: "Aruba",
     AFG: "Afghanistan",
     AGO: "Angola",
@@ -288,4 +291,14 @@ export const LegacyEntityCodesToEntityNames: any = {
     ZAF: "South Africa",
     ZMB: "Zambia",
     ZWE: "Zimbabwe",
+}
+
+export const entityNamesToEntityCodes = invert(entityCodesToEntityNames)
+
+export const codeToEntityName = (codeOrEntityName: string): EntityName => {
+    return entityCodesToEntityNames[codeOrEntityName] ?? codeOrEntityName
+}
+
+export const entityNameToCode = (entityName: EntityName): string => {
+    return entityNamesToEntityCodes[entityName] ?? entityName
 }
