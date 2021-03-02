@@ -38,7 +38,7 @@ class EntitySelectorMulti extends React.Component<{
     @computed get searchResults() {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : this.searchableEntities
+            : sortBy(this.searchableEntities, (result) => result.name)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
