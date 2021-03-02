@@ -682,7 +682,7 @@ export class ScatterPlotChart
                 this.manager.hasTimeline &&
                 this.manager.startTime === this.manager.endTime
             ) {
-                return "Please select two points on the timeline below"
+                return "Please select a start and end point on the timeline below"
             }
             return "No entities with data for both X and Y"
         }
