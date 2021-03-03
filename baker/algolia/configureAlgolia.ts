@@ -1,6 +1,6 @@
 import algoliasearch from "algoliasearch"
 import { Synonym } from "@algolia/client-search"
-import { ALGOLIA_ID } from "../../settings/serverSettings"
+import { ALGOLIA_ID } from "../../settings/clientSettings"
 import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
 import { countries } from "../../clientUtils/countries"
 

@@ -18,11 +18,8 @@ import {
 } from "../baker/GrapherBakingUtils"
 import * as cheerio from "cheerio"
 import { Post } from "../db/model/Post"
-import {
-    BAKED_BASE_URL,
-    BLOG_POSTS_PER_PAGE,
-    RECAPTCHA_SITE_KEY,
-} from "../settings/serverSettings"
+import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "../settings/serverSettings"
+import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
