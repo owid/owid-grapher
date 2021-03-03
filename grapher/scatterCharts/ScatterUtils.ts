@@ -18,15 +18,24 @@ export const labelPriority = (label: ScatterLabel) => {
     return priority
 }
 
+const FONT_SIZE_WHEN_HIDDEN_LINES = 12
+
 // Create the start year label for a series
 export const makeStartLabel = (
     series: ScatterRenderSeries,
-    isSubtleForeground: boolean
+    isSubtleForeground: boolean,
+    hideConnectedScatterLines: boolean
 ): ScatterLabel | undefined => {
     // No room to label the year if it's a single point
     if (!series.isForeground || series.points.length <= 1) return undefined
 
-    const fontSize = series.isForeground ? (isSubtleForeground ? 8 : 9) : 7
+    const fontSize = hideConnectedScatterLines
+        ? FONT_SIZE_WHEN_HIDDEN_LINES
+        : series.isForeground
+        ? isSubtleForeground
+            ? 8
+            : 9
+        : 7
     const firstValue = series.points[0]
     const nextValue = series.points[1]
     const nextSegment = nextValue.position.subtract(firstValue.position)
@@ -68,7 +77,8 @@ export const makeStartLabel = (
 // Positioned using normals of the line segments
 export const makeMidLabels = (
     series: ScatterRenderSeries,
-    isSubtleForeground: boolean
+    isSubtleForeground: boolean,
+    hideConnectedScatterLines: boolean
 ): ScatterLabel[] => {
     if (
         !series.isForeground ||
@@ -77,7 +87,13 @@ export const makeMidLabels = (
     )
         return []
 
-    const fontSize = series.isForeground ? (isSubtleForeground ? 8 : 9) : 7
+    const fontSize = hideConnectedScatterLines
+        ? FONT_SIZE_WHEN_HIDDEN_LINES
+        : series.isForeground
+        ? isSubtleForeground
+            ? 8
+            : 9
+        : 7
     const fontWeight = 400
 
     return series.points.slice(1, -1).map((v, i) => {
@@ -145,19 +161,16 @@ export const makeMidLabels = (
 export const makeEndLabel = (
     series: ScatterRenderSeries,
     isSubtleForeground: boolean,
-    hideLines: boolean
+    hideConnectedScatterLines: boolean
 ): ScatterLabel => {
     const lastValue = last(series.points) as ScatterRenderPoint
     const lastPos = lastValue.position
-    const fontSize = hideLines
-        ? series.isForeground
-            ? isSubtleForeground
-                ? 8
-                : 9
-            : 7
+    const fontSize = hideConnectedScatterLines
+        ? FONT_SIZE_WHEN_HIDDEN_LINES
         : lastValue.fontSize *
           (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
-    const fontWeight = series.isForeground ? 700 : 400
+    const fontWeight =
+        series.isForeground && !hideConnectedScatterLines ? 700 : 400
 
     let offsetVector = PointVector.up
     if (series.points.length > 1) {
@@ -190,7 +203,10 @@ export const makeEndLabel = (
         })
 
     return {
-        text: hideLines && series.isForeground ? lastValue.label : series.text,
+        text:
+            hideConnectedScatterLines && series.isForeground
+                ? lastValue.label
+                : series.text,
         fontSize,
         fontWeight,
         color: lastValue.color,
