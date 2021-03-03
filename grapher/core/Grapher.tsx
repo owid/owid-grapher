@@ -1082,20 +1082,35 @@ export class Grapher
         return text.trim()
     }
 
-    @computed private get isOnOverlay() {
-        return (
-            this.currentTab === GrapherTabOption.sources ||
-            this.currentTab === GrapherTabOption.download
-        )
-    }
+    @computed get hasTimeline(): boolean {
+        // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
+        if (this.times.length <= 1) return false
 
-    @computed get hasTimeline() {
-        if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
-            return false
-        if (this.isOnOverlay) return false
-        if (this.hideTimeline) return false
-        if (this.isOnMapTab && this.map.hideTimeline) return false
-        return this.times.length > 1
+        switch (this.tab) {
+            // the map tab has its own `hideTimeline` option
+            case GrapherTabOption.map:
+                return !this.map.hideTimeline
+
+            // use the chart-level `hideTimeline` option for the table, too
+            case GrapherTabOption.table:
+                return !this.hideTimeline
+
+            // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
+            case GrapherTabOption.chart:
+                return (
+                    !this.hideTimeline &&
+                    !(
+                        this.isStackedBar ||
+                        this.isStackedArea ||
+                        this.isDiscreteBar
+                    )
+                )
+
+            // never show a timeline while we're showing one of these two overlays
+            case GrapherTabOption.download:
+            case GrapherTabOption.sources:
+                return false
+        }
     }
 
     @computed private get areHandlesOnSameTime() {
