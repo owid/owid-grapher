@@ -87,7 +87,10 @@ export class ScatterPlotChart
             addCountryMode,
         } = this.manager
 
-        if (addCountryMode === EntitySelectionMode.Disabled) {
+        if (
+            addCountryMode === EntitySelectionMode.Disabled ||
+            addCountryMode === EntitySelectionMode.SingleEntity
+        ) {
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
             )
