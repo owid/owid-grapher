@@ -142,11 +142,43 @@ it("can generate a url with country selection even if there is no entity code", 
     expect(grapher2.queryStr).toContain("AFG")
 })
 
-it("stackedbars should not have timelines", () => {
-    const grapher = new Grapher(legacyConfig)
-    expect(grapher.hasTimeline).toBeTruthy()
-    grapher.type = ChartTypeName.StackedBar
-    expect(grapher.hasTimeline).toBeFalsy()
+describe("hasTimeline", () => {
+    it("charts with timeline", () => {
+        const grapher = new Grapher(legacyConfig)
+        grapher.type = ChartTypeName.LineChart
+        expect(grapher.hasTimeline).toBeTruthy()
+        grapher.type = ChartTypeName.SlopeChart
+        expect(grapher.hasTimeline).toBeTruthy()
+    })
+
+    it("charts without timeline", () => {
+        const grapher = new Grapher(legacyConfig)
+        grapher.type = ChartTypeName.StackedBar
+        expect(grapher.hasTimeline).toBeFalsy()
+        grapher.type = ChartTypeName.StackedArea
+        expect(grapher.hasTimeline).toBeFalsy()
+        grapher.type = ChartTypeName.DiscreteBar
+        expect(grapher.hasTimeline).toBeFalsy()
+    })
+
+    it("map tab has timeline even if chart doesn't", () => {
+        const grapher = new Grapher(legacyConfig)
+        grapher.hideTimeline = true
+        grapher.type = ChartTypeName.LineChart
+        expect(grapher.hasTimeline).toBeFalsy()
+        grapher.tab = GrapherTabOption.map
+        expect(grapher.hasTimeline).toBeTruthy()
+        grapher.map.hideTimeline = true
+        expect(grapher.hasTimeline).toBeFalsy()
+    })
+
+    it("table tab has timeline even if chart doesn't", () => {
+        const grapher = new Grapher(legacyConfig)
+        grapher.type = ChartTypeName.StackedBar
+        expect(grapher.hasTimeline).toBeFalsy()
+        grapher.tab = GrapherTabOption.table
+        expect(grapher.hasTimeline).toBeTruthy()
+    })
 })
 
 const getGrapher = () =>
