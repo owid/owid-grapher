@@ -8,29 +8,34 @@
 import dotenv from "dotenv"
 dotenv.config()
 
-export const ENV = process.env.ENV ?? "development"
+import { parseIntOrUndefined } from "../clientUtils/Util"
 
-export const ADMIN_SERVER_PORT = process.env.ADMIN_SERVER_PORT ?? 3030
-export const ADMIN_SERVER_HOST = process.env.ADMIN_SERVER_HOST ?? "localhost"
-export const BAKED_BASE_URL =
+export const ENV: "development" | "production" =
+    process.env.ENV === "production" ? "production" : "development"
+
+export const ADMIN_SERVER_PORT: number =
+    parseIntOrUndefined(process.env.ADMIN_SERVER_PORT) ?? 3030
+export const ADMIN_SERVER_HOST: string =
+    process.env.ADMIN_SERVER_HOST ?? "localhost"
+export const BAKED_BASE_URL: string =
     process.env.BAKED_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
 
-export const BAKED_GRAPHER_URL =
+export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
-export const ADMIN_BASE_URL =
+export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-export const WORDPRESS_URL = process.env.WORDPRESS_URL ?? "https://owid.cloud"
+export const WORDPRESS_URL: string =
+    process.env.WORDPRESS_URL ?? "https://owid.cloud"
 
-export const ALGOLIA_ID = process.env.ALGOLIA_ID ?? ""
-export const ALGOLIA_SEARCH_KEY = process.env.ALGOLIA_SEARCH_KEY ?? ""
+export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
+export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 
-export const STRIPE_PUBLIC_KEY =
+export const STRIPE_PUBLIC_KEY: string =
     process.env.STRIPE_PUBLIC_KEY ?? "pk_test_nIHvmH37zsoltpw3xMssPIYq"
-export const DONATE_API_URL =
+export const DONATE_API_URL: string =
     process.env.DONATE_API_URL ?? "http://localhost:9000/donate"
 
-export const RECAPTCHA_SITE_KEY =
+export const RECAPTCHA_SITE_KEY: string =
     process.env.RECAPTCHA_SITE_KEY ?? "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
-export const OPTIMIZE_SVG_EXPORTS = process.env.OPTIMIZE_SVG_EXPORTS ?? false
