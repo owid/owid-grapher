@@ -1,9 +1,7 @@
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
-
-// webpack is configured to provide our clientSettings as `process.env.clientSettings`
-// (through DefinePlugin), so we can just use these here, and fall back to the defaults
-// if a setting is not set in clientSettings.json
+// Settings in here will be made available to the client-side code that is
+// bundled and shipped out to our users.
 
 import dotenv from "dotenv"
 dotenv.config()
