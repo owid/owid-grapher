@@ -76,6 +76,8 @@ export const EMAIL_PORT: number =
 export const EMAIL_HOST_USER: string = serverSettings.EMAIL_HOST_USER ?? "user"
 export const EMAIL_HOST_PASSWORD: string =
     serverSettings.EMAIL_HOST_PASSWORD ?? "password"
+export const EMAIL_USE_TLS: boolean =
+    serverSettings.EMAIL_USE_TLS !== "false" ?? true
 
 // Wordpress target setting
 export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? ""

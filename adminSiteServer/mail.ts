@@ -5,12 +5,13 @@ import {
     EMAIL_PORT,
     EMAIL_HOST_USER,
     EMAIL_HOST_PASSWORD,
+    EMAIL_USE_TLS,
 } from "../settings/serverSettings"
 
 const transporter = nodemailer.createTransport({
     host: EMAIL_HOST,
     port: EMAIL_PORT,
-    secure: EMAIL_PORT === 465,
+    secure: EMAIL_USE_TLS,
     auth: {
         user: EMAIL_HOST_USER,
         pass: EMAIL_HOST_PASSWORD,
