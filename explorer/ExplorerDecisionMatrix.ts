@@ -1,6 +1,6 @@
 import { observable, computed, action } from "mobx"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
-import { trimObject } from "../clientUtils/Util"
+import { differenceObj, trimObject } from "../clientUtils/Util"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
 import { CoreTable } from "../coreTable/CoreTable"
 import {
@@ -114,39 +114,40 @@ export class DecisionMatrix {
     private choices: Map<ChoiceName, ExplorerControlType>
     hash: string
 
-    toConstrainedOptions() {
+    toConstrainedOptions(): ExplorerChoiceParams {
         const settings = { ...this.currentParams }
         this.choiceNames.forEach((choiceName) => {
-            if (!this.isOptionAvailable(choiceName, settings[choiceName]))
+            if (!this.isOptionAvailable(choiceName, settings[choiceName])) {
                 settings[choiceName] = this.firstAvailableOptionForChoice(
-                    choiceName
+                    choiceName,
+                    settings
                 )!
+            }
         })
         return settings
     }
 
-    @computed private get diffBetweenUserSettingsAndConstrained() {
-        const obj = this.toConstrainedOptions()
-        Object.keys(obj).forEach((key) => {
-            if (this.currentParams[key] === obj[key]) delete obj[key]
-        })
-        return obj
+    @computed
+    private get diffBetweenUserSettingsAndConstrained(): ExplorerChoiceParams {
+        return differenceObj(
+            this.toConstrainedOptions(),
+            this.currentParams
+        ) as ExplorerChoiceParams
     }
 
     @action.bound setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
         const currentInvalidState = this.diffBetweenUserSettingsAndConstrained
         this._setValue(choiceName, value)
         const newInvalidState = this.diffBetweenUserSettingsAndConstrained
-        if (Object.keys(newInvalidState).length) {
-            Object.keys(currentInvalidState).forEach((key) => {
-                /**
-                 * The user navigated to an invalid state. Then they made a change in the new state, but the old invalid props were still set. At this
-                 * point, we should delete the old invalid props. We only want to allow the user to go back 1, not a full undo/redo history.
-                 */
-                if (currentInvalidState[key] === newInvalidState[key])
-                    this._setValue(key, currentInvalidState[key])
-            })
-        }
+        Object.keys(currentInvalidState).forEach((key) => {
+            /**
+             * The user navigated to an invalid state. Then they made a change in the new state, but the old invalid props were still set. At this
+             * point, we should delete the old invalid props. We only want to allow the user to go back 1, not a full undo/redo history.
+             */
+            if (currentInvalidState[key] === newInvalidState[key]) {
+                this._setValue(key, currentInvalidState[key])
+            }
+        })
     }
 
     @action.bound private _setValue(
@@ -190,10 +191,11 @@ export class DecisionMatrix {
     }
 
     private firstAvailableOptionForChoice(
-        choiceName: ChoiceName
+        choiceName: ChoiceName,
+        currentState = this.currentParams
     ): ChoiceValue | undefined {
         return this.allChoiceOptions[choiceName].find((option) =>
-            this.isOptionAvailable(choiceName, option)
+            this.isOptionAvailable(choiceName, option, currentState)
         )
     }
 
