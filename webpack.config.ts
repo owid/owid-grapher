@@ -7,8 +7,7 @@ const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
-
-import { readClientSettings } from "./settings/clientSettingsReader"
+const DotenvWebpackPlugin = require("dotenv-webpack")
 
 const config: webpack.ConfigurationFactory = async (env, argv) => {
     const isProduction = argv.mode === "production"
@@ -47,6 +46,10 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         resolve: {
             extensions: [".js", ".css"],
             modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
+        },
+        node: {
+            // This is needed so Webpack ignores "dotenv" imports in bundled code
+            fs: "empty",
         },
         module: {
             rules: [
@@ -92,12 +95,8 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
             // Writes manifest.json which production code reads to know paths to asset files
             new ManifestPlugin(),
 
-            // Provide clientSettings object to our build output, read from clientSettings.json
-            new webpack.DefinePlugin({
-                "process.env.clientSettings": JSON.stringify(
-                    await readClientSettings(baseDir)
-                ),
-            }),
+            // Provide client-side settings from .env
+            new DotenvWebpackPlugin(),
 
             // Ensure serverSettings.ts and clientSettingsReader.ts never end up in a webpack build by accident
             new webpack.IgnorePlugin(

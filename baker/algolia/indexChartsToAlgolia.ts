@@ -2,7 +2,7 @@ import algoliasearch from "algoliasearch"
 import * as lodash from "lodash"
 
 import * as db from "../../db/db"
-import { ALGOLIA_ID } from "../../settings/serverSettings"
+import { ALGOLIA_ID } from "../../settings/clientSettings"
 import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
 import { configureAlgolia } from "./configureAlgolia"
 
