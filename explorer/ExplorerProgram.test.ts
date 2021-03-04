@@ -367,6 +367,28 @@ france,Life expectancy`
         ).toEqual(true)
     })
 
+    it("something", () => {
+        const decisionMatrix = new DecisionMatrix(
+            `${grapherIdKeyword},Metric,Interval,Relative to population,Align outbreaks
+1,Cases,Daily,true,false
+2,Cases,Daily,true,true
+3,Cases,Cumulative,true,true
+4,Cases,Cumulative,false,false
+5,Cases,Cumulative,true,false
+6,Tests,Daily,false,false
+7,Tests,Cumulative,false,false`
+        )
+        decisionMatrix.setValueCommand("Metric", "Cases")
+        decisionMatrix.setValueCommand("Interval", "Daily")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(1)
+        decisionMatrix.setValueCommand("Metric", "Tests")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(6)
+        decisionMatrix.setValueCommand("Interval", "Cumulative")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(7)
+        decisionMatrix.setValueCommand("Metric", "Cases")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(3)
+    })
+
     describe("subtables", () => {
         it("can detect header frontier", () => {
             const subtableFrontierCell = new ExplorerProgram(
