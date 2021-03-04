@@ -136,16 +136,27 @@ export class DecisionMatrix {
     }
 
     @action.bound setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
-        const currentInvalidState = this.diffBetweenUserSettingsAndConstrained
         this._setValue(choiceName, value)
-        const newInvalidState = this.diffBetweenUserSettingsAndConstrained
-        Object.keys(currentInvalidState).forEach((key) => {
-            /**
-             * The user navigated to an invalid state. Then they made a change in the new state, but the old invalid props were still set. At this
-             * point, we should delete the old invalid props. We only want to allow the user to go back 1, not a full undo/redo history.
-             */
-            if (currentInvalidState[key] === newInvalidState[key]) {
-                this._setValue(key, currentInvalidState[key])
+        const invalidState = this.diffBetweenUserSettingsAndConstrained
+        Object.keys(invalidState).forEach((key) => {
+            // If a user navigates to a state where an option previously selected is not available,
+            // then persist the new option, as long as it isn't the only one available.
+            //
+            // For example, if the user navigates from metric:Cases interval:Weekly, to
+            // metric:Vaccinations, if interval:Weekly is not available for Vaccinations but other
+            // (more than one) intervals are available, we will persist whichever we happen to end
+            // up on.
+            //
+            // But if the user navigates from metric:Cases perCapita:true, to
+            // metric:Share of positive tests, then the only available perCapita option is false,
+            // but it isn't persisted, because the user has no other options. It's non-sensical to
+            // ask for "Share of positive tests per capita", so qualitatively it's a different
+            // metric, and the perCapita can just be ignored.
+            //
+            // We assume in every case where the user has only a single option available (therefore
+            // has no choice) the option should not be persisted.
+            if (this.availableChoiceOptions[key].length > 1) {
+                this._setValue(key, invalidState[key])
             }
         })
     }
@@ -188,6 +199,16 @@ export class DecisionMatrix {
                 .uniqValues.filter((cell) => !isCellEmpty(cell)) as string[]
         })
         return choiceMap
+    }
+
+    @computed private get availableChoiceOptions(): ChoiceMap {
+        const result: ChoiceMap = {}
+        this.choiceNames.forEach((choiceName) => {
+            result[choiceName] = this.allChoiceOptions[
+                choiceName
+            ].filter((option) => this.isOptionAvailable(choiceName, option))
+        })
+        return result
     }
 
     private firstAvailableOptionForChoice(
