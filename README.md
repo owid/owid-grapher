@@ -14,7 +14,27 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ## Initial development setup
 
-### macOS
+### VS Code Devcontainer
+
+One option for development that does not require a local node and mysql setup is to use VS Code, Docker, and the the [VS Code Devcontainers extension](https://code.visualstudio.com/docs/remote/containers). To proceed this this method of development, install VS Code, Docker and the VS Code Devcontainers extension, the open the project in VS Code, type `CTLR + Shift + P` to get the command panel and run the `Remote Containers: Reopen in container` command. This may take a few minutes to download the base containers and build the app container (all files involved can be found in the [./.devcontainers](./.devcontainers) folder).
+
+After this all you have to do is one run to install the currently required node version and run the database setup script as described below (the terminal in VS Code is now running in the development container with Node and the mysql client installed).
+
+1. Install the exact node version used for development
+
+    ```sh
+    nvm install 12.13.1
+    ```
+
+2. Install all dependecies
+
+    ```sh
+    yarn
+    ```
+
+3. Continue below in the [Import the latest data extract](#import-the-latest-data-extract) section to set up the database
+
+### Local macOS development
 
 1. Install Homebrew first, follow the instructions here: <https://brew.sh/>
 
