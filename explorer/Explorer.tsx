@@ -349,13 +349,9 @@ export class Explorer
         )
     }
 
-    @computed get changedChoiceParams(): Partial<ExplorerChoiceParams> {
+    @computed private get currentChoiceParams(): ExplorerChoiceParams {
         const { decisionMatrix } = this.explorerProgram
-        const currentParams: Readonly<ExplorerChoiceParams> =
-            decisionMatrix.currentParams
-        const defaultParams: Readonly<ExplorerChoiceParams> = this
-            .explorerProgram.clone.decisionMatrix.currentParams
-        return differenceObj(currentParams, defaultParams)
+        return decisionMatrix.currentParams
     }
 
     @computed get queryParams(): ExplorerFullQueryParams {
@@ -365,7 +361,7 @@ export class Explorer
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS +
                     this.explorerProgram.slug,
-                JSON.stringify(this.changedChoiceParams)
+                JSON.stringify(this.currentChoiceParams)
             )
 
         let url = Url.fromQueryParams(
@@ -374,7 +370,7 @@ export class Explorer
                 pickerSort: this.entityPickerSort,
                 pickerMetric: this.entityPickerMetric,
                 hideControls: this.initialQueryParams.hideControls || undefined,
-                ...this.changedChoiceParams,
+                ...this.currentChoiceParams,
             })
         )
 
