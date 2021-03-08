@@ -39,4 +39,16 @@ describe(Explorer, () => {
         const explorer = element.instance() as Explorer
         expect(explorer.selection.selectedEntityNames).toEqual(["Ireland"])
     })
+
+    it("serializes all choice params in URL", () => {
+        const element = mount(SampleExplorer())
+        const explorer = element.instance() as Explorer
+        expect(explorer.queryParams).toMatchObject({
+            Accounting: "Production-based",
+            Count: "Per country",
+            Fuel: "Total",
+            Gas: "CO₂",
+            "Relative to world total": "false",
+        })
+    })
 })
