@@ -1114,7 +1114,10 @@ export class Grapher
     }
 
     @computed private get areHandlesOnSameTime() {
-        const [start, end] = this.timelineHandleTimeBounds
+        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const [start, end] = this.timelineHandleTimeBounds.map((time) =>
+            findClosestTime(times, time)
+        )
         return start === end
     }
 
