@@ -87,7 +87,10 @@ export class ScatterPlotChart
             addCountryMode,
         } = this.manager
 
-        if (addCountryMode === EntitySelectionMode.Disabled) {
+        if (
+            addCountryMode === EntitySelectionMode.Disabled ||
+            addCountryMode === EntitySelectionMode.SingleEntity
+        ) {
             table = table.filterByEntityNames(
                 this.selectionArray.selectedEntityNames
             )
@@ -474,7 +477,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed private get hideLines() {
+    @computed private get hideConnectedScatterLines() {
         return !!this.manager.hideConnectedScatterLines
     }
 
@@ -483,7 +486,7 @@ export class ScatterPlotChart
             dualAxis,
             focusedEntityNames,
             hoveredSeriesNames,
-            hideLines,
+            hideConnectedScatterLines,
             manager,
             series,
             sizeDomain,
@@ -494,7 +497,7 @@ export class ScatterPlotChart
         return (
             <ScatterPointsWithLabels
                 noDataModalManager={manager}
-                hideLines={hideLines}
+                hideConnectedScatterLines={hideConnectedScatterLines}
                 seriesArray={series}
                 dualAxis={dualAxis}
                 colorScale={!colorColumn.isMissing ? colorScale : undefined}

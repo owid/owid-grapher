@@ -114,6 +114,6 @@ export interface ScatterPointsWithLabelsProps {
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void
-    hideLines: boolean
+    hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
 }

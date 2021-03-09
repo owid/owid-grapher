@@ -99,8 +99,8 @@ export class ScatterPointsWithLabels extends React.Component<
         return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
     }
 
-    @computed private get hideLines() {
-        return this.props.hideLines
+    @computed private get hideConnectedScatterLines() {
+        return this.props.hideConnectedScatterLines
     }
 
     // Pre-transform data for rendering
@@ -161,12 +161,20 @@ export class ScatterPointsWithLabels extends React.Component<
         }
 
         for (const series of renderData) {
-            series.startLabel = makeStartLabel(series, this.isSubtleForeground)
-            series.midLabels = makeMidLabels(series, this.isSubtleForeground)
+            series.startLabel = makeStartLabel(
+                series,
+                this.isSubtleForeground,
+                this.hideConnectedScatterLines
+            )
+            series.midLabels = makeMidLabels(
+                series,
+                this.isSubtleForeground,
+                this.hideConnectedScatterLines
+            )
             series.endLabel = makeEndLabel(
                 series,
                 this.isSubtleForeground,
-                this.hideLines
+                this.hideConnectedScatterLines
             )
             series.allLabels = [series.startLabel]
                 .concat(series.midLabels)
@@ -319,9 +327,14 @@ export class ScatterPointsWithLabels extends React.Component<
     }
 
     private renderBackgroundSeries() {
-        const { backgroundSeries, isLayerMode, isConnected, hideLines } = this
+        const {
+            backgroundSeries,
+            isLayerMode,
+            isConnected,
+            hideConnectedScatterLines,
+        } = this
 
-        return hideLines
+        return hideConnectedScatterLines
             ? []
             : backgroundSeries.map((series) => (
                   <ScatterLine
@@ -369,11 +382,17 @@ export class ScatterPointsWithLabels extends React.Component<
     }
 
     private renderForegroundSeries() {
-        const { isSubtleForeground, hideLines } = this
+        const { isSubtleForeground, hideConnectedScatterLines } = this
         return this.foregroundSeries.map((series) => {
             const lastValue = last(series.points) as ScatterRenderPoint
             const strokeWidth =
-                (series.isHover ? 3 : isSubtleForeground ? 1.5 : 2) +
+                (hideConnectedScatterLines
+                    ? 3
+                    : series.isHover
+                    ? 3
+                    : isSubtleForeground
+                    ? 1.5
+                    : 2) +
                 lastValue.size * 0.05
 
             if (series.points.length === 1)
@@ -381,7 +400,9 @@ export class ScatterPointsWithLabels extends React.Component<
 
             const firstValue = first(series.points)
             const opacity = isSubtleForeground ? 0.9 : 1
-            const radius = strokeWidth / 2 + 1
+            const radius = hideConnectedScatterLines
+                ? strokeWidth
+                : strokeWidth / 2 + 1
             let rotation = PointVector.angle(
                 series.offsetVector,
                 PointVector.up
@@ -389,30 +410,35 @@ export class ScatterPointsWithLabels extends React.Component<
             if (series.offsetVector.x < 0) rotation = -rotation
             return (
                 <g key={series.displayKey} className={series.displayKey}>
-                    <MultiColorPolyline
-                        points={series.points.map((point) => ({
-                            x: point.position.x,
-                            y: point.position.y,
-                            color: hideLines ? "rgba(0,0,0,0)" : point.color,
-                        }))}
-                        strokeWidth={strokeWidth}
-                        opacity={opacity}
-                    />
-                    {series.isFocus && !hideLines && firstValue && (
-                        <circle
-                            cx={firstValue.position.x.toFixed(2)}
-                            cy={firstValue.position.y.toFixed(2)}
-                            r={radius}
-                            fill={firstValue.color}
+                    {!hideConnectedScatterLines && (
+                        <MultiColorPolyline
+                            points={series.points.map((point) => ({
+                                x: point.position.x,
+                                y: point.position.y,
+                                color: point.color,
+                            }))}
+                            strokeWidth={strokeWidth}
                             opacity={opacity}
-                            stroke={firstValue.color}
-                            strokeOpacity={0.6}
                         />
                     )}
-                    {series.isHover &&
-                        !hideLines &&
+                    {(series.isFocus || hideConnectedScatterLines) &&
+                        firstValue && (
+                            <circle
+                                cx={firstValue.position.x.toFixed(2)}
+                                cy={firstValue.position.y.toFixed(2)}
+                                r={radius}
+                                fill={firstValue.color}
+                                opacity={opacity}
+                                stroke={firstValue.color}
+                                strokeOpacity={0.6}
+                            />
+                        )}
+                    {(series.isHover || hideConnectedScatterLines) &&
                         series.points
-                            .slice(1, -1)
+                            .slice(
+                                1,
+                                hideConnectedScatterLines ? undefined : -1
+                            )
                             .map((v, index) => (
                                 <circle
                                     key={index}
@@ -423,16 +449,18 @@ export class ScatterPointsWithLabels extends React.Component<
                                     stroke="none"
                                 />
                             ))}
-                    <Triangle
-                        transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
-                            2
-                        )}, ${lastValue.position.y.toFixed(2)})`}
-                        cx={lastValue.position.x}
-                        cy={lastValue.position.y}
-                        r={strokeWidth * 2}
-                        fill={lastValue.color}
-                        opacity={opacity}
-                    />
+                    {!hideConnectedScatterLines && (
+                        <Triangle
+                            transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
+                                2
+                            )}, ${lastValue.position.y.toFixed(2)})`}
+                            cx={lastValue.position.x}
+                            cy={lastValue.position.y}
+                            r={strokeWidth * 2}
+                            fill={lastValue.color}
+                            opacity={opacity}
+                        />
+                    )}
                 </g>
             )
         })
