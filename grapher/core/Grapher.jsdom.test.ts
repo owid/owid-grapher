@@ -348,6 +348,14 @@ describe("line chart to bar chart and bar chart race", () => {
         grapher.timelineController.play(1)
         expect(grapher.startHandleTimeBound).toEqual(grapher.endHandleTimeBound)
     })
+
+    it("turns into a bar chart when constrained start & end handles are equal", () => {
+        grapher.startHandleTimeBound = 5000
+        grapher.endHandleTimeBound = Infinity
+        expect(
+            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        ).toEqual(ChartTypeName.DiscreteBar)
+    })
 })
 
 describe("urls", () => {
