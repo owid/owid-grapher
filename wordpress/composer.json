@@ -69,7 +69,8 @@
         "wpackagist-plugin/simple-history": "2.38.0",
         "wpackagist-plugin/tablepress": "1.12",
         "wpackagist-plugin/enable-media-replace": "3.5.0",
-        "lcobucci/jwt": "3.3.3"
+        "lcobucci/jwt": "3.3.3",
+        "wpackagist-plugin/mammoth-docx-converter": "^1.17"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.5.8",
