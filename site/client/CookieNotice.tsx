@@ -27,7 +27,7 @@ export const CookieNotice = ({
 
     return (
         <div
-            className={classnames("cookie-notice", "no-print", {
+            className={classnames("cookie-notice", {
                 open: mounted && (!accepted || outdated),
             })}
             data-test="cookie-notice"
