@@ -367,6 +367,30 @@ france,Life expectancy`
         ).toEqual(true)
     })
 
+    // TODO: figure out why setValueCommand does not seem to be equivalent to a user interacting
+    // with the UI.
+    // See logic in setValueCommand for an explanation of the logic we want to test here.
+    it.skip("overwrite unavailable option with new option, if more than 1 option is available", () => {
+        const decisionMatrix = new DecisionMatrix(
+            `${grapherIdKeyword},Metric,Interval,Relative to population,Align outbreaks
+1,Cases,Daily,true,false
+2,Cases,Daily,true,true
+3,Cases,Weekly,true,true
+4,Cases,Cumulative,true,true
+5,Cases,Cumulative,false,false
+6,Cases,Cumulative,true,false
+7,Tests,Daily,false,false
+8,Tests,Cumulative,false,false`
+        )
+        decisionMatrix.setValueCommand("Metric", "Cases")
+        decisionMatrix.setValueCommand("Interval", "Weekly")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(3)
+        decisionMatrix.setValueCommand("Metric", "Tests")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(7)
+        decisionMatrix.setValueCommand("Metric", "Cases")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(2)
+    })
+
     describe("subtables", () => {
         it("can detect header frontier", () => {
             const subtableFrontierCell = new ExplorerProgram(
