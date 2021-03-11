@@ -399,9 +399,6 @@ export class Grapher
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
 
-        const mapTime = obj.map?.time
-        this.map.time = maxTimeBoundFromJSONOrPositiveInfinity(mapTime)
-
         // JSON doesn't support Infinity, so we use strings instead.
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
         this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)

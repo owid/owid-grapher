@@ -46,6 +46,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         updatePersistables(this, obj)
 
         // Migrate "targetYear" to "time"
+        // TODO migrate the database property instead
         if (obj.targetYear)
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.targetYear)
         else if (obj.time)

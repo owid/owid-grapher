@@ -797,3 +797,11 @@ describe("year parameter (applies to map only)", () => {
         }
     })
 })
+
+// TODO migrate the database property
+it("migrates map.targetYear correctly", () => {
+    const grapher = new Grapher({
+        map: { targetYear: 2005 } as any,
+    })
+    expect(grapher.map.time).toEqual(2005)
+})
