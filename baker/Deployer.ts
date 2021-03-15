@@ -47,7 +47,7 @@ export class Deployer {
         this.progressBar.tick({ name: `✅  finished ${command}` })
     }
 
-    private get targetIsStaging() {
+    private get isValidTarget() {
         return new Set(Object.values(DeployTarget)).has(this.options.target)
     }
 
@@ -56,9 +56,9 @@ export class Deployer {
     }
 
     private get targetIpAddress() {
-        return this.targetIsStaging
-            ? OWID_STAGING_DROPLET_IP
-            : OWID_LIVE_DROPLET_IP
+        return this.targetIsProd
+            ? OWID_LIVE_DROPLET_IP
+            : OWID_STAGING_DROPLET_IP
     }
 
     // todo: I have not tested this yet, and would be surprised if it worked on the first attempt.
@@ -156,7 +156,7 @@ yarn testPrettierAll`
         const { skipChecks, runChecksRemotely } = this.options
 
         if (this.targetIsProd) await this.runLiveSafetyChecks()
-        else if (!this.targetIsStaging)
+        else if (!this.isValidTarget)
             this.printAndExit(
                 "Please select either live or a valid test target."
             )
