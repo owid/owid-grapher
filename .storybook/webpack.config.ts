@@ -36,6 +36,11 @@ const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
         new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
 
+    config.node = {
+        // This is needed so Webpack ignores "dotenv" imports in bundled code
+        fs: "empty",
+    }
+
     config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
 
     return config
