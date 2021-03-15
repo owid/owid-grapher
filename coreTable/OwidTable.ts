@@ -543,12 +543,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv() {
-        return this
-            .dropColumns([
-                OwidTableSlugs.entityId,
-                OwidTableSlugs.time,
-                OwidTableSlugs.entityColor,
-            ])
+        return this.dropColumns([
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.time,
+            OwidTableSlugs.entityColor,
+        ])
             .sortBy([this.entityNameSlug])
             .toCsvWithColumnNames()
     }
