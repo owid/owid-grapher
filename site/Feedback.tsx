@@ -13,9 +13,7 @@ const sendFeedback = (feedback: Feedback) =>
         const json = toJS(feedback)
         const req = new XMLHttpRequest()
 
-        json.message =
-            feedback.message +
-            `\n\n-----\nCurrent URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`
+        json.environment = `Current URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`
 
         req.addEventListener("readystatechange", () => {
             if (req.readyState === 4) {
@@ -38,6 +36,7 @@ class Feedback {
     @observable name: string = ""
     @observable email: string = ""
     @observable message: string = ""
+    environment: string = ""
 
     @action.bound clear() {
         this.name = ""
