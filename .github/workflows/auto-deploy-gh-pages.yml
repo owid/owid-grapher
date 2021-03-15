@@ -54,6 +54,9 @@ jobs:
             # neither of them is deployed :(
             # Let's hope this doesn't happen too often
 
+            - name: Build JS
+              run: yarn buildTsc
+
             - name: Build Storybook 🔧
               run: yarn buildStorybook
 
