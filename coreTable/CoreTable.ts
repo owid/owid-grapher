@@ -968,11 +968,6 @@ export class CoreTable<
         )
     }
 
-    dropConstantColumns() {
-        const slugs = this.constantColumns.map((col) => col.slug)
-        return this.dropColumns(slugs, `Dropped constant columns '${slugs}'`)
-    }
-
     select(slugs: ColumnSlug[]) {
         const columnsToKeep = new Set(slugs)
         const defs = this.columnsAsArray
