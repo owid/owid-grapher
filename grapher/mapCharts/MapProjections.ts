@@ -3,20 +3,40 @@ import {
     geoConicConformal,
     geoAzimuthalEqualArea,
     GeoProjection,
+    GeoPath,
 } from "d3-geo"
 import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
-export type MapProjection =
-    | "World"
-    | "Africa"
-    | "NorthAmerica"
-    | "SouthAmerica"
-    | "Asia"
-    | "Europe"
-    | "Oceania"
+// https://github.com/d3/d3-geo-projection/issues/202
+// todo: would be nice to get propert types for this and not have to run different code during testing
+const projectionToUseDuringJestTesting = geoConicConformal()
 
-export const MapProjections = {
-    World: geoPath().projection(geoRobinson() as GeoProjection),
+export enum MapProjectionName {
+    World = "World",
+    Africa = "Africa",
+    NorthAmerica = "NorthAmerica",
+    SouthAmerica = "SouthAmerica",
+    Asia = "Asia",
+    Europe = "Europe",
+    Oceania = "Oceania",
+}
+
+export const MapProjectionLabels: Record<MapProjectionName, string> = {
+    World: "World",
+    Africa: "Africa",
+    NorthAmerica: "North America",
+    SouthAmerica: "South America",
+    Asia: "Asia",
+    Europe: "Europe",
+    Oceania: "Oceania",
+}
+
+export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
+    World: geoPath().projection(
+        typeof geoRobinson === "undefined"
+            ? projectionToUseDuringJestTesting
+            : geoRobinson()
+    ),
 
     Africa: geoPath().projection(
         geoConicConformal().rotate([-25, 0]).center([0, 0]).parallels([30, -20])
@@ -38,7 +58,10 @@ export const MapProjections = {
 
     // From http://bl.ocks.org/dhoboy/ff8448ace9d5d567390a
     Asia: geoPath().projection(
-        geoPatterson()
+        (typeof geoPatterson === "undefined"
+            ? projectionToUseDuringJestTesting
+            : geoPatterson()
+        )
             .center([58, 54])
             .scale(150)
             .translate([0, 0])
@@ -60,4 +83,4 @@ export const MapProjections = {
             .center([0, -20])
             .parallels([-10, -30])
     ),
-}
+} as const

@@ -1,8 +1,6 @@
-import { Grapher } from "grapher/core/Grapher"
 import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
-import Cookies from "js-cookie"
 import copy from "copy-to-clipboard"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
@@ -11,55 +9,20 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { GrapherView } from "grapher/core/GrapherView"
-import { CookieKeys } from "grapher/core/GrapherConstants"
 
-@observer
-class EmbedMenu extends React.Component<{
-    grapherView: GrapherView
-}> {
-    dismissable = true
-
-    @action.bound onClickSomewhere() {
-        if (this.dismissable) {
-            this.props.grapherView.removePopup(EmbedMenu)
-        } else {
-            this.dismissable = true
-        }
-    }
-
-    @action.bound onClick() {
-        this.dismissable = false
-    }
-
-    componentDidMount() {
-        document.addEventListener("click", this.onClickSomewhere)
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener("click", this.onClickSomewhere)
-    }
-
-    render() {
-        const url = this.props.grapherView.grapher.url.canonicalUrl
-        return (
-            <div className="embedMenu" onClick={this.onClick}>
-                <h2>Embed</h2>
-                <p>Paste this into any HTML page:</p>
-                <textarea
-                    readOnly={true}
-                    onFocus={(evt) => evt.currentTarget.select()}
-                    value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
-                />
-                {this.props.grapherView.grapher.embedExplorerCheckbox}
-            </div>
-        )
-    }
+export interface ShareMenuManager {
+    slug?: string
+    currentTitle?: string
+    canonicalUrl?: string
+    embedUrl?: string
+    embedDialogAdditionalElements?: React.ReactElement
+    editUrl?: string
+    addPopup: (popup: any) => void
+    removePopup: (popup: any) => void
 }
 
 interface ShareMenuProps {
-    grapher: Grapher
-    grapherView: any
+    manager: ShareMenuManager
     onDismiss: () => void
 }
 
@@ -79,23 +42,20 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get title(): string {
-        return this.props.grapher.currentTitle
+    @computed get manager() {
+        return this.props.manager
     }
 
-    @computed get isDisabled(): boolean {
-        return !this.props.grapher.slug
+    @computed get title() {
+        return this.manager.currentTitle ?? ""
     }
 
-    @computed get editUrl(): string | undefined {
-        const { grapher } = this.props
-        return Cookies.get(CookieKeys.isAdmin) || grapher.isDev
-            ? `${grapher.adminBaseUrl}/admin/charts/${grapher.id}/edit`
-            : undefined
+    @computed get isDisabled() {
+        return !this.manager.slug
     }
 
-    @computed get canonicalUrl(): string | undefined {
-        return this.props.grapher.url.canonicalUrl
+    @computed get canonicalUrl() {
+        return this.manager.canonicalUrl
     }
 
     @action.bound dismiss() {
@@ -103,11 +63,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound onClickSomewhere() {
-        if (this.dismissable) {
-            this.dismiss()
-        } else {
-            this.dismissable = true
-        }
+        if (this.dismissable) this.dismiss()
+        else this.dismissable = true
     }
 
     componentDidMount() {
@@ -119,39 +76,36 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound onEmbed() {
-        if (this.canonicalUrl) {
-            this.props.grapherView.addPopup(
-                <EmbedMenu
-                    key="EmbedMenu"
-                    grapherView={this.props.grapherView}
-                />
-            )
-            this.dismiss()
-        }
+        if (!this.canonicalUrl) return
+
+        this.manager.addPopup(
+            <EmbedMenu key="EmbedMenu" manager={this.manager} />
+        )
+        this.dismiss()
     }
 
     @action.bound async onNavigatorShare() {
-        if (this.canonicalUrl && navigator.share) {
-            const shareData = {
-                title: this.title,
-                url: this.canonicalUrl,
-            }
+        if (!this.canonicalUrl || !navigator.share) return
 
-            try {
-                await navigator.share(shareData)
-            } catch (err) {
-                console.error("couldn't share using navigator.share", err)
-            }
+        const shareData = {
+            title: this.title,
+            url: this.canonicalUrl,
+        }
+
+        try {
+            await navigator.share(shareData)
+        } catch (err) {
+            console.error("couldn't share using navigator.share", err)
         }
     }
 
     @action.bound onCopy() {
-        if (this.canonicalUrl) {
-            if (copy(this.canonicalUrl)) this.setState({ copied: true })
-        }
+        if (!this.canonicalUrl) return
+
+        if (copy(this.canonicalUrl)) this.setState({ copied: true })
     }
 
-    @computed get twitterHref(): string {
+    @computed get twitterHref() {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
             encodeURIComponent(this.title)
@@ -160,7 +114,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
-    @computed get facebookHref(): string {
+    @computed get facebookHref() {
         let href =
             "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
         if (this.canonicalUrl)
@@ -169,7 +123,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     render() {
-        const { editUrl, twitterHref, facebookHref, isDisabled } = this
+        const { twitterHref, facebookHref, isDisabled, manager } = this
+        const { editUrl } = manager
 
         return (
             <div
@@ -235,6 +190,50 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         <FontAwesomeIcon icon={faEdit} /> Edit
                     </a>
                 )}
+            </div>
+        )
+    }
+}
+
+@observer
+class EmbedMenu extends React.Component<{
+    manager: ShareMenuManager
+}> {
+    dismissable = true
+
+    @action.bound onClickSomewhere() {
+        if (this.dismissable) this.manager.removePopup(EmbedMenu)
+        else this.dismissable = true
+    }
+
+    @computed get manager() {
+        return this.props.manager
+    }
+
+    @action.bound onClick() {
+        this.dismissable = false
+    }
+
+    componentDidMount() {
+        document.addEventListener("click", this.onClickSomewhere)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener("click", this.onClickSomewhere)
+    }
+
+    render() {
+        const url = this.manager.embedUrl ?? this.manager.canonicalUrl
+        return (
+            <div className="embedMenu" onClick={this.onClick}>
+                <h2>Embed</h2>
+                <p>Paste this into any HTML page:</p>
+                <textarea
+                    readOnly={true}
+                    onFocus={(evt) => evt.currentTarget.select()}
+                    value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
+                />
+                {this.manager.embedDialogAdditionalElements}
             </div>
         )
     }

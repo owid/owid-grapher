@@ -1,14 +1,12 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
-import { CommandPalette, Command } from "grapher/controls/CommandPalette"
+import { CommandPalette, Command } from "../controls/CommandPalette"
 
 export default {
     title: "CommandPalette",
     component: CommandPalette,
 }
 
-export const Default = () => {
+export const WithCommands = () => {
     const demoCommands: Command[] = [
         {
             combo: "ctrl+o",

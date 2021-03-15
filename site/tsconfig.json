@@ -1,0 +1,13 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/site",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../clientUtils" },
+        { "path": "../grapher" },
+        { "path": "../settings" },
+        { "path": "../explorer" }
+    ]
+}

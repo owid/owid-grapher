@@ -1,139 +1,156 @@
-import { isMobile } from "grapher/utils/Util"
+import { isMobile } from "../../clientUtils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
-import { Grapher } from "grapher/core/Grapher"
-import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
+
+export interface DownloadTabManager {
+    idealBounds?: Bounds
+    staticSVG: string
+    displaySlug: string
+    baseUrl?: string
+    queryStr?: string
+    table?: OwidTable
+    externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
+}
 
 interface DownloadTabProps {
-    bounds: Bounds
-    grapher: Grapher
+    bounds?: Bounds
+    manager: DownloadTabManager
 }
 
 declare var Blob: any
 
+const polyfillToBlob = () => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
+    Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
+        value: function (
+            callback: (blob: Blob) => void,
+            type: string,
+            quality: any
+        ) {
+            const binStr = atob(
+                (this as HTMLCanvasElement)
+                    .toDataURL(type, quality)
+                    .split(",")[1]
+            )
+            const len = binStr.length
+            const arr = new Uint8Array(len)
+
+            for (let i = 0; i < len; i++) {
+                arr[i] = binStr.charCodeAt(i)
+            }
+
+            callback(new Blob([arr], { type: type || "image/png" }))
+        },
+    })
+}
+
+// Wrapped because JSDOM does not support this method yet:
+// https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
+const createObjectURL = (obj: any) =>
+    URL.createObjectURL ? URL.createObjectURL(obj) : ""
+
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed get targetWidth() {
-        return this.props.grapher.idealBounds.width
-    }
-    @computed get targetHeight() {
-        return this.props.grapher.idealBounds.height
+    @computed private get idealBounds() {
+        return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
-    @observable svgBlob?: Blob
-    @observable svgBlobUrl?: string
-    @observable svgDataUri?: string
-    @observable pngBlob?: Blob
-    @observable pngBlobUrl?: string
-    @observable pngDataUri?: string
+    @computed private get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get targetWidth() {
+        return this.idealBounds.width
+    }
+    @computed private get targetHeight() {
+        return this.idealBounds.height
+    }
+
+    @computed private get manager() {
+        return this.props.manager
+    }
+
+    @observable private svgBlob?: Blob
+    @observable private svgDownloadUrl?: string
+    @observable private svgPreviewUrl?: string
+    @observable private pngBlob?: Blob
+    @observable private pngDownloadUrl?: string
+    @observable private pngPreviewUrl?: string
     @observable private isReady: boolean = false
-    @action.bound export() {
-        if (!HTMLCanvasElement.prototype.toBlob) {
-            // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
-            Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
-                value: function (
-                    callback: (blob: Blob) => void,
-                    type: string,
-                    quality: any
-                ) {
-                    const binStr = atob(
-                        (this as HTMLCanvasElement)
-                            .toDataURL(type, quality)
-                            .split(",")[1]
-                    )
-                    const len = binStr.length
-                    const arr = new Uint8Array(len)
-
-                    for (let i = 0; i < len; i++) {
-                        arr[i] = binStr.charCodeAt(i)
-                    }
-
-                    callback(new Blob([arr], { type: type || "image/png" }))
-                },
-            })
-        }
-
-        const { targetWidth, targetHeight } = this
-        const { grapher } = this.props
-
-        grapher.isExporting = true
-        const staticSVG = grapher.staticSVG
-        grapher.isExporting = false
-
-        this.svgBlob = new Blob([staticSVG], {
-            type: "image/svg+xml;charset=utf-8",
-        })
-        this.svgBlobUrl = URL.createObjectURL(this.svgBlob)
+    @action.bound private export() {
+        if (!HTMLCanvasElement.prototype.toBlob) polyfillToBlob()
+        this.createSvg()
         const reader = new FileReader()
         reader.onload = (ev: any) => {
-            this.svgDataUri = ev.target.result as string
-            // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
-            const img = new Image()
-            img.onload = () => {
-                try {
-                    const canvas = document.createElement("canvas")
-                    // We draw the chart at 4x res then scale it down again -- much better text quality
-                    canvas.width = targetWidth * 4
-                    canvas.height = targetHeight * 4
-                    const ctx = canvas.getContext("2d", {
-                        alpha: false,
-                    }) as CanvasRenderingContext2D
-                    ctx.imageSmoothingEnabled = false
-                    ctx.setTransform(4, 0, 0, 4, 0, 0)
-                    ctx.drawImage(img, 0, 0)
-                    this.pngDataUri = canvas.toDataURL("image/png")
-                    canvas.toBlob((blob) => {
-                        this.pngBlob = blob as Blob
-                        this.pngBlobUrl = URL.createObjectURL(blob)
-                        this.markAsReady()
-                    })
-                } catch (e) {
-                    console.error(e)
-                    this.markAsReady()
-                }
-            }
-            img.onerror = (err) => {
-                console.error(JSON.stringify(err))
-                this.markAsReady()
-            }
-            img.src = this.svgDataUri
+            this.svgPreviewUrl = ev.target.result as string
+            this.tryCreatePng(this.svgPreviewUrl)
         }
         reader.readAsDataURL(this.svgBlob as Blob)
     }
 
-    @action.bound markAsReady() {
+    @action.bound private createSvg() {
+        const staticSVG = this.manager.staticSVG
+        this.svgBlob = new Blob([staticSVG], {
+            type: "image/svg+xml;charset=utf-8",
+        })
+        this.svgDownloadUrl = createObjectURL(this.svgBlob)
+    }
+
+    @action.bound private tryCreatePng(svgPreviewUrl: string) {
+        const { targetWidth, targetHeight } = this
+        // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
+        const img = new Image()
+        img.onload = () => {
+            try {
+                const canvas = document.createElement("canvas")
+                // We draw the chart at 4x res then scale it down again -- much better text quality
+                canvas.width = targetWidth * 4
+                canvas.height = targetHeight * 4
+                const ctx = canvas.getContext("2d", {
+                    alpha: false,
+                }) as CanvasRenderingContext2D
+                ctx.imageSmoothingEnabled = false
+                ctx.setTransform(4, 0, 0, 4, 0, 0)
+                ctx.drawImage(img, 0, 0)
+                this.pngPreviewUrl = canvas.toDataURL("image/png")
+                canvas.toBlob((blob) => {
+                    this.pngBlob = blob as Blob
+                    this.pngDownloadUrl = createObjectURL(blob)
+                    this.markAsReady()
+                })
+            } catch (e) {
+                console.error(e)
+                this.markAsReady()
+            }
+        }
+        img.onerror = (err) => {
+            console.error(JSON.stringify(err))
+            this.markAsReady()
+        }
+        img.src = svgPreviewUrl
+    }
+
+    @action.bound private markAsReady() {
         this.isReady = true
     }
 
-    @computed get fallbackPngUrl() {
-        return `${this.props.grapher.url.baseUrl}.png${this.props.grapher.url.queryStr}`
+    @computed private get fallbackPngUrl() {
+        return `${this.manager.baseUrl || ""}.png${this.manager.queryStr || ""}`
     }
-    @computed get baseFilename() {
-        return this.props.grapher.displaySlug
-    }
-    @computed get svgPreviewUrl() {
-        return this.svgDataUri
-    }
-    @computed get pngPreviewUrl() {
-        return this.pngDataUri || this.fallbackPngUrl
-    }
-    @computed get svgDownloadUrl() {
-        return this.svgBlobUrl
-    }
-    @computed get pngDownloadUrl() {
-        return this.pngBlobUrl || this.pngDataUri || this.fallbackPngUrl
+    @computed private get baseFilename() {
+        return this.manager.displaySlug
     }
 
-    @computed get isPortrait(): boolean {
-        return this.props.bounds.height > this.props.bounds.width
-    }
-
-    @action.bound onPNGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+    @action.bound private onPNGDownload(
+        ev: React.MouseEvent<HTMLAnchorElement>
+    ) {
         if (window.navigator.msSaveBlob) {
             window.navigator.msSaveBlob(
                 this.pngBlob,
@@ -143,20 +160,23 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
-    @action.bound onSVGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(
-                this.svgBlob,
-                this.baseFilename + ".svg"
-            )
-            ev.preventDefault()
-        }
+    @action.bound private onSVGDownload(
+        ev: React.MouseEvent<HTMLAnchorElement>
+    ) {
+        if (!window.navigator.msSaveBlob) return
+
+        window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
+        ev.preventDefault()
     }
 
-    onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        const grapher = this.props.grapher
-        const csvFilename = grapher.displaySlug + ".csv"
-        const csv = grapher.table.toView().toPrettyCsv()
+    @computed private get inputTable() {
+        return this.manager.table ?? BlankOwidTable()
+    }
+
+    private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        const { manager, inputTable } = this
+        const csvFilename = manager.displaySlug + ".csv"
+        const csv = inputTable.toPrettyCsv() || ""
 
         // IE11 compatibility
         if (window.navigator.msSaveBlob) {
@@ -177,9 +197,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed private get csvButton() {
-        const grapher = this.props.grapher
-        const externalCsvLink = grapher.externalCsvLink
-        const csvFilename = grapher.displaySlug + ".csv"
+        const { manager } = this
+        const externalCsvLink = manager.externalCsvLink
+        const csvFilename = manager.displaySlug + ".csv"
         const props = externalCsvLink
             ? {
                   href: externalCsvLink,
@@ -207,29 +227,27 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         )
     }
 
-    renderReady() {
+    private renderReady() {
         const {
-            props,
             targetWidth,
             targetHeight,
-            pngPreviewUrl,
-            pngDownloadUrl,
             svgPreviewUrl,
             svgDownloadUrl,
             baseFilename,
+            bounds,
         } = this
+
+        const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
+        const pngDownloadUrl = this.pngDownloadUrl || pngPreviewUrl
 
         let previewWidth: number
         let previewHeight: number
         const boundScalar = 0.4
-        if (
-            props.bounds.width / props.bounds.height >
-            targetWidth / targetHeight
-        ) {
-            previewHeight = props.bounds.height * boundScalar
+        if (bounds.width / bounds.height > targetWidth / targetHeight) {
+            previewHeight = bounds.height * boundScalar
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = props.bounds.width * boundScalar
+            previewWidth = bounds.width * boundScalar
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
@@ -297,8 +315,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     componentWillUnmount() {
-        if (this.pngBlobUrl !== undefined) URL.revokeObjectURL(this.pngBlobUrl)
-        if (this.svgBlobUrl !== undefined) URL.revokeObjectURL(this.svgBlobUrl)
+        if (this.pngDownloadUrl !== undefined)
+            URL.revokeObjectURL(this.pngDownloadUrl)
+        if (this.svgDownloadUrl !== undefined)
+            URL.revokeObjectURL(this.svgDownloadUrl)
     }
 
     render() {
@@ -307,7 +327,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 className={classNames("DownloadTab", {
                     mobile: isMobile(),
                 })}
-                style={{ ...this.props.bounds.toCSS(), position: "absolute" }}
+                style={{ ...this.bounds.toCSS(), position: "absolute" }}
             >
                 {this.isReady ? (
                     this.renderReady()

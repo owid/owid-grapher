@@ -55,35 +55,28 @@ export class DatabaseConnection {
         callback: (t: TransactionContext) => Promise<T>
     ): Promise<T> {
         const conn = await this.getConnection()
-        const t = new TransactionContext(conn)
+        const transactionContext = new TransactionContext(conn)
 
         try {
-            await t.execute("START TRANSACTION")
-            const result = await callback(t)
-            await t.execute("COMMIT")
+            await transactionContext.execute("START TRANSACTION")
+            const result = await callback(transactionContext)
+            await transactionContext.execute("COMMIT")
             return result
         } catch (err) {
-            await t.execute("ROLLBACK")
+            await transactionContext.execute("ROLLBACK")
             throw err
         } finally {
-            t.conn.release()
+            transactionContext.conn.release()
         }
     }
 
     query(queryStr: string, params?: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             this.pool.query(queryStr, params, (err, rows) => {
-                if (err) return reject(err)
-                resolve(rows)
-            })
-        })
-    }
-
-    // For operations that modify data (TODO: handling to check query isn't used for this)
-    execute(queryStr: string, params?: any[]): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this.pool.query(queryStr, params, (err, rows) => {
-                if (err) return reject(err)
+                if (err) {
+                    console.log(`ERROR with query::\n${queryStr}\n::ERROR`)
+                    return reject(err)
+                }
                 resolve(rows)
             })
         })

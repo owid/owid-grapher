@@ -1,11 +1,22 @@
-import path from "path"
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin"
-import MiniCssExtractPlugin from "mini-css-extract-plugin"
+import webpack from "webpack"
 
-module.exports = ({ config }: { config: any }) => {
-    config.module.rules = config.module.rules.concat([
+const path = require("path")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+
+const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
+    // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
+    // transpiled JS form
+    let baseDir = path.resolve(__dirname, "..")
+    baseDir =
+        path.basename(baseDir) === "itsJustJavascript"
+            ? path.resolve(baseDir, "..")
+            : baseDir
+
+    const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
+
+    config.module!.rules = config.module!.rules.concat([
         {
-            test: /\.s?css$/,
+            test: /\.scss$/,
             use: [
                 MiniCssExtractPlugin.loader,
                 "css-loader?url=false",
@@ -21,14 +32,13 @@ module.exports = ({ config }: { config: any }) => {
             ],
         },
     ])
-    config.resolve.plugins = [
-        new TsconfigPathsPlugin({
-            configFile: path.join(__dirname, "../tsconfig.client.json"),
-        }),
-    ]
-    config.plugins = config.plugins.concat([
-        new MiniCssExtractPlugin({ filename: "css/[name].css" }),
+    config.plugins = config.plugins!.concat([
+        new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
+
+    config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
 
     return config
 }
+
+export default configAdjuster

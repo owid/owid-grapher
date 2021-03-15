@@ -1,0 +1,12 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/grapher",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../coreTable" },
+        { "path": "../clientUtils" },
+        { "path": "../settings" }
+    ]
+}

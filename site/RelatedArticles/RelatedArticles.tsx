@@ -1,6 +1,6 @@
 import React from "react"
-import { BAKED_BASE_URL } from "settings"
-import { PostReference } from "adminSite/client/ChartEditor"
+import { PostReference } from "../../clientUtils/owidTypes"
+import { BAKED_BASE_URL } from "../../settings/serverSettings"
 
 export const RelatedArticles = ({
     articles,

@@ -1,6 +1,9 @@
-import { Grapher } from "grapher/core/Grapher"
+// todo: remove
+
+import { Grapher } from "../core/Grapher"
 import { computed } from "mobx"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { DimensionProperty } from "../core/GrapherConstants"
+import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util"
 
 export class DimensionSlot {
     private grapher: Grapher
@@ -10,7 +13,7 @@ export class DimensionSlot {
         this.property = property
     }
 
-    @computed get name(): string {
+    @computed get name() {
         const names = {
             y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
@@ -22,18 +25,14 @@ export class DimensionSlot {
         return (names as any)[this.property] || ""
     }
 
-    @computed get allowMultiple(): boolean {
+    @computed get allowMultiple() {
         return (
-            this.property === "y" &&
-            !(
-                this.grapher.isScatter ||
-                this.grapher.isTimeScatter ||
-                this.grapher.isSlopeChart
-            )
+            this.property === DimensionProperty.y &&
+            this.grapher.supportsMultipleYColumns
         )
     }
 
-    @computed get isOptional(): boolean {
+    @computed get isOptional() {
         return this.allowMultiple
     }
 
@@ -43,9 +42,18 @@ export class DimensionSlot {
         )
     }
 
-    @computed get dimensionsWithData() {
-        return this.grapher.filledDimensions.filter(
-            (d) => d.property === this.property
+    @computed get dimensionsOrderedAsInPersistedSelection() {
+        const legacyConfig = this.grapher.legacyConfigAsAuthored
+        const variableIDsInSelectionOrder = excludeUndefined(
+            legacyConfig.selectedData?.map(
+                (item) => legacyConfig.dimensions?.[item.index]?.variableId
+            ) ?? []
         )
+        return sortBy(this.grapher.filledDimensions || [], (dim) =>
+            findIndex(
+                variableIDsInSelectionOrder,
+                (variableId) => dim.variableId === variableId
+            )
+        ).filter((dim) => dim.property === this.property)
     }
 }

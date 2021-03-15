@@ -1,6 +1,6 @@
 import React from "react"
 
-const HaloStyle: React.CSSProperties = {
+const DefaultHaloStyle: React.CSSProperties = {
     fill: "#fff",
     stroke: "#fff",
     strokeLinecap: "round",
@@ -10,10 +10,11 @@ const HaloStyle: React.CSSProperties = {
 
 export const getElementWithHalo = (
     key: string,
-    element: React.ReactElement
+    element: React.ReactElement,
+    styles: React.CSSProperties = {}
 ) => {
     const halo = React.cloneElement(element, {
-        style: HaloStyle,
+        style: { ...DefaultHaloStyle, ...styles },
     })
     return (
         <React.Fragment key={key}>

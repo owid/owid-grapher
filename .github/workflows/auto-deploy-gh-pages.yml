@@ -50,15 +50,15 @@ jobs:
             - name: Install dependencies
               run: yarn --frozen-lockfile --network-concurrency 1
 
-            # Note: running these two build steps subsequently means that if either `build-storybook` or `coverage` fails,
+            # Note: running these two build steps subsequently means that if either `buildStorybook` or `coverage` fails,
             # neither of them is deployed :(
             # Let's hope this doesn't happen too often
 
             - name: Build Storybook 🔧
-              run: yarn build-storybook
+              run: yarn buildStorybook
 
             - name: Generate Jest coverage report 🃏
-              run: yarn coverage:ci
+              run: yarn buildCoverage
 
             - name: Generate coverage badge 🔖
               run: |

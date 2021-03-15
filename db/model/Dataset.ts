@@ -11,8 +11,9 @@ import { Writable } from "stream"
 import { User } from "./User"
 import { Source } from "./Source"
 import { Variable } from "./Variable"
-import { csvRow, slugify, filenamify } from "utils/server/serverUtil"
-import * as db from "db/db"
+import * as db from "../db"
+import { arrToCsvRow, slugify } from "../../clientUtils/Util"
+import filenamify from "filenamify"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -35,7 +36,7 @@ export class Dataset extends BaseEntity {
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable) {
         const csvHeader = ["Entity", "Year"]
-        const variables = await db.query(
+        const variables = await db.queryMysql(
             `SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`,
             [datasetId]
         )
@@ -50,9 +51,9 @@ export class Dataset extends BaseEntity {
             )
         }
 
-        stream.write(csvRow(csvHeader))
+        stream.write(arrToCsvRow(csvHeader))
 
-        const data = await db.query(
+        const data = await db.queryMysql(
             `
             SELECT e.name AS entity, dv.year, dv.value, dv.variableId FROM data_values dv
             JOIN variables v ON v.id=dv.variableId
@@ -68,7 +69,7 @@ export class Dataset extends BaseEntity {
             if (datum.entity !== row[0] || datum.year !== row[1]) {
                 // New row
                 if (row.length) {
-                    stream.write(csvRow(row))
+                    stream.write(arrToCsvRow(row))
                 }
                 row = [datum.entity, datum.year]
                 for (const variable of variables) {
@@ -80,7 +81,7 @@ export class Dataset extends BaseEntity {
         }
 
         // Final row
-        stream.write(csvRow(row))
+        stream.write(arrToCsvRow(row))
 
         stream.end()
     }
@@ -121,9 +122,9 @@ export class Dataset extends BaseEntity {
         // XXX
         const sources = await Source.find({ datasetId: this.id })
         const variables = (await db
-            .table(Variable.table)
+            .knexTable(Variable.table)
             .where({ datasetId: this.id })) as Variable.Row[]
-        const tags = await db.query(
+        const tags = await db.queryMysql(
             `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
             [this.id]
         )

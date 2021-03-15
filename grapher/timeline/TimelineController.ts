@@ -1,16 +1,15 @@
-import { Time } from "grapher/core/GrapherConstants"
-import { TimeBoundValue } from "grapher/utils/TimeBounds"
-import { findClosestTime, last } from "grapher/utils/Util"
+import { Time } from "../../coreTable/CoreTableConstants"
+import { TimeBound, TimeBoundValue } from "../../clientUtils/TimeBounds"
+import { findClosestTime, last } from "../../clientUtils/Util"
 
-export interface TimeViz {
-    isPlaying: boolean
-    userHasSetTimeline: boolean
+export interface TimelineManager {
+    disablePlay?: boolean
+    formatTimeFn?: (time: Time) => string
+    isPlaying?: boolean
+    userHasSetTimeline?: boolean
     times: Time[]
-    startTime: Time
-    endTime: Time
-}
-
-interface TimelineControllerOptions {
+    startHandleTimeBound: TimeBound
+    endHandleTimeBound: TimeBound
     msPerTick?: number
     onPlay?: () => void
 }
@@ -18,17 +17,26 @@ interface TimelineControllerOptions {
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
-    private target: TimeViz
-    private options: TimelineControllerOptions
+    manager: TimelineManager
 
-    constructor(target: TimeViz, options: TimelineControllerOptions = {}) {
-        this.target = target
-        this.options = options
+    constructor(manager: TimelineManager) {
+        this.manager = manager
     }
 
     private get timesAsc() {
         // Note: assumes times is sorted in asc
-        return this.target.times
+        return this.manager.times
+    }
+
+    private get startTime() {
+        return findClosestTime(
+            this.timesAsc,
+            this.manager.startHandleTimeBound
+        )!
+    }
+
+    private get endTime() {
+        return findClosestTime(this.timesAsc, this.manager.endHandleTimeBound)!
     }
 
     get minTime() {
@@ -40,26 +48,11 @@ export class TimelineController {
     }
 
     get startTimeProgress() {
-        return (
-            (this.target.startTime - this.minTime) /
-            (this.maxTime - this.minTime)
-        )
-    }
-
-    snapTimes() {
-        const { startTime, endTime } = this.target
-        if (startTime === endTime) return
-
-        if (endTime - startTime > 1) return
-
-        // if handles within 1 time of each other, snap to closest time.
-        this.target.startTime = this.target.endTime
+        return (this.startTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
     get endTimeProgress() {
-        return (
-            (this.target.endTime - this.minTime) / (this.maxTime - this.minTime)
-        )
+        return (this.endTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
     getNextTime(time: number) {
@@ -75,28 +68,31 @@ export class TimelineController {
     }
 
     private isAtEnd() {
-        return this.target.endTime === this.maxTime
+        return this.endTime === this.maxTime
     }
 
     private resetToBeginning() {
+        const { manager } = this
         const beginning =
-            this.target.endTime !== this.target.startTime
-                ? this.target.startTime
+            manager.endHandleTimeBound !== manager.startHandleTimeBound
+                ? manager.startHandleTimeBound
                 : this.minTime
-        this.target.endTime = beginning
+        manager.endHandleTimeBound = beginning
+        manager.startHandleTimeBound = beginning
     }
 
     async play(numberOfTicks?: number) {
-        this.target.isPlaying = true
+        const { manager } = this
+        manager.isPlaying = true
 
         if (this.isAtEnd()) this.resetToBeginning()
 
-        if (this.options.onPlay) this.options.onPlay()
+        if (manager.onPlay) manager.onPlay()
 
         // Keep and return a tickCount for easier testability
         let tickCount = 0
-        while (this.target.isPlaying) {
-            const nextTime = this.getNextTime(this.target.endTime)
+        while (manager.isPlaying) {
+            const nextTime = this.getNextTime(this.endTime)
             if (!this.rangeMode) this.updateStartTime(nextTime)
             this.updateEndTime(nextTime)
             tickCount++
@@ -104,43 +100,42 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await delay(this.options.msPerTick ?? 0)
+            await delay(manager.msPerTick ?? 0)
         }
 
         return tickCount
     }
 
     private stop() {
-        this.target.isPlaying = false
+        this.manager.isPlaying = false
     }
 
     private pause() {
-        this.target.isPlaying = false
+        this.manager.isPlaying = false
     }
 
     async togglePlay() {
-        if (this.target.isPlaying) this.pause()
+        if (this.manager.isPlaying) this.pause()
         else await this.play()
     }
 
     private dragOffsets: [number, number] = [0, 0]
 
     setDragOffsets(inputTime: number) {
-        const { target } = this
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         this.dragOffsets = [
-            target.startTime - closestTime,
-            target.endTime - closestTime,
+            this.startTime - closestTime,
+            this.endTime - closestTime,
         ]
     }
 
-    getTimeFromDrag(inputTime: Time) {
-        if (inputTime < this.minTime) return TimeBoundValue.unboundedLeft
-        if (inputTime > this.maxTime) return TimeBoundValue.unboundedRight
-        return this.getClampedTime(
+    getTimeBoundFromDrag(inputTime: Time): TimeBound {
+        if (inputTime < this.minTime) return TimeBoundValue.negativeInfinity
+        if (inputTime > this.maxTime) return TimeBoundValue.positiveInfinity
+        const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
-        )
+        return Math.min(this.maxTime, Math.max(this.minTime, closestTime))
     }
 
     private dragRangeToTime(time: Time) {
@@ -152,11 +147,11 @@ export class TimelineController {
 
         if (startTime < minTime) {
             startTime = minTime
-            endTime = this.getClampedTime(
+            endTime = this.getTimeBoundFromDrag(
                 minTime + (this.dragOffsets[1] - this.dragOffsets[0])
             )
         } else if (endTime > maxTime) {
-            startTime = this.getClampedTime(
+            startTime = this.getTimeBoundFromDrag(
                 maxTime + (this.dragOffsets[0] - this.dragOffsets[1])
             )
             endTime = maxTime
@@ -167,23 +162,24 @@ export class TimelineController {
     }
 
     dragHandleToTime(handle: "start" | "end" | "both", inputTime: number) {
-        const { target } = this
+        const { manager } = this
 
-        const time = this.getTimeFromDrag(inputTime)
+        const time = this.getTimeBoundFromDrag(inputTime)
 
         const constrainedHandle =
-            handle === "start" && time > target.endTime
+            handle === "start" && time > this.endTime
                 ? "end"
-                : handle === "end" && time < target.startTime
+                : handle === "end" && time < this.startTime
                 ? "start"
                 : handle
 
         if (constrainedHandle !== handle) {
-            if (handle === "start") this.updateStartTime(target.endTime)
-            else this.updateEndTime(target.startTime)
+            if (handle === "start")
+                this.updateStartTime(manager.endHandleTimeBound)
+            else this.updateEndTime(manager.startHandleTimeBound)
         }
 
-        if (target.isPlaying && !this.rangeMode) {
+        if (manager.isPlaying && !this.rangeMode) {
             this.updateStartTime(time)
             this.updateEndTime(time)
         } else if (handle === "both") this.dragRangeToTime(inputTime)
@@ -193,24 +189,19 @@ export class TimelineController {
         return constrainedHandle
     }
 
-    private updateStartTime(time: Time) {
-        this.target.startTime = time
+    private updateStartTime(timeBound: TimeBound) {
+        this.manager.startHandleTimeBound = timeBound
     }
 
-    private updateEndTime(time: Time) {
-        this.target.endTime = time
+    private updateEndTime(timeBound: TimeBound) {
+        this.manager.endHandleTimeBound = timeBound
     }
 
     resetStartToMin() {
-        this.updateStartTime(this.minTime)
+        this.updateStartTime(TimeBoundValue.negativeInfinity)
     }
 
     resetEndToMax() {
-        this.updateEndTime(this.maxTime)
-    }
-
-    private getClampedTime(inputTime: number) {
-        const { minTime, maxTime } = this
-        return Math.min(maxTime, Math.max(minTime, inputTime))
+        this.updateEndTime(TimeBoundValue.positiveInfinity)
     }
 }

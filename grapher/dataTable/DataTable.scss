@@ -1,6 +1,14 @@
 $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
 .tableTab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    text-align: center;
+}
+
+.tableTab {
     border-bottom: $cell-border;
 }
 

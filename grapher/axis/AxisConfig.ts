@@ -1,41 +1,42 @@
-import { ScaleType } from "grapher/core/GrapherConstants"
-import { extend, trimObject } from "grapher/utils/Util"
+import { BASE_FONT_SIZE, ScaleType } from "../core/GrapherConstants"
+import { extend, trimObject } from "../../clientUtils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
-import { Persistable } from "grapher/persistable/Persistable"
+import {
+    deleteRuntimeAndUnchangedProps,
+    Persistable,
+} from "../persistable/Persistable"
+import { AxisConfigInterface } from "./AxisConfigInterface"
+import { ScaleSelectorManager } from "../controls/ScaleSelector"
 
-// Represents the actual entered configuration state in the editor
-export interface AxisConfigInterface {
-    scaleType?: ScaleType
-    label?: string
-    min?: number
-    max?: number
-    canChangeScaleType?: true
-    removePointsOutsideDomain?: true
-}
-
-// Todo: remove
-interface AxisContainerInterface {
+export interface FontSizeManager {
     fontSize: number
 }
 
 class AxisConfigDefaults {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType?: ScaleType = undefined
-    @observable.ref canChangeScaleType?: true = undefined
+    @observable.ref scaleType?: ScaleType = ScaleType.linear
+    @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
-    @observable.ref removePointsOutsideDomain?: true = undefined
+    @observable.ref removePointsOutsideDomain?: boolean = undefined
 }
 
 export class AxisConfig
     extends AxisConfigDefaults
-    implements AxisConfigInterface, Persistable {
+    implements AxisConfigInterface, Persistable, ScaleSelectorManager {
     // todo: test/refactor
-    constructor(props?: AxisConfigInterface) {
+    constructor(
+        props?: AxisConfigInterface,
+        fontSizeManager?: FontSizeManager
+    ) {
         super()
         this.updateFromObject(props)
+        this.fontSizeManager = fontSizeManager
     }
+
+    private fontSizeManager?: FontSizeManager
+    @observable hideAxis = false
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface) {
@@ -43,7 +44,7 @@ export class AxisConfig
     }
 
     toObject(): AxisConfigInterface {
-        return trimObject({
+        const obj = trimObject({
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
             min: this.min,
@@ -51,24 +52,19 @@ export class AxisConfig
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
         })
-    }
 
-    set container(containerOptions: AxisContainerInterface) {
-        this.containerOptions = containerOptions
-    }
+        deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
 
-    @observable.ref private containerOptions: AxisContainerInterface = {
-        fontSize: 16,
+        return obj
     }
 
     @computed get fontSize() {
-        return this.containerOptions.fontSize
+        return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
     }
 
-    // A log scale domain cannot have values <= 0, so we
-    // double check here
+    // A log scale domain cannot have values <= 0, so we double check here
     @computed private get constrainedMin() {
-        if (this.scaleType === ScaleType.log && (this.min || 0) <= 0)
+        if (this.scaleType === ScaleType.log && (this.min ?? 0) <= 0)
             return Infinity
         return this.min ?? Infinity
     }

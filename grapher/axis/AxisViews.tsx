@@ -1,11 +1,10 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
+import { ScaleType } from "../core/GrapherConstants"
 
 @observer
 export class VerticalAxisGridLines extends React.Component<{
@@ -46,16 +45,21 @@ export class VerticalAxisGridLines extends React.Component<{
 @observer
 export class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
-    bounds: Bounds
+    bounds?: Bounds
 }> {
+    @computed get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
     render() {
-        const { bounds, horizontalAxis } = this.props
-        const view = horizontalAxis.clone()
-        view.range = bounds.xRange()
+        const { horizontalAxis } = this.props
+        const { bounds } = this
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
 
         return (
             <g className={classNames("AxisGridLines", "verticalLines")}>
-                {view.getTickValues().map((t, i) => {
+                {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? "#eee"
                         : t.value === 0
@@ -65,9 +69,9 @@ export class HorizontalAxisGridLines extends React.Component<{
                     return (
                         <line
                             key={i}
-                            x1={view.place(t.value)}
+                            x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
-                            x2={view.place(t.value)}
+                            x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
                             strokeDasharray={t.value !== 0 ? "3,2" : undefined}
@@ -82,45 +86,51 @@ export class HorizontalAxisGridLines extends React.Component<{
 interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
-    showTickMarks: boolean
-    isInteractive: boolean
+    showTickMarks?: boolean
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render() {
         const { dualAxis, showTickMarks } = this.props
-        const { bounds, xAxis, yAxis, innerBounds } = dualAxis
+        const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
-        const maxX = undefined // {grapherView.tabBounds.width} todo
+        const verticalGridlines = verticalAxis.hideGridlines ? null : (
+            <VerticalAxisGridLines
+                verticalAxis={verticalAxis}
+                bounds={innerBounds}
+            />
+        )
+
+        const horizontalGridlines = horizontalAxis.hideGridlines ? null : (
+            <HorizontalAxisGridLines
+                horizontalAxis={horizontalAxis}
+                bounds={innerBounds}
+            />
+        )
+
+        const verticalAxisComponent = verticalAxis.hideAxis ? null : (
+            <VerticalAxisComponent
+                bounds={bounds}
+                verticalAxis={verticalAxis}
+            />
+        )
+
+        const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
+            <HorizontalAxisComponent
+                bounds={bounds}
+                axisPosition={innerBounds.bottom}
+                axis={horizontalAxis}
+                showTickMarks={showTickMarks}
+            />
+        )
 
         return (
             <g className="DualAxisView">
-                <HorizontalAxisComponent
-                    maxX={maxX}
-                    bounds={bounds}
-                    axisPosition={innerBounds.bottom}
-                    axis={xAxis}
-                    showTickMarks={showTickMarks}
-                    isInteractive={this.props.isInteractive}
-                />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={yAxis}
-                    isInteractive={this.props.isInteractive}
-                />
-                {!yAxis.hideGridlines && (
-                    <VerticalAxisGridLines
-                        verticalAxis={yAxis}
-                        bounds={innerBounds}
-                    />
-                )}
-                {!xAxis.hideGridlines && (
-                    <HorizontalAxisGridLines
-                        horizontalAxis={xAxis}
-                        bounds={innerBounds}
-                    />
-                )}
+                {horizontalAxisComponent}
+                {verticalAxisComponent}
+                {verticalGridlines}
+                {horizontalGridlines}
             </g>
         )
     }
@@ -130,7 +140,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
-    isInteractive: boolean
 }> {
     render() {
         const { bounds, verticalAxis } = this.props
@@ -167,26 +176,20 @@ export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
     axisPosition: number
-    maxX?: number
     showTickMarks?: boolean
-    isInteractive: boolean
 }> {
-    @computed get controls() {
-        const { bounds, axis, maxX } = this.props
-        const showControls =
-            this.props.isInteractive && axis.scaleTypeOptions.length > 1
-        if (!showControls) return undefined
+    @computed get scaleType() {
+        return this.props.axis.scaleType
+    }
 
-        return (
-            <ControlsOverlay id="horizontal-scale-selector" paddingBottom={10}>
-                <ScaleSelector
-                    maxX={maxX}
-                    x={bounds.right}
-                    y={bounds.bottom}
-                    scaleTypeConfig={axis}
-                />
-            </ControlsOverlay>
-        )
+    set scaleType(scaleType: ScaleType) {
+        this.props.axis.config.scaleType = scaleType
+    }
+
+    // for scale selector. todo: cleanup
+    @computed get bounds() {
+        const { bounds } = this.props
+        return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
     render() {
@@ -211,10 +214,9 @@ export class HorizontalAxisComponent extends React.Component<{
                     )}
                 {tickMarks}
                 {ticks.map((tick, i) => {
-                    const label = axis.formatTick(
-                        tick,
-                        i === 0 || i === ticks.length - 1
-                    )
+                    const label = axis.formatTick(tick, {
+                        isFirstOrLastTick: i === 0 || i === ticks.length - 1,
+                    })
                     const rawXPosition = axis.place(tick)
                     // Ensure the first label does not exceed the chart viewing area
                     const xPosition =
@@ -240,7 +242,6 @@ export class HorizontalAxisComponent extends React.Component<{
 
                     return element
                 })}
-                {this.controls}
             </g>
         )
     }

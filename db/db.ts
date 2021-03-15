@@ -1,32 +1,32 @@
 import * as mysql from "mysql"
 import * as typeorm from "typeorm"
 import Knex from "knex"
-import { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT } from "serverSettings"
+import {
+    DB_HOST,
+    DB_USER,
+    DB_PASS,
+    DB_NAME,
+    DB_PORT,
+} from "../settings/serverSettings"
 import { registerExitHandler } from "./cleanup"
-let connection: typeorm.Connection
+let typeormConnection: typeorm.Connection
 
-export async function connect() {
-    return getConnection()
-}
-
-async function getConnection() {
-    if (connection) return connection
+export const getConnection = async () => {
+    if (typeormConnection) return typeormConnection
 
     try {
-        connection = typeorm.getConnection()
-    } catch (e) {
-        if (e.name === "ConnectionNotFoundError") {
-            connection = await typeorm.createConnection()
-        } else {
-            throw e
-        }
+        typeormConnection = typeorm.getConnection()
+    } catch (err) {
+        if (err.name === "ConnectionNotFoundError")
+            typeormConnection = await typeorm.createConnection()
+        else throw err
     }
 
     registerExitHandler(async () => {
-        if (connection) await connection.close()
+        if (typeormConnection) await typeormConnection.close()
     })
 
-    return connection
+    return typeormConnection
 }
 
 export class TransactionContext {
@@ -48,75 +48,66 @@ export class TransactionContext {
     }
 }
 
-export async function transaction<T>(
+export const transaction = async <T>(
     callback: (t: TransactionContext) => Promise<T>
-): Promise<T> {
-    return (await getConnection()).transaction(async (manager) => {
-        const t = new TransactionContext(manager)
-        return callback(t)
-    })
-}
+): Promise<T> =>
+    (await getConnection()).transaction(async (manager) =>
+        callback(new TransactionContext(manager))
+    )
 
-export async function query(queryStr: string, params?: any[]): Promise<any> {
+export const queryMysql = async (
+    queryStr: string,
+    params?: any[]
+): Promise<any> => {
     const conn = await getConnection()
     return conn.query(params ? mysql.format(queryStr, params) : queryStr)
 }
 
 // For operations that modify data (TODO: handling to check query isn't used for this)
-export async function execute(queryStr: string, params?: any[]): Promise<any> {
-    const conn = await getConnection()
-    return conn.query(params ? mysql.format(queryStr, params) : queryStr)
+export const execute = queryMysql
+
+// Return the first match from a mysql query
+export const mysqlFirst = async (
+    queryStr: string,
+    params?: any[]
+): Promise<any> => {
+    return (await queryMysql(queryStr, params))[0]
 }
 
-export async function get(queryStr: string, params?: any[]): Promise<any> {
-    return (await query(queryStr, params))[0]
-}
-
-export async function end() {
-    if (connection) await connection.close()
+export const closeTypeOrmAndKnexConnections = async () => {
+    if (typeormConnection) await typeormConnection.close()
     if (knexInstance) await knexInstance.destroy()
 }
 
 let knexInstance: Knex
 
-export function knex() {
-    if (!knexInstance) {
-        knexInstance = Knex({
-            client: "mysql",
-            connection: {
-                host: DB_HOST,
-                user: DB_USER,
-                password: DB_PASS,
-                database: DB_NAME,
-                port: DB_PORT,
-                typeCast: (field: any, next: any) => {
-                    if (field.type === "TINY" && field.length === 1) {
-                        return field.string() === "1" // 1 = true, 0 = false
-                    }
-                    return next()
-                },
-            },
-        })
+export const knex = () => {
+    if (knexInstance) return knexInstance
 
-        registerExitHandler(async () => {
-            if (knexInstance) await knexInstance.destroy()
-        })
-    }
+    knexInstance = Knex({
+        client: "mysql",
+        connection: {
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASS,
+            database: DB_NAME,
+            port: DB_PORT,
+            typeCast: (field: any, next: any) => {
+                if (field.type === "TINY" && field.length === 1) {
+                    return field.string() === "1" // 1 = true, 0 = false
+                }
+                return next()
+            },
+        },
+    })
+
+    registerExitHandler(async () => {
+        if (knexInstance) await knexInstance.destroy()
+    })
 
     return knexInstance
 }
 
-export function table(t: string) {
-    return knex().table(t)
-}
+export const knexTable = (table: string) => knex().table(table)
 
-export function raw(s: string) {
-    return knex().raw(s)
-}
-
-export async function select<T, K extends keyof T>(
-    query: Knex.QueryBuilder,
-    ...args: K[]
-): Promise<Pick<T, K>[]> {
-    return query.select(...args) as any
-}
+export const knexRaw = (str: string) => knex().raw(str)

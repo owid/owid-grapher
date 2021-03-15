@@ -8,298 +8,406 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-    when,
 } from "mobx"
 import { bind } from "decko"
-
 import {
     uniqWith,
     isEqual,
-    formatDay,
-    formatYear,
     uniq,
-    fetchJSON,
-    flatten,
-    sortBy,
-    getErrorMessageRelatedQuestionUrl,
     slugify,
-    keyBy,
-    cloneDeep,
-    union,
-    without,
-    xor,
-    lastOfNonEmptyArray,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
-} from "grapher/utils/Util"
+    isMobile,
+    isVisible,
+    VNode,
+    throttle,
+    next,
+    sampleFrom,
+    range,
+    difference,
+    exposeInstanceOnWindow,
+    findClosestTime,
+    excludeUndefined,
+    debounce,
+    isInIFrame,
+    differenceObj,
+} from "../../clientUtils/Util"
 import {
-    ChartType,
+    ChartTypeName,
     GrapherTabOption,
-    Color,
-    TickFormattingOptions,
-    EntityDimensionKey,
     ScaleType,
     StackMode,
     DimensionProperty,
-    ChartTypeName,
-    AddCountryMode,
+    EntitySelectionMode,
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
-    EntitySelection,
-    Time,
-} from "grapher/core/GrapherConstants"
-import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
-import { OwidTable } from "owidTable/OwidTable"
-import { EntityName, EntityId, EntityCode } from "owidTable/OwidTableConstants"
+    BASE_FONT_SIZE,
+    CookieKey,
+    FacetStrategy,
+    ThereWasAProblemLoadingThisChart,
+    SeriesColorMap,
+} from "../core/GrapherConstants"
 import {
-    EntityDimensionInfo,
+    LegacyChartDimensionInterface,
+    LegacyVariablesAndEntityKey,
+} from "./LegacyVariableCode"
+import * as Cookies from "js-cookie"
+import {
     ChartDimension,
-    SourceWithDimension,
-    ChartDimensionInterface,
-} from "grapher/chart/ChartDimension"
-import { MapTransform } from "grapher/mapCharts/MapTransform"
+    LegacyDimensionsManager,
+} from "../chart/ChartDimension"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps"
 import {
-    GrapherQueryParams,
-    GrapherUrl,
-    legacyQueryParamsToCurrentQueryParams,
-} from "./GrapherUrl"
-import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
-import { DiscreteBarTransform } from "grapher/barCharts/DiscreteBarTransform"
-import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
-import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
-import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
-import { SlopeChartTransform } from "grapher/slopeCharts/SlopeChartTransform"
-import { GrapherView } from "grapher/core/GrapherView"
-import { Bounds } from "grapher/utils/Bounds"
-import { IChartTransform } from "grapher/chart/ChartTransform"
-import { TooltipProps } from "grapher/chart/Tooltip"
-import {
-    BAKED_GRAPHER_URL,
-    ENV,
-    ADMIN_BASE_URL,
-    GRAPHER_VERSION,
-} from "settings"
-import {
-    minTimeFromJSON,
-    maxTimeFromJSON,
+    minTimeBoundFromJSONOrNegativeInfinity,
+    maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
-    TimeBoundValue,
     getTimeDomainFromQueryString,
     TimeBound,
     minTimeToJSON,
     maxTimeToJSON,
-} from "grapher/utils/TimeBounds"
+    timeBoundToTimeBoundString,
+} from "../../clientUtils/TimeBounds"
 import {
-    GlobalEntitySelection,
-    subscribeGrapherToGlobalEntitySelection,
-} from "site/globalEntityControl/GlobalEntitySelection"
-import { countries } from "utils/countries"
-import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
-import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
-import { populationMap } from "owidTable/PopulationMap"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
-import { GrapherAnalytics } from "./GrapherAnalytics"
-import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { MapProjection } from "grapher/mapCharts/MapProjections"
-import { LogoOption } from "grapher/chart/Logos"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
-import { MapConfig } from "grapher/mapCharts/MapConfig"
-import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
+    strToQueryParams,
+    queryParamsToStr,
+    setWindowQueryStr,
+} from "../../clientUtils/urls/UrlUtils"
+import { populationMap } from "../../coreTable/PopulationMap"
+import {
+    GrapherInterface,
+    grapherKeysToSerialize,
+    GrapherQueryParams,
+    LegacyGrapherInterface,
+} from "../core/GrapherInterface"
+import { DimensionSlot } from "../chart/DimensionSlot"
+import {
+    getSelectedEntityNamesParam,
+    setSelectedEntityNamesParam,
+} from "./EntityUrlBuilder"
+import { MapProjectionName } from "../mapCharts/MapProjections"
+import { LogoOption } from "../captionedChart/Logos"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { MapConfig } from "../mapCharts/MapConfig"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "grapher/persistable/Persistable"
-import { TimeViz } from "grapher/timeline/TimelineController"
+} from "../persistable/Persistable"
+import {
+    ColumnSlug,
+    ColumnSlugs,
+    Time,
+} from "../../coreTable/CoreTableConstants"
+import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
+import { ChartManager } from "../chart/ChartManager"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import {
+    AbsRelToggleManager,
+    FooterControls,
+    FooterControlsManager,
+    HighlightToggleManager,
+    SmallCountriesFilterManager,
+} from "../controls/Controls"
+import { TooltipView } from "../tooltip/Tooltip"
+import { EntitySelectorModal } from "../controls/EntitySelectorModal"
+import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
+import * as ReactDOM from "react-dom"
+import { observer } from "mobx-react"
+import "d3-transition"
+import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
+import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
+import { MapChart } from "../mapCharts/MapChart"
+import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
+import { Command, CommandPalette } from "../controls/CommandPalette"
+import { ShareMenuManager } from "../controls/ShareMenu"
+import {
+    CaptionedChart,
+    CaptionedChartManager,
+    StaticCaptionedChart,
+} from "../captionedChart/CaptionedChart"
+import {
+    TimelineController,
+    TimelineManager,
+} from "../timeline/TimelineController"
+import {
+    EntityId,
+    EntityName,
+    OwidColumnDef,
+} from "../../coreTable/OwidTableConstants"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
+import * as Mousetrap from "mousetrap"
+import { SlideShowController } from "../slideshowController/SlideShowController"
+import {
+    ChartComponentClassMap,
+    DefaultChartClass,
+} from "../chart/ChartTypeMap"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
+import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
+import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+import classNames from "classnames"
+import { GrapherAnalytics } from "./GrapherAnalytics"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../../settings/clientSettings"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
+import { Url } from "../../clientUtils/urls/Url"
 
 declare const window: any
 
-class GrapherDefaults implements GrapherInterface {
-    @observable.ref type: ChartTypeName = "LineChart"
-    @observable.ref isExplorable: boolean = false
+const legacyConfigToConfig = (
+    config: LegacyGrapherInterface | GrapherInterface
+): GrapherInterface => {
+    const legacyConfig = config as LegacyGrapherInterface
+    if (!legacyConfig.selectedData) return legacyConfig
+
+    const newConfig = { ...legacyConfig } as GrapherInterface
+    newConfig.selectedEntityIds = uniq(
+        legacyConfig.selectedData.map((row) => row.entityId)
+    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
+    return newConfig
+}
+
+const DEFAULT_MS_PER_TICK = 100
+
+// Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
+export interface GrapherProgrammaticInterface extends GrapherInterface {
+    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    manuallyProvideData?: boolean // This will be removed.
+    hideEntityControls?: boolean
+    queryStr?: string
+    isMediaCard?: boolean
+    bounds?: Bounds
+    table?: OwidTable
+    bakedGrapherURL?: string
+    adminBaseUrl?: string
+    env?: string
+
+    getGrapherInstance?: (instance: Grapher) => void
+
+    enableKeyboardShortcuts?: boolean
+    bindUrlToWindow?: boolean
+    isEmbeddedInAnOwidPage?: boolean
+
+    manager?: GrapherManager
+}
+
+export interface GrapherManager {
+    canonicalUrl?: string
+    embedDialogUrl?: string
+    embedDialogAdditionalElements?: React.ReactElement
+    selection?: SelectionArray
+    editUrl?: string
+}
+
+@observer
+export class Grapher
+    extends React.Component<GrapherProgrammaticInterface>
+    implements
+        TimelineManager,
+        ChartManager,
+        FontSizeManager,
+        CaptionedChartManager,
+        SourcesTabManager,
+        DownloadTabManager,
+        DiscreteBarChartManager,
+        LegacyDimensionsManager,
+        ShareMenuManager,
+        SmallCountriesFilterManager,
+        HighlightToggleManager,
+        AbsRelToggleManager,
+        TooltipManager,
+        FooterControlsManager,
+        DataTableManager,
+        ScatterPlotManager,
+        MapChartManager {
+    @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
-    @observable.ref version: number = 1
+    @observable.ref version = 1
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
-    @observable.ref subtitle?: string = undefined
+    @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
-    @observable.ref note?: string = undefined
-    @observable.ref hideTitleAnnotation?: true = undefined
+    @observable.ref note = ""
+    @observable.ref hideTitleAnnotation?: boolean = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
-    @observable.ref addCountryMode: AddCountryMode = "add-country"
+    @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode: StackMode = "absolute"
-    @observable.ref hideLegend?: true = undefined
+    @observable.ref stackMode = StackMode.absolute
+    @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
-    @observable.ref hideRelativeToggle?: boolean = true
-    @observable.ref entityType: string = "country"
-    @observable.ref entityTypePlural: string = "countries"
-    @observable.ref hideTimeline?: true = undefined
-    @observable.ref zoomToSelection?: true = undefined
+    @observable.ref hideRelativeToggle? = true
+    @observable.ref entityType = "country"
+    @observable.ref entityTypePlural = "countries"
+    @observable.ref hideTimeline?: boolean = undefined
+    @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref minPopulationFilter?: number = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
-    @observable.ref tab: GrapherTabOption = "chart"
+    @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOption = undefined
-    @observable.ref internalNotes?: string = undefined
+    @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
-    @observable.ref originUrl?: string = undefined
-    @observable.ref isPublished?: true = undefined
-    @observable.ref baseColorScheme?: string = undefined
-    @observable.ref invertColorScheme?: true = undefined
-    @observable.ref hideLinesOutsideTolerance?: true = undefined
+    @observable.ref originUrl = ""
+    @observable.ref isPublished?: boolean = undefined
+    @observable.ref baseColorScheme?: ColorSchemeName = undefined
+    @observable.ref invertColorScheme?: boolean = undefined
+    @observable.ref hideLinesOutsideTolerance?: boolean = undefined
     @observable hideConnectedScatterLines?: boolean = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     @observable
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
-    @observable.ref compareEndPointsOnly?: true = undefined
-    @observable.ref matchingEntitiesOnly?: true = undefined
+    @observable.ref compareEndPointsOnly?: boolean = undefined
+    @observable.ref matchingEntitiesOnly?: boolean = undefined
 
-    @observable.ref xAxis = new AxisConfig()
-    @observable.ref yAxis = new AxisConfig()
+    @observable.ref xAxis = new AxisConfig(undefined, this)
+    @observable.ref yAxis = new AxisConfig(undefined, this)
     @observable colorScale = new ColorScaleConfig()
     @observable map = new MapConfig()
     @observable.ref dimensions: ChartDimension[] = []
 
+    @observable ySlugs?: ColumnSlugs = undefined
+    @observable xSlug?: ColumnSlug = undefined
+    @observable colorSlug?: ColumnSlug = undefined
+    @observable sizeSlug?: ColumnSlug = undefined
+    @observable tableSlugs?: ColumnSlugs = undefined
+    @observable backgroundSeriesLimit?: number = undefined
+
+    @observable selectedEntityNames: EntityName[] = []
+    @observable selectedEntityColors: { [entityName: string]: string } = {}
+    @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
-    @observable.ref selectedData: EntitySelection[] = [] // todo: Persistables?
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
-    @observable relatedQuestions?: RelatedQuestionsConfig[] // todo: Persistables?
+    @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
 
-    externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
-    manuallyProvideData?: boolean = false // This will be removed.
-}
+    manuallyProvideData? = false // This will be removed.
 
-const defaultObject = objectWithPersistablesToObject(new GrapherDefaults())
+    // TODO: Pass these 5 in as options, don't get them as globals.
+    isDev = this.props.env === "development"
+    analytics = new GrapherAnalytics(this.props.env ?? "")
+    isEditor =
+        typeof window !== "undefined" && (window as any).isEditor === true
+    @observable bakedGrapherURL = BAKED_GRAPHER_URL
+    adminBaseUrl = ADMIN_BASE_URL
 
-export class Grapher extends GrapherDefaults implements TimeViz {
-    // TODO: Pass these 5 in as options, donn't get them as globals
-    isDev: Readonly<boolean> = ENV === "development"
-    adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
-    analytics: GrapherAnalytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
-    isEditor: Readonly<boolean> = (window as any).isEditor === true
-    bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
+    @observable.ref inputTable: OwidTable
 
-    configOnLoad: Readonly<GrapherInterface>
-    @observable.ref table: OwidTable
+    @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    @computed get dataTableSlugs(): ColumnSlug[] {
+        return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
+    }
+
+    /**
+     * todo: factor this out and make more RAII.
+     *
+     * Explorers create 1 Grapher instance, but as the user clicks around the Explorer loads other author created Graphers.
+     * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
+     * So when an Explorer updates the grapher, it also needs to update this "original state".
+     */
+    @action.bound setAuthoredVersion(config: Partial<LegacyGrapherInterface>) {
+        this.legacyConfigAsAuthored = config
+    }
+
+    @action.bound updateAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ) {
+        this.legacyConfigAsAuthored = {
+            ...this.legacyConfigAsAuthored,
+            ...config,
+        }
+    }
 
     constructor(
-        config?: GrapherInterface,
-        options: {
-            isEmbed?: boolean
-            isMediaCard?: boolean
-            queryStr?: string
-            globalEntitySelection?: GlobalEntitySelection
-        } = {}
+        propsWithGrapherInstanceGetter: GrapherProgrammaticInterface = {}
     ) {
-        super()
-        this.table = new OwidTable([])
-        this.updateFromObject(config)
-        this.isEmbed = !!options.isEmbed
-        this.isMediaCard = !!options.isMediaCard
+        super(propsWithGrapherInstanceGetter)
 
-        this.initFontSizeInAxisContainers()
+        const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
-        if (this.owidDataset) this._receiveData(this.owidDataset)
-        else if (this.externalDataUrl)
-            this.downloadDataFromUrl(this.externalDataUrl)
-        else if (!this.manuallyProvideData)
-            this.disposers.push(
-                reaction(
-                    () => this.variableIds,
-                    this.downloadDataFromOwidVariableIds,
-                    {
-                        fireImmediately: true,
-                    }
-                )
-            )
+        this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
+        const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        this.disposers.push(
-            reaction(
-                () => this.minPopulationFilter,
-                () => {
-                    this.updatePopulationFilter()
-                }
-            )
+        if (props) this.setAuthoredVersion(props)
+
+        this.updateFromObject(modernConfig)
+
+        if (!props.table) this.downloadData()
+
+        this.populateFromQueryParams(
+            legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
 
-        this.url = new GrapherUrl(this, config, this.bakedGrapherURL)
-
-        if (options.queryStr !== undefined)
-            this.populateFromQueryParams(
-                legacyQueryParamsToCurrentQueryParams(
-                    strToQueryParams(options.queryStr)
-                )
-            )
-
-        // The props after consuming the URL parameters, but before any user interaction
-        this.configOnLoad = this.toObject()
-
-        if (options.globalEntitySelection) {
-            this.disposers.push(
-                subscribeGrapherToGlobalEntitySelection(
-                    this,
-                    options.globalEntitySelection
-                )
-            )
-        }
-
         if (this.isEditor) this.ensureValidConfigWhenEditing()
+
+        if (getGrapherInstance) getGrapherInstance(this)
     }
 
     toObject() {
-        const obj: GrapherInterface = objectWithPersistablesToObject(this)
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
 
-        // Never save the followingto the DB.
-        delete obj.externalDataUrl
-        delete obj.owidDataset
-        delete obj.manuallyProvideData
-
-        // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
-        // in the Grapher Admin with an overlay tab open
-        delete obj.overlay
+        if (this.selection.hasSelection)
+            obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
+        if (obj.stackMode === null) delete obj.stackMode
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
+        // todo: remove dimensions concept
+        if (this.legacyConfigAsAuthored?.dimensions)
+            obj.dimensions = this.legacyConfigAsAuthored.dimensions
+
         return obj
     }
 
-    @action.bound updateFromObject(obj?: GrapherInterface) {
+    @action.bound downloadData() {
+        if (this.manuallyProvideData) {
+        } else if (this.owidDataset)
+            this._receiveLegacyDataAndApplySelection(this.owidDataset)
+        else this.downloadLegacyDataFromOwidVariableIds()
+    }
+
+    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
         if (!obj) return
+
+        // we can remove when we purge current graphers which have this set.
+        if (obj.stackMode === null) delete obj.stackMode
+
         updatePersistables(this, obj)
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime !== undefined)
-            this.minTime = minTimeFromJSON(obj.minTime)
-        if (obj.maxTime !== undefined)
-            this.maxTime = maxTimeFromJSON(obj.maxTime)
-        if (obj.map?.time !== undefined)
-            this.map.time = maxTimeFromJSON(obj.map.time)
+        this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
+        this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
     }
 
-    /**
-     * Applies query parameters to the grapher config
-     */
     @action.bound populateFromQueryParams(params: GrapherQueryParams) {
         // Set tab if specified
         const tab = params.tab
@@ -350,61 +458,147 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
         const region = params.region
-        if (region !== undefined) this.map.projection = region as MapProjection
+        if (region !== undefined)
+            this.map.projection = region as MapProjectionName
 
-        // Selected countries -- we can't actually look these up until we have the data
-        const country = params.country
-        if (!country || this.addCountryMode === "disabled") return
-        when(
-            () => this.isReady,
-            () => {
-                runInAction(() => {
-                    const entityCodes = EntityUrlBuilder.queryParamToEntities(
-                        country
-                    )
-                    this.setSelectedEntitiesByCode(entityCodes)
+        const selection = getSelectedEntityNamesParam(
+            Url.fromQueryParams(params)
+        )
 
-                    // Commented out temporarily because it causes some errors.
-                    // Some of the logging functions call document which doesn't
-                    // exist during baking.
-                    //
-                    // const matchedEntities = this.setSelectedEntitiesByCode(
-                    //     entityCodes
-                    // )
-                    // const notFoundEntities = Array.from(
-                    //     matchedEntities.keys()
-                    // ).filter((key) => !matchedEntities.get(key))
-                    // if (notFoundEntities.length)
-                    //     this.analytics.logEntitiesNotFoundError(
-                    //         notFoundEntities
-                    //     )
-                })
-            }
+        if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
+            this.selection.setSelectedEntities(selection)
+    }
+
+    @action.bound private setTimeFromTimeQueryParam(time: string) {
+        this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
+            (time) => findClosestTime(this.times, time) ?? time
+        ) as TimeBounds
+    }
+
+    @computed private get isChartOrMapTab() {
+        return this.tab === GrapherTabOption.chart || this.isOnMapTab
+    }
+
+    @computed private get isOnMapTab() {
+        return this.tab === GrapherTabOption.map
+    }
+
+    @computed private get tableForSelection() {
+        return this.inputTable // perform selection at root level
+    }
+
+    // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
+    @computed private get tableAfterAuthorTimelineFilter() {
+        const table = this.inputTable
+        if (
+            this.timelineMinTime === undefined &&
+            this.timelineMaxTime === undefined
+        )
+            return table
+        return table.filterByTimeRange(
+            this.timelineMinTime ?? -Infinity,
+            this.timelineMaxTime ?? Infinity
         )
     }
 
-    setTimeFromTimeQueryParam(time: string) {
-        this.timeDomain = getTimeDomainFromQueryString(time)
+    // Convenience method for debugging
+    windowQueryParams(str = location.search) {
+        return strToQueryParams(str)
     }
 
-    @observable.ref isEmbed: boolean
-    @observable.ref isMediaCard: boolean
-    @observable.ref isExporting?: boolean
+    @computed
+    private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
+        const table = this.tableAfterAuthorTimelineFilter
+        if (!this.isReady || !this.isChartOrMapTab) return table
+        return this.chartInstance.transformTable(table)
+    }
+
+    @computed get chartInstance() {
+        // Note: when timeline handles on a LineChart are collapsed into a single handle, the
+        // LineChart turns into a DiscreteBar.
+
+        return this.isOnMapTab
+            ? new MapChart({ manager: this })
+            : this.chartInstanceExceptMap
+    }
+
+    // When Map becomes a first-class chart instance, we should drop this
+    @computed get chartInstanceExceptMap() {
+        const chartTypeName = this
+            .typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+
+        const ChartClass =
+            ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
+        return new ChartClass({ manager: this })
+    }
+
+    @computed get table() {
+        return this.tableAfterAuthorTimelineFilter
+    }
+
+    @computed
+    get tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter() {
+        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
+        // todo: could make these separate memoized computeds to speed up
+        // todo: add cross filtering. 1 dimension at a time.
+        return this.minPopulationFilter
+            ? table.filterByPopulationExcept(
+                  this.minPopulationFilter,
+                  this.selection.selectedEntityNames
+              )
+            : table
+    }
+
+    @computed
+    private get tableAfterAllTransformsAndFilters() {
+        const { startTime, endTime } = this
+        const table = this
+            .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
+
+        if (startTime === undefined || endTime === undefined) return table
+
+        if (this.isOnMapTab)
+            return table.filterByTargetTimes(
+                [endTime],
+                table.get(this.mapColumnSlug).tolerance
+            )
+
+        if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)
+            return table.filterByTargetTimes(
+                [endTime],
+                table.get(this.yColumnSlugs[0]).tolerance
+            )
+
+        if (this.isSlopeChart)
+            return table.filterByTargetTimes([startTime, endTime])
+
+        return table.filterByTimeRange(startTime, endTime)
+    }
+
+    @computed get transformedTable() {
+        return this.tableAfterAllTransformsAndFilters
+    }
+
+    @observable.ref isMediaCard = false
+    @observable.ref isExportingtoSvgOrPng = false
     @observable.ref tooltip?: TooltipProps
-    @observable isPlaying: boolean = false
-    @observable.ref isSelectingData: boolean = false
+    @observable isPlaying = false
+    @observable.ref isSelectingData = false
 
-    @computed get isInteractive() {
-        return !this.isExporting
+    private get isStaging() {
+        if (typeof location === undefined) return false
+        return location.host.includes("staging")
     }
 
-    @action.bound toggleMinPopulationFilter() {
-        this.minPopulationFilter = this.minPopulationFilter
-            ? undefined
-            : this.populationFilterOption
+    @computed get editUrl() {
+        if (!this.showAdminControls && !this.isDev && !this.isStaging)
+            return undefined
+        return `${this.adminBaseUrl}/admin/${
+            this.manager.editUrl ?? `charts/${this.id}/edit`
+        }`
     }
 
-    private populationFilterToggleOption: number = 1e6
+    private populationFilterToggleOption = 1e6
     // Make the default filter toggle option reflect what is initially loaded.
     @computed get populationFilterOption() {
         if (this.minPopulationFilter)
@@ -413,8 +607,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
-    @computed get hasCountriesSmallerThanFilterOption() {
-        return this.table.availableEntities.some(
+    @computed private get hasCountriesSmallerThanFilterOption() {
+        return this.inputTable.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
                 populationMap[entityName] < this.populationFilterOption
@@ -424,207 +618,267 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @observable userHasSetTimeline: boolean = false
-
-    @action.bound private async downloadDataFromUrl(url: string) {
-        const json = await fetchJSON(url)
-        this._receiveData(json)
+    /**
+     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
+     */
+    @computed get useAdminAPI() {
+        if (typeof window === "undefined") return false
+        return window.admin !== undefined
     }
 
-    @action.bound private async downloadDataFromOwidVariableIds() {
-        if (this.variableIds.length === 0) {
+    /**
+     * Whether the user viewing the chart is an admin and we should show admin controls,
+     * like the "Edit" option in the share menu.
+     */
+    @computed get showAdminControls() {
+        // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
+        // There is an iframe on owid.cloud to trigger a visit to that page.
+        return !!Cookies.get(CookieKey.isAdmin)
+    }
+
+    @action.bound private async downloadLegacyDataFromOwidVariableIds() {
+        if (this.variableIds.length === 0)
             // No data to download
             return
-        }
 
         try {
-            if (window.admin) {
+            if (this.useAdminAPI) {
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
-                this._receiveData(json)
+                this._receiveLegacyDataAndApplySelection(json)
             } else {
-                await this.downloadDataFromUrl(this.dataUrl)
+                const response = await fetch(this.dataUrl)
+                if (!response.ok) throw new Error(response.statusText)
+                const json = await response.json()
+                this._receiveLegacyDataAndApplySelection(json)
             }
         } catch (err) {
+            console.log(`Error fetching '${this.dataUrl}'`)
             console.error(err)
         }
     }
 
-    // Provide a way to insert an arbitrary element into the embed popup.
-    // The "hideControls" property is a param on the explorer, so to maintain
-    // modularity between the explorer and chart I am injecting the checkbox this way.
-    // In the future if we merge the two we could shift to a cleaner approach.
-    @observable.ref embedExplorerCheckbox?: JSX.Element
-
-    @action.bound receiveData(json: LegacyVariablesAndEntityKey) {
-        this._receiveData(json)
+    @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey) {
+        this._receiveLegacyDataAndApplySelection(json)
     }
 
-    @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
-        this.table.loadFromLegacy(json)
-        this.updatePopulationFilter() // todo: remove
+    @action.bound private _setInputTable(
+        json: LegacyVariablesAndEntityKey,
+        legacyConfig: Partial<LegacyGrapherInterface>
+    ) {
+        const { dimensions, table } = legacyToOwidTableAndDimensions(
+            json,
+            legacyConfig
+        )
+
+        this.inputTable = table
+        // We need to reset the dimensions because some of them may have changed slugs in the legacy
+        // transformation (can happen when columns use targetTime)
+        this.setDimensionsFromConfigs(dimensions)
+
+        this.appendNewEntitySelectionOptions()
+
+        if (this.manager.selection && this.manager.selection.hasSelection) {
+            // Selection is managed externally, do nothing.
+        } else if (this.selection.hasSelection) {
+            // User has changed the selection, use theris
+        } else this.applyOriginalSelectionAsAuthored()
     }
 
-    // todo: refactor
-    @computed get selectedCountryNames() {
-        // Get the countries that are already selected
-        let countryCodes = EntityUrlBuilder.queryParamToEntities(
-            this.url?.params.country || ""
-        )
-        // Get the countries from the url
-        countryCodes = countryCodes.concat(
-            EntityUrlBuilder.queryParamToEntities(
-                getWindowQueryParams().country || ""
-            )
-        )
-        return new Set<string>(
-            countryCodes
-                .map((code) =>
-                    countries.find((country) => country.code === code)
-                )
-                .filter((i) => i)
-                .map((c) => c!.name)
+    @action rebuildInputOwidTable() {
+        if (!this.legacyVariableDataJson) return
+        this._setInputTable(
+            this.legacyVariableDataJson,
+            this.legacyConfigAsAuthored
         )
     }
 
-    @observable.ref private _baseFontSize: number = 16
-    @computed get baseFontSize(): number {
+    @observable private legacyVariableDataJson?: LegacyVariablesAndEntityKey
+
+    @action.bound private _receiveLegacyDataAndApplySelection(
+        json: LegacyVariablesAndEntityKey
+    ) {
+        this.legacyVariableDataJson = json
+
+        this.rebuildInputOwidTable()
+    }
+
+    @action.bound appendNewEntitySelectionOptions() {
+        const { selection } = this
+        const currentEntities = selection.availableEntityNameSet
+        const missingEntities = this.availableEntities.filter(
+            (entity) => !currentEntities.has(entity.entityName)
+        )
+        selection.addAvailableEntityNames(missingEntities)
+    }
+
+    @action.bound private applyOriginalSelectionAsAuthored() {
+        if (this.selectedEntityNames.length)
+            this.selection.setSelectedEntities(this.selectedEntityNames)
+        else if (this.selectedEntityIds.length)
+            this.selection.setSelectedEntitiesByEntityId(this.selectedEntityIds)
+    }
+
+    @observable private _baseFontSize = BASE_FONT_SIZE
+
+    @computed get baseFontSize() {
         if (this.isMediaCard) return 24
-        else if (this.isExporting) return 18
-        else return this._baseFontSize
+        else if (this.isExportingtoSvgOrPng) return 18
+        return this._baseFontSize
     }
 
     set baseFontSize(val: number) {
         this._baseFontSize = val
     }
 
-    @computed get formatYearTickFunction() {
-        return this.table.hasDayColumn
-            ? (day: number, options?: TickFormattingOptions) =>
-                  formatDay(
-                      day,
-                      options?.isFirstOrLastTick ? {} : { format: "MMM D" }
-                  )
-            : formatYear
-    }
-
-    @computed get sortedUniqueEntitiesAcrossDimensions() {
-        return sortBy(
-            uniq(flatten(this.filledDimensions.map((d) => d.entityNamesUniq)))
-        )
-    }
-
     // Ready to go iff we have retrieved data for every variable associated with the chart
-    @computed get isReady(): boolean {
-        return this.loadingDimensions.length === 0
+    @computed get isReady() {
+        return this.whatAreWeWaitingFor === ""
     }
 
-    @computed get primaryVariableId() {
-        const yDimension = this.dimensions.find((d) => d.property === "y")
-        return yDimension ? yDimension.variableId : undefined
+    @computed get whatAreWeWaitingFor() {
+        const { newSlugs, inputTable, dimensions } = this
+        if (newSlugs.length || dimensions.length === 0) {
+            const missingColumns = newSlugs.filter(
+                (slug) => !inputTable.has(slug)
+            )
+            return missingColumns.length
+                ? `Waiting for columns ${missingColumns.join(",")} in table '${
+                      inputTable.tableSlug
+                  }'. ${inputTable.tableDescription}`
+                : ""
+        }
+        if (dimensions.length > 0 && this.loadingDimensions.length === 0)
+            return ""
+        return `Waiting for dimensions ${this.loadingDimensions.join(",")}.`
     }
 
-    @computed get primaryColumnSlug() {
-        return this.primaryVariableId?.toString()
+    // If we are using new slugs and not dimensions, Grapher is ready.
+    @computed get newSlugs() {
+        const { xSlug, colorSlug, sizeSlug } = this
+        const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
+        return excludeUndefined([...ySlugs, xSlug, colorSlug, sizeSlug])
     }
 
     @computed private get loadingDimensions() {
-        return this.dimensions.filter((dim) => !dim.isLoaded)
+        return this.dimensions.filter(
+            (dim) => !this.inputTable.has(dim.columnSlug)
+        )
     }
 
-    url: GrapherUrl
-
-    @computed get isIframe(): boolean {
-        return window.self !== window.top
+    @computed get isInIFrame() {
+        return isInIFrame()
     }
 
-    // todo: remove ifs
-    @computed get times() {
-        if (this.tab === "map") return this.mapTransform.timelineTimes
-        return this.activeTransform.timelineTimes
+    @computed get times(): Time[] {
+        const columnSlugs = this.isOnMapTab
+            ? [this.mapColumnSlug]
+            : this.yColumnSlugs
+
+        // Generate the times only after the chart transform has been applied, so that we don't show
+        // times on the timeline for which data may not exist, e.g. when the selected entity
+        // doesn't contain data for all years in the table.
+        // -@danielgavrilov, 2020-10-22
+        return this.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter.getTimesUniqSortedAscForColumns(
+            columnSlugs
+        )
     }
 
-    // todo: remove ifs
-    @computed get startTime() {
-        const activeTab = this.tab
-        if (activeTab === "table")
-            return (
-                this.dataTableTransform.autoSelectedStartTime ??
-                this.activeTransform.startTimelineTime!
-            )
-        if (activeTab === "map") return this.mapTransform.startTimelineTime // todo: always use endTimelineTime for maps?
-        return this.activeTransform.startTimelineTime!
+    @computed get startHandleTimeBound(): TimeBound {
+        if (
+            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar ||
+            this.isOnMapTab
+        )
+            return this.endHandleTimeBound
+        return this.timelineHandleTimeBounds[0]
     }
 
-    // todo: remove ifs
-    set startTime(value: any) {
-        if (this.tab === "map") this.map.time = value
-        else this.timeDomain = [value, this.timeDomain[1]]
+    set startHandleTimeBound(newValue: TimeBound) {
+        if (this.isOnMapTab)
+            this.timelineHandleTimeBounds = [newValue, newValue]
+        else
+            this.timelineHandleTimeBounds = [
+                newValue,
+                this.timelineHandleTimeBounds[1],
+            ]
     }
 
-    // todo: remove ifs
-    set endTime(value: any) {
-        const activeTab = this.tab
-        if (activeTab === "map") this.map.time = value
-        else this.timeDomain = [this.timeDomain[0], value]
+    set endHandleTimeBound(newValue: TimeBound) {
+        if (
+            this.isOnMapTab ||
+            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar
+        )
+            this.timelineHandleTimeBounds = [newValue, newValue]
+        else
+            this.timelineHandleTimeBounds = [
+                this.timelineHandleTimeBounds[0],
+                newValue,
+            ]
     }
 
-    // todo: remove ifs
-    @computed get endTime() {
-        const activeTab = this.tab
-        if (activeTab === "map") return this.mapTransform.endTimelineTime
-        else if (activeTab === "table")
-            return this.multiMetricTableMode
-                ? this.dataTableTransform.startTimelineTime
-                : this.activeTransform.endTimelineTime
-        return this.activeTransform.endTimelineTime!
+    @computed get endHandleTimeBound(): TimeBound {
+        return this.timelineHandleTimeBounds[1]
     }
 
-    @computed get isNativeEmbed(): boolean {
-        return this.isEmbed && !this.isIframe && !this.isExporting
+    // Keeps a running cache of series colors at the Grapher level.
+    seriesColorMap: SeriesColorMap = new Map()
+
+    @computed get startTime(): Time | undefined {
+        return findClosestTime(this.times, this.startHandleTimeBound)
+    }
+
+    @computed get endTime(): Time | undefined {
+        return findClosestTime(this.times, this.endHandleTimeBound)
+    }
+
+    @computed private get isDiscreteBarOrLineChartTransformedIntoDiscreteBar() {
+        return (
+            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ===
+                ChartTypeName.DiscreteBar ||
+            (this.type === ChartTypeName.LineChart && this.isPlaying)
+        )
+    }
+
+    @computed get shouldLinkToOwid() {
+        if (
+            this.props.isEmbeddedInAnOwidPage ||
+            this.isExportingtoSvgOrPng ||
+            !this.isInIFrame
+        )
+            return false
+
+        return true
     }
 
     @computed.struct private get variableIds() {
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed get dataFileName(): string {
+    @computed private get dataFileName() {
         return `${this.variableIds.join("+")}.json?v=${
             this.isEditor ? undefined : this.cacheTag
         }`
     }
 
-    @computed get dataUrl(): string {
-        return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
+    @computed get dataUrl() {
+        return `${this.bakedGrapherURL ?? ""}/data/variables/${
+            this.dataFileName
+        }`
     }
 
-    @computed get showAddEntityControls() {
-        return !this.hideEntityControls && this.canAddData
-    }
-
-    @computed get areMarksClickable() {
-        return this.showAddEntityControls
-    }
-
-    // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
-    // allows you to still use add country "modes" without showing the buttons in order to prioritize
-    // another entity selector over the built in ones.
-    @observable hideEntityControls: boolean = false
     externalCsvLink = ""
 
-    @computed get hasOWIDLogo(): boolean {
+    @computed get hasOWIDLogo() {
         return (
             !this.hideLogo && (this.logo === undefined || this.logo === "owid")
         )
     }
 
-    @computed get hasFatalErrors(): boolean {
-        const { relatedQuestions } = this
-        return (
-            relatedQuestions?.some(
-                (question) => !!getErrorMessageRelatedQuestionUrl(question)
-            ) || false
+    // todo: did this name get botched in a merge?
+    @computed get hasFatalErrors() {
+        return this.relatedQuestions.some(
+            (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
     }
 
@@ -634,38 +888,23 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    private initFontSizeInAxisContainers() {
-        // Todo: there is probably a cleaner way to pass fontSize in.
-        const that = this
-        const axisContainer = {
-            get fontSize() {
-                return that.baseFontSize
-            },
-        }
-        this.xAxis.container = axisContainer
-        this.yAxis.container = axisContainer
-    }
-
-    updatePopulationFilter() {
-        const slug = "pop_filter"
-        const minPop = this.minPopulationFilter
-        if (!minPop) this.table.deleteColumnBySlug(slug)
-        else
-            this.table.addFilterColumn(slug, (row, index, table) => {
-                const name = row.entityName
-                const pop = populationMap[name]
-                return !pop || pop >= minPop || table!.isSelected(row)
-            })
+    @computed get fontSize() {
+        return this.baseFontSize
     }
 
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing() {
+        this.disposers.push(
+            reaction(
+                () => this.variableIds,
+                this.downloadLegacyDataFromOwidVariableIds
+            )
+        )
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.tab)) {
+                if (!this.availableTabs.includes(this.tab))
                     runInAction(() => (this.tab = this.availableTabs[0]))
-                }
             }),
             autorun(() => {
                 const validDimensions = this.validDimensions
@@ -687,7 +926,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             if (!slot.allowMultiple)
                 validDimensions = uniqWith(
                     validDimensions,
-                    (a: ChartDimensionInterface, b: ChartDimensionInterface) =>
+                    (
+                        a: LegacyChartDimensionInterface,
+                        b: LegacyChartDimensionInterface
+                    ) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -696,78 +938,52 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return validDimensions
     }
 
-    // Only true if isExplorable is true and chart meets certain criteria
-    @computed get isExplorableConstrained() {
-        return this.isExplorable && canBeExplorable(this)
-    }
-
     // todo: do we need this?
-    @computed get originUrlWithProtocol(): string | undefined {
+    @computed get originUrlWithProtocol() {
         let url = this.originUrl
-        if (url && !url.startsWith("http")) url = `https://${url}`
+        if (!url.startsWith("http")) url = `https://${url}`
         return url
     }
 
-    @computed get primaryTab() {
-        return this.tab
-    }
     @computed get overlayTab() {
         return this.overlay
-    }
-
-    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
-    private chartMinPopulationFilter?: number = undefined
-
-    @action.bound private revertDataTableSpecificState() {
-        /** If the start year was autoselected in the DataTable, revert. */
-        if (!this.userHasSetTimeline)
-            this.timeDomain = [
-                this.configOnLoad.minTime ?? TimeBoundValue.unboundedLeft,
-                this.timeDomain[1],
-            ]
-
-        /** Revert the state of minPopulationFilter */
-        this.minPopulationFilter = this.chartMinPopulationFilter
     }
 
     @computed get currentTab() {
         return this.overlay ? this.overlay : this.tab
     }
 
-    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
-    set currentTab(value) {
-        if (this.tab === "chart")
-            this.chartMinPopulationFilter = this.minPopulationFilter
-        if (this.tab === "table" && value !== "table")
-            this.revertDataTableSpecificState()
-
-        if (value === "chart" || value === "map" || value === "table") {
-            this.tab = value
+    set currentTab(desiredTab) {
+        if (
+            desiredTab === GrapherTabOption.chart ||
+            desiredTab === GrapherTabOption.map ||
+            desiredTab === GrapherTabOption.table
+        ) {
+            this.tab = desiredTab
             this.overlay = undefined
-        } else {
-            // table tab cannot be downloaded, so revert to default tab
-            if (value === "download" && this.tab === "table") {
-                this.tab = this.configOnLoad.tab || "chart"
-            }
-            this.overlay = value
+            return
         }
+
+        // table tab cannot be downloaded, so revert to default tab
+        if (desiredTab === GrapherTabOption.download && this.isOnTableTab)
+            this.tab = this.authorsVersion.tab ?? GrapherTabOption.chart
+        this.overlay = desiredTab
     }
 
-    @computed get timeDomain(): TimeBounds {
-        if (this.tab === "map") {
-            const time = maxTimeFromJSON(this.map.time)
+    @computed get timelineHandleTimeBounds(): TimeBounds {
+        if (this.isOnMapTab) {
+            const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
             return [time, time]
-        } else {
-            return [
-                // Handle `undefined` values in minTime/maxTime
-                minTimeFromJSON(this.minTime),
-                maxTimeFromJSON(this.maxTime),
-            ]
         }
+        return [
+            // Handle `undefined` values in minTime/maxTime
+            minTimeBoundFromJSONOrNegativeInfinity(this.minTime),
+            maxTimeBoundFromJSONOrPositiveInfinity(this.maxTime),
+        ]
     }
 
-    set timeDomain(value: TimeBounds) {
-        if (this.tab === "map") {
+    set timelineHandleTimeBounds(value: TimeBounds) {
+        if (this.isOnMapTab) {
             this.map.time = value[1]
         } else {
             this.minTime = value[0]
@@ -777,10 +993,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     // Get the dimension slots appropriate for this type of chart
     @computed get dimensionSlots() {
-        const xAxis = new DimensionSlot(this, "x")
-        const yAxis = new DimensionSlot(this, "y")
-        const color = new DimensionSlot(this, "color")
-        const size = new DimensionSlot(this, "size")
+        const xAxis = new DimensionSlot(this, DimensionProperty.x)
+        const yAxis = new DimensionSlot(this, DimensionProperty.y)
+        const color = new DimensionSlot(this, DimensionProperty.color)
+        const size = new DimensionSlot(this, DimensionProperty.size)
 
         if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isTimeScatter) return [yAxis, xAxis]
@@ -788,173 +1004,246 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return [yAxis]
     }
 
-    @observable dataTableOnlyDimensions: ChartDimension[] = []
-
-    @computed get multiMetricTableMode(): boolean {
-        return this.dataTableOnlyDimensions.length > 0
-    }
-
     @computed.struct get filledDimensions() {
         return this.isReady ? this.dimensions : []
     }
 
-    @action.bound addDimension(config: ChartDimensionInterface) {
-        this.dimensions.push(new ChartDimension(config, this.table))
+    @action.bound addDimension(config: LegacyChartDimensionInterface) {
+        this.dimensions.push(new ChartDimension(config, this))
     }
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
-        newConfigs: ChartDimensionInterface[]
+        newConfigs: LegacyChartDimensionInterface[]
     ) {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
             if (slot.property === property)
                 newDimensions = newDimensions.concat(
-                    newConfigs.map(
-                        (config) => new ChartDimension(config, this.table)
-                    )
+                    newConfigs.map((config) => new ChartDimension(config, this))
                 )
             else newDimensions = newDimensions.concat(slot.dimensions)
         })
         this.dimensions = newDimensions
     }
 
-    @action.bound setDimensionsFromConfigs(configs: ChartDimensionInterface[]) {
+    @action.bound setDimensionsFromConfigs(
+        configs: LegacyChartDimensionInterface[]
+    ) {
         this.dimensions = configs.map(
-            (config) => new ChartDimension(config, this.table)
+            (config) => new ChartDimension(config, this)
         )
     }
 
-    @computed get primaryDimensions() {
-        return this.filledDimensions.filter((dim) => dim.property === "y")
-    }
-
-    @computed get displaySlug(): string {
+    @computed get displaySlug() {
         return this.slug ?? slugify(this.displayTitle)
     }
 
-    @computed get availableTabs(): GrapherTabOption[] {
+    @computed get availableTabs() {
         return [
-            this.hasChartTab && "chart",
-            this.hasMapTab && "map",
-            "table",
-            "sources",
-            "download",
+            this.hasChartTab && GrapherTabOption.chart,
+            this.hasMapTab && GrapherTabOption.map,
+            GrapherTabOption.table,
+            GrapherTabOption.sources,
+            GrapherTabOption.download,
         ].filter(identity) as GrapherTabOption[]
     }
 
-    @computed get currentTitle(): string {
+    @computed get currentTitle() {
         let text = this.displayTitle
-        const selectedEntityNames = this.selectedEntityNames
+        const selectedEntityNames = this.selection.selectedEntityNames
+        const showTitleAnnotation = !this.hideTitleAnnotation
 
         if (
-            this.primaryTab === "chart" &&
-            this.addCountryMode !== "add-country" &&
+            this.tab === GrapherTabOption.chart &&
+            this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
             selectedEntityNames.length === 1 &&
-            (!this.hideTitleAnnotation || this.canChangeEntity)
+            (showTitleAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr.length) text = text + ", " + entityStr
+            if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
-        if (
-            !this.hideTitleAnnotation &&
-            this.isLineChart &&
-            this.isRelativeMode
-        )
+        if (showTitleAnnotation && this.isLineChart && this.isRelativeMode)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
             this.isReady &&
-            (!this.hideTitleAnnotation ||
-                (this.isLineChart &&
-                    this.lineChartTransform.isSingleTime &&
-                    this.lineChartTransform.hasTimeline) ||
-                (this.primaryTab === "map" && this.mapTransform.hasTimeline))
+            (showTitleAnnotation ||
+                (this.hasTimeline &&
+                    (this.isLineChartThatTurnedIntoDiscreteBar ||
+                        this.isOnMapTab)))
         )
             text += this.timeTitleSuffix
 
         return text.trim()
     }
 
+    @computed get hasTimeline(): boolean {
+        // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
+        if (this.times.length <= 1) return false
+
+        switch (this.tab) {
+            // the map tab has its own `hideTimeline` option
+            case GrapherTabOption.map:
+                return !this.map.hideTimeline
+
+            // use the chart-level `hideTimeline` option for the table, too
+            case GrapherTabOption.table:
+                return !this.hideTimeline
+
+            // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
+            case GrapherTabOption.chart:
+                return (
+                    !this.hideTimeline &&
+                    !(
+                        this.isStackedBar ||
+                        this.isStackedArea ||
+                        this.isDiscreteBar
+                    )
+                )
+
+            // never show a timeline while we're showing one of these two overlays
+            case GrapherTabOption.download:
+            case GrapherTabOption.sources:
+                return false
+        }
+    }
+
+    @computed private get areHandlesOnSameTime() {
+        const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
+        const [start, end] = this.timelineHandleTimeBounds.map((time) =>
+            findClosestTime(times, time)
+        )
+        return start === end
+    }
+
+    @computed get mapColumnSlug() {
+        const mapColumnSlug = this.map.columnSlug
+        // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
+        if (
+            !mapColumnSlug ||
+            !this.dimensions.some((dim) => dim.columnSlug === mapColumnSlug)
+        )
+            return this.yColumnSlug!
+        return mapColumnSlug
+    }
+
+    getColumnForProperty(property: DimensionProperty) {
+        return this.dimensions.find((dim) => dim.property === property)?.column
+    }
+
+    getSlugForProperty(property: DimensionProperty) {
+        return this.dimensions.find((dim) => dim.property === property)
+            ?.columnSlug
+    }
+
+    @computed get yColumns() {
+        return this.filledDimensions
+            .filter((dim) => dim.property === DimensionProperty.y)
+            .map((dim) => dim.column)
+    }
+
+    @computed get yColumnSlugs() {
+        return this.ySlugs
+            ? this.ySlugs.split(" ")
+            : this.dimensions
+                  .filter((dim) => dim.property === DimensionProperty.y)
+                  .map((dim) => dim.columnSlug)
+    }
+
+    @computed get yColumnSlug() {
+        return this.ySlugs
+            ? this.ySlugs.split(" ")[0]
+            : this.getSlugForProperty(DimensionProperty.y)
+    }
+
+    @computed get xColumnSlug() {
+        return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
+    }
+
+    @computed get sizeColumnSlug() {
+        return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
+    }
+
+    @computed get colorColumnSlug() {
+        return (
+            this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
+        )
+    }
+
+    @computed get yScaleType() {
+        return this.yAxis.scaleType
+    }
+
+    @computed get xScaleType() {
+        return this.xAxis.scaleType
+    }
+
     @computed private get timeTitleSuffix() {
-        if (!this.table.timeColumn) return "" // Do not show year until data is loaded
+        const timeColumn = this.table.timeColumn
+        if (timeColumn.isMissing) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this
-        const fn = this.table.timeColumn.formatValue
-        const timeFrom = fn(startTime)
-        const timeTo = fn(endTime)
-        const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+        if (startTime === undefined || endTime === undefined) return ""
+
+        const time =
+            startTime === endTime
+                ? timeColumn.formatValue(startTime)
+                : timeColumn.formatValue(startTime) +
+                  " to " +
+                  timeColumn.formatValue(endTime)
 
         return ", " + time
     }
 
-    @computed get isSingleEntity(): boolean {
-        return (
-            this.table.availableEntities.length === 1 ||
-            this.addCountryMode === "change-country"
-        )
-    }
-
-    @computed get addButtonLabel() {
-        return `Add ${this.isSingleEntity ? "data" : this.entityType}`
-    }
-
-    @computed get hasFloatingAddButton(): boolean {
-        return (
-            this.primaryTab === "chart" &&
-            !this.isExporting &&
-            this.canAddData &&
-            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
-        )
-    }
-
-    @computed get isSingleVariable(): boolean {
-        return this.primaryDimensions.length === 1
-    }
-
     @computed get sourcesLine() {
-        return this.sourceDesc !== undefined
-            ? this.sourceDesc
-            : this.defaultSourcesLine
+        return this.sourceDesc ?? this.defaultSourcesLine
     }
 
-    @computed get canAddData() {
-        return (
-            this.addCountryMode === "add-country" &&
-            this.availableKeys.length > 1
-        )
+    // All columns that are _currently_ part of the visualization
+    @computed get activeColumnSlugs() {
+        const {
+            yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        } = this
+
+        return excludeUndefined([
+            ...yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        ])
     }
 
-    @computed get canChangeEntity() {
-        return (
-            !this.isScatter &&
-            this.addCountryMode === "change-country" &&
-            this.availableEntityNames.length > 1
-        )
-    }
+    @computed get columnsWithSources() {
+        // Only use dimensions/columns that are actually part of the visualization
+        // In Explorers, this also ensures that only columns which are currently in use will be shown in Sources tab
+        const columnSlugs = uniq(this.activeColumnSlugs)
 
-    @computed get sourcesWithDimension() {
-        const { filledDimensions } = this
+        // exclude some columns that are "too common" (they are used in most scatter plots for color & size)
+        // todo: this sort of conditional we could do in a smarter editor, and not at runtime
+        const excludedColumnSlugs = [
+            "72", // "Total population (Gapminder, HYDE & UN)", usually used as "size" dimension in scatter plots
+            "123", // "Countries Continent", usually used as color in scatter plots, slope charts, etc.
+        ]
 
-        const sources: SourceWithDimension[] = []
-        filledDimensions.forEach((dim) => {
-            const { column } = dim
-            // HACK (Mispy): Ignore the default color source on scatterplots.
-            if (
-                column.name !== "Countries Continents" &&
-                column.name !== "Total population (Gapminder)"
+        return this.inputTable
+            .getColumns(columnSlugs)
+            .filter(
+                (column) =>
+                    !!column.source.name &&
+                    !excludedColumnSlugs.includes(column.slug)
             )
-                sources.push({ source: column.source!, dimension: dim })
-        })
-        return sources
     }
 
     @computed private get defaultSourcesLine() {
-        let sourceNames = this.sourcesWithDimension.map(
-            (source) => source.source?.name || ""
+        let sourceNames = this.columnsWithSources.map(
+            (column) => column.source.name ?? ""
         )
 
-        // Shorten automatic source names for certain major sources
+        // Shorten automatic source names for certain major sources: todo: this sort of thing we could do in a smarter editor, and not at runtime
         sourceNames = sourceNames.map((sourceName) => {
             for (const majorSource of [
                 "World Bank – WDI",
@@ -969,25 +1258,42 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return uniq(sourceNames).join(", ")
     }
 
-    @computed get axisDimensions() {
+    @computed private get axisDimensions() {
         return this.filledDimensions.filter(
-            (dim) => dim.property === "y" || dim.property === "x"
+            (dim) =>
+                dim.property === DimensionProperty.y ||
+                dim.property === DimensionProperty.x
         )
     }
 
+    // todo: remove when we remove dimensions
+    @computed private get yColumnsFromDimensionsOrSlugsOrAuto() {
+        return this.yColumns.length
+            ? this.yColumns
+            : this.table.getColumns(autoDetectYColumnSlugs(this))
+    }
+
     @computed private get defaultTitle() {
-        const { primaryDimensions } = this
+        const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
+
         if (this.isScatter)
-            return this.axisDimensions.map((d) => d.displayName).join(" vs. ")
-        else if (
-            primaryDimensions.length > 1 &&
-            uniq(primaryDimensions.map((d) => d.column.datasetName)).length ===
-                1
+            return this.axisDimensions
+                .map((dimension) => dimension.column.displayName)
+                .join(" vs. ")
+
+        const uniqueDatasetNames = uniq(
+            excludeUndefined(
+                yColumns.map((col) => (col.def as OwidColumnDef).datasetName)
+            )
         )
-            return primaryDimensions[0].column.datasetName!
-        else if (primaryDimensions.length === 2)
-            return primaryDimensions.map((d) => d.displayName).join(" and ")
-        else return primaryDimensions.map((d) => d.displayName).join(", ")
+
+        if (this.hasMultipleYColumns && uniqueDatasetNames.length === 1)
+            return uniqueDatasetNames[0]
+
+        if (yColumns.length === 2)
+            return yColumns.map((col) => col.displayName).join(" and ")
+
+        return yColumns.map((col) => col.displayName).join(", ")
     }
 
     @computed get displayTitle() {
@@ -999,79 +1305,70 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.toObject()
     }
 
+    @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
+        // Switch to bar chart if a single year is selected. Todo: do we want to do this?
+        return this.isLineChartThatTurnedIntoDiscreteBar
+            ? ChartTypeName.DiscreteBar
+            : this.type
+    }
+
     @computed get isLineChart() {
-        return this.type === ChartType.LineChart
+        return this.type === ChartTypeName.LineChart
     }
     @computed get isScatter() {
-        return this.type === ChartType.ScatterPlot
+        return this.type === ChartTypeName.ScatterPlot
     }
     @computed get isTimeScatter() {
-        return this.type === ChartType.TimeScatter
+        return this.type === ChartTypeName.TimeScatter
     }
     @computed get isStackedArea() {
-        return this.type === ChartType.StackedArea
+        return this.type === ChartTypeName.StackedArea
     }
     @computed get isSlopeChart() {
-        return this.type === ChartType.SlopeChart
+        return this.type === ChartTypeName.SlopeChart
     }
     @computed get isDiscreteBar() {
-        return this.type === ChartType.DiscreteBar
+        return this.type === ChartTypeName.DiscreteBar
     }
     @computed get isStackedBar() {
-        return this.type === ChartType.StackedBar
+        return this.type === ChartTypeName.StackedBar
     }
 
-    // WARNING: ALL OF THESE WILL BE REMOVED!!!! DO NOT USE
-    @computed get lineChartTransform() {
-        return new LineChartTransform(this)
-    }
-    @computed get scatterTransform() {
-        return new ScatterTransform(this)
-    }
-    @computed get stackedAreaTransform() {
-        return new StackedAreaTransform(this)
-    }
-    @computed get slopeChartTransform() {
-        return new SlopeChartTransform(this)
-    }
-    @computed get discreteBarTransform() {
-        return new DiscreteBarTransform(this)
-    }
-    @computed get stackedBarTransform() {
-        return new StackedBarTransform(this)
-    }
-    @computed get mapTransform() {
-        return new MapTransform(this)
-    }
-    @computed get dataTableTransform() {
-        return new DataTableTransform(this)
-    }
-
-    @computed get selectableEntityDimensionKeys() {
-        let keys = this.availableKeys
-        if (this.isScatter || this.isTimeScatter)
-            keys = this.scatterTransform.selectableEntityDimensionKeys
-        else if (this.isSlopeChart)
-            keys = this.slopeChartTransform.selectableEntityDimensionKeys
-
-        return keys.map((key) => this.lookupKey(key))
+    @computed get isLineChartThatTurnedIntoDiscreteBar() {
+        return this.isLineChart && this.areHandlesOnSameTime
     }
 
     @computed get activeColorScale() {
-        return this.activeTransform.colorScale
+        const chart = this.chartInstance as any
+        return chart.colorScale
     }
 
-    // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
-    @computed private get activeTransform(): IChartTransform {
-        if (this.currentTab === "table") return this.dataTableTransform
-        else if (this.isLineChart) return this.lineChartTransform
-        else if (this.isScatter || this.isTimeScatter)
-            return this.scatterTransform
-        else if (this.isStackedArea) return this.stackedAreaTransform
-        else if (this.isSlopeChart) return this.slopeChartTransform
-        else if (this.isDiscreteBar) return this.discreteBarTransform
-        else if (this.isStackedBar) return this.stackedBarTransform
-        else throw new Error("No transform found")
+    @computed get activeColorScaleExceptMap() {
+        const chart = this.chartInstanceExceptMap as any
+        return chart.colorScale
+    }
+
+    @computed get supportsMultipleYColumns() {
+        return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
+    }
+
+    @computed private get xDimension() {
+        return this.filledDimensions.find(
+            (d) => d.property === DimensionProperty.x
+        )
+    }
+
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
+    // todo: remove this. Should be done as a simple column transform at the data level.
+    // Possible to override the x axis dimension to target a special year
+    // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
+    @computed get xOverrideTime() {
+        return this.xDimension && this.xDimension.targetYear
+    }
+
+    // todo: this is only relevant for scatter plots. move to scatter plot class?
+    set xOverrideTime(value: number | undefined) {
+        this.xDimension!.targetYear = value
     }
 
     @computed get idealBounds() {
@@ -1081,341 +1378,949 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get hasYDimension() {
-        return this.dimensions.some((d) => d.property === "y")
+        return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    @computed get staticSVG() {
+    get staticSVG() {
         return ReactDOMServer.renderToStaticMarkup(
-            <GrapherView
-                grapher={this}
-                isExport={true}
-                bounds={this.idealBounds}
-            />
+            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
         )
+    }
+
+    @computed get mapConfig() {
+        return this.map
     }
 
     @computed get cacheTag() {
         return this.version.toString()
     }
 
-    // todo: remove
-    // Make a unique string key for an entity on a variable
-    makeEntityDimensionKey(
-        entityName: EntityName,
-        dimensionIndex: number
-    ): EntityDimensionKey {
-        return `${entityName}_${dimensionIndex}`
-    }
-
-    // todo: remove
-    @computed get hasSelection() {
-        return this.selectedData.length > 0
-    }
-
-    // todo: remove
-    @computed private get selectionData(): Array<{
-        entityDimensionKey: EntityDimensionKey
-        color?: Color
-    }> {
-        const primaryDimensions = this.primaryDimensions
-        const entityIdToNameMap = this.table.entityIdToNameMap
-        let validSelections = this.selectedData.filter((sel) => {
-            // Must be a dimension that's on the chart
-            const dimension = primaryDimensions[sel.index]
-            if (!dimension) return false
-
-            // Entity must be within that dimension
-            const entityName = entityIdToNameMap.get(sel.entityId)
-            if (!entityName || !dimension.entityNamesUniq.includes(entityName))
-                return false
-
-            // "change entity" charts can only have one entity selected
-            if (
-                this.addCountryMode === "change-country" &&
-                sel.entityId !== lastOfNonEmptyArray(this.selectedData).entityId
-            )
-                return false
-
-            return true
-        })
-
-        validSelections = uniqWith(
-            validSelections,
-            (a: any, b: any) => a.entityId === b.entityId && a.index === b.index
-        )
-
-        return validSelections.map((sel) => {
-            return {
-                entityDimensionKey: this.makeEntityDimensionKey(
-                    entityIdToNameMap.get(sel.entityId)!,
-                    sel.index
-                ),
-                color: sel.color,
-            }
-        })
-    }
-
-    // todo: remove
-    selectEntityDimensionKey(key: EntityDimensionKey) {
-        this.selectedKeys = this.selectedKeys.concat([key])
-    }
-
-    // todo: remove
-    @computed.struct get keyColors(): {
-        [entityDimensionKey: string]: Color | undefined
-    } {
-        const keyColors: {
-            [entityDimensionKey: string]: Color | undefined
-        } = {}
-        this.selectionData.forEach((d) => {
-            if (d.color) keyColors[d.entityDimensionKey] = d.color
-        })
-        return keyColors
-    }
-
-    // todo: remove
-    setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
-        const meta = this.lookupKey(key)
-        const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach((d) => {
-            if (d.entityId === meta.entityId && d.index === meta.index) {
-                d.color = color
-            }
-        })
-        this.selectedData = selectedData
-    }
-
-    // todo: remove
-    @computed get selectedEntityNames(): EntityName[] {
-        return uniq(
-            this.selectedKeys.map((key) => this.lookupKey(key).entityName)
+    @computed get mapIsClickable() {
+        return (
+            this.hasChartTab &&
+            (this.isLineChart || this.isScatter) &&
+            !isMobile()
         )
     }
 
-    // todo: remove
-    @computed get availableEntityNames(): EntityName[] {
-        const entitiesForDimensions = this.axisDimensions.map((dim) => {
-            return this.availableKeys
-                .map((key) => this.lookupKey(key))
-                .filter((d) => d.dimension.variableId === dim.variableId)
-                .map((d) => d.entityName)
-        })
-
-        return union(...entitiesForDimensions)
-    }
-
-    // todo: remove
-    @action.bound setSingleSelectedEntity(entityId: EntityId) {
-        const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach((d) => (d.entityId = entityId))
-        this.selectedData = selectedData
-    }
-
-    // todo: remove
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
-        const matchedEntities = new Map<string, boolean>()
-        entityCodes.forEach((code) => matchedEntities.set(code, false))
-        if (this.canChangeEntity) {
-            this.availableEntityNames.forEach((entityName) => {
-                const entityId = this.table.entityNameToIdMap.get(entityName)!
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                if (
-                    entityCode === entityCodes[0] ||
-                    entityName === entityCodes[0]
-                ) {
-                    matchedEntities.set(entityCodes[0], true)
-                    this.setSingleSelectedEntity(entityId)
-                }
-            })
-        } else {
-            this.selectedKeys = this.availableKeys.filter((key) => {
-                const meta = this.lookupKey(key)
-                const entityName = meta.entityName
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                return [meta.shortCode, entityCode, entityName]
-                    .map((key) => {
-                        if (!matchedEntities.has(key!)) return false
-                        matchedEntities.set(key!, true)
-                        return true
-                    })
-                    .some((item) => item)
-            })
-        }
-        return matchedEntities
-    }
-
-    // todo: remove
-    @action.bound resetSelectedEntities() {
-        this.selectedData = this.configOnLoad.selectedData || []
-    }
-
-    // todo: remove
-    @computed get selectedEntityCodes(): EntityCode[] {
-        return uniq(this.selectedKeys.map((k) => this.lookupKey(k).shortCode))
-    }
-
-    // todo: remove
-    deselect(entityDimensionKey: EntityDimensionKey) {
-        this.selectedKeys = this.selectedKeys.filter(
-            (e) => e !== entityDimensionKey
-        )
-    }
-
-    // todo: remove
-    @computed get selectedKeys(): EntityDimensionKey[] {
-        return this.selectionData.map((d) => d.entityDimensionKey)
-    }
-
-    // remove
-    // Map keys back to their components for storage
-    set selectedKeys(keys: EntityDimensionKey[]) {
-        if (!this.isReady) return
-
-        const selection = keys.map((key) => {
-            const { entityName: entity, index } = this.lookupKey(key)
-            return {
-                entityId: this.table.entityNameToIdMap.get(entity)!,
-                index: index,
-                color: this.keyColors[key],
-            }
-        })
-        this.selectedData = selection
-    }
-
-    selectOnlyThisEntity(entityName: string) {
-        const keys = this.availableKeysByEntity.get(entityName)
-        if (keys?.length) this.selectedKeys = keys
-    }
-
-    toggleEntitySelectionStatus(entityName: string) {
-        const keys = this.availableKeysByEntity.get(entityName)
-        if (keys?.length) this.selectedKeys = xor(keys, this.selectedKeys)
-    }
-
-    // todo: remove
-    @computed get selectedKeysByKey(): {
-        [entityDimensionKey: string]: EntityDimensionKey
-    } {
-        return keyBy(this.selectedKeys)
-    }
-
-    // todo: remove this
-    // Calculate the available entityDimensionKeys and their associated info
-    @computed get entityDimensionMap(): Map<
-        EntityDimensionKey,
-        EntityDimensionInfo
-    > {
-        if (!this.isReady) return new Map()
-        const { isSingleEntity, isSingleVariable } = this
-        const primaryDimensions = this.primaryDimensions
-        const dimensions = this.dimensions
-
-        const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
-        primaryDimensions.forEach((dimension, dimensionIndex) => {
-            dimension.entityNamesUniq.forEach((entityName) => {
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                const entityId = this.table.entityNameToIdMap.get(entityName)!
-                const entityDimensionKey = this.makeEntityDimensionKey(
-                    entityName,
-                    dimensionIndex
-                )
-
-                // Full label completely represents the data in the key and is used in the editor
-                const fullLabel = `${entityName} - ${dimension.displayName}`
-
-                // The output label however is context-dependent
-                let label = fullLabel
-                if (isSingleVariable) {
-                    label = entityName
-                } else if (isSingleEntity) {
-                    label = `${dimension.displayName}`
-                }
-
-                keyData.set(entityDimensionKey, {
-                    entityDimensionKey,
-                    entityId,
-                    entityName: entityName,
-                    dimension,
-                    index: dimensionIndex,
-                    fullLabel,
-                    label,
-                    shortCode:
-                        primaryDimensions.length > 1 &&
-                        this.addCountryMode !== "change-country"
-                            ? `${entityCode || entityName}-${dimensions.indexOf(
-                                  dimension
-                              )}`
-                            : entityCode || entityName,
-                })
-            })
-        })
-
-        return keyData
+    @computed get relativeToggleLabel() {
+        if (this.isScatter || this.isTimeScatter) return "Average annual change"
+        else if (this.isLineChart) return "Relative change"
+        return "Relative"
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode(): boolean {
-        return this.stackMode === "relative"
+    @computed get isRelativeMode() {
+        return this.stackMode === StackMode.relative
     }
 
-    @action.bound toggleRelativeMode() {
-        this.stackMode = !this.isRelativeMode ? "relative" : "absolute"
-    }
-
-    @computed get canToggleRelativeMode(): boolean {
+    @computed get canToggleRelativeMode() {
+        if (this.isLineChart)
+            return (
+                !this.hideRelativeToggle &&
+                !this.areHandlesOnSameTime &&
+                this.yScaleType !== ScaleType.log
+            )
         return !this.hideRelativeToggle
     }
 
-    // todo: remove
-    @computed.struct get availableKeys(): EntityDimensionKey[] {
-        return sortBy(Array.from(this.entityDimensionMap.keys()))
+    // Filter data to what can be display on the map (across all times)
+    @computed get mappableData() {
+        return this.inputTable
+            .get(this.mapColumnSlug)
+            .owidRows.filter((row) => isOnTheMap(row.entityName))
     }
 
-    // todo: remove
-    @computed.struct get remainingKeys(): EntityDimensionKey[] {
-        const { availableKeys, selectedKeys } = this
-        return without(availableKeys, ...selectedKeys)
+    static renderGrapherIntoContainer(
+        config: GrapherProgrammaticInterface,
+        containerNode: HTMLElement
+    ) {
+        const setBoundsFromContainerAndRender = () => {
+            const props: GrapherProgrammaticInterface = {
+                ...config,
+                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
+            }
+            ReactDOM.render(<Grapher {...props} />, containerNode)
+        }
+
+        setBoundsFromContainerAndRender()
+        window.addEventListener(
+            "resize",
+            throttle(setBoundsFromContainerAndRender)
+        )
     }
 
-    // todo: remove
-    @computed get availableKeysByEntity(): Map<
-        EntityName,
-        EntityDimensionKey[]
-    > {
-        const keysByEntity = new Map()
-        this.entityDimensionMap.forEach((info, key) => {
-            const keys = keysByEntity.get(info.entityName) || []
-            keys.push(key)
-            keysByEntity.set(info.entityName, keys)
-        })
-        return keysByEntity
-    }
+    static renderSingleGrapherOnGrapherPage(jsonConfig: GrapherInterface) {
+        const container = document.getElementsByTagName("figure")[0]
 
-    // todo: remove
-    lookupKey(key: EntityDimensionKey): EntityDimensionInfo {
-        const keyDatum = this.entityDimensionMap.get(key)
-        if (keyDatum !== undefined) return keyDatum
-        else throw new Error(`Unknown data key: ${key}`)
-    }
-
-    // todo: remove
-    getLabelForKey(key: EntityDimensionKey): string {
-        return this.lookupKey(key).label
-    }
-
-    // todo: remove
-    toggleKey(key: EntityDimensionKey) {
-        if (this.selectedKeys.includes(key)) {
-            this.selectedKeys = this.selectedKeys.filter((k) => k !== key)
-        } else {
-            this.selectedKeys = this.selectedKeys.concat([key])
+        try {
+            Grapher.renderGrapherIntoContainer(
+                {
+                    ...jsonConfig,
+                    bindUrlToWindow: true,
+                    enableKeyboardShortcuts: true,
+                    queryStr: window.location.search,
+                },
+                container
+            )
+        } catch (err) {
+            container.innerHTML = `<img src="/grapher/exports/${jsonConfig.slug}.svg"/><p>Unable to load interactive visualization</p>`
+            container.setAttribute("id", "fallback")
+            throw err
         }
     }
+
+    @computed get isMobile() {
+        return isMobile()
+    }
+
+    @computed private get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get isPortrait() {
+        return this.bounds.width < this.bounds.height && this.bounds.width < 850
+    }
+
+    @computed private get widthForDeviceOrientation() {
+        return this.isPortrait ? 400 : 680
+    }
+
+    @computed private get heightForDeviceOrientation() {
+        return this.isPortrait ? 640 : 480
+    }
+
+    @computed private get useIdealBounds() {
+        const {
+            isEditor,
+            isExportingtoSvgOrPng,
+            bounds,
+            widthForDeviceOrientation,
+            heightForDeviceOrientation,
+            isInIFrame,
+        } = this
+
+        // For these, defer to the bounds that is set externally
+        if (
+            this.props.isEmbeddedInAnOwidPage ||
+            this.props.manager ||
+            isInIFrame
+        )
+            return false
+
+        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
+        if (isExportingtoSvgOrPng) return false
+
+        // todo: can remove this if we drop old adminSite editor
+        if (isEditor) return true
+
+        // If the available space is very small, we use all of the space given to us
+        if (
+            bounds.height < heightForDeviceOrientation ||
+            bounds.width < widthForDeviceOrientation
+        )
+            return false
+
+        return true
+    }
+
+    // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
+    @computed private get scaleToFitIdeal() {
+        return Math.min(
+            (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
+            (this.bounds.height * 0.95) / this.heightForDeviceOrientation
+        )
+    }
+
+    // These are the final render dimensions
+    // Todo: add explanation around why isExporting removes 5 px
+    @computed private get renderWidth() {
+        return this.useIdealBounds
+            ? this.widthForDeviceOrientation * this.scaleToFitIdeal
+            : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
+    }
+    @computed private get renderHeight() {
+        return this.useIdealBounds
+            ? this.heightForDeviceOrientation * this.scaleToFitIdeal
+            : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
+    }
+
+    @computed get tabBounds() {
+        const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
+        return this.isExportingtoSvgOrPng
+            ? bounds
+            : bounds.padBottom(this.footerControlsHeight)
+    }
+
+    @observable.ref private popups: VNode[] = []
+
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed get containerElement() {
+        return this.base.current || undefined
+    }
+
+    @observable private hasBeenVisible = false
+    @observable private uncaughtError?: Error
+    @observable private userFacingErrorSuggestion?: JSX.Element // optionally provide the user with something helpful to self-troubleshoot
+
+    @action.bound setError(
+        err: Error,
+        userFacingErrorSuggestion?: JSX.Element
+    ) {
+        this.uncaughtError = err
+        this.userFacingErrorSuggestion = userFacingErrorSuggestion
+    }
+
+    @action.bound private clearErrors() {
+        this.uncaughtError = undefined
+        this.userFacingErrorSuggestion = undefined
+    }
+
+    // todo: clean up this popup stuff
+    addPopup(vnode: VNode) {
+        this.popups = this.popups.concat([vnode])
+    }
+
+    removePopup(vnodeType: any) {
+        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
+    }
+
+    @computed private get isOnTableTab() {
+        return this.tab === GrapherTabOption.table
+    }
+
+    private renderPrimaryTab() {
+        if (this.isChartOrMapTab) return <CaptionedChart manager={this} />
+
+        const { tabBounds } = this
+        if (this.isOnTableTab)
+            // todo: should this "Div" and styling just be in DataTable class?
+            return (
+                <div
+                    className="tableTab"
+                    style={{ ...tabBounds.toCSS(), position: "absolute" }}
+                >
+                    <DataTable bounds={tabBounds} manager={this} />
+                </div>
+            )
+
+        return undefined
+    }
+
+    private renderOverlayTab() {
+        const bounds = this.tabBounds
+        if (this.overlayTab === GrapherTabOption.sources)
+            return (
+                <SourcesTab key="sourcesTab" bounds={bounds} manager={this} />
+            )
+        if (this.overlayTab === GrapherTabOption.download)
+            return (
+                <DownloadTab key="downloadTab" bounds={bounds} manager={this} />
+            )
+        return undefined
+    }
+
+    private get commandPalette() {
+        return this.props.enableKeyboardShortcuts ? (
+            <CommandPalette commands={this.keyboardShortcuts} display="none" />
+        ) : null
+    }
+
+    formatTimeFn(time: Time) {
+        return this.inputTable.timeColumnFormatFunction(time)
+    }
+
+    @action.bound private toggleTabCommand() {
+        this.currentTab = next(this.availableTabs, this.currentTab)
+    }
+
+    @action.bound private togglePlayingCommand() {
+        this.timelineController.togglePlay()
+    }
+
+    selection =
+        this.manager.selection ??
+        new SelectionArray(
+            this.props.selectedEntityNames ?? [],
+            this.props.table?.availableEntities ?? []
+        )
+
+    @computed get availableEntities() {
+        return this.tableForSelection.availableEntities
+    }
+
+    private get keyboardShortcuts(): Command[] {
+        const temporaryFacetTestCommands = range(0, 10).map((num) => {
+            return { combo: `${num}`, fn: () => this.randomSelection(num) }
+        })
+        const shortcuts = [
+            ...temporaryFacetTestCommands,
+            {
+                combo: "t",
+                fn: () => this.toggleTabCommand(),
+                title: "Toggle tab",
+                category: "Navigation",
+            },
+            {
+                combo: "?",
+                fn: () => CommandPalette.togglePalette(),
+                title: `Toggle Help`,
+                category: "Navigation",
+            },
+            {
+                combo: "a",
+                fn: () =>
+                    this.selection.hasSelection
+                        ? this.selection.clearSelection()
+                        : this.selection.selectAll(),
+                title: this.selection.hasSelection
+                    ? `Select None`
+                    : `Select All`,
+                category: "Selection",
+            },
+            {
+                combo: "f",
+                fn: () => this.toggleFilterAllCommand(),
+                title: "Hide unselected",
+                category: "Selection",
+            },
+            {
+                combo: "p",
+                fn: () => this.togglePlayingCommand(),
+                title: this.isPlaying ? `Pause` : `Play`,
+                category: "Timeline",
+            },
+            {
+                combo: "f",
+                fn: () => this.toggleFacetStrategy(),
+                title: `Toggle Faceting`,
+                category: "Chart",
+            },
+            {
+                combo: "l",
+                fn: () => this.toggleYScaleTypeCommand(),
+                title: "Toggle Y log/linear",
+                category: "Chart",
+            },
+            {
+                combo: "esc",
+                fn: () => this.clearErrors(),
+            },
+            {
+                combo: "z",
+                fn: () => this.toggleTimelineCommand(),
+                title: "Latest/Earliest/All period",
+                category: "Timeline",
+            },
+            {
+                combo: "shift+o",
+                fn: () => this.clearQueryParams(),
+                title: "Reset to original",
+                category: "Navigation",
+            },
+        ]
+
+        if (this.slideShow) {
+            const slideShow = this.slideShow
+            shortcuts.push({
+                combo: "right",
+                fn: () => slideShow.playNext(),
+                title: "Next chart",
+                category: "Browse",
+            })
+            shortcuts.push({
+                combo: "left",
+                fn: () => slideShow.playPrevious(),
+                title: "Previous chart",
+                category: "Browse",
+            })
+        }
+
+        return shortcuts
+    }
+
+    @observable slideShow?: SlideShowController<any>
+
+    @action.bound private toggleTimelineCommand() {
+        // Todo: add tests for this
+        this.setTimeFromTimeQueryParam(
+            next(["latest", "earliest", ".."], this.timeParam!)
+        )
+    }
+
+    @action.bound private toggleFilterAllCommand() {
+        this.minPopulationFilter =
+            this.minPopulationFilter === 2e9 ? undefined : 2e9
+    }
+
+    @action.bound private toggleYScaleTypeCommand() {
+        this.yAxis.scaleType = next(
+            [ScaleType.linear, ScaleType.log],
+            this.yAxis.scaleType
+        )
+    }
+
+    @action.bound private toggleFacetStrategy() {
+        this.facet = next(this.availableFacetStrategies, this.facet)
+    }
+
+    @observable facet?: FacetStrategy
+
+    @computed private get hasMultipleYColumns() {
+        return this.yColumnSlugs.length > 1
+    }
+
+    @computed get selectedColumnSlugs(): ColumnSlug[] {
+        const { selectedData } = this.legacyConfigAsAuthored
+        const dimensions = this.filledDimensions
+
+        if (selectedData) {
+            const columnSlugs = selectedData.map((item) => {
+                const columnSlug = dimensions[item.index]?.columnSlug
+
+                if (!columnSlug)
+                    console.warn(
+                        `Couldn't find specified dimension in chart config`,
+                        item
+                    )
+                return columnSlug
+            })
+            return excludeUndefined(columnSlugs)
+        }
+
+        return []
+    }
+
+    @computed private get availableFacetStrategies() {
+        const strategies: (FacetStrategy | undefined)[] = [undefined]
+
+        if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
+
+        if (this.selection.numSelectedEntities > 1)
+            strategies.push(FacetStrategy.country)
+
+        return strategies
+    }
+
+    private disableAutoFaceting = true // turned off for now
+    @computed get facetStrategy() {
+        if (this.facet && this.availableFacetStrategies.includes(this.facet))
+            return this.facet
+
+        if (this.disableAutoFaceting) return undefined
+
+        // Auto facet on SingleEntity charts with multiple selected entities
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.selection.numSelectedEntities > 1
+        )
+            return FacetStrategy.country
+
+        // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
+        if (
+            this.addCountryMode === EntitySelectionMode.MultipleEntities &&
+            this.hasMultipleYColumns &&
+            this.selection.numSelectedEntities > 1
+        )
+            return FacetStrategy.column
+
+        return undefined
+    }
+
+    @action.bound randomSelection(num: number) {
+        // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
+        this.clearErrors()
+        const currentSelection = this.selection.selectedEntityNames.length
+        const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
+        this.selection.setSelectedEntities(
+            sampleFrom(this.selection.availableEntityNames, newNum, Date.now())
+        )
+    }
+
+    private renderError() {
+        return (
+            <div
+                title={this.uncaughtError?.message}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    lineHeight: 1.5,
+                    padding: "3rem",
+                }}
+            >
+                <p style={{ color: "#cc0000", fontWeight: 700 }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                    {ThereWasAProblemLoadingThisChart}
+                </p>
+                <p>
+                    We have been notified of this error, please check back later
+                    whether it's been fixed. If the error persists, get in touch
+                    with us at{" "}
+                    <a
+                        href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
+                    >
+                        info@ourworldindata.org
+                    </a>
+                    .
+                </p>
+                {this.userFacingErrorSuggestion}
+            </div>
+        )
+    }
+
+    render() {
+        const { isExportingtoSvgOrPng, isPortrait } = this
+        // TODO how to handle errors in exports?
+        // TODO tidy this up
+        if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
+
+        const { renderWidth, renderHeight } = this
+
+        const style = {
+            width: renderWidth,
+            height: renderHeight,
+            fontSize: this.baseFontSize,
+        }
+
+        const classes = classNames(
+            "GrapherComponent",
+            isExportingtoSvgOrPng && "isExportingToSvgOrPng",
+            isPortrait && "GrapherPortraitClass"
+        )
+
+        return (
+            <div ref={this.base} className={classes} style={style}>
+                {this.commandPalette}
+                {this.uncaughtError ? this.renderError() : this.renderReady()}
+            </div>
+        )
+    }
+
+    private renderReady() {
+        return (
+            <>
+                {this.hasBeenVisible && this.renderPrimaryTab()}
+                <FooterControls manager={this} />
+                {this.renderOverlayTab()}
+                {this.popups}
+                <TooltipView
+                    width={this.renderWidth}
+                    height={this.renderHeight}
+                    tooltipProvider={this}
+                />
+                {this.isSelectingData && (
+                    <EntitySelectorModal
+                        canChangeEntity={this.canChangeEntity}
+                        selectionArray={this.selection}
+                        key="entitySelector"
+                        isMobile={this.isMobile}
+                        onDismiss={action(() => (this.isSelectingData = false))}
+                    />
+                )}
+            </>
+        )
+    }
+
+    // Chart should only render SVG when it's on the screen
+    @action.bound private checkVisibility() {
+        if (!this.hasBeenVisible && isVisible(this.base.current))
+            this.hasBeenVisible = true
+    }
+
+    @action.bound private setBaseFontSize() {
+        const { renderWidth } = this
+        if (renderWidth <= 400) this.baseFontSize = 14
+        else if (renderWidth < 1080) this.baseFontSize = 16
+        else if (renderWidth >= 1080) this.baseFontSize = 18
+    }
+
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
+    private bindToWindow() {
+        // There is a surprisingly considerable performance overhead to updating the url
+        // while animating, so we debounce to allow e.g. smoother timelines
+        const pushParams = () =>
+            setWindowQueryStr(queryParamsToStr(this.changedParams))
+        const debouncedPushParams = debounce(pushParams, 100)
+
+        reaction(
+            () => this.changedParams,
+            () => (this.debounceMode ? debouncedPushParams() : pushParams())
+        )
+
+        autorun(() => (document.title = this.currentTitle))
+    }
+
+    componentDidMount() {
+        window.addEventListener("scroll", this.checkVisibility)
+        this.setBaseFontSize()
+        this.checkVisibility()
+        exposeInstanceOnWindow(this, "grapher")
+        if (this.props.bindUrlToWindow) this.bindToWindow()
+        if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+    }
+
+    private _shortcutsBound = false
+    private bindKeyboardShortcuts() {
+        if (this._shortcutsBound) return
+        this.keyboardShortcuts.forEach((shortcut) => {
+            Mousetrap.bind(shortcut.combo, () => {
+                shortcut.fn()
+                this.analytics.logKeyboardShortcut(
+                    shortcut.title || "",
+                    shortcut.combo
+                )
+                return false
+            })
+        })
+        this._shortcutsBound = true
+    }
+
+    private unbindKeyboardShortcuts() {
+        if (!this._shortcutsBound) return
+        this.keyboardShortcuts.forEach((shortcut) => {
+            Mousetrap.unbind(shortcut.combo)
+        })
+        this._shortcutsBound = false
+    }
+
+    componentWillUnmount() {
+        this.unbindKeyboardShortcuts()
+        window.removeEventListener("scroll", this.checkVisibility)
+        this.dispose()
+    }
+
+    componentDidUpdate() {
+        this.setBaseFontSize()
+        this.checkVisibility()
+    }
+
+    componentDidCatch(error: Error, info: any) {
+        this.setError(error)
+        this.analytics.logGrapherViewError(error, info)
+    }
+
+    @observable isShareMenuActive = false
+
+    @computed get hasRelatedQuestion() {
+        if (!this.relatedQuestions.length) return false
+        const question = this.relatedQuestions[0]
+        return !!question && !!question.text && !!question.url
+    }
+
+    @computed private get footerControlsLines() {
+        return this.hasTimeline ? 2 : 1
+    }
+
+    @computed get footerControlsHeight() {
+        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
+        return (
+            this.footerControlsLines * footerRowHeight +
+            (this.hasRelatedQuestion ? 20 : 0)
+        )
+    }
+
+    @action.bound clearQueryParams() {
+        const { authorsVersion } = this
+        this.tab = authorsVersion.tab
+        this.xAxis.scaleType = authorsVersion.xAxis.scaleType
+        this.yAxis.scaleType = authorsVersion.yAxis.scaleType
+        this.stackMode = authorsVersion.stackMode
+        this.zoomToSelection = authorsVersion.zoomToSelection
+        this.minPopulationFilter = authorsVersion.minPopulationFilter
+        this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
+        this.minTime = authorsVersion.minTime
+        this.maxTime = authorsVersion.maxTime
+        this.map.time = authorsVersion.map.time
+        this.map.projection = authorsVersion.map.projection
+        this.selection.clearSelection()
+        this.applyOriginalSelectionAsAuthored()
+    }
+
+    // Todo: come up with a more general pattern?
+    // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
+    // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
+    @action.bound reset() {
+        const grapher = new Grapher()
+        this.title = grapher.title
+        this.subtitle = grapher.subtitle
+        this.type = grapher.type
+        this.ySlugs = grapher.ySlugs
+        this.xSlug = grapher.xSlug
+        this.hasMapTab = grapher.hasMapTab
+        this.facet = undefined
+        this.hasChartTab = grapher.hasChartTab
+        this.map = grapher.map
+        this.yAxis.scaleType = grapher.yAxis.scaleType
+        this.yAxis.min = grapher.yAxis.min
+    }
+
+    debounceMode = false
+
+    @computed.struct get allParams(): GrapherQueryParams {
+        const params: GrapherQueryParams = {}
+        params.tab = this.tab
+        params.xScale = this.xAxis.scaleType
+        params.yScale = this.yAxis.scaleType
+        params.stackMode = this.stackMode
+        params.zoomToSelection = this.zoomToSelection ? "true" : undefined
+        params.minPopulationFilter = this.minPopulationFilter?.toString()
+        params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
+        params.time = this.timeParam
+        params.region = this.map.projection
+        return setSelectedEntityNamesParam(
+            Url.fromQueryParams(params),
+            this.selectedEntitiesIfDifferentThanAuthors
+        ).queryParams
+    }
+
+    // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.
+    @computed private get selectedEntitiesIfDifferentThanAuthors():
+        | EntityName[]
+        | undefined {
+        const authoredConfig = this.legacyConfigAsAuthored
+
+        const originalSelectedEntityIds =
+            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const currentSelectedEntityIds = this.selection.allSelectedEntityIds
+
+        const entityIdsThatTheUserDeselected = difference(
+            currentSelectedEntityIds,
+            originalSelectedEntityIds
+        )
+
+        if (
+            currentSelectedEntityIds.length !==
+                originalSelectedEntityIds.length ||
+            entityIdsThatTheUserDeselected.length
+        )
+            return this.selection.selectedEntityNames
+
+        return undefined
+    }
+
+    // Autocomputed url params to reflect difference between current grapher state
+    // and original config state
+    @computed.struct get changedParams() {
+        return differenceObj(this.allParams, this.authorsVersion.allParams)
+    }
+
+    // If you want to compare current state against the published grapher.
+    @computed private get authorsVersion() {
+        return new Grapher({
+            ...this.legacyConfigAsAuthored,
+            manuallyProvideData: true,
+            queryStr: "",
+        })
+    }
+
+    @computed get queryStr() {
+        return queryParamsToStr(this.changedParams)
+    }
+
+    @computed get baseUrl() {
+        return this.isPublished
+            ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
+            : undefined
+    }
+
+    @computed private get manager() {
+        return this.props.manager ?? {}
+    }
+
+    // Get the full url representing the canonical location of this grapher state
+    @computed get canonicalUrl() {
+        return (
+            this.manager.canonicalUrl ??
+            (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
+        )
+    }
+
+    @computed get embedUrl() {
+        return this.manager.embedDialogUrl ?? this.canonicalUrl
+    }
+
+    @computed get embedDialogAdditionalElements() {
+        return this.manager.embedDialogAdditionalElements
+    }
+
+    @computed private get hasUserChangedTimeHandles() {
+        const authorsVersion = this.authorsVersion
+        return (
+            this.minTime !== authorsVersion.minTime ||
+            this.maxTime !== authorsVersion.maxTime
+        )
+    }
+
+    @computed private get hasUserChangedMapTimeHandle() {
+        return this.map.time !== this.authorsVersion.map.time
+    }
+
+    @computed get timeParam() {
+        const formatAsDay = this.table.hasDayColumn
+        if (
+            this.isOnMapTab &&
+            this.map.time !== undefined &&
+            this.hasUserChangedMapTimeHandle
+        )
+            return timeBoundToTimeBoundString(this.map.time, formatAsDay)
+        if (!this.hasUserChangedTimeHandles) return undefined
+
+        const [startHandleTime, rightHandleTime] = this.timelineHandleTimeBounds
+        const startTimeBoundString = timeBoundToTimeBoundString(
+            startHandleTime,
+            formatAsDay
+        )
+        return startHandleTime === rightHandleTime
+            ? startTimeBoundString
+            : `${startTimeBoundString}..${timeBoundToTimeBoundString(
+                  rightHandleTime,
+                  formatAsDay
+              )}`
+    }
+
+    msPerTick = DEFAULT_MS_PER_TICK
+
+    timelineController = new TimelineController(this)
+
+    onPlay() {
+        this.analytics.logGrapherTimelinePlay(this.slug)
+    }
+
+    // todo: restore this behavior??
+    onStartPlayOrDrag() {
+        this.debounceMode = true
+        this.useTimelineDomains = true
+    }
+
+    onStopPlayOrDrag() {
+        this.debounceMode = false
+        this.useTimelineDomains = false
+    }
+
+    @computed get disablePlay() {
+        return this.isSlopeChart
+    }
+
+    formatTime(value: Time) {
+        const timeColumn = this.table.timeColumn
+        if (timeColumn.isMissing)
+            return this.table.timeColumnFormatFunction(value)
+        return isMobile()
+            ? timeColumn.formatValueForMobile(value)
+            : timeColumn.formatValue(value)
+    }
+
+    @computed get showSmallCountriesFilterToggle() {
+        return this.isScatter && this.hasCountriesSmallerThanFilterOption
+    }
+
+    @computed get showYScaleToggle() {
+        if (this.isRelativeMode) return false
+        if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
+        return this.yAxis.canChangeScaleType
+    }
+
+    @computed get showXScaleToggle() {
+        return this.xAxis.canChangeScaleType
+    }
+
+    @computed get showZoomToggle() {
+        return this.isScatter && this.selection.hasSelection
+    }
+
+    @computed get showAbsRelToggle() {
+        if (!this.canToggleRelativeMode) return false
+        if (this.isScatter)
+            return this.xOverrideTime === undefined && this.hasTimeline
+        return this.isStackedArea || this.isScatter || this.isLineChart
+    }
+
+    @computed get showHighlightToggle() {
+        return this.isScatter && !!this.highlightToggle
+    }
+
+    @computed get showChangeEntityButton() {
+        return !this.hideEntityControls && this.canChangeEntity
+    }
+
+    @computed get showAddEntityButton() {
+        return (
+            !this.hideEntityControls &&
+            this.canSelectMultipleEntities &&
+            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
+        )
+    }
+
+    @computed get showSelectEntitiesButton() {
+        return (
+            !this.hideEntityControls &&
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
+            this.numSelectableEntityNames > 1 &&
+            !this.showAddEntityButton &&
+            !this.showChangeEntityButton
+        )
+    }
+
+    @computed get canSelectMultipleEntities() {
+        if (this.numSelectableEntityNames < 2) return false
+        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
+            return true
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.facetStrategy
+        )
+            return true
+
+        return false
+    }
+
+    // This is just a helper method to return the correct table for providing entity choices. We want to
+    // provide the root table, not the transformed table.
+    // A user may have added time or other filters that would filter out all rows from certain entities, but
+    // we may still want to show those entities as available in a picker. We also do not want to do things like
+    // hide the Add Entity button as the user drags the timeline.
+    @computed private get numSelectableEntityNames() {
+        return this.selection.numAvailableEntityNames
+    }
+
+    @computed get canChangeEntity() {
+        return (
+            !this.isScatter &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.numSelectableEntityNames > 1
+        )
+    }
+
+    @computed get startSelectingWhenLineClicked() {
+        return this.showAddEntityButton
+    }
+
+    // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
+    // allows you to still use add country "modes" without showing the buttons in order to prioritize
+    // another entity selector over the built in ones.
+    @observable hideEntityControls = false
+}
+
+const defaultObject = objectWithPersistablesToObject(
+    new Grapher(),
+    grapherKeysToSerialize
+)
+
+export const getErrorMessageRelatedQuestionUrl = (
+    question: RelatedQuestionsConfig
+): string | undefined => {
+    return question.text
+        ? (!question.url && "Missing URL") ||
+              (!question.url.match(/^https?:\/\//) &&
+                  "URL should start with http(s)://") ||
+              undefined
+        : undefined
 }

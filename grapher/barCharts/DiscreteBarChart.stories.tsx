@@ -1,22 +1,74 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { DiscreteBarChart } from "./DiscreteBarChart"
-import { basicGdpGrapher } from "grapher/test/samples"
-import { Bounds } from "grapher/utils/Bounds"
+import {
+    SampleColumnSlugs,
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "../../coreTable/OwidTableSynthesizers"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 export default {
     title: "DiscreteBarChart",
     component: DiscreteBarChart,
 }
 
-export const Default = () => {
-    const grapher = basicGdpGrapher()
-    const bounds = new Bounds(0, 0, 640, 480)
+export const EntitiesAsSeries = () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2009, 2010],
+        entityCount: 10,
+    })
+
+    const manager: DiscreteBarChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlug: SampleColumnSlugs.Population,
+    }
 
     return (
-        <svg width={640} height={480}>
-            <DiscreteBarChart grapher={grapher} bounds={bounds} />
+        <svg width={600} height={600}>
+            <DiscreteBarChart manager={manager} />
+        </svg>
+    )
+}
+
+export const EntitiesAsSeriesWithTolerance = () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2009, 2011],
+        entityCount: 10,
+    })
+        .rowFilter(
+            (row) => row.year === 2010 || Math.random() > 0.5,
+            "Remove 50% of 2009 rows"
+        )
+        .interpolateColumnWithTolerance(SampleColumnSlugs.Population, 1)
+        .filterByTargetTimes([2009])
+
+    const manager: DiscreteBarChartManager = {
+        table,
+        // Pass transformed table to avoid applying tolerance again in transformTable()
+        transformedTable: table,
+        selection: table.availableEntityNames,
+        yColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2009,
+    }
+
+    return (
+        <svg width={600} height={600}>
+            <DiscreteBarChart manager={manager} />
+        </svg>
+    )
+}
+
+export const ColumnsAsSeries = () => {
+    const table = SynthesizeFruitTable({ entityCount: 1 })
+    const manager: DiscreteBarChartManager = {
+        table,
+        selection: table.availableEntityNames,
+    }
+
+    return (
+        <svg width={600} height={600}>
+            <DiscreteBarChart manager={manager} />
         </svg>
     )
 }

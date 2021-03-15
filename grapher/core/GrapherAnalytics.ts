@@ -1,5 +1,7 @@
 const DEBUG = false
 
+declare var window: any
+
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
     hitType: string
@@ -12,14 +14,13 @@ interface GAEvent {
 enum Categories {
     GrapherError = "GrapherErrors",
     GrapherUsage = "GrapherUsage",
-    GlobalEntityControlUsage = "GlobalEntityControl",
+    GlobalEntitySelectorUsage = "GlobalEntitySelector",
     SiteClick = "SiteClick",
     KeyboardShortcut = "KeyboardShortcut",
 }
 
 enum EventNames {
     grapherViewError = "GRAPHER_VIEW_ERROR",
-    indicatorExplorerViewError = "INDICATOR_EXPLORER_VIEW_ERROR",
     entitiesNotFound = "ENTITIES_NOT_FOUND",
     timelinePlay = "TimelinePlay",
 }
@@ -35,7 +36,7 @@ type countrySelectorEvent =
 // Note: consent-based blocking dealt with at the Google Tag Manager level.
 // Events are discarded if consent not given.
 export class GrapherAnalytics {
-    constructor(environment: string, version: string) {
+    constructor(environment: string = "", version = "1.0.0") {
         this.isDev = environment === "development"
         this.version = version
     }
@@ -46,17 +47,6 @@ export class GrapherAnalytics {
     logGrapherViewError(error: any, info: any) {
         this.logToAmplitude(EventNames.grapherViewError, { error, info })
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
-    }
-
-    logIndicatorExplorerViewError(error: any, info: any) {
-        this.logToAmplitude(EventNames.indicatorExplorerViewError, {
-            error,
-            info,
-        })
-        this.logToGA(
-            Categories.GrapherError,
-            EventNames.indicatorExplorerViewError
-        )
     }
 
     logEntitiesNotFoundError(entities: string[]) {
@@ -72,20 +62,16 @@ export class GrapherAnalytics {
         this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
     }
 
-    logGlobalEntityControl(action: entityControlEvent, note?: string) {
-        this.logToGA(Categories.GlobalEntityControlUsage, action, note)
+    logGlobalEntitySelector(action: entityControlEvent, note?: string) {
+        this.logToGA(Categories.GlobalEntitySelectorUsage, action, note)
     }
 
-    logCountrySelectorEvent(
-        countryPickerName: string,
+    logEntityPickerEvent(
+        pickerSlug: string,
         action: countrySelectorEvent,
         note?: string
     ) {
-        this.logToGA(
-            `${countryPickerName}ExplorerCountrySelectorUsage`,
-            action,
-            note
-        )
+        this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
     }
 
     logSiteClick(text: string, note?: string, href?: string) {

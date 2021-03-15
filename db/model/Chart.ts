@@ -7,12 +7,30 @@ import {
     OneToMany,
 } from "typeorm"
 import * as lodash from "lodash"
-import * as db from "db/db"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import * as db from "../db"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"
-import { PUBLIC_TAG_PARENT_IDS } from "settings"
+
+// XXX hardcoded filtering to public parent tags
+const PUBLIC_TAG_PARENT_IDS = [
+    1515,
+    1507,
+    1513,
+    1504,
+    1502,
+    1509,
+    1506,
+    1501,
+    1514,
+    1511,
+    1500,
+    1503,
+    1505,
+    1508,
+    1512,
+    1510,
+]
 
 @Entity("charts")
 export class Chart extends BaseEntity {
@@ -38,10 +56,10 @@ export class Chart extends BaseEntity {
 
     // Only considers published charts, because only in that case the mapping slug -> id is unique
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-        const redirects = await db.query(
+        const redirects = await db.queryMysql(
             `SELECT chart_id, slug FROM chart_slug_redirects`
         )
-        const rows = await db.query(`
+        const rows = await db.queryMysql(`
             SELECT
                 id,
                 JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug
@@ -91,7 +109,7 @@ export class Chart extends BaseEntity {
     }
 
     static async assignTagsForCharts(charts: { id: number; tags: any[] }[]) {
-        const chartTags = await db.query(`
+        const chartTags = await db.queryMysql(`
             SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
@@ -110,7 +128,7 @@ export class Chart extends BaseEntity {
     }
 
     static async all(): Promise<ChartRow[]> {
-        const rows = await db.table(Chart.table)
+        const rows = await db.knexTable(Chart.table)
 
         for (const row of rows) {
             row.config = JSON.parse(row.config)
@@ -122,7 +140,7 @@ export class Chart extends BaseEntity {
 
 interface ChartRow {
     id: number
-    config: GrapherInterface
+    config: any
 }
 
 // TODO integrate this old logic with typeorm
@@ -149,7 +167,7 @@ export class OldChart {
     `
 
     static async getBySlug(slug: string): Promise<OldChart> {
-        const row = await db.get(
+        const row = await db.mysqlFirst(
             `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.slug") = ?`,
             [slug]
         )
@@ -158,8 +176,8 @@ export class OldChart {
     }
 
     id: number
-    config: GrapherInterface
-    constructor(id: number, config: GrapherInterface) {
+    config: any
+    constructor(id: number, config: any) {
         this.id = id
         this.config = config
 
@@ -169,24 +187,22 @@ export class OldChart {
 
     async getVariableData(): Promise<any> {
         const variableIds = lodash.uniq(
-            this.config.dimensions!.map((d) => d.variableId)
+            this.config.dimensions!.map((d: any) => d.variableId)
         )
-        return getVariableData(variableIds)
+        return getVariableData(variableIds as number[])
     }
 }
 
-export async function getChartById(
-    chartId: number
-): Promise<GrapherInterface | undefined> {
-    const chart = (
-        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
+export const getGrapherById = async (grapherId: number): Promise<any> => {
+    const grapher = (
+        await db.queryMysql(`SELECT id, config FROM charts WHERE id=?`, [
+            grapherId,
+        ])
     )[0]
 
-    if (chart) {
-        const config = JSON.parse(chart.config)
-        config.id = chart.id
-        return config
-    } else {
-        return undefined
-    }
+    if (!grapher) return undefined
+
+    const config = JSON.parse(grapher.config)
+    config.id = grapher.id
+    return config
 }

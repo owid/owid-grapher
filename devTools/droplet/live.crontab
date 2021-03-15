@@ -1,0 +1,6 @@
+@daily chronic sh -c 'pm2 restart live-deploy-queue' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+@daily chronic sh -c 'cd /home/owid/live/itsJustJavascript && node db/exportChartData.js && gzip -f /tmp/owid_chartdata.sql && s3cmd put -P /tmp/owid_chartdata.sql.gz s3://owid' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+@daily chronic sh -c 'cd /home/owid/live/itsJustJavascript && node db/exportMetadata.js && gzip -f /tmp/owid_metadata.sql && s3cmd put -P /tmp/owid_metadata.sql.gz s3://owid' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+0 19 * * 5 chronic sh -c 'cd /home/owid/live/itsJustJavascript && node baker/algolia/indexToAlgolia.js' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+0 19 * * 5 chronic sh -c 'cd /home/owid/live/itsJustJavascript && node baker/algolia/indexChartsToAlgolia.js' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+*/30 * * * * chronic sh -c 'cd /home/owid/covid-19-data/scripts && ./scripts/autoupdate.sh' 2>&1 | /usr/local/bin/slacktee --attachment danger --channel corona-data-updates

@@ -1,0 +1,14 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/adminSiteClient",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../grapher" },
+        { "path": "../explorer" },
+        { "path": "../explorerAdmin" },
+        { "path": "../clientUtils" },
+        { "path": "../settings" }
+    ]
+}

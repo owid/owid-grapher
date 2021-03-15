@@ -1,6 +1,4 @@
 node_modules
-env
-.env
 tmp
 data
 .awcache
@@ -10,10 +8,11 @@ logs/*
 datasetsExport
 tmp
 .tscache
-/test
 *.test.ts
 *.test.tsx
-dist
 .queue
 .pending
 /wordpress
+.env
+clientSettings.json
+serverSettings.json

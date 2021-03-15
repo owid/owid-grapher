@@ -7,16 +7,8 @@ import {
     last,
     roundSigFig,
     first,
-} from "grapher/utils/Util"
-
-export enum BinningStrategy {
-    equalInterval = "equalInterval",
-    quantiles = "quantiles",
-    ckmeans = "ckmeans",
-    // The `manual` option is ignored in the algorithms below,
-    // but it is stored and handled by the chart.
-    manual = "manual",
-}
+} from "../../clientUtils/Util"
+import { BinningStrategy } from "./BinningStrategy"
 
 /** Human-readable labels for the binning strategies */
 export const binningStrategyLabels: Record<BinningStrategy, string> = {

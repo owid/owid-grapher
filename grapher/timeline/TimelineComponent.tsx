@@ -1,7 +1,7 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { getRelativeMouse, isMobile, debounce } from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
+import { getRelativeMouse, isMobile, debounce } from "../../clientUtils/Util"
+import { Bounds } from "../../clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
@@ -9,38 +9,30 @@ import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { TimelineController, TimeViz } from "./TimelineController"
+import { TimelineController } from "./TimelineController"
+import { timeFromTimebounds } from "../../clientUtils/TimeBounds"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-export interface TimelineComponentProps {
-    target: TimeViz
-    disablePlay?: boolean
-    formatTimeFn?: (value: any) => any
-    onPlay?: () => void
-    onStartPlayOrDrag?: () => void
-    onStopPlayOrDrag?: () => void
-}
-
-const DEFAULT_MS_PER_TICK = 100
-
 @observer
-export class TimelineComponent extends React.Component<TimelineComponentProps> {
+export class TimelineComponent extends React.Component<{
+    timelineController: TimelineController
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable private dragTarget?: "start" | "end" | "both"
 
-    @computed private get isDragging(): boolean {
+    @computed private get isDragging() {
         return !!this.dragTarget
     }
 
-    @computed private get subject() {
-        return this.props.target
+    @computed private get manager() {
+        return this.props.timelineController.manager
     }
 
-    private controller = new TimelineController(this.props.target, {
-        msPerTick: DEFAULT_MS_PER_TICK,
-    })
+    @computed private get controller() {
+        return this.props.timelineController
+    }
 
     private get sliderBounds() {
         return this.slider
@@ -60,7 +52,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onDrag(inputTime: number) {
-        if (!this.subject.isPlaying) this.subject.userHasSetTimeline = true
+        if (!this.manager.isPlaying) this.manager.userHasSetTimeline = true
         this.dragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
             inputTime
@@ -68,7 +60,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.showTooltips()
     }
 
-    @action private showTooltips() {
+    @action.bound private showTooltips() {
         this.hideStartTooltip.cancel()
         this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
@@ -76,7 +68,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (this.dragTarget === "start") this.lastUpdatedTooltip = "startMarker"
         if (this.dragTarget === "end") this.lastUpdatedTooltip = "endMarker"
-        if (this.subject.startTime > this.subject.endTime)
+        if (this.manager.startHandleTimeBound > this.manager.endHandleTimeBound)
             this.lastUpdatedTooltip =
                 this.lastUpdatedTooltip === "startMarker"
                     ? "endMarker"
@@ -88,12 +80,16 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         isStartMarker: boolean,
         isEndMarker: boolean
     ) {
-        const { startTime, endTime } = this.props.target
+        const { startHandleTimeBound, endHandleTimeBound } = this.manager
 
-        if (startTime === endTime && (isStartMarker || isEndMarker))
+        if (
+            startHandleTimeBound === endHandleTimeBound &&
+            (isStartMarker || isEndMarker)
+        )
             return "both"
-        else if (isStartMarker || inputTime <= startTime) return "start"
-        else if (isEndMarker || inputTime >= endTime) return "end"
+        else if (isStartMarker || inputTime <= startHandleTimeBound)
+            return "start"
+        else if (isEndMarker || inputTime >= endHandleTimeBound) return "end"
         return "both"
     }
 
@@ -129,7 +125,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseUp() {
         this.dragTarget = undefined
 
-        if (this.subject.isPlaying) return
+        if (this.manager.isPlaying) return
 
         if (isMobile()) {
             if (this.startTooltipVisible) this.hideStartTooltip()
@@ -138,8 +134,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
-
-        this.controller.snapTimes()
     }
 
     private mouseHoveringOverTimeline: boolean = false
@@ -154,7 +148,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onMouseLeave() {
-        if (!this.subject.isPlaying && !this.isDragging) {
+        if (!this.manager.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
@@ -168,14 +162,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
-    @action.bound onPlayTouchEnd(e: Event) {
-        e.preventDefault()
-        e.stopPropagation()
+    @action.bound onPlayTouchEnd(evt: Event) {
+        evt.preventDefault()
+        evt.stopPropagation()
         this.controller.togglePlay()
     }
 
     @computed private get isPlayingOrDragging() {
-        return this.subject.isPlaying || this.isDragging
+        return this.manager.isPlaying || this.isDragging
     }
 
     componentDidMount() {
@@ -223,7 +217,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     private formatTime(time: number) {
-        return this.props.formatTimeFn ? this.props.formatTimeFn(time) : time
+        return this.manager.formatTimeFn
+            ? this.manager.formatTimeFn(time)
+            : time.toString()
     }
 
     private timelineEdgeMarker(markerType: "start" | "end") {
@@ -248,7 +244,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @observable private endTooltipVisible: boolean = false
     @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
 
-    @action.bound togglePlay() {
+    @action.bound private togglePlay() {
         this.controller.togglePlay()
     }
 
@@ -259,12 +255,21 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     render() {
-        const { subject, controller } = this
-        const { startTimeProgress, endTimeProgress } = controller
-        let { startTime, endTime } = subject
+        const { manager, controller } = this
+        const {
+            startTimeProgress,
+            endTimeProgress,
+            minTime,
+            maxTime,
+        } = controller
+        const { startHandleTimeBound, endHandleTimeBound } = manager
 
-        startTime = this.convertToTime(startTime)
-        endTime = this.convertToTime(endTime)
+        const formattedStartTime = this.formatTime(
+            timeFromTimebounds(startHandleTimeBound, minTime)
+        )
+        const formattedEndTime = this.formatTime(
+            timeFromTimebounds(endHandleTimeBound, maxTime)
+        )
 
         return (
             <div
@@ -273,13 +278,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >
-                {!this.props.disablePlay && (
+                {!this.manager.disablePlay && (
                     <div
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={this.togglePlay}
                         className="play"
                     >
-                        {subject.isPlaying ? (
+                        {manager.isPlaying ? (
                             <FontAwesomeIcon icon={faPause} />
                         ) : (
                             <FontAwesomeIcon icon={faPlay} />
@@ -294,7 +299,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     <TimelineHandle
                         type="startMarker"
                         offsetPercent={startTimeProgress * 100}
-                        tooltipContent={this.formatTime(startTime)}
+                        tooltipContent={formattedStartTime}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "startMarker" ? 2 : 1
@@ -310,7 +315,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     <TimelineHandle
                         type="endMarker"
                         offsetPercent={endTimeProgress * 100}
-                        tooltipContent={this.formatTime(endTime)}
+                        tooltipContent={formattedEndTime}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "endMarker" ? 2 : 1

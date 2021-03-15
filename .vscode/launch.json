@@ -5,56 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Launch Admin Server",
+            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
-            "name": "Run bake",
-            "args": ["deploy/bakeSite.ts"],
-            "runtimeArgs": [
-                "--nolazy",
-                "-r",
-                "ts-node/register",
-                "-r",
-                "tsconfig-paths/register",
-                "-r",
-                "dotenv/config"
-            ],
-            "cwd": "${workspaceRoot}",
-            "protocol": "inspector"
-        },
-        {
-            "name": "Current TS File",
-            "type": "node",
-            "request": "launch",
-            "args": ["${relativeFile}"],
-            "runtimeArgs": [
-                "--nolazy",
-                "-r",
-                "ts-node/register",
-                "-r",
-                "tsconfig-paths/register",
-                "-r",
-                "dotenv/config"
-            ],
-            "cwd": "${workspaceRoot}",
-            "protocol": "inspector"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Jest",
-            "program": "${workspaceRoot}/node_modules/.bin/jest",
-            "args": ["-i"],
-            "internalConsoleOptions": "openOnSessionStart",
-            "envFile": "${workspaceRoot}/.env"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Jest current file",
-            "program": "${workspaceRoot}/node_modules/.bin/jest",
-            "args": ["-i", "${relativeFile}"],
-            "internalConsoleOptions": "openOnSessionStart",
-            "envFile": "${workspaceRoot}/.env"
+            "type": "pwa-node"
         },
         {
             "name": "Attach to node",

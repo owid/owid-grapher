@@ -1,87 +1,34 @@
-/* ScaleSelector.jsx
- * ================
- *
- * Small toggle component for switching between log/linear (or any other) scale types.
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-11
- */
-
 import * as React from "react"
-import { computed, action } from "mobx"
+import { action } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType, ScaleTypeConfig } from "grapher/core/GrapherConstants"
+import { ScaleType } from "../core/GrapherConstants"
 import classNames from "classnames"
+import { next } from "../../clientUtils/Util"
 
-interface ScaleSelectorOptions {
-    x?: number
-    y?: number
-    maxX?: number // If set, the scale toggle will shift left if it exceeds this number
-    scaleTypeConfig: ScaleTypeConfig
-    inline?: boolean
+export interface ScaleSelectorManager {
+    scaleType?: ScaleType
 }
 
 @observer
-export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
-    @computed get x(): number {
-        return this.props.x ?? 0
-    }
-    @computed get y(): number {
-        return this.props.y ?? 0
-    }
-
-    @computed get maxX(): number {
-        return this.props.maxX || 0
-    }
-
-    @computed get scaleTypeOptions(): ScaleType[] {
-        return this.props.scaleTypeConfig.scaleTypeOptions
-    }
-
-    @computed get scaleType(): ScaleType {
-        return this.props.scaleTypeConfig.scaleType
-    }
-
-    @action.bound onClick() {
-        const { scaleType, scaleTypeOptions } = this
-
-        let nextScaleTypeIndex = scaleTypeOptions.indexOf(scaleType) + 1
-        if (nextScaleTypeIndex >= scaleTypeOptions.length)
-            nextScaleTypeIndex = 0
-
-        const newValue = scaleTypeOptions[nextScaleTypeIndex]
-
-        if (this.props.scaleTypeConfig.updateChartScaleType)
-            this.props.scaleTypeConfig.updateChartScaleType(newValue)
-    }
-
-    private componentWidth = 95
-
-    private getLeftShiftIfNeeded(xPosition: number) {
-        if (!this.maxX) return 0
-        const overflow = this.maxX - (xPosition + this.componentWidth)
-        let shiftLeft = 0
-        if (overflow < 0) shiftLeft = Math.abs(overflow)
-        return shiftLeft
+export class ScaleSelector extends React.Component<{
+    manager?: ScaleSelectorManager
+    prefix?: string
+}> {
+    @action.bound private onClick() {
+        const manager = this.props.manager ?? {}
+        manager.scaleType = next(
+            [ScaleType.linear, ScaleType.log],
+            manager.scaleType ?? ScaleType.linear
+        )
     }
 
     render() {
-        const { x, y, onClick, scaleType } = this
-
-        const style = {
-            left: x - this.getLeftShiftIfNeeded(x),
-            top: y,
-        }
+        const { manager, prefix } = this.props
+        const { scaleType } = manager ?? {}
         return (
             <span
-                onClick={onClick}
-                style={this.props.inline ? {} : (style as any)}
-                className={classNames([
-                    "clickable",
-                    "toggleSwitch",
-                    { inline: this.props.inline },
-                ])}
+                onClick={this.onClick}
+                className={classNames(["clickable", "toggleSwitch"])}
             >
                 <span
                     data-track-note="chart-toggle-scale"
@@ -90,7 +37,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
                         (scaleType === ScaleType.linear ? "activeToggle" : "")
                     }
                 >
-                    Linear
+                    {prefix}Linear
                 </span>
                 <span
                     data-track-note="chart-toggle-scale"
@@ -99,7 +46,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
                         (scaleType === ScaleType.log ? "activeToggle" : "")
                     }
                 >
-                    Log
+                    {prefix}Log
                 </span>
             </span>
         )

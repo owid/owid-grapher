@@ -1,51 +1,51 @@
-import { min, max, linkify } from "grapher/utils/Util"
+import { linkify } from "../../clientUtils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
-import { SourceWithDimension } from "grapher/chart/ChartDimension"
-import { Grapher } from "grapher/core/Grapher"
-import * as Cookies from "js-cookie"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CookieKeys } from "grapher/core/GrapherConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
 
-function formatText(s: string) {
-    return linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+
+export interface SourcesTabManager {
+    adminBaseUrl?: string
+    columnsWithSources: CoreColumn[]
+    showAdminControls?: boolean
 }
 
 @observer
 export class SourcesTab extends React.Component<{
-    bounds: Bounds
-    grapher: Grapher
+    bounds?: Bounds
+    manager: SourcesTabManager
 }> {
     @computed private get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get sourcesWithDimensions() {
-        return this.props.grapher.sourcesWithDimension
+    @computed private get manager() {
+        return this.props.manager
     }
 
-    private renderSource(sourceWithDimension: SourceWithDimension) {
-        const source = sourceWithDimension.source
-        const dimension = sourceWithDimension.dimension
-        const { column } = dimension
+    private renderSource(column: CoreColumn) {
+        const { table, slug, source, def } = column
+        const { datasetId, coverage } = def as OwidColumnDef
 
-        const editUrl = Cookies.get(CookieKeys.isAdmin)
-            ? `${this.props.grapher.adminBaseUrl}/admin/datasets/${column.datasetId}`
+        const editUrl = this.manager.showAdminControls
+            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${datasetId}`
             : undefined
 
-        const minYear = min(column.times)
-        const maxYear = max(column.times)
+        const { minTime, maxTime } = column
         let timespan = ""
-        if (minYear !== undefined && maxYear !== undefined)
-            timespan = `${dimension.formatTimeFn(
-                minYear
-            )} – ${dimension.formatTimeFn(maxYear)}`
+        if (minTime !== undefined && maxTime !== undefined)
+            timespan = `${table.timeColumn?.formatValue(
+                minTime
+            )} – ${table.timeColumn?.formatValue(maxTime)}`
 
         return (
-            <div key={source.id} className="datasource-wrapper">
+            <div key={slug} className="datasource-wrapper">
                 <h2>
                     {column.name}{" "}
                     {editUrl && (
@@ -66,10 +66,10 @@ export class SourcesTab extends React.Component<{
                                 />
                             </tr>
                         ) : null}
-                        {column.coverage ? (
+                        {coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
-                                <td>{column.coverage}</td>
+                                <td>{coverage}</td>
                             </tr>
                         ) : null}
                         {timespan ? (
@@ -78,10 +78,10 @@ export class SourcesTab extends React.Component<{
                                 <td>{timespan}</td>
                             </tr>
                         ) : null}
-                        {dimension.unitConversionFactor !== 1 ? (
+                        {column.unitConversionFactor !== 1 ? (
                             <tr>
                                 <td>Unit conversion factor for chart</td>
-                                <td>{dimension.unitConversionFactor}</td>
+                                <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
                         {source.dataPublishedBy ? (
@@ -139,6 +139,7 @@ export class SourcesTab extends React.Component<{
 
     render() {
         const { bounds } = this
+        const cols = this.manager.columnsWithSources.filter((col) => col.source)
 
         return (
             <div
@@ -147,11 +148,7 @@ export class SourcesTab extends React.Component<{
             >
                 <div>
                     <h2>Sources</h2>
-                    <div>
-                        {this.sourcesWithDimensions.map((source) =>
-                            this.renderSource(source)
-                        )}
-                    </div>
+                    <div>{cols.map((col) => this.renderSource(col))}</div>
                 </div>
             </div>
         )

@@ -1,8 +1,4 @@
 .toggleSwitch {
-    &:not(.inline) {
-        position: absolute;
-    }
-
     text-transform: uppercase;
     cursor: pointer;
     font-weight: bold;

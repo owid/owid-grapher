@@ -6,8 +6,9 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
     "search.exclude": {
-        "dist": true,
-        "bakedSite": true
+        "**/itsJustJavascript": true,
+        "bakedSite": true,
+        "yarn.lock": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.preferences.useAliasesForRenames": false,

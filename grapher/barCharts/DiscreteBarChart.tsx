@@ -1,147 +1,172 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { min, max, maxBy } from "grapher/utils/Util"
+import {
+    min,
+    max,
+    maxBy,
+    sortBy,
+    exposeInstanceOnWindow,
+    uniq,
+    first,
+    excludeUndefined,
+} from "../../clientUtils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "grapher/core/Grapher"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import {
-    Color,
-    TickFormattingOptions,
-    EntityDimensionKey,
     ScaleType,
-} from "grapher/core/GrapherConstants"
+    BASE_FONT_SIZE,
+    SeriesStrategy,
+} from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "grapher/axis/AxisViews"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
-export interface DiscreteBarDatum {
-    entityDimensionKey: EntityDimensionKey
-    value: number
-    year: number
-    label: string
-    color: Color
-    formatValue: (value: number, options?: TickFormattingOptions) => string
-}
+} from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { ChartInterface } from "../chart/ChartInterface"
+import {
+    DEFAULT_BAR_COLOR,
+    DiscreteBarChartManager,
+    DiscreteBarSeries,
+} from "./DiscreteBarChartConstants"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
 
 @observer
-export class DiscreteBarChart extends React.Component<{
-    bounds: Bounds
-    grapher: Grapher
-}> {
+export class DiscreteBarChart
+    extends React.Component<{
+        bounds?: Bounds
+        manager: DiscreteBarChartManager
+    }>
+    implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get grapher() {
-        return this.props.grapher
-    }
-    @computed.struct private get bounds() {
-        return this.props.bounds.padRight(10)
+    transformTable(table: OwidTable) {
+        if (!this.yColumnSlugs.length) return table
+
+        table = table.filterByEntityNames(
+            this.selectionArray.selectedEntityNames
+        )
+
+        // TODO: remove this filter once we don't have mixed type columns in datasets
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
+        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+
+        this.yColumnSlugs.forEach((slug) => {
+            table = table.interpolateColumnWithTolerance(slug)
+        })
+
+        return table
     }
 
-    @computed private get failMessage() {
-        return this.grapher.discreteBarTransform.failMessage
+    @computed get inputTable() {
+        return this.manager.table
     }
 
-    @computed private get currentData() {
-        return this.grapher.discreteBarTransform.currentData
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
     }
 
-    @computed private get allData() {
-        return this.grapher.discreteBarTransform.allData
+    @computed private get manager() {
+        return this.props.manager
     }
 
-    @computed private get displayData() {
-        // Uses allData when the timeline handles are being dragged, and currentData otherwise
-        return this.grapher.useTimelineDomains ? this.allData : this.currentData
+    @computed private get targetTime() {
+        return this.manager.endTime
+    }
+
+    @computed private get bounds() {
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+    }
+
+    @computed private get baseFontSize() {
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get legendLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.grapher.baseFontSize,
+            fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
         }
     }
 
     @computed private get valueLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.grapher.baseFontSize,
+            fontSize: 0.75 * this.baseFontSize,
             fontWeight: 400,
         }
     }
 
     // Account for the width of the legend
     @computed private get legendWidth() {
-        const labels = this.currentData.map((d) => d.label)
-
+        const labels = this.series.map((series) => series.seriesName)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
     @computed private get hasPositive() {
-        return this.displayData.some((d) => d.value >= 0)
+        return this.series.some((d) => d.value >= 0)
     }
 
     @computed private get hasNegative() {
-        return this.displayData.some((d) => d.value < 0)
+        return this.series.some((d) => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed private get rightEndLabelWidth(): number {
-        if (this.hasPositive) {
-            const positiveLabels = this.displayData
-                .filter((d) => d.value >= 0)
-                .map((d) => this.barValueFormat(d))
-            const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
-            return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
-                .width
-        } else {
-            return 0
-        }
+    @computed private get rightEndLabelWidth() {
+        if (!this.hasPositive) return 0
+
+        const positiveLabels = this.series
+            .filter((mark) => mark.value >= 0)
+            .map((mark) => this.formatValue(mark))
+        const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
+        return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
 
     // The amount of space we need to allocate for bar end labels on the left
     // These are only present if there are negative values
     // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed private get leftEndLabelWidth(): number {
-        if (this.hasNegative) {
-            const negativeLabels = this.displayData
-                .filter((d) => d.value < 0)
-                .map((d) => this.barValueFormat(d))
-            const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
-            return (
-                Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
-                    .width + labelToTextPadding
-            )
-        } else {
-            return 0
-        }
+    @computed private get leftEndLabelWidth() {
+        if (!this.hasNegative) return 0
+
+        const negativeLabels = this.series
+            .filter((d) => d.value < 0)
+            .map((d) => this.formatValue(d))
+        const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
+        return (
+            Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
+            labelToTextPadding
+        )
     }
 
-    @computed private get x0(): number {
-        if (this.isLogScale) {
-            const minValue = min(this.allData.map((d) => d.value))
-            return minValue !== undefined ? Math.min(1, minValue) : 1
-        }
-        return 0
+    @computed private get x0() {
+        if (!this.isLogScale) return 0
+
+        const minValue = min(this.series.map((d) => d.value))
+        return minValue !== undefined ? Math.min(1, minValue) : 1
     }
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const allValues = this.displayData.map((d) => d.value)
+        const allValues = this.series.map((d) => d.value)
 
         const minStart = this.x0
         return [
             Math.min(minStart, min(allValues) as number),
             Math.max(minStart, max(allValues) as number),
         ]
-    }
-
-    @computed private get isLogScale() {
-        return this.grapher.yAxis.scaleType === ScaleType.log
     }
 
     @computed private get xRange(): [number, number] {
@@ -151,12 +176,16 @@ export class DiscreteBarChart extends React.Component<{
         ]
     }
 
+    @computed private get yAxis() {
+        return this.manager.yAxis || new AxisConfig()
+    }
+
     @computed private get axis() {
         // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.grapher.yAxis.toHorizontalAxis()
+        const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.tickFormatFn = this.grapher.discreteBarTransform.tickFormat
+        axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -169,9 +198,13 @@ export class DiscreteBarChart extends React.Component<{
             .padRight(this.rightEndLabelWidth)
     }
 
+    @computed private get selectionArray() {
+        return makeSelectionArray(this.manager)
+    }
+
     // Leave space for extra bar at bottom to show "Add country" button
     @computed private get totalBars() {
-        return this.currentData.length
+        return this.series.length
     }
 
     @computed private get barHeight() {
@@ -183,8 +216,8 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get barPlacements() {
-        const { currentData, axis } = this
-        return currentData.map((d) => {
+        const { series, axis } = this
+        return series.map((d) => {
             const isNegative = d.value < 0
             const barX = isNegative ? axis.place(d.value) : axis.place(this.x0)
             const barWidth = isNegative
@@ -212,6 +245,7 @@ export class DiscreteBarChart extends React.Component<{
     componentDidMount() {
         this.d3Bars().attr("width", 0)
         this.animateBarWidth()
+        exposeInstanceOnWindow(this)
     }
 
     componentDidUpdate() {
@@ -221,37 +255,30 @@ export class DiscreteBarChart extends React.Component<{
         this.animateBarWidth()
     }
 
-    @computed get barValueFormat() {
-        return this.grapher.discreteBarTransform.barValueFormat
-    }
-
-    @action.bound onAddClick() {
-        this.grapher.isSelectingData = true
+    @action.bound private onAddClick() {
+        this.manager.isSelectingData = true
     }
 
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
-                    options={this.grapher}
+                <NoDataModal
+                    manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
             )
 
         const {
-            currentData,
+            series,
             bounds,
             axis,
             innerBounds,
             barHeight,
             barSpacing,
-            barValueFormat,
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2
-
-        const maxX = bounds.width + 40 // This is only used to shift the ScaleSelector left if it exceeds the container. Hard coded for now but could be improved
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -264,9 +291,7 @@ export class DiscreteBarChart extends React.Component<{
                     fill="rgba(255,255,255,0)"
                 />
                 <HorizontalAxisComponent
-                    maxX={maxX}
                     bounds={bounds}
-                    isInteractive={this.grapher.isInteractive}
                     axis={axis}
                     axisPosition={innerBounds.bottom}
                 />
@@ -274,15 +299,16 @@ export class DiscreteBarChart extends React.Component<{
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {currentData.map((d) => {
-                    const isNegative = d.value < 0
+                {series.map((series) => {
+                    // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
+                    const isNegative = series.value < 0
                     const barX = isNegative
-                        ? axis.place(d.value)
+                        ? axis.place(series.value)
                         : axis.place(this.x0)
                     const barWidth = isNegative
                         ? axis.place(this.x0) - barX
-                        : axis.place(d.value) - barX
-                    const valueLabel = barValueFormat(d)
+                        : axis.place(series.value) - barX
+                    const valueLabel = this.formatValue(series)
                     const labelX = isNegative
                         ? barX -
                           Bounds.forText(valueLabel, this.valueLabelStyle)
@@ -295,7 +321,7 @@ export class DiscreteBarChart extends React.Component<{
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={d.entityDimensionKey}
+                            key={series.seriesName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}
@@ -309,7 +335,7 @@ export class DiscreteBarChart extends React.Component<{
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
-                                {d.label}
+                                {series.seriesName}
                             </text>
                             <rect
                                 x={0}
@@ -319,7 +345,7 @@ export class DiscreteBarChart extends React.Component<{
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={d.color}
+                                fill={series.color}
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
@@ -327,7 +353,7 @@ export class DiscreteBarChart extends React.Component<{
                                 x={0}
                                 y={0}
                                 transform={`translate(${
-                                    axis.place(d.value) +
+                                    axis.place(series.value) +
                                     (isNegative
                                         ? -labelToBarPadding
                                         : labelToBarPadding)
@@ -348,5 +374,123 @@ export class DiscreteBarChart extends React.Component<{
                 })}
             </g>
         )
+    }
+
+    @computed get failMessage() {
+        const column = this.yColumns[0]
+
+        if (!column) return "No column to chart"
+
+        if (!this.selectionArray.hasSelection) return `No data selected`
+
+        // TODO is it better to use .series for this check?
+        return this.yColumns.every((col) => col.isEmpty)
+            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            : ""
+    }
+
+    formatValue(series: DiscreteBarSeries) {
+        const column = this.yColumns[0] // todo: do we need to use the right column here?
+        const { transformedTable } = this
+
+        const showYearLabels =
+            this.manager.showYearLabels || series.time !== this.targetTime
+        const displayValue = column.formatValueShort(series.value)
+        return (
+            displayValue +
+            (showYearLabels
+                ? ` (${transformedTable.timeColumnFormatFunction(series.time)})`
+                : "")
+        )
+    }
+
+    @computed protected get yColumnSlugs() {
+        return autoDetectYColumnSlugs(this.manager)
+    }
+
+    @computed private get seriesStrategy() {
+        return (
+            this.manager.seriesStrategy ??
+            (this.yColumnSlugs.length > 1 &&
+            this.selectionArray.numSelectedEntities === 1
+                ? SeriesStrategy.column
+                : SeriesStrategy.entity)
+        )
+    }
+
+    @computed protected get yColumns() {
+        return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed private get columnsAsSeries() {
+        return excludeUndefined(
+            this.yColumns.map((col) => {
+                const row = first(col.owidRows)
+                // Do not plot a bar if column has no data for the selected time
+                if (!row) return undefined
+                return {
+                    row,
+                    seriesName: col.displayName,
+                    color: col.def.color,
+                }
+            })
+        )
+    }
+
+    @computed private get entitiesAsSeries() {
+        const { transformedTable } = this
+        return this.yColumns[0].owidRows.map((row) => {
+            return {
+                seriesName: row.entityName,
+                color: transformedTable.getColorForEntityName(row.entityName),
+                row,
+            }
+        })
+    }
+
+    @computed private get sortedRawSeries() {
+        const raw =
+            this.seriesStrategy === SeriesStrategy.entity
+                ? this.entitiesAsSeries
+                : this.columnsAsSeries
+        return sortBy(raw, (series) => series.row.value)
+    }
+
+    @computed private get valuesToColorsMap() {
+        const { manager } = this
+        const colorScheme = manager.baseColorScheme
+            ? ColorSchemes[manager.baseColorScheme]
+            : undefined
+        if (!colorScheme) return undefined
+
+        return colorScheme.getUniqValueColorMap(
+            uniq(this.sortedRawSeries.map((series) => series.row.value)),
+            manager.invertColorScheme
+        )
+    }
+
+    @computed private get seriesColorMap() {
+        return this.manager.seriesColorMap || new Map()
+    }
+
+    @computed get series() {
+        const { valuesToColorsMap, seriesColorMap } = this
+        return this.sortedRawSeries.reverse().map((rawSeries) => {
+            const { row, seriesName, color } = rawSeries
+            const series: DiscreteBarSeries = {
+                ...row,
+                seriesName,
+                color:
+                    color ??
+                    seriesColorMap.get(seriesName) ?? // This provides line chart colors if it was a line chart in a prior life
+                    valuesToColorsMap?.get(row.value) ??
+                    DEFAULT_BAR_COLOR,
+            }
+            return series
+        })
+    }
+
+    @computed private get isLogScale() {
+        return this.yAxis.scaleType === ScaleType.log
     }
 }

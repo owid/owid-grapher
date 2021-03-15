@@ -1,5 +1,10 @@
-require("dotenv").config()
-const { DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT } = process.env
+const {
+    DB_HOST,
+    DB_NAME,
+    DB_USER,
+    DB_PASS,
+    DB_PORT,
+} = require("./itsJustJavascript/settings/serverSettings")
 
 module.exports = {
     type: "mysql",
@@ -8,10 +13,8 @@ module.exports = {
     username: DB_USER || "root",
     password: DB_PASS || "",
     database: DB_NAME,
-    entities: ["db/model/**/*.ts"],
-    migrations: ["db/migration/**/*.ts"],
+    entities: ["itsJustJavascript/db/model/**/*.js"],
     cli: {
         entitiesDir: "db/model",
-        migrationsDir: "db/migration",
     },
 }

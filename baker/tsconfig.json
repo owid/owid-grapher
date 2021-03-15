@@ -1,0 +1,14 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/baker",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../site" },
+        { "path": "../explorerAdmin" },
+        { "path": "../db" },
+        { "path": "../settings" },
+        { "path": "../clientUtils" }
+    ]
+}

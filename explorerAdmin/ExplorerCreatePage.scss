@@ -1,0 +1,157 @@
+.ExplorerCreatePageHeader {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 50px;
+
+    button {
+        margin: 10px 5px;
+    }
+}
+
+.ExplorersListPageHeader {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 50px;
+}
+
+.ExplorerPipPreview {
+    position: fixed;
+    width: 1200px;
+    height: 800px;
+    transform: scale(0.35);
+    top: 140px;
+    right: 10px;
+    transform-origin: top right;
+}
+
+.PreviewLink {
+    position: fixed;
+    font-size: 12px;
+    text-align: right;
+    top: 125px;
+    right: 10px;
+}
+
+// Hide the noisy arrow in the autocomplete dropdown.
+.handsontable {
+    .htAutocompleteArrow {
+        font-size: 0 !important;
+    }
+
+    .htPlaceholder {
+        font-style: italic;
+    }
+
+    .ShowDropdownArrow {
+        // But still show the autocomplete dropdown arrow on last cell.
+        .htAutocompleteArrow:before {
+            content: "+" !important;
+            color: green !important;
+            font-size: 14px !important;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    }
+
+    .currentlySelectedGrapherRow {
+        background: #ccc !important;
+    }
+
+    .cellCreated {
+        background-color: rgba(0, 150, 0, 0.1) !important;
+    }
+    .cellChanged {
+        background-color: rgba(180, 186, 43, 0.1) !important;
+    }
+    .cellDeleted {
+        background-color: rgba(150, 0, 0, 0.1) !important;
+    }
+
+    // Change the default dark top right corner comment arrow into a subtle checkmark.
+    .htCommentCell:after {
+        content: "✓" !important;
+        color: #ccc !important;
+        border: 0 !important;
+        font-size: 8px;
+    }
+
+    .htCommentCell.HasSuggestions:after {
+        content: "⚡✓" !important;
+    }
+
+    .KeywordCellDef {
+        color: #3c4e66;
+    }
+
+    .BooleanCellDef {
+        color: #00847e;
+    }
+
+    .EnumCellDef {
+        color: #00847e;
+    }
+
+    .StringCellDef {
+        color: #0f739c;
+    }
+
+    .IntegerCellDef,
+    .NumericCellDef {
+        color: #578145;
+    }
+
+    .SubTableHeaderCellDef {
+        color: #4c6a9c;
+        border-bottom: 1px solid #4c6a9c;
+        background-color: #eee;
+    }
+
+    .SubTableValueCellDef {
+        color: #287669;
+        background-color: #eee;
+    }
+
+    .UrlCellDef,
+    .QueryStringCellDef {
+        color: #00823f;
+    }
+
+    .SlugDeclarationType {
+        color: #00823f;
+    }
+
+    .CommentType {
+        color: #999;
+        font-style: italic;
+    }
+
+    .CellHasErrorsClass,
+    .NothingGoesThereType {
+        color: #b13507;
+        text-decoration: underline;
+        text-decoration-style: wavy;
+
+        &.htCommentCell:after {
+            content: "✗" !important;
+            color: #b13507 !important;
+        }
+    }
+
+    .WorkInProgressCellDef {
+        color: #777;
+    }
+}
+
+// Unused colors from Owid Default Color Scheme:
+// "#287669",
+// "#CD2285",
+// "#9A5129",
+// "#008860",
+// "#8C4569",
+// "#B36216",
+// "#366388",
+// "#A2559C",
+// "#D7263F",
+// "#18470F",
+// "#BC8E5A",
+// "#585C64",

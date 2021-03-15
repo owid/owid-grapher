@@ -1,6 +1,6 @@
-import { isEmpty, max, stripHTML, defaultTo, linkify } from "grapher/utils/Util"
+import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util"
 import { computed } from "mobx"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds } from "../../clientUtils/Bounds"
 import * as React from "react"
 
 declare type FontSize = number
@@ -11,7 +11,7 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
-    rawHtml?: true
+    rawHtml?: boolean
     /** Wrap URL-like text in <a> tag. Only works when rendering HTML. */
     linkifyText?: boolean
 }
@@ -32,23 +32,23 @@ export class TextWrap {
         this.props = props
     }
 
-    @computed get maxWidth(): number {
-        return defaultTo(this.props.maxWidth, Infinity)
+    @computed get maxWidth() {
+        return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight(): number {
-        return defaultTo(this.props.lineHeight, 1.1)
+    @computed get lineHeight() {
+        return this.props.lineHeight ?? 1.1
     }
     @computed get fontSize(): FontSize {
-        return defaultTo(this.props.fontSize, 1)
+        return this.props.fontSize ?? 1
     }
-    @computed get fontWeight(): number | undefined {
+    @computed get fontWeight() {
         return this.props.fontWeight
     }
-    @computed get text(): string {
+    @computed get text() {
         return this.props.text
     }
 
-    @computed get lines(): WrapLine[] {
+    @computed get lines() {
         const { text, maxWidth, fontSize, fontWeight } = this
 
         const words = isEmpty(text)
@@ -101,15 +101,17 @@ export class TextWrap {
         return lines
     }
 
-    @computed get height(): number {
+    @computed get height() {
+        if (this.lines.length === 0) return 0
+
         return (
             this.lines.reduce((total, line) => total + line.height, 0) +
             this.lineHeight * (this.lines.length - 1)
         )
     }
 
-    @computed get width(): number {
-        return defaultTo(max(this.lines.map((l) => l.width)), 0)
+    @computed get width() {
+        return max(this.lines.map((l) => l.width)) ?? 0
     }
 
     @computed get htmlStyle(): any {

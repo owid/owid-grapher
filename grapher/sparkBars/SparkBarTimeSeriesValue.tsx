@@ -4,21 +4,21 @@ import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle"
 
-import { Tippy } from "grapher/chart/Tippy"
+import { Tippy } from "../chart/Tippy"
 
 export const SparkBarTimeSeriesValue = ({
     value,
     latest,
     tooltip,
     className,
-    formattedDate,
+    displayDate,
     valueColor,
 }: {
     value: string | undefined
     latest?: boolean
     tooltip?: JSX.Element | string
     className?: string
-    formattedDate?: string
+    displayDate?: string
     valueColor?: string
 }) => (
     <div className={classnames("time-series-value", className)}>
@@ -35,7 +35,7 @@ export const SparkBarTimeSeriesValue = ({
                     )}
                 </span>
                 <span className={classnames("date", { latest: latest })}>
-                    {formattedDate}
+                    {displayDate}
                 </span>
             </>
         ) : undefined}

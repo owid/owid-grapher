@@ -1,63 +1,66 @@
-import { keyBy } from "grapher/utils/Util" // todo: remove
+import { Color } from "../../coreTable/CoreTableConstants"
 
-export type ChartTypeName =
-    | "LineChart"
-    | "ScatterPlot"
-    | "TimeScatter"
-    | "StackedArea"
-    | "DiscreteBar"
-    | "SlopeChart"
-    | "StackedBar"
-
-export class ChartType {
-    static LineChart: ChartTypeName = "LineChart"
-    static ScatterPlot: ChartTypeName = "ScatterPlot"
-    static TimeScatter: ChartTypeName = "TimeScatter"
-    static StackedArea: ChartTypeName = "StackedArea"
-    static DiscreteBar: ChartTypeName = "DiscreteBar"
-    static SlopeChart: ChartTypeName = "SlopeChart"
-    static StackedBar: ChartTypeName = "StackedBar"
+export enum ChartTypeName {
+    LineChart = "LineChart",
+    ScatterPlot = "ScatterPlot",
+    TimeScatter = "TimeScatter",
+    StackedArea = "StackedArea",
+    DiscreteBar = "DiscreteBar",
+    SlopeChart = "SlopeChart",
+    StackedBar = "StackedBar",
+    WorldMap = "WorldMap",
 }
 
-export enum CookieKeys {
+export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
+
+export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
+
+export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
+
+export enum CookieKey {
     isAdmin = "isAdmin",
 }
 
-export type AddCountryMode = "add-country" | "change-country" | "disabled"
+// We currently have the notion of "modes", where you can either select 1 entity, or select multiple entities, or not change the selection at all.
+// Todo: can we remove?
+export enum EntitySelectionMode {
+    MultipleEntities = "add-country",
+    SingleEntity = "change-country",
+    Disabled = "disabled",
+}
 
-export type StackMode = "absolute" | "relative"
+export enum StackMode {
+    absolute = "absolute",
+    relative = "relative",
+}
 
-// todo: remove when we ditch Year and YearIsDay
-export const EPOCH_DATE = "2020-01-21"
+export const BASE_FONT_SIZE = 16
 
-export type Integer = number
-/**
- * A concrete point in time (year or date). It's always supposed to be a finite number, but we
- * cannot enforce this in TypeScript.
- */
-export type Time = Integer
+export enum FacetStrategy {
+    country = "country", // One chart for each country
+    column = "column", // One chart for each Y column
+}
 
-// todo: remove
-export type EntityDimensionKey = string
+export enum SeriesStrategy {
+    column = "column", // One line per column
+    entity = "entity", // One line per entity
+}
 
-export type GrapherTabOption =
-    | "chart"
-    | "map"
-    | "sources"
-    | "download"
-    | "table"
+export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
 
-export type Color = string
+export type SeriesColorMap = Map<SeriesName, Color>
+
+export enum GrapherTabOption {
+    chart = "chart",
+    map = "map",
+    sources = "sources",
+    download = "download",
+    table = "table",
+}
 
 export enum ScaleType {
     linear = "linear",
     log = "log",
-}
-
-export interface ScaleTypeConfig {
-    scaleType: ScaleType
-    scaleTypeOptions: ScaleType[]
-    updateChartScaleType: (scaleType: ScaleType) => void
 }
 
 export interface HighlightToggleConfig {
@@ -70,66 +73,30 @@ export interface RelatedQuestionsConfig {
     url: string
 }
 
+export const WorldEntityName = "World"
+
 // When a user hovers over a connected series line in a ScatterPlot we show
 // a label for each point. By default that value will be from the "year" column
 // but by changing this option the column used for the x or y axis could be used instead.
-export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
-
-export enum SortOrder {
-    asc = "asc",
-    desc = "desc",
+export enum ScatterPointLabelStrategy {
+    year = "year",
+    x = "x",
+    y = "y",
 }
 
-export declare type DimensionProperty = "y" | "x" | "size" | "color" | "table"
-
-export interface TickFormattingOptions {
-    numDecimalPlaces?: number
-    unit?: string
-    noTrailingZeroes?: boolean
-    noSpaceUnit?: boolean
-    numberPrefixes?: boolean
-    shortNumberPrefixes?: boolean
-    showPlus?: boolean
-    isFirstOrLastTick?: boolean
+export enum DimensionProperty {
+    y = "y",
+    x = "x",
+    size = "size",
+    color = "color",
+    table = "table",
 }
 
 // todo: remove
 export interface EntitySelection {
     entityId: number
     index: number // Which dimension the entity is from
-    color?: Color
+    color?: string
 }
 
-export const ChartTypeDefs = [
-    {
-        key: ChartType.LineChart,
-        label: "Line Chart",
-    },
-    {
-        key: ChartType.ScatterPlot,
-        label: "Scatter Plot",
-    },
-    {
-        key: ChartType.TimeScatter,
-        label: "Time Scatter",
-    },
-    {
-        key: ChartType.StackedArea,
-        label: "Stacked Area",
-    },
-    {
-        key: ChartType.DiscreteBar,
-        label: "Discrete Bar",
-    },
-    {
-        key: ChartType.SlopeChart,
-        label: "Slope Chart",
-    },
-    {
-        key: ChartType.StackedBar,
-        label: "Stacked Bar",
-    },
-]
-
-// TODO make this a string enum in TypeScript 2.4
-export const ChartTypeDefsByKey = keyBy(ChartTypeDefs, (e) => e.key)
+export type SeriesName = string

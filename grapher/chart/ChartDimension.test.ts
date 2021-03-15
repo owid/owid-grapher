@@ -1,15 +1,16 @@
-#! /usr/bin/env yarn jest
+#! /usr/bin/env jest
+
+// todo: remove this when we remove chartDimension
 
 import { ChartDimension } from "./ChartDimension"
-import { OwidTable } from "owidTable/OwidTable"
+import { BlankOwidTable } from "../../coreTable/OwidTable"
+import { DimensionProperty } from "../core/GrapherConstants"
 
-describe(ChartDimension, () => {
-    it("can serialize for saving", () => {
-        expect(
-            new ChartDimension(
-                { property: "x", variableId: 1 },
-                new OwidTable([])
-            ).toObject()
-        ).toEqual({ property: "x", variableId: 1 })
-    })
+it("can serialize for saving", () => {
+    expect(
+        new ChartDimension(
+            { property: DimensionProperty.x, variableId: 1 },
+            { table: BlankOwidTable() }
+        ).toObject()
+    ).toEqual({ property: "x", variableId: 1 })
 })

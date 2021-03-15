@@ -1,11 +1,17 @@
 // Script to export the data_values for all variables attached to charts
 
 import * as path from "path"
-import * as db from "db/db"
+import * as db from "./db"
 import * as lodash from "lodash"
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import {
+    DB_NAME,
+    DB_USER,
+    DB_PASS,
+    DB_HOST,
+    DB_PORT,
+} from "../settings/serverSettings"
 
-import { exec } from "utils/server/serverUtil"
+import { execWrapper } from "./execWrapper"
 
 const namespacesArg: string = process.argv[2]
 
@@ -18,7 +24,7 @@ if (!namespacesArg) {
 const namespaces: string[] = namespacesArg.split(",")
 
 async function dataExport() {
-    await db.connect()
+    await db.getConnection()
 
     const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(
         ","
@@ -29,7 +35,7 @@ async function dataExport() {
     // namespace.
     // This is necessary in order to reproduce the charts from the live grapher
     // accurately.
-    const rows = await db.query(
+    const rows = await db.queryMysql(
         `
         SELECT DISTINCT chart_dimensions.variableId
         FROM chart_dimensions
@@ -51,7 +57,7 @@ async function dataExport() {
         `Exporting data for ${variableIds.length} variables to ${tmpFilename}`
     )
 
-    await exec(`rm -f ${tmpFilename}`)
+    await execWrapper(`rm -f ${tmpFilename}`)
 
     // Expose password to mysqldump
     // Safer than passing as an argument because it's not shown in 'ps aux'
@@ -59,7 +65,7 @@ async function dataExport() {
 
     let count = 0
     for (const chunk of lodash.chunk(variableIds, 100)) {
-        await exec(
+        await execWrapper(
             `mysqldump --default-character-set=utf8mb4 --no-tablespaces --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
                 ","
             )})" >> ${tmpFilename}`
@@ -69,7 +75,7 @@ async function dataExport() {
         console.log(count)
     }
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 dataExport()

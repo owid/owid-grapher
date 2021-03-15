@@ -1,0 +1,870 @@
+/* Chart editor styling */
+
+@import "node_modules/bootstrap/scss/bootstrap";
+@import "node_modules/react-tag-autocomplete/example/styles";
+
+@import "~tippy.js/dist/tippy.css";
+@import "~tippy.js/themes/light.css";
+
+html {
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial,
+        sans-serif;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+#app {
+    height: 100%;
+}
+
+.AdminApp {
+    height: 100%;
+
+    button,
+    a,
+    .btn,
+    .form-group > label,
+    .form-check > label {
+        @extend .clickable;
+    }
+
+    a.logout:hover:after {
+        content: " (logout)";
+    }
+
+    .navbar {
+        z-index: 3;
+        font-size: 0.95rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.15rem;
+    }
+
+    .navbar-toggler {
+        padding: 0.2rem 0.5rem;
+        display: block;
+        margin-right: 1rem;
+    }
+
+    .navbar span.dev {
+        color: orange;
+        font-size: 0.8em;
+    }
+
+    .navbar span.live {
+        color: lightgreen;
+        font-size: 0.8em;
+    }
+
+    .navbar span.test {
+        color: lightpink;
+        font-size: 0.8em;
+    }
+
+    section {
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        h3 {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e4e8;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .card-footer {
+            border-radius: 0;
+            border: 0;
+            background: none;
+            padding: 0;
+        }
+
+        > .btn {
+            margin-right: 10px;
+        }
+    }
+
+    section:not(:first-child) {
+        margin-top: 40px;
+    }
+}
+
+.AdminLayout {
+    height: 100%;
+
+    padding-top: 45px;
+    > nav {
+        background-color: #001c3d;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 45px;
+    }
+
+    > main {
+        height: 100%;
+    }
+}
+
+.AdminLayout.withSidebar {
+    padding-left: 160px;
+}
+
+.AdminSidebar {
+    position: fixed;
+    left: 0;
+    width: 160px;
+    height: calc(100% - 45px);
+
+    overflow-y: auto;
+    background: #222d32;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    li.header {
+        color: #4b646f;
+        background: #1a2226;
+        padding: 10px 25px 10px 15px;
+        font-size: 12px;
+    }
+
+    li > a {
+        padding: 12px 5px 12px 15px;
+        display: block;
+        color: #b8c7ce;
+    }
+
+    li > a:hover {
+        color: #fff;
+        background: #1e282c;
+        text-decoration: none;
+    }
+}
+
+.EditorFAQ {
+    .modal-dialog {
+        max-width: 800px;
+    }
+
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+
+    h6 {
+        font-weight: bold;
+    }
+
+    h6:not(:first-child) {
+        margin-top: 20px;
+    }
+}
+
+.ChartEditorPage {
+    display: flex;
+    flex-grow: 1;
+
+    .btn-group .btn {
+        width: 50px;
+    }
+
+    .form-group > label {
+        margin-bottom: 0;
+    }
+
+    .nav-tabs :not(.active).nav-link {
+        background: #f9f9f9;
+    }
+
+    .nav-tabs .nav-link {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    > .chart-editor-settings {
+        min-width: 500px;
+        width: 500px;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .innerForm {
+        overflow-y: scroll;
+        flex-grow: 1;
+    }
+
+    .SaveButtons {
+        padding: 24px;
+    }
+
+    > .chart-editor-view {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+    }
+
+    section {
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin-bottom: 1.2em;
+        background-color: #f9f9f9;
+
+        > h5 {
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ccc;
+        }
+    }
+}
+
+.EditorBasicTab {
+    .list-group {
+        margin-top: 0;
+        margin-bottom: 0.5em;
+    }
+
+    .DimensionCard {
+        header {
+            display: flex;
+            color: #666;
+            text-align: center;
+
+            > div {
+                &:not(:first-child) {
+                    margin-left: 4%;
+                }
+            }
+        }
+
+        > div {
+            margin: 1em 0;
+        }
+
+        .dimensionLink {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
+        }
+    }
+
+    .dimensionSlot {
+        cursor: pointer;
+        min-height: 50px;
+        border: 1px dashed #bbb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    }
+}
+
+.ColorableItem {
+    display: flex;
+    align-items: center;
+
+    > div {
+        margin-right: 0.5em;
+    }
+}
+
+.VariableSelector {
+    .modal-dialog {
+        min-width: 800px;
+        max-width: 90vw;
+    }
+
+    .modal-body > div {
+        display: flex !important;
+        justify-content: space-between;
+    }
+
+    .selectedData {
+        min-width: 25%;
+        padding-left: 1em;
+        max-height: 550px;
+        overflow-y: auto;
+    }
+
+    .searchResults {
+        width: 100%;
+    }
+
+    .searchResults h5 {
+        color: #666;
+        font-size: 1rem;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .searchResults ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .searchResults b {
+        color: orange;
+    }
+
+    ul {
+        padding: 0;
+    }
+
+    li {
+        list-style-type: none;
+        flex: 1 0 15em;
+        min-height: 32px;
+    }
+
+    li > .form-check {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    input[type="search"] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
+
+    .muted-option {
+        opacity: 0.55;
+    }
+
+    .icon {
+        color: #999;
+        margin-right: 5px;
+    }
+
+    .badge {
+        background-color: #999;
+        border-radius: 2px;
+        text-transform: uppercase;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 4px;
+        color: white;
+        margin-left: 4px;
+    }
+}
+
+.EditorDataTab {
+    .EditableListItem {
+        @extend .draggable;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        > div {
+            display: flex;
+            align-items: center;
+        }
+
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        > div:first-child > * {
+            margin-right: 12px;
+        }
+    }
+}
+
+.ColorSchemeEditor {
+    padding-left: 0;
+    li {
+        display: flex;
+        align-items: center;
+
+        i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        > * {
+            margin-right: 8px;
+
+            &:last-child {
+                margin-right: 0;
+            }
+        }
+
+        .range {
+            display: flex;
+            flex: 1 0;
+            align-items: center;
+
+            span {
+                font-size: 0.85em;
+                margin: 0 3px;
+            }
+        }
+
+        .form-group {
+            flex: 1 1;
+            margin-bottom: 0;
+        }
+    }
+}
+
+.BinLabelView .FieldsRow {
+    margin-bottom: 0;
+}
+
+.EditorScatterTab {
+    ul.excludedEntities {
+        padding: 0;
+
+        li {
+            list-style-type: none;
+            display: inline-flex;
+            align-items: center;
+            padding: 1em;
+            background: white;
+            border-radius: 0.5em;
+            margin-right: 0.5em;
+        }
+
+        .clickable {
+            margin-right: 0.2em;
+        }
+    }
+}
+
+/* Reusable utility classes */
+
+.draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    user-select: none;
+}
+
+.draggable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.modalContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.FieldsRow {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em;
+
+    > * {
+        padding-right: 1rem;
+        margin-bottom: 0 !important;
+        flex-grow: 1;
+        flex-basis: 0;
+    }
+}
+
+.AutoTextField {
+    .input-group-addon {
+        cursor: pointer;
+        padding-left: 8px;
+        padding-top: 6px;
+    }
+}
+
+.ColorBox {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.colorpicker-tooltip {
+    .tippy-content {
+        padding: 0;
+
+        .sketch-picker {
+            box-shadow: none !important;
+        }
+    }
+}
+
+.LoadingBlocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    color: white;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+}
+
+.errorMessage {
+    z-index: 2000;
+    .modal-dialog {
+        max-width: 80%;
+    }
+}
+
+main:not(.ChartEditorPage) {
+    padding: 2em;
+}
+
+.chartPreview {
+    width: 100%;
+    height: auto;
+}
+
+.internalNotes {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
+
+.ChartIndexPage,
+.UsersIndexPage {
+    .topRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1em;
+
+        .form-group {
+            margin: 0;
+        }
+
+        input {
+            width: 500px;
+        }
+    }
+}
+
+.ImportPage {
+    .Importer {
+        max-width: 1000px;
+
+        input:not([type="submit"]),
+        select,
+        textarea,
+        button {
+            @extend .form-control;
+        }
+
+        label {
+            display: block;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        .updateWarning {
+            margin-top: 20px;
+            margin-bottom: 0;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        select.chooseDataset {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    .ValidationView {
+        margin-top: 20px;
+    }
+
+    .EditVariable {
+        .variableProps > label {
+            margin-right: 10px;
+            line-height: normal;
+        }
+
+        .name,
+        .description {
+            width: 100%;
+        }
+    }
+
+    .importProgress {
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 20px;
+
+        .success {
+            color: #00a65a;
+        }
+
+        .error {
+            color: #dd4b39;
+        }
+
+        .progressInner {
+            overflow: auto;
+            margin: 10px;
+        }
+    }
+
+    section:not(:first-child) {
+        margin-top: 0;
+    }
+}
+
+.VariableEditPage {
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
+}
+
+.TestEmbedsPage {
+    figure,
+    iframe {
+        border: 0;
+        width: 914px;
+        height: 400px;
+    }
+
+    .row {
+        padding: 10px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    h3 {
+        width: 50%;
+        text-align: center;
+        margin: 0;
+    }
+
+    nav.pagination {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+.VariableEditRow {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+
+    figure {
+        width: 100%;
+        height: 500px;
+    }
+}
+
+// to override the default annoying blue border from bootstrap on file upload
+.custom-file-input:focus ~ .custom-file-control {
+    box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem #fff;
+}
+
+.TagsIndexPage {
+    .badge {
+        font-size: 0.8em;
+        margin-right: 0.5em;
+    }
+}
+
+.TagBadge {
+    display: inline-block;
+    padding: 6px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    background-color: #eee;
+    color: #333;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+
+    &:hover {
+        color: #333;
+    }
+}
+
+.EditableTags {
+    button {
+        opacity: 0.8;
+    }
+
+    // Tweak to stop suggestions overlapping "Add new tag" in another tag input below
+    .react-tags__suggestions {
+        z-index: 10;
+    }
+}
+
+.NewsletterPage {
+    h2 {
+        font-size: 1.25rem;
+
+        a {
+            user-select: all;
+        }
+
+        b {
+            background-color: rgba(255, 217, 0, 0.315);
+        }
+    }
+}
+
+.RadioGroup {
+    padding: 5px 0;
+
+    .radioOption {
+        display: inline-block;
+        margin: 3px 15px 3px 0;
+    }
+
+    label {
+        padding-left: 4px;
+        cursor: pointer;
+    }
+
+    input {
+        cursor: pointer;
+    }
+}
+
+.redirect-prefix {
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.add-redirect-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    span,
+    button {
+        flex: 0;
+    }
+
+    input[type="text"] {
+        flex: 1;
+        font-weight: 700;
+        color: #007bff;
+    }
+}
+
+.DeploysPage {
+    .all-published-notice {
+        font-size: 18px;
+        font-weight: 700;
+        color: green;
+        margin: 10px 0;
+
+        .icon {
+            font-size: 150%;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+    }
+}
+
+.DeploysTable {
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px 0;
+
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    th,
+    td {
+        padding: 10px;
+    }
+
+    th {
+        font-size: 12px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #999;
+    }
+
+    .cell-status {
+        font-weight: 700;
+        color: #999;
+    }
+    .cell-status--pending {
+        color: #c36d00;
+    }
+    .cell-message {
+        font-weight: 700;
+        color: #333;
+    }
+    .cell-author,
+    .cell-time {
+        font-weight: 400;
+        color: #777;
+    }
+}

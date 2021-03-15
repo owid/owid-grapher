@@ -1,6 +1,12 @@
 // Update with your config settings.
 
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
+import {
+    DB_NAME,
+    DB_USER,
+    DB_PASS,
+    DB_HOST,
+    DB_PORT,
+} from "../settings/serverSettings"
 
 const dbConfig = {
     client: "mysql",
@@ -14,10 +20,6 @@ const dbConfig = {
     pool: {
         min: 2,
         max: 10,
-    },
-    migrations: {
-        tableName: "knex_migrations",
-        directory: "./db/knexMigrations",
     },
 }
 

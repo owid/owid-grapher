@@ -1,23 +1,20 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, toJS, action } from "mobx"
-
+import { observable, computed } from "mobx"
 import {
-    extend,
     rollingMap,
     min,
     isMobile,
     uniq,
     sortBy,
     maxBy,
-} from "grapher/utils/Util"
-import {
-    TickFormattingOptions,
-    ScaleType,
-    ScaleTypeConfig,
-} from "grapher/core/GrapherConstants"
-import { Bounds } from "grapher/utils/Bounds"
-import { TextWrap } from "grapher/text/TextWrap"
+} from "../../clientUtils/Util"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { ValueRange } from "../../coreTable/CoreTableConstants"
+import { ScaleType } from "../../clientUtils/owidTypes"
+import { TickFormattingOptions } from "../../clientUtils/formatValue"
 
 interface Tickmark {
     value: number
@@ -27,72 +24,77 @@ interface Tickmark {
     isFirstOrLastTick?: boolean
 }
 
-declare type TickFormatFunction = (
-    v: number,
-    options?: TickFormattingOptions
-) => string
-
-abstract class AbstractAxis implements ScaleTypeConfig {
-    protected options: AxisConfig
-    @observable.ref domain: [number, number]
-    @observable tickFormatFn: TickFormatFunction = (d) => `${d}`
+abstract class AbstractAxis {
+    config: AxisConfig
+    @observable.ref domain: ValueRange
+    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
-    @observable.struct range: [number, number] = [0, 0]
+    @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
-    @observable private _scaleTypeOptions?: ScaleType[]
 
+    constructor(config: AxisConfig) {
+        this.config = config
+        this.domain = [config.domain[0], config.domain[1]]
+    }
+
+    @computed get hideAxis() {
+        return this.config.hideAxis
+    }
+
+    // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
-    updateDomainPreservingUserSettings(domain: [number, number]) {
+    // Undefined values are ignored
+    updateDomainPreservingUserSettings(
+        domain: [number | undefined, number | undefined]
+    ) {
         this.domain = [
-            Math.min(this.domain[0], domain[0]),
-            Math.max(this.domain[1], domain[1]),
+            domain[0] !== undefined
+                ? Math.min(this.domain[0], domain[0])
+                : this.domain[0],
+            domain[1] !== undefined
+                ? Math.max(this.domain[1], domain[1])
+                : this.domain[1],
         ]
         return this
     }
 
     @computed get fontSize() {
-        return this.options.fontSize
-    }
-
-    constructor(options: AxisConfig) {
-        this.options = options
-        this.domain = [options.domain[0], options.domain[1]]
+        return this.config.fontSize
     }
 
     @computed get scaleType() {
-        return this._scaleType ?? (this.options.scaleType || ScaleType.linear)
+        return this._scaleType ?? (this.config.scaleType || ScaleType.linear)
     }
 
     set scaleType(value: ScaleType) {
         this._scaleType = value
     }
 
-    // Call this to update the user's setting and change the URL
-    @action.bound updateChartScaleType(value: ScaleType) {
-        this.options.scaleType = value
-    }
-
     @computed get label() {
-        return this._label ?? this.options.label
+        return this._label ?? this.config.label
     }
 
     set label(value: string) {
         this._label = value
     }
 
-    @computed get scaleTypeOptions(): ScaleType[] {
-        return this._scaleTypeOptions
-            ? this._scaleTypeOptions
-            : this.options.canChangeScaleType
-            ? [ScaleType.linear, ScaleType.log]
-            : [this.scaleType]
+    @computed get canChangeScaleType() {
+        return this.config.canChangeScaleType
     }
 
-    set scaleTypeOptions(value: ScaleType[]) {
-        this._scaleTypeOptions = value
+    // todo: refactor. switch to a parent pattern?
+    _update(parentAxis: AbstractAxis) {
+        this.formatColumn = parentAxis.formatColumn
+        this.domain = parentAxis.domain.slice() as ValueRange
+        this.hideFractionalTicks = parentAxis.hideFractionalTicks
+        this.hideGridlines = parentAxis.hideGridlines
+        this.range = parentAxis.range.slice() as ValueRange
+        this._scaleType = parentAxis._scaleType
+        this._label = parentAxis._label
+        return this
     }
 
     @computed private get d3_scale():
@@ -121,7 +123,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return isMobile() ? 8 : 10
     }
 
-    getTickValues(): Tickmark[] {
+    getTickValues() {
         const { scaleType, d3_scale, maxLogLines } = this
 
         let ticks: Tickmark[]
@@ -154,17 +156,17 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             //
             // -@MarcelGerber, 2020-08-07
             const tickCandidates = d3_scale.ticks(maxLogLines)
-            ticks = tickCandidates.map((tickValue) => {
+            ticks = tickCandidates.map((value) => {
                 // 10^x
-                if (Math.fround(Math.log10(tickValue)) % 1 === 0)
-                    return { value: tickValue, priority: 1 }
+                if (Math.fround(Math.log10(value)) % 1 === 0)
+                    return { value, priority: 1 }
                 // 5 * 10^x
-                else if (Math.fround(Math.log10(tickValue * 2)) % 1 === 0)
-                    return { value: tickValue, priority: 2 }
+                else if (Math.fround(Math.log10(value * 2)) % 1 === 0)
+                    return { value, priority: 2 }
                 // 2 * 10^x
-                else if (Math.fround(Math.log10(tickValue / 2)) % 1 === 0)
-                    return { value: tickValue, priority: 2 }
-                else return { value: tickValue, priority: 3 }
+                else if (Math.fround(Math.log10(value / 2)) % 1 === 0)
+                    return { value, priority: 2 }
+                return { value, priority: 3 }
             })
 
             if (ticks.length > maxLogLines) {
@@ -178,10 +180,11 @@ abstract class AbstractAxis implements ScaleTypeConfig {
                 } else {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
-                    for (let prio = 3; prio > 1; prio--) {
-                        if (ticks.length > maxLogLines) {
-                            ticks = ticks.filter((tick) => tick.priority < prio)
-                        }
+                    for (let priority = 3; priority > 1; priority--) {
+                        if (ticks.length > maxLogLines)
+                            ticks = ticks.filter(
+                                (tick) => tick.priority < priority
+                            )
                     }
                 }
             }
@@ -199,7 +202,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return uniq(ticks)
     }
 
-    getTickFormattingOptions(): TickFormattingOptions {
+    private getTickFormattingOptions(): TickFormattingOptions {
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.
         //
@@ -225,18 +228,19 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         const minDist = min(
             rollingMap(tickValues, (a, b) => Math.abs(a.value - b.value))
         )
-        if (minDist !== undefined) {
-            // Find the decimal places required to reach the first non-zero digit
-            const dp = Math.ceil(-Math.log10(minDist))
-            if (isFinite(dp) && dp >= 0) return { numDecimalPlaces: dp }
-        }
+        if (minDist === undefined) return {}
+
+        // Find the decimal places required to reach the first non-zero digit
+        const dp = Math.ceil(-Math.log10(minDist))
+        if (isFinite(dp) && dp >= 0) return { numDecimalPlaces: dp }
+
         return {}
     }
 
-    getFormattedTicks(): string[] {
-        const options = this.getTickFormattingOptions()
+    getFormattedTicks() {
+        // todo: pass in first or last?
         return this.getTickValues().map((tickmark) =>
-            this.tickFormatFn(tickmark.value, options)
+            this.formatTick(tickmark.value)
         )
     }
 
@@ -261,16 +265,14 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return bounds.intersects(bounds2)
     }
 
-    @computed get ticks(): number[] {
+    @computed get ticks() {
         const { tickPlacements } = this
         for (let i = 0; i < tickPlacements.length; i++) {
             for (let j = i + 1; j < tickPlacements.length; j++) {
                 const t1 = tickPlacements[i],
                     t2 = tickPlacements[j]
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
-                if (this.doIntersect(t1.bounds, t2.bounds)) {
-                    t2.isHidden = true
-                }
+                if (this.doIntersect(t1.bounds, t2.bounds)) t2.isHidden = true
             }
         }
 
@@ -279,19 +281,27 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         )
     }
 
-    formatTick(tick: number, isFirstOrLastTick?: boolean) {
-        const tickFormattingOptions = this.getTickFormattingOptions()
-        return this.tickFormatFn(tick, {
-            ...tickFormattingOptions,
-            isFirstOrLastTick,
-        })
+    formatTick(
+        tick: number,
+        formattingOptionsOverride?: TickFormattingOptions
+    ) {
+        const tickFormattingOptions: TickFormattingOptions = {
+            ...this.getTickFormattingOptions(),
+            ...formattingOptionsOverride,
+        }
+        return (
+            this.formatColumn?.formatForTick(tick, tickFormattingOptions) ??
+            tick.toString()
+        )
     }
 
     // calculates coordinates for ticks, sorted by priority
     @computed private get tickPlacements() {
         return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
             const bounds = Bounds.forText(
-                this.formatTick(tick.value, !!tick.isFirstOrLastTick),
+                this.formatTick(tick.value, {
+                    isFirstOrLastTick: tick.isFirstOrLastTick,
+                }),
                 {
                     fontSize: this.tickFontSize,
                 }
@@ -329,27 +339,19 @@ abstract class AbstractAxis implements ScaleTypeConfig {
               })
             : undefined
     }
-
-    // tod: factor out. switch to a parent pattern
-    _update(axis: AbstractAxis) {
-        const props = toJS(axis) as any
-        delete props.options // Don't overwrite options ref
-        extend(this, props)
-        return this
-    }
 }
 
-export class HorizontalAxis extends AbstractAxis {
-    private static labelPadding = 5
+const labelPadding = 5
 
+export class HorizontalAxis extends AbstractAxis {
     // todo: test/refactor
     clone() {
-        return new HorizontalAxis(this.options)._update(this)
+        return new HorizontalAxis(this.config)._update(this)
     }
 
-    @computed get labelOffset(): number {
+    @computed get labelOffset() {
         return this.labelTextWrap
-            ? this.labelTextWrap.height + HorizontalAxis.labelPadding * 2
+            ? this.labelTextWrap.height + labelPadding * 2
             : 0
     }
 
@@ -419,10 +421,10 @@ export class VerticalAxis extends AbstractAxis {
 
     // todo: test/refactor
     clone() {
-        return new VerticalAxis(this.options)._update(this)
+        return new VerticalAxis(this.config)._update(this)
     }
 
-    @computed get labelOffset(): number {
+    @computed get labelOffset() {
         return this.labelTextWrap ? this.labelTextWrap.height + 10 : 0
     }
 
@@ -443,7 +445,7 @@ export class VerticalAxis extends AbstractAxis {
         return this.rangeSize
     }
 
-    protected placeTick(tickValue: number, bounds: Bounds) {
+    protected placeTick(tickValue: number) {
         return {
             y: this.place(tickValue),
             // x placement doesn't really matter here, so we're using
@@ -454,9 +456,9 @@ export class VerticalAxis extends AbstractAxis {
 }
 
 interface DualAxisProps {
-    bounds: Bounds
-    xAxis: HorizontalAxis
-    yAxis: VerticalAxis
+    bounds?: Bounds
+    horizontalAxis: HorizontalAxis
+    verticalAxis: VerticalAxis
 }
 
 // DualAxis has the important task of coordinating two axes so that they work together!
@@ -469,40 +471,40 @@ export class DualAxis {
         this.props = props
     }
 
-    @computed get xAxis() {
-        const axis = this.props.xAxis.clone()
+    @computed get horizontalAxis() {
+        const axis = this.props.horizontalAxis.clone()
         axis.range = this.innerBounds.xRange()
         return axis
     }
 
-    @computed get yAxis() {
-        const axis = this.props.yAxis.clone()
+    @computed get verticalAxis() {
+        const axis = this.props.verticalAxis.clone()
         axis.range = this.innerBounds.yRange()
         return axis
     }
 
     // We calculate an initial height from the range of the input bounds
-    @computed private get xAxisHeight() {
-        const axis = this.props.xAxis.clone()
-        axis.range = [0, this.props.bounds.width]
-        return axis.height
+    @computed private get horizontalAxisHeight() {
+        const axis = this.props.horizontalAxis.clone()
+        axis.range = [0, this.bounds.width]
+        return axis.hideAxis ? 0 : axis.height
     }
 
     // We calculate an initial width from the range of the input bounds
-    @computed private get yAxisWidth() {
-        const axis = this.props.yAxis.clone()
-        axis.range = [0, this.props.bounds.height]
-        return axis.width
+    @computed private get verticalAxisWidth() {
+        const axis = this.props.verticalAxis.clone()
+        axis.range = [0, this.bounds.height]
+        return axis.hideAxis ? 0 : axis.width
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
-    @computed get innerBounds(): Bounds {
-        return this.props.bounds
-            .padBottom(this.xAxisHeight)
-            .padLeft(this.yAxisWidth)
+    @computed get innerBounds() {
+        return this.bounds
+            .padBottom(this.horizontalAxisHeight)
+            .padLeft(this.verticalAxisWidth)
     }
 
     @computed get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 }

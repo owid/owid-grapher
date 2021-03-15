@@ -1,43 +1,80 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { FacetChart } from "./FacetChart"
-import { basicGdpGrapher, basicScatterGrapher } from "grapher/test/samples"
-import { ChartTypeName } from "grapher/chart/ChartTypes"
+import {
+    SampleColumnSlugs,
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "../../coreTable/OwidTableSynthesizers"
+import { Bounds } from "../../clientUtils/Bounds"
+import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants"
+import { Meta } from "@storybook/react"
 
-export default {
+// See https://storybook.js.org/docs/react/essentials/controls for Control Types
+const CSF: Meta = {
     title: "FacetChart",
     component: FacetChart,
-    argTypes: {
-        chartTypeName: { control: "select", defaultValue: "LineChart" },
-        number: { control: "range", defaultValue: 4 },
-        padding: { control: "range", defaultValue: 1 },
-        width: {
-            control: { type: "range", min: 50, max: 2000 },
-            defaultValue: 640,
-        },
-        height: {
-            control: { type: "range", min: 50, max: 2000 },
-            defaultValue: 480,
-        },
-        chart: { control: null },
-    },
 }
 
-export const Default = (args: any) => {
-    const chartType: ChartTypeName = args.chartTypeName
-    const grapher = chartType.includes("Scatter")
-        ? basicScatterGrapher()
-        : basicGdpGrapher()
+export default CSF
+
+const bounds = new Bounds(0, 0, 1000, 500)
+
+export const OneMetricOneCountryPerChart = () => {
+    const table = SynthesizeGDPTable({
+        entityCount: 4,
+    })
+    const manager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlug: SampleColumnSlugs.GDP,
+        xColumnSlug: SampleColumnSlugs.Population,
+    }
 
     return (
-        <FacetChart
-            number={args.number}
-            chartTypeName={chartType}
-            grapher={grapher}
-            width={args.width}
-            height={args.height}
-            padding={args.padding}
-        />
+        <svg width={bounds.width} height={bounds.height}>
+            <FacetChart
+                bounds={bounds}
+                chartTypeName={ChartTypeName.LineChart}
+                manager={manager}
+            />
+        </svg>
+    )
+}
+
+export const MultipleMetricsOneCountryPerChart = () => {
+    const table = SynthesizeFruitTable({
+        entityCount: 4,
+    })
+    return (
+        <svg width={bounds.width} height={bounds.height}>
+            <FacetChart
+                bounds={bounds}
+                chartTypeName={ChartTypeName.LineChart}
+                manager={{
+                    selection: table.availableEntityNames,
+                    table,
+                }}
+            />
+        </svg>
+    )
+}
+
+export const OneChartPerMetric = () => {
+    const table = SynthesizeGDPTable({
+        entityCount: 2,
+    })
+    return (
+        <svg width={bounds.width} height={bounds.height}>
+            <FacetChart
+                bounds={bounds}
+                chartTypeName={ChartTypeName.LineChart}
+                manager={{
+                    facetStrategy: FacetStrategy.column,
+                    yColumnSlugs: table.numericColumnSlugs,
+                    selection: table.availableEntityNames,
+                    table,
+                }}
+            />
+        </svg>
     )
 }

@@ -1,11 +1,17 @@
 // Script to export everything in the database except sensitive info and data_values (which is big)
 
-import * as db from "db/db"
+import * as db from "./db"
 import * as fs from "fs-extra"
 import parseArgs from "minimist"
 
-import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
-import { exec } from "utils/server/serverUtil"
+import {
+    DB_NAME,
+    DB_USER,
+    DB_PASS,
+    DB_HOST,
+    DB_PORT,
+} from "../settings/serverSettings"
+import { execWrapper } from "./execWrapper"
 
 const argv = parseArgs(process.argv.slice(2))
 const withPasswords = argv["with-passwords"]
@@ -24,7 +30,7 @@ const excludeTables = [
 ]
 
 async function dataExport() {
-    await db.connect()
+    await db.getConnection()
 
     console.log(`Exporting database structure and metadata to ${filePath}...`)
 
@@ -33,12 +39,12 @@ async function dataExport() {
     process.env.MYSQL_PWD = DB_PASS
 
     // Dump all tables including schema but exclude the rows of data_values
-    await exec(
+    await execWrapper(
         `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
             .map((tableName) => `--ignore-table=${DB_NAME}.${tableName}`)
             .join(" ")} -r ${filePath}`
     )
-    await exec(
+    await execWrapper(
         `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} ${excludeTables.join(
             " "
         )} >> ${filePath}`
@@ -46,7 +52,7 @@ async function dataExport() {
 
     if (!withPasswords) {
         // Strip passwords
-        await exec(`sed -i -e "s/bcrypt[^']*//g" ${filePath}`)
+        await execWrapper(`sed -i -e "s/bcrypt[^']*//g" ${filePath}`)
         // Add default admin user
         await fs.appendFile(
             filePath,
@@ -54,7 +60,7 @@ async function dataExport() {
         )
     }
 
-    await db.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 dataExport()
