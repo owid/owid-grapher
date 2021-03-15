@@ -11,12 +11,12 @@ const encodeTests = [
     {
         entities: ["United States", "United Kingdom"],
         inputQueryStr: "?country=USA~GBR",
-        outputQueryStr: "?selection=USA~GBR",
+        outputQueryStr: "?country=USA~GBR",
     },
     {
         entities: ["YouTube", "Google+"],
         inputQueryStr: "?country=YouTube~Google%2B",
-        outputQueryStr: "?selection=YouTube~Google%2B",
+        outputQueryStr: "?country=YouTube~Google%2B",
     },
     {
         entities: [
@@ -27,29 +27,29 @@ const encodeTests = [
         inputQueryStr:
             "?country=Bogebakken%20(Denmark)%3B%204300%20-%203800%20BCE~British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE~Brittany%3B%206000%20BCE",
         outputQueryStr:
-            "?selection=Bogebakken+%28Denmark%29%3B+4300+-+3800+BCE~British+Columbia+%2830+sites%29%3B+3500+BCE+-+1674+CE~Brittany%3B+6000+BCE",
+            "?country=Bogebakken+%28Denmark%29%3B+4300+-+3800+BCE~British+Columbia+%2830+sites%29%3B+3500+BCE+-+1674+CE~Brittany%3B+6000+BCE",
     },
     {
         entities: ["British Columbia (30 sites); 3500 BCE - 1674 CE"],
         inputQueryStr:
             "?country=~British%20Columbia%20(30%20sites)%3B%203500%20BCE%20-%201674%20CE",
         outputQueryStr:
-            "?selection=~British+Columbia+%2830+sites%29%3B+3500+BCE+-+1674+CE",
+            "?country=~British+Columbia+%2830+sites%29%3B+3500+BCE+-+1674+CE",
     },
     {
         entities: ["Caribbean small states"],
         inputQueryStr: "?country=~Caribbean%20small%20states",
-        outputQueryStr: "?selection=~Caribbean+small+states",
+        outputQueryStr: "?country=~Caribbean+small+states",
     },
     {
         entities: ["North America"],
         inputQueryStr: "?country=~North%20America",
-        outputQueryStr: "?selection=~North+America",
+        outputQueryStr: "?country=~North+America",
     },
     {
         entities: [],
         inputQueryStr: "?country=",
-        outputQueryStr: "?selection=",
+        outputQueryStr: "?country=",
     },
     {
         entities: [
@@ -59,7 +59,7 @@ const encodeTests = [
         inputQueryStr:
             "?country=Men%20and%20Women%20Ages%2065%2B~Australia%20%26%20New%20Zealand%20%2B%20(Total)",
         outputQueryStr:
-            "?selection=Men+and+Women+Ages+65%2B~Australia+%26+New+Zealand+%2B+%28Total%29",
+            "?country=Men+and+Women+Ages+65%2B~Australia+%26+New+Zealand+%2B+%28Total%29",
     },
 ]
 

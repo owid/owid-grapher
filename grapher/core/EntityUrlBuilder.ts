@@ -127,34 +127,12 @@ const migrateLegacyDimensionPairs: UrlMigration = (url) => {
 }
 
 /*
- * Migration #3: Rename the `country` param to `selection`.
- *
- * Implemented: March 2021
- *
- * Most of our charts have countries as entities, but some don't. Using selection= is more general
- * than country=.
- *
- */
-
-const migrateCountryToSelection: UrlMigration = (url) => {
-    const { country, selection } = url.queryParams
-    if (selection === undefined && country !== undefined) {
-        return url.updateQueryParams({
-            country: undefined,
-            selection: country,
-        })
-    }
-    return url
-}
-
-/*
  * Combining all migrations
  */
 
 const urlMigrations: UrlMigration[] = [
     migrateV1Delimited,
     migrateLegacyDimensionPairs,
-    migrateCountryToSelection,
 ]
 
 export const migrateSelectedEntityNamesParam: UrlMigration = (
@@ -170,9 +148,9 @@ export const migrateSelectedEntityNamesParam: UrlMigration = (
 export const getSelectedEntityNamesParam = (
     url: Url
 ): EntityName[] | undefined => {
-    const { selection } = migrateSelectedEntityNamesParam(url).queryParams
-    return selection !== undefined
-        ? entityNamesFromV2Param(selection).map(codeToEntityName)
+    const { country } = migrateSelectedEntityNamesParam(url).queryParams
+    return country !== undefined
+        ? entityNamesFromV2Param(country).map(codeToEntityName)
         : undefined
 }
 
@@ -181,7 +159,7 @@ export const setSelectedEntityNamesParam = (
     entityNames: EntityName[] | undefined
 ) => {
     return migrateSelectedEntityNamesParam(url).updateQueryParams({
-        selection: entityNames
+        country: entityNames
             ? entityNamesToV2Param(entityNames.map(entityNameToCode))
             : undefined,
     })
