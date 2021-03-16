@@ -33,7 +33,7 @@ export const autoDetectSeriesStrategy = (manager: ChartManager) => {
 }
 
 export const makeClipPath = (renderUid: number, box: Box) => {
-    const id = `boundsClip-${renderUid})`
+    const id = `boundsClip-${renderUid}`
     return {
         id: `url(#${id})`,
         element: (
