@@ -1,5 +1,6 @@
 .tscache
 /bakedSite
+/localBake
 datasetsExport
 itsJustJavascript
 package.json
