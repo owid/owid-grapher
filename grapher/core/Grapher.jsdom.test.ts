@@ -344,9 +344,16 @@ describe("line chart to bar chart and bar chart race", () => {
         })
     })
 
-    it("turns into a bar chart race when playing a line chart", () => {
+    it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
+        grapher.startHandleTimeBound = -Infinity
+        grapher.endHandleTimeBound = -Infinity
         grapher.timelineController.play(1)
-        expect(grapher.startHandleTimeBound).toEqual(grapher.endHandleTimeBound)
+        expect(grapher.startHandleTimeBound).not.toEqual(
+            grapher.endHandleTimeBound
+        )
+        expect(
+            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        ).toEqual(ChartTypeName.LineChart)
     })
 
     it("turns into a bar chart when constrained start & end handles are equal", () => {
