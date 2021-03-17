@@ -58,11 +58,14 @@ const covidIntervalFromLegacyQueryParams = (queryParams: QueryParams) => {
     return undefined
 }
 
+const boolParamToString = (bool: boolean | string | undefined) =>
+    bool ? "true" : "false"
+
 const legacyToCurrentCovidQueryParams = (
     queryParams: QueryParams,
     baseQueryParams: QueryParams = {}
 ): QueryParams => {
-    const { aligned, perCapita, ...restQueryParams } = omit(
+    const restQueryParams = omit(
         {
             ...baseQueryParams,
             ...queryParams,
@@ -77,8 +80,12 @@ const legacyToCurrentCovidQueryParams = (
         "interval",
         "smoothing",
         "totalFreq",
-        "dailyFreq"
+        "dailyFreq",
+        "aligned",
+        "perCapita"
     )
+
+    const urlContainsMetric = !!covidMetricFromLegacyQueryParams(queryParams)
 
     const explorerQueryParams: QueryParams = {
         Metric:
@@ -87,8 +94,12 @@ const legacyToCurrentCovidQueryParams = (
         Interval:
             covidIntervalFromLegacyQueryParams(queryParams) ??
             covidIntervalFromLegacyQueryParams(baseQueryParams),
-        "Align outbreaks": aligned ? "true" : "false",
-        "Relative to Population": perCapita ? "true" : "false",
+        "Align outbreaks": urlContainsMetric
+            ? boolParamToString(queryParams.aligned)
+            : boolParamToString(baseQueryParams.aligned),
+        "Relative to Population": urlContainsMetric
+            ? boolParamToString(queryParams.perCapita)
+            : boolParamToString(baseQueryParams.perCapita),
     }
 
     return {
