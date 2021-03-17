@@ -52,6 +52,32 @@ describe("legacyToGridCovidExplorer", () => {
     it("preserves old query params", () => {
         expect(migratedQueryParams.yScale).toEqual("log")
     })
+
+    it("sets boolean options to 'false' if omitted in legacy URL", () => {
+        const legacyUrl = Url.fromURL(
+            "https://ourworldindata.org/coronavirus-data-explorer?casesMetric=true"
+        )
+        const baseQueryStr = "deathsMetric=true&perCapita=true&aligned=true"
+        const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
+        const migratedQueryParams = migratedUrl.queryParams
+
+        expect(migratedQueryParams["Metric"]).toEqual("Confirmed cases")
+        expect(migratedQueryParams["Relative to Population"]).toEqual("false")
+        expect(migratedQueryParams["Align outbreaks"]).toEqual("false")
+    })
+
+    it("sets default view for legacy URL without params", () => {
+        const legacyUrl = Url.fromURL(
+            "https://ourworldindata.org/coronavirus-data-explorer"
+        )
+        const baseQueryStr = "casesMetric=true&interval=daily&perCapita=true"
+        const migratedUrl = migration.migrateUrl(legacyUrl, baseQueryStr)
+        const migratedQueryParams = migratedUrl.queryParams
+
+        expect(migratedQueryParams["Metric"]).toEqual("Confirmed cases")
+        expect(migratedQueryParams["Relative to Population"]).toEqual("true")
+        expect(migratedQueryParams["Align outbreaks"]).toEqual("false")
+    })
 })
 
 describe("co2 explorer", () => {
