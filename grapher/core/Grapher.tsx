@@ -786,11 +786,7 @@ export class Grapher
     }
 
     @computed get startHandleTimeBound(): TimeBound {
-        if (
-            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar ||
-            this.isOnMapTab
-        )
-            return this.endHandleTimeBound
+        if (this.onlySingleTimeSelectionPossible) return this.endHandleTimeBound
         return this.timelineHandleTimeBounds[0]
     }
 
@@ -805,10 +801,7 @@ export class Grapher
     }
 
     set endHandleTimeBound(newValue: TimeBound) {
-        if (
-            this.isOnMapTab ||
-            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar
-        )
+        if (this.onlySingleTimeSelectionPossible)
             this.timelineHandleTimeBounds = [newValue, newValue]
         else
             this.timelineHandleTimeBounds = [
@@ -832,12 +825,8 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
-    @computed private get isDiscreteBarOrLineChartTransformedIntoDiscreteBar() {
-        return (
-            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ===
-                ChartTypeName.DiscreteBar ||
-            (this.type === ChartTypeName.LineChart && this.isPlaying)
-        )
+    @computed private get onlySingleTimeSelectionPossible() {
+        return this.type === ChartTypeName.DiscreteBar || this.isOnMapTab
     }
 
     @computed get shouldLinkToOwid() {
