@@ -150,6 +150,10 @@ export class ExplorerProgram extends GridProgram {
         return this.getLineValue(ExplorerGrammar.hideControls.keyword)
     }
 
+    get downloadDataLink() {
+        return this.getLineValue(ExplorerGrammar.downloadDataLink.keyword)
+    }
+
     get isPublished() {
         return (
             this.getLineValue(ExplorerGrammar.isPublished.keyword) ===

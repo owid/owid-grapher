@@ -91,6 +91,13 @@ export const ExplorerGrammar: Grammar = {
         description:
             "Create a Google Sheet, share it with the OWID Group, then put the link here.",
     },
+    downloadDataLink: {
+        ...UrlCellDef,
+        keyword: "downloadDataLink",
+        valuePlaceholder: "https://example.com/data.csv",
+        description:
+            "An optional URL for the download button in the Download tab. If blank, the Explorer will instead generate a CSV from the data it has available.",
+    },
     isPublished: {
         ...BooleanCellDef,
         keyword: "isPublished",
