@@ -283,6 +283,8 @@ export class Explorer
         grapher.downloadData()
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
+        if (this.downloadDataLink)
+            grapher.externalCsvLink = this.downloadDataLink
     }
 
     @action.bound private setTableBySlug(tableSlug?: TableSlug) {
@@ -454,6 +456,10 @@ export class Explorer
             this.explorerProgram.hideControls ||
             this.initialQueryParams.hideControls === "true"
         )
+    }
+
+    @computed private get downloadDataLink(): string | undefined {
+        return this.explorerProgram.downloadDataLink
     }
 
     @observable private grapherContainerRef: React.RefObject<
