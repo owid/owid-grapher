@@ -93,7 +93,7 @@ fi
 # Grapher database (owid_metadata)
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading live Grapher metadata database (owid_metadata)"
-  ssh owid-live "cd live/itsJustJavscript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
+  ssh owid-live "cd live/itsJustJavascript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
   rsync -hav --progress owid-live:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
