@@ -3,10 +3,6 @@ module.exports = {
         "plugin:react/recommended",
         "plugin:@typescript-eslint/recommended",
         "prettier",
-        "prettier/react",
-        "prettier/@typescript-eslint",
-        "plugin:import/recommended",
-        "plugin:import/typescript",
     ],
     parser: "@typescript-eslint/parser",
     parserOptions: {
@@ -53,6 +49,5 @@ module.exports = {
         react: {
             version: "detect",
         },
-        "import/resolver": "webpack",
     },
 }
