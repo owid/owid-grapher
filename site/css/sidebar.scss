@@ -133,6 +133,7 @@ $border-width: 0.125rem;
     @include xxlg-up {
         position: relative;
         height: 100%;
+        margin-top: -$content-wrapper-padding-top;
 
         .sticky-sentinel {
             position: absolute;
