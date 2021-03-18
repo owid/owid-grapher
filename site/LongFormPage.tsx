@@ -211,10 +211,14 @@ export const LongFormPage = (props: {
                             {hasSidebar && (
                                 <div>
                                     <TableOfContents
+                                        subnavId={formattingOptions.subnavId}
+                                        subnavCurrentId={
+                                            formattingOptions.subnavCurrentId
+                                        }
                                         headings={tocHeadings}
                                         pageTitle={pageTitle}
                                         // hideSubheadings={true}
-                                    />
+                                    ></TableOfContents>
                                 </div>
                             )}
                             <div className="offset-content">
@@ -415,6 +419,8 @@ export const LongFormPage = (props: {
                         runTableOfContents(${JSON.stringify({
                             headings: tocHeadings,
                             pageTitle,
+                            subnavId: formattingOptions.subnavId,
+                            subnavCurrentId: formattingOptions.subnavCurrentId,
                             // hideSubheadings: true
                         })})
                         runRelatedCharts(${JSON.stringify(post.relatedCharts)})

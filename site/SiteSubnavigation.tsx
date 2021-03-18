@@ -10,7 +10,7 @@ interface SubnavItem {
     highlight?: boolean
 }
 
-const subnavs: { [key in SubNavId]: SubnavItem[] } = {
+export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     about: [
         // `label` is shown in the UI, `id` is specified as a formatting option
         // on a page (the top html comment in WordPress)

@@ -4,11 +4,15 @@ import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
+import { SubNavId } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
+import { subnavs } from "./SiteSubnavigation"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 
 interface TableOfContentsData {
+    subnavId?: SubNavId
+    subnavCurrentId?: string
     headings: { isSubheading: boolean; slug: string; text: string }[]
     pageTitle: string
     hideSubheadings?: boolean
@@ -34,6 +38,8 @@ export const TableOfContents = ({
     headings,
     pageTitle,
     hideSubheadings,
+    subnavId,
+    subnavCurrentId,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
@@ -144,6 +150,26 @@ export const TableOfContents = ({
         }
     }, [])
 
+    const renderTableOfContents = () => {
+        return headings
+            .filter((heading) =>
+                hideSubheadings && heading.isSubheading ? false : true
+            )
+            .map((heading, i: number) => (
+                <li
+                    key={i}
+                    className={
+                        (heading.isSubheading ? "subsection" : "section") +
+                        (heading.slug === activeHeading ? " active" : "")
+                    }
+                >
+                    <a onClick={toggle} href={`#${heading.slug}`}>
+                        {heading.text}
+                    </a>
+                </li>
+            ))
+    }
+
     return (
         <aside
             ref={tocRef}
@@ -154,40 +180,51 @@ export const TableOfContents = ({
             <div className="sticky-sentinel" ref={stickySentinelRef} />
             <nav className="entry-toc">
                 <ul>
-                    <li>
-                        <a
-                            onClick={() => {
-                                toggle()
-                                setActiveHeading("")
-                            }}
-                            href="#"
-                        >
-                            {pageTitle}
-                        </a>
-                    </li>
-                    {headings
-                        .filter((heading) =>
-                            hideSubheadings && heading.isSubheading
-                                ? false
-                                : true
-                        )
-                        .map((heading, i: number) => (
-                            <li
-                                key={i}
-                                className={
-                                    (heading.isSubheading
-                                        ? "subsection"
-                                        : "section") +
-                                    (heading.slug === activeHeading
-                                        ? " active"
-                                        : "")
-                                }
-                            >
-                                <a onClick={toggle} href={`#${heading.slug}`}>
-                                    {heading.text}
-                                </a>
-                            </li>
-                        ))}
+                    {subnavId && subnavs[subnavId]
+                        ? subnavs[subnavId].map(
+                              ({ href, label, id, highlight }, idx) => {
+                                  const classes: string[] = []
+                                  const dataTrackNote = [
+                                      subnavId,
+                                      "subnav",
+                                      id,
+                                  ].join("-")
+                                  if (id === subnavCurrentId)
+                                      classes.push("current")
+                                  if (highlight) classes.push("highlight")
+                                  classes.push(idx === 0 ? "topic" : "subtopic")
+
+                                  return id === subnavCurrentId ? (
+                                      <div className="toc">
+                                          <li className={classes.join(" ")}>
+                                              <a
+                                                  onClick={() => {
+                                                      toggle()
+                                                      setActiveHeading("")
+                                                  }}
+                                                  href="#"
+                                              >
+                                                  {label}
+                                              </a>
+                                          </li>
+                                          {renderTableOfContents()}
+                                      </div>
+                                  ) : (
+                                      <li
+                                          className={classes.join(" ")}
+                                          key={href}
+                                      >
+                                          <a
+                                              href={href}
+                                              data-track-note={dataTrackNote}
+                                          >
+                                              {label}
+                                          </a>
+                                      </li>
+                                  )
+                              }
+                          )
+                        : renderTableOfContents()}
                 </ul>
             </nav>
             <div className="toggle-toc">

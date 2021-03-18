@@ -1,13 +1,14 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
+$toc-link-color: #79b8ff;
+$border-width: 0.125rem;
 
 .entry-sidebar {
     width: $sidebar-content-width + 2 * $padding-x-md;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: $white;
+    background: $primary-color;
 
     &.sticky {
-        background: $primary-color-100;
     }
 
     .entry-toc {
@@ -19,45 +20,57 @@
         overflow-y: auto;
     }
 
+    .toc {
+        background-color: #032f62;
+    }
+
     li {
         list-style-type: none;
-        &.section {
-            margin-top: $vertical-spacing;
-            color: #111;
-            font-weight: 700;
+
+        &.topic {
+            margin-bottom: $vertical-spacing;
+
+            a {
+                font-size: 1.5rem;
+            }
+        }
+
+        &.subtopic {
+            text-transform: uppercase;
+            opacity: 0.8;
+
+            &.current {
+            }
         }
 
         &.subsection {
             font-size: 0.8rem;
+            margin-left: $border-width + $padding-x-sm;
+
+            a {
+                border-left-color: rgba($toc-link-color, 0.2);
+            }
+
+            + .section {
+                margin-top: $vertical-spacing;
+            }
         }
 
         a {
             display: block;
-            color: $grey-text-color;
+            color: $white;
             font-size: 0.9rem;
-            border-left: 0.5rem solid transparent;
-            padding: $vertical-spacing/4 $padding-x-md;
+            border-left: $border-width solid transparent;
+            padding: $vertical-spacing/2 $padding-x-sm;
 
             &:hover {
-                background-color: $primary-color-200;
+                color: $toc-link-color;
             }
         }
 
         &.active a {
-            color: $primary-color;
-            background-color: $primary-color-200;
-            border-left-color: $primary-color;
-        }
-
-        &:first-child a {
-            font-size: 1rem;
-            background: none;
-            color: $grey-text-color;
-            border-left-color: transparent;
-
-            &:hover {
-                color: $primary-color;
-            }
+            color: $toc-link-color;
+            border-left-color: rgba($toc-link-color, 0.8);
         }
     }
 
@@ -69,6 +82,7 @@
         @include sm-only {
             margin-left: -($sidebar-content-width + 2 * $padding-x-md);
         }
+        z-index: $zindex-sidebar;
         transition: margin 300ms ease;
 
         .toggle-toc {
@@ -103,13 +117,7 @@
             }
         }
 
-        ul {
-            // Hide ToC content for smoother looking transition
-            display: none;
-        }
-
         &.toggled {
-            z-index: $zindex-sidebar;
             margin-left: 0;
             @include block-shadow;
 
@@ -119,17 +127,12 @@
                     border-radius: 0 50% 50% 0;
                 }
             }
-
-            ul {
-                display: block;
-            }
         }
     }
 
     @include xxlg-up {
         position: relative;
         height: 100%;
-        background-color: initial;
 
         .sticky-sentinel {
             position: absolute;
