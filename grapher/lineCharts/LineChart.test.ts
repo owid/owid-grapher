@@ -156,3 +156,29 @@ describe("colors", () => {
         expect(newSeries[0].color).toEqual(series[1].color)
     })
 })
+
+it("reverses order of plotted series to plot the first one over the others", () => {
+    const table = new OwidTable(
+        {
+            entityName: ["usa", "usa"],
+            year: [2000, 2001],
+            gdp: [100, 200],
+            pop: [100, 200],
+        },
+        [
+            { slug: "gdp", color: "green" },
+            { slug: "pop", color: "red" },
+        ]
+    )
+
+    const manager: ChartManager = {
+        yColumnSlugs: ["gdp", "pop"],
+        table: table,
+        selection: ["usa"],
+        seriesStrategy: SeriesStrategy.column,
+    }
+    const chart = new LineChart({ manager })
+
+    expect(chart.placedSeries).toHaveLength(2)
+    expect(chart.placedSeries[0].seriesName).toEqual("pop")
+})

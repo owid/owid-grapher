@@ -659,7 +659,7 @@ export class LineChart
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        return this.series.map((series) => {
+        return this.series.reverse().map((series) => {
             return {
                 ...series,
                 placedPoints: series.points.map(
