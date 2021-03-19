@@ -1,0 +1,21 @@
+.wp-block-media-text.is-style-biography {
+    display: flex;
+    margin: $vertical-spacing 0 2 * $vertical-spacing;
+    figure {
+        margin-right: $padding-x-md;
+        flex: 0 0 8rem;
+    }
+    img {
+        margin: 0;
+        padding: 0;
+        border-radius: 80px;
+    }
+    h4,
+    h5 {
+        margin: 0 !important;
+    }
+    h5 {
+        font-weight: normal !important;
+        color: $primary-color-600;
+    }
+}

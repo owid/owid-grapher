@@ -55,3 +55,8 @@ registerBlockStyle("owid/prominent-link", {
     name: "thin",
     label: "Thin",
 })
+
+registerBlockStyle("core/media-text", {
+    name: "biography",
+    label: "Biography",
+})
