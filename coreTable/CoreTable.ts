@@ -974,16 +974,19 @@ export class CoreTable<
 
     select(slugs: ColumnSlug[]) {
         const columnsToKeep = new Set(slugs)
-        const newStore = { ...this.columnStore }
+        const newStore: CoreColumnStore = {}
         const defs = this.columnsAsArray
             .filter((col) => columnsToKeep.has(col.slug))
             .map((col) => col.def) as COL_DEF_TYPE[]
-        Object.keys(newStore).forEach((slug) => {
-            if (!columnsToKeep.has(slug)) delete newStore[slug]
-        })
+
+        Object.keys(this.columnStore)
+            .filter((slug) => columnsToKeep.has(slug))
+            .forEach((slug) => {
+                newStore[slug] = this.columnStore[slug]
+            })
 
         return this.transform(
-            this.columnStore,
+            newStore,
             defs,
             `Kept columns '${slugs}'`,
             TransformType.FilterColumns
