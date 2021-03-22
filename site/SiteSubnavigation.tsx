@@ -31,16 +31,17 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     ],
     coronavirus: [
         { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
-        {
-            label: "By country",
-            href: "/coronavirus#coronavirus-country-profiles",
-            id: "by-country",
-            highlight: true,
-        },
+        { label: "All charts", href: "/coronavirus-data", id: "data" },
         {
             label: "Data explorer",
             href: "/coronavirus-data-explorer",
             id: "data-explorer",
+            highlight: true,
+        },
+        {
+            label: "By country",
+            href: "/coronavirus#coronavirus-country-profiles",
+            id: "by-country",
             highlight: true,
         },
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
@@ -76,7 +77,6 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             href: "/identify-covid-exemplars",
             id: "exemplars",
         },
-        { label: "All charts", href: "/coronavirus-data", id: "data" },
     ],
     co2: [
         {
