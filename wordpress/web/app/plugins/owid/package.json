@@ -9,7 +9,7 @@
     "author": "Matthieu Bergel <hello@matthieubergel.org>",
     "license": "MIT",
     "devDependencies": {
-        "@wordpress/scripts": "12.1.1"
+        "@wordpress/scripts": "14.0.0"
     },
     "dependencies": {
         "markdown-it": "11.0.1"
