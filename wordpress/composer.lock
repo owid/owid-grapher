@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22328a46fecf64e20f5ffde4f4525f92",
+    "content-hash": "dc573212ee7c3aa0bed978c8b3307593",
     "packages": [
         {
             "name": "composer/installers",
@@ -218,16 +218,16 @@
         },
         {
             "name": "ivome/graphql-relay-php",
-            "version": "v0.3.1",
+            "version": "v0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ivome/graphql-relay-php.git",
-                "reference": "bc5f8aae9fd72ca16decce3892ec4311e9742a93"
+                "reference": "b227c17e79564d147db2162329f5bdbe19192313"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ivome/graphql-relay-php/zipball/bc5f8aae9fd72ca16decce3892ec4311e9742a93",
-                "reference": "bc5f8aae9fd72ca16decce3892ec4311e9742a93",
+                "url": "https://api.github.com/repos/ivome/graphql-relay-php/zipball/b227c17e79564d147db2162329f5bdbe19192313",
+                "reference": "b227c17e79564d147db2162329f5bdbe19192313",
                 "shasum": ""
             },
             "require": {
@@ -246,7 +246,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "BSD"
+                "BSD-3-Clause"
             ],
             "description": "A PHP port of GraphQL Relay reference implementation",
             "homepage": "https://github.com/ivome/graphql-relay-php",
@@ -255,24 +255,20 @@
                 "api",
                 "graphql"
             ],
-            "support": {
-                "issues": "https://github.com/ivome/graphql-relay-php/issues",
-                "source": "https://github.com/ivome/graphql-relay-php/tree/master"
-            },
-            "time": "2016-10-29T23:29:29+00:00"
+            "time": "2018-05-10T20:18:11+00:00"
         },
         {
             "name": "lcobucci/jwt",
-            "version": "3.3.3",
+            "version": "3.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lcobucci/jwt.git",
-                "reference": "c1123697f6a2ec29162b82f170dd4a491f524773"
+                "reference": "511629a54465e89a31d3d7e4cf0935feab8b14c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lcobucci/jwt/zipball/c1123697f6a2ec29162b82f170dd4a491f524773",
-                "reference": "c1123697f6a2ec29162b82f170dd4a491f524773",
+                "url": "https://api.github.com/repos/lcobucci/jwt/zipball/511629a54465e89a31d3d7e4cf0935feab8b14c1",
+                "reference": "511629a54465e89a31d3d7e4cf0935feab8b14c1",
                 "shasum": ""
             },
             "require": {
@@ -287,6 +283,9 @@
                 "phpunit/phpunit": "^5.7 || ^7.3",
                 "squizlabs/php_codesniffer": "~2.3"
             },
+            "suggest": {
+                "lcobucci/clock": "*"
+            },
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -296,7 +295,12 @@
             "autoload": {
                 "psr-4": {
                     "Lcobucci\\JWT\\": "src"
-                }
+                },
+                "files": [
+                    "compat/class-aliases.php",
+                    "compat/json-exception-polyfill.php",
+                    "compat/lcobucci-clock-polyfill.php"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -314,10 +318,6 @@
                 "JWS",
                 "jwt"
             ],
-            "support": {
-                "issues": "https://github.com/lcobucci/jwt/issues",
-                "source": "https://github.com/lcobucci/jwt/tree/3.3.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/lcobucci",
@@ -328,7 +328,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2020-08-20T13:22:28+00:00"
+            "time": "2021-02-16T09:40:01+00:00"
         },
         {
             "name": "oscarotero/env",
@@ -1065,16 +1065,16 @@
         },
         {
             "name": "webonyx/graphql-php",
-            "version": "v14.3.0",
+            "version": "v14.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webonyx/graphql-php.git",
-                "reference": "4f3430990824ff410fe548102cb85f0c46442704"
+                "reference": "aab3d49181467db064b41429cde117a7589625fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webonyx/graphql-php/zipball/4f3430990824ff410fe548102cb85f0c46442704",
-                "reference": "4f3430990824ff410fe548102cb85f0c46442704",
+                "url": "https://api.github.com/repos/webonyx/graphql-php/zipball/aab3d49181467db064b41429cde117a7589625fc",
+                "reference": "aab3d49181467db064b41429cde117a7589625fc",
                 "shasum": ""
             },
             "require": {
@@ -1117,17 +1117,13 @@
                 "api",
                 "graphql"
             ],
-            "support": {
-                "issues": "https://github.com/webonyx/graphql-php/issues",
-                "source": "https://github.com/webonyx/graphql-php/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://opencollective.com/webonyx-graphql-php",
                     "type": "open_collective"
                 }
             ],
-            "time": "2020-08-23T11:52:38+00:00"
+            "time": "2020-12-03T16:05:21+00:00"
         },
         {
             "name": "wp-api/basic-auth",
@@ -1149,24 +1145,35 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v1.0.4",
+            "version": "v1.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "9962ea32ad21ff6460f87b6daa6095ee375d0e00"
+                "reference": "77e55042258ae324e28d2ea941f31057c1e29ec7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/9962ea32ad21ff6460f87b6daa6095ee375d0e00",
-                "reference": "9962ea32ad21ff6460f87b6daa6095ee375d0e00",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/77e55042258ae324e28d2ea941f31057c1e29ec7",
+                "reference": "77e55042258ae324e28d2ea941f31057c1e29ec7",
                 "shasum": ""
             },
+            "archive": {
+                "exclude": [
+                    "*.yml",
+                    "!vendor/",
+                    "plugin-build/",
+                    "!src/Admin/GraphiQL/app/",
+                    "node_modules/",
+                    "!.wordpress-org/"
+                ]
+            },
             "require": {
-                "ivome/graphql-relay-php": "0.3.1",
-                "php": "^7.1||^8.0",
-                "webonyx/graphql-php": "14.3.0"
+                "ivome/graphql-relay-php": "0.5.0",
+                "php": ">=7.1.0",
+                "webonyx/graphql-php": "14.4.0"
             },
             "require-dev": {
+                "automattic/vipwpcs": "^2.2",
                 "codeception/module-asserts": "^1.0",
                 "codeception/module-cli": "^1.0",
                 "codeception/module-db": "^1.0",
@@ -1175,30 +1182,69 @@
                 "codeception/module-rest": "^1.2",
                 "codeception/module-webdriver": "^1.0",
                 "codeception/util-universalframework": "^1.0",
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
                 "lucatume/wp-browser": "^2.4",
-                "phpcompatibility/phpcompatibility-wp": "2.1.0",
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "^0.12.25",
-                "squizlabs/php_codesniffer": "3.5.4",
+                "phpcompatibility/phpcompatibility-wp": "^2.1.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^0.12.64",
+                "phpunit/phpunit": "9.4.1",
+                "simpod/php-coveralls-mirror": "^3.0",
+                "squizlabs/php_codesniffer": "^3.5.7",
                 "szepeviktor/phpstan-wordpress": "^0.7.1",
-                "wp-coding-standards/wpcs": "2.1.1"
+                "wp-coding-standards/wpcs": "^2.3",
+                "wp-graphql/wp-graphql-testcase": "^1.0"
             },
             "type": "wordpress-plugin",
             "autoload": {
+                "files": [
+                    "access-functions.php",
+                    "activation.php",
+                    "deactivation.php"
+                ],
                 "psr-4": {
                     "WPGraphQL\\": "src/"
                 }
             },
             "scripts": {
+                "install-test-env": [
+                    "bash bin/install-test-env.sh"
+                ],
+                "docker-build": [
+                    "bash bin/run-docker.sh build"
+                ],
+                "docker-run": [
+                    "bash bin/run-docker.sh run"
+                ],
+                "docker-destroy": [
+                    "docker-compose down"
+                ],
+                "build-and-run": [
+                    "@docker-build",
+                    "@docker-run"
+                ],
+                "build-app": [
+                    "@docker-build -a"
+                ],
+                "build-test": [
+                    "@docker-build -t"
+                ],
+                "run-app": [
+                    "@docker-run -a"
+                ],
+                "run-test": [
+                    "@docker-run -t"
+                ],
+                "lint": [
+                    "vendor/bin/phpcs"
+                ],
                 "phpcs-i": [
-                    "phpcs -i"
+                    "php ./vendor/bin/phpcs -i"
                 ],
                 "check-cs": [
-                    "phpcs"
+                    "php ./vendor/bin/phpcs src"
                 ],
                 "fix-cs": [
-                    "phpcbf"
+                    "php ./vendor/bin/phpcbf src"
                 ],
                 "phpstan": [
                     "phpstan analyze --ansi --memory-limit=1G"
@@ -1227,10 +1273,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v1.0.4",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v1.3.2",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2020-12-17T22:00:13+00:00"
+            "time": "2021-03-20T15:40:00+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -1324,15 +1370,15 @@
         },
         {
             "name": "wpackagist-plugin/mailgun",
-            "version": "1.7.1",
+            "version": "1.7.7",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/mailgun/",
-                "reference": "tags/1.7.1"
+                "reference": "tags/1.7.7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/mailgun.1.7.1.zip"
+                "url": "https://downloads.wordpress.org/plugin/mailgun.1.7.7.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1360,15 +1406,15 @@
         },
         {
             "name": "wpackagist-plugin/redirection",
-            "version": "4.9.2",
+            "version": "5.0.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/redirection/",
-                "reference": "tags/4.9.2"
+                "reference": "tags/5.0.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/redirection.4.9.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/redirection.5.0.1.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1396,15 +1442,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-custom-post-order",
-            "version": "2.5.2",
+            "version": "2.5.4",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-custom-post-order/",
-                "reference": "tags/2.5.2"
+                "reference": "tags/2.5.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-custom-post-order.2.5.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-custom-post-order.2.5.4.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1414,15 +1460,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-history",
-            "version": "2.38.0",
+            "version": "2.41.2",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/2.38.0"
+                "reference": "tags/2.41.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.2.38.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-history.2.41.2.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1432,15 +1478,15 @@
         },
         {
             "name": "wpackagist-plugin/tablepress",
-            "version": "1.12",
+            "version": "1.13",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/tablepress/",
-                "reference": "tags/1.12"
+                "reference": "tags/1.13"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/tablepress.1.12.zip"
+                "url": "https://downloads.wordpress.org/plugin/tablepress.1.13.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
