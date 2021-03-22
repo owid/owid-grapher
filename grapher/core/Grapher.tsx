@@ -501,6 +501,16 @@ export class Grapher
         )
     }
 
+    @computed private get tableAfterAuthorTimelineAndColumnFilter() {
+        return this.tableAfterAuthorTimelineFilter.keepOnlyColumns([
+            ...this.activeColumnSlugs,
+            this.inputTable.timeColumn.slug,
+            this.inputTable.entityNameSlug,
+            this.inputTable.entityIdColumn.slug,
+            this.inputTable.entityCodeColumn.slug,
+        ])
+    }
+
     // Convenience method for debugging
     windowQueryParams(str = location.search) {
         return strToQueryParams(str)
@@ -508,7 +518,7 @@ export class Grapher
 
     @computed
     private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.tableAfterAuthorTimelineFilter
+        const table = this.tableAfterAuthorTimelineAndColumnFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
     }
@@ -533,7 +543,7 @@ export class Grapher
     }
 
     @computed get table() {
-        return this.tableAfterAuthorTimelineFilter
+        return this.tableAfterAuthorTimelineAndColumnFilter
     }
 
     @computed
