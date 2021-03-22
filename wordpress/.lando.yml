@@ -48,10 +48,6 @@ tooling:
         description: Starts development for OWID plugin
         service: node
         cmd: cd web/app/plugins/owid && yarn start
-    deploy:
-        description: Deploys app to target
-        service: appserver
-        cmd: .lando/scripts/deploy.sh
     yarn:
         description: enables 'lando yarn' # e.g. 'lando yarn start' within web/app/plugins/owid
         service: node
