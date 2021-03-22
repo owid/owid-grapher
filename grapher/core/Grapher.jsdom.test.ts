@@ -275,13 +275,14 @@ describe("currentTitle", () => {
         expect(grapher.currentTitle).toContain("2009")
     })
 
-    it("can generate a title when all you have is a table", () => {
+    it("can generate a title when all you have is a table and ySlug", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
             1
         )
         const grapher = new Grapher({
             table,
+            ySlugs: "GDP",
         })
 
         expect(grapher.currentTitle).toContain("GDP")
@@ -296,6 +297,7 @@ describe("authors can use maxTime", () => {
             type: ChartTypeName.DiscreteBar,
             selectedEntityNames: table.availableEntityNames,
             maxTime: 2005,
+            ySlugs: "GDP",
         })
         const chart = grapher.chartInstance
         expect(chart.failMessage).toBeFalsy()
