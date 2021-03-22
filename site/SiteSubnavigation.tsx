@@ -15,18 +15,18 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         // `label` is shown in the UI, `id` is specified as a formatting option
         // on a page (the top html comment in WordPress)
         { label: "About", href: "/about", id: "about" },
-        { label: "Motivation", href: "/motivation", id: "motivation" },
         { label: "Team", href: "/team", id: "team" },
-        { label: "Jobs", href: "/jobs", id: "jobs" },
+        { label: "Organization", href: "/organization", id: "organization" },
+        { label: "Funding", href: "/funding", id: "supporters" },
+        { label: "FAQs", href: "/faqs", id: "faqs" },
         { label: "Audience & Coverage", href: "/coverage", id: "coverage" },
         {
             label: "History",
             href: "/history-of-our-world-in-data",
             id: "history",
         },
-        { label: "Funding", href: "/funding", id: "supporters" },
-        { label: "FAQs", href: "/faqs", id: "faqs" },
         { label: "Grapher", href: "/owid-grapher", id: "grapher" },
+        { label: "Jobs", href: "/jobs", id: "jobs" },
         { label: "Contact", href: "/about#contact", id: "contact" },
     ],
     coronavirus: [
