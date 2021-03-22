@@ -37,8 +37,6 @@ class EntityItem extends React.Component<EntityItemProps> {
     }
 
     @action.bound onColor(color: string | undefined) {
-        if (!color) return
-
         const { grapher } = this.props
         grapher.selectedEntityColors[this.props.entityName] = color
         grapher.legacyConfigAsAuthored.selectedEntityColors = {
