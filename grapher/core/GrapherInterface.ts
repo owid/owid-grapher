@@ -75,7 +75,7 @@ export interface GrapherInterface extends SortConfig {
     excludedEntities?: number[]
     includedEntities?: number[]
     selectedEntityNames?: EntityName[]
-    selectedEntityColors?: { [entityName: string]: string }
+    selectedEntityColors?: { [entityName: string]: string | undefined }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
 
