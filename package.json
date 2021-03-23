@@ -44,6 +44,8 @@
         "@fortawesome/react-fontawesome": "^0.1.11",
         "@handsontable/react": "^4.0.0",
         "@prettier/plugin-php": "^0.14.3",
+        "@sentry/react": "^6.2.3",
+        "@sentry/tracing": "^6.2.3",
         "@tippyjs/react": "^4.0.2",
         "@types/amplitude-js": "^5.8.0",
         "@types/bcrypt": "^3.0.0",
