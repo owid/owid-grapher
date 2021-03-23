@@ -20,12 +20,14 @@
         "refreshLando": "cd wordpress && lando refresh",
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
+        "startSiteBack": "tsc-watch -b --onSuccess \"yarn startAdminServer\"",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLando": "cd wordpress && lando start",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
         "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack-dev-server --no-live-reload --config ./itsJustJavascript/webpack.config.js",
+        "startSiteFront": "webpack-dev-server --config ./itsJustJavascript/webpack.config.js",
         "testBundlewatch": "ENV=production webpack --config ./itsJustJavascript/webpack.config.js -p && bundlewatch --config .bundlewatch.config.json",
         "testBundlewatchJson": "ENV=production webpack --config ./itsJustJavascript/webpack.config.js -p --json > itsJustJavascript/webpack/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
         "testCypress": "yarn cypress open --project .",
@@ -226,6 +228,7 @@
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
         "storybook": "^6.1.21",
+        "tsc-watch": "^4.2.9",
         "xhr-mock": "^2.5.1"
     },
     "prettier": {
