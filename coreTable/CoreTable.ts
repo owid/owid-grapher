@@ -931,7 +931,11 @@ export class CoreTable<
 
     appendRows(rows: ROW_TYPE[], opDescription: string) {
         return this.concat(
-            [new (this.constructor as any)(rows, this.defs) as CoreTable],
+            [
+                new (this.constructor as any)(rows, this.defs, {
+                    parent: this.parent,
+                }) as CoreTable,
+            ],
             opDescription
         )
     }
@@ -970,11 +974,19 @@ export class CoreTable<
 
     select(slugs: ColumnSlug[]) {
         const columnsToKeep = new Set(slugs)
+        const newStore: CoreColumnStore = {}
         const defs = this.columnsAsArray
             .filter((col) => columnsToKeep.has(col.slug))
             .map((col) => col.def) as COL_DEF_TYPE[]
+
+        Object.keys(this.columnStore)
+            .filter((slug) => columnsToKeep.has(slug))
+            .forEach((slug) => {
+                newStore[slug] = this.columnStore[slug]
+            })
+
         return this.transform(
-            this.columnStore,
+            newStore,
             defs,
             `Kept columns '${slugs}'`,
             TransformType.FilterColumns

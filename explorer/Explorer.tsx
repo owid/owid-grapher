@@ -610,7 +610,7 @@ export class Explorer
     }
 
     @computed get entityPickerTable() {
-        return this.grapher?.table
+        return this.grapher?.tableAfterAuthorTimelineFilter
     }
 
     @computed get pickerColumnSlugs() {
@@ -623,7 +623,7 @@ export class Explorer
             ColumnTypeNames.EntityId,
             ColumnTypeNames.EntityCode,
         ])
-        return this.grapher?.table.columnsAsArray
+        return this.entityPickerTable?.columnsAsArray
             .filter(
                 (col) => !doNotShowThese.has(col.def.type as ColumnTypeNames)
             )

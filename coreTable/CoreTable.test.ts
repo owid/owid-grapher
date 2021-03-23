@@ -355,6 +355,19 @@ describe("column operations", () => {
         expect(table.dropColumns(["year"]).columnSlugs).toEqual(["country"])
     })
 
+    it("can select a set of columns", () => {
+        const rows = [
+            { country: "USA", year: 1999, gdp: 10001 },
+            { country: "Germany", year: 2000, gdp: 20002 },
+        ]
+        const table = new CoreTable(rows)
+        expect(table.columnSlugs).toEqual(["country", "year", "gdp"])
+        expect(table.select(["country", "gdp"]).columnSlugs).toEqual([
+            "country",
+            "gdp",
+        ])
+    })
+
     it("can transform columns", () => {
         const rows = [
             { country: "USA", year: 1999 },

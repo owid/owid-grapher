@@ -139,6 +139,7 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
+    OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
@@ -488,7 +489,7 @@ export class Grapher
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
-    @computed private get tableAfterAuthorTimelineFilter() {
+    @computed get tableAfterAuthorTimelineFilter() {
         const table = this.inputTable
         if (
             this.timelineMinTime === undefined &&
@@ -501,6 +502,12 @@ export class Grapher
         )
     }
 
+    @computed get tableAfterAuthorTimelineAndColumnFilter() {
+        return this.tableAfterAuthorTimelineFilter.select(
+            this.columnSlugsNecessaryForCurrentView
+        )
+    }
+
     // Convenience method for debugging
     windowQueryParams(str = location.search) {
         return strToQueryParams(str)
@@ -508,7 +515,7 @@ export class Grapher
 
     @computed
     private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.tableAfterAuthorTimelineFilter
+        const table = this.tableAfterAuthorTimelineAndColumnFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
     }
@@ -533,7 +540,7 @@ export class Grapher
     }
 
     @computed get table() {
-        return this.tableAfterAuthorTimelineFilter
+        return this.tableAfterAuthorTimelineAndColumnFilter
     }
 
     @computed
@@ -1189,7 +1196,7 @@ export class Grapher
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
-    // All columns that are _currently_ part of the visualization
+    // Columns that are used as a dimension in the currently active view
     @computed get activeColumnSlugs() {
         const {
             yColumnSlugs,
@@ -1203,6 +1210,19 @@ export class Grapher
             xColumnSlug,
             sizeColumnSlug,
             colorColumnSlug,
+        ])
+    }
+
+    // All columns that are necessary for the current view, including meta columns like entityName
+    // and time
+    @computed get columnSlugsNecessaryForCurrentView() {
+        return excludeUndefined([
+            ...this.activeColumnSlugs,
+            this.inputTable.timeColumn.slug,
+            this.inputTable.entityNameSlug,
+            this.inputTable.entityIdColumn.slug,
+            this.inputTable.entityCodeColumn.slug,
+            OwidTableSlugs.entityColor,
         ])
     }
 

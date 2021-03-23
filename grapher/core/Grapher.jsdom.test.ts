@@ -25,6 +25,7 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
 import { Url } from "../../clientUtils/urls/Url"
+import { OwidTable } from "../../coreTable/OwidTable"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -275,13 +276,14 @@ describe("currentTitle", () => {
         expect(grapher.currentTitle).toContain("2009")
     })
 
-    it("can generate a title when all you have is a table", () => {
+    it("can generate a title when all you have is a table and ySlug", () => {
         const table = SynthesizeGDPTable(
             { entityCount: 2, timeRange: [2000, 2010] },
             1
         )
         const grapher = new Grapher({
             table,
+            ySlugs: "GDP",
         })
 
         expect(grapher.currentTitle).toContain("GDP")
@@ -296,6 +298,7 @@ describe("authors can use maxTime", () => {
             type: ChartTypeName.DiscreteBar,
             selectedEntityNames: table.availableEntityNames,
             maxTime: 2005,
+            ySlugs: "GDP",
         })
         const chart = grapher.chartInstance
         expect(chart.failMessage).toBeFalsy()
@@ -811,4 +814,53 @@ it("migrates map.targetYear correctly", () => {
         map: { targetYear: 2005 } as any,
     })
     expect(grapher.map.time).toEqual(2005)
+})
+
+describe("identifies and drops unnecessary table columns", () => {
+    const table = new OwidTable(`entityName,entityId,entityColor,year,gdp,child_mortality,population,continent,happiness
+    Belgium,BEL,#f6f,2010,80000,1.5,9000000,Europe,81.2
+    `)
+    const grapher = new Grapher({
+        table,
+        type: ChartTypeName.ScatterPlot,
+        xSlug: "gdp",
+        ySlugs: "child_mortality",
+        colorSlug: "continent",
+        sizeSlug: "population",
+    })
+
+    it("correctly identifies activeColumnSlugs", () => {
+        expect(grapher.activeColumnSlugs.length).toEqual(4)
+        expect(grapher.activeColumnSlugs.sort()).toEqual([
+            "child_mortality",
+            "continent",
+            "gdp",
+            "population",
+        ])
+    })
+
+    it("correctly identifies columnSlugsNecessaryForCurrentView", () => {
+        expect(grapher.columnSlugsNecessaryForCurrentView.length).toEqual(9)
+        expect(grapher.columnSlugsNecessaryForCurrentView.sort()).toEqual([
+            "child_mortality",
+            "continent",
+            "entityCode",
+            "entityColor",
+            "entityId",
+            "entityName",
+            "gdp",
+            "population",
+            "year",
+        ])
+    })
+
+    it("drops unnecessary column in tableAfterAuthorTimelineAndColumnFilter", () => {
+        const table = grapher.tableAfterAuthorTimelineAndColumnFilter
+
+        expect(table.columnSlugs.length).toEqual(8)
+        expect(table.columnSlugs).not.toContain("happiness")
+
+        expect(Object.keys(table.columnStore).length).toEqual(8)
+        expect(Object.keys(table.columnStore)).not.toContain("happiness")
+    })
 })
