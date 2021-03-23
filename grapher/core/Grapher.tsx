@@ -502,7 +502,7 @@ export class Grapher
         )
     }
 
-    @computed private get tableAfterAuthorTimelineAndColumnFilter() {
+    @computed get tableAfterAuthorTimelineAndColumnFilter() {
         return this.tableAfterAuthorTimelineFilter.select(
             this.columnSlugsNecessaryForCurrentView
         )
