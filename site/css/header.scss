@@ -28,13 +28,13 @@
     display: none;
     @include md-up {
         display: flex;
+        align-items: center;
     }
 }
 
 .site-primary-navigation {
     display: flex;
     flex-direction: row;
-    margin-bottom: 0.5rem;
     align-items: center;
 }
 
@@ -88,7 +88,6 @@
 }
 
 .HeaderSearch {
-    margin-right: 1.5rem;
     position: relative;
 
     > input {
@@ -101,7 +100,7 @@
         border-radius: 100px;
         padding: 0.3rem 1rem 0.3rem 2.25rem;
         display: block;
-        width: 18rem;
+        width: 8rem;
         outline: none;
 
         &::placeholder {
@@ -285,9 +284,8 @@
 .topics-button-wrapper {
     display: flex;
     align-items: stretch;
-    margin-right: 1.5rem;
-    margin-bottom: 0.25em;
     position: relative;
+    width: 8rem;
 }
 
 .topics-button {

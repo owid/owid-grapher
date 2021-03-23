@@ -127,12 +127,6 @@ class Header extends React.Component<{
         return (
             <>
                 <div className="wrapper site-navigation-bar">
-                    <div className="site-logo">
-                        <a href="/" data-track-note="header-navigation">
-                            Our World
-                            <br /> in Data
-                        </a>
-                    </div>
                     <nav className="site-navigation">
                         <div className="topics-button-wrapper">
                             <a
@@ -148,10 +142,7 @@ class Header extends React.Component<{
                                 }
                                 onClick={this.onDropdownButtonClick}
                             >
-                                <div className="label">
-                                    Articles <br />
-                                    <strong>by topic</strong>
-                                </div>
+                                <div className="label">Topics</div>
                                 <div className="icon">
                                     <svg width="12" height="6">
                                         <path
@@ -170,10 +161,10 @@ class Header extends React.Component<{
                                 }
                             />
                         </div>
+
                         <div>
                             <div className="site-primary-navigation">
-                                <HeaderSearch />
-                                <ul className="site-primary-links">
+                                {/* <ul className="site-primary-links">
                                     <li>
                                         <a
                                             href="/blog"
@@ -198,9 +189,9 @@ class Header extends React.Component<{
                                             Donate
                                         </a>
                                     </li>
-                                </ul>
+                                </ul> */}
                             </div>
-                            <div className="site-secondary-navigation">
+                            {/* <div className="site-secondary-navigation">
                                 <ul className="site-secondary-links">
                                     <li>
                                         <a
@@ -210,7 +201,6 @@ class Header extends React.Component<{
                                             All charts
                                         </a>
                                     </li>
-                                    {/* <li><a href="/teaching" data-track-note="header-navigation">Teaching Hub</a></li> */}
                                     <li>
                                         <a
                                             href="https://sdg-tracker.org"
@@ -221,10 +211,16 @@ class Header extends React.Component<{
                                         </a>
                                     </li>
                                 </ul>
-                            </div>
+                            </div> */}
                         </div>
                     </nav>
-                    <div className="header-logos-wrapper">
+                    <div className="site-logo">
+                        <a href="/" data-track-note="header-navigation">
+                            Our World in Data
+                        </a>
+                    </div>
+                    <HeaderSearch />
+                    {/* <div className="header-logos-wrapper">
                         <a
                             href="https://www.oxfordmartin.ox.ac.uk/global-development"
                             className="oxford-logo"
@@ -243,7 +239,7 @@ class Header extends React.Component<{
                                 alt="Global Change Data Lab logo"
                             />
                         </a>
-                    </div>
+                    </div> */}
                     <div className="mobile-site-navigation">
                         <button
                             onClick={this.onToggleSearch}
@@ -321,7 +317,7 @@ const allEntries = (category: CategoryWithEntries): EntryMeta[] => {
 }
 
 @observer
-class DesktopTopicsMenu extends React.Component<{
+export class DesktopTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
     isOpen: boolean
     onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void
