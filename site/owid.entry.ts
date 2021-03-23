@@ -6,6 +6,9 @@ import "grapher/core/grapher.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
+import * as Sentry from "@sentry/react"
+import { Integrations } from "@sentry/tracing"
+
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runSearchPage } from "./SearchPageMain"
@@ -23,7 +26,7 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runFootnotes } from "./Footnote"
 import { Explorer } from "../explorer/Explorer"
-import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
+import { BAKED_BASE_URL, ENV, SENTRY_DSN } from "../settings/clientSettings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
@@ -33,6 +36,17 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
+
+if (SENTRY_DSN) {
+    Sentry.init({
+        dsn: SENTRY_DSN,
+        integrations: [new Integrations.BrowserTracing()],
+        // Set tracesSampleRate to 1.0 to capture 100%
+        // of transactions for performance monitoring.
+        // We recommend adjusting this value in production
+        tracesSampleRate: 0.00001,
+    })
+}
 
 declare var window: any
 window.Grapher = Grapher

@@ -37,3 +37,6 @@ export const DONATE_API_URL: string =
 
 export const RECAPTCHA_SITE_KEY: string =
     process.env.RECAPTCHA_SITE_KEY ?? "6LcJl5YUAAAAAATQ6F4vl9dAWRZeKPBm15MAZj4Q"
+
+export const SENTRY_DSN: string | undefined =
+    process.env.SENTRY_DSN || undefined
