@@ -20,7 +20,7 @@
         "refreshLando": "cd wordpress && lando refresh",
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
-        "startSiteBack": "tsc-watch -b --onSuccess \"yarn startAdminServer\"",
+        "startSiteBack": "yarn startLando && tsc-watch -b --onSuccess \"yarn startAdminServer\"",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLando": "cd wordpress && lando start",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
