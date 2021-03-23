@@ -126,78 +126,6 @@ export const LongFormPage = (props: {
                             hasSidebar ? " with-sidebar" : " no-sidebar"
                         }${isPost ? " thin-banner" : " large-banner"}`}
                     >
-                        <div className="offset-header">
-                            <header className="article-header">
-                                <div className="article-titles">
-                                    {post.supertitle && (
-                                        <div className="supertitle">
-                                            {post.supertitle}
-                                        </div>
-                                    )}
-                                    <h1 className="entry-title">{pageTitle}</h1>
-                                    {post.subtitle && (
-                                        <div className="subtitle">
-                                            {post.subtitle}
-                                        </div>
-                                    )}
-                                </div>
-                                {!formattingOptions.hideAuthors && (
-                                    <div className="authors-byline">
-                                        {post.byline ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.byline,
-                                                }}
-                                            ></div>
-                                        ) : (
-                                            <a href="/team">
-                                                {`by ${formatAuthors(
-                                                    post.authors,
-                                                    isEntry || isSubEntry
-                                                )}`}
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                                {isPost && <time>{formatDate(post.date)}</time>}
-                                {post.info && (
-                                    <div
-                                        className="blog-info"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.info,
-                                        }}
-                                    />
-                                )}
-
-                                {post.lastUpdated && (
-                                    <div
-                                        className="last-updated"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.lastUpdated,
-                                        }}
-                                    />
-                                )}
-                                {(isPost || isEntry || isSubEntry) && (
-                                    <div className="tools">
-                                        <a href="#licence">
-                                            <FontAwesomeIcon
-                                                icon={faCreativeCommons}
-                                            />
-                                            Reuse our work{" "}
-                                            <strong>freely</strong>
-                                        </a>
-                                        {(isEntry || isSubEntry) && (
-                                            <a href="#citation">
-                                                <FontAwesomeIcon
-                                                    icon={faBook}
-                                                />
-                                                Cite this research
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                            </header>
-                        </div>
                         {formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
@@ -223,6 +151,92 @@ export const LongFormPage = (props: {
                             )}
                             <div className="offset-content">
                                 <div className="content-and-footnotes">
+                                    <div className="offset-header">
+                                        <header className="article-header">
+                                            <div className="article-titles">
+                                                {/* {post.supertitle && (
+                                                    <div className="supertitle">
+                                                        {post.supertitle}
+                                                    </div>
+                                                )} */}
+                                                <h1 className="entry-title">
+                                                    {pageTitle}
+                                                </h1>
+                                                {post.subtitle && (
+                                                    <div className="subtitle">
+                                                        {post.subtitle}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* {!formattingOptions.hideAuthors && (
+                                                <div className="authors-byline">
+                                                    {post.byline ? (
+                                                        <div
+                                                            dangerouslySetInnerHTML={{
+                                                                __html:
+                                                                    post.byline,
+                                                            }}
+                                                        ></div>
+                                                    ) : (
+                                                        <a href="/team">
+                                                            {`by ${formatAuthors(
+                                                                post.authors,
+                                                                isEntry ||
+                                                                    isSubEntry
+                                                            )}`}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )} */}
+                                            {/* {isPost && (
+                                                <time>
+                                                    {formatDate(post.date)}
+                                                </time>
+                                            )} */}
+                                            {/* {post.info && (
+                                                <div
+                                                    className="blog-info"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: post.info,
+                                                    }}
+                                                />
+                                            )} */}
+
+                                            {/* {post.lastUpdated && (
+                                                <div
+                                                    className="last-updated"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html:
+                                                            post.lastUpdated,
+                                                    }}
+                                                />
+                                            )} */}
+                                            {/* {(isPost ||
+                                                isEntry ||
+                                                isSubEntry) && (
+                                                <div className="tools">
+                                                    <a href="#licence">
+                                                        <FontAwesomeIcon
+                                                            icon={
+                                                                faCreativeCommons
+                                                            }
+                                                        />
+                                                        Reuse our work{" "}
+                                                        <strong>freely</strong>
+                                                    </a>
+                                                    {(isEntry ||
+                                                        isSubEntry) && (
+                                                        <a href="#citation">
+                                                            <FontAwesomeIcon
+                                                                icon={faBook}
+                                                            />
+                                                            Cite this research
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )} */}
+                                        </header>
+                                    </div>
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{

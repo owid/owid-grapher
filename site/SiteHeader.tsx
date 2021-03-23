@@ -12,6 +12,7 @@ interface SiteHeaderProps {
 
 export const SiteHeader = (props: SiteHeaderProps) => (
     <>
+        {props.hideAlertBanner !== true && <AlertBanner />}
         <header className="site-header">
             <div className="wrapper site-navigation-bar">
                 <div className="site-logo">
@@ -136,6 +137,5 @@ export const SiteHeader = (props: SiteHeaderProps) => (
                 </div>
             </div>
         </header>
-        {props.hideAlertBanner !== true && <AlertBanner />}
     </>
 )
