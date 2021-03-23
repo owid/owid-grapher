@@ -6,7 +6,11 @@ import {
     EXPLORERS_ROUTE_FOLDER,
 } from "./ExplorerConstants"
 import { CoreTable } from "../coreTable/CoreTable"
-import { CoreMatrix, TableSlug } from "../coreTable/CoreTableConstants"
+import {
+    CoreMatrix,
+    CoreTableInputOption,
+    TableSlug,
+} from "../coreTable/CoreTableConstants"
 import { ExplorerGrammar } from "./ExplorerGrammar"
 import {
     CellDef,
@@ -327,8 +331,10 @@ export class ExplorerProgram extends GridProgram {
         const tableDef = this.getTableDef(tableSlug)!
         const response = await fetch(url)
         if (!response.ok) throw new Error(response.statusText)
-        const text = await response.text()
-        const table = new OwidTable(text, tableDef.columnDefinitions, {
+        const input: CoreTableInputOption = url.endsWith(".json")
+            ? await response.json()
+            : await response.text()
+        const table = new OwidTable(input, tableDef.columnDefinitions, {
             tableDescription: `Loaded from ${url}`,
         })
         return table
