@@ -4,7 +4,18 @@
 // bundled and shipped out to our users.
 
 import dotenv from "dotenv"
-dotenv.config()
+import fs from "fs"
+
+// only run the below code if we're in a node environment
+if (fs.statSync !== undefined) {
+    const pkgDir = require("pkg-dir")
+
+    const baseDir = pkgDir.sync(__dirname)
+    if (baseDir === undefined)
+        throw new Error("could not locate base package.json")
+
+    dotenv.config({ path: `${baseDir}/.env` })
+}
 
 import { parseIntOrUndefined } from "../clientUtils/Util"
 

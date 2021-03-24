@@ -3,14 +3,19 @@
 
 import path from "path"
 import dotenv from "dotenv"
-dotenv.config()
+import pkgDir from "pkg-dir"
+
+const baseDir = pkgDir.sync(__dirname)
+if (baseDir === undefined) throw new Error("could not locate base package.json")
+
+dotenv.config({ path: `${baseDir}/.env` })
 
 import * as clientSettings from "./clientSettings"
 import { parseIntOrUndefined } from "../clientUtils/Util"
 
 const serverSettings = process.env ?? {}
 
-export const BASE_DIR: string = path.resolve(__dirname, "../..")
+export const BASE_DIR: string = baseDir
 export const ENV: "development" | "production" = clientSettings.ENV
 
 export const ADMIN_SERVER_PORT: number = clientSettings.ADMIN_SERVER_PORT
@@ -45,7 +50,7 @@ export const DB_PORT: number =
     parseIntOrUndefined(serverSettings.DB_PORT) ?? 3306
 
 export const BAKED_SITE_DIR: string =
-    serverSettings.BAKED_SITE_DIR ?? `${BASE_DIR}/bakedSite` // Where the static build output goes
+    serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
 export const SECRET_KEY: string =
     serverSettings.SECRET_KEY ??
     "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
