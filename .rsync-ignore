@@ -16,3 +16,4 @@ tmp
 .env
 clientSettings.json
 serverSettings.json
+coverage
