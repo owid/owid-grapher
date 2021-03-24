@@ -86,28 +86,25 @@ $border-width: 0.125rem;
             position: absolute;
             top: 0;
             bottom: 0;
-            padding: $vertical-spacing 0;
-            right: -$sidebar-toggle-width / 2;
-            right: -$sidebar-toggle-width - $padding-x-sm/2;
+            padding-top: $vertical-spacing * 2;
+            left: $sidebar-content-width + 2 * $padding-x-md + $padding-x-md;
             button {
                 z-index: $zindex-sidebar;
                 position: sticky;
-                top: $vertical-spacing;
+                top: 8px;
                 @include sm-only {
                     top: $padding-x-sm/2;
                 }
-                width: $sidebar-toggle-width;
-                height: $sidebar-toggle-width;
                 background-color: $primary-color;
                 &:hover {
                     background-color: $primary-color-700;
                 }
 
                 color: $white;
-                border-radius: 50%;
+                border-radius: 6px;
                 outline: none;
                 border: none;
-                padding: 0;
+                padding: 0.5rem 0.8rem;
                 cursor: pointer;
             }
         }
@@ -117,8 +114,14 @@ $border-width: 0.125rem;
             @include block-shadow;
 
             .toggle-toc {
-                right: -$sidebar-toggle-width;
+                left: $sidebar-content-width + 2 * $padding-x-md;
+                span {
+                    display: none;
+                }
                 button {
+                    width: $sidebar-toggle-width;
+                    height: $sidebar-toggle-width;
+                    padding: 0;
                     border-radius: 0 50% 50% 0;
                 }
             }

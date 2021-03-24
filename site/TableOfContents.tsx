@@ -2,7 +2,6 @@ import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
@@ -195,7 +194,7 @@ export const TableOfContents = ({
                                   classes.push(idx === 0 ? "topic" : "subtopic")
 
                                   return id === subnavCurrentId ? (
-                                      <div className="toc">
+                                      <div key={href} className="toc">
                                           <li className={classes.join(" ")}>
                                               <a
                                                   onClick={() => {
@@ -235,9 +234,12 @@ export const TableOfContents = ({
                     } table of contents`}
                     onClick={toggle}
                 >
-                    <FontAwesomeIcon
-                        icon={isToggled ? faChevronLeft : faListAlt}
-                    />
+                    <span>
+                        {subnavId && subnavs[subnavId]
+                            ? subnavs[subnavId][0].label
+                            : "Contents"}
+                    </span>
+                    {isToggled && <FontAwesomeIcon icon={faChevronLeft} />}
                 </button>
             </div>
         </aside>

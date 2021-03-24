@@ -1,8 +1,6 @@
 .site-header {
     background-color: $primary-color;
     border-bottom: $mobile-header-border-height solid $secondary-color;
-    position: relative;
-    z-index: $zindex-site-header;
 }
 
 .site-logo a {
@@ -177,6 +175,9 @@
 
 .offset-subnavigation {
     background-color: $primary-color-200;
+    position: sticky;
+    top: 0;
+    z-index: $zindex-subnavigation;
 }
 
 .site-subnavigation {
@@ -246,6 +247,7 @@
         font-size: 14px;
         &:first-child {
             font-size: inherit;
+            margin-right: $padding-x-md / 2;
             svg {
                 vertical-align: middle;
                 font-size: 10px;
