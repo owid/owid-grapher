@@ -16,7 +16,7 @@ jobs:
             - name: Clone repository
               uses: actions/checkout@v2
               with:
-                  ref: ${{ github.head_ref }}
+                  ref: ${{ github.ref }}
 
             # Use Node version specified in .nvmrc
             # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
