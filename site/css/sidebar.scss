@@ -3,6 +3,10 @@
 $toc-link-color: #79b8ff;
 $border-width: 0.125rem;
 
+.toc-wrapper {
+    flex: 0 0 7rem;
+}
+
 .entry-sidebar {
     &.sticky {
     }
@@ -10,7 +14,6 @@ $border-width: 0.125rem;
     .entry-toc {
         position: fixed;
         top: 108px;
-        left: 0;
         height: 100%;
         padding-bottom: 108px;
         line-height: 1.3em;
@@ -93,43 +96,7 @@ $border-width: 0.125rem;
         transition: margin 300ms ease;
 
         .toggle-toc {
-            button {
-                z-index: $zindex-sidebar;
-                position: sticky;
-                top: 8px;
-                @include sm-only {
-                    top: $padding-x-sm/2;
-                }
-                background-color: $primary-color;
-                &:hover {
-                    background-color: $primary-color-700;
-                }
-
-                color: $white;
-                border-radius: 6px;
-                outline: none;
-                border: none;
-                padding: 0.5rem 0.8rem;
-                cursor: pointer;
-            }
-        }
-
-        &.toggled {
-            margin-left: 0;
-            @include block-shadow;
-
-            .toggle-toc {
-                left: $sidebar-content-width + 2 * $padding-x-md;
-                span {
-                    display: none;
-                }
-                button {
-                    width: $sidebar-toggle-width;
-                    height: $sidebar-toggle-width;
-                    padding: 0;
-                    border-radius: 0 50% 50% 0;
-                }
-            }
+            @include popover-box-button;
         }
     }
 

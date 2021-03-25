@@ -1,8 +1,6 @@
 .site-header {
     background-color: $primary-color;
     border-bottom: $mobile-header-border-height solid $secondary-color;
-    position: sticky;
-    top: 0;
     z-index: $zindex-subnavigation;
 }
 
@@ -175,7 +173,6 @@
 /* Subnavigation */
 
 .offset-subnavigation {
-    background-color: $primary-color-200;
     // position: sticky;
     // top: 0;
     // z-index: $zindex-subnavigation;
@@ -183,6 +180,7 @@
 
 .site-subnavigation {
     color: $primary-color;
+    background-color: $primary-color-200;
     position: relative;
     display: flex;
     align-items: center;
@@ -221,11 +219,19 @@
     }
 }
 
+// Manually synced with page.scss. TODO CLEANUP
+.site-navigation-bar {
+    @include content-wrapper;
+    @include lg-up {
+        max-width: $text-max-content-width + $graph-max-content-width + 3 *
+            $padding-x-md;
+    }
+}
+
 .site-subnavigation-scroll {
     display: flex;
     align-items: center;
     overflow-x: scroll;
-    margin-right: $padding-x-md;
 
     @include sm-only {
         -webkit-overflow-scrolling: touch;
@@ -250,7 +256,6 @@
         font-size: 14px;
         &:first-child {
             font-size: inherit;
-            margin-right: $padding-x-md / 2;
             svg {
                 vertical-align: middle;
                 font-size: 10px;

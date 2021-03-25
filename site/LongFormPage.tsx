@@ -133,7 +133,7 @@ export const LongFormPage = (props: {
                                     formattingOptions.subnavCurrentId
                                 }
                             >
-                                <div>
+                                <div className="toc-wrapper">
                                     <TableOfContents
                                         subnavId={formattingOptions.subnavId}
                                         subnavCurrentId={

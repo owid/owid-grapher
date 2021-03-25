@@ -2,7 +2,8 @@ import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { SubNavId } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
 import { SubnavItem, subnavs } from "./SiteSubnavigation"
@@ -227,11 +228,22 @@ export const TableOfContents = ({
                     } table of contents`}
                     onClick={toggle}
                 >
-                    <span>Contents</span>
-                    {isToggled && <FontAwesomeIcon icon={faChevronLeft} />}
+                    <span>
+                        {isToggled ? (
+                            <>
+                                <FontAwesomeIcon icon={faTimes} />
+                                Close
+                            </>
+                        ) : (
+                            <>
+                                <FontAwesomeIcon icon={faListAlt} />
+                                Contents
+                            </>
+                        )}
+                    </span>
                 </button>
             </div>
-            {!isToggled ? (
+            {isToggled ? (
                 <nav className="entry-toc">
                     <div className="container">
                         {subnavId && subnavs[subnavId] ? (

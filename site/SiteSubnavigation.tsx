@@ -281,6 +281,7 @@ export const SiteSubnavigation = ({
     return subnavLinks ? (
         <div className="offset-subnavigation">
             <div className="site-subnavigation">
+                {children}
                 <div className="site-subnavigation-scroll">
                     <ul className="site-subnavigation-links">
                         {subnavLinks.map(
@@ -320,7 +321,6 @@ export const SiteSubnavigation = ({
                         )}
                     </ul>
                 </div>
-                {children}
             </div>
         </div>
     ) : (

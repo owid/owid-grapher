@@ -118,6 +118,12 @@
     }
 }
 
+@mixin button-hover {
+    &:hover {
+        background-color: $primary-color-700;
+    }
+}
+
 @mixin popover-box-button {
     button {
         padding: 0.2rem 0.5rem;
@@ -128,12 +134,14 @@
         color: white;
         cursor: pointer;
         font-size: 0.875rem;
-        background: #002147;
+        background: $primary-color;
+        outline: none;
 
+        @include button-hover;
         @include button-disabled;
 
         svg {
-            margin-right: 0.15rem;
+            margin-right: 0.5rem;
             color: rgba(white, 0.75);
         }
     }
