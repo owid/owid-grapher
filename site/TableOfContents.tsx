@@ -177,40 +177,38 @@ export const TableOfContents = ({
         )
     }
 
-    const renderSubnavigation = (subnavigationItems: SubnavItem[]) => {
-        return (
-            <ul className="subnavigation">
-                {subnavigationItems.map(
-                    ({ href, label, id, highlight }, idx) => {
-                        const classes: string[] = []
-                        const dataTrackNote = [subnavId, "subnav", id].join("-")
-                        if (id === subnavCurrentId) classes.push("current")
-                        if (highlight) classes.push("highlight")
-                        classes.push(idx === 0 ? "topic" : "subtopic")
+    const renderSubnavigation = (
+        subnavigationItems: SubnavItem[],
+        subnavigationLevel = 0,
+        parentId?: string
+    ) => {
+        return subnavigationItems
+            .filter((item) => item.parentId === parentId)
+            .map(({ href, label, id, highlight }, idx) => {
+                const classes: string[] = [
+                    subnavigationLevel === 0 && idx === 0
+                        ? ""
+                        : `${"sub".repeat(subnavigationLevel)}section`,
+                ]
+                const dataTrackNote = [subnavId, "subnav", id].join("-")
+                if (id === subnavCurrentId) classes.push("current")
+                if (highlight) classes.push("highlight")
 
-                        return id === subnavCurrentId ? (
-                            <li key={href} className={classes.join(" ")}>
-                                <a
-                                    onClick={() => {
-                                        toggle()
-                                        setActiveHeading("")
-                                    }}
-                                    href="#"
-                                >
-                                    {label}
-                                </a>
-                            </li>
-                        ) : (
-                            <li className={classes.join(" ")} key={href}>
-                                <a href={href} data-track-note={dataTrackNote}>
-                                    {label}
-                                </a>
-                            </li>
-                        )
-                    }
-                )}
-            </ul>
-        )
+                return (
+                    <React.Fragment key={href}>
+                        <li className={classes.join(" ")}>
+                            <a href={href} data-track-note={dataTrackNote}>
+                                {label}
+                            </a>
+                        </li>
+                        {renderSubnavigation(
+                            subnavigationItems,
+                            subnavigationLevel + 1,
+                            id
+                        )}
+                    </React.Fragment>
+                )
+            })
     }
 
     return (
@@ -233,12 +231,14 @@ export const TableOfContents = ({
                     {isToggled && <FontAwesomeIcon icon={faChevronLeft} />}
                 </button>
             </div>
-            {isToggled ? (
+            {!isToggled ? (
                 <nav className="entry-toc">
                     <div className="container">
                         {subnavId && subnavs[subnavId] ? (
                             <>
-                                {renderSubnavigation(subnavs[subnavId])}
+                                <ul className="subnavigation">
+                                    {renderSubnavigation(subnavs[subnavId])}
+                                </ul>
                                 {renderTableOfContents()}
                             </>
                         ) : (

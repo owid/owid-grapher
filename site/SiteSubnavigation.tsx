@@ -8,6 +8,7 @@ export interface SubnavItem {
     href: string
     id: string
     highlight?: boolean
+    parentId?: string
 }
 
 export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
@@ -71,6 +72,24 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "Policy responses",
             href: "/policy-responses-covid",
             id: "policy-responses",
+        },
+        {
+            label: "Government Stringency Index",
+            href: "/covid-government-stringency-index",
+            id: "government-stringency-index",
+            parentId: "policy-responses",
+        },
+        {
+            label: "School and Workplace Closures",
+            href: "/covid-school-workplace-closures",
+            id: "school-workplace-closures",
+            parentId: "policy-responses",
+        },
+        {
+            label: "School and Workplace Closures",
+            href: "/covid-cancel-public-events",
+            id: "cancel-public-events",
+            parentId: "policy-responses",
         },
         {
             label: "Exemplars",
