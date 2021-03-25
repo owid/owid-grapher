@@ -132,11 +132,23 @@ export const LongFormPage = (props: {
                                 subnavCurrentId={
                                     formattingOptions.subnavCurrentId
                                 }
-                            />
+                            >
+                                <div>
+                                    <TableOfContents
+                                        subnavId={formattingOptions.subnavId}
+                                        subnavCurrentId={
+                                            formattingOptions.subnavCurrentId
+                                        }
+                                        headings={tocHeadings}
+                                        pageTitle={"pageTitle"}
+                                        // hideSubheadings={true}
+                                    ></TableOfContents>
+                                </div>
+                            </SiteSubnavigation>
                         )}
 
                         <div className="content-wrapper">
-                            {hasSidebar && (
+                            {/* {hasSidebar && (
                                 <div>
                                     <TableOfContents
                                         subnavId={formattingOptions.subnavId}
@@ -148,7 +160,7 @@ export const LongFormPage = (props: {
                                         // hideSubheadings={true}
                                     ></TableOfContents>
                                 </div>
-                            )}
+                            )} */}
                             <div className="offset-content">
                                 <div className="content-and-footnotes">
                                     <div className="offset-header">

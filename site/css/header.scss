@@ -1,10 +1,12 @@
 .site-header {
     background-color: $primary-color;
     border-bottom: $mobile-header-border-height solid $secondary-color;
+    position: sticky;
+    top: 0;
+    z-index: $zindex-subnavigation;
 }
 
 .site-logo a {
-    font-size: 1.8rem;
     font-weight: 300;
     line-height: 1.1;
     color: white;
@@ -17,8 +19,8 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: 14px;
-    padding-bottom: 11px;
+    padding-top: $vertical-spacing / 2;
+    padding-bottom: $vertical-spacing / 2;
     @include wrapper-x-spacing;
 }
 
@@ -90,12 +92,11 @@
 
     > input {
         font-family: inherit;
-        font-size: 1.0625rem;
         line-height: 1.375;
         color: white;
         background-color: transparent;
         border: 1px solid $primary-color-700;
-        border-radius: 100px;
+        border-radius: 6px;
         padding: 0.3rem 1rem 0.3rem 2.25rem;
         display: block;
         width: 8rem;
@@ -175,14 +176,17 @@
 
 .offset-subnavigation {
     background-color: $primary-color-200;
-    position: sticky;
-    top: 0;
-    z-index: $zindex-subnavigation;
+    // position: sticky;
+    // top: 0;
+    // z-index: $zindex-subnavigation;
 }
 
 .site-subnavigation {
     color: $primary-color;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
     @include sm-only {
         &::before {
@@ -220,9 +224,10 @@
 .site-subnavigation-scroll {
     display: flex;
     align-items: center;
+    overflow-x: scroll;
+    margin-right: $padding-x-md;
 
     @include sm-only {
-        overflow-x: scroll;
         -webkit-overflow-scrolling: touch;
     }
 }
@@ -232,12 +237,10 @@
     display: flex;
     align-items: baseline;
     flex-direction: row;
-    flex-wrap: wrap;
     padding: 0;
     list-style-type: none;
 
     @include sm-only {
-        flex-wrap: nowrap;
         justify-content: left;
     }
 
@@ -292,9 +295,9 @@
 
 .topics-button {
     font-family: inherit;
-    font-size: 1.0625rem;
+    font-weight: 300;
     line-height: 1.35;
-    color: $primary-color-400;
+    color: $primary-color-100;
     border: 1px solid $primary-color-700;
     border-radius: 6px;
     background-color: transparent;

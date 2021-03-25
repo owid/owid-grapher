@@ -4,24 +4,39 @@ $toc-link-color: #79b8ff;
 $border-width: 0.125rem;
 
 .entry-sidebar {
-    width: $sidebar-content-width + 2 * $padding-x-md;
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
-    background: $primary-color;
-
     &.sticky {
     }
 
     .entry-toc {
-        top: 0;
-        height: 100vh;
-        position: sticky;
+        position: fixed;
+        top: 108px;
+        left: 0;
+        height: 100%;
+        padding-bottom: 108px;
         line-height: 1.3em;
-        padding: $vertical-spacing 0;
-        overflow-y: auto;
+        overflow-y: scroll;
+        background: $primary-color;
+        z-index: $zindex-sidebar;
     }
 
+    .container {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .current,
     .toc {
         background-color: #032f62;
+    }
+
+    ul {
+        padding: $vertical-spacing 0;
+        max-width: 20rem;
+    }
+
+    .subnavigation {
+        position: sticky;
+        top: 0;
     }
 
     li {
@@ -38,8 +53,8 @@ $border-width: 0.125rem;
         &.subtopic {
             text-transform: uppercase;
             opacity: 0.8;
-
             &.current {
+                opacity: initial;
             }
         }
 
@@ -75,19 +90,10 @@ $border-width: 0.125rem;
     }
 
     @include xlg-down {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        margin-left: -($sidebar-content-width + 2 * $padding-x-md);
         z-index: $zindex-sidebar;
         transition: margin 300ms ease;
 
         .toggle-toc {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            padding-top: $vertical-spacing * 2;
-            left: $sidebar-content-width + 2 * $padding-x-md + $padding-x-md;
             button {
                 z-index: $zindex-sidebar;
                 position: sticky;

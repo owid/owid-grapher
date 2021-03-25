@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
-import { subnavs } from "./SiteSubnavigation"
+import { SubnavItem, subnavs } from "./SiteSubnavigation"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 
@@ -150,23 +150,67 @@ export const TableOfContents = ({
     }, [])
 
     const renderTableOfContents = () => {
-        return headings
-            .filter((heading) =>
-                hideSubheadings && heading.isSubheading ? false : true
-            )
-            .map((heading, i: number) => (
-                <li
-                    key={i}
-                    className={
-                        (heading.isSubheading ? "subsection" : "section") +
-                        (heading.slug === activeHeading ? " active" : "")
+        return (
+            <ul className="toc">
+                {headings
+                    .filter((heading) =>
+                        hideSubheadings && heading.isSubheading ? false : true
+                    )
+                    .map((heading, i: number) => (
+                        <li
+                            key={i}
+                            className={
+                                (heading.isSubheading
+                                    ? "subsection"
+                                    : "section") +
+                                (heading.slug === activeHeading
+                                    ? " active"
+                                    : "")
+                            }
+                        >
+                            <a onClick={toggle} href={`#${heading.slug}`}>
+                                {heading.text}
+                            </a>
+                        </li>
+                    ))}
+            </ul>
+        )
+    }
+
+    const renderSubnavigation = (subnavigationItems: SubnavItem[]) => {
+        return (
+            <ul className="subnavigation">
+                {subnavigationItems.map(
+                    ({ href, label, id, highlight }, idx) => {
+                        const classes: string[] = []
+                        const dataTrackNote = [subnavId, "subnav", id].join("-")
+                        if (id === subnavCurrentId) classes.push("current")
+                        if (highlight) classes.push("highlight")
+                        classes.push(idx === 0 ? "topic" : "subtopic")
+
+                        return id === subnavCurrentId ? (
+                            <li key={href} className={classes.join(" ")}>
+                                <a
+                                    onClick={() => {
+                                        toggle()
+                                        setActiveHeading("")
+                                    }}
+                                    href="#"
+                                >
+                                    {label}
+                                </a>
+                            </li>
+                        ) : (
+                            <li className={classes.join(" ")} key={href}>
+                                <a href={href} data-track-note={dataTrackNote}>
+                                    {label}
+                                </a>
+                            </li>
+                        )
                     }
-                >
-                    <a onClick={toggle} href={`#${heading.slug}`}>
-                        {heading.text}
-                    </a>
-                </li>
-            ))
+                )}
+            </ul>
+        )
     }
 
     return (
@@ -177,55 +221,6 @@ export const TableOfContents = ({
             }`}
         >
             <div className="sticky-sentinel" ref={stickySentinelRef} />
-            <nav className="entry-toc">
-                <ul>
-                    {subnavId && subnavs[subnavId]
-                        ? subnavs[subnavId].map(
-                              ({ href, label, id, highlight }, idx) => {
-                                  const classes: string[] = []
-                                  const dataTrackNote = [
-                                      subnavId,
-                                      "subnav",
-                                      id,
-                                  ].join("-")
-                                  if (id === subnavCurrentId)
-                                      classes.push("current")
-                                  if (highlight) classes.push("highlight")
-                                  classes.push(idx === 0 ? "topic" : "subtopic")
-
-                                  return id === subnavCurrentId ? (
-                                      <div key={href} className="toc">
-                                          <li className={classes.join(" ")}>
-                                              <a
-                                                  onClick={() => {
-                                                      toggle()
-                                                      setActiveHeading("")
-                                                  }}
-                                                  href="#"
-                                              >
-                                                  {label}
-                                              </a>
-                                          </li>
-                                          {renderTableOfContents()}
-                                      </div>
-                                  ) : (
-                                      <li
-                                          className={classes.join(" ")}
-                                          key={href}
-                                      >
-                                          <a
-                                              href={href}
-                                              data-track-note={dataTrackNote}
-                                          >
-                                              {label}
-                                          </a>
-                                      </li>
-                                  )
-                              }
-                          )
-                        : renderTableOfContents()}
-                </ul>
-            </nav>
             <div className="toggle-toc">
                 <button
                     data-track-note="page-toggle-toc"
@@ -234,14 +229,24 @@ export const TableOfContents = ({
                     } table of contents`}
                     onClick={toggle}
                 >
-                    <span>
-                        {subnavId && subnavs[subnavId]
-                            ? subnavs[subnavId][0].label
-                            : "Contents"}
-                    </span>
+                    <span>Contents</span>
                     {isToggled && <FontAwesomeIcon icon={faChevronLeft} />}
                 </button>
             </div>
+            {isToggled ? (
+                <nav className="entry-toc">
+                    <div className="container">
+                        {subnavId && subnavs[subnavId] ? (
+                            <>
+                                {renderSubnavigation(subnavs[subnavId])}
+                                {renderTableOfContents()}
+                            </>
+                        ) : (
+                            <>{renderTableOfContents()}</>
+                        )}
+                    </div>
+                </nav>
+            ) : null}
         </aside>
     )
 }

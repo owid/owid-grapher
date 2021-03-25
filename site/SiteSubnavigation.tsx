@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
 
-interface SubnavItem {
+export interface SubnavItem {
     label: string
     href: string
     id: string
@@ -248,57 +248,63 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     ],
 }
 
-export class SiteSubnavigation extends React.Component<{
+export const SiteSubnavigation = ({
+    subnavId,
+    subnavCurrentId,
+    children,
+}: {
     subnavId: SubNavId
     subnavCurrentId?: string
-}> {
-    render() {
-        const { subnavId, subnavCurrentId } = this.props
-        const subnavLinks = subnavs[subnavId]
-        return subnavLinks ? (
-            <div className="offset-subnavigation">
-                <div className="site-subnavigation">
-                    <div className="site-subnavigation-scroll">
-                        <ul className="site-subnavigation-links">
-                            {subnavLinks.map(
-                                ({ href, label, id, highlight }, idx) => {
-                                    const classes: string[] = []
-                                    const dataTrackNote = [
-                                        subnavId,
-                                        "subnav",
-                                        id,
-                                    ].join("-")
-                                    if (id === subnavCurrentId)
-                                        classes.push("current")
-                                    if (highlight) classes.push("highlight")
-                                    return (
-                                        <li
-                                            className={
-                                                (classes.length &&
-                                                    classes.join(" ")) ||
-                                                ""
-                                            }
-                                            key={href}
+    children?: any
+}) => {
+    const subnavLinks = subnavs[subnavId]
+
+    return subnavLinks ? (
+        <div className="offset-subnavigation">
+            <div className="site-subnavigation">
+                <div className="site-subnavigation-scroll">
+                    <ul className="site-subnavigation-links">
+                        {subnavLinks.map(
+                            ({ href, label, id, highlight }, idx) => {
+                                const classes: string[] = []
+                                const dataTrackNote = [
+                                    subnavId,
+                                    "subnav",
+                                    id,
+                                ].join("-")
+                                if (id === subnavCurrentId)
+                                    classes.push("current")
+                                if (highlight) classes.push("highlight")
+                                return (
+                                    <li
+                                        className={
+                                            (classes.length &&
+                                                classes.join(" ")) ||
+                                            ""
+                                        }
+                                        key={href}
+                                    >
+                                        <a
+                                            href={href}
+                                            data-track-note={dataTrackNote}
                                         >
-                                            <a
-                                                href={href}
-                                                data-track-note={dataTrackNote}
-                                            >
-                                                {label}
-                                                {idx === 0 && (
-                                                    <FontAwesomeIcon
-                                                        icon={faChevronLeft}
-                                                    />
-                                                )}
-                                            </a>
-                                        </li>
-                                    )
-                                }
-                            )}
-                        </ul>
-                    </div>
+                                            {label}
+                                            {idx === 0 && (
+                                                <FontAwesomeIcon
+                                                    icon={faChevronLeft}
+                                                />
+                                            )}
+                                        </a>
+                                    </li>
+                                )
+                            }
+                        )}
+                    </ul>
                 </div>
+                {children}
             </div>
-        ) : null
-    }
+        </div>
+    ) : (
+        <div>{children}</div>
+    )
 }

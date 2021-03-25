@@ -216,7 +216,8 @@ class Header extends React.Component<{
                     </nav>
                     <div className="site-logo">
                         <a href="/" data-track-note="header-navigation">
-                            Our World in Data
+                            Our World
+                            <br /> in Data
                         </a>
                     </div>
                     <HeaderSearch />
