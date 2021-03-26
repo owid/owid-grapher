@@ -86,7 +86,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             parentId: "policy-responses",
         },
         {
-            label: "School and Workplace Closures",
+            label: "Cancellation of Public Events",
             href: "/covid-cancel-public-events",
             id: "cancel-public-events",
             parentId: "policy-responses",

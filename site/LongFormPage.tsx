@@ -6,9 +6,6 @@ import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { formatAuthors, formatDate } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "../site/TableOfContents"
 import {
     FormattedPost,
@@ -16,6 +13,7 @@ import {
     PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
+import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -171,6 +169,15 @@ export const LongFormPage = (props: {
                                                         {post.supertitle}
                                                     </div>
                                                 )} */}
+                                                {formattingOptions.subnavId &&
+                                                    formattingOptions.subnavCurrentId && (
+                                                        <Breadcrumb
+                                                            subnavId={
+                                                                formattingOptions.subnavId
+                                                            }
+                                                            subnavCurrentHref={`/${post.slug}`}
+                                                        />
+                                                    )}
                                                 <h1 className="entry-title">
                                                     {pageTitle}
                                                 </h1>
