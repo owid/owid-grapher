@@ -9,44 +9,46 @@ export const getParent = (
     return subnavItems.find((item) => item.id === currentItem.parentId)
 }
 
-export const getAncestors = (
+export const getBreadcrumbItems = (
     subnavCurrentHref: string,
     subnavItems: SubnavItem[]
 ) => {
-    const ancestors = []
+    const breadcrumb = []
     let currentItem = subnavItems.find(
         (item) => item.href === subnavCurrentHref
     )
     if (!currentItem) return
+    breadcrumb.push(currentItem)
 
     while (currentItem && currentItem.parentId) {
         currentItem = getParent(currentItem, subnavItems)
-        if (currentItem) ancestors.push(currentItem)
+        if (currentItem) breadcrumb.push(currentItem)
     }
-    ancestors.push(subnavItems[0]) // add topic as parent
-    return ancestors.reverse()
+    breadcrumb.push(subnavItems[0]) // add topic as parent
+    return breadcrumb.reverse()
 }
 
 export const Breadcrumb = ({
     subnavId,
     subnavCurrentHref,
-    children,
 }: {
     subnavId: SubNavId
     subnavCurrentHref: string
-    children: any
 }) => {
-    const ancestors = getAncestors(subnavCurrentHref, subnavs[subnavId])
+    const ancestors = getBreadcrumbItems(subnavCurrentHref, subnavs[subnavId])
+    console.log(ancestors)
     return (
-        <div className="breadcrumb">
+        <span className="breadcrumb">
             {ancestors &&
-                ancestors.map((item) => (
+                ancestors.map((item, idx) => (
                     <React.Fragment key={item.href}>
-                        <a href={item.href}>{item.label}</a>
-                        <span className="separator">&gt;</span>
+                        {/* <a href={item.href}>{item.label}</a> */}
+                        {item.label}
+                        {idx !== ancestors.length - 1 && (
+                            <span className="separator">/</span>
+                        )}
                     </React.Fragment>
                 ))}
-            {children}
-        </div>
+        </span>
     )
 }

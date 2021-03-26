@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { getAncestors, getParent } from "./Breadcrumb"
+import { getBreadcrumbItems, getParent } from "./Breadcrumb"
 
 const subnavs = {
     coronavirus: [
@@ -40,13 +40,17 @@ describe("breadcrumb", () => {
             getParent(getItem("cancel-public-events"), subnavs["coronavirus"])
         ).toEqual(getItem("policy-responses"))
     })
-    it("gets ancestors", () => {
+    it("gets breadcrumb items", () => {
         expect(
-            getAncestors("/covid-cancel-public-events", subnavs["coronavirus"])
+            getBreadcrumbItems(
+                "/covid-cancel-public-events",
+                subnavs["coronavirus"]
+            )
         ).toEqual([
             getItem("coronavirus"),
             getItem("excess-mortality"),
             getItem("policy-responses"),
+            getItem("cancel-public-events"),
         ])
     })
 })

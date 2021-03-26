@@ -13,7 +13,6 @@ import {
     PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
-import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -160,30 +159,24 @@ export const LongFormPage = (props: {
                                                 )} */}
                                                 {formattingOptions.subnavId &&
                                                     formattingOptions.subnavCurrentId && (
-                                                        <Breadcrumb
-                                                            subnavId={
-                                                                formattingOptions.subnavId
-                                                            }
-                                                            subnavCurrentHref={`/${post.slug}`}
-                                                        >
-                                                            <div className="toc-wrapper">
-                                                                <TableOfContents
-                                                                    subnavId={
-                                                                        formattingOptions.subnavId
-                                                                    }
-                                                                    subnavCurrentId={
-                                                                        formattingOptions.subnavCurrentId
-                                                                    }
-                                                                    headings={
-                                                                        tocHeadings
-                                                                    }
-                                                                    pageTitle={
-                                                                        "pageTitle"
-                                                                    }
-                                                                    // hideSubheadings={true}
-                                                                ></TableOfContents>
-                                                            </div>
-                                                        </Breadcrumb>
+                                                        <div className="toc-wrapper">
+                                                            <TableOfContents
+                                                                subnavId={
+                                                                    formattingOptions.subnavId
+                                                                }
+                                                                subnavCurrentId={
+                                                                    formattingOptions.subnavCurrentId
+                                                                }
+                                                                headings={
+                                                                    tocHeadings
+                                                                }
+                                                                pageTitle={
+                                                                    "pageTitle"
+                                                                }
+
+                                                                // hideSubheadings={true}
+                                                            ></TableOfContents>
+                                                        </div>
                                                     )}
                                                 <h1 className="entry-title">
                                                     {pageTitle}
@@ -461,6 +454,7 @@ export const LongFormPage = (props: {
                             pageTitle,
                             subnavId: formattingOptions.subnavId,
                             subnavCurrentId: formattingOptions.subnavCurrentId,
+                            href: `/${post.slug}`,
                             // hideSubheadings: true
                         })})
                         runRelatedCharts(${JSON.stringify(post.relatedCharts)})
