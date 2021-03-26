@@ -2,11 +2,27 @@ import React from "react"
 import { SubNavId } from "../../clientUtils/owidTypes"
 import { SubnavItem, subnavs } from "../SiteSubnavigation"
 
-export const getParent = (
-    currentItem: SubnavItem,
+export const getSubnavItem = (
+    href: string | undefined,
     subnavItems: SubnavItem[]
 ) => {
-    return subnavItems.find((item) => item.id === currentItem.parentId)
+    // We want to avoid matching elements with potentially undefined href.
+    // Static typing prevents href from being undefined but this might not be
+    // the case in a future API powered version.
+    return href ? subnavItems.find((item) => item.href === href) : undefined
+}
+
+export const getSubnavParent = (
+    currentItem: SubnavItem | undefined,
+    subnavItems: SubnavItem[]
+) => {
+    const parentId = currentItem?.parentId
+    // We want to avoid matching elements with potentially undefined id.
+    // Static typing prevents id from being undefined but this might not be
+    // the case in a future API powered version.
+    return parentId
+        ? subnavItems.find((item) => item.id === parentId)
+        : undefined
 }
 
 export const getBreadcrumbItems = (
@@ -14,14 +30,12 @@ export const getBreadcrumbItems = (
     subnavItems: SubnavItem[]
 ) => {
     const breadcrumb = []
-    let currentItem = subnavItems.find(
-        (item) => item.href === subnavCurrentHref
-    )
+    let currentItem = getSubnavItem(subnavCurrentHref, subnavItems)
     if (!currentItem) return
     breadcrumb.push(currentItem)
 
     while (currentItem && currentItem.parentId) {
-        currentItem = getParent(currentItem, subnavItems)
+        currentItem = getSubnavParent(currentItem, subnavItems)
         if (currentItem) breadcrumb.push(currentItem)
     }
     if (currentItem !== subnavItems[0]) breadcrumb.push(subnavItems[0]) // add topic as parent

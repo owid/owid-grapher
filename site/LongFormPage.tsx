@@ -449,7 +449,7 @@ export const LongFormPage = (props: {
                             pageTitle,
                             subnavId: formattingOptions.subnavId,
                             subnavCurrentId: formattingOptions.subnavCurrentId,
-                            href: `/${post.slug}`,
+                            subnavCurrentHref: `/${post.slug}`,
                             // hideSubheadings: true
                         })})
                         runRelatedCharts(${JSON.stringify(post.relatedCharts)})

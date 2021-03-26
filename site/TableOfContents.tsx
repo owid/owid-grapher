@@ -7,7 +7,7 @@ import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { SubNavId } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
 import { SubnavItem, subnavs } from "./SiteSubnavigation"
-import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
+import { Breadcrumb, getSubnavItem } from "./Breadcrumb/Breadcrumb"
 
 const TOC_CLASS_NAME = "entry-sidebar"
 
@@ -17,7 +17,6 @@ interface TableOfContentsData {
     headings: { isSubheading: boolean; slug: string; text: string }[]
     pageTitle: string
     hideSubheadings?: boolean
-    href?: string
 }
 
 const isRecordTopViewport = (record: IntersectionObserverEntry) => {
@@ -42,7 +41,6 @@ export const TableOfContents = ({
     hideSubheadings,
     subnavId,
     subnavCurrentHref,
-    href,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
@@ -53,6 +51,10 @@ export const TableOfContents = ({
     const toggle = () => {
         setIsToggled(!isToggled)
     }
+
+    const currentItem = subnavId
+        ? getSubnavItem(subnavCurrentHref, subnavs[subnavId])
+        : undefined
 
     useTriggerWhenClickOutside(tocRef, setIsToggled)
 
@@ -156,6 +158,11 @@ export const TableOfContents = ({
     const renderTableOfContents = () => {
         return (
             <ul className="toc">
+                {currentItem && (
+                    <li>
+                        <a href={currentItem.href}>{currentItem.label}</a>
+                    </li>
+                )}
                 {headings
                     .filter((heading) =>
                         hideSubheadings && heading.isSubheading ? false : true
@@ -195,7 +202,7 @@ export const TableOfContents = ({
                         : `${"sub".repeat(subnavigationLevel)}section`,
                 ]
                 const dataTrackNote = [subnavId, "subnav", id].join("-")
-                if (id === subnavCurrentHref) classes.push("current")
+                if (href === subnavCurrentHref) classes.push("current")
                 if (highlight) classes.push("highlight")
 
                 return (
@@ -241,7 +248,7 @@ export const TableOfContents = ({
                             {subnavId && (
                                 <Breadcrumb
                                     subnavId={subnavId}
-                                    subnavCurrentHref={href || ""}
+                                    subnavCurrentHref={subnavCurrentHref || ""}
                                 />
                             )}
                         </>

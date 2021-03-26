@@ -41,25 +41,27 @@ $border-width: 0.125rem;
         position: sticky;
         top: 0;
 
-        .section {
-            text-transform: uppercase;
+        li {
             opacity: 0.8;
             &.current {
                 opacity: initial;
             }
         }
+        .section {
+            text-transform: uppercase;
+        }
+    }
 
-        li:first-child {
+    li {
+        list-style-type: none;
+
+        &:first-child {
             margin-bottom: $vertical-spacing;
 
             a {
                 font-size: 1.5rem;
             }
         }
-    }
-
-    li {
-        list-style-type: none;
 
         &.subsection {
             font-size: 0.8rem;

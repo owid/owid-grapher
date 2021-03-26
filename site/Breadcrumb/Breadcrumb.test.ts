@@ -1,9 +1,14 @@
 #! /usr/bin/env jest
 
-import { getBreadcrumbItems, getParent } from "./Breadcrumb"
+import {
+    getBreadcrumbItems,
+    getSubnavItem,
+    getSubnavParent,
+} from "./Breadcrumb"
 
 const subnavs = {
     coronavirus: [
+        { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
         { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
         {
             label: "Excess mortality",
@@ -26,24 +31,23 @@ const subnavs = {
 }
 
 describe("breadcrumb", () => {
-    const getItem = (id: string) => {
-        return (
-            subnavs.coronavirus.find((item) => item.id === id) || {
-                label: "",
-                href: "",
-                id: "",
-            }
-        )
-    }
     it("gets parent", () => {
         expect(
-            getParent(getItem("cancel-public-events"), subnavs["coronavirus"])
-        ).toEqual(getItem("policy-responses"))
+            getSubnavParent(
+                getSubnavItem(
+                    "/covid-cancel-public-events",
+                    subnavs["coronavirus"]
+                ),
+                subnavs["coronavirus"]
+            )
+        ).toEqual(
+            getSubnavItem("/policy-responses-covid", subnavs["coronavirus"])
+        )
     })
     it("gets single level breadcrumb", () => {
         expect(
             getBreadcrumbItems("/coronavirus", subnavs["coronavirus"])
-        ).toEqual([getItem("coronavirus")])
+        ).toEqual([getSubnavItem("/coronavirus", subnavs["coronavirus"])])
     })
     it("gets multi level breadcrumb", () => {
         expect(
@@ -52,10 +56,13 @@ describe("breadcrumb", () => {
                 subnavs["coronavirus"]
             )
         ).toEqual([
-            getItem("coronavirus"),
-            getItem("excess-mortality"),
-            getItem("policy-responses"),
-            getItem("cancel-public-events"),
+            getSubnavItem("/coronavirus", subnavs["coronavirus"]),
+            getSubnavItem("/excess-mortality-covid", subnavs["coronavirus"]),
+            getSubnavItem("/policy-responses-covid", subnavs["coronavirus"]),
+            getSubnavItem(
+                "/covid-cancel-public-events",
+                subnavs["coronavirus"]
+            ),
         ])
     })
 })
