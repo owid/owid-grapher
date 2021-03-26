@@ -306,7 +306,7 @@ export const SiteSubnavigation = ({
                 {children}
                 <div className="site-subnavigation-scroll">
                     <ul className="site-subnavigation-links">
-                        {renderSubnavigationLinks()}
+                        {/* {renderSubnavigationLinks()} */}
                     </ul>
                 </div>
             </div>

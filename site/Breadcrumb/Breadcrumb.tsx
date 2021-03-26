@@ -24,7 +24,7 @@ export const getBreadcrumbItems = (
         currentItem = getParent(currentItem, subnavItems)
         if (currentItem) breadcrumb.push(currentItem)
     }
-    breadcrumb.push(subnavItems[0]) // add topic as parent
+    if (currentItem !== subnavItems[0]) breadcrumb.push(subnavItems[0]) // add topic as parent
     return breadcrumb.reverse()
 }
 
@@ -35,17 +35,18 @@ export const Breadcrumb = ({
     subnavId: SubNavId
     subnavCurrentHref: string
 }) => {
-    const ancestors = getBreadcrumbItems(subnavCurrentHref, subnavs[subnavId])
-    console.log(ancestors)
+    const breadcrumbItems = getBreadcrumbItems(
+        subnavCurrentHref,
+        subnavs[subnavId]
+    )
     return (
         <span className="breadcrumb">
-            {ancestors &&
-                ancestors.map((item, idx) => (
+            {breadcrumbItems &&
+                breadcrumbItems.map((item, idx) => (
                     <React.Fragment key={item.href}>
-                        {/* <a href={item.href}>{item.label}</a> */}
                         {item.label}
-                        {idx !== ancestors.length - 1 && (
-                            <span className="separator">/</span>
+                        {idx !== breadcrumbItems.length - 1 && (
+                            <span className="separator">&gt;</span>
                         )}
                     </React.Fragment>
                 ))}

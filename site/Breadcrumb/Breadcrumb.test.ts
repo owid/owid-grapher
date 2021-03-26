@@ -40,7 +40,12 @@ describe("breadcrumb", () => {
             getParent(getItem("cancel-public-events"), subnavs["coronavirus"])
         ).toEqual(getItem("policy-responses"))
     })
-    it("gets breadcrumb items", () => {
+    it("gets single level breadcrumb", () => {
+        expect(
+            getBreadcrumbItems("/coronavirus", subnavs["coronavirus"])
+        ).toEqual([getItem("coronavirus")])
+    })
+    it("gets multi level breadcrumb", () => {
         expect(
             getBreadcrumbItems(
                 "/covid-cancel-public-events",

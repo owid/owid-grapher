@@ -27,6 +27,9 @@
     @include md-up {
         display: flex;
         align-items: center;
+        position: absolute;
+        z-index: $zindex-subnavigation;
+        top: 70px;
     }
 }
 
@@ -180,11 +183,12 @@
 
 .site-subnavigation {
     color: $primary-color;
-    background-color: $primary-color-200;
+    // background-color: $primary-color-200;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: $vertical-spacing 0;
 
     @include sm-only {
         &::before {
@@ -295,23 +299,24 @@
     display: flex;
     align-items: stretch;
     position: relative;
-    width: 8rem;
+    // width: 8rem;
 }
 
 .topics-button {
     font-family: inherit;
-    font-weight: 300;
+    // font-weight: 300;
     line-height: 1.35;
-    color: $primary-color-100;
-    border: 1px solid $primary-color-700;
-    border-radius: 6px;
+    color: $primary-color;
+    border: 1px solid $primary-color;
+    border-radius: 3px;
     background-color: transparent;
     outline: none;
-    padding: 0.5rem 0.8rem;
+    padding: 6px 0.8rem;
     position: relative;
     display: flex;
     align-items: center;
     text-align: left;
+    font-size: 0.875rem;
 
     strong {
         color: $primary-color-200;
@@ -323,7 +328,7 @@
     }
 
     .icon {
-        color: $primary-color-600;
+        // color: $primary-color-600;
         flex: 0;
         display: flex;
         padding-left: 3px;
@@ -358,7 +363,7 @@
     top: 100%;
     left: 0;
     z-index: $zindex-nav-dropdown;
-    margin-top: -5px;
+    margin-top: 5px;
     box-shadow: 0px 6px 11px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
     overflow: hidden;

@@ -13,7 +13,7 @@ const TOC_CLASS_NAME = "entry-sidebar"
 
 interface TableOfContentsData {
     subnavId?: SubNavId
-    subnavCurrentId?: string
+    subnavCurrentHref?: string
     headings: { isSubheading: boolean; slug: string; text: string }[]
     pageTitle: string
     hideSubheadings?: boolean
@@ -41,7 +41,7 @@ export const TableOfContents = ({
     pageTitle,
     hideSubheadings,
     subnavId,
-    subnavCurrentId,
+    subnavCurrentHref,
     href,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
@@ -195,7 +195,7 @@ export const TableOfContents = ({
                         : `${"sub".repeat(subnavigationLevel)}section`,
                 ]
                 const dataTrackNote = [subnavId, "subnav", id].join("-")
-                if (id === subnavCurrentId) classes.push("current")
+                if (id === subnavCurrentHref) classes.push("current")
                 if (highlight) classes.push("highlight")
 
                 return (
