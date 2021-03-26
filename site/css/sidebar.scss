@@ -4,7 +4,7 @@ $toc-link-color: #79b8ff;
 $border-width: 0.125rem;
 
 .toc-wrapper {
-    flex: 0 0 7rem;
+    display: inline-block;
 }
 
 .entry-sidebar {
@@ -14,6 +14,7 @@ $border-width: 0.125rem;
     .entry-toc {
         position: fixed;
         top: 108px;
+        left: 0;
         height: 100%;
         padding-bottom: 108px;
         line-height: 1.3em;

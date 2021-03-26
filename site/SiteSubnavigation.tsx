@@ -2,6 +2,7 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
+import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 
 export interface SubnavItem {
     label: string
@@ -274,9 +275,30 @@ export const SiteSubnavigation = ({
 }: {
     subnavId: SubNavId
     subnavCurrentId?: string
+    subnavCurrentHref?: string
     children?: any
 }) => {
     const subnavLinks = subnavs[subnavId]
+
+    const renderSubnavigationLinks = () => {
+        return subnavLinks.map(({ href, label, id, highlight }, idx) => {
+            const classes: string[] = []
+            const dataTrackNote = [subnavId, "subnav", id].join("-")
+            if (id === subnavCurrentId) classes.push("current")
+            if (highlight) classes.push("highlight")
+            return (
+                <li
+                    className={(classes.length && classes.join(" ")) || ""}
+                    key={href}
+                >
+                    <a href={href} data-track-note={dataTrackNote}>
+                        {label}
+                        {idx === 0 && <FontAwesomeIcon icon={faChevronLeft} />}
+                    </a>
+                </li>
+            )
+        })
+    }
 
     return subnavLinks ? (
         <div className="offset-subnavigation">
@@ -284,41 +306,7 @@ export const SiteSubnavigation = ({
                 {children}
                 <div className="site-subnavigation-scroll">
                     <ul className="site-subnavigation-links">
-                        {subnavLinks.map(
-                            ({ href, label, id, highlight }, idx) => {
-                                const classes: string[] = []
-                                const dataTrackNote = [
-                                    subnavId,
-                                    "subnav",
-                                    id,
-                                ].join("-")
-                                if (id === subnavCurrentId)
-                                    classes.push("current")
-                                if (highlight) classes.push("highlight")
-                                return (
-                                    <li
-                                        className={
-                                            (classes.length &&
-                                                classes.join(" ")) ||
-                                            ""
-                                        }
-                                        key={href}
-                                    >
-                                        <a
-                                            href={href}
-                                            data-track-note={dataTrackNote}
-                                        >
-                                            {label}
-                                            {idx === 0 && (
-                                                <FontAwesomeIcon
-                                                    icon={faChevronLeft}
-                                                />
-                                            )}
-                                        </a>
-                                    </li>
-                                )
-                            }
-                        )}
+                        {renderSubnavigationLinks()}
                     </ul>
                 </div>
             </div>

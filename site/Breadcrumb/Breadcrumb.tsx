@@ -30,13 +30,12 @@ export const getAncestors = (
 export const Breadcrumb = ({
     subnavId,
     subnavCurrentHref,
+    children,
 }: {
     subnavId: SubNavId
     subnavCurrentHref: string
+    children: any
 }) => {
-    const currentItem = subnavs[subnavId].find(
-        (item) => item.href === subnavCurrentHref
-    )
     const ancestors = getAncestors(subnavCurrentHref, subnavs[subnavId])
     return (
         <div className="breadcrumb">
@@ -47,7 +46,7 @@ export const Breadcrumb = ({
                         <span className="separator">&gt;</span>
                     </React.Fragment>
                 ))}
-            <span>{currentItem?.label}</span>
+            {children}
         </div>
     )
 }

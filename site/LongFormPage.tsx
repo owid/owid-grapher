@@ -130,19 +130,8 @@ export const LongFormPage = (props: {
                                 subnavCurrentId={
                                     formattingOptions.subnavCurrentId
                                 }
-                            >
-                                <div className="toc-wrapper">
-                                    <TableOfContents
-                                        subnavId={formattingOptions.subnavId}
-                                        subnavCurrentId={
-                                            formattingOptions.subnavCurrentId
-                                        }
-                                        headings={tocHeadings}
-                                        pageTitle={"pageTitle"}
-                                        // hideSubheadings={true}
-                                    ></TableOfContents>
-                                </div>
-                            </SiteSubnavigation>
+                                subnavCurrentHref={`/${post.slug}`}
+                            ></SiteSubnavigation>
                         )}
 
                         <div className="content-wrapper">
@@ -176,7 +165,25 @@ export const LongFormPage = (props: {
                                                                 formattingOptions.subnavId
                                                             }
                                                             subnavCurrentHref={`/${post.slug}`}
-                                                        />
+                                                        >
+                                                            <div className="toc-wrapper">
+                                                                <TableOfContents
+                                                                    subnavId={
+                                                                        formattingOptions.subnavId
+                                                                    }
+                                                                    subnavCurrentId={
+                                                                        formattingOptions.subnavCurrentId
+                                                                    }
+                                                                    headings={
+                                                                        tocHeadings
+                                                                    }
+                                                                    pageTitle={
+                                                                        "pageTitle"
+                                                                    }
+                                                                    // hideSubheadings={true}
+                                                                ></TableOfContents>
+                                                            </div>
+                                                        </Breadcrumb>
                                                     )}
                                                 <h1 className="entry-title">
                                                     {pageTitle}
