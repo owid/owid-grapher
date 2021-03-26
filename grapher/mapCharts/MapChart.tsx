@@ -585,7 +585,7 @@ export class MapChart
                     y={projectionChooserBounds.top}
                     width={projectionChooserBounds.width}
                     height={projectionChooserBounds.height}
-                    style={{ overflow: "visible", height: "100%" }}
+                    style={{ overflow: "visible", height: "100%", pointerEvents: "none" }}
                 >
                     <ProjectionChooser
                         value={projection}

@@ -38,6 +38,7 @@ export class ProjectionChooser extends React.Component<{
 
         const style: React.CSSProperties = {
             fontSize: "0.75rem",
+            pointerEvents: "auto",
         }
 
         return (
