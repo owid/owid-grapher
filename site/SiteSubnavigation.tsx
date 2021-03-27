@@ -2,7 +2,6 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
-import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 
 export interface SubnavItem {
     label: string

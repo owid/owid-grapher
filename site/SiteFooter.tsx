@@ -10,6 +10,7 @@ interface SiteFooterProps {
     subnavId?: SubNavId
     subnavCurrentHref?: string
     headings?: TocHeading[]
+    pageTitle?: string
 }
 
 export const SiteFooter = (props: SiteFooterProps) => (
@@ -247,9 +248,13 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts("${props.subnavId}","${
+                    __html: `window.runSiteFooterScripts(${JSON.stringify(
+                        props.subnavId
+                    )},${JSON.stringify(
                         props.subnavCurrentHref
-                    }",${JSON.stringify(props.headings)});`, // todo: gotta be a better way.
+                    )},${JSON.stringify(props.headings)}, ${JSON.stringify(
+                        props.pageTitle
+                    )});`, // todo: gotta be a better way.
                 }}
             />
         </footer>

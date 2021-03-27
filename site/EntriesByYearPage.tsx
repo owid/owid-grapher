@@ -43,9 +43,7 @@ export const EntriesByYearPage = (props: {
                     <div className="page with-sidebar">
                         <div className="content-wrapper">
                             <div>
-                                <TableOfContents
-                                    headings={tocEntries}
-                                />
+                                <TableOfContents headings={tocEntries} />
                             </div>
                             <div className="offset-content">
                                 <div className="content">
@@ -83,16 +81,11 @@ export const EntriesByYearPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter hideDonate={true} baseUrl={baseUrl} />
-
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                        runTableOfContents(${JSON.stringify({
-                            headings: tocEntries,
-                            pageTitle,
-                        })})`,
-                    }}
+                <SiteFooter
+                    hideDonate={true}
+                    baseUrl={baseUrl}
+                    headings={tocEntries}
+                    pageTitle={pageTitle}
                 />
             </body>
         </html>

@@ -112,8 +112,7 @@ $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 $zindex-input: 1;
 $zindex-global-entity-select: 11;
 $zindex-footnote: 15;
-$zindex-subnavigation: 16;
-$zindex-sidebar: 20; // Also manually used in SiteHeaderMenus.tsx
+$zindex-header: 20; // Also manually used in SiteHeader.tsx
 $zindex-popover: 100;
 $zindex-search-overlay: 100;
 $zindex-cookie-notice: 110;

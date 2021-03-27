@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { SubNavId, TocHeading } from "../clientUtils/owidTypes"
-import { useTriggerWhenClickOutside } from "./hooks"
 import { SubnavItem, subnavs } from "./SiteSubnavigation"
 import { Breadcrumb, getSubnavItem } from "./Breadcrumb/Breadcrumb"
 
@@ -14,8 +13,9 @@ const TOC_CLASS_NAME = "entry-sidebar"
 interface TableOfContentsData {
     subnavId?: SubNavId
     subnavCurrentHref?: string
-    headings: TocHeading[]
+    headings?: TocHeading[]
     hideSubheadings?: boolean
+    pageTitle?: string
 }
 
 const isRecordTopViewport = (record: IntersectionObserverEntry) => {
@@ -39,6 +39,7 @@ export const TableOfContents = ({
     hideSubheadings,
     subnavId,
     subnavCurrentHref,
+    pageTitle,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
@@ -55,10 +56,6 @@ export const TableOfContents = ({
         else document.body.style.overflowY = ""
         setIsToggled(!isToggled)
     }
-
-    const currentItem = subnavId
-        ? getSubnavItem(subnavCurrentHref, subnavs[subnavId])
-        : undefined
 
     // useTriggerWhenClickOutside(tocRef, setIsToggled)
 
@@ -87,7 +84,7 @@ export const TableOfContents = ({
     // }, [])
 
     useEffect(() => {
-        if ("IntersectionObserver" in window) {
+        if ("IntersectionObserver" in window && headings) {
             const previousHeadings = headings.map((heading, i) => ({
                 slug: heading.slug,
                 previous: i > 0 ? headings[i - 1].slug : null,
@@ -159,34 +156,43 @@ export const TableOfContents = ({
         }
     }, [])
 
-    const renderTableOfContents = () => {
+    const renderTableOfContents = (headings: TocHeading[] | undefined) => {
+        const subnavLabel = subnavId
+            ? getSubnavItem(subnavCurrentHref, subnavs[subnavId])?.label
+            : undefined
+        const title = pageTitle ?? subnavLabel ?? "Contents"
+
         return (
-            <ul className="toc">
-                {currentItem && (
-                    <li>
-                        <a href={currentItem.href}>{currentItem.label}</a>
-                    </li>
-                )}
-                {headings
-                    .filter((heading) =>
-                        hideSubheadings && heading.isSubheading ? false : true
-                    )
-                    .map((heading, i: number) => (
-                        <li
-                            key={i}
-                            className={
-                                (heading.isSubheading
-                                    ? "subsection"
-                                    : "section") +
-                                (heading.slug === activeHeading
-                                    ? " active"
-                                    : "")
-                            }
-                        >
-                            <a href={`#${heading.slug}`}>{heading.text}</a>
+            headings && (
+                <ul className="toc">
+                    {title && (
+                        <li>
+                            <a href="#">{title}</a>
                         </li>
-                    ))}
-            </ul>
+                    )}
+                    {headings
+                        .filter((heading) =>
+                            hideSubheadings && heading.isSubheading
+                                ? false
+                                : true
+                        )
+                        .map((heading, i: number) => (
+                            <li
+                                key={i}
+                                className={
+                                    (heading.isSubheading
+                                        ? "subsection"
+                                        : "section") +
+                                    (heading.slug === activeHeading
+                                        ? " active"
+                                        : "")
+                                }
+                            >
+                                <a href={`#${heading.slug}`}>{heading.text}</a>
+                            </li>
+                        ))}
+                </ul>
+            )
         )
     }
 
@@ -246,12 +252,10 @@ export const TableOfContents = ({
                     ) : (
                         <>
                             <FontAwesomeIcon icon={faListAlt} />
-                            {subnavId && (
-                                <Breadcrumb
-                                    subnavId={subnavId}
-                                    subnavCurrentHref={subnavCurrentHref || ""}
-                                />
-                            )}
+                            <Breadcrumb
+                                subnavId={subnavId}
+                                subnavCurrentHref={subnavCurrentHref}
+                            />
                         </>
                     )}
                 </button>
@@ -259,16 +263,12 @@ export const TableOfContents = ({
             {isToggled ? (
                 <nav className="entry-toc">
                     <div className="container" onClick={toggle}>
-                        {subnavId && subnavs[subnavId] ? (
-                            <>
-                                <ul className="subnavigation">
-                                    {renderSubnavigation(subnavs[subnavId])}
-                                </ul>
-                                {renderTableOfContents()}
-                            </>
-                        ) : (
-                            <>{renderTableOfContents()}</>
+                        {subnavId && subnavs[subnavId] && (
+                            <ul className="subnavigation">
+                                {renderSubnavigation(subnavs[subnavId])}
+                            </ul>
                         )}
+                        {renderTableOfContents(headings)}
                     </div>
                 </nav>
             ) : null}
@@ -276,10 +276,10 @@ export const TableOfContents = ({
     )
 }
 
-export const runTableOfContents = (tocData: TableOfContentsData) => {
-    const tocEl = document.querySelector<HTMLElement>(`.${TOC_CLASS_NAME}`)
-    if (tocEl) {
-        const tocWrapper = tocEl.parentElement
-        ReactDOM.hydrate(<TableOfContents {...tocData} />, tocWrapper)
-    }
-}
+// export const runTableOfContents = (tocData: TableOfContentsData) => {
+//     const tocEl = document.querySelector<HTMLElement>(`.${TOC_CLASS_NAME}`)
+//     if (tocEl) {
+//         const tocWrapper = tocEl.parentElement
+//         ReactDOM.hydrate(<TableOfContents {...tocData} />, tocWrapper)
+//     }
+// }

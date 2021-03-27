@@ -2,18 +2,15 @@ import { WORDPRESS_URL } from "../settings/serverSettings"
 import * as React from "react"
 import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
-import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "../site/formatting"
-import { SiteSubnavigation } from "./SiteSubnavigation"
-import { TableOfContents } from "../site/TableOfContents"
+import { formatAuthors } from "../site/formatting"
 import {
     FormattedPost,
     FormattingOptions,
     PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
-import { SiteHeaderMenus } from "./SiteHeaderMenus"
+import { SiteHeader } from "./SiteHeader"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -118,16 +115,12 @@ export const LongFormPage = (props: {
                 )}
             </Head>
             <body className={bodyClasses.join(" ")}>
-                <div>
-                    {formattingOptions.subnavId && (
-                        <SiteHeaderMenus
-                            baseUrl={baseUrl}
-                            subnavId={formattingOptions.subnavId}
-                            subnavCurrentHref={subnavCurrentHref}
-                            headings={tocHeadings}
-                        />
-                    )}
-                </div>
+                <SiteHeader
+                    baseUrl={baseUrl}
+                    subnavId={formattingOptions.subnavId}
+                    subnavCurrentHref={subnavCurrentHref}
+                    headings={tocHeadings}
+                />
                 <main>
                     <article
                         className={`page${

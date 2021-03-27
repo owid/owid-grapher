@@ -7,7 +7,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
 import { runChartsIndexPage } from "./runChartsIndexPage"
-import { runHeaderMenus } from "./SiteHeaderMenus"
+import { runHeaderMenus } from "./SiteHeader"
 import { runSearchPage } from "./SearchPageMain"
 import { runNotFoundPage } from "./NotFoundPageMain"
 import { runFeedbackPage } from "./Feedback"
@@ -16,7 +16,6 @@ import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager"
 import { runBlocks } from "./blocks"
-import { runTableOfContents } from "./TableOfContents"
 import { runRelatedCharts } from "./blocks/RelatedCharts"
 import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
@@ -46,17 +45,23 @@ window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
-window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = (
-    subnavId: SubNavId,
-    subnavCurrentHref: string,
-    headings: TocHeading[]
+    subnavId?: SubNavId,
+    subnavCurrentHref?: string,
+    headings?: TocHeading[],
+    pageTitle?: string
 ) => {
-    runHeaderMenus(BAKED_BASE_URL, subnavId, subnavCurrentHref, headings)
+    runHeaderMenus(
+        BAKED_BASE_URL,
+        subnavId,
+        subnavCurrentHref,
+        headings,
+        pageTitle
+    )
     runBlocks()
     runLightbox()
     runSiteTools()

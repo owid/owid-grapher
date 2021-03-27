@@ -1,5 +1,5 @@
 .site-header {
-    z-index: $zindex-subnavigation;
+    z-index: $zindex-header;
 }
 
 .site-logo a {
@@ -31,21 +31,9 @@
     .content-wrapper {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
         align-items: center;
         padding-top: $vertical-spacing / 2;
         padding-bottom: $vertical-spacing / 2;
-    }
-}
-
-.site-navigation {
-    display: none;
-    @include md-up {
-        display: flex;
-        align-items: center;
-        position: absolute;
-        z-index: $zindex-sidebar + 1; //TODO HACK
-        top: 70px; //TODO HACK
     }
 }
 
@@ -106,6 +94,7 @@
 
 .HeaderSearch {
     position: relative;
+    margin-left: auto;
     @include popover-box-button;
     background-color: $primary-color-100;
     color: $primary-color;
@@ -193,7 +182,6 @@
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: space-between;
 
         @include sm-only {
             &::before {

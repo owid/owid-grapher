@@ -72,9 +72,7 @@ export const ChartsIndexPage = (props: {
                     <div className="page with-sidebar">
                         <div className="content-wrapper">
                             <div>
-                                <TableOfContents
-                                    headings={tocEntries}
-                                />
+                                <TableOfContents headings={tocEntries} />
                             </div>
                             <div className="offset-content">
                                 <div className="content">
@@ -106,15 +104,16 @@ export const ChartsIndexPage = (props: {
                         </div>
                     </div>
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    headings={tocEntries}
+                    pageTitle={pageTitle}
+                />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
                         window.runChartsIndexPage()
-                        runTableOfContents(${JSON.stringify({
-                            headings: tocEntries,
-                            pageTitle,
-                        })})`,
+                        `,
                     }}
                 />
             </body>

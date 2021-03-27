@@ -95,7 +95,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader
                     baseUrl={baseUrl}
-                    hideAlertBanner={hideAlertBanner || false}
+                    // hideAlertBanner={hideAlertBanner || false}
                 />
                 {subNav}
                 <main id={ExplorerContainerId}>

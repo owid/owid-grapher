@@ -32,7 +32,6 @@ export const runSiteTools = () => {
         <SiteTools />,
         document.querySelector(`.${SITE_TOOLS_CLASS}`)
     )
-
     const newsletterSubscriptionFormRootHomepage = document.querySelector(
         ".homepage-subscribe .newsletter-subscription .root"
     )

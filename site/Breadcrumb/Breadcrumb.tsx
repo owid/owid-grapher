@@ -26,9 +26,9 @@ export const getSubnavParent = (
 }
 
 export const getBreadcrumbItems = (
-    subnavCurrentHref: string,
+    subnavCurrentHref: string | undefined,
     subnavItems: SubnavItem[]
-) => {
+): SubnavItem[] | undefined => {
     const breadcrumb = []
     let currentItem = getSubnavItem(subnavCurrentHref, subnavItems)
     if (!currentItem) return
@@ -46,24 +46,27 @@ export const Breadcrumb = ({
     subnavId,
     subnavCurrentHref,
 }: {
-    subnavId: SubNavId
-    subnavCurrentHref: string
+    subnavId?: SubNavId
+    subnavCurrentHref?: string
 }) => {
-    const breadcrumbItems = getBreadcrumbItems(
-        subnavCurrentHref,
-        subnavs[subnavId]
-    )
+    const breadcrumbItems = subnavId
+        ? getBreadcrumbItems(subnavCurrentHref, subnavs[subnavId])
+        : null
+
     return (
         <span className="breadcrumb">
-            {breadcrumbItems &&
+            {breadcrumbItems ? (
                 breadcrumbItems.map((item, idx) => (
                     <React.Fragment key={item.href}>
-                        {item.label}
+                        <span>{item.label}</span>
                         {idx !== breadcrumbItems.length - 1 && (
                             <span className="separator">&gt;</span>
                         )}
                     </React.Fragment>
-                ))}
+                ))
+            ) : (
+                <span>Contents</span>
+            )}
         </span>
     )
 }
