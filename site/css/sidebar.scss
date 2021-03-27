@@ -97,20 +97,4 @@ $border-width: 0.125rem;
             @include popover-box-button;
         }
     }
-
-    @include xlg-down {
-        transition: margin 300ms ease;
-    }
-
-    @include xxlg-up {
-        position: relative;
-        height: 100%;
-        margin-top: -$content-wrapper-padding-top;
-
-        // .sticky-sentinel {
-        //     position: absolute;
-        //     height: 1px;
-        //     width: inherit;
-        // }
-    }
 }
