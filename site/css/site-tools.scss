@@ -44,7 +44,8 @@
             right: 0;
             @include popover-box-styles;
         }
-
-        @include popover-box-button;
+        button {
+            @include popover-box-button;
+        }
     }
 }

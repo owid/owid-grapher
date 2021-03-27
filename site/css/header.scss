@@ -44,8 +44,8 @@
         display: flex;
         align-items: center;
         position: absolute;
-        z-index: $zindex-sidebar + 1;
-        top: 70px;
+        z-index: $zindex-sidebar + 1; //TODO HACK
+        top: 70px; //TODO HACK
     }
 }
 
@@ -106,16 +106,20 @@
 
 .HeaderSearch {
     position: relative;
+    @include popover-box-button;
+    background-color: $primary-color-100;
+    color: $primary-color;
+    &:hover {
+        background-color: $primary-color-100;
+    }
 
     > input {
         font-family: inherit;
-        line-height: 1.375;
-        color: white;
+        font-size: inherit;
+        // line-height: 1.6;
         background-color: transparent;
-        border: 1px solid $primary-color-700;
-        border-radius: 6px;
-        padding: 0.3rem 1rem 0.3rem 2.25rem;
-        display: block;
+        border: none;
+        // display: block;
         width: 8rem;
         outline: none;
 
@@ -124,27 +128,17 @@
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $primary-color-800;
+            color: $primary-color-600;
         }
-    }
-
-    > .icon {
-        position: absolute;
-        top: 0;
-        left: 0.75rem;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        color: $primary-color-600;
     }
 }
 
 .HeaderSearch .SearchResults {
     position: fixed;
-    top: 93px;
+    top: 117px; //TODO HACK
     left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 117px); //TODO HACK
     color: black;
     background: white;
     /* Needs to go over the charts */

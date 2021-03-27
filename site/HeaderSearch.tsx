@@ -52,6 +52,7 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
         const { results } = this
         return (
             <form action="/search" method="GET" className="HeaderSearch">
+                <FontAwesomeIcon icon={faSearch} />
                 <input
                     type="search"
                     name="q"
@@ -59,9 +60,6 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
                     placeholder="Search..."
                     autoFocus={this.props.autoFocus}
                 />
-                <div className="icon">
-                    <FontAwesomeIcon icon={faSearch} />
-                </div>
                 {results && <HeaderSearchResults results={results} />}
             </form>
         )

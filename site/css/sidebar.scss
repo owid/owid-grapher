@@ -9,10 +9,10 @@ $border-width: 0.125rem;
 
     .entry-toc {
         position: fixed;
-        top: 117px;
+        top: 117px; //TODO HACK
         left: 0;
         right: 0;
-        height: calc(100vh - 117px);
+        height: calc(100vh - 117px); //TODO HACK
         line-height: 1.3em;
         overflow-y: scroll;
         z-index: $zindex-sidebar;
@@ -55,6 +55,7 @@ $border-width: 0.125rem;
 
         &:first-child {
             margin-bottom: $vertical-spacing;
+            line-height: initial;
 
             a {
                 font-size: 1.5rem;
@@ -93,7 +94,9 @@ $border-width: 0.125rem;
     }
     .toggle-toc {
         margin-left: 6rem;
-        @include popover-box-button;
+        button {
+            @include popover-box-button;
+        }
     }
 
     @include xlg-down {

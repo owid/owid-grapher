@@ -231,7 +231,7 @@ class Header extends React.Component<{
                                 <br /> in Data
                             </a>
                         </div>
-                        <HeaderSearch />
+
                         {/* <div className="header-logos-wrapper">
                         <a
                             href="https://www.oxfordmartin.ox.ac.uk/global-development"
@@ -283,6 +283,7 @@ class Header extends React.Component<{
                                 headings={this.props.headings}
                                 // hideSubheadings={true}
                             ></TableOfContents>
+                            <HeaderSearch />
                         </div>
                     </div>
                 )}
