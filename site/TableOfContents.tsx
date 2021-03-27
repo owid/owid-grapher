@@ -4,7 +4,7 @@ import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
-import { SubNavId } from "../clientUtils/owidTypes"
+import { SubNavId, TocHeading } from "../clientUtils/owidTypes"
 import { useTriggerWhenClickOutside } from "./hooks"
 import { SubnavItem, subnavs } from "./SiteSubnavigation"
 import { Breadcrumb, getSubnavItem } from "./Breadcrumb/Breadcrumb"
@@ -14,8 +14,7 @@ const TOC_CLASS_NAME = "entry-sidebar"
 interface TableOfContentsData {
     subnavId?: SubNavId
     subnavCurrentHref?: string
-    headings: { isSubheading: boolean; slug: string; text: string }[]
-    pageTitle: string
+    headings: TocHeading[]
     hideSubheadings?: boolean
 }
 
@@ -37,7 +36,6 @@ const getPreviousHeading = (
 
 export const TableOfContents = ({
     headings,
-    pageTitle,
     hideSubheadings,
     subnavId,
     subnavCurrentHref,
@@ -45,10 +43,16 @@ export const TableOfContents = ({
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
     const [activeHeading, setActiveHeading] = useState("")
-    const tocRef = useRef<HTMLElement>(null)
+    // const tocRef = useRef<HTMLDivElement>(null)
     const stickySentinelRef = useRef<HTMLDivElement>(null)
 
     const toggle = () => {
+        // TODO fix edge case:
+        // - open nav
+        // - open search
+        // - close search (removes overflowY hidden, thus re-enabling the scroll)
+        if (!isToggled) document.body.style.overflowY = "hidden"
+        else document.body.style.overflowY = ""
         setIsToggled(!isToggled)
     }
 
@@ -56,7 +60,7 @@ export const TableOfContents = ({
         ? getSubnavItem(subnavCurrentHref, subnavs[subnavId])
         : undefined
 
-    useTriggerWhenClickOutside(tocRef, setIsToggled)
+    // useTriggerWhenClickOutside(tocRef, setIsToggled)
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -179,9 +183,7 @@ export const TableOfContents = ({
                                     : "")
                             }
                         >
-                            <a onClick={toggle} href={`#${heading.slug}`}>
-                                {heading.text}
-                            </a>
+                            <a href={`#${heading.slug}`}>{heading.text}</a>
                         </li>
                     ))}
             </ul>
@@ -223,7 +225,6 @@ export const TableOfContents = ({
     }
     return (
         <aside
-            ref={tocRef}
             className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}${
                 isSticky ? " sticky" : ""
             }`}
@@ -257,7 +258,7 @@ export const TableOfContents = ({
             </div>
             {isToggled ? (
                 <nav className="entry-toc">
-                    <div className="container">
+                    <div className="container" onClick={toggle}>
                         {subnavId && subnavs[subnavId] ? (
                             <>
                                 <ul className="subnavigation">

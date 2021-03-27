@@ -74,7 +74,6 @@ export const ChartsIndexPage = (props: {
                             <div>
                                 <TableOfContents
                                     headings={tocEntries}
-                                    pageTitle={pageTitle}
                                 />
                             </div>
                             <div className="offset-content">

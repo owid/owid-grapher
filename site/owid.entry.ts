@@ -33,6 +33,7 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
+import { SubNavId, TocHeading } from "../clientUtils/owidTypes"
 
 declare var window: any
 window.Grapher = Grapher
@@ -50,8 +51,12 @@ window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
-window.runSiteFooterScripts = () => {
-    runHeaderMenus(BAKED_BASE_URL)
+window.runSiteFooterScripts = (
+    subnavId: SubNavId,
+    subnavCurrentHref: string,
+    headings: TocHeading[]
+) => {
+    runHeaderMenus(BAKED_BASE_URL, subnavId, subnavCurrentHref, headings)
     runBlocks()
     runLightbox()
     runSiteTools()

@@ -4,17 +4,11 @@
         padding-top: $content-wrapper-padding-top;
     }
 
-    .content-and-footnotes,
-    .site-subnavigation {
+    .content-and-footnotes {
         @include content-wrapper;
         @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
                 $padding-x-md;
-        }
-    }
-    @include sm-only {
-        .site-subnavigation {
-            padding-right: 0;
         }
     }
 

@@ -24,12 +24,22 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription"
-import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes"
+import {
+    CategoryWithEntries,
+    EntryMeta,
+    SubNavId,
+    TocHeading,
+} from "../clientUtils/owidTypes"
+import Headroom from "react-headroom"
+import { TableOfContents } from "./TableOfContents"
 
 @observer
 class Header extends React.Component<{
     categories: CategoryWithEntries[]
     baseUrl: string
+    subnavId: SubNavId
+    subnavCurrentHref: string
+    headings: TocHeading[]
 }> {
     @observable.ref dropdownIsOpen = false
 
@@ -125,46 +135,47 @@ class Header extends React.Component<{
         const { categories, baseUrl } = this.props
 
         return (
-            <>
-                <div className="wrapper site-navigation-bar">
-                    <nav className="site-navigation">
-                        <div className="topics-button-wrapper">
-                            <a
-                                href="/#entries"
-                                className={classnames("topics-button", {
-                                    active: this.dropdownIsOpen,
-                                })}
-                                onMouseEnter={() =>
-                                    this.scheduleOpenTimeout(200)
-                                }
-                                onMouseLeave={() =>
-                                    this.scheduleCloseTimeout(100)
-                                }
-                                onClick={this.onDropdownButtonClick}
-                            >
-                                <div className="label">Topics</div>
-                                <div className="icon">
-                                    <svg width="12" height="6">
-                                        <path
-                                            d="M0,0 L12,0 L6,6 Z"
-                                            fill="currentColor"
-                                        />
-                                    </svg>
-                                </div>
-                            </a>
-                            <DesktopTopicsMenu
-                                categories={categories}
-                                isOpen={this.dropdownIsOpen}
-                                onMouseEnter={() => this.setOpen(true)}
-                                onMouseLeave={() =>
-                                    this.scheduleCloseTimeout(350)
-                                }
-                            />
-                        </div>
+            <header className="site-header">
+                <div className="site-navigation-bar">
+                    <div className="content-wrapper">
+                        <nav className="site-navigation">
+                            <div className="topics-button-wrapper">
+                                <a
+                                    href="/#entries"
+                                    className={classnames("topics-button", {
+                                        active: this.dropdownIsOpen,
+                                    })}
+                                    onMouseEnter={() =>
+                                        this.scheduleOpenTimeout(200)
+                                    }
+                                    onMouseLeave={() =>
+                                        this.scheduleCloseTimeout(100)
+                                    }
+                                    onClick={this.onDropdownButtonClick}
+                                >
+                                    <div className="label">Topics</div>
+                                    <div className="icon">
+                                        <svg width="12" height="6">
+                                            <path
+                                                d="M0,0 L12,0 L6,6 Z"
+                                                fill="currentColor"
+                                            />
+                                        </svg>
+                                    </div>
+                                </a>
+                                <DesktopTopicsMenu
+                                    categories={categories}
+                                    isOpen={this.dropdownIsOpen}
+                                    onMouseEnter={() => this.setOpen(true)}
+                                    onMouseLeave={() =>
+                                        this.scheduleCloseTimeout(350)
+                                    }
+                                />
+                            </div>
 
-                        <div>
-                            <div className="site-primary-navigation">
-                                {/* <ul className="site-primary-links">
+                            <div>
+                                <div className="site-primary-navigation">
+                                    {/* <ul className="site-primary-links">
                                     <li>
                                         <a
                                             href="/blog"
@@ -190,8 +201,8 @@ class Header extends React.Component<{
                                         </a>
                                     </li>
                                 </ul> */}
-                            </div>
-                            {/* <div className="site-secondary-navigation">
+                                </div>
+                                {/* <div className="site-secondary-navigation">
                                 <ul className="site-secondary-links">
                                     <li>
                                         <a
@@ -212,16 +223,16 @@ class Header extends React.Component<{
                                     </li>
                                 </ul>
                             </div> */}
+                            </div>
+                        </nav>
+                        <div className="site-logo">
+                            <a href="/" data-track-note="header-navigation">
+                                Our World
+                                <br /> in Data
+                            </a>
                         </div>
-                    </nav>
-                    <div className="site-logo">
-                        <a href="/" data-track-note="header-navigation">
-                            Our World
-                            <br /> in Data
-                        </a>
-                    </div>
-                    <HeaderSearch />
-                    {/* <div className="header-logos-wrapper">
+                        <HeaderSearch />
+                        {/* <div className="header-logos-wrapper">
                         <a
                             href="https://www.oxfordmartin.ox.ac.uk/global-development"
                             className="oxford-logo"
@@ -241,28 +252,41 @@ class Header extends React.Component<{
                             />
                         </a>
                     </div> */}
-                    <div className="mobile-site-navigation">
-                        <button
-                            onClick={this.onToggleSearch}
-                            data-track-note="mobile-search-button"
-                        >
-                            <FontAwesomeIcon icon={faSearch} />
-                        </button>
-                        <button
-                            onClick={this.onToggleNewsletterSubscription}
-                            data-track-note="mobile-newsletter-button"
-                        >
-                            <FontAwesomeIcon icon={faEnvelopeOpenText} />
-                        </button>
-                        <button
-                            onClick={this.onToggleCategories}
-                            data-track-note="mobile-hamburger-button"
-                        >
-                            <FontAwesomeIcon icon={faBars} />
-                        </button>
+                        <div className="mobile-site-navigation">
+                            <button
+                                onClick={this.onToggleSearch}
+                                data-track-note="mobile-search-button"
+                            >
+                                <FontAwesomeIcon icon={faSearch} />
+                            </button>
+                            <button
+                                onClick={this.onToggleNewsletterSubscription}
+                                data-track-note="mobile-newsletter-button"
+                            >
+                                <FontAwesomeIcon icon={faEnvelopeOpenText} />
+                            </button>
+                            <button
+                                onClick={this.onToggleCategories}
+                                data-track-note="mobile-hamburger-button"
+                            >
+                                <FontAwesomeIcon icon={faBars} />
+                            </button>
+                        </div>
                     </div>
                 </div>
-                {this.showSearch && (
+                {this.props.subnavId && (
+                    <div className="site-subnavigation-bar">
+                        <div className="content-wrapper">
+                            <TableOfContents
+                                subnavId={this.props.subnavId}
+                                subnavCurrentHref={this.props.subnavCurrentHref}
+                                headings={this.props.headings}
+                                // hideSubheadings={true}
+                            ></TableOfContents>
+                        </div>
+                    </div>
+                )}
+                {/* {this.showSearch && (
                     <div className="search-dropdown sm-only">
                         <form id="search-nav" action="/search" method="GET">
                             <input
@@ -287,8 +311,8 @@ class Header extends React.Component<{
                 )}
                 {this.showCategories && (
                     <MobileTopicsMenu categories={this.props.categories} />
-                )}
-            </>
+                )} */}
+            </header>
         )
     }
 }
@@ -543,7 +567,12 @@ class MobileTopicsMenu extends React.Component<{
 }
 
 @observer
-class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
+export class SiteHeaderMenus extends React.Component<{
+    baseUrl: string
+    subnavId: SubNavId
+    subnavCurrentHref: string
+    headings: TocHeading[]
+}> {
     @observable private width!: number
     @observable.ref private categories: CategoryWithEntries[] = []
 
@@ -577,13 +606,34 @@ class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
 
     render() {
         return (
-            <Header categories={this.categories} baseUrl={this.props.baseUrl} />
+            <Header
+                categories={this.categories}
+                baseUrl={this.props.baseUrl}
+                subnavId={this.props.subnavId}
+                subnavCurrentHref={this.props.subnavCurrentHref}
+                headings={this.props.headings}
+            />
         )
     }
 }
 
-export const runHeaderMenus = (baseUrl: string) =>
+export const runHeaderMenus = (
+    baseUrl: string,
+    subnavId: SubNavId,
+    subnavCurrentHref: string,
+    headings: TocHeading[]
+) => {
+    const parentElement = document.querySelector(".site-header")?.parentElement
+    if (!parentElement) return
     ReactDOM.render(
-        <SiteHeaderMenus baseUrl={baseUrl} />,
-        document.querySelector(".site-header")
+        <Headroom style={{ zIndex: 20 }}>
+            <SiteHeaderMenus
+                baseUrl={baseUrl}
+                subnavId={subnavId}
+                subnavCurrentHref={subnavCurrentHref}
+                headings={headings}
+            />
+        </Headroom>,
+        parentElement
     )
+}

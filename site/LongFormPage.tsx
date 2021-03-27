@@ -13,6 +13,7 @@ import {
     PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
+import { SiteHeaderMenus } from "./SiteHeaderMenus"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -83,6 +84,7 @@ export const LongFormPage = (props: {
             )
         }
     }
+    const subnavCurrentHref = `/${post.slug}`
 
     const bodyClasses = []
     if (formattingOptions.bodyClassName) {
@@ -116,38 +118,22 @@ export const LongFormPage = (props: {
                 )}
             </Head>
             <body className={bodyClasses.join(" ")}>
-                <SiteHeader baseUrl={baseUrl} />
+                <div>
+                    {formattingOptions.subnavId && (
+                        <SiteHeaderMenus
+                            baseUrl={baseUrl}
+                            subnavId={formattingOptions.subnavId}
+                            subnavCurrentHref={subnavCurrentHref}
+                            headings={tocHeadings}
+                        />
+                    )}
+                </div>
                 <main>
                     <article
                         className={`page${
                             hasSidebar ? " with-sidebar" : " no-sidebar"
                         }${isPost ? " thin-banner" : " large-banner"}`}
                     >
-                        {formattingOptions.subnavId && (
-                            <SiteSubnavigation
-                                subnavId={formattingOptions.subnavId}
-                                subnavCurrentId={
-                                    formattingOptions.subnavCurrentId
-                                }
-                                subnavCurrentHref={`/${post.slug}`}
-                            >
-                                {formattingOptions.subnavId && (
-                                    <div className="toc-wrapper">
-                                        <TableOfContents
-                                            subnavId={
-                                                formattingOptions.subnavId
-                                            }
-                                            subnavCurrentHref={`/${post.slug}`}
-                                            headings={tocHeadings}
-                                            pageTitle={"pageTitle"}
-
-                                            // hideSubheadings={true}
-                                        ></TableOfContents>
-                                    </div>
-                                )}
-                            </SiteSubnavigation>
-                        )}
-
                         <div className="content-wrapper">
                             {/* {hasSidebar && (
                                 <div>
@@ -440,18 +426,13 @@ export const LongFormPage = (props: {
                 <SiteFooter
                     hideDonate={formattingOptions.hideDonateFooter}
                     baseUrl={baseUrl}
+                    subnavId={formattingOptions.subnavId}
+                    subnavCurrentHref={subnavCurrentHref}
+                    headings={tocHeadings}
                 />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `
-                        runTableOfContents(${JSON.stringify({
-                            headings: tocHeadings,
-                            pageTitle,
-                            subnavId: formattingOptions.subnavId,
-                            subnavCurrentId: formattingOptions.subnavCurrentId,
-                            subnavCurrentHref: `/${post.slug}`,
-                            // hideSubheadings: true
-                        })})
                         runRelatedCharts(${JSON.stringify(post.relatedCharts)})
                         `,
                     }}

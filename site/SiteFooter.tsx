@@ -2,10 +2,14 @@ import * as React from "react"
 import { webpackUrl } from "../site/webpackUtils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { SubNavId, TocHeading } from "../clientUtils/owidTypes"
 
 interface SiteFooterProps {
     hideDonate?: boolean
     baseUrl: string
+    subnavId?: SubNavId
+    subnavCurrentHref?: string
+    headings?: TocHeading[]
 }
 
 export const SiteFooter = (props: SiteFooterProps) => (
@@ -243,7 +247,9 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
+                    __html: `window.runSiteFooterScripts("${props.subnavId}","${
+                        props.subnavCurrentHref
+                    }",${JSON.stringify(props.headings)});`, // todo: gotta be a better way.
                 }}
             />
         </footer>

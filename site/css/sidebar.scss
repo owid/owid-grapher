@@ -3,29 +3,26 @@
 $toc-link-color: #79b8ff;
 $border-width: 0.125rem;
 
-.toc-wrapper {
-    margin-left: 6rem;
-}
-
 .entry-sidebar {
     &.sticky {
     }
 
     .entry-toc {
         position: fixed;
-        top: 108px;
+        top: 117px;
         left: 0;
-        height: 100%;
-        padding-bottom: 108px;
+        right: 0;
+        height: calc(100vh - 117px);
         line-height: 1.3em;
         overflow-y: scroll;
-        background: $primary-color;
         z-index: $zindex-sidebar;
+        background: rgba($primary-color, 0.8);
     }
 
     .container {
         display: flex;
         align-items: flex-start;
+
         > ul {
             padding: $vertical-spacing 0;
             max-width: 20rem;
@@ -40,6 +37,7 @@ $border-width: 0.125rem;
     ul.subnavigation {
         position: sticky;
         top: 0;
+        background: $primary-color;
 
         li {
             opacity: 0.8;
@@ -93,14 +91,14 @@ $border-width: 0.125rem;
             border-left-color: rgba($toc-link-color, 0.8);
         }
     }
+    .toggle-toc {
+        margin-left: 6rem;
+        @include popover-box-button;
+    }
 
     @include xlg-down {
         z-index: $zindex-sidebar;
         transition: margin 300ms ease;
-
-        .toggle-toc {
-            @include popover-box-button;
-        }
     }
 
     @include xxlg-up {
@@ -112,10 +110,6 @@ $border-width: 0.125rem;
             position: absolute;
             height: 1px;
             width: inherit;
-        }
-
-        .toggle-toc {
-            display: none;
         }
     }
 }

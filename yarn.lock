@@ -3690,6 +3690,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-headroom@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@types/react-headroom/-/react-headroom-2.2.1.tgz#54f2cf222aa4411c9948bc6078658de23269d90f"
+  integrity sha512-BVfra15oucJnSEImUEivP+QXSevdnf2Tf5ED65vO3S1uB8GxAjbxKkLmFPvfKU9EwaFnSdstgFdnhi7SK6atiw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-recaptcha@^2.3.3":
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/@types/react-recaptcha/-/react-recaptcha-2.3.3.tgz#700369afa4d32e6e1fa08166fe73a717931fe8e0"
@@ -15939,7 +15946,7 @@ querystringify@^2.1.1:
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
   integrity sha512-w7fLxIRCRT7U8Qu53jQnJyPkYZIaR4n5151KMfcJlO/A9397Wxb1amJvROTK6TOnp7PfoAmg/qXiNHI+08jRfA==
 
-raf@^3.4.0:
+raf@^3.3.0, raf@^3.4.0:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.1.tgz#0742e99a4a6552f445d73e3ee0328af0ff1ede39"
   integrity sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
@@ -16171,6 +16178,15 @@ react-flip-toolkit@^7.0.9:
   integrity sha512-YQd/N9Bt0Kia3eOpO8R7XqHt0bNC8POzidkzM1ATnogKK4h08IwsBk8YmRaybpKbSHKIwgR/UVT0wTwoyNZUVw==
   dependencies:
     rematrix "0.2.2"
+
+react-headroom@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/react-headroom/-/react-headroom-3.1.0.tgz#7b176a5439cf937cc20293a49582b11f363a0498"
+  integrity sha512-zgisgzALxNOGqv+xoPSc4mU2mY/C6LK4NfoD2ZQK4qnL/j9Lm+EJ9z3d1PRh2pEcdll1T++q/FAHzrlu7p1E0Q==
+  dependencies:
+    prop-types "^15.5.8"
+    raf "^3.3.0"
+    shallowequal "^1.1.0"
 
 react-helmet-async@^1.0.2:
   version "1.0.2"

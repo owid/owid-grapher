@@ -45,7 +45,6 @@ export const EntriesByYearPage = (props: {
                             <div>
                                 <TableOfContents
                                     headings={tocEntries}
-                                    pageTitle={pageTitle}
                                 />
                             </div>
                             <div className="offset-content">

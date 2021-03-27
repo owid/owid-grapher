@@ -1,6 +1,4 @@
 .site-header {
-    background-color: $primary-color;
-    border-bottom: $mobile-header-border-height solid $secondary-color;
     z-index: $zindex-subnavigation;
 }
 
@@ -12,14 +10,32 @@
     text-align: center;
 }
 
+.site-navigation-bar,
+.site-subnavigation-bar {
+    .content-wrapper {
+        @include content-wrapper;
+        padding-top: $vertical-spacing;
+        padding-bottom: $vertical-spacing;
+
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
+    }
+}
+
 .site-navigation-bar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: $vertical-spacing / 2;
-    padding-bottom: $vertical-spacing / 2;
-    @include wrapper-x-spacing;
+    background-color: $primary-color;
+    border-bottom: $mobile-header-border-height solid $secondary-color;
+
+    .content-wrapper {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: $vertical-spacing / 2;
+        padding-bottom: $vertical-spacing / 2;
+    }
 }
 
 .site-navigation {
@@ -28,7 +44,7 @@
         display: flex;
         align-items: center;
         position: absolute;
-        z-index: $zindex-subnavigation;
+        z-index: $zindex-sidebar + 1;
         top: 70px;
     }
 }
@@ -175,60 +191,47 @@
 
 /* Subnavigation */
 
-.offset-subnavigation {
-    // position: sticky;
-    // top: 0;
-    // z-index: $zindex-subnavigation;
-}
+.site-subnavigation-bar {
+    background-color: $body-bg;
+    @include block-shadow;
+    .content-wrapper {
+        color: $primary-color;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-.site-subnavigation {
-    color: $primary-color;
-    // background-color: $primary-color-200;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: $vertical-spacing 0;
+        @include sm-only {
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 1.25rem;
+                background: linear-gradient(
+                    to right,
+                    $primary-color-200 15%,
+                    rgba($primary-color-200, 0)
+                );
+                z-index: 1;
+            }
 
-    @include sm-only {
-        &::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 1.25rem;
-            background: linear-gradient(
-                to right,
-                $primary-color-200 15%,
-                rgba($primary-color-200, 0)
-            );
-            z-index: 1;
+            &::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 1.25rem;
+                background: linear-gradient(
+                    to left,
+                    $primary-color-200 15%,
+                    rgba($primary-color-200, 0)
+                );
+                z-index: 1;
+            }
         }
-
-        &::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 1.25rem;
-            background: linear-gradient(
-                to left,
-                $primary-color-200 15%,
-                rgba($primary-color-200, 0)
-            );
-            z-index: 1;
-        }
-    }
-}
-
-// Manually synced with page.scss. TODO CLEANUP
-.site-navigation-bar {
-    @include content-wrapper;
-    @include lg-up {
-        max-width: $text-max-content-width + $graph-max-content-width + 3 *
-            $padding-x-md;
     }
 }
 
