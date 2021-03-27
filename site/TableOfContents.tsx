@@ -62,29 +62,29 @@ export const TableOfContents = ({
 
     // useTriggerWhenClickOutside(tocRef, setIsToggled)
 
-    useEffect(() => {
-        if ("IntersectionObserver" in window) {
-            // Sets up an intersection observer to notify when the element with the class
-            // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
-            // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
-            const observer = new IntersectionObserver((records) => {
-                for (const record of records) {
-                    const targetInfo = record.boundingClientRect
-                    // Started sticking
-                    if (targetInfo.top < 0) {
-                        setIsSticky(true)
-                    }
-                    // Stopped sticking
-                    if (targetInfo.bottom > 0) {
-                        setIsSticky(false)
-                    }
-                }
-            })
-            if (stickySentinelRef.current) {
-                observer.observe(stickySentinelRef.current)
-            }
-        }
-    }, [])
+    // useEffect(() => {
+    //     if ("IntersectionObserver" in window) {
+    //         // Sets up an intersection observer to notify when the element with the class
+    //         // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
+    //         // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
+    //         const observer = new IntersectionObserver((records) => {
+    //             for (const record of records) {
+    //                 const targetInfo = record.boundingClientRect
+    //                 // Started sticking
+    //                 if (targetInfo.top < 0) {
+    //                     setIsSticky(true)
+    //                 }
+    //                 // Stopped sticking
+    //                 if (targetInfo.bottom > 0) {
+    //                     setIsSticky(false)
+    //                 }
+    //             }
+    //         })
+    //         if (stickySentinelRef.current) {
+    //             observer.observe(stickySentinelRef.current)
+    //         }
+    //     }
+    // }, [])
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -229,7 +229,7 @@ export const TableOfContents = ({
                 isSticky ? " sticky" : ""
             }`}
         >
-            <div className="sticky-sentinel" ref={stickySentinelRef} />
+            {/* <div className="sticky-sentinel" ref={stickySentinelRef} /> */}
             <div className="toggle-toc">
                 <button
                     data-track-note="page-toggle-toc"
