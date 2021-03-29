@@ -189,6 +189,63 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "soy",
         },
     ],
+    biodiversity: [
+        {
+            label: "Biodiversity",
+            href: "/biodiversity",
+            id: "biodiversity",
+        },
+        {
+            label: "Biodiversity and Wildlife",
+            href: "/biodiversity-and-wildlife",
+            id: "biodiversity-and-wildlife",
+        },
+        {
+            label: "Mammals",
+            href: "/mammals",
+            id: "mammals",
+        },
+        {
+            label: "Birds",
+            href: "/birds",
+            id: "birds",
+        },
+        {
+            label: "Fish",
+            href: "/fish",
+            id: "fish",
+        },
+        {
+            label: "Living Planet Index",
+            href: "/living-planet-index",
+            id: "living-planet-index",
+        },
+        {
+            label: "Extinctions",
+            href: "/extinctions",
+            id: "extinctions",
+        },
+        {
+            label: "Threats to Wildlife",
+            href: "/threats-to-wildlife",
+            id: "threats-to-wildlife",
+        },
+        {
+            label: "Poaching and Wildlife Trade",
+            href: "/poaching-and-wildlife-trade",
+            id: "poaching-and-wildlife-trade",
+        },
+        {
+            label: "Habitat Loss",
+            href: "/habitat-loss",
+            id: "habitat-loss",
+        },
+        {
+            label: "Protected areas and conservation",
+            href: "/protected-areas-and-conservation",
+            id: "protected-areas-and-conservation",
+        },
+    ],
 }
 
 export class SiteSubnavigation extends React.Component<{
