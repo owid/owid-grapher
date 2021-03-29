@@ -99,9 +99,7 @@ export class CoreTable<
         this.parent = parent as this
         this.inputColumnDefs =
             typeof inputColumnDefs === "string"
-                ? (columnDefinitionsFromDelimited(
-                      inputColumnDefs
-                  ) as COL_DEF_TYPE[])
+                ? columnDefinitionsFromDelimited<COL_DEF_TYPE>(inputColumnDefs)
                 : inputColumnDefs
 
         // If any values were passed in, copy those to column store now and then remove them from column definitions.
@@ -1498,8 +1496,8 @@ class FilterMask {
  *
  * todo: define all column def property types
  */
-const columnDefinitionsFromDelimited = (delimited: string) =>
-    new CoreTable(delimited.trim()).columnFilter(
+export const columnDefinitionsFromDelimited = <T>(delimited: string) =>
+    new CoreTable<T>(delimited.trim()).columnFilter(
         "slug",
         (value) => !!value,
         "Keep only column defs with a slug"
