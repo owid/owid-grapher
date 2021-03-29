@@ -303,11 +303,9 @@ export const SiteSubnavigation = ({
         <div className="offset-subnavigation">
             <div className="site-subnavigation">
                 {children}
-                <div className="site-subnavigation-scroll">
-                    <ul className="site-subnavigation-links">
-                        {/* {renderSubnavigationLinks()} */}
-                    </ul>
-                </div>
+                <ul className="site-subnavigation-links">
+                    {/* {renderSubnavigationLinks()} */}
+                </ul>
             </div>
         </div>
     ) : (
