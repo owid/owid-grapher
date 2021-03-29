@@ -229,7 +229,8 @@ export const TableOfContents = ({
                 )
             })
     }
-    return (
+
+    return (headings && headings.length) || (subnavId && subnavCurrentHref) ? (
         <aside
             className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}${
                 isSticky ? " sticky" : ""
@@ -273,7 +274,7 @@ export const TableOfContents = ({
                 </nav>
             ) : null}
         </aside>
-    )
+    ) : null
 }
 
 // export const runTableOfContents = (tocData: TableOfContentsData) => {
