@@ -87,7 +87,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
             <Head
                 canonicalUrl={`${baseUrl}/${slug}`}
                 pageTitle={explorerTitle}
-                imageUrl={`${baseUrl}/${thumbnail} `}
+                imageUrl={thumbnail}
                 baseUrl={baseUrl}
             >
                 <IFrameDetector />
