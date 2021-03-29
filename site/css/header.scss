@@ -105,11 +105,12 @@
     > input {
         font-family: inherit;
         font-size: inherit;
-        // line-height: 1.6;
         background-color: transparent;
         border: none;
-        // display: block;
-        width: 8rem;
+        width: 6rem;
+        @include md-up {
+            width: 8rem;
+        }
         outline: none;
 
         &::placeholder {

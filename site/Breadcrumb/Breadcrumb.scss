@@ -1,4 +1,8 @@
 .breadcrumb {
+    @include sm-only {
+        display: none;
+    }
+
     .separator {
         margin: 0 0.5rem;
         color: $primary-color-400;
