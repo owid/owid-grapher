@@ -567,7 +567,8 @@ export class Grapher
         if (this.isOnMapTab)
             return table.filterByTargetTimes(
                 [endTime],
-                table.get(this.mapColumnSlug).tolerance
+                this.map.timeTolerance ??
+                    table.get(this.mapColumnSlug).tolerance
             )
 
         if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)

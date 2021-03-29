@@ -26,6 +26,7 @@ import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
 import { Url } from "../../clientUtils/urls/Url"
 import { OwidTable } from "../../coreTable/OwidTable"
+import { MapConfig } from "../mapCharts/MapConfig"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -863,4 +864,56 @@ describe("identifies and drops unnecessary table columns", () => {
         expect(Object.keys(table.columnStore).length).toEqual(8)
         expect(Object.keys(table.columnStore)).not.toContain("happiness")
     })
+})
+
+it("considers map tolerance before using column tolerance", () => {
+    const table = new OwidTable(
+        [
+            ["entityId", "entityCode", "entityName", "year", "gdp"],
+            [1, "USA", "United States", 1999, 1],
+            [1, "USA", "United States", 2000, 1],
+            [1, "USA", "United States", 2001, 1],
+            [1, "USA", "United States", 2002, 1],
+            [2, "DEU", "Germany", 2000, 2],
+        ],
+        [
+            {
+                slug: "gdp",
+                tolerance: 2,
+            },
+        ]
+    )
+
+    const grapher = new Grapher({
+        table,
+        type: ChartTypeName.WorldMap,
+        ySlugs: "gdp",
+        tab: GrapherTabOption.map,
+        map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
+    })
+
+    expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
+    expect(
+        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
+    ).toEqual(0)
+
+    grapher.map.time = 2001
+    expect(
+        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
+    ).toEqual(1)
+
+    const grapherColumnTolerance = new Grapher({
+        table,
+        type: ChartTypeName.WorldMap,
+        ySlugs: "gdp",
+        tab: GrapherTabOption.map,
+        map: new MapConfig({ columnSlug: "gdp", time: 2002 }),
+    })
+
+    grapher.map.time = 2002
+    grapher.map.timeTolerance = undefined
+
+    expect(
+        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
+    ).toEqual(1)
 })
