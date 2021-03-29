@@ -19,7 +19,6 @@ import {
 } from "../grapher/core/Grapher"
 import {
     debounce,
-    differenceObj,
     exposeInstanceOnWindow,
     isInIFrame,
     omitUndefinedValues,
