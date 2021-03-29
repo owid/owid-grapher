@@ -212,7 +212,7 @@ export class TopicsMenu extends React.Component<{
                                         </span>
                                     </li>
                                 ))}
-                                <hr />
+                                {/* <hr />
                                 <a
                                     href="http://sdg-tracker.org"
                                     className="item"
@@ -227,7 +227,7 @@ export class TopicsMenu extends React.Component<{
                                             icon={faExternalLinkAlt}
                                         />
                                     </span>
-                                </a>
+                                </a> */}
                                 {/* An extra "Index" menu item, for when we have the Index page. */}
                                 {/* <a href="/index" className="item" data-track-note="header-navigation">
                         <span className="label">Index of all topics</span>
