@@ -68,6 +68,7 @@ interface AdvancedOptions {
     parent?: CoreTable
     filterMask?: FilterMask
     tableSlug?: TableSlug
+    skipParsing?: boolean
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -281,7 +282,9 @@ export class CoreTable<
             )
         }
 
-        if (this.parent || !firstInputRow) return []
+        if (this.advancedOptions.skipParsing || this.parent || !firstInputRow)
+            return []
+
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of columns that have values passed directly.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
