@@ -302,19 +302,21 @@ export class Explorer
         grapher.yAxis.min = yAxisMin
         grapher.updateFromObject(config)
 
-        // Clear any error messages, they are likely to be related to dataset loading.
-        this.grapher?.clearErrors()
-        // Set a table immediately. A BlankTable shows a loading animation.
-        this.setGrapherTable(
-            BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
-        )
-        this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+        if (!hasGrapherId) {
+            // Clear any error messages, they are likely to be related to dataset loading.
+            this.grapher?.clearErrors()
+            // Set a table immediately. A BlankTable shows a loading animation.
+            this.setGrapherTable(
+                BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
+            )
+            this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+            grapher.id = 0
+        }
 
         // Download data if this is a Grapher ID inside the Explorer specification
         grapher.downloadData()
-
         grapher.slug = this.explorerProgram.slug
-        if (!hasGrapherId) grapher.id = 0
+
         if (this.downloadDataLink)
             grapher.externalCsvLink = this.downloadDataLink
     }
