@@ -57,11 +57,56 @@ export class SiteHeader extends React.Component<{
             <header className="site-header">
                 <div className="site-navigation-bar">
                     <div className="content-wrapper">
-                        <nav className="site-navigation"></nav>
                         <div className="site-logo">
                             <a href="/" data-track-note="header-navigation">
                                 Our World
                                 <br /> in Data
+                            </a>
+                        </div>
+                        <ul className="site-primary-links">
+                            <li>
+                                <a
+                                    href="/blog"
+                                    data-track-note="header-navigation"
+                                >
+                                    Latest
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="/about"
+                                    data-track-note="header-navigation"
+                                >
+                                    About
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="/donate"
+                                    data-track-note="header-navigation"
+                                >
+                                    Donate
+                                </a>
+                            </li>
+                        </ul>
+                        <div className="header-logos-wrapper">
+                            <a
+                                href="https://global-change-data-lab.org/"
+                                className="gcdl-logo"
+                            >
+                                <img
+                                    src={`${this.props.baseUrl}/gcdl-logo.svg`}
+                                    alt="Global Change Data Lab logo"
+                                />
+                            </a>
+                            <a
+                                href="https://www.oxfordmartin.ox.ac.uk/global-development"
+                                className="oxford-logo"
+                            >
+                                <img
+                                    src={`${this.props.baseUrl}/oms-logo.svg`}
+                                    alt="Oxford Martin School logo"
+                                />
                             </a>
                         </div>
                     </div>

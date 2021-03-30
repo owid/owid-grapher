@@ -2,12 +2,16 @@
     z-index: $zindex-header;
 }
 
-.site-logo a {
-    font-weight: 300;
-    line-height: 1.1;
-    color: white;
-    display: block;
-    text-align: center;
+.site-logo {
+    margin-right: auto;
+    a {
+        font-weight: 300;
+        font-size: 1.1rem;
+        line-height: 1.1;
+        color: white;
+        display: block;
+        text-align: center;
+    }
 }
 
 .site-navigation-bar,
@@ -43,30 +47,17 @@
     align-items: center;
 }
 
-.site-primary-links,
-.site-secondary-links {
-    a {
-        transition: color 150ms ease;
-    }
-}
-
 .site-primary-links {
-    font-size: 1.0625rem;
-    margin-top: 0.1em;
-
+    font-weight: 300;
     li {
         list-style-type: none;
         display: inline-block;
-        margin-right: 1.5rem;
+        margin-right: 1rem;
+        @include md-up {
+            margin-right: $padding-x-sm;
+        }
         &:last-child {
             margin-right: 0;
-        }
-    }
-
-    a {
-        color: $primary-color-300;
-        &:hover {
-            color: white;
         }
     }
 }
@@ -138,37 +129,36 @@
     overflow-y: scroll;
 }
 
+.site-primary-links,
+.header-logos-wrapper {
+    a {
+        color: white;
+        opacity: 0.8;
+        transition: color 150ms ease;
+        &:hover {
+            opacity: initial;
+        }
+    }
+}
+
 .header-logos-wrapper {
     display: none;
     @include md-up {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
+        margin-left: $padding-x-md;
 
+        a {
+            line-height: 1;
+        }
         .oxford-logo {
-            width: 126px;
-        }
-
-        .gcdl-logo {
-            width: 50px;
-            margin-left: 0.35rem;
-        }
-
-        .oxford-logo,
-        .gcdl-logo {
-            opacity: 0.75;
-            display: flex;
-            align-items: center;
-
             img {
-                height: auto;
-                width: 100%;
+                margin-left: 5px;
+                width: 100px;
             }
         }
-        @media (max-width: 68rem) {
-            .oxford-logo,
-            .gcdl-logo {
-                display: none;
-            }
+        .gcdl-logo img {
+            width: 39px;
         }
     }
 }
