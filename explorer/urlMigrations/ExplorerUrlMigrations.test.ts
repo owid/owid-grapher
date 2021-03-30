@@ -124,3 +124,24 @@ describe("energy explorer", () => {
         })
     })
 })
+
+describe("covid explorer", () => {
+    it("migrates Vaccinations", () => {
+        const legacyUrl = Url.fromURL(
+            "https://ourworldindata.org/explorers/coronavirus-data-explorer?Metric=Vaccinations"
+        )
+        const migratedUrl = migrateExplorerUrl(legacyUrl)
+        expect(migratedUrl.queryParams).toMatchObject({
+            Metric: "Vaccine doses",
+        })
+    })
+    it("migrates Tests per confirmed case", () => {
+        const legacyUrl = Url.fromURL(
+            "https://ourworldindata.org/explorers/coronavirus-data-explorer?Metric=Tests+per+confirmed+case"
+        )
+        const migratedUrl = migrateExplorerUrl(legacyUrl)
+        expect(migratedUrl.queryParams).toMatchObject({
+            Metric: "Tests per case",
+        })
+    })
+})
