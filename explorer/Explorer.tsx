@@ -265,11 +265,7 @@ export class Explorer
 
     private futureGrapherTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => this.setGrapherTable(table),
-        onReject: (error) =>
-            this.grapher?.setError(
-                error,
-                <p>Failed to load dataset, please try refreshing the page.</p>
-            ),
+        onReject: (error) => this.grapher?.setError(error),
     })
 
     tableLoader = new PromiseCache((slug: TableSlug | undefined) =>

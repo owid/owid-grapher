@@ -1573,19 +1573,13 @@ export class Grapher
 
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
-    @observable private userFacingErrorSuggestion?: JSX.Element // optionally provide the user with something helpful to self-troubleshoot
 
-    @action.bound setError(
-        err: Error,
-        userFacingErrorSuggestion?: JSX.Element
-    ) {
+    @action.bound setError(err: Error) {
         this.uncaughtError = err
-        this.userFacingErrorSuggestion = userFacingErrorSuggestion
     }
 
     @action.bound clearErrors() {
         this.uncaughtError = undefined
-        this.userFacingErrorSuggestion = undefined
     }
 
     // todo: clean up this popup stuff
@@ -1880,7 +1874,11 @@ export class Grapher
                     </a>
                     .
                 </p>
-                {this.userFacingErrorSuggestion}
+                {this.uncaughtError && this.uncaughtError.message && (
+                    <pre style={{ fontSize: "11px" }}>
+                        Error: {this.uncaughtError.message}
+                    </pre>
+                )}
             </div>
         )
     }
