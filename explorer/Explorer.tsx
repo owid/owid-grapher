@@ -19,10 +19,14 @@ import {
 } from "../grapher/core/Grapher"
 import {
     debounce,
+    excludeUndefined,
     exposeInstanceOnWindow,
+    flatten,
     isInIFrame,
+    keyMap,
     omitUndefinedValues,
     throttle,
+    uniqBy,
 } from "../clientUtils/Util"
 import {
     SlideShowController,
@@ -39,14 +43,18 @@ import {
 } from "./ExplorerConstants"
 import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
-import { TableSlug } from "../coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    SortOrder,
+    TableSlug,
+} from "../coreTable/CoreTableConstants"
 import { isNotErrorValue } from "../coreTable/ErrorValues"
 import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
 import classNames from "classnames"
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
+import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef"
 import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
 import {
@@ -56,6 +64,8 @@ import {
 import { setWindowUrl, Url } from "../clientUtils/urls/Url"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
 import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder"
+import { PromiseCache } from "../clientUtils/PromiseCache"
+import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -153,9 +163,6 @@ export class Explorer
         this.initialQueryParams
     )
 
-    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
-    @observable entityPickerSort? = this.initialQueryParams.pickerSort
-
     // only used for the checkbox at the bottom of the embed dialog
     @observable embedDialogHideControls = true
 
@@ -167,6 +174,12 @@ export class Explorer
             this.explorerProgram.entityType
         )
 
+    @observable.ref grapher?: Grapher
+
+    @action.bound setGrapher(grapher: Grapher) {
+        this.grapher = grapher
+    }
+
     @computed get grapherConfigs() {
         const arr = this.props.grapherConfigs || []
         const grapherConfigsMap: Map<number, GrapherInterface> = new Map()
@@ -174,15 +187,10 @@ export class Explorer
         return grapherConfigsMap
     }
 
-    @observable.ref grapher?: Grapher
-
-    @action.bound setGrapher(grapher: Grapher) {
-        this.grapher = grapher
-    }
-
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
+        this.updateEntityPickerTable()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -248,6 +256,26 @@ export class Explorer
         this.grapher.populateFromQueryParams(newGrapherParams)
     }
 
+    @action.bound private setGrapherTable(table: OwidTable) {
+        if (this.grapher) {
+            this.grapher.inputTable = table
+            this.grapher.appendNewEntitySelectionOptions()
+        }
+    }
+
+    private futureGrapherTable = new PromiseSwitcher<OwidTable>({
+        onResolve: (table) => this.setGrapherTable(table),
+        onReject: (error) =>
+            this.grapher?.setError(
+                error,
+                <p>Failed to load dataset, please try refreshing the page.</p>
+            ),
+    })
+
+    tableLoader = new PromiseCache((slug: TableSlug | undefined) =>
+        this.explorerProgram.constructTable(slug)
+    )
+
     @action.bound updateGrapherFromExplorer() {
         const grapher = this.grapher
         if (!grapher) return
@@ -277,71 +305,22 @@ export class Explorer
         grapher.yAxis.canChangeScaleType = yScaleToggle
         grapher.yAxis.min = yAxisMin
         grapher.updateFromObject(config)
-        this.setTableBySlug(tableSlug) // Set a table immediately, even if a BlankTable
-        this.fetchTableAndStoreInCache(tableSlug) // Fetch a remote table in the background, if any.
+
+        // Clear any error messages, they are likely to be related to dataset loading.
+        this.grapher?.clearErrors()
+        // Set a table immediately. A BlankTable shows a loading animation.
+        this.setGrapherTable(
+            BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
+        )
+        this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+
+        // Download data if this is a Grapher ID inside the Explorer specification
         grapher.downloadData()
+
         grapher.slug = this.explorerProgram.slug
         if (!hasGrapherId) grapher.id = 0
         if (this.downloadDataLink)
             grapher.externalCsvLink = this.downloadDataLink
-    }
-
-    @action.bound private setTableBySlug(tableSlug?: TableSlug) {
-        const grapher = this.grapher!
-        grapher.inputTable = this.getTableForSlug(tableSlug)
-        grapher.appendNewEntitySelectionOptions()
-    }
-
-    // todo: add tests
-    private getTableForSlug(tableSlug?: TableSlug) {
-        const tableDef = this.explorerProgram.getTableDef(tableSlug)
-        if (!tableDef)
-            return BlankOwidTable(
-                tableSlug,
-                `TableDef not found for '${tableSlug}'.`
-            )
-        const { url } = tableDef
-        if (url)
-            return (
-                Explorer.fetchedTableCache.get([url, tableSlug].join()) ??
-                BlankOwidTable(tableSlug, `Loading from ${url}.`)
-            )
-        return new OwidTable(tableDef.inlineData, tableDef.columnDefinitions, {
-            tableDescription: `Loaded '${tableSlug}' from inline data`,
-            tableSlug: tableSlug,
-        }).dropEmptyRows()
-    }
-
-    // todo: add tests
-    private static fetchedTableCache = new Map<string, OwidTable>()
-    @action.bound private async fetchTableAndStoreInCache(
-        tableSlug?: TableSlug
-    ) {
-        const url = this.explorerProgram.getUrlForTableSlug(tableSlug)
-        // Use the tableslug as part of the key, that way if someone wants to parse the same CSV but with different column defs, they can.
-        // For example, if someone wanted to use the CountryName as the entity in one chart, but the RegionName in another. Eventually which column
-        // to use as the entity/series column should be a grapher config setting, and at that point we can remove this, but for now
-        // providing 2+ different column defs for 1 URL is the workaround. @breck 11/21/2020
-        const cacheKey = [url, tableSlug].join()
-        if (!url || Explorer.fetchedTableCache.has(cacheKey)) return
-
-        try {
-            const table = await this.explorerProgram.tryFetchTableForTableSlugIfItHasUrl(
-                tableSlug
-            )
-
-            if (!table) return
-            Explorer.fetchedTableCache.set(cacheKey, table)
-            this.setTableBySlug(tableSlug)
-        } catch (err) {
-            if (this.grapher)
-                this.grapher.setError(
-                    err,
-                    <p>
-                        Failed to fetch <a href={url}>{url}</a>
-                    </p>
-                )
-        }
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
@@ -608,25 +587,100 @@ export class Explorer
         )
     }
 
-    @computed get entityPickerTable() {
-        return this.grapher?.tableAfterAuthorTimelineFilter
+    @computed get grapherTable() {
+        return this.grapher?.tableAfterAuthorTimelineAndColumnFilter
     }
 
-    @computed get pickerColumnSlugs() {
-        if (this.explorerProgram.pickerColumnSlugs)
-            return this.explorerProgram.pickerColumnSlugs
-        const doNotShowThese = new Set([
-            ColumnTypeNames.Year,
-            ColumnTypeNames.Date,
-            ColumnTypeNames.Day,
-            ColumnTypeNames.EntityId,
-            ColumnTypeNames.EntityCode,
-        ])
-        return this.entityPickerTable?.columnsAsArray
-            .filter(
-                (col) => !doNotShowThese.has(col.def.type as ColumnTypeNames)
+    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
+    @observable entityPickerSort? = this.initialQueryParams.pickerSort
+
+    @observable.ref entityPickerTable?: OwidTable
+    @observable.ref entityPickerTableIsLoading: boolean = false
+
+    private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
+        onResolve: (table) => {
+            this.entityPickerTable = table
+            this.entityPickerTableIsLoading = false
+        },
+        onReject: () => {
+            this.entityPickerTableIsLoading = false
+        },
+    })
+
+    private updateEntityPickerTable(): void {
+        if (this.entityPickerMetric) {
+            this.entityPickerTableIsLoading = true
+            this.futureEntityPickerTable.set(
+                this.tableLoader.get(
+                    this.getTableSlugOfColumnSlug(this.entityPickerMetric)
+                )
             )
-            .map((col) => col.slug)
+        }
+    }
+
+    setEntityPicker({
+        metric,
+        sort,
+    }: { metric?: string; sort?: SortOrder } = {}) {
+        if (metric) this.entityPickerMetric = metric
+        if (sort) this.entityPickerSort = sort
+        this.updateEntityPickerTable()
+    }
+
+    private tableSlugHasColumnSlug(
+        tableSlug: TableSlug | undefined,
+        columnSlug: ColumnSlug
+    ) {
+        const columnDefsByTableSlug = this.explorerProgram.columnDefsByTableSlug
+        return !!columnDefsByTableSlug
+            .get(tableSlug)
+            ?.find((def) => def.slug === columnSlug)
+    }
+
+    private getTableSlugOfColumnSlug(
+        columnSlug: ColumnSlug
+    ): TableSlug | undefined {
+        // In most cases, column slugs will be duplicated in the tables, e.g. entityName.
+        // Prefer the current Grapher table if it contains the column slug.
+        const grapherTableSlug = this.explorerProgram.grapherConfig.tableSlug
+        if (this.tableSlugHasColumnSlug(grapherTableSlug, columnSlug)) {
+            return grapherTableSlug
+        }
+        // ...otherwise, search all tables for the column slug
+        return this.explorerProgram.tableSlugs.find((tableSlug) =>
+            this.tableSlugHasColumnSlug(tableSlug, columnSlug)
+        )
+    }
+
+    @computed get entityPickerColumnDefs(): CoreColumnDef[] {
+        const allColumnDefs = uniqBy(
+            flatten(
+                Array.from(this.explorerProgram.columnDefsByTableSlug.values())
+            ),
+            (def) => def.slug
+        )
+
+        if (this.explorerProgram.pickerColumnSlugs) {
+            const columnDefsBySlug = keyMap(allColumnDefs, (def) => def.slug)
+            // Preserve the order of columns in the Explorer `pickerColumnSlugs`
+            return excludeUndefined(
+                this.explorerProgram.pickerColumnSlugs.map((slug) =>
+                    columnDefsBySlug.get(slug)
+                )
+            )
+        } else {
+            const discardColumnTypes = new Set([
+                ColumnTypeNames.Year,
+                ColumnTypeNames.Date,
+                ColumnTypeNames.Day,
+                ColumnTypeNames.EntityId,
+                ColumnTypeNames.EntityCode,
+            ])
+            return allColumnDefs.filter(
+                (def) =>
+                    def.type === undefined || !discardColumnTypes.has(def.type)
+            )
+        }
     }
 
     @computed get requiredColumnSlugs() {

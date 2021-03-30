@@ -1583,7 +1583,7 @@ export class Grapher
         this.userFacingErrorSuggestion = userFacingErrorSuggestion
     }
 
-    @action.bound private clearErrors() {
+    @action.bound clearErrors() {
         this.uncaughtError = undefined
         this.userFacingErrorSuggestion = undefined
     }

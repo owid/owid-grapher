@@ -5,7 +5,10 @@ import {
     ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
 } from "./ExplorerConstants"
-import { CoreTable } from "../coreTable/CoreTable"
+import {
+    columnDefinitionsFromDelimited,
+    CoreTable,
+} from "../coreTable/CoreTable"
 import {
     CoreMatrix,
     CoreTableInputOption,
@@ -27,6 +30,8 @@ import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { GrapherGrammar } from "./GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix"
+import { CoreColumnDef } from "../coreTable/CoreColumnDef"
+import { PromiseCache } from "../clientUtils/PromiseCache"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -207,6 +212,26 @@ export class ExplorerProgram extends GridProgram {
             }).length
     }
 
+    get tableSlugs(): (TableSlug | undefined)[] {
+        return this.lines
+            .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
+            .map((line) => line.split(this.cellDelimiter)[2])
+    }
+
+    get columnDefsByTableSlug(): Map<TableSlug | undefined, CoreColumnDef[]> {
+        const result = new Map<TableSlug | undefined, CoreColumnDef[]>()
+        this.tableSlugs.forEach((tableSlug) => {
+            const tableDef = this.getTableDef(tableSlug)
+            if (tableDef && tableDef.columnDefinitions) {
+                result.set(
+                    tableSlug,
+                    columnDefinitionsFromDelimited(tableDef.columnDefinitions)
+                )
+            }
+        })
+        return result
+    }
+
     async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
         tableSlug?: string
     ) {
@@ -221,7 +246,7 @@ export class ExplorerProgram extends GridProgram {
             clone.deleteLine(colDefRow)
         }
 
-        const table = await clone.tryFetchTableForTableSlugIfItHasUrl(tableSlug)
+        const table = await clone.constructTable(tableSlug)
 
         const tableDefRow = clone.getRowMatchingWords(
             ExplorerGrammar.table.keyword,
@@ -257,9 +282,7 @@ export class ExplorerProgram extends GridProgram {
 
     async autofillMissingColumnDefinitionsForTableCommand(tableSlug?: string) {
         const clone = this.clone
-        const remoteTable = await clone.tryFetchTableForTableSlugIfItHasUrl(
-            tableSlug
-        )
+        const remoteTable = await clone.constructTable(tableSlug)
         const existingTableDef = this.getTableDef(tableSlug)
         const table =
             remoteTable ||
@@ -308,10 +331,6 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    getUrlForTableSlug(tableSlug?: TableSlug) {
-        return this.getTableDef(tableSlug)?.url
-    }
-
     get grapherConfig(): ExplorerGrapherInterface {
         const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
 
@@ -325,19 +344,46 @@ export class ExplorerProgram extends GridProgram {
             : rootObject
     }
 
-    async tryFetchTableForTableSlugIfItHasUrl(tableSlug?: TableSlug) {
-        const url = this.getUrlForTableSlug(tableSlug)
-        if (!url) return undefined
-        const tableDef = this.getTableDef(tableSlug)!
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(response.statusText)
-        const input: CoreTableInputOption = url.endsWith(".json")
-            ? await response.json()
-            : await response.text()
-        const table = new OwidTable(input, tableDef.columnDefinitions, {
-            tableDescription: `Loaded from ${url}`,
-        })
-        return table
+    /**
+     * A static method so that all explorers on the page share requests,
+     * and no dupliicate requests are sent.
+     */
+    private static tableLoadRequestsByUrl = new PromiseCache(
+        async (url: string): Promise<CoreTableInputOption> => {
+            const response = await fetch(url)
+            if (!response.ok) throw new Error(response.statusText)
+            const tableInput: CoreTableInputOption = url.endsWith(".json")
+                ? await response.json()
+                : await response.text()
+            return tableInput
+        }
+    )
+
+    async constructTable(tableSlug?: TableSlug): Promise<OwidTable> {
+        const tableDef = this.getTableDef(tableSlug)
+        if (!tableDef) {
+            throw new Error(`Table definitions not found for '${tableSlug}'`)
+        }
+
+        if (tableDef.inlineData) {
+            return new OwidTable(
+                tableDef.inlineData,
+                tableDef.columnDefinitions,
+                {
+                    tableDescription: `Loaded '${tableSlug}' from inline data`,
+                    tableSlug: tableSlug,
+                }
+            ).dropEmptyRows()
+        } else if (tableDef.url) {
+            const input = await ExplorerProgram.tableLoadRequestsByUrl.get(
+                tableDef.url
+            )
+            return new OwidTable(input, tableDef.columnDefinitions, {
+                tableDescription: `Loaded from ${tableDef.url}`,
+            })
+        }
+
+        throw new Error(`No data for table '${tableSlug}'`)
     }
 
     getTableDef(tableSlug?: TableSlug): TableDef | undefined {
