@@ -778,6 +778,20 @@ export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
     return result
 }
 
+export function keyMap<Key, Value>(
+    array: Value[],
+    accessor: (v: Value) => Key
+): Map<Key, Value> {
+    const result = new Map<Key, Value>()
+    array.forEach((item) => {
+        const key = accessor(item)
+        if (!result.has(key)) {
+            result.set(key, item)
+        }
+    })
+    return result
+}
+
 export const linkify = (str: string) => linkifyHtml(str)
 
 export const oneOf = <T>(value: any, options: T[], defaultOption: T): T => {
