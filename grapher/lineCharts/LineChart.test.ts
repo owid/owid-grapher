@@ -11,6 +11,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { ScaleType, SeriesStrategy } from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { SelectionArray } from "../selection/SelectionArray"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -120,7 +121,7 @@ describe("colors", () => {
                 gdp: [100, 200],
                 entityColor: ["blue", "blue"],
             },
-            [{ slug: "gdp", color: "green" }]
+            [{ slug: "gdp", color: "green", type: ColumnTypeNames.Numeric }]
         )
 
         const manager: ChartManager = {
