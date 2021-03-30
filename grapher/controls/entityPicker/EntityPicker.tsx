@@ -16,7 +16,6 @@ import {
     last,
     max,
     isNumber,
-    sortBy,
     sortByUndefinedLast,
     first,
 } from "../../../clientUtils/Util"
@@ -116,15 +115,12 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get metricOptions() {
-        return sortBy(
-            this.pickerColumnDefs.map((col) => {
-                return {
-                    label: col.name || col.slug,
-                    value: col.slug,
-                }
-            }),
-            "label"
-        )
+        return this.pickerColumnDefs.map((col) => {
+            return {
+                label: col.name || col.slug,
+                value: col.slug,
+            }
+        })
     }
 
     @computed private get activePickerMetricColumn() {
