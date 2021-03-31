@@ -9,10 +9,10 @@ $border-width: 0.125rem;
 
     .entry-toc {
         position: fixed;
-        top: 117px; //TODO HACK
+        top: 137px; //TODO HACK
         left: 0;
         right: 0;
-        height: calc(100vh - 117px); //TODO HACK
+        height: calc(100vh - 137px); //TODO HACK
         line-height: 1.3em;
         overflow-y: scroll;
         background: rgba($primary-color, 0.8);
