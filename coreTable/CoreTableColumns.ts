@@ -744,6 +744,7 @@ export const ColumnTypeMap = {
 // Keep this in. This is used as a compile-time check that ColumnTypeMap covers all
 // column names defined in ColumnTypeNames, since that is quite difficult to ensure
 // otherwise without losing inferred type information.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _ColumnTypeMap: {
     [key in ColumnTypeNames]: unknown
 } = ColumnTypeMap

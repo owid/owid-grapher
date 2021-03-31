@@ -155,7 +155,10 @@ export const legacyToOwidTableAndDimensions = (
 
         let variableTable = new OwidTable(
             columnStore,
-            Array.from(columnDefs.values())
+            Array.from(columnDefs.values()),
+            // Because database columns can contain mixed types, we want to avoid
+            // parsing for Grapher data until we fix that.
+            { skipParsing: true }
         )
 
         // If there is a targetTime set on the dimension, we need to perform the join on the

@@ -16,7 +16,6 @@ import {
     last,
     max,
     isNumber,
-    sortBy,
     sortByUndefinedLast,
     first,
 } from "../../../clientUtils/Util"
@@ -33,6 +32,7 @@ import {
     OwidTableSlugs,
 } from "../../../coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"
+import { CoreColumnDef } from "../../../coreTable/CoreColumnDef"
 
 const toggleSort = (order: SortOrder) =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
@@ -110,46 +110,42 @@ export class EntityPicker extends React.Component<{
         return this.manager.entityPickerSort ?? SortOrder.asc
     }
 
-    @computed private get availablePickerColumns() {
-        if (!this.manager.pickerColumnSlugs || !this.table) return []
-        return this.table.getColumns(this.manager.pickerColumnSlugs)
+    @computed private get pickerColumnDefs(): CoreColumnDef[] {
+        return this.manager.entityPickerColumnDefs ?? []
     }
 
     @computed private get metricOptions() {
-        return sortBy(
-            this.availablePickerColumns.map((col) => {
-                return {
-                    label: col.name || col.slug,
-                    value: col.slug,
-                }
-            }),
-            "label"
-        )
+        return this.pickerColumnDefs.map((col) => {
+            return {
+                label: col.name || col.slug,
+                value: col.slug,
+            }
+        })
     }
 
     @computed private get activePickerMetricColumn() {
-        return this.availablePickerColumns.find(
-            (col) => col.slug === this.metric
-        )!
+        if (!this.metric) return undefined
+        return this.manager.entityPickerTable?.getColumns([this.metric])[0]
     }
 
     @computed private get availableEntitiesForCurrentView() {
-        if (!this.manager.requiredColumnSlugs?.length || !this.table)
+        if (!this.manager.requiredColumnSlugs?.length || !this.grapherTable)
             return this.selection.availableEntityNameSet
-        return this.table.entitiesWith(this.manager.requiredColumnSlugs)
+        return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
     @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { table, selection } = this
+        const { pickerTable, selection } = this
         const col = this.activePickerMetricColumn
         const entityNames = selection.availableEntityNames.slice().sort()
         return entityNames.map((entityName) => {
             const plotValue =
-                col && table
-                    ? (table.getLatestValueForEntity(entityName, col.slug) as
-                          | string
-                          | number)
+                col && pickerTable
+                    ? (pickerTable.getLatestValueForEntity(
+                          entityName,
+                          col.slug
+                      ) as string | number)
                     : undefined
 
             const formattedValue =
@@ -164,7 +160,11 @@ export class EntityPicker extends React.Component<{
         })
     }
 
-    @computed private get table() {
+    @computed private get grapherTable() {
+        return this.manager.grapherTable
+    }
+
+    @computed private get pickerTable() {
         return this.manager.entityPickerTable
     }
 
@@ -379,10 +379,12 @@ export class EntityPicker extends React.Component<{
     }
 
     @action private updateMetric(columnSlug: ColumnSlug) {
-        this.manager.entityPickerMetric = columnSlug
-        this.manager.entityPickerSort = this.isActivePickerColumnTypeNumeric
-            ? SortOrder.desc
-            : SortOrder.asc
+        this.manager.setEntityPicker?.({
+            metric: columnSlug,
+            sort: this.isActivePickerColumnTypeNumeric
+                ? SortOrder.desc
+                : SortOrder.asc,
+        })
         this.manager.analytics?.logEntityPickerEvent(
             this.analyticsNamespace,
             "sortBy",
@@ -395,8 +397,12 @@ export class EntityPicker extends React.Component<{
     }
 
     private get pickerMenu() {
-        if (this.isDropdownMenu) return null
-        if (!this.manager.pickerColumnSlugs) return null
+        if (
+            this.isDropdownMenu ||
+            !this.manager.entityPickerColumnDefs ||
+            this.manager.entityPickerColumnDefs.length === 0
+        )
+            return null
         return (
             <div className="MetricSettings">
                 <span className="mainLabel">Sort by</span>
@@ -416,12 +422,13 @@ export class EntityPicker extends React.Component<{
                     }}
                     styles={getStylesForTargetHeight(26)}
                     isSearchable={false}
+                    isLoading={this.manager.entityPickerTableIsLoading}
                 />
                 <span
                     className="sort"
                     onClick={() => {
                         const sortOrder = toggleSort(this.sortOrder)
-                        this.manager.entityPickerSort = sortOrder
+                        this.manager.setEntityPicker?.({ sort: sortOrder })
                         this.manager.analytics?.logEntityPickerEvent(
                             this.analyticsNamespace,
                             "sortOrder",
