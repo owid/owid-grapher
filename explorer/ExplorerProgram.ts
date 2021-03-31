@@ -346,9 +346,9 @@ export class ExplorerProgram extends GridProgram {
 
     /**
      * A static method so that all explorers on the page share requests,
-     * and no dupliicate requests are sent.
+     * and no duplicate requests are sent.
      */
-    private static tableLoadRequestsByUrl = new PromiseCache(
+    private static tableDataLoader = new PromiseCache(
         async (url: string): Promise<CoreTableInputOption> => {
             const response = await fetch(url)
             if (!response.ok) throw new Error(response.statusText)
@@ -375,7 +375,7 @@ export class ExplorerProgram extends GridProgram {
                 }
             ).dropEmptyRows()
         } else if (tableDef.url) {
-            const input = await ExplorerProgram.tableLoadRequestsByUrl.get(
+            const input = await ExplorerProgram.tableDataLoader.get(
                 tableDef.url
             )
             return new OwidTable(input, tableDef.columnDefinitions, {
