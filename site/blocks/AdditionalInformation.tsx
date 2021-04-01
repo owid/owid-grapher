@@ -43,7 +43,7 @@ const AdditionalInformation = ({
     useEffect(() => {
         if (refContainer.current) {
             // Trigger embedder check for new figures that may have become visible.
-            MultiEmbedderSingleton.addFiguresFromDOM(refContainer.current)
+            MultiEmbedderSingleton.observeFigures(refContainer.current)
         }
         // Expands accordions for print media.
         window.addEventListener("beforeprint", () => {

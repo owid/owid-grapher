@@ -1473,7 +1473,7 @@ export class Grapher
 
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
-        containerNode: HTMLElement
+        containerNode: Element
     ) {
         const setBoundsFromContainerAndRender = () => {
             const props: GrapherProgrammaticInterface = {

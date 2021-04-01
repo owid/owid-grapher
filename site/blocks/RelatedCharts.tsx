@@ -13,7 +13,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     useEffect(() => {
         if (refChartContainer.current)
             // Track newly injected <figure> elements in embedder
-            MultiEmbedderSingleton.addFiguresFromDOM(refChartContainer.current)
+            MultiEmbedderSingleton.observeFigures(refChartContainer.current)
     }, [currentChart])
 
     return (

@@ -1,8 +1,11 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { throttle, fetchText, isMobile } from "../../clientUtils/Util"
+import { fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
-import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
+import {
+    GRAPHER_EMBEDDED_FIGURE_ATTR,
+    GRAPHER_RENDER_TIMEOUT_ID,
+} from "../../grapher/core/GrapherConstants"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
@@ -26,112 +29,13 @@ import {
 } from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 
-interface EmbeddedFigureProps {
-    standaloneUrl: string
-    queryStr?: string
-    container: HTMLElement
-}
-
-class EmbeddedFigure {
-    protected props: EmbeddedFigureProps
-    private isExplorer: boolean
-    constructor(props: EmbeddedFigureProps, isExplorer = false) {
-        this.props = props
-        this.isExplorer = isExplorer
-    }
-
-    async renderIntoContainer(
-        globalSelection: SelectionArray,
-        graphersAndExplorersToUpdate: Set<SelectionArray>
-    ) {
-        if (this._isLoaded) return
-        this._isLoaded = true
-
-        const common: GrapherProgrammaticInterface = {
-            isEmbeddedInAnOwidPage: true,
-            queryStr: this.props.queryStr,
-        }
-
-        const html = await fetchText(this.props.standaloneUrl)
-        if (this.isExplorer) {
-            const props: ExplorerProps = {
-                ...common,
-                ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
-                grapherConfigs: deserializeJSONFromHTML(
-                    html,
-                    EMBEDDED_EXPLORER_GRAPHER_CONFIGS
-                ),
-                queryStr: this.props.queryStr,
-                selection: new SelectionArray(
-                    globalSelection.selectedEntityNames
-                ),
-            }
-            if (props.selection)
-                graphersAndExplorersToUpdate.add(props.selection)
-            ReactDOM.render(<Explorer {...props} />, this.container)
-        } else {
-            this.container.classList.remove("grapherPreview")
-            const config: GrapherProgrammaticInterface = {
-                ...deserializeJSONFromHTML(html),
-                ...common,
-                manager: {
-                    selection: new SelectionArray(
-                        globalSelection.selectedEntityNames
-                    ),
-                },
-            }
-            if (config.manager?.selection)
-                graphersAndExplorersToUpdate.add(config.manager.selection)
-            Grapher.renderGrapherIntoContainer(config, this.container)
-        }
-    }
-
-    protected _isLoaded = false
-
-    get isLoaded() {
-        return this._isLoaded
-    }
-
-    get hasPreview() {
-        return this.isExplorer ? false : !!this.container.querySelector("img")
-    }
-
-    get container() {
-        return this.props.container
-    }
-
-    get boundingRect() {
-        return this.container.getBoundingClientRect()
-    }
-}
-
-const getAllEmbeddedFiguresInDOM = (
-    container: HTMLElement | Document = document
-) =>
-    figuresFromDOM(container, GRAPHER_EMBEDDED_FIGURE_ATTR).concat(
-        figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR)
-    )
-
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
     selector: string
 ) =>
-    Array.from(container.querySelectorAll<HTMLElement>(`*[${selector}]`))
-        .map((element) => {
-            const dataSrc = element.getAttribute(selector)
-            if (!dataSrc) return undefined
-            const { fullUrl, queryStr } = Url.fromURL(dataSrc)
-            const isExplorer = selector !== GRAPHER_EMBEDDED_FIGURE_ATTR
-            return new EmbeddedFigure(
-                {
-                    container: element,
-                    standaloneUrl: fullUrl,
-                    queryStr,
-                },
-                isExplorer
-            )
-        })
-        .filter(isPresent)
+    Array.from(
+        container.querySelectorAll<HTMLElement>(`*[${selector}]`)
+    ).filter(isPresent)
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
@@ -148,49 +52,80 @@ const globalEntitySelectorElement = () =>
     document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
 
 class MultiEmbedder {
-    private figures: EmbeddedFigure[] = []
+    // private figures: EmbeddedFigure[] = []
+    private figuresObserver: IntersectionObserver | undefined
     selection: SelectionArray = new SelectionArray()
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
-    private shouldLoadFigure(figure: EmbeddedFigure) {
-        if (figure.isLoaded) return false
-        if (!shouldProgressiveEmbed() && figure.hasPreview) return false
-
-        const preloadDistance = window.innerHeight * 4
-        const windowTop = window.pageYOffset
-        const windowBottom = window.pageYOffset + window.innerHeight
-        const figureRect = figure.boundingRect
-        const bodyRect = document.body.getBoundingClientRect()
-        const figureTop = figureRect.top - bodyRect.top
-        const figureBottom = figureRect.bottom - bodyRect.top
-        return (
-            windowBottom + preloadDistance >= figureTop &&
-            windowTop - preloadDistance <= figureBottom &&
-            figureRect.width > 0 &&
-            figureRect.height > 0
-        )
+    constructor() {
+        if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+            this.figuresObserver = new IntersectionObserver(
+                this.onIntersecting.bind(this),
+                {
+                    rootMargin: "0% 0% 50%",
+                }
+            )
+        }
     }
 
-    private loadVisibleFiguresThrottled = throttle(
-        this.loadVisibleFigures.bind(this),
-        200
-    )
+    async renderInteractiveFigure(figure: Element) {
+        const isExplorer = figure.hasAttribute(
+            EXPLORER_EMBEDDED_FIGURE_SELECTOR
+        )
+        const hasPreview = isExplorer ? false : !!figure.querySelector("img")
+        if (!shouldProgressiveEmbed() && hasPreview) return
 
-    /**
-     * A trigger to load any interactive charts that have become visible.
-     *
-     * You can use this method when a hidden chart (display:none) becomes visible. The embedder
-     * otherwise automatically loads interactive charts when they approach the viewport.
-     */
-    loadVisibleFigures() {
-        this.figures
-            .filter(this.shouldLoadFigure)
-            .forEach((figure) =>
-                figure.renderIntoContainer(
-                    this.selection,
-                    this.graphersAndExplorersToUpdate
-                )
-            )
+        const dataSrc = figure.getAttribute(
+            isExplorer
+                ? EXPLORER_EMBEDDED_FIGURE_SELECTOR
+                : GRAPHER_EMBEDDED_FIGURE_ATTR
+        )
+
+        if (!dataSrc) return
+
+        // Stop observing visibility as rendering won't stop from here
+        this.figuresObserver?.unobserve(figure)
+
+        const { fullUrl, queryStr } = Url.fromURL(dataSrc)
+
+        const common: GrapherProgrammaticInterface = {
+            isEmbeddedInAnOwidPage: true,
+            queryStr,
+        }
+
+        const html = await fetchText(fullUrl)
+
+        if (isExplorer) {
+            const props: ExplorerProps = {
+                ...common,
+                ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
+                grapherConfigs: deserializeJSONFromHTML(
+                    html,
+                    EMBEDDED_EXPLORER_GRAPHER_CONFIGS
+                ),
+                queryStr,
+                selection: new SelectionArray(
+                    this.selection.selectedEntityNames
+                ),
+            }
+            if (props.selection)
+                this.graphersAndExplorersToUpdate.add(props.selection)
+            ReactDOM.render(<Explorer {...props} />, figure)
+        } else {
+            figure.classList.remove("grapherPreview")
+            const config: GrapherProgrammaticInterface = {
+                ...deserializeJSONFromHTML(html),
+                ...common,
+                manager: {
+                    selection: new SelectionArray(
+                        this.selection.selectedEntityNames
+                    ),
+                },
+            }
+            if (config.manager?.selection)
+                this.graphersAndExplorersToUpdate.add(config.manager.selection)
+            Grapher.renderGrapherIntoContainer(config, figure)
+        }
     }
 
     /**
@@ -198,27 +133,16 @@ class MultiEmbedder {
      *
      * Use this when you programmatically create/replace charts.
      */
-    addFiguresFromDOM(container: HTMLElement | Document = document) {
-        getAllEmbeddedFiguresInDOM(container).forEach((figure) => {
-            // Prevent adding duplicates
-            if (!this.figures.some((fig) => fig.container === figure.container))
-                this.figures.push(figure)
+    observeFigures(container: HTMLElement | Document = document) {
+        const figures = figuresFromDOM(
+            container,
+            GRAPHER_EMBEDDED_FIGURE_ATTR
+        ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
+
+        figures.forEach((figure) => {
+            // TODO (?) Prevent adding duplicates
+            this.figuresObserver?.observe(figure)
         })
-
-        // Trigger load for any added figures
-        this.loadVisibleFiguresThrottled()
-        return this
-    }
-
-    private watchingScroll = false
-
-    watchScroll() {
-        if (this.watchingScroll) return this
-
-        window.addEventListener("scroll", this.loadVisibleFiguresThrottled)
-        this.watchingScroll = true
-
-        return this
     }
 
     /**
@@ -229,7 +153,39 @@ class MultiEmbedder {
      * any changes.
      */
     embedAll() {
-        this.addFiguresFromDOM().watchScroll()
+        this.observeFigures()
+    }
+
+    delayRender(figure: Element) {
+        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+        if (timeoutIdData) return
+
+        const timeoutId = window.setTimeout(async () => {
+            await this.renderInteractiveFigure(figure)
+        }, 1000)
+
+        figure.setAttribute(GRAPHER_RENDER_TIMEOUT_ID, `${timeoutId}`)
+    }
+
+    cancelRender(figure: Element) {
+        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+        if (!timeoutIdData) return
+
+        const timeoutId = parseInt(timeoutIdData)
+
+        window.clearTimeout(timeoutId)
+        figure.removeAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+    }
+
+    onIntersecting(entries: IntersectionObserverEntry[]) {
+        entries.forEach((entry) => {
+            const figure = entry.target
+            if (entry.isIntersecting) {
+                this.delayRender(figure)
+            } else {
+                this.cancelRender(figure)
+            }
+        })
     }
 
     setUpGlobalEntitySelectorForEmbeds() {
