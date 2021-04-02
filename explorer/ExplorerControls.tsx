@@ -140,6 +140,7 @@ export class ExplorerControlPanel extends React.Component<{
                 }}
                 styles={styles}
                 isSearchable={options.length > 20}
+                maxMenuHeight={350}
             />
         )
     }
