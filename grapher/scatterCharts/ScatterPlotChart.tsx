@@ -216,10 +216,14 @@ export class ScatterPlotChart
         return this.manager.table
     }
 
+    @computed private get transformedTableBeforeTimeFilterAndAvgAnnualChange() {
+        return this.transformTable(this.inputTable)
+    }
+
     @computed private get transformedTableFromGrapher() {
         return (
             this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
+            this.transformedTableBeforeTimeFilterAndAvgAnnualChange
         )
     }
 
@@ -254,6 +258,10 @@ export class ScatterPlotChart
             ])
         }
         return table
+    }
+
+    @computed get tableForSelection() {
+        return this.transformedTableBeforeTimeFilterAndAvgAnnualChange
     }
 
     @computed private get manager() {

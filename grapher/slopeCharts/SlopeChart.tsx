@@ -340,6 +340,10 @@ export class SlopeChart
         )
     }
 
+    @computed get tableForSelection() {
+        return this.transformedTable
+    }
+
     @computed get inputTable() {
         return this.manager.table
     }

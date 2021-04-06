@@ -485,7 +485,7 @@ export class Grapher
     }
 
     @computed private get tableForSelection() {
-        return this.inputTable // perform selection at root level
+        return this.chartInstanceExceptMap.tableForSelection ?? this.inputTable
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
