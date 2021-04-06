@@ -14,6 +14,7 @@ import * as lodash from "lodash"
 import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 import { excludeUndefined, parseIntOrUndefined } from "grapher/utils/Util"
+import { AddCountryMode } from "grapher/core/GrapherConstants"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
@@ -83,6 +84,11 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             padding-top: 10px;
             text-align: center;
         }
+
+        .chart-id a {
+            text-decoration: underline;
+            text-decoration-color: #ccc;
+        }
     `
     return (
         <html>
@@ -98,7 +104,9 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                 </div>
                 {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
-                        <div className="chart-id">{chart.id}</div>
+                        <div className="chart-id">
+                            <a href={`?ids=${chart.id}`}>{chart.id}</a>
+                        </div>
                         <div className="side-by-side">
                             <iframe
                                 src={`https://ourworldindata.org/grapher/${chart.slug}`}
@@ -130,7 +138,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 }
 
 testPageRouter.get("/embeds", async (req, res) => {
-    const numPerPage = 20
+    const numPerPage = parseIntOrUndefined(req.query.perPage) ?? 20
     const page = req.query.page
         ? expectInt(req.query.page)
         : req.query.random
@@ -150,10 +158,19 @@ testPageRouter.get("/embeds", async (req, res) => {
             query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
             tab = tab || "map"
         } else {
-            query = query.andWhere(
-                `config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`,
-                { type: req.query.type }
-            )
+            if (req.query.type === "LineChart") {
+                query = query.andWhere(
+                    `(
+                        config->"$.type" = "LineChart"
+                        OR config->"$.type" IS NULL
+                    ) AND config->"$.hasChartTab" IS TRUE`
+                )
+            } else {
+                query = query.andWhere(
+                    `config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`,
+                    { type: req.query.type }
+                )
+            }
             tab = tab || "chart"
         }
     }
@@ -175,6 +192,11 @@ testPageRouter.get("/embeds", async (req, res) => {
         tab = "chart"
     }
 
+    if (req.query.relativeToggle) {
+        query = query.andWhere(`config->'$.hideRelativeToggle' IS FALSE`)
+        tab = "chart"
+    }
+
     if (req.query.categoricalLegend) {
         // This is more of a heuristic, since this query can potentially include charts that don't
         // have a visible categorial legend, and can leave out some that have one.
@@ -185,10 +207,66 @@ testPageRouter.get("/embeds", async (req, res) => {
         tab = "map"
     }
 
+    if (req.query.mixedTimeTypes) {
+        query = query.andWhere(
+            `
+            (
+                SELECT COUNT(DISTINCT CASE
+                    WHEN variables.display->"$.yearIsDay" IS NULL
+                    THEN "year"
+                    ELSE "day"
+                END) as timeTypeCount
+                FROM variables
+                JOIN chart_dimensions ON chart_dimensions.variableId = variables.id
+                WHERE chart_dimensions.chartId = charts.id
+            ) >= 2
+        `
+        )
+    }
+
+    if (req.query.addCountryMode) {
+        const mode = req.query.addCountryMode
+        if (mode === "multiple") {
+            query = query.andWhere(
+                `config->'$.addCountryMode' IS NULL OR config->'$.addCountryMode' = :mode`,
+                {
+                    mode: "add-country" as AddCountryMode,
+                }
+            )
+        } else if (mode === "single") {
+            query = query.andWhere(`config->'$.addCountryMode' = :mode`, {
+                mode: "change-country" as AddCountryMode,
+            })
+        } else if (mode === "disabled") {
+            query = query.andWhere(`config->'$.addCountryMode' = :mode`, {
+                mode: "disabled" as AddCountryMode,
+            })
+        }
+    }
+
+    if (req.query.ids) {
+        query = query.andWhere(`charts.id IN (${req.query.ids})`)
+    }
+
     if (tab === "map") {
         query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
     } else if (tab === "chart") {
         query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
+    }
+
+    // Exclude charts that have the "Private" tag assigned, unless `includePrivate` is passed.
+    // The data for these charts is not included in the public database dump used to populate
+    // staging and local, so they are not comparable.
+    if (req.query.includePrivate === undefined) {
+        query.andWhere(`
+            NOT EXISTS(
+                SELECT *
+                FROM tags
+                JOIN chart_tags ON chart_tags.tagId = tags.id
+                WHERE chart_tags.chartId = charts.id
+                AND tags.name = 'Private'
+            )
+        `)
     }
 
     if (req.query.datasetIds) {
