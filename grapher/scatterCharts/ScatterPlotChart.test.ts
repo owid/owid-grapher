@@ -954,3 +954,55 @@ describe("addCountryMode", () => {
         expect(chart.transformedTable.numRows).toEqual(1)
     })
 })
+
+describe("tableForSelection availableEntities", () => {
+    it("tableForSelection should not include entities that cannot be displayed", () => {
+        const table = new OwidTable(
+            [
+                [
+                    "entityId",
+                    "entityName",
+                    "entityCode",
+                    "year",
+                    "x",
+                    "y",
+                    "color",
+                    "size",
+                ],
+                [1, "UK", "", 2000, 1, 1, null, null],
+                [1, "UK", "", 2001, null, 1, "Europe", 100],
+                [1, "UK", "", 2002, 1, null, null, null],
+                [1, "UK", "", 2003, null, null, null, null],
+                [2, "Barbados", "", 2000, null, null, null, null], // x, y value missing
+                [3, "USA", "", 2001, 2, 1, null, null], // excluded via excludedEntities
+                [4, "France", "", 2000, 0, null, null, null], // y value missing
+            ],
+            [
+                { slug: "x", type: ColumnTypeNames.Numeric },
+                { slug: "y", type: ColumnTypeNames.Numeric },
+                {
+                    slug: "color",
+                    type: ColumnTypeNames.String,
+                    display: { tolerance: 1 },
+                },
+                {
+                    slug: "size",
+                    type: ColumnTypeNames.Numeric,
+                },
+            ]
+        )
+
+        const manager: ScatterPlotManager = {
+            xColumnSlug: "x",
+            yColumnSlug: "y",
+            colorColumnSlug: "color",
+            sizeColumnSlug: "size",
+            excludedEntities: [3],
+            table,
+        }
+
+        const chart = new ScatterPlotChart({ manager })
+
+        expect(chart.tableForSelection.availableEntityNames).toEqual(["UK"])
+    })
+})
