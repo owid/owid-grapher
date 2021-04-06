@@ -55,6 +55,7 @@ export interface CoreColumnDef extends ColumnColorScale {
     name?: string // The display name for the column
     description?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
+    annotationsColumnSlug?: string
 
     // Color
     color?: Color // A column can have a fixed color for use in charts where the columns are series
