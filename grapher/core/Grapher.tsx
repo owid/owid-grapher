@@ -2237,6 +2237,7 @@ export class Grapher
     }
 
     @computed get showXScaleToggle() {
+        if (this.isRelativeMode) return false
         return this.xAxis.canChangeScaleType
     }
 
