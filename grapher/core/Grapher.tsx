@@ -1219,7 +1219,9 @@ export class Grapher
     // and time
     @computed get columnSlugsNecessaryForCurrentView() {
         const annotationSlugs = this.activeColumnSlugs.map((slug) =>
-            this.inputTable.getAnnotationColumnSlug(this.inputTable.get(slug))
+            this.inputTable.getAnnotationColumnSlug(
+                this.inputTable.get(slug).def as OwidColumnDef
+            )
         )
 
         // not all of these columns might actually exist in our inputTable, so we intersect them with

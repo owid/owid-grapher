@@ -8,6 +8,7 @@ import {
 import { BlankOwidTable, OwidTable } from "./OwidTable"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { ErrorValueTypes } from "./ErrorValues"
+import { OwidColumnDef } from "./OwidTableConstants"
 
 const sampleRows = [
     {
@@ -656,5 +657,7 @@ it("handles tsv column definitions", () => {
     const defTsv = `slug	annotationsColumnSlug
 gdp	annotation`
     const table = new OwidTable(dataCsv, defTsv)
-    expect(table.get("gdp").annotationsColumnSlug).toEqual("annotation")
+    expect(
+        (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
+    ).toEqual("annotation")
 })
