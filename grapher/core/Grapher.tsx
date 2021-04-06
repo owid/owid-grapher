@@ -31,6 +31,7 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
+    intersection,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -1217,14 +1218,26 @@ export class Grapher
     // All columns that are necessary for the current view, including meta columns like entityName
     // and time
     @computed get columnSlugsNecessaryForCurrentView() {
-        return excludeUndefined([
+        const annotationSlugs = this.activeColumnSlugs.map((slug) =>
+            this.inputTable.getAnnotationColumnSlug(this.inputTable.get(slug))
+        )
+
+        // not all of these columns might actually exist in our inputTable, so we intersect them with
+        // the actually-existing column slugs below
+        const maybeRequiredColumnSlugs = excludeUndefined([
             ...this.activeColumnSlugs,
+            ...annotationSlugs,
             this.inputTable.timeColumn.slug,
             this.inputTable.entityNameSlug,
             this.inputTable.entityIdColumn.slug,
             this.inputTable.entityCodeColumn.slug,
             OwidTableSlugs.entityColor,
         ])
+
+        return intersection(
+            maybeRequiredColumnSlugs,
+            this.inputTable.columnSlugs
+        )
     }
 
     @computed get columnsWithSources() {
