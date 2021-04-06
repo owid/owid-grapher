@@ -691,6 +691,9 @@ describe("average annual change", () => {
         colorColumnSlug: "color",
         sizeColumnSlug: "size",
         isRelativeMode: true,
+        // Setting log axes to make sure they're ignored in relative mode
+        yAxisConfig: { scaleType: ScaleType.log },
+        xAxisConfig: { scaleType: ScaleType.log },
         // intentionally setting compareEndPointsOnly to make sure it's
         // ignored in relative mode
         compareEndPointsOnly: true,
@@ -711,6 +714,15 @@ describe("average annual change", () => {
     it("formats axes with %", () => {
         expect(chart.dualAxis.verticalAxis.formatTick(0)).toEqual("+0%")
         expect(chart.dualAxis.horizontalAxis.formatTick(0)).toEqual("+0%")
+    })
+
+    it("ignores config and sets linear axes", () => {
+        expect(chart.dualAxis.horizontalAxis.canChangeScaleType).toBeFalsy()
+        expect(chart.dualAxis.verticalAxis.canChangeScaleType).toBeFalsy()
+        expect(chart.dualAxis.horizontalAxis.scaleType).toEqual(
+            ScaleType.linear
+        )
+        expect(chart.dualAxis.verticalAxis.scaleType).toEqual(ScaleType.linear)
     })
 })
 
