@@ -260,10 +260,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.slug
     }
 
-    @imemo get annotationsColumnSlug() {
-        return this.def.annotationsColumnSlug
-    }
-
     @imemo get valuesToIndices() {
         const map = new Map<any, number[]>()
         this.valuesIncludingErrorValues.forEach((value, index) => {
