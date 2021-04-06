@@ -261,6 +261,11 @@ export class ScatterPlotChart
     }
 
     @computed get tableForSelection() {
+        // we want to use a table for entity selection that contains all entities that can be
+        // displayed, and no more.
+        // thus, we use the table that already has excludedEntities, tolerance, and
+        // timeDomainStart/End "filters" applied, but is not restricted to the current timeline
+        // yet (we cannot use `transformedTable` for this reason).
         return this.transformedTableBeforeTimeFilterAndAvgAnnualChange
     }
 
