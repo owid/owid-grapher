@@ -818,8 +818,8 @@ it("migrates map.targetYear correctly", () => {
 })
 
 describe("identifies and drops unnecessary table columns", () => {
-    const table = new OwidTable(`entityName,entityId,entityColor,year,gdp,child_mortality,population,continent,happiness
-    Belgium,BEL,#f6f,2010,80000,1.5,9000000,Europe,81.2
+    const table = new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
+    Belgium,BEL,#f6f,2010,80000,pretty damn high,1.5,9000000,Europe,81.2
     `)
     const grapher = new Grapher({
         table,
@@ -845,11 +845,11 @@ describe("identifies and drops unnecessary table columns", () => {
         expect(grapher.columnSlugsNecessaryForCurrentView.sort()).toEqual([
             "child_mortality",
             "continent",
-            "entityCode",
             "entityColor",
             "entityId",
             "entityName",
             "gdp",
+            "gdp-annotations",
             "population",
             "year",
         ])
@@ -858,10 +858,10 @@ describe("identifies and drops unnecessary table columns", () => {
     it("drops unnecessary column in tableAfterAuthorTimelineAndColumnFilter", () => {
         const table = grapher.tableAfterAuthorTimelineAndColumnFilter
 
-        expect(table.columnSlugs.length).toEqual(8)
+        expect(table.columnSlugs.length).toEqual(9)
         expect(table.columnSlugs).not.toContain("happiness")
 
-        expect(Object.keys(table.columnStore).length).toEqual(8)
+        expect(Object.keys(table.columnStore).length).toEqual(9)
         expect(Object.keys(table.columnStore)).not.toContain("happiness")
     })
 })

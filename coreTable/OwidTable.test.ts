@@ -8,6 +8,7 @@ import {
 import { BlankOwidTable, OwidTable } from "./OwidTable"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { ErrorValueTypes } from "./ErrorValues"
+import { OwidColumnDef } from "./OwidTableConstants"
 
 const sampleRows = [
     {
@@ -647,4 +648,16 @@ it("assigns originalTime as 'time' in owidRows", () => {
             }),
         ])
     )
+})
+
+it("handles tsv column definitions", () => {
+    const dataCsv = `gdp,annotation,year,entityName,entityId,entityCode
+1000,low,2019,USA,,
+1001,high,2020,UK,,`
+    const defTsv = `slug	annotationsColumnSlug
+gdp	annotation`
+    const table = new OwidTable(dataCsv, defTsv)
+    expect(
+        (table.get("gdp").def as OwidColumnDef).annotationsColumnSlug
+    ).toEqual("annotation")
 })
