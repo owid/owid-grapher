@@ -128,7 +128,7 @@ yarn testPrettierAll`
             rsyncTargetDirTmp: `${owidUserHomeTmpDir}/${target}-${userRunningTheDeploy}-tmp`,
             rsyncTargetDirForTests: `${owidUserHomeTmpDir}/${target}-tests`,
             finalTargetDir: `${owidUserHomeDir}/${target}`,
-            oldRepoBackupDir: `${owidUserHomeTmpDir}-old`,
+            oldRepoBackupDir: `${owidUserHomeTmpDir}/${target}-old`,
             finalDataDir: `${owidUserHomeDir}/${target}-data`,
         }
     }
