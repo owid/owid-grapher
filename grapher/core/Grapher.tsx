@@ -485,8 +485,22 @@ export class Grapher
         return this.tab === GrapherTabOption.map
     }
 
-    @computed private get tableForSelection() {
-        return this.inputTable // perform selection at root level
+    @computed get tableForSelection() {
+        // This table specifies which entities can be selected in the charts EntitySelectorModal.
+        // It should contain all entities that can be selected, and none more.
+        // Depending on the chart type, the criteria for being able to select an entity are
+        // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
+        // (2) needs to have data for the x and y dimension.
+
+        if (this.isScatter || this.isSlopeChart)
+            // for scatter and slope charts, the `transformTable()` call takes care of removing
+            // all entities that cannot be selected
+            return this.tableAfterAuthorTimelineAndActiveChartTransform
+
+        // for other chart types, the `transformTable()` call would sometimes remove too many
+        // entities, and we want to use the inputTable instead (which should have exactly the
+        // entities where data is available)
+        return this.inputTable
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
