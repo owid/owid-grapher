@@ -391,6 +391,23 @@ france,Life expectancy`
         expect(decisionMatrix.selectedRow.grapherId).toEqual(2)
     })
 
+    it("allows to change 'Relative to population' after 'Interval' has been forcibly set to another choice", () => {
+        const decisionMatrix = new DecisionMatrix(
+            `${grapherIdKeyword},Metric Dropdown,Interval Dropdown,Relative to population Checkbox
+1,Cases,Daily,true
+2,Cases,Weekly,true
+3,Cases,Cumulative,true
+4,Cases,Cumulative,false
+5,Tests,Cumulative,true
+6,Tests,Cumulative,false`
+        )
+
+        decisionMatrix.setValueCommand("Metric", "Tests")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(5)
+        decisionMatrix.setValueCommand("Relative to population", "false")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(6)
+    })
+
     describe("subtables", () => {
         it("can detect header frontier", () => {
             const subtableFrontierCell = new ExplorerProgram(

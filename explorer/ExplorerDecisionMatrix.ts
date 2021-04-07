@@ -117,7 +117,13 @@ export class DecisionMatrix {
     toConstrainedOptions(): ExplorerChoiceParams {
         const settings = { ...this.currentParams }
         this.choiceNames.forEach((choiceName) => {
-            if (!this.isOptionAvailable(choiceName, settings[choiceName])) {
+            if (
+                !this.isOptionAvailable(
+                    choiceName,
+                    settings[choiceName],
+                    settings
+                )
+            ) {
                 settings[choiceName] = this.firstAvailableOptionForChoice(
                     choiceName,
                     settings
