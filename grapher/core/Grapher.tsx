@@ -2077,6 +2077,8 @@ export class Grapher
         this.type = grapher.type
         this.ySlugs = grapher.ySlugs
         this.xSlug = grapher.xSlug
+        this.colorSlug = grapher.colorSlug
+        this.sizeSlug = grapher.sizeSlug
         this.hasMapTab = grapher.hasMapTab
         this.facet = undefined
         this.hasChartTab = grapher.hasChartTab
