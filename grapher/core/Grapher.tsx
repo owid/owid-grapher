@@ -514,7 +514,7 @@ export class Grapher
     }
 
     @computed
-    private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
+    get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineAndColumnFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)

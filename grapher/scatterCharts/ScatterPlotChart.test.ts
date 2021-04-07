@@ -1003,6 +1003,6 @@ describe("tableForSelection availableEntities", () => {
 
         const chart = new ScatterPlotChart({ manager })
 
-        expect(chart.tableForSelection.availableEntityNames).toEqual(["UK"])
+        expect(chart.tableForSelection?.availableEntityNames).toEqual(["UK"])
     })
 })

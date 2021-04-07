@@ -216,14 +216,10 @@ export class ScatterPlotChart
         return this.manager.table
     }
 
-    @computed private get transformedTableBeforeTimeFilterAndAvgAnnualChange() {
-        return this.transformTable(this.inputTable)
-    }
-
     @computed private get transformedTableFromGrapher() {
         return (
             this.manager.transformedTable ??
-            this.transformedTableBeforeTimeFilterAndAvgAnnualChange
+            this.transformTable(this.inputTable)
         )
     }
 
@@ -266,7 +262,7 @@ export class ScatterPlotChart
         // thus, we use the table that already has excludedEntities, tolerance, and
         // timeDomainStart/End "filters" applied, but is not restricted to the current timeline
         // yet (we cannot use `transformedTable` for this reason).
-        return this.transformedTableBeforeTimeFilterAndAvgAnnualChange
+        return this.manager.tableAfterAuthorTimelineAndActiveChartTransform
     }
 
     @computed private get manager() {
