@@ -6,7 +6,7 @@ import {
 } from "../grapher/core/GrapherConstants"
 import { Explorer, ExplorerProps } from "./Explorer"
 
-const SampleExplorerProgram = `explorerTitle	CO₂ Data Explorer
+const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂ Data Explorer
 isPublished	false
 explorerSubtitle	Download the complete <i>Our World in Data</i> <a href="https://github.com/owid/co2-data">CO₂ and GHG Emissions Dataset</a>.
 subNavId	co2
@@ -45,7 +45,7 @@ graphers
 	4224	Nitrous oxide	Production-based		Per country
 	4244	Nitrous oxide	Production-based		Per capita`
 
-export const SampleExplorer = (props?: Partial<ExplorerProps>) => {
+export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
     const title = "AlphaBeta"
     const first = {
         id: 488,
@@ -84,7 +84,7 @@ export const SampleExplorer = (props?: Partial<ExplorerProps>) => {
     return (
         <Explorer
             slug="test-slug"
-            program={SampleExplorerProgram}
+            program={SampleExplorerOfGraphersProgram}
             grapherConfigs={grapherConfigs}
             {...props}
         />
