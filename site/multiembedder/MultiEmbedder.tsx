@@ -69,11 +69,13 @@ class MultiEmbedder {
     }
 
     /**
-     * Finds all <figure data-grapher-src="..."> elements in the document and loads the iframeless
-     * interactive charts when the user's viewport approaches them. Sets up a scroll event listener.
+     * Finds all <figure data-grapher-src="..."> and <figure
+     * data-explorer-src="..."> elements in the document and loads the
+     * iframeless interactive charts when the user's viewport approaches them.
+     * Uses an IntersectionObserver (see constructor).
      *
-     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughly before making
-     * any changes.
+     * BEWARE: this method is hardcoded in some scripts, make sure to check
+     * thoroughly before making any changes.
      */
     embedAll() {
         this.observeFigures()
@@ -91,7 +93,6 @@ class MultiEmbedder {
         ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
 
         figures.forEach((figure) => {
-            // TODO (?) Prevent adding duplicates
             this.figuresObserver?.observe(figure)
         })
     }
