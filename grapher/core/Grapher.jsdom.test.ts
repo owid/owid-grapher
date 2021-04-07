@@ -917,3 +917,48 @@ it("considers map tolerance before using column tolerance", () => {
         grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
     ).toEqual(1)
 })
+
+describe("tableForSelection", () => {
+    it("should include all available entities (LineChart)", () => {
+        const table = SynthesizeGDPTable({ entityNames: ["A", "B"] })
+
+        const grapher = new Grapher({ table })
+
+        expect(grapher.tableForSelection.availableEntityNames).toEqual([
+            "A",
+            "B",
+        ])
+    })
+
+    it("should not include entities that cannot be displayed (ScatterPlot)", () => {
+        const table = new OwidTable([
+            [
+                "entityId",
+                "entityName",
+                "entityCode",
+                "year",
+                "x",
+                "y",
+                "color",
+                "size",
+            ],
+            [1, "UK", "", 2000, 1, 1, null, null],
+            [1, "UK", "", 2001, null, 1, "Europe", 100],
+            [1, "UK", "", 2002, 1, null, null, null],
+            [1, "UK", "", 2003, null, null, null, null],
+            [2, "Barbados", "", 2000, null, null, null, null], // x, y value missing
+            [3, "USA", "", 2001, 2, 1, null, null], // excluded via excludedEntities
+            [4, "France", "", 2000, 0, null, null, null], // y value missing
+        ])
+
+        const grapher = new Grapher({
+            table,
+            type: ChartTypeName.ScatterPlot,
+            excludedEntities: [3],
+            xSlug: "x",
+            ySlugs: "y",
+        })
+
+        expect(grapher.tableForSelection.availableEntityNames).toEqual(["UK"])
+    })
+})
