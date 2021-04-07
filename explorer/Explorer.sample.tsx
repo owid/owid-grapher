@@ -90,3 +90,34 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         />
     )
 }
+
+const SampleInlineDataExplorerProgram = `explorerTitle	Sample Explorer
+selection	Argentina
+graphers
+	Test Radio	xSlug	ySlugs	colorSlug	sizeSlug	type
+	Scatter	x	y	color	size	ScatterPlot
+	Line		y			LineChart
+
+columns
+	slug	type	name
+	Country	EntityName	Country
+	Quarter	Quarter	Quarter
+	x	Numeric	x
+	y	Numeric	y
+	color	Numeric	color
+	size	Numeric	size
+
+table
+	Country	Year	x	y	color	size
+	Argentina	2020	1	1	1	1
+	Argentina	2021	1	1	1	1`
+
+export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
+    return (
+        <Explorer
+            slug="test-slug-inline-data"
+            program={SampleInlineDataExplorerProgram}
+            {...props}
+        />
+    )
+}

@@ -1,7 +1,10 @@
 #! yarn testJest
 
 import { Explorer } from "./Explorer"
-import { SampleExplorerOfGraphers } from "./Explorer.sample"
+import {
+    SampleExplorerOfGraphers,
+    SampleInlineDataExplorer,
+} from "./Explorer.sample"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
@@ -53,5 +56,34 @@ describe(Explorer, () => {
             Gas: "CO₂",
             "Relative to world total": "false",
         })
+    })
+})
+
+describe("inline data explorer", () => {
+    const element = mount(SampleInlineDataExplorer())
+    const explorer = element.instance() as Explorer
+
+    it("renders", () => {
+        expect(element.find(".ExplorerHeaderBox").text()).toContain(
+            "Sample Explorer"
+        )
+        expect(explorer.queryParams).toMatchObject({
+            Test: "Scatter",
+        })
+        expect(explorer.grapher?.xSlug).toEqual("x")
+        expect(explorer.grapher?.ySlugs).toEqual("y")
+        expect(explorer.grapher?.colorSlug).toEqual("color")
+        expect(explorer.grapher?.sizeSlug).toEqual("size")
+    })
+
+    it("clears column slugs that don't exist in current row", () => {
+        explorer.onChangeChoice("Test")("Line")
+        expect(explorer.queryParams).toMatchObject({
+            Test: "Line",
+        })
+        expect(explorer.grapher?.xSlug).toEqual(undefined)
+        expect(explorer.grapher?.ySlugs).toEqual("y")
+        expect(explorer.grapher?.colorSlug).toEqual(undefined)
+        expect(explorer.grapher?.sizeSlug).toEqual(undefined)
     })
 })
