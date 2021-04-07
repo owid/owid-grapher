@@ -367,12 +367,10 @@ france,Life expectancy`
         ).toEqual(true)
     })
 
-    // TODO: figure out why setValueCommand does not seem to be equivalent to a user interacting
-    // with the UI.
     // See logic in setValueCommand for an explanation of the logic we want to test here.
-    it.skip("overwrite unavailable option with new option, if more than 1 option is available", () => {
+    it("overwrite unavailable option with new option, if more than 1 option is available", () => {
         const decisionMatrix = new DecisionMatrix(
-            `${grapherIdKeyword},Metric,Interval,Relative to population,Align outbreaks
+            `${grapherIdKeyword},Metric Dropdown,Interval Dropdown,Relative to population Checkbox,Align outbreaks Checkbox
 1,Cases,Daily,true,false
 2,Cases,Daily,true,true
 3,Cases,Weekly,true,true
@@ -388,7 +386,24 @@ france,Life expectancy`
         decisionMatrix.setValueCommand("Metric", "Tests")
         expect(decisionMatrix.selectedRow.grapherId).toEqual(7)
         decisionMatrix.setValueCommand("Metric", "Cases")
-        expect(decisionMatrix.selectedRow.grapherId).toEqual(2)
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(1)
+    })
+
+    it("allows to change 'Relative to population' after 'Interval' has been forcibly set to another choice", () => {
+        const decisionMatrix = new DecisionMatrix(
+            `${grapherIdKeyword},Metric Dropdown,Interval Dropdown,Relative to population Checkbox
+1,Cases,Daily,true
+2,Cases,Weekly,true
+3,Cases,Cumulative,true
+4,Cases,Cumulative,false
+5,Tests,Cumulative,true
+6,Tests,Cumulative,false`
+        )
+
+        decisionMatrix.setValueCommand("Metric", "Tests")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(5)
+        decisionMatrix.setValueCommand("Relative to population", "false")
+        expect(decisionMatrix.selectedRow.grapherId).toEqual(6)
     })
 
     describe("subtables", () => {
