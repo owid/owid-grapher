@@ -68,6 +68,66 @@ class MultiEmbedder {
         }
     }
 
+    /**
+     * Finds all <figure data-grapher-src="..."> elements in the document and loads the iframeless
+     * interactive charts when the user's viewport approaches them. Sets up a scroll event listener.
+     *
+     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughly before making
+     * any changes.
+     */
+    embedAll() {
+        this.observeFigures()
+    }
+
+    /**
+     * Make the embedder aware of new <figure> elements that are injected into the DOM.
+     *
+     * Use this when you programmatically create/replace charts.
+     */
+    observeFigures(container: HTMLElement | Document = document) {
+        const figures = figuresFromDOM(
+            container,
+            GRAPHER_EMBEDDED_FIGURE_ATTR
+        ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
+
+        figures.forEach((figure) => {
+            // TODO (?) Prevent adding duplicates
+            this.figuresObserver?.observe(figure)
+        })
+    }
+
+    onIntersecting(entries: IntersectionObserverEntry[]) {
+        entries.forEach((entry) => {
+            const figure = entry.target
+            if (entry.isIntersecting) {
+                this.delayRender(figure)
+            } else {
+                this.cancelRender(figure)
+            }
+        })
+    }
+
+    delayRender(figure: Element) {
+        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+        if (timeoutIdData) return
+
+        const timeoutId = window.setTimeout(async () => {
+            await this.renderInteractiveFigure(figure)
+        }, 500)
+
+        figure.setAttribute(GRAPHER_RENDER_TIMEOUT_ID, `${timeoutId}`)
+    }
+
+    cancelRender(figure: Element) {
+        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+        if (!timeoutIdData) return
+
+        const timeoutId = parseInt(timeoutIdData)
+
+        window.clearTimeout(timeoutId)
+        figure.removeAttribute(GRAPHER_RENDER_TIMEOUT_ID)
+    }
+
     async renderInteractiveFigure(figure: Element) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
@@ -126,66 +186,7 @@ class MultiEmbedder {
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
             Grapher.renderGrapherIntoContainer(config, figure)
         }
-    }
 
-    /**
-     * Make the embedder aware of new <figure> elements that are injected into the DOM.
-     *
-     * Use this when you programmatically create/replace charts.
-     */
-    observeFigures(container: HTMLElement | Document = document) {
-        const figures = figuresFromDOM(
-            container,
-            GRAPHER_EMBEDDED_FIGURE_ATTR
-        ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
-
-        figures.forEach((figure) => {
-            // TODO (?) Prevent adding duplicates
-            this.figuresObserver?.observe(figure)
-        })
-    }
-
-    /**
-     * Finds all <figure data-grapher-src="..."> elements in the document and loads the iframeless
-     * interactive charts when the user's viewport approaches them. Sets up a scroll event listener.
-     *
-     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughly before making
-     * any changes.
-     */
-    embedAll() {
-        this.observeFigures()
-    }
-
-    delayRender(figure: Element) {
-        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
-        if (timeoutIdData) return
-
-        const timeoutId = window.setTimeout(async () => {
-            await this.renderInteractiveFigure(figure)
-        }, 1000)
-
-        figure.setAttribute(GRAPHER_RENDER_TIMEOUT_ID, `${timeoutId}`)
-    }
-
-    cancelRender(figure: Element) {
-        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
-        if (!timeoutIdData) return
-
-        const timeoutId = parseInt(timeoutIdData)
-
-        window.clearTimeout(timeoutId)
-        figure.removeAttribute(GRAPHER_RENDER_TIMEOUT_ID)
-    }
-
-    onIntersecting(entries: IntersectionObserverEntry[]) {
-        entries.forEach((entry) => {
-            const figure = entry.target
-            if (entry.isIntersecting) {
-                this.delayRender(figure)
-            } else {
-                this.cancelRender(figure)
-            }
-        })
     }
 
     setUpGlobalEntitySelectorForEmbeds() {
