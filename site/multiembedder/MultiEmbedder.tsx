@@ -62,7 +62,7 @@ class MultiEmbedder {
             this.figuresObserver = new IntersectionObserver(
                 this.onIntersecting.bind(this),
                 {
-                    rootMargin: "0% 0% 50%",
+                    rootMargin: "200%",
                 }
             )
         }
@@ -96,36 +96,12 @@ class MultiEmbedder {
         })
     }
 
-    onIntersecting(entries: IntersectionObserverEntry[]) {
+    async onIntersecting(entries: IntersectionObserverEntry[]) {
         entries.forEach((entry) => {
-            const figure = entry.target
             if (entry.isIntersecting) {
-                this.delayRender(figure)
-            } else {
-                this.cancelRender(figure)
+                this.renderInteractiveFigure(entry.target)
             }
         })
-    }
-
-    delayRender(figure: Element) {
-        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
-        if (timeoutIdData) return
-
-        const timeoutId = window.setTimeout(async () => {
-            await this.renderInteractiveFigure(figure)
-        }, 500)
-
-        figure.setAttribute(GRAPHER_RENDER_TIMEOUT_ID, `${timeoutId}`)
-    }
-
-    cancelRender(figure: Element) {
-        const timeoutIdData = figure.getAttribute(GRAPHER_RENDER_TIMEOUT_ID)
-        if (!timeoutIdData) return
-
-        const timeoutId = parseInt(timeoutIdData)
-
-        window.clearTimeout(timeoutId)
-        figure.removeAttribute(GRAPHER_RENDER_TIMEOUT_ID)
     }
 
     async renderInteractiveFigure(figure: Element) {
@@ -186,7 +162,6 @@ class MultiEmbedder {
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
             Grapher.renderGrapherIntoContainer(config, figure)
         }
-
     }
 
     setUpGlobalEntitySelectorForEmbeds() {
