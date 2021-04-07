@@ -262,7 +262,10 @@ export class ScatterPlotChart
         // thus, we use the table that already has excludedEntities, tolerance, and
         // timeDomainStart/End "filters" applied, but is not restricted to the current timeline
         // yet (we cannot use `transformedTable` for this reason).
-        return this.manager.tableAfterAuthorTimelineAndActiveChartTransform
+        return (
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransform ??
+            this.transformedTableFromGrapher // we need this for tests to run correctly (when there is no Grapher instance)
+        )
     }
 
     @computed private get manager() {
