@@ -1,6 +1,6 @@
 describe("Navigation", function () {
     beforeEach(() => {
-        cy.visit("http://localhost:3099/forests")
+        cy.visit("/privacy-policy")
     })
 
     it("Tests mobile navigation", function () {
