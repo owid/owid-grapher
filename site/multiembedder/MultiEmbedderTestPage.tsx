@@ -16,6 +16,11 @@ export const MultiEmbedderTestPage = (
         height: "400px",
         border: "1px solid blue",
     }
+    const styleExplorer = {
+        ...style,
+        width: "1200px",
+        height: "600px",
+    }
     return (
         <html>
             <Head canonicalUrl={slug} pageTitle={title} baseUrl="/" />
@@ -53,33 +58,22 @@ export const MultiEmbedderTestPage = (
                     />
                     <h1>An explorer about co2</h1>
                     <figure
-                        style={style}
+                        style={styleExplorer}
                         {...{
                             [EXPLORER_EMBEDDED_FIGURE_SELECTOR]:
                                 "http://localhost:3030/explorers/co2",
                         }}
                     />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <br />
                     <h1>
-                        An explorer far down the page, hopefully loaded lazily
+                        When you see this, the explorer located 2 viewports
+                        below will start loading.
                     </h1>
+                    200vh matches MultiEmbedder's IntersectionObserver
+                    rootMargin parameter of 200%.You can manually test this by
+                    adding a console.log() to renderInteractiveFigure().
+                    <div style={{ height: "200vh" }}></div>
                     <figure
-                        style={style}
+                        style={styleExplorer}
                         {...{
                             [EXPLORER_EMBEDDED_FIGURE_SELECTOR]:
                                 "http://localhost:3030/explorers/co2",
