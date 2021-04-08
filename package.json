@@ -218,7 +218,7 @@
         "@typescript-eslint/eslint-plugin": "^4.18.0",
         "@typescript-eslint/parser": "^4.18.0",
         "babel-loader": "^8.2.2",
-        "cypress": "^4.2.0",
+        "cypress": "7.0.1",
         "eslint-config-prettier": "^8.1.0",
         "eslint-plugin-react": "^7.22.0",
         "jest": "^26.4.2",
