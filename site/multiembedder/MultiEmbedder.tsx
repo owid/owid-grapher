@@ -109,8 +109,6 @@ class MultiEmbedder {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
-        const hasPreview = isExplorer ? false : !!figure.querySelector("img")
-        if (!shouldProgressiveEmbed() && hasPreview) return
 
         const dataSrc = figure.getAttribute(
             isExplorer
@@ -120,7 +118,14 @@ class MultiEmbedder {
 
         if (!dataSrc) return
 
-        // Stop observing visibility as rendering won't stop from here
+        const hasPreview = isExplorer ? false : !!figure.querySelector("img")
+        if (!shouldProgressiveEmbed() && hasPreview) return
+
+        // Stop observing visibility as soon as possible, that is not before
+        // shouldProgressiveEmbed gets a chance to reevaluate a possible change
+        // in screen size on mobile (i.e. after a rotation). Stopping before
+        // shouldProgressiveEmbed would prevent rendering interactive charts
+        // when going from portrait to landscape mode (without page reload).
         this.figuresObserver?.unobserve(figure)
 
         const { fullUrl, queryStr } = Url.fromURL(dataSrc)
