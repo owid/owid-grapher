@@ -39,6 +39,7 @@ export const MultiEmbedderTestPage = (
                     </p>
                     <h1>A grapher about sharks</h1>
                     <figure
+                        data-test="within-bounds"
                         style={style}
                         {...{
                             [GRAPHER_EMBEDDED_FIGURE_ATTR]:
@@ -50,6 +51,7 @@ export const MultiEmbedderTestPage = (
                         (time=latest)
                     </h1>
                     <figure
+                        data-test="within-bounds"
                         style={style}
                         {...{
                             [GRAPHER_EMBEDDED_FIGURE_ATTR]:
@@ -58,21 +60,25 @@ export const MultiEmbedderTestPage = (
                     />
                     <h1>An explorer about co2</h1>
                     <figure
+                        data-test="within-bounds"
                         style={styleExplorer}
                         {...{
                             [EXPLORER_EMBEDDED_FIGURE_SELECTOR]:
                                 "http://localhost:3030/explorers/co2",
                         }}
                     />
-                    <h1>
+                    <h1 data-test="heading-before-spacer">
                         When you see this, the explorer located 2 viewports
                         below will start loading.
                     </h1>
                     200vh matches MultiEmbedder's IntersectionObserver
-                    rootMargin parameter of 200%.You can manually test this by
-                    adding a console.log() to renderInteractiveFigure().
+                    rootMargin parameter of 200%. You can manually test this by
+                    adding a console.log() to renderInteractiveFigure(), or look
+                    into the DOM and check whether the figure element below is
+                    populated (it shouldn't be until you reveal this text).
                     <div style={{ height: "200vh" }}></div>
                     <figure
+                        data-test="out-of-bounds"
                         style={styleExplorer}
                         {...{
                             [EXPLORER_EMBEDDED_FIGURE_SELECTOR]:
