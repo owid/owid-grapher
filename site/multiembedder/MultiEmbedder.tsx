@@ -2,10 +2,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { fetchText, isMobile } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
-import {
-    GRAPHER_EMBEDDED_FIGURE_ATTR,
-    GRAPHER_RENDER_TIMEOUT_ID,
-} from "../../grapher/core/GrapherConstants"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
 import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
 import {
     Grapher,
