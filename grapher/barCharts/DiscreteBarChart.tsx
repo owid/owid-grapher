@@ -475,19 +475,22 @@ export class DiscreteBarChart
 
     @computed get series() {
         const { valuesToColorsMap, seriesColorMap } = this
-        return this.sortedRawSeries.reverse().map((rawSeries) => {
-            const { row, seriesName, color } = rawSeries
-            const series: DiscreteBarSeries = {
-                ...row,
-                seriesName,
-                color:
-                    color ??
-                    seriesColorMap.get(seriesName) ?? // This provides line chart colors if it was a line chart in a prior life
-                    valuesToColorsMap?.get(row.value) ??
-                    DEFAULT_BAR_COLOR,
-            }
-            return series
-        })
+        return this.sortedRawSeries
+            .slice() // we need to clone/slice here so `.reverse()` doesn't modify `this.sortedRawSeries` in-place
+            .reverse()
+            .map((rawSeries) => {
+                const { row, seriesName, color } = rawSeries
+                const series: DiscreteBarSeries = {
+                    ...row,
+                    seriesName,
+                    color:
+                        color ??
+                        seriesColorMap.get(seriesName) ?? // This provides line chart colors if it was a line chart in a prior life
+                        valuesToColorsMap?.get(row.value) ??
+                        DEFAULT_BAR_COLOR,
+                }
+                return series
+            })
     }
 
     @computed private get isLogScale() {
