@@ -166,8 +166,8 @@ it("reverses order of plotted series to plot the first one over the others", () 
             pop: [100, 200],
         },
         [
-            { slug: "gdp", color: "green" },
-            { slug: "pop", color: "red" },
+            { slug: "gdp", color: "green", type: ColumnTypeNames.Numeric },
+            { slug: "pop", color: "red", type: ColumnTypeNames.Numeric },
         ]
     )
 
