@@ -1,6 +1,7 @@
 import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import { Url } from "../../clientUtils/urls/Url"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
+import { omit } from "../../clientUtils/Util"
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>
     value !== undefined
@@ -10,21 +11,25 @@ export const decodeURIComponentOrUndefined = (value: string | undefined) =>
 export type QueryParamTransformMap = Record<
     string,
     {
-        newName: string
+        newName?: string
         transformValue: (value: string | undefined) => string | undefined
     }
 >
 
 export const transformQueryParams = (
-    queryParams: Readonly<QueryParams>,
+    oldQueryParams: Readonly<QueryParams>,
     transformMap: QueryParamTransformMap
 ) => {
-    const newQueryParams = { ...queryParams }
+    const newQueryParams = omit(
+        oldQueryParams,
+        ...Object.keys(transformMap)
+    ) as QueryParams
     for (const oldParamName in transformMap) {
-        if (!(oldParamName in newQueryParams)) continue
+        if (!(oldParamName in oldQueryParams)) continue
         const { newName, transformValue } = transformMap[oldParamName]
-        newQueryParams[newName] = transformValue(queryParams[oldParamName])
-        delete newQueryParams[oldParamName]
+        newQueryParams[newName ?? oldParamName] = transformValue(
+            oldQueryParams[oldParamName]
+        )
     }
     return newQueryParams
 }

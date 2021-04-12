@@ -430,7 +430,7 @@ export class SiteBaker {
         // Deploy directly to Netlify (faster than using the github hook)
         if (deployDirectlyToNetlix) {
             await this.execAndLogAnyErrorsToSlack(
-                `cd ${this.bakedSiteDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod --timeout 6000`
+                `cd ${this.bakedSiteDir} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prodIfUnlocked --timeout 6000`
             )
             progressBar.tick({ name: "✅ deployed directly to netlify" })
         }

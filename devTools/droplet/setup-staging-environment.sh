@@ -81,7 +81,7 @@ netlify deploy
 # Use NEW_NAME-owid as site name
 # Leave publish to .
 # Time: >10min?
-# netlify deploy --prod
+# netlify deploy --prodIfUnlocked
 
 ## PM2
 cd ~/NEW_NAME

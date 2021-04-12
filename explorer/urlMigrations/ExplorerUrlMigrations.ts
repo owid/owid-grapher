@@ -6,6 +6,7 @@ import {
 import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration"
 import { co2UrlMigration } from "./CO2UrlMigration"
 import { energyUrlMigration } from "./EnergyUrlMigration"
+import { covidUrlMigration } from "./CovidUrlMigration"
 
 export enum ExplorerUrlMigrationId {
     legacyToGridCovidExplorer = "legacyToGridCovidExplorer",
@@ -27,6 +28,7 @@ const explorerUrlMigrations: UrlMigration[] = [
     // NOTE: The order of migrations matters!
     co2UrlMigration,
     energyUrlMigration,
+    covidUrlMigration,
 ]
 
 export const migrateExplorerUrl: UrlMigration = (url: Url): Url => {
