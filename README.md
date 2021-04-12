@@ -99,7 +99,7 @@ This script will create a database, then download and import all OWID charts and
 ./db/downloadAndCreateDatabase.sh
 ```
 
-Since the full `data_values` table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
+Note that the `data_values` table will be incomplete – it will only contain data used in charts. In production, this table is >20GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
 
 ### Inspecting the database
 
