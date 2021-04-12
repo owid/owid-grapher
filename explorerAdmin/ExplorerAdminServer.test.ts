@@ -4,6 +4,8 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { ExplorerAdminServer } from "./ExplorerAdminServer"
 
 it("can init", async () => {
+    jest.setTimeout(10000) // wait up to 10s
+
     const server = new ExplorerAdminServer(__dirname, "https://example.com")
     expect(server).toBeTruthy()
 
