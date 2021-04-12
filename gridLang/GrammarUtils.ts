@@ -1,4 +1,4 @@
-export const isBlankLine = (line: string[] | undefined) =>
+export const isBlankLine = (line: readonly string[] | undefined) =>
     line === undefined ? true : line.join("") === ""
 
 // Todo: figure out Matrix cell type and whether we need the double check
@@ -7,7 +7,7 @@ export const isEmpty = (value: any) => value === "" || value === undefined
 // Adapted from: https://github.com/dcporter/didyoumean.js/blob/master/didYouMean-1.2.1.js
 export const didYouMean = (
     str = "",
-    options: string[] = [],
+    options: readonly string[] = [],
     caseSensitive = false,
     threshold = 0.4,
     thresholdAbsolute = 20

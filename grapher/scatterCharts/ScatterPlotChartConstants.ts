@@ -17,58 +17,58 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 
 export interface ScatterPlotManager extends ChartManager {
-    hideConnectedScatterLines?: boolean
-    scatterPointLabelStrategy?: ScatterPointLabelStrategy
-    addCountryMode?: EntitySelectionMode
-    xOverrideTime?: Time | undefined
-    tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
-    excludedEntities?: EntityId[]
-    backgroundSeriesLimit?: number
-    hideLinesOutsideTolerance?: boolean
-    startTime?: Time
-    endTime?: Time
-    hasTimeline?: boolean
+    readonly hideConnectedScatterLines?: boolean
+    readonly scatterPointLabelStrategy?: ScatterPointLabelStrategy
+    readonly addCountryMode?: EntitySelectionMode
+    readonly xOverrideTime?: Time | undefined
+    readonly tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
+    readonly excludedEntities?: readonly EntityId[]
+    readonly backgroundSeriesLimit?: number
+    readonly hideLinesOutsideTolerance?: boolean
+    readonly startTime?: Time
+    readonly endTime?: Time
+    readonly hasTimeline?: boolean
 }
 
 export interface ScatterTooltipProps {
-    yColumn: CoreColumn
-    xColumn: CoreColumn
-    series: ScatterSeries
-    maxWidth: number
-    fontSize: number
-    x: number
-    y: number
+    readonly yColumn: CoreColumn
+    readonly xColumn: CoreColumn
+    readonly series: ScatterSeries
+    readonly maxWidth: number
+    readonly fontSize: number
+    readonly x: number
+    readonly y: number
 }
 
 export interface ScatterSeries extends ChartSeries {
-    label: string
-    size: number
-    points: SeriesPoint[]
-    isScaleColor?: boolean
+    readonly label: string
+    readonly size: number
+    readonly points: readonly SeriesPoint[]
+    readonly isScaleColor?: boolean
 }
 
 export interface SeriesPoint {
-    x: number
-    y: number
-    size: number
-    entityName?: EntityName
-    label: string
-    color?: number | Color
-    timeValue: Time
-    time: {
-        x: number
-        y: number
-        span?: [number, number]
+    readonly x: number
+    readonly y: number
+    readonly size: number
+    readonly entityName?: EntityName
+    readonly label: string
+    readonly color?: number | Color
+    readonly timeValue: Time
+    readonly time: {
+        readonly x: number
+        readonly y: number
+        readonly span?: [number, number]
     }
 }
 
 export interface ScatterRenderPoint {
-    position: PointVector
-    color: Color
-    size: number
-    fontSize: number
-    label: string
-    time: {
+    readonly position: PointVector
+    readonly color: Color
+    readonly size: number
+    readonly fontSize: number
+    readonly label: string
+    readonly time: {
         x: number
         y: number
     }
@@ -77,43 +77,43 @@ export interface ScatterRenderPoint {
 export const ScatterLabelFontFamily = "Arial, sans-serif"
 
 export interface ScatterRenderSeries extends ChartSeries {
-    displayKey: string
-    size: number
-    points: ScatterRenderPoint[]
-    text: string
-    isHover?: boolean
-    isFocus?: boolean
-    isForeground?: boolean
+    readonly displayKey: string
+    readonly size: number
+    readonly points: readonly ScatterRenderPoint[]
+    readonly text: string
+    readonly isHover?: boolean
+    readonly isFocus?: boolean
+    readonly isForeground?: boolean
+    readonly startLabel?: ScatterLabel
+    readonly midLabels: readonly ScatterLabel[]
+    readonly endLabel?: ScatterLabel
+    readonly allLabels: readonly ScatterLabel[]
     offsetVector: PointVector
-    startLabel?: ScatterLabel
-    midLabels: ScatterLabel[]
-    endLabel?: ScatterLabel
-    allLabels: ScatterLabel[]
 }
 
 export interface ScatterLabel {
-    text: string
-    fontSize: number
-    fontWeight: number
-    color: Color
+    readonly text: string
+    readonly fontSize: number
+    readonly fontWeight: number
+    readonly color: Color
+    readonly series: ScatterRenderSeries
+    readonly isStart?: boolean
+    readonly isMid?: boolean
+    readonly isEnd?: boolean
     bounds: Bounds
-    series: ScatterRenderSeries
     isHidden?: boolean
-    isStart?: boolean
-    isMid?: boolean
-    isEnd?: boolean
 }
 
 export interface ScatterPointsWithLabelsProps {
-    seriesArray: ScatterSeries[]
-    hoveredSeriesNames: SeriesName[]
-    focusedSeriesNames: SeriesName[]
-    dualAxis: DualAxis
-    colorScale?: ColorScale
-    sizeDomain: [number, number]
-    onMouseOver: (series: ScatterSeries) => void
-    onMouseLeave: () => void
-    onClick: () => void
-    hideConnectedScatterLines: boolean
-    noDataModalManager: NoDataModalManager
+    readonly seriesArray: readonly ScatterSeries[]
+    readonly hoveredSeriesNames: readonly SeriesName[]
+    readonly focusedSeriesNames: readonly SeriesName[]
+    readonly dualAxis: DualAxis
+    readonly colorScale?: ColorScale
+    readonly sizeDomain: [number, number]
+    readonly onMouseOver: (series: ScatterSeries) => void
+    readonly onMouseLeave: () => void
+    readonly onClick: () => void
+    readonly hideConnectedScatterLines: boolean
+    readonly noDataModalManager: NoDataModalManager
 }

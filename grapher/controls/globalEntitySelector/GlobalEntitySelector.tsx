@@ -85,7 +85,7 @@ const SelectOptions: Props = {
 }
 
 function SelectedItems(props: {
-    selectedEntityNames: EntityName[]
+    selectedEntityNames: readonly EntityName[]
     emptyLabel: string
     canRemove?: boolean
     onRemove?: (item: EntityName) => void
@@ -227,7 +227,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound updateSelection(newSelectedEntities: string[]) {
+    @action.bound updateSelection(newSelectedEntities: readonly string[]) {
         this.selection.setSelectedEntities(newSelectedEntities)
         this.updateAllGraphersAndExplorersOnPage()
         this.updateURL()

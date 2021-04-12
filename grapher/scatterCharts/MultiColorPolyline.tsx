@@ -5,19 +5,19 @@ import { observer } from "mobx-react"
 import { last } from "../../clientUtils/Util"
 
 interface MultiColorPolylinePoint {
-    x: number
-    y: number
-    color: string
+    readonly x: number
+    readonly y: number
+    readonly color: string
 }
 
 interface Point {
-    x: number
-    y: number
+    readonly x: number
+    readonly y: number
 }
 
 interface Segment {
-    points: Point[]
-    color: string
+    readonly points: Point[]
+    readonly color: string
 }
 
 function getMidpoint(a: Point, b: Point) {
@@ -35,7 +35,7 @@ function toPoint(point: MultiColorPolylinePoint): Point {
 }
 
 export function getSegmentsFromPoints(
-    points: MultiColorPolylinePoint[]
+    points: readonly MultiColorPolylinePoint[]
 ): Segment[] {
     const segments: Segment[] = []
     points.forEach((currentPoint) => {
@@ -62,7 +62,7 @@ export function getSegmentsFromPoints(
     return segments
 }
 
-function toSvgPoints(points: Point[]): string {
+function toSvgPoints(points: readonly Point[]): string {
     return points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
 }
 
@@ -70,7 +70,7 @@ type MultiColorPolylineProps = Omit<
     React.SVGProps<SVGPolylineElement>,
     "fill" | "stroke" | "points" | "strokeLinecap"
 > & {
-    points: MultiColorPolylinePoint[]
+    points: readonly MultiColorPolylinePoint[]
 }
 
 @observer

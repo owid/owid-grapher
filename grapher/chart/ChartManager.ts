@@ -18,53 +18,53 @@ import { SelectionArray } from "../selection/SelectionArray"
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
 export interface ChartManager {
-    baseFontSize?: number
+    readonly baseFontSize?: number
 
-    table: OwidTable
-    transformedTable?: OwidTable
+    readonly table: OwidTable
+    readonly transformedTable?: OwidTable
 
-    isSelectingData?: boolean
-    startSelectingWhenLineClicked?: boolean // used by lineLabels
-    isExportingtoSvgOrPng?: boolean
-    isRelativeMode?: boolean
-    comparisonLines?: ComparisonLineConfig[]
-    hideLegend?: boolean
-    tooltip?: TooltipProps
-    useTimelineDomains?: boolean
-    baseColorScheme?: ColorSchemeName
-    invertColorScheme?: boolean
-    compareEndPointsOnly?: boolean
-    zoomToSelection?: boolean
-    matchingEntitiesOnly?: boolean
+    readonly startSelectingWhenLineClicked?: boolean // used by lineLabels
+    readonly isExportingtoSvgOrPng?: boolean
+    readonly isRelativeMode?: boolean
+    readonly comparisonLines?: readonly ComparisonLineConfig[]
+    readonly hideLegend?: boolean
+    readonly tooltip?: TooltipProps
+    readonly useTimelineDomains?: boolean
+    readonly baseColorScheme?: ColorSchemeName
+    readonly invertColorScheme?: boolean
+    readonly zoomToSelection?: boolean
+    readonly matchingEntitiesOnly?: boolean
 
-    colorScale?: ColorScaleConfigInterface
+    readonly colorScale?: ColorScaleConfigInterface
 
-    yAxis?: AxisConfig // Remove? Just pass interfaces?
-    xAxis?: AxisConfig
-    yAxisConfig?: AxisConfigInterface
-    xAxisConfig?: AxisConfigInterface
+    readonly yAxis?: AxisConfig // Remove? Just pass interfaces?
+    readonly xAxis?: AxisConfig
+    readonly yAxisConfig?: AxisConfigInterface
+    readonly xAxisConfig?: AxisConfigInterface
 
-    addCountryMode?: EntitySelectionMode
+    readonly addCountryMode?: EntitySelectionMode
 
-    yColumnSlug?: ColumnSlug
-    yColumnSlugs?: ColumnSlug[]
-    xColumnSlug?: ColumnSlug
-    sizeColumnSlug?: ColumnSlug
-    colorColumnSlug?: ColumnSlug
+    readonly yColumnSlug?: ColumnSlug
+    readonly yColumnSlugs?: readonly ColumnSlug[]
+    readonly xColumnSlug?: ColumnSlug
+    readonly sizeColumnSlug?: ColumnSlug
+    readonly colorColumnSlug?: ColumnSlug
 
-    selection?: SelectionArray | EntityName[]
-    selectedColumnSlugs?: ColumnSlug[]
+    readonly selection?: SelectionArray | readonly EntityName[]
+    readonly selectedColumnSlugs?: readonly ColumnSlug[]
 
     // If you want to use auto-assigned colors, but then have them preserved across selection and chart changes
-    seriesColorMap?: SeriesColorMap
+    readonly seriesColorMap?: SeriesColorMap
 
-    hidePoints?: boolean // for line options
-    lineStrokeWidth?: number
+    readonly hidePoints?: boolean // for line options
+    readonly lineStrokeWidth?: number
 
-    hideXAxis?: boolean
-    hideYAxis?: boolean
+    readonly hideXAxis?: boolean
+    readonly hideYAxis?: boolean
 
-    facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
+    readonly facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
+    readonly seriesStrategy?: SeriesStrategy
 
-    seriesStrategy?: SeriesStrategy
+    isSelectingData?: boolean
+    compareEndPointsOnly?: boolean
 }

@@ -27,29 +27,29 @@ const MARKER_MARGIN = 4
 const ADD_BUTTON_HEIGHT = 30
 
 export interface LineLabelSeries extends ChartSeries {
-    label: string
-    yValue: number
-    annotation?: string
-    yRange?: [number, number]
+    readonly label: string
+    readonly yValue: number
+    readonly annotation?: string
+    readonly yRange?: readonly [number, number]
 }
 
 interface SizedSeries extends LineLabelSeries {
-    textWrap: TextWrap
-    annotationTextWrap?: TextWrap
-    width: number
-    height: number
+    readonly textWrap: TextWrap
+    readonly annotationTextWrap?: TextWrap
+    readonly width: number
+    readonly height: number
 }
 
 interface PlacedSeries extends SizedSeries {
-    origBounds: Bounds
+    readonly origBounds: Bounds
     bounds: Bounds
-    isOverlap: boolean
     repositions: number
     level: number
     totalLevels: number
+    isOverlap: boolean
 }
 
-function groupBounds(group: PlacedSeries[]) {
+function groupBounds(group: readonly PlacedSeries[]) {
     const first = group[0]
     const last = group[group.length - 1]
     const height = last.bounds.bottom - first.bounds.top
@@ -57,7 +57,7 @@ function groupBounds(group: PlacedSeries[]) {
     return new Bounds(first.bounds.x, first.bounds.y, width, height)
 }
 
-function stackGroupVertically(group: PlacedSeries[], y: number) {
+function stackGroupVertically(group: readonly PlacedSeries[], y: number) {
     let currentY = y
     group.forEach((mark) => {
         mark.bounds = mark.bounds.extend({ y: currentY })
@@ -141,19 +141,19 @@ class Label extends React.Component<{
 }
 
 export interface LineLegendManager {
-    startSelectingWhenLineClicked?: boolean
-    canAddData?: boolean
-    isSelectingData?: boolean
-    entityType?: string
-    labelSeries: LineLabelSeries[]
-    maxLegendWidth?: number
-    fontSize?: number
-    onLegendMouseOver?: (key: EntityName) => void
-    onLegendClick?: (key: EntityName) => void
-    onLegendMouseLeave?: () => void
-    focusedSeriesNames: EntityName[]
-    verticalAxis: VerticalAxis
-    legendX?: number
+    readonly startSelectingWhenLineClicked?: boolean
+    readonly canAddData?: boolean
+    readonly isSelectingData?: boolean
+    readonly entityType?: string
+    readonly labelSeries: readonly LineLabelSeries[]
+    readonly maxLegendWidth?: number
+    readonly fontSize?: number
+    readonly onLegendMouseOver?: (key: EntityName) => void
+    readonly onLegendClick?: (key: EntityName) => void
+    readonly onLegendMouseLeave?: () => void
+    readonly focusedSeriesNames: readonly EntityName[]
+    readonly verticalAxis: VerticalAxis
+    readonly legendX?: number
 }
 
 @observer
@@ -230,7 +230,7 @@ export class LineLegend extends React.Component<{
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed private get initialSeries(): PlacedSeries[] {
+    @computed private get initialSeries(): readonly PlacedSeries[] {
         const { verticalAxis } = this.manager
         const { legendX } = this
 
@@ -270,7 +270,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed get standardPlacement() {
+    @computed get standardPlacement(): readonly PlacedSeries[] {
         const { verticalAxis } = this.manager
 
         const groups: PlacedSeries[][] = cloneDeep(
@@ -341,7 +341,7 @@ export class LineLegend extends React.Component<{
     }
 
     // Overlapping placement, for when we really can't find a solution without overlaps.
-    @computed get overlappingPlacement() {
+    @computed get overlappingPlacement(): readonly PlacedSeries[] {
         const series = cloneDeep(this.initialSeries)
         for (let i = 0; i < series.length; i++) {
             const m1 = series[i]
@@ -356,7 +356,7 @@ export class LineLegend extends React.Component<{
         return series
     }
 
-    @computed get placedSeries() {
+    @computed get placedSeries(): readonly PlacedSeries[] {
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
@@ -378,7 +378,7 @@ export class LineLegend extends React.Component<{
         return this.standardPlacement
     }
 
-    @computed private get backgroundSeries() {
+    @computed private get backgroundSeries(): readonly PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>
@@ -388,7 +388,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed private get focusedSeries() {
+    @computed private get focusedSeries(): readonly PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>

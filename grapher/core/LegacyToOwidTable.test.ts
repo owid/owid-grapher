@@ -398,10 +398,22 @@ describe("creating a table from legacy", () => {
 
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
-        varSet.variables["3512"].display!.conversionFactor = 100
+        const newVarSet = {
+            ...varSet,
+            variables: {
+                ...varSet.variables,
+                "3512": {
+                    ...varSet.variables["3512"],
+                    display: {
+                        ...varSet.variables["3512"].display,
+                        conversionFactor: 100,
+                    },
+                },
+            },
+        }
         expect(
             legacyToOwidTableAndDimensions(
-                varSet,
+                newVarSet,
                 getLegacyGrapherConfig()
             ).table.get("3512")!.values
         ).toEqual([550, 420, 1260])

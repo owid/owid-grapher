@@ -23,12 +23,19 @@ it("can create a new chart", () => {
 
     expect(chart.failMessage).toBeTruthy()
 
-    manager.selection = table.availableEntityNames
+    const chartWithoutError = new LineChart({
+        manager: {
+            ...manager,
+            selection: table.availableEntityNames,
+        },
+    })
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(2)
-    expect(chart.placedSeries.length).toEqual(2)
-    expect(chart.placedSeries[0].placedPoints[0].x).toBeGreaterThan(0)
+    expect(chartWithoutError.failMessage).toEqual("")
+    expect(chartWithoutError.series.length).toEqual(2)
+    expect(chartWithoutError.placedSeries.length).toEqual(2)
+    expect(chartWithoutError.placedSeries[0].placedPoints[0].x).toBeGreaterThan(
+        0
+    )
 })
 
 it("can filter points with negative values when using a log scale", () => {

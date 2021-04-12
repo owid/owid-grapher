@@ -60,7 +60,7 @@ const ColorBrewerSchemeIndex: {
 
 const brewerKeys = Object.keys(colorbrewer) as ColorSchemeName[]
 
-export const ColorBrewerSchemes: ColorSchemeInterface[] = brewerKeys
+export const ColorBrewerSchemes: readonly ColorSchemeInterface[] = brewerKeys
     .filter((brewerName) => ColorBrewerSchemeIndex[brewerName])
     .map((brewerName) => {
         const props = ColorBrewerSchemeIndex[brewerName]!

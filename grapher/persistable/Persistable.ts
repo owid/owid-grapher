@@ -9,7 +9,7 @@ export interface Persistable {
 // Todo: see if there's a better way to do this with Mobx
 export function objectWithPersistablesToObject<T>(
     objWithPersistables: T,
-    keysToSerialize: string[] = []
+    keysToSerialize: readonly string[] = []
 ): T {
     const obj = toJS(objWithPersistables) as any
     const keysSet = new Set(keysToSerialize)

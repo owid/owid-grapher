@@ -83,7 +83,7 @@ export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
 
 // Removes whitespace and non-word characters from column slugs if any exist.
 // The original names are moved to the name property on the column def.
-export const standardizeSlugs = (rows: CoreRow[]) => {
+export const standardizeSlugs = (rows: readonly CoreRow[]) => {
     const firstRow = rows[0] ?? {}
     const colsToRename = Object.keys(firstRow)
         .map((name) => {
@@ -333,7 +333,7 @@ export function interpolateRowValuesWithTolerance<
     TimeSlug extends ColumnSlug,
     Row extends { [key in TimeSlug]?: Time } & { [key in ValueSlug]?: any }
 >(
-    rowsSortedByTimeAsc: Row[],
+    rowsSortedByTimeAsc: readonly Row[],
     valueSlug: ValueSlug,
     timeSlug: TimeSlug,
     timeTolerance: number
@@ -353,7 +353,7 @@ export function interpolateRowValuesWithTolerance<
 // A dumb function for making a function that makes a key for a row given certain columns.
 export const makeKeyFn = (
     columnStore: CoreColumnStore,
-    columnSlugs: ColumnSlug[]
+    columnSlugs: readonly ColumnSlug[]
 ) => (rowIndex: number) =>
     // toString() handles `undefined` and `null` values, which can be in the table.
     columnSlugs.map((slug) => toString(columnStore[slug][rowIndex])).join(" ")
@@ -382,7 +382,7 @@ export const imemo = (
 
 export const appendRowsToColumnStore = (
     columnStore: CoreColumnStore,
-    rows: CoreRow[]
+    rows: readonly CoreRow[]
 ) => {
     const slugs = Object.keys(columnStore)
     const newColumnStore = columnStore
@@ -402,7 +402,7 @@ const getColumnStoreLength = (store: CoreColumnStore) => {
 }
 
 export const concatColumnStores = (
-    stores: CoreColumnStore[],
+    stores: readonly CoreColumnStore[],
     slugsToKeep?: ColumnSlug[]
 ) => {
     if (!stores.length) return {}
@@ -425,7 +425,7 @@ export const concatColumnStores = (
     return newColumnStore
 }
 
-export const rowsToColumnStore = (rows: CoreRow[]) => {
+export const rowsToColumnStore = (rows: readonly CoreRow[]) => {
     const columnsObject: CoreColumnStore = {}
     if (!rows.length) return columnsObject
 
@@ -436,7 +436,7 @@ export const rowsToColumnStore = (rows: CoreRow[]) => {
 }
 
 const guessColumnDefsFromRows = (
-    rows: CoreRow[],
+    rows: readonly CoreRow[],
     definedSlugs: Map<ColumnSlug, any>
 ) => {
     if (!rows[0]) return []
@@ -479,8 +479,8 @@ export const autodetectColumnDefs = (
 
 // Convenience method when you are replacing columns
 export const replaceDef = <ColumnDef extends CoreColumnDef>(
-    defs: ColumnDef[],
-    newDefs: ColumnDef[]
+    defs: readonly ColumnDef[],
+    newDefs: readonly ColumnDef[]
 ) =>
     defs.map((def) => {
         const newDef = newDefs.find((newDef) => newDef.slug === def.slug)
@@ -510,7 +510,7 @@ export const renameColumnStore = (
 
 export const replaceCells = (
     columnStore: CoreColumnStore,
-    columnSlugs: ColumnSlug[],
+    columnSlugs: readonly ColumnSlug[],
     replaceFn: (val: CoreValueType) => CoreValueType
 ) => {
     const newStore: CoreColumnStore = { ...columnStore }
@@ -530,7 +530,7 @@ export const getDropIndexes = (
 export const replaceRandomCellsInColumnStore = (
     columnStore: CoreColumnStore,
     howMany = 1,
-    columnSlugs: ColumnSlug[] = [],
+    columnSlugs: readonly ColumnSlug[] = [],
     seed = Date.now(),
     replacementGenerator: () => any = () => ErrorValueTypes.DroppedForTesting
 ) => {
@@ -605,12 +605,12 @@ export const parseDelimited = (
 export const detectDelimiter = (str: string) =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
-export const rowsToMatrix = (rows: any[]): CoreMatrix | undefined =>
+export const rowsToMatrix = (rows: readonly any[]): CoreMatrix | undefined =>
     rows.length
         ? [Object.keys(rows[0]), ...rows.map((row) => Object.values(row))]
         : undefined
 
-const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
+const isRowEmpty = (row: readonly any[]) => row.every(isCellEmpty)
 
 export const isCellEmpty = (cell: any) =>
     cell === null || cell === undefined || cell === ""
@@ -624,7 +624,7 @@ export const trimEmptyRows = (matrix: CoreMatrix): CoreMatrix => {
     return trimAt === undefined ? matrix : matrix.slice(0, trimAt)
 }
 
-export const trimArray = (arr: any[]) => {
+export const trimArray = (arr: readonly any[]) => {
     let rightIndex: number
     for (rightIndex = arr.length - 1; rightIndex >= 0; rightIndex--) {
         if (!isCellEmpty(arr[rightIndex])) break
@@ -636,12 +636,12 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
     return fastCartesian(allEntries)
 }
 
-const applyNewSortOrder = (arr: any[], newOrder: number[]) =>
+const applyNewSortOrder = (arr: readonly any[], newOrder: readonly number[]) =>
     newOrder.map((index) => arr[index])
 
 export const sortColumnStore = (
     columnStore: CoreColumnStore,
-    slugs: ColumnSlug[]
+    slugs: readonly ColumnSlug[]
 ) => {
     const firstCol = Object.values(columnStore)[0]
     if (!firstCol) return {}
@@ -656,7 +656,7 @@ export const sortColumnStore = (
 
 const makeSortByFn = (
     columnStore: CoreColumnStore,
-    columnSlugs: ColumnSlug[]
+    columnSlugs: readonly ColumnSlug[]
 ) => {
     const numSlugs = columnSlugs.length
     return (indexA: number, indexB: number) => {

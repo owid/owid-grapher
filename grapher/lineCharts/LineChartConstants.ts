@@ -6,31 +6,31 @@ import { TimeBound } from "../../clientUtils/TimeBounds"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export interface LinePoint {
-    x: number
-    y: number
+    readonly x: number
+    readonly y: number
 }
 
 export interface LineChartSeries extends ChartSeries {
-    isProjection?: boolean
-    points: LinePoint[]
+    readonly isProjection?: boolean
+    readonly points: readonly LinePoint[]
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
-    placedPoints: PointVector[]
+    readonly placedPoints: readonly PointVector[]
 }
 
 export interface LinesProps {
-    dualAxis: DualAxis
-    placedSeries: PlacedLineChartSeries[]
-    focusedSeriesNames: SeriesName[]
-    onHover: (hoverX: number | undefined) => void
-    hidePoints?: boolean
-    lineStrokeWidth?: number
+    readonly dualAxis: DualAxis
+    readonly placedSeries: readonly PlacedLineChartSeries[]
+    readonly focusedSeriesNames: readonly SeriesName[]
+    readonly onHover: (hoverX: number | undefined) => void
+    readonly hidePoints?: boolean
+    readonly lineStrokeWidth?: number
 }
 
 export interface LineChartManager extends ChartManager {
-    hidePoints?: boolean
-    lineStrokeWidth?: number
-    startHandleTimeBound?: TimeBound
-    canSelectMultipleEntities?: boolean
+    readonly hidePoints?: boolean
+    readonly lineStrokeWidth?: number
+    readonly startHandleTimeBound?: TimeBound
+    readonly canSelectMultipleEntities?: boolean
 }

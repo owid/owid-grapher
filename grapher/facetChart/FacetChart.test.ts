@@ -11,8 +11,15 @@ it("can create a new FacetChart", () => {
         table,
         selection: table.availableEntityNames,
     }
+
     const chart = new FacetChart({ manager })
     expect(chart.series.length).toEqual(2)
-    manager.facetStrategy = FacetStrategy.column
-    expect(chart.series.length).toEqual(3)
+
+    const facetChart = new FacetChart({
+        manager: {
+            ...manager,
+            facetStrategy: FacetStrategy.column,
+        },
+    })
+    expect(facetChart.series.length).toEqual(3)
 })

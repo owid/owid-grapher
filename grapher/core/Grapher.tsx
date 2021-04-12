@@ -182,32 +182,33 @@ const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    readonly owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    readonly hideEntityControls?: boolean
+    readonly queryStr?: string
+    readonly isMediaCard?: boolean
+    readonly bounds?: Bounds
+    readonly table?: OwidTable
+    readonly bakedGrapherURL?: string
+    readonly adminBaseUrl?: string
+    readonly env?: string
+
+    readonly getGrapherInstance?: (instance: Grapher) => void
+
+    readonly enableKeyboardShortcuts?: boolean
+    readonly bindUrlToWindow?: boolean
+    readonly isEmbeddedInAnOwidPage?: boolean
+
+    readonly manager?: GrapherManager
+
     manuallyProvideData?: boolean // This will be removed.
-    hideEntityControls?: boolean
-    queryStr?: string
-    isMediaCard?: boolean
-    bounds?: Bounds
-    table?: OwidTable
-    bakedGrapherURL?: string
-    adminBaseUrl?: string
-    env?: string
-
-    getGrapherInstance?: (instance: Grapher) => void
-
-    enableKeyboardShortcuts?: boolean
-    bindUrlToWindow?: boolean
-    isEmbeddedInAnOwidPage?: boolean
-
-    manager?: GrapherManager
 }
 
 export interface GrapherManager {
-    canonicalUrl?: string
-    embedDialogUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
-    selection?: SelectionArray
-    editUrl?: string
+    readonly canonicalUrl?: string
+    readonly embedDialogUrl?: string
+    readonly embedDialogAdditionalElements?: React.ReactElement
+    readonly selection?: SelectionArray
+    readonly editUrl?: string
 }
 
 @observer
@@ -1028,7 +1029,7 @@ export class Grapher
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
-        newConfigs: LegacyChartDimensionInterface[]
+        newConfigs: readonly LegacyChartDimensionInterface[]
     ) {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
@@ -1042,7 +1043,7 @@ export class Grapher
     }
 
     @action.bound setDimensionsFromConfigs(
-        configs: LegacyChartDimensionInterface[]
+        configs: readonly LegacyChartDimensionInterface[]
     ) {
         this.dimensions = configs.map(
             (config) => new ChartDimension(config, this)

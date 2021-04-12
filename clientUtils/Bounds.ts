@@ -38,7 +38,7 @@ export class Bounds {
     }
 
     // Merge a collection of bounding boxes into a single encompassing Bounds
-    static merge(boundsList: Bounds[]) {
+    static merge(boundsList: readonly Bounds[]) {
         let x1 = Infinity,
             y1 = Infinity,
             x2 = -Infinity,

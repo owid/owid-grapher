@@ -27,9 +27,12 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { EPOCH_DATE } from "../../clientUtils/owidTypes"
 
 export const legacyToOwidTableAndDimensions = (
-    json: LegacyVariablesAndEntityKey,
-    grapherConfig: Partial<LegacyGrapherInterface>
-): { dimensions: LegacyChartDimensionInterface[]; table: OwidTable } => {
+    json: Readonly<LegacyVariablesAndEntityKey>,
+    grapherConfig: Readonly<Partial<LegacyGrapherInterface>>
+): {
+    dimensions: readonly LegacyChartDimensionInterface[]
+    table: OwidTable
+} => {
     // Entity meta map
 
     const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
@@ -128,7 +131,7 @@ export const legacyToOwidTableAndDimensions = (
             )
         }
 
-        const columnStore: { [key: string]: any[] } = {
+        const columnStore: { [key: string]: readonly any[] } = {
             [OwidTableSlugs.entityId]: entityIds,
             [OwidTableSlugs.entityCode]: entityCodes,
             [OwidTableSlugs.entityName]: entityNames,
@@ -212,7 +215,7 @@ export const legacyToOwidTableAndDimensions = (
     return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
-const fullJoinTables = (tables: OwidTable[]) =>
+const fullJoinTables = (tables: readonly OwidTable[]) =>
     tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
 const columnDefFromLegacyVariable = (
@@ -269,7 +272,7 @@ const timeColumnDefFromLegacyVariable = (
 
 const timeColumnValuesFromLegacyVariable = (
     variable: LegacyVariableConfig
-): number[] => {
+): readonly number[] => {
     const { display, years } = variable
     const yearsNeedTransform =
         display &&
@@ -282,7 +285,7 @@ const timeColumnValuesFromLegacyVariable = (
         : yearsRaw
 }
 
-const convertLegacyYears = (years: number[], zeroDay: string) => {
+const convertLegacyYears = (years: readonly number[], zeroDay: string) => {
     // Only shift years if the variable zeroDay is different from EPOCH_DATE
     // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
     // days since the specified `zeroDay`, which can be different for different variables.

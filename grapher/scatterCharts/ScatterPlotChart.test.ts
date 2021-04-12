@@ -56,14 +56,17 @@ it("doesn't show 'No data' bin when there is no color column", () => {
 })
 
 it("can remove points outside domain", () => {
-    const manager: ScatterPlotManager = {
-        table: SynthesizeFruitTable(undefined, 2),
-    }
-    const chart = new ScatterPlotChart({ manager })
+    const table = SynthesizeFruitTable(undefined, 2)
+    const chart = new ScatterPlotChart({ manager: { table } })
     const initialCount = chart.allPoints.length
-    manager.xAxisConfig = { removePointsOutsideDomain: true, max: 1100 }
-    expect(chart.allPoints.length).toBeGreaterThan(0)
-    expect(chart.allPoints.length).toBeLessThan(initialCount)
+    const chartWithRemovedPoints = new ScatterPlotChart({
+        manager: {
+            table,
+            xAxisConfig: { removePointsOutsideDomain: true, max: 1100 },
+        },
+    })
+    expect(chartWithRemovedPoints.allPoints.length).toBeGreaterThan(0)
+    expect(chartWithRemovedPoints.allPoints.length).toBeLessThan(initialCount)
 })
 
 it("can filter points with negative values when using a log scale", () => {

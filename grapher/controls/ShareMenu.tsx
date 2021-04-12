@@ -11,14 +11,14 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 
 export interface ShareMenuManager {
-    slug?: string
-    currentTitle?: string
-    canonicalUrl?: string
-    embedUrl?: string
-    embedDialogAdditionalElements?: React.ReactElement
-    editUrl?: string
-    addPopup: (popup: any) => void
-    removePopup: (popup: any) => void
+    readonly slug?: string
+    readonly currentTitle?: string
+    readonly canonicalUrl?: string
+    readonly embedUrl?: string
+    readonly embedDialogAdditionalElements?: React.ReactElement
+    readonly editUrl?: string
+    readonly addPopup: (popup: any) => void
+    readonly removePopup: (popup: any) => void
 }
 
 interface ShareMenuProps {

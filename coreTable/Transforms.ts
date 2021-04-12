@@ -9,8 +9,8 @@ import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 // for each missing value from the first year to the last year, preserving the position of
 // the existing values.
 export const insertMissingValuePlaceholders = (
-    values: number[],
-    times: number[]
+    values: readonly number[],
+    times: readonly number[]
 ) => {
     const startTime = times[0]
     const endTime = times[times.length - 1]
@@ -33,7 +33,7 @@ export const insertMissingValuePlaceholders = (
 
 // todo: add the precision param to ensure no floating point effects
 export function computeRollingAverage(
-    numbers: (number | undefined | null | ErrorValue)[],
+    numbers: readonly (number | undefined | null | ErrorValue)[],
     windowSize: number,
     align: "right" | "center" = "right"
 ) {
@@ -288,7 +288,7 @@ export const AvailableTransforms = Object.keys(availableTransforms)
 
 export const applyTransforms = (
     columnStore: CoreColumnStore,
-    defs: CoreColumnDef[]
+    defs: readonly CoreColumnDef[]
 ) => {
     defs.forEach((def) => {
         const words = def.transform!.split(" ")

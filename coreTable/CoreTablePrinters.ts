@@ -8,8 +8,8 @@ export interface AlignedTextTableOptions {
 
 // Output a pretty table for consles
 export const toAlignedTextTable = (
-    headerSlugs: string[],
-    rows: any[],
+    headerSlugs: readonly string[],
+    rows: readonly any[],
     options: AlignedTextTableOptions = {}
 ) => {
     const {
@@ -84,8 +84,8 @@ export const toMarkdownTable = (
 
 export const toDelimited = (
     delimiter: string,
-    columnSlugs: string[],
-    rows: any[],
+    columnSlugs: readonly string[],
+    rows: readonly any[],
     cellFn?: CellFormatter,
     rowDelimiter = "\n"
 ) => {

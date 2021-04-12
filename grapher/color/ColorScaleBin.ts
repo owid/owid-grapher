@@ -1,25 +1,25 @@
 import { Color } from "../../coreTable/CoreTableConstants"
 
 interface BinProps {
-    color: Color
-    label?: string
+    readonly color: Color
+    readonly label?: string
 }
 
 interface NumericBinProps extends BinProps {
-    isFirst: boolean
-    isOpenLeft: boolean
-    isOpenRight: boolean
-    min: number
-    max: number
-    displayMin: string
-    displayMax: string
+    readonly isFirst: boolean
+    readonly isOpenLeft: boolean
+    readonly isOpenRight: boolean
+    readonly min: number
+    readonly max: number
+    readonly displayMin: string
+    readonly displayMax: string
 }
 
 interface CategoricalBinProps extends BinProps {
-    index: number
-    value: string
-    label: string
-    isHidden?: boolean
+    readonly index: number
+    readonly value: string
+    readonly label: string
+    readonly isHidden?: boolean
 }
 
 abstract class AbstractColorScaleBin<T extends BinProps> {

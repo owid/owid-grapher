@@ -21,7 +21,9 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
 
     render() {
         const scheme = ColorSchemes["owid-distinct"]
-        const availableColors: string[] = lastOfNonEmptyArray(scheme.colorSets)
+        const availableColors: string[] = lastOfNonEmptyArray(
+            scheme.colorSets
+        ).slice()
 
         return (
             <SketchPicker

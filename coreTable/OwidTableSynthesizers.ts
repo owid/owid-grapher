@@ -12,9 +12,9 @@ import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 
 interface SynthOptions {
     entityCount: number
-    entityNames: string[]
+    entityNames: readonly string[]
     timeRange: TimeRange
-    columnDefs: OwidColumnDef[]
+    columnDefs: readonly OwidColumnDef[]
 }
 
 const SynthesizeOwidTable = (

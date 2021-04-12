@@ -7,31 +7,31 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { Color } from "../../coreTable/CoreTableConstants"
 
 export interface VerticalColorLegendManager {
-    maxLegendWidth?: number
-    fontSize?: number
-    legendItems: LegendItem[]
-    title?: string
-    onLegendMouseOver?: (color: string) => void
-    onLegendClick?: (color: string) => void
-    onLegendMouseLeave?: () => void
-    legendX?: number
-    legendY?: number
-    activeColors: Color[]
-    focusColors?: Color[]
+    readonly maxLegendWidth?: number
+    readonly fontSize?: number
+    readonly legendItems: readonly LegendItem[]
+    readonly title?: string
+    readonly onLegendMouseOver?: (color: string) => void
+    readonly onLegendClick?: (color: string) => void
+    readonly onLegendMouseLeave?: () => void
+    readonly legendX?: number
+    readonly legendY?: number
+    readonly activeColors: readonly Color[]
+    readonly focusColors?: readonly Color[]
 }
 
 interface LegendItem {
-    label?: string
-    minText?: string
-    maxText?: string
-    color: Color
+    readonly label?: string
+    readonly minText?: string
+    readonly maxText?: string
+    readonly color: Color
 }
 
 interface SizedLegendSeries {
-    textWrap: TextWrap
-    color: Color
-    width: number
-    height: number
+    readonly textWrap: TextWrap
+    readonly color: Color
+    readonly width: number
+    readonly height: number
 }
 
 @observer

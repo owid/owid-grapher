@@ -50,6 +50,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { Color } from "../../coreTable/CoreTableConstants"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { ColorSchemeName } from "../color/ColorConstants"
+import { EntityName } from "../../coreTable/OwidTableConstants"
 
 @observer
 export class SlopeChart
@@ -135,7 +136,7 @@ export class SlopeChart
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get selectedEntityNames() {
+    @computed private get selectedEntityNames(): readonly EntityName[] {
         return this.selectionArray.selectedEntityNames
     }
 
@@ -166,7 +167,7 @@ export class SlopeChart
     }
 
     // Colors on the legend for which every matching group is focused
-    @computed get focusColors() {
+    @computed get focusColors(): readonly Color[] {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
             const matchingSeriesNames = this.series
@@ -684,7 +685,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return flatten(this.props.seriesArr.map((g) => g.values))
     }
 
-    @computed private get xDomainDefault(): [number, number] {
+    @computed private get xDomainDefault(): readonly [number, number] {
         return domainExtent(
             this.allValues.map((v) => v.x),
             ScaleType.linear
@@ -695,18 +696,18 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return this.manager.yAxis?.scaleType || ScaleType.linear
     }
 
-    @computed private get yDomainDefault(): [number, number] {
+    @computed private get yDomainDefault(): readonly [number, number] {
         return domainExtent(
             this.allValues.map((v) => v.y),
             this.yScaleType || ScaleType.linear
         )
     }
 
-    @computed private get xDomain(): [number, number] {
+    @computed private get xDomain(): readonly [number, number] {
         return this.xDomainDefault
     }
 
-    @computed private get yDomain(): [number, number] {
+    @computed private get yDomain(): readonly [number, number] {
         const domain = this.manager.yAxis?.domain || [Infinity, -Infinity]
         const domainDefault = this.yDomainDefault
         return [
@@ -748,7 +749,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                   column: yColumn,
               }).width
         return scaleLinear()
-            .domain(xDomain)
+            .domain(xDomain.slice())
             .range(bounds.padWidth(padding).xRange())
     }
 
@@ -756,7 +757,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return this.bounds.width / 5
     }
 
-    @computed private get initialSlopeData() {
+    @computed private get initialSlopeData(): readonly SlopeProps[] {
         const {
             data,
             isPortrait,
@@ -866,20 +867,20 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         })
     }
 
-    @computed get backgroundGroups() {
+    @computed get backgroundGroups(): readonly SlopeProps[] {
         return this.slopeData.filter(
             (group) => !(group.isHovered || group.isFocused)
         )
     }
 
-    @computed get foregroundGroups() {
+    @computed get foregroundGroups(): readonly SlopeProps[] {
         return this.slopeData.filter(
             (group) => !!(group.isHovered || group.isFocused)
         )
     }
 
     // Get the final slope data with hover focusing and collision detection
-    @computed get slopeData(): SlopeProps[] {
+    @computed get slopeData(): readonly SlopeProps[] {
         const { focusedSeriesNames, hoveredSeriesNames } = this
         let slopeData = this.labelAccountedSlopeData
 
@@ -1011,7 +1012,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             .attr("stroke-dashoffset", "0%")
     }
 
-    renderGroups(groups: SlopeProps[]) {
+    renderGroups(groups: readonly SlopeProps[]) {
         const { isLayerMode } = this
 
         return groups.map((slope) => (

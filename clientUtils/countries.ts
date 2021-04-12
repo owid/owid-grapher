@@ -1,16 +1,16 @@
 export interface Country {
-    name: string
-    code: string
-    slug: string
-    iso3166?: string
-    variantNames?: string[]
+    readonly name: string
+    readonly code: string
+    readonly slug: string
+    readonly iso3166?: string
+    readonly variantNames?: string[]
 }
 
 interface FilterableCountry extends Country {
     filter?: boolean
 }
 
-const allCountriesSortedByCode: FilterableCountry[] = [
+const allCountriesSortedByCode: readonly FilterableCountry[] = [
     {
         name: "Aruba",
         code: "ABW",
@@ -1508,7 +1508,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
     },
 ]
 
-export const countries: Country[] = allCountriesSortedByCode.filter(
+export const countries: readonly Country[] = allCountriesSortedByCode.filter(
     (country) => !country.filter
 )
 

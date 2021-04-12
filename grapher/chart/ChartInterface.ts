@@ -7,8 +7,8 @@ import { SeriesName } from "../core/GrapherConstants"
 // this interface.
 
 export interface ChartSeries {
-    seriesName: SeriesName
-    color: Color
+    readonly seriesName: SeriesName
+    readonly color: Color
 }
 
 export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable

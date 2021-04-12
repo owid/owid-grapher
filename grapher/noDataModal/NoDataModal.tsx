@@ -7,10 +7,10 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
 export interface NoDataModalManager {
-    canChangeEntity?: boolean
-    canAddData?: boolean
+    readonly canChangeEntity?: boolean
+    readonly canAddData?: boolean
+    readonly entityType?: string
     isSelectingData?: boolean
-    entityType?: string
 }
 
 @observer

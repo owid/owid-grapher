@@ -19,17 +19,17 @@ import {
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 interface PositionedBin {
-    x: number
-    width: number
-    margin: number
-    bin: ColorScaleBin
+    readonly x: number
+    readonly width: number
+    readonly margin: number
+    readonly bin: ColorScaleBin
 }
 
 interface NumericLabel {
-    text: string
-    fontSize: number
+    readonly text: string
+    readonly fontSize: number
+    readonly priority?: boolean
     bounds: Bounds
-    priority?: boolean
     hidden: boolean
 }
 
@@ -37,36 +37,36 @@ const FOCUS_BORDER_COLOR = "#111"
 
 interface CategoricalMark {
     x: number
-    y: number
-    rectSize: number
-    label: {
+    readonly y: number
+    readonly rectSize: number
+    readonly label: {
         text: string
         bounds: Bounds
         fontSize: number
     }
-    bin: CategoricalBin
+    readonly bin: CategoricalBin
 }
 
 interface MarkLine {
-    totalWidth: number
-    marks: CategoricalMark[]
+    readonly totalWidth: number
+    readonly marks: readonly CategoricalMark[]
 }
 
 export interface MapLegendManager {
-    fontSize?: number
-    legendX?: number
-    categoryLegendY?: number
-    numericLegendY?: number
-    legendWidth?: number
-    legendHeight?: number
-    scale?: number
-    categoricalLegendData?: CategoricalBin[]
-    categoricalFocusBracket?: CategoricalBin
-    numericLegendData?: ColorScaleBin[]
-    numericFocusBracket?: ColorScaleBin
-    equalSizeBins?: boolean
-    onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: CategoricalBin) => void
+    readonly fontSize?: number
+    readonly legendX?: number
+    readonly categoryLegendY?: number
+    readonly numericLegendY?: number
+    readonly legendWidth?: number
+    readonly legendHeight?: number
+    readonly scale?: number
+    readonly categoricalLegendData?: readonly CategoricalBin[]
+    readonly categoricalFocusBracket?: CategoricalBin
+    readonly numericLegendData?: readonly ColorScaleBin[]
+    readonly numericFocusBracket?: ColorScaleBin
+    readonly equalSizeBins?: boolean
+    readonly onLegendMouseLeave?: () => void
+    readonly onLegendMouseOver?: (d: CategoricalBin) => void
 }
 
 @observer

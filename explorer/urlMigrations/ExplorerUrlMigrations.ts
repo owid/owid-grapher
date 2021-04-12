@@ -24,7 +24,7 @@ export const explorerUrlMigrationsById: Record<
     legacyToGridCovidExplorer: legacyCovidMigrationSpec,
 }
 
-const explorerUrlMigrations: UrlMigration[] = [
+const explorerUrlMigrations: readonly UrlMigration[] = [
     // NOTE: The order of migrations matters!
     co2UrlMigration,
     energyUrlMigration,

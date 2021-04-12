@@ -249,7 +249,7 @@ export class HorizontalAxisComponent extends React.Component<{
 
 export class AxisTickMarks extends React.Component<{
     tickMarkTopPosition: number
-    tickMarkXPositions: number[]
+    tickMarkXPositions: readonly number[]
     color: string
 }> {
     render() {

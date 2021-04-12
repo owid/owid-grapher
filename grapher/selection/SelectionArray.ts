@@ -16,8 +16,8 @@ interface Entity {
 
 export class SelectionArray {
     constructor(
-        selectedEntityNames: EntityName[] = [],
-        availableEntities: Entity[] = [],
+        selectedEntityNames: readonly EntityName[] = [],
+        availableEntities: readonly Entity[] = [],
         entityType = "country"
     ) {
         this.selectedEntityNames = selectedEntityNames.slice()
@@ -81,22 +81,24 @@ export class SelectionArray {
     }
 
     // Clears and sets selected entities
-    @action.bound setSelectedEntities(entityNames: EntityName[]) {
+    @action.bound setSelectedEntities(entityNames: readonly EntityName[]) {
         this.clearSelection()
         return this.addToSelection(entityNames)
     }
 
-    @action.bound addToSelection(entityNames: EntityName[]) {
+    @action.bound addToSelection(entityNames: readonly EntityName[]) {
         this.selectedEntityNames = this.selectedEntityNames.concat(entityNames)
         return this
     }
 
-    @action.bound addAvailableEntityNames(entities: Entity[]) {
+    @action.bound addAvailableEntityNames(entities: readonly Entity[]) {
         this.availableEntities.push(...entities)
         return this
     }
 
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
+    @action.bound setSelectedEntitiesByCode(
+        entityCodes: readonly EntityCode[]
+    ) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
         return this.setSelectedEntities(
@@ -104,7 +106,9 @@ export class SelectionArray {
         )
     }
 
-    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
+    @action.bound setSelectedEntitiesByEntityId(
+        entityIds: readonly EntityId[]
+    ) {
         const map = this.entityIdToNameMap
         return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }

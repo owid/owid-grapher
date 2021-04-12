@@ -50,7 +50,7 @@ export const OwidEntityCodeColumnDef = {
     type: ColumnTypeNames.EntityCode,
 }
 
-export const StandardOwidColumnDefs: OwidColumnDef[] = [
+export const StandardOwidColumnDefs: readonly OwidColumnDef[] = [
     OwidEntityNameColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityCodeColumnDef,

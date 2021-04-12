@@ -6,55 +6,55 @@ import { TextWrap } from "../text/TextWrap"
 import { Bounds } from "../../clientUtils/Bounds"
 
 export interface SlopeChartValue {
-    x: number
-    y: number
+    readonly x: number
+    readonly y: number
 }
 
 export interface SlopeChartSeries extends ChartSeries {
-    size: number
-    values: SlopeChartValue[]
+    readonly size: number
+    readonly values: readonly SlopeChartValue[]
 }
 
 export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
 export interface SlopeProps extends ChartSeries {
-    isLayerMode: boolean
-    x1: number
-    y1: number
-    x2: number
-    y2: number
-    size: number
-    hasLeftLabel: boolean
-    hasRightLabel: boolean
-    labelFontSize: number
-    leftLabelBounds: Bounds
-    rightLabelBounds: Bounds
-    leftValueStr: string
-    rightValueStr: string
-    leftLabel: TextWrap
-    rightLabel: TextWrap
-    isFocused: boolean
-    isHovered: boolean
-    leftValueWidth: number
-    rightValueWidth: number
+    readonly isLayerMode: boolean
+    readonly x1: number
+    readonly y1: number
+    readonly x2: number
+    readonly y2: number
+    readonly size: number
+    readonly hasLeftLabel: boolean
+    readonly hasRightLabel: boolean
+    readonly labelFontSize: number
+    readonly leftLabelBounds: Bounds
+    readonly rightLabelBounds: Bounds
+    readonly leftValueStr: string
+    readonly rightValueStr: string
+    readonly leftLabel: TextWrap
+    readonly rightLabel: TextWrap
+    readonly isFocused: boolean
+    readonly isHovered: boolean
+    readonly leftValueWidth: number
+    readonly rightValueWidth: number
 }
 
 export interface LabelledSlopesProps {
-    manager: ChartManager
-    yColumn: CoreColumn
-    bounds: Bounds
-    seriesArr: SlopeChartSeries[]
-    focusKeys: string[]
-    hoverKeys: string[]
-    onMouseOver: (slopeProps: SlopeProps) => void
-    onMouseLeave: () => void
-    onClick: () => void
+    readonly manager: ChartManager
+    readonly yColumn: CoreColumn
+    readonly bounds: Bounds
+    readonly seriesArr: readonly SlopeChartSeries[]
+    readonly focusKeys: readonly string[]
+    readonly hoverKeys: readonly string[]
+    readonly onMouseOver: (slopeProps: SlopeProps) => void
+    readonly onMouseLeave: () => void
+    readonly onClick: () => void
 }
 
 export interface SlopeAxisProps {
-    bounds: Bounds
-    orient: "left" | "right"
-    column: CoreColumn
-    scale: any
-    scaleType: ScaleType
+    readonly bounds: Bounds
+    readonly orient: "left" | "right"
+    readonly column: CoreColumn
+    readonly scale: any
+    readonly scaleType: ScaleType
 }

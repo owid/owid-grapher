@@ -235,19 +235,19 @@ export const defaultTo = <T, K>(
     defaultValue: K
 ): T | K => value ?? defaultValue
 
-export const first = <T>(arr: T[]): T | undefined => arr[0]
+export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
 
-export const last = <T>(arr: T[]): T | undefined => arr[arr.length - 1]
+export const last = <T>(arr: readonly T[]): T | undefined => arr[arr.length - 1]
 
-export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
+export const excludeUndefined = <T>(arr: readonly (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]
 
-export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
+export const firstOfNonEmptyArray = <T>(arr: readonly T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
     return first(arr) as T
 }
 
-export const lastOfNonEmptyArray = <T>(arr: T[]): T => {
+export const lastOfNonEmptyArray = <T>(arr: readonly T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
     return last(arr) as T
 }
@@ -261,20 +261,20 @@ export const mapToObjectLiteral = (map: Map<string, any>) =>
         return objLit
     }, {} as ObjectLiteral)
 
-export function next<T>(set: T[], current: T) {
+export function next<T>(set: readonly T[], current: T) {
     let nextIndex = set.indexOf(current) + 1
     nextIndex = nextIndex === -1 ? 0 : nextIndex
     return set[nextIndex === set.length ? 0 : nextIndex]
 }
 
-export const previous = <T>(set: T[], current: T) => {
+export const previous = <T>(set: readonly T[], current: T) => {
     const nextIndex = set.indexOf(current) - 1
     return set[nextIndex < 0 ? set.length - 1 : nextIndex]
 }
 
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export const domainExtent = (
-    numValues: number[],
+    numValues: readonly number[],
     scaleType: ScaleType,
     maxValueMultiplierForPadding = 1
 ): [number, number] => {
@@ -339,7 +339,7 @@ export const makeAnnotationsSlug = (columnSlug: string) =>
 
 // Todo: add unit tests
 export const relativeMinAndMax = (
-    points: Point[],
+    points: readonly Point[],
     property: "x" | "y"
 ): [number, number] => {
     let minChange = 0
@@ -402,7 +402,7 @@ export const pointsToPath = (points: Array<[number, number]>) => {
 // In case of tie returns higher value
 // todo: add unit tests
 export const sortedFindClosestIndex = (
-    array: number[],
+    array: readonly number[],
     value: number,
     startIndex: number = 0,
     // non-inclusive end
@@ -434,7 +434,7 @@ export const sortedFindClosestIndex = (
 }
 
 export const sortedFindClosest = (
-    array: number[],
+    array: readonly number[],
     value: number,
     startIndex?: number,
     endIndex?: number
@@ -461,7 +461,7 @@ export const csvEscape = (value: any) => {
     return valueStr.includes(",") ? `"${value.replace(/\"/g, '""')}"` : value
 }
 
-export const arrToCsvRow = (arr: string[]) =>
+export const arrToCsvRow = (arr: readonly string[]) =>
     arr.map((x) => csvEscape(x)).join(",") + "\n"
 
 export const urlToSlug = (url: string) =>
@@ -539,14 +539,14 @@ export const getRandomNumberGenerator = (
 }
 
 export const sampleFrom = <T>(
-    collection: T[],
+    collection: readonly T[],
     howMany: number,
     seed: number
 ): T[] => shuffleArray(collection, seed).slice(0, howMany)
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-const shuffleArray = (array: any[], seed = Date.now()) => {
+const shuffleArray = (array: readonly any[], seed = Date.now()) => {
     const rand = getRandomNumberGenerator(0, 100, seed)
     const clonedArr = array.slice()
     for (let index = clonedArr.length - 1; index > 0; index--) {
@@ -569,7 +569,7 @@ export const makeGrid = (pieces: number) => {
 }
 
 export const findClosestTimeIndex = (
-    times: Time[],
+    times: readonly Time[],
     targetTime: Time,
     tolerance?: number
 ): Time | undefined => {
@@ -599,7 +599,7 @@ export const findClosestTimeIndex = (
 }
 
 export const findClosestTime = (
-    times: Time[],
+    times: readonly Time[],
     targetTime: Time,
     tolerance?: number
 ): Time | undefined => {
@@ -627,7 +627,7 @@ interface DataValue {
 
 const valuesAtTimes = (
     valueByTime: Map<number, string | number>,
-    targetTimes: Time[],
+    targetTimes: readonly Time[],
     tolerance = 0
 ) => {
     const times = Array.from(valueByTime.keys())
@@ -643,7 +643,7 @@ const valuesAtTimes = (
 
 export const valuesByEntityAtTimes = (
     valueByEntityAndTime: Map<string, Map<number, string | number>>,
-    targetTimes: Time[],
+    targetTimes: readonly Time[],
     tolerance = 0
 ): Map<string, DataValue[]> =>
     es6mapValues(valueByEntityAndTime, (valueByTime) =>
@@ -652,7 +652,7 @@ export const valuesByEntityAtTimes = (
 
 export const valuesByEntityWithinTimes = (
     valueByEntityAndTimes: Map<string, Map<number, string | number>>,
-    range: (number | undefined)[]
+    range: readonly (number | undefined)[]
 ): Map<string, DataValue[]> => {
     const start = range[0] !== undefined ? range[0] : -Infinity
     const end = range[1] !== undefined ? range[1] : Infinity
@@ -666,7 +666,7 @@ export const valuesByEntityWithinTimes = (
     )
 }
 
-export const getStartEndValues = (values: DataValue[]) => [
+export const getStartEndValues = (values: readonly DataValue[]) => [
     minBy(values, (dv) => dv.time),
     maxBy(values, (dv) => dv.time),
 ]
@@ -756,7 +756,10 @@ export function scrollIntoViewIfNeeded(
     }
 }
 
-export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
+export function rollingMap<T, U>(
+    array: readonly T[],
+    mapper: (a: T, b: T) => U
+) {
     const result: U[] = []
     if (array.length <= 1) return result
     for (let i = 0; i < array.length - 1; i++) {
@@ -765,7 +768,10 @@ export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
     return result
 }
 
-export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
+export function groupMap<T, K>(
+    array: readonly T[],
+    accessor: (v: T) => K
+): Map<K, T[]> {
     const result = new Map<K, T[]>()
     array.forEach((item) => {
         const key = accessor(item)
@@ -779,7 +785,7 @@ export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
 }
 
 export function keyMap<Key, Value>(
-    array: Value[],
+    array: readonly Value[],
     accessor: (v: Value) => Key
 ): Map<Key, Value> {
     const result = new Map<Key, Value>()
@@ -794,7 +800,11 @@ export function keyMap<Key, Value>(
 
 export const linkify = (str: string) => linkifyHtml(str)
 
-export const oneOf = <T>(value: any, options: T[], defaultOption: T): T => {
+export const oneOf = <T>(
+    value: any,
+    options: readonly T[],
+    defaultOption: T
+): T => {
     for (const option of options) {
         if (value === option) return option
     }
@@ -816,7 +826,7 @@ export const intersectionOfSets = <T>(sets: Set<T>[]) => {
 }
 
 // ES6 is now significantly faster than lodash's intersection
-export const intersection = <T>(...arrs: T[][]): T[] => {
+export const intersection = <T>(...arrs: (readonly T[])[]): readonly T[] => {
     if (arrs.length === 0) return []
     if (arrs.length === 1) return arrs[0]
     if (arrs.length === 2) {
@@ -827,7 +837,7 @@ export const intersection = <T>(...arrs: T[][]): T[] => {
 }
 
 export function sortByUndefinedLast<T>(
-    array: T[],
+    array: readonly T[],
     accessor: (t: T) => string | number | undefined,
     order: SortOrder = SortOrder.asc
 ) {
@@ -851,7 +861,7 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
 }
 
 export const mapNullToUndefined = <T>(
-    array: (T | undefined | null)[]
+    array: readonly (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
 
 export const lowerCaseFirstLetterUnlessAbbreviation = (str: string) =>
@@ -877,7 +887,7 @@ export const sortNumeric = <T>(
     )
 
 export const mapBy = <T>(
-    arr: T[],
+    arr: readonly T[],
     keyAccessor: (t: T) => any,
     valueAccessor: (t: T) => any
 ) => {
@@ -890,7 +900,7 @@ export const mapBy = <T>(
 
 // Adapted from lodash baseFindIndex which is ~2x as fast as the wrapped findIndex
 export const findIndexFast = (
-    array: any[],
+    array: readonly any[],
     predicate: (value: any, index: number) => boolean,
     fromIndex = 0,
     toIndex = array.length
@@ -916,7 +926,10 @@ export const logMe = (
     return descriptor
 }
 
-export const splitArrayIntoGroupsOfN = (arr: any[], maxPerGroup: number) => {
+export const splitArrayIntoGroupsOfN = (
+    arr: readonly any[],
+    maxPerGroup: number
+) => {
     const result: any[] = []
     for (let index = 0; index < arr.length; index += maxPerGroup)
         result.push(arr.slice(index, index + maxPerGroup))
@@ -924,8 +937,8 @@ export const splitArrayIntoGroupsOfN = (arr: any[], maxPerGroup: number) => {
 }
 
 export function getClosestTimePairs(
-    sortedTimesA: Time[],
-    sortedTimesB: Time[],
+    sortedTimesA: readonly Time[],
+    sortedTimesB: readonly Time[],
     maxDiff: Integer = Infinity
 ) {
     if (sortedTimesA.length === 0 || sortedTimesB.length === 0) return []

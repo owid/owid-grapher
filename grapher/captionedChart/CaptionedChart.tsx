@@ -44,31 +44,31 @@ export interface CaptionedChartManager
         AbsRelToggleManager,
         FooterManager,
         HeaderManager {
-    containerElement?: HTMLDivElement
-    tabBounds?: Bounds
-    fontSize?: number
-    tab?: GrapherTabOption
-    type?: ChartTypeName
-    typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
-    isReady?: boolean
-    whatAreWeWaitingFor?: string
-    entityType?: string
-    entityTypePlural?: string
-    showSmallCountriesFilterToggle?: boolean
-    showYScaleToggle?: boolean
-    showXScaleToggle?: boolean
-    showZoomToggle?: boolean
-    showAbsRelToggle?: boolean
-    showHighlightToggle?: boolean
-    showChangeEntityButton?: boolean
-    showAddEntityButton?: boolean
-    showSelectEntitiesButton?: boolean
+    readonly containerElement?: HTMLDivElement
+    readonly tabBounds?: Bounds
+    readonly fontSize?: number
+    readonly tab?: GrapherTabOption
+    readonly type?: ChartTypeName
+    readonly typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
+    readonly isReady?: boolean
+    readonly whatAreWeWaitingFor?: string
+    readonly entityType?: string
+    readonly entityTypePlural?: string
+    readonly showSmallCountriesFilterToggle?: boolean
+    readonly showYScaleToggle?: boolean
+    readonly showXScaleToggle?: boolean
+    readonly showZoomToggle?: boolean
+    readonly showAbsRelToggle?: boolean
+    readonly showHighlightToggle?: boolean
+    readonly showChangeEntityButton?: boolean
+    readonly showAddEntityButton?: boolean
+    readonly showSelectEntitiesButton?: boolean
 }
 
 interface CaptionedChartProps {
-    manager: CaptionedChartManager
-    bounds?: Bounds
-    maxWidth?: number
+    readonly manager: CaptionedChartManager
+    readonly bounds?: Bounds
+    readonly maxWidth?: number
 }
 
 const OUTSIDE_PADDING = 15

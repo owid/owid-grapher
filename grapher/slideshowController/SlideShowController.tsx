@@ -1,13 +1,13 @@
 import { action } from "mobx"
 
 export interface SlideShowManager<SlideData> {
-    setSlide: (slide: SlideData) => void
+    readonly setSlide: (slide: SlideData) => void
 }
 
 // A "slide" is just a query string.
 export class SlideShowController<SlideData> {
     constructor(
-        slides: SlideData[] = [],
+        slides: readonly SlideData[] = [],
         currentIndex = 0,
         manager?: SlideShowManager<SlideData>
     ) {
@@ -15,7 +15,7 @@ export class SlideShowController<SlideData> {
         this.slides = slides
         this.manager = manager
     }
-    private slides: SlideData[]
+    private slides: readonly SlideData[]
     private currentIndex: number
     private manager?: SlideShowManager<SlideData>
 

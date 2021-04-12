@@ -16,7 +16,7 @@ const CommandPaletteClassName = "CommandPalette"
 
 @observer
 export class CommandPalette extends React.Component<{
-    commands: Command[]
+    commands: readonly Command[]
     display: "none" | "block"
 }> {
     static togglePalette() {

@@ -33,7 +33,7 @@ class ChartDimensionDefaults implements LegacyChartDimensionInterface {
 
 // todo: remove when we remove dimensions
 export interface LegacyDimensionsManager {
-    table: OwidTable
+    readonly table: OwidTable
 }
 
 export class ChartDimension

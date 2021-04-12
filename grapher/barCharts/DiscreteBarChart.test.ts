@@ -10,7 +10,6 @@ import {
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
-    DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { SeriesStrategy } from "../core/GrapherConstants"
@@ -50,8 +49,9 @@ describe("barcharts with columns as the series", () => {
     expect(chart.series.length).toEqual(2)
 
     it("can add colors to columns as series", () => {
-        manager.baseColorScheme = ColorSchemeName.Reds
-        const chart = new DiscreteBarChart({ manager })
+        const chart = new DiscreteBarChart({
+            manager: { ...manager, baseColorScheme: ColorSchemeName.Reds },
+        })
         expect(chart.series[0].color).not.toEqual(DEFAULT_BAR_COLOR)
     })
 

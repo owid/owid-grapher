@@ -4,12 +4,12 @@ export interface TooltipManager {
 }
 
 export interface TooltipProps {
-    x: number
-    y: number
-    offsetX?: number
-    offsetY?: number
-    offsetYDirection?: "upward" | "downward"
-    style?: React.CSSProperties
-    children?: React.ReactNode
-    tooltipManager: TooltipManager
+    readonly x: number
+    readonly y: number
+    readonly offsetX?: number
+    readonly offsetY?: number
+    readonly offsetYDirection?: "upward" | "downward"
+    readonly style?: React.CSSProperties
+    readonly children?: React.ReactNode
+    readonly tooltipManager: TooltipManager
 }

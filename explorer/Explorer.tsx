@@ -68,7 +68,7 @@ import { PromiseCache } from "../clientUtils/PromiseCache"
 import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher"
 
 export interface ExplorerProps extends SerializedGridProgram {
-    grapherConfigs?: GrapherInterface[]
+    grapherConfigs?: readonly GrapherInterface[]
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
@@ -110,7 +110,7 @@ export class Explorer
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
-        grapherConfigs: GrapherInterface[],
+        grapherConfigs: readonly GrapherInterface[],
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     ) {
         const props: ExplorerProps = {
