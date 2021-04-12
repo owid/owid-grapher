@@ -456,26 +456,33 @@ export class DiscreteBarChart
         return sortBy(raw, (series) => series.row.value)
     }
 
-    @computed private get valuesToColorsMap() {
-        const { manager } = this
-        const colorScheme = manager.baseColorScheme
-            ? ColorSchemes[manager.baseColorScheme]
-            : undefined
-        if (!colorScheme) return undefined
+    @computed private get colorScheme() {
+        // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
+        // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`null`) as default.
+        const defaultColorScheme = this.manager.isLineChart
+            ? ColorSchemes["owid-distinct"]
+            : null
 
-        return colorScheme.getUniqValueColorMap(
-            uniq(this.sortedRawSeries.map((series) => series.row.value)),
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : null) ?? defaultColorScheme
+        )
+    }
+
+    @computed private get valuesToColorsMap() {
+        const { manager, colorScheme, sortedRawSeries } = this
+
+        return colorScheme?.getUniqValueColorMap(
+            uniq(sortedRawSeries.map((series) => series.row.value)),
             manager.invertColorScheme
         )
     }
 
-    @computed private get seriesColorMap() {
-        return this.manager.seriesColorMap || new Map()
-    }
-
     @computed get series() {
-        const { valuesToColorsMap, seriesColorMap } = this
-        return this.sortedRawSeries
+        const { manager, colorScheme } = this
+
+        const series = this.sortedRawSeries
             .slice() // we need to clone/slice here so `.reverse()` doesn't modify `this.sortedRawSeries` in-place
             .reverse()
             .map((rawSeries) => {
@@ -485,12 +492,25 @@ export class DiscreteBarChart
                     seriesName,
                     color:
                         color ??
-                        seriesColorMap.get(seriesName) ?? // This provides line chart colors if it was a line chart in a prior life
-                        valuesToColorsMap?.get(row.value) ??
+                        this.valuesToColorsMap?.get(row.value) ??
                         DEFAULT_BAR_COLOR,
                 }
                 return series
             })
+
+        if (manager.isLineChart) {
+            // For LineChart-based bar charts, we want to assign colors from the color scheme.
+            // This way we get consistent between the DiscreteBarChart and the LineChart (by using the same logic).
+            colorScheme?.assignColors(
+                series,
+                manager.invertColorScheme,
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? this.inputTable.entityNameColorIndex
+                    : this.inputTable.columnDisplayNameToColorMap,
+                manager.seriesColorMap
+            )
+        }
+        return series
     }
 
     @computed private get isLogScale() {
