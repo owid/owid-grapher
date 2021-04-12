@@ -629,7 +629,7 @@ export class LineChart
         return this.yAxisConfig.scaleType === ScaleType.log
     }
 
-    @computed get series(): LineChartSeries[] {
+    @computed get series(): readonly LineChartSeries[] {
         const arrOfSeries: LineChartSeries[] = flatten(
             this.yColumns.map((col) =>
                 columnToLineChartSeriesArray(
@@ -659,18 +659,21 @@ export class LineChart
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        return this.series.map((series) => {
-            return {
-                ...series,
-                placedPoints: series.points.map(
-                    (point) =>
-                        new PointVector(
-                            Math.round(horizontalAxis.place(point.x)),
-                            Math.round(verticalAxis.place(point.y))
-                        )
-                ),
-            }
-        })
+        return this.series
+            .slice()
+            .reverse()
+            .map((series) => {
+                return {
+                    ...series,
+                    placedPoints: series.points.map(
+                        (point) =>
+                            new PointVector(
+                                Math.round(horizontalAxis.place(point.x)),
+                                Math.round(verticalAxis.place(point.y))
+                            )
+                    ),
+                }
+            })
     }
 
     // Order of the legend items on a line chart should visually correspond
