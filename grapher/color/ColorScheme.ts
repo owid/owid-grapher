@@ -141,7 +141,9 @@ export class ColorScheme implements ColorSchemeInterface {
             .map((series) => series.seriesName)
             .filter((name) => !seriesColorMap.has(name))
             .forEach((name) => {
-                const availableColors = lastOfNonEmptyArray(this.colorSets)
+                const availableColors = lastOfNonEmptyArray(
+                    this.colorSets
+                ).slice()
                 if (invertColorScheme) availableColors.reverse()
                 const usedColors = Array.from(seriesColorMap.values()).filter(
                     isPresent
