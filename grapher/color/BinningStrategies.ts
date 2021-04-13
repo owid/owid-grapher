@@ -1,5 +1,5 @@
-import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
+import { ckmeans } from "simple-statistics"
 
 import {
     excludeUndefined,
@@ -57,7 +57,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
 
     if (binningStrategy === BinningStrategy.ckmeans) {
         const clusters = ckmeans(
-            sortedValues,
+            sortedValues.slice(),
             binCount > valueCount ? valueCount : binCount
         )
         return normalizeBinValues(clusters.map(last), minBinValue)
