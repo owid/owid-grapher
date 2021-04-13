@@ -26,7 +26,7 @@ export const MultiEmbedderTestPage = (
             <Head canonicalUrl={slug} pageTitle={title} baseUrl="/" />
             <body>
                 <SiteHeader baseUrl={""} />
-                <main>
+                <main style={{ padding: "1rem" }}>
                     {globalEntitySelector ? (
                         <div
                             {...{ [GLOBAL_ENTITY_SELECTOR_DATA_ATTR]: true }}
@@ -58,6 +58,37 @@ export const MultiEmbedderTestPage = (
                                 "http://localhost:3030/grapher/total-shark-attacks-per-year?time=latest",
                         }}
                     />
+                    <h1>
+                        The same grapher loaded through an iframe (embed on
+                        external sites)
+                    </h1>
+                    Note: the MultiEmbedder is not being called in this context.
+                    The rendering paths of external embeds and charts on content
+                    pages do converge at some point, but later. So any change on
+                    the MultiEmbedder has no effect on the charts embedded on
+                    external sites (and the grapher pages they rely on).
+                    <pre>
+                        {`
+        Chart on   ─────► MultiEmbedder  ───────────────────────────►  renderGrapherIntoContainer()
+        OWID page                                                                   ▲
+                                                                                    │
+                                                                                    │
+     Grapher page  ─────► renderSingleGrapherOnGrapherPage() ───────────────────────┘
+
+          ▲
+          │
+          │
+          │
+
+Chart embedded on
+    external site
+                        `}
+                    </pre>
+                    <iframe
+                        src="http://localhost:3030/grapher/total-shark-attacks-per-year?time=latest"
+                        loading="lazy"
+                        style={{ ...style, marginLeft: "40px" }}
+                    ></iframe>
                     <h1>An explorer about co2</h1>
                     <figure
                         data-test="within-bounds"
