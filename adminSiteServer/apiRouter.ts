@@ -24,6 +24,7 @@ import { Dataset } from "../db/model/Dataset"
 import { User } from "../db/model/User"
 import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
 import { ChartRevision } from "../db/model/ChartRevision"
+import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision"
 import { Post } from "../db/model/Post"
 import { camelCaseProperties } from "../clientUtils/string"
 import { log } from "../baker/slackLog"
@@ -538,6 +539,102 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
 
     return { success: true }
 })
+
+apiRouter.get(
+    "/suggested-chart-revisions",
+    async (req: Request, res: Response) => {
+        const limit =
+            req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
+        const offset =
+            req.query.offset !== undefined ? expectInt(req.query.offset) : 0
+        const status = SuggestedChartRevision.isValidStatus(req.query.status)
+            ? req.query.status
+            : null
+
+        const suggestedRevisions = await db.queryMysql(
+            `
+            SELECT cr.id, cr.chartId, cr.userId, cr.updatedAt, cr.createdAt, 
+                cr.createdReason, cr.decisionReason, cr.status, 
+                cr.config as suggestedConfig, u.fullName as user,
+                c.config as existingConfig, c.updatedAt as chartUpdatedAt, 
+                c.createdAt as chartCreatedAt
+            FROM suggested_chart_revisions as cr
+            LEFT JOIN charts c on c.id = cr.chartId
+            LEFT JOIN users u on u.id = cr.userId
+            ${status ? "WHERE cr.status = ?" : ""}
+            ORDER BY cr.updatedAt DESC
+            LIMIT ? OFFSET ?
+        `,
+            status ? [status, limit, offset] : [limit, offset]
+        )
+
+        let numTotalRows = (
+            await db.queryMysql(
+                `
+                SELECT COUNT(*) as count 
+                FROM suggested_chart_revisions 
+                ${status ? "WHERE status = ?" : ""}
+            `,
+                status ? [status] : []
+            )
+        )[0].count
+        numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
+
+        // await Chart.assignTagsForCharts(suggestedRevisions)
+
+        suggestedRevisions.map((suggestedRevision: SuggestedChartRevision) => {
+            suggestedRevision.suggestedConfig = JSON.parse(
+                suggestedRevision.suggestedConfig
+            )
+            suggestedRevision.existingConfig = JSON.parse(
+                suggestedRevision.existingConfig
+            )
+        })
+        return {
+            suggestedRevisions: suggestedRevisions,
+            numTotalRows: numTotalRows,
+        }
+    }
+)
+
+apiRouter.post(
+    "/suggested-chart-revisions/:id/update",
+    async (req: Request, res: Response) => {
+        const id = expectInt(req.params.id)
+        const { status, decisionReason } = req.body as {
+            status: string
+            decisionReason: string
+        }
+
+        const suggestedChartRevision = await db.mysqlFirst(
+            `SELECT id, chartId, config FROM suggested_chart_revisions WHERE id=?`,
+            [id]
+        )
+        if (!suggestedChartRevision) {
+            throw new JsonError(
+                `No suggested chart revision by id '${id}'`,
+                404
+            )
+        }
+
+        await db.transaction(async (t) => {
+            await t.execute(
+                `UPDATE suggested_chart_revisions SET status=?, decisionReason=?, updatedAt=? WHERE id = ?`,
+                [status, decisionReason, new Date(), id]
+            )
+            if (status === "approved") {
+                const newConfig = JSON.parse(suggestedChartRevision.config)
+                // const existingConfig = JSON.parse(chart.config)
+                const existingConfig = await expectChartById(
+                    suggestedChartRevision.chartId
+                )
+                await saveGrapher(res.locals.user, newConfig, existingConfig)
+            }
+        })
+
+        return { success: true }
+    }
+)
 
 apiRouter.get("/users.json", async (req: Request, res: Response) => ({
     users: await User.find({

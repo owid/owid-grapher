@@ -8,6 +8,7 @@ import {
 import { Chart } from "./Chart"
 import { Dataset } from "./Dataset"
 import { ChartRevision } from "./ChartRevision"
+import { SuggestedChartRevision } from "./SuggestedChartRevision"
 import { BCryptHasher } from "../hashers"
 
 @Entity("users")
@@ -31,6 +32,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => ChartRevision, (rev) => rev.user)
     editedCharts!: ChartRevision[]
+
+    @OneToMany(() => SuggestedChartRevision, (rev) => rev.user)
+    suggestedChartRevisions!: SuggestedChartRevision[]
 
     @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
     createdDatasets!: Dataset[]

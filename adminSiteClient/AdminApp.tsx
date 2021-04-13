@@ -22,6 +22,8 @@ import { NotFoundPage } from "./NotFoundPage"
 import { PostEditorPage } from "./PostEditorPage"
 import { NewsletterPage } from "./NewsletterPage"
 import { DeployStatusPage } from "./DeployStatusPage"
+import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage"
+import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage"
 import {
     BrowserRouter as Router,
     Route,
@@ -128,6 +130,17 @@ export class AdminApp extends React.Component<{
                                     <ChartEditorPage
                                         grapherId={parseInt(
                                             match.params.chartId
+                                        )}
+                                    />
+                                )}
+                            />
+                            <Route
+                                exact
+                                path="/charts/:chartId/edit/:config"
+                                render={({ match }) => (
+                                    <ChartEditorPage
+                                        grapherConfig={JSON.parse(
+                                            Base64.decode(match.params.config)
                                         )}
                                     />
                                 )}
@@ -273,6 +286,16 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/newsletter"
                                 component={NewsletterPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions/approve"
+                                component={SuggestedChartRevisionApproverPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions"
+                                component={SuggestedChartRevisionListPage}
                             />
                             <Route
                                 exact
