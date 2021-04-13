@@ -49,7 +49,6 @@ const globalEntitySelectorElement = () =>
     document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
 
 class MultiEmbedder {
-    // private figures: EmbeddedFigure[] = []
     private figuresObserver: IntersectionObserver | undefined
     selection: SelectionArray = new SelectionArray()
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()

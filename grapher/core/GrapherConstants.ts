@@ -13,8 +13,6 @@ export enum ChartTypeName {
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 
-export const GRAPHER_RENDER_TIMEOUT_ID = "data-render-timeout-id"
-
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
