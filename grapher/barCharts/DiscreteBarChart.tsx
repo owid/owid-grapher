@@ -458,15 +458,15 @@ export class DiscreteBarChart
 
     @computed private get colorScheme() {
         // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
-        // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`null`) as default.
+        // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`undefined`) as default.
         const defaultColorScheme = this.manager.isLineChart
             ? ColorSchemes["owid-distinct"]
-            : null
+            : undefined
 
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? defaultColorScheme
+                : undefined) ?? defaultColorScheme
         )
     }
 
