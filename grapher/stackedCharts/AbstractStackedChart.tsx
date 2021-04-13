@@ -17,7 +17,7 @@ import {
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { StackedSeries } from "./StackedConstants"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -26,11 +26,12 @@ import {
 } from "../chart/ChartUtils"
 import { easeLinear, scaleOrdinal, select } from "d3"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 export interface AbstactStackedChartProps {
-    bounds?: Bounds
-    manager: ChartManager
-    disableLinearInterpolation?: boolean // just for testing
+    readonly bounds?: Bounds
+    readonly manager: ChartManager
+    readonly disableLinearInterpolation?: boolean // just for testing
 }
 
 @observer
@@ -186,7 +187,7 @@ export class AbstactStackedChart
         return axis
     }
 
-    @computed private get yColumnsInSelectionOrder() {
+    @computed private get yColumnsInSelectionOrder(): readonly CoreColumn[] {
         // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
         const slugsInSelectionOrder = this.manager.selectedColumnSlugs?.length
             ? this.manager.selectedColumnSlugs
@@ -223,7 +224,7 @@ export class AbstactStackedChart
             : this.columnsAsSeries
     }
 
-    @computed protected get allStackedPoints() {
+    @computed protected get allStackedPoints(): readonly StackedPoint[] {
         return flatten(this.series.map((series) => series.points))
     }
 
@@ -268,7 +269,7 @@ export class AbstactStackedChart
         return this.series.map((series) => series.color)
     }
 
-    @computed get unstackedSeries() {
+    @computed get unstackedSeries(): readonly StackedSeries[] {
         return this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {
@@ -284,11 +285,11 @@ export class AbstactStackedChart
                         }
                     }),
                     color: this.getColorForSeries(seriesName),
-                } as StackedSeries
+                }
             })
     }
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries[] {
         return this.unstackedSeries
     }
 }

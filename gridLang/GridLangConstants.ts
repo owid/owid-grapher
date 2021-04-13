@@ -15,34 +15,34 @@ export type Grammar = { [keywordSlug: string]: CellDef }
 
 // A CellDef is a tuple: part keyword and the other half is the contents. The contents can be 1 cell, a list of cells, and/or a subtable.
 export interface CellDef {
-    keyword: string
-    cssClass: string
-    description: string
-    grammar?: Grammar
-    headerCellDef?: CellDef
-    terminalOptions?: CellDef[]
-    catchAllCellDef?: CellDef // Only used by vertical grammars, this cell def, if present, will be used if a keyword is unrecognized during parsing.
-    regex?: RegExp // A validation regex a value must pass. todo: seems like this is overloaded and used for testing keywords and contents.
-    requirementsDescription?: string
-    valuePlaceholder?: string
-    positionalCellDefs?: readonly CellDef[] // Additional cell types as positional arguments.
-    isHorizontalList?: boolean // a list type, such as "colors\tred\torange\tgreen"
-    parse?: (value: any) => any
+    readonly keyword: string
+    readonly cssClass: string
+    readonly description: string
+    readonly grammar?: Grammar
+    readonly headerCellDef?: CellDef
+    readonly terminalOptions?: CellDef[]
+    readonly catchAllCellDef?: CellDef // Only used by vertical grammars, this cell def, if present, will be used if a keyword is unrecognized during parsing.
+    readonly regex?: RegExp // A validation regex a value must pass. todo: seems like this is overloaded and used for testing keywords and contents.
+    readonly requirementsDescription?: string
+    readonly valuePlaceholder?: string
+    readonly positionalCellDefs?: readonly CellDef[] // Additional cell types as positional arguments.
+    readonly isHorizontalList?: boolean // a list type, such as "colors\tred\torange\tgreen"
+    readonly parse?: (value: any) => any
 }
 
 export interface ParsedCell {
-    errorMessage?: string
-    cssClasses?: string[]
-    optionKeywords?: string[]
-    comment?: string
-    cellDef?: CellDef
-    placeholder?: string
-    contents?: any
+    readonly errorMessage?: string
+    readonly cssClasses?: string[]
+    readonly optionKeywords?: string[]
+    readonly comment?: string
+    readonly cellDef?: CellDef
+    readonly placeholder?: string
+    readonly contents?: any
 }
 
 export interface CellPosition {
-    row: CellCoordinate
-    column: CellCoordinate
+    readonly row: CellCoordinate
+    readonly column: CellCoordinate
 }
 
 export const Origin: CellPosition = {

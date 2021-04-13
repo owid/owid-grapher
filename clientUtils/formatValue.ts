@@ -1,21 +1,21 @@
 import { d3Format } from "./Util"
 
 export interface TickFormattingOptions {
-    numDecimalPlaces?: number
-    unit?: string
-    noTrailingZeroes?: boolean
-    noSpaceUnit?: boolean
-    numberPrefixes?: boolean
-    shortNumberPrefixes?: boolean
-    showPlus?: boolean
-    isFirstOrLastTick?: boolean
+    readonly numDecimalPlaces?: number
+    readonly unit?: string
+    readonly noTrailingZeroes?: boolean
+    readonly noSpaceUnit?: boolean
+    readonly numberPrefixes?: boolean
+    readonly shortNumberPrefixes?: boolean
+    readonly showPlus?: boolean
+    readonly isFirstOrLastTick?: boolean
 }
 
 // todo: Should this be numberSuffixes instead of Prefixes?
 // todo: we should have unit tests for this one. lot's of great features but hard to see how to use all of them.
 export function formatValue(
     value: number,
-    options: TickFormattingOptions
+    options: Readonly<TickFormattingOptions>
 ): string {
     const noTrailingZeroes = options.noTrailingZeroes ?? true
     const numberPrefixes =

@@ -17,7 +17,7 @@ export const ExplorerControlTypeRegex = new RegExp(
 export interface ExplorerChoice {
     title: string
     displayTitle?: string
-    options: ExplorerChoiceOption[]
+    options: readonly ExplorerChoiceOption[]
     value: string
     type: ExplorerControlType
 }
@@ -73,5 +73,5 @@ export interface ExplorersRouteResponse {
     errorMessage?: string
     needsPull: boolean
     gitCmsBranchName: string
-    explorers: SerializedGridProgram[]
+    explorers: readonly SerializedGridProgram[]
 }

@@ -12,7 +12,7 @@ export const ContinentColors = {
 
 export interface ColorSchemeInterface {
     name: string
-    colorSets: Color[][] // Different color sets depending on how many distinct colors you want
+    colorSets: readonly (readonly Color[])[] // Different color sets depending on how many distinct colors you want
     singleColorScale?: boolean
     isDistinct?: boolean
     displayName?: string

@@ -3,15 +3,15 @@ import { TimeBound, TimeBoundValue } from "../../clientUtils/TimeBounds"
 import { findClosestTime, last } from "../../clientUtils/Util"
 
 export interface TimelineManager {
-    disablePlay?: boolean
-    formatTimeFn?: (time: Time) => string
-    isPlaying?: boolean
+    readonly disablePlay?: boolean
+    readonly formatTimeFn?: (time: Time) => string
+    readonly times: readonly Time[]
+    readonly msPerTick?: number
+    readonly onPlay?: () => void
     userHasSetTimeline?: boolean
-    times: Time[]
+    isPlaying?: boolean
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound
-    msPerTick?: number
-    onPlay?: () => void
 }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

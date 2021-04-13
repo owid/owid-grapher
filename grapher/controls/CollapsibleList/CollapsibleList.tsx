@@ -154,7 +154,7 @@ export class MoreButton extends React.Component<{
  * Returns the number of items that can fit in the container
  */
 export function numItemsVisible(
-    itemWidths: number[],
+    itemWidths: readonly number[],
     containerWidth: number,
     startingWidth: number = 0
 ) {

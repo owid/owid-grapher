@@ -30,10 +30,10 @@ import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
-    dualAxis: DualAxis
-    seriesArr: StackedSeries[]
-    focusedSeriesNames: SeriesName[]
-    onHover: (hoverIndex: number | undefined) => void
+    readonly dualAxis: DualAxis
+    readonly seriesArr: readonly StackedSeries[]
+    readonly focusedSeriesNames: readonly SeriesName[]
+    readonly onHover: (hoverIndex: number | undefined) => void
 }
 
 const BLUR_COLOR = "#ddd"
@@ -453,7 +453,7 @@ export class StackedAreaChart
             : 0
     }
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries[] {
         return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
     }
 }

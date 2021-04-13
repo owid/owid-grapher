@@ -5,7 +5,7 @@ export class FuzzySearch<T> {
     strings: (Fuzzysort.Prepared | undefined)[]
     datamap: any
 
-    constructor(data: T[], key: string) {
+    constructor(data: readonly T[], key: string) {
         this.datamap = keyBy(data, key)
         this.strings = data.map((d: any) => fuzzysort.prepare(d[key]))
     }

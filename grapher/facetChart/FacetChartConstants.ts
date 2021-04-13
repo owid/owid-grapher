@@ -4,18 +4,18 @@ import { ChartTypeName } from "../core/GrapherConstants"
 import { Bounds } from "../../clientUtils/Bounds"
 
 export interface FacetChartProps {
-    bounds?: Bounds
-    chartTypeName?: ChartTypeName
-    manager: ChartManager
+    readonly bounds?: Bounds
+    readonly chartTypeName?: ChartTypeName
+    readonly manager: ChartManager
 }
 
 export interface FacetSeries extends ChartSeries {
-    manager: Partial<ChartManager>
-    chartTypeName?: ChartTypeName
+    readonly manager: Partial<ChartManager>
+    readonly chartTypeName?: ChartTypeName
 }
 
 export interface PlacedFacetSeries extends FacetSeries {
-    manager: ChartManager
-    chartTypeName: ChartTypeName
-    bounds: Bounds
+    readonly manager: ChartManager
+    readonly chartTypeName: ChartTypeName
+    readonly bounds: Bounds
 }

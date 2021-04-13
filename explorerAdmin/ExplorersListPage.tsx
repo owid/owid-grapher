@@ -157,7 +157,7 @@ class ExplorerRow extends React.Component<{
 
 @observer
 class ExplorerList extends React.Component<{
-    explorers: ExplorerProgram[]
+    explorers: readonly ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
     gitCmsBranchName: string

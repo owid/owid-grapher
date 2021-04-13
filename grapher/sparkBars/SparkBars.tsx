@@ -14,21 +14,21 @@ enum BarState {
 }
 
 export interface SparkBarsProps<T> {
-    data: T[]
-    x: (d: T) => number
-    y: (d: T) => number | undefined
-    xDomain: [number, number]
-    currentX?: number
-    highlightedX?: number
-    renderValue?: (d: T | undefined) => JSX.Element | undefined
-    onHover?: (d: T | undefined, index: number | undefined) => void
-    className?: string
-    color?: string
+    readonly data: readonly T[]
+    readonly x: (d: T) => number
+    readonly y: (d: T) => number | undefined
+    readonly xDomain: [number, number]
+    readonly currentX?: number
+    readonly highlightedX?: number
+    readonly renderValue?: (d: T | undefined) => JSX.Element | undefined
+    readonly onHover?: (d: T | undefined, index: number | undefined) => void
+    readonly className?: string
+    readonly color?: string
 }
 
 export interface SparkBarsDatum {
-    time: number
-    value: number
+    readonly time: number
+    readonly value: number
 }
 
 @observer
@@ -67,7 +67,7 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return BarState.normal
     }
 
-    @computed get bars(): (T | undefined)[] {
+    @computed get bars(): readonly (T | undefined)[] {
         const indexed = keyBy(this.props.data, this.props.x)
         const [start, end] = this.props.xDomain
         const result = []

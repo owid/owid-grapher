@@ -81,7 +81,7 @@ export type CoreValueType = PrimitiveType | ErrorValue
  * }
  */
 export type CoreColumnStore = {
-    [columnSlug: string]: CoreValueType[]
+    [columnSlug: string]: readonly CoreValueType[]
 }
 
 export type CoreTableInputOption =
@@ -95,7 +95,7 @@ export interface CoreQuery {
     [columnSlug: string]: PrimitiveType | PrimitiveType[]
 }
 
-type CoreVector = any[]
+type CoreVector = readonly any[]
 
 /**
  * This is just an array of arrays where the first array is the header and the rest are rows. An example is:
@@ -105,4 +105,4 @@ type CoreVector = any[]
  * Having this type is just to provide a common unique name for the basic structure used by HandsOnTable
  * and some other popular JS data libraries.
  */
-export type CoreMatrix = CoreVector[]
+export type CoreMatrix = readonly CoreVector[]

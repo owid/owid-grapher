@@ -6,7 +6,7 @@ import {
 } from "../../clientUtils/urls/UrlMigration"
 import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder"
 
-export const grapherUrlMigrations: UrlMigration[] = [
+export const grapherUrlMigrations: readonly UrlMigration[] = [
     (url) => {
         const { year, time } = url.queryParams
         if (!year) return url

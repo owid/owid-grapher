@@ -234,7 +234,7 @@ export class ExplorerAdminServer {
 
     private async bakeExplorersToDir(
         directory: string,
-        explorers: ExplorerProgram[] = []
+        explorers: readonly ExplorerProgram[] = []
     ) {
         for (const explorer of explorers) {
             await this.write(

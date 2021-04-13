@@ -708,7 +708,7 @@ export class ScatterPlotChart
         return this.manager.addCountryMode === EntitySelectionMode.Disabled
     }
 
-    @computed private get allEntityNamesWithXAndY(): EntityName[] {
+    @computed private get allEntityNamesWithXAndY(): readonly EntityName[] {
         return intersection(
             this.yColumn.uniqEntityNames,
             this.xColumn.uniqEntityNames
@@ -890,7 +890,8 @@ export class ScatterPlotChart
         return points
     }
 
-    @computed private get allPointsBeforeEndpointsFilter(): SeriesPoint[] {
+    @computed
+    private get allPointsBeforeEndpointsFilter(): readonly SeriesPoint[] {
         const { entityNameSlug, timeColumn } = this.transformedTable
         // We are running this filter first because it only depends on author-specified config, not
         // on any user interaction.
@@ -916,7 +917,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get series(): ScatterSeries[] {
+    @computed get series(): readonly ScatterSeries[] {
         return Object.entries(
             groupBy(this.allPointsBeforeEndpointsFilter, (p) => p.entityName)
         ).map(([entityName, points]) => {
@@ -927,34 +928,37 @@ export class ScatterPlotChart
                 size: this.getSizeFromPoints(points),
                 points,
             }
-            this.assignColorToSeries(entityName, series)
-            return series
+            return this.assignColorToSeries(entityName, series)
         })
     }
 
     private assignColorToSeries(
         entityName: EntityName,
         series: ScatterSeries
-    ): void {
+    ): ScatterSeries {
         if (series.points.length) {
             const keyColor = this.transformedTable.getColorForEntityName(
                 entityName
             )
-            if (keyColor !== undefined) series.color = keyColor
-            else if (!this.colorColumn.isMissing) {
+            if (keyColor !== undefined) return { ...series, color: keyColor }
+            if (!this.colorColumn.isMissing) {
                 const colorValue = last(
                     series.points.map((point) => point.color)
                 )
                 const color = this.colorScale.getColor(colorValue)
                 if (color !== undefined) {
-                    series.color = color
-                    series.isScaleColor = true
+                    return {
+                        ...series,
+                        color,
+                        isScaleColor: true,
+                    }
                 }
             }
         }
+        return series
     }
 
-    private getSizeFromPoints(points: SeriesPoint[]): number {
+    private getSizeFromPoints(points: readonly SeriesPoint[]): number {
         const size = last(points.map((v) => v.size).filter(isNumber))
         return size ?? 0
     }

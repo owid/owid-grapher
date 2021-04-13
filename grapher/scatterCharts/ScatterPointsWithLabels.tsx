@@ -149,38 +149,34 @@ export class ScatterPointsWithLabels extends React.Component<
         )
     }
 
-    @computed private get renderSeries(): ScatterRenderSeries[] {
+    @computed private get renderSeries(): readonly ScatterRenderSeries[] {
         // Draw the largest points first so that smaller ones can sit on top of them
-        const renderData = this.initialRenderSeries
-
-        for (const series of renderData) {
-            series.isHover = this.hoveredSeriesNames.includes(series.seriesName)
-            series.isFocus = this.focusedSeriesNames.includes(series.seriesName)
-            series.isForeground = series.isHover || series.isFocus
-            if (series.isHover) series.size += 1
-        }
-
-        for (const series of renderData) {
-            series.startLabel = makeStartLabel(
+        const renderData = this.initialRenderSeries.map((series) => ({
+            ...series,
+            isHover: this.hoveredSeriesNames.includes(series.seriesName),
+            isFocus: this.focusedSeriesNames.includes(series.seriesName),
+            isForeground: series.isHover || series.isFocus,
+            size: series.isHover ? series.size + 1 : series.size,
+            startLabel: makeStartLabel(
                 series,
                 this.isSubtleForeground,
                 this.hideConnectedScatterLines
-            )
-            series.midLabels = makeMidLabels(
+            ),
+            midLabels: makeMidLabels(
                 series,
                 this.isSubtleForeground,
                 this.hideConnectedScatterLines
-            )
-            series.endLabel = makeEndLabel(
+            ),
+            endLabel: makeEndLabel(
                 series,
                 this.isSubtleForeground,
                 this.hideConnectedScatterLines
-            )
-            series.allLabels = [series.startLabel]
+            ),
+            allLabels: [series.startLabel]
                 .concat(series.midLabels)
                 .concat([series.endLabel])
-                .filter((x) => x) as ScatterLabel[]
-        }
+                .filter((x) => x) as ScatterLabel[],
+        }))
 
         const labels = flatten(renderData.map((series) => series.allLabels))
 
@@ -201,13 +197,15 @@ export class ScatterPointsWithLabels extends React.Component<
         return renderData
     }
 
-    private hideUnselectedLabels(labelsByPriority: ScatterLabel[]) {
+    private hideUnselectedLabels(labelsByPriority: readonly ScatterLabel[]) {
         labelsByPriority
             .filter((label) => !label.series.isFocus && !label.series.isHover)
             .forEach((label) => (label.isHidden = true))
     }
 
-    private hideCollidingLabelsByPriority(labelsByPriority: ScatterLabel[]) {
+    private hideCollidingLabelsByPriority(
+        labelsByPriority: readonly ScatterLabel[]
+    ) {
         for (let i = 0; i < labelsByPriority.length; i++) {
             const higherPriorityLabel = labelsByPriority[i]
             if (higherPriorityLabel.isHidden) continue
@@ -249,7 +247,7 @@ export class ScatterPointsWithLabels extends React.Component<
 
     // todo: move this to bounds class with a test
     private moveLabelsInsideChartBounds(
-        labels: ScatterLabel[],
+        labels: readonly ScatterLabel[],
         bounds: Bounds
     ) {
         for (const label of labels) {

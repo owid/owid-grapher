@@ -17,7 +17,7 @@ export interface ComparisonLineConfig {
 @observer
 export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
-    comparisonLine: ComparisonLineConfig
+    comparisonLine: Readonly<ComparisonLineConfig>
 }> {
     private renderUid = guid()
 

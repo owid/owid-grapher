@@ -842,7 +842,9 @@ describe("identifies and drops unnecessary table columns", () => {
 
     it("correctly identifies columnSlugsNecessaryForCurrentView", () => {
         expect(grapher.columnSlugsNecessaryForCurrentView.length).toEqual(9)
-        expect(grapher.columnSlugsNecessaryForCurrentView.sort()).toEqual([
+        expect(
+            grapher.columnSlugsNecessaryForCurrentView.slice().sort()
+        ).toEqual([
             "child_mortality",
             "continent",
             "entityColor",

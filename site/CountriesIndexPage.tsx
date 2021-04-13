@@ -10,7 +10,7 @@ interface Country {
 }
 
 export const CountriesIndexPage = (props: {
-    countries: Country[]
+    countries: readonly Country[]
     baseUrl: string
 }) => {
     const { countries, baseUrl } = props

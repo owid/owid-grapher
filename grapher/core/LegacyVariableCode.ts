@@ -7,7 +7,7 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "../persistable/Persistable"
-import { ColumnSlug, Integer, Time } from "../../coreTable/CoreTableConstants"
+import { ColumnSlug, Time } from "../../coreTable/CoreTableConstants"
 import { DimensionProperty } from "../core/GrapherConstants"
 import { OwidSource } from "../../coreTable/OwidSource"
 import {
@@ -17,11 +17,11 @@ import {
 import { LegacyVariableId } from "../../clientUtils/owidTypes"
 
 export interface LegacyChartDimensionInterface {
-    property: DimensionProperty
-    targetYear?: Time
-    display?: LegacyVariableDisplayConfigInterface
-    variableId: LegacyVariableId
-    slug?: ColumnSlug
+    readonly property: DimensionProperty
+    readonly targetYear?: Time
+    readonly display?: LegacyVariableDisplayConfigInterface
+    readonly variableId: LegacyVariableId
+    readonly slug?: ColumnSlug
 }
 
 class LegacyVariableDisplayConfigDefaults {
@@ -61,25 +61,25 @@ export class LegacyVariableDisplayConfig
 }
 
 export interface LegacyVariableConfig {
-    id: number
-    name?: string
-    description?: string
-    unit?: string
-    display?: LegacyVariableDisplayConfigInterface
-    shortUnit?: string
-    datasetName?: string
-    datasetId?: string
-    coverage?: string
-    source?: OwidSource
-    years?: number[]
-    entities?: number[]
-    values?: (string | number)[]
+    readonly id: number
+    readonly name?: string
+    readonly description?: string
+    readonly unit?: string
+    readonly display?: LegacyVariableDisplayConfigInterface
+    readonly shortUnit?: string
+    readonly datasetName?: string
+    readonly datasetId?: string
+    readonly coverage?: string
+    readonly source?: OwidSource
+    readonly years?: readonly number[]
+    readonly entities?: readonly number[]
+    readonly values?: readonly (string | number)[]
 }
 
 export interface LegacyEntityMeta {
-    id: number
-    name: string
-    code: string
+    readonly id: number
+    readonly name: string
+    readonly code: string
 }
 
 declare interface LegacyEntityKey {
@@ -87,8 +87,8 @@ declare interface LegacyEntityKey {
 }
 
 export interface LegacyVariablesAndEntityKey {
-    variables: {
+    readonly variables: {
         [id: string]: LegacyVariableConfig
     }
-    entityKey: LegacyEntityKey
+    readonly entityKey: LegacyEntityKey
 }

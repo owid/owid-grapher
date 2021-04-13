@@ -8,7 +8,6 @@ import {
     uniq,
     sortNumeric,
     last,
-    keyBy,
     groupBy,
     isNumber,
     isEmpty,
@@ -148,7 +147,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.get(slug)
     }
 
-    getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]) {
+    getTimesUniqSortedAscForColumns(columnSlugs: readonly ColumnSlug[]) {
         // todo: should be easy to speed up if necessary.
         return sortNumeric(
             uniq(
@@ -161,7 +160,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    timeDomainFor(slugs: ColumnSlug[]): [Time | undefined, Time | undefined] {
+    timeDomainFor(
+        slugs: readonly ColumnSlug[]
+    ): [Time | undefined, Time | undefined] {
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minTime)
         const maxes = cols.map((col) => col.maxTime)
@@ -169,7 +170,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     originalTimeDomainFor(
-        slugs: ColumnSlug[]
+        slugs: readonly ColumnSlug[]
     ): [Time | undefined, Time | undefined] {
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => min(col.originalTimes))
@@ -177,7 +178,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return [min(mins), max(maxes)]
     }
 
-    filterByEntityNames(names: EntityName[]) {
+    filterByEntityNames(names: readonly EntityName[]) {
         const namesSet = new Set(names)
         return this.columnFilter(
             this.entityNameSlug,
@@ -207,7 +208,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTargetTimes(targetTimes: Time[], tolerance = 0) {
+    filterByTargetTimes(targetTimes: readonly Time[], tolerance = 0) {
         const timeColumn = this.timeColumn!
         const timeValues = timeColumn.valuesIncludingErrorValues
         const entityNameToIndices = this.rowIndicesByEntityName
@@ -247,7 +248,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // TODO rewrite with column ops
     // TODO move to CoreTable
-    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAnyColumn(slugs: readonly ColumnSlug[]) {
         return this.rowFilter(
             (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
             `Drop rows with empty or ErrorValues in any column: ${slugs.join(
@@ -258,7 +259,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // TODO rewrite with column ops
     // TODO move to CoreTable
-    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAllColumns(slugs: readonly ColumnSlug[]) {
         return this.rowFilter(
             (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
             `Drop rows with empty or ErrorValues in every column: ${slugs.join(
@@ -307,7 +308,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // If you want to see how much each column contributed to the entity for that year, use this.
     // NB: Uses absolute value. So if one entity added 100, and another -100, they both would have contributed "50%" to that year.
     // Otherwise we'd have NaN.
-    toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
+    toPercentageFromEachColumnForEachEntityAndTime(
+        columnSlugs: readonly ColumnSlug[]
+    ) {
         columnSlugs = columnSlugs.filter((slug) => this.has(slug))
         if (!columnSlugs.length) return this
 
@@ -358,7 +361,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // If you wanted to build a table showing something like GDP growth relative to 1950, use this.
     toTotalGrowthForEachColumnComparedToStartTime(
         startTimeBound: TimeBound,
-        columnSlugs: ColumnSlug[]
+        columnSlugs: readonly ColumnSlug[]
     ) {
         if (this.timeColumn.isMissing) return this
         const timeColumnSlug = this.timeColumn.slug
@@ -445,7 +448,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     private getAverageAnnualChangeIndicesByEntity(
-        columnSlugs: ColumnSlug[]
+        columnSlugs: readonly ColumnSlug[]
     ): Map<EntityName, [number, number]> {
         const columns = columnSlugs.map((slug) => this.get(slug))
         const indexMap = this.rowIndicesByEntityName
@@ -483,7 +486,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return entityNameToIndices
     }
 
-    toAverageAnnualChangeForEachEntity(columnSlugs: ColumnSlug[]): this {
+    toAverageAnnualChangeForEachEntity(
+        columnSlugs: readonly ColumnSlug[]
+    ): this {
         columnSlugs = columnSlugs.filter((slug) => this.has(slug))
         if (
             this.timeColumn.isMissing ||
@@ -535,7 +540,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Return slugs that would be good to chart
-    @imemo get suggestedYColumnSlugs() {
+    @imemo get suggestedYColumnSlugs(): readonly string[] {
         const skips = new Set<ColumnSlug>([
             OwidTableSlugs.entityId,
             OwidTableSlugs.time,
@@ -592,7 +597,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return index !== undefined ? values[index] : undefined
     }
 
-    entitiesWith(columnSlugs: ColumnSlug[]): Set<EntityName> {
+    entitiesWith(columnSlugs: readonly ColumnSlug[]): Set<EntityName> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
             return new Set(this.get(columnSlugs[0]).uniqEntityNames)
@@ -905,7 +910,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // getClosestRowForEachSelectedEntity(targetYear, tolerance)
     // Make sure we use the closest value to the target year within tolerance (preferring later)
     getClosestIndexForEachEntity(
-        entityNames: EntityName[],
+        entityNames: readonly EntityName[],
         targetTime: Time,
         tolerance: Integer
     ) {
@@ -928,7 +933,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
-    filterByPopulationExcept(minPop: number, entityNames: string[] = []) {
+    filterByPopulationExcept(
+        minPop: number,
+        entityNames: readonly string[] = []
+    ) {
         const set = new Set(entityNames)
         return this.columnFilter(
             this.entityNameSlug,

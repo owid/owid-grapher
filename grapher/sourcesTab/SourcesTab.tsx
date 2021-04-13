@@ -11,9 +11,9 @@ import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabManager {
-    adminBaseUrl?: string
-    columnsWithSources: CoreColumn[]
-    showAdminControls?: boolean
+    readonly adminBaseUrl?: string
+    readonly columnsWithSources: readonly CoreColumn[]
+    readonly showAdminControls?: boolean
 }
 
 @observer

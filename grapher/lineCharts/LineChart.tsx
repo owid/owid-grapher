@@ -40,6 +40,7 @@ import {
     LinesProps,
     LineChartSeries,
     LineChartManager,
+    PlacedLineChartSeries,
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "../../coreTable/OwidTable"
@@ -51,6 +52,8 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { ColorScheme } from "../color/ColorScheme"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { ColumnSlug } from "../../coreTable/CoreTableConstants"
 
 const BLUR_COLOR = "#eee"
 
@@ -91,7 +94,7 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get focusedLines() {
+    @computed private get focusedLines(): readonly PlacedLineChartSeries[] {
         const { focusedSeriesNames } = this.props
         // If nothing is focused, everything is
         if (!focusedSeriesNames.length) return this.props.placedSeries
@@ -100,7 +103,7 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get backgroundLines() {
+    @computed private get backgroundLines(): readonly PlacedLineChartSeries[] {
         const { focusedSeriesNames } = this.props
         return this.props.placedSeries.filter(
             (series) => !focusedSeriesNames.includes(series.seriesName)
@@ -109,7 +112,7 @@ class Lines extends React.Component<LinesProps> {
 
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed private get hasMarkers() {
+    @computed private get hasMarkers(): boolean {
         if (this.props.hidePoints) return false
         return (
             sum(
@@ -120,7 +123,7 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get strokeWidth() {
+    @computed private get strokeWidth(): number {
         return this.props.lineStrokeWidth ?? 1.5
     }
 
@@ -292,7 +295,7 @@ export class LineChart
         return makeSelectionArray(this.manager)
     }
 
-    seriesIsBlurred(series: LineChartSeries) {
+    seriesIsBlurred(series: LineChartSeries): boolean {
         return (
             this.isFocusMode &&
             !this.focusedSeriesNames.includes(series.seriesName)
@@ -433,16 +436,16 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-    @action.bound onLegendClick() {
+    @action.bound onLegendClick(): void {
         if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 
-    @action.bound onLegendMouseOver(seriesName: SeriesName) {
+    @action.bound onLegendMouseOver(seriesName: SeriesName): void {
         this.hoveredSeriesName = seriesName
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.hoveredSeriesName = undefined
     }
 
@@ -450,7 +453,7 @@ export class LineChart
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
-    @computed get isFocusMode() {
+    @computed get isFocusMode(): boolean {
         return this.focusedSeriesNames.length > 0
     }
 
@@ -481,11 +484,11 @@ export class LineChart
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    @computed get renderUid() {
+    @computed get renderUid(): number {
         return guid()
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
@@ -493,7 +496,7 @@ export class LineChart
         return this.bounds.right - (this.legendDimensions?.width || 0)
     }
 
-    @computed private get legendDimensions() {
+    @computed private get legendDimensions(): LineLegend | undefined {
         return this.manager.hideLegend
             ? undefined
             : new LineLegend({ manager: this })
@@ -584,11 +587,11 @@ export class LineChart
         return ""
     }
 
-    @computed private get yColumns() {
+    @computed private get yColumns(): readonly CoreColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get yColumnSlugs(): readonly ColumnSlug[] {
         return autoDetectYColumnSlugs(this.manager)
     }
 
@@ -630,7 +633,7 @@ export class LineChart
     }
 
     @computed get series(): readonly LineChartSeries[] {
-        const arrOfSeries: LineChartSeries[] = flatten(
+        const arrOfSeries: readonly LineChartSeries[] = flatten(
             this.yColumns.map((col) =>
                 columnToLineChartSeriesArray(
                     col,
@@ -640,7 +643,7 @@ export class LineChart
             )
         )
 
-        this.colorScheme.assignColors(
+        return this.colorScheme.assignColors(
             arrOfSeries,
             this.manager.invertColorScheme,
             this.seriesStrategy === SeriesStrategy.entity
@@ -648,14 +651,13 @@ export class LineChart
                 : this.inputTable.columnDisplayNameToColorMap,
             this.manager.seriesColorMap
         )
-        return arrOfSeries
     }
 
     @computed get allPoints() {
         return flatten(this.series.map((series) => series.points))
     }
 
-    @computed get placedSeries() {
+    @computed get placedSeries(): readonly PlacedLineChartSeries[] {
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -678,7 +680,7 @@ export class LineChart
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get labelSeries(): LineLabelSeries[] {
+    @computed get labelSeries(): readonly LineLabelSeries[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let seriesToShow = this.series

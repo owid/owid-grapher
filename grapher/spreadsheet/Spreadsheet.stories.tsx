@@ -14,6 +14,7 @@ import {
 } from "../chart/ChartTypeMap"
 import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
+import { ColumnSlug } from "../../coreTable/CoreTableConstants"
 
 export default {
     title: "Spreadsheet",
@@ -41,7 +42,7 @@ class Editor extends React.Component {
         this.table = getRandomTable()
     }
 
-    @computed get yColumnSlugs() {
+    @computed get yColumnSlugs(): readonly ColumnSlug[] {
         return this.table.suggestedYColumnSlugs
     }
 

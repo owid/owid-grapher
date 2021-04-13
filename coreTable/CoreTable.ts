@@ -86,10 +86,10 @@ export class CoreTable<
     private originalInput: CoreTableInputOption
     private advancedOptions: AdvancedOptions
 
-    private inputColumnDefs: COL_DEF_TYPE[]
+    private inputColumnDefs: readonly COL_DEF_TYPE[]
     constructor(
         input: CoreTableInputOption = [],
-        inputColumnDefs: COL_DEF_TYPE[] | string = [],
+        inputColumnDefs: readonly COL_DEF_TYPE[] | string = [],
         advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
@@ -355,12 +355,12 @@ export class CoreTable<
         }
     }
 
-    getTimesAtIndices(indices: number[]) {
+    getTimesAtIndices(indices: readonly number[]) {
         if (!indices.length) return []
         return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
     }
 
-    getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
+    getValuesAtIndices(columnSlug: ColumnSlug, indices: readonly number[]) {
         const values = this.get(columnSlug).valuesIncludingErrorValues
         return indices.map((index) => values[index])
     }
@@ -486,7 +486,7 @@ export class CoreTable<
      * So `table.rowIndex(["country", "population"]).get("USA 100")` would return [0].
      *
      */
-    rowIndex(columnSlugs: ColumnSlug[]) {
+    rowIndex(columnSlugs: readonly ColumnSlug[]) {
         const index = new Map<string, number[]>()
         const keyFn = makeKeyFn(this.columnStore, columnSlugs)
         this.indices.forEach((rowIndex) => {
@@ -611,7 +611,7 @@ export class CoreTable<
         )
     }
 
-    sortBy(slugs: ColumnSlug[]) {
+    sortBy(slugs: readonly ColumnSlug[]) {
         return this.transform(
             sortColumnStore(this.columnStore, slugs),
             this.defs,
@@ -620,7 +620,7 @@ export class CoreTable<
         )
     }
 
-    sortColumns(slugs: ColumnSlug[]) {
+    sortColumns(slugs: readonly ColumnSlug[]) {
         const first = this.getColumns(slugs)
         const rest = this.columnsAsArray.filter((col) => !first.includes(col))
         return this.transform(
@@ -698,12 +698,12 @@ export class CoreTable<
         return this._columnsAsArray
     }
 
-    getColumns(slugs: ColumnSlug[]) {
+    getColumns(slugs: readonly ColumnSlug[]) {
         return slugs.map((slug) => this.get(slug))
     }
 
     // Get the min and max for multiple columns at once
-    domainFor(slugs: ColumnSlug[]): ValueRange {
+    domainFor(slugs: readonly ColumnSlug[]): ValueRange {
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)
@@ -887,7 +887,7 @@ export class CoreTable<
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
-    rowsAt(indices: number[]): ROW_TYPE[] {
+    rowsAt(indices: readonly number[]): ROW_TYPE[] {
         const { columnStore } = this
         return indices.map(
             (index) => makeRowFromColumnStore(index, columnStore) as ROW_TYPE
@@ -968,7 +968,7 @@ export class CoreTable<
         )
     }
 
-    select(slugs: ColumnSlug[]) {
+    select(slugs: readonly ColumnSlug[]) {
         const columnsToKeep = new Set(slugs)
         const newStore: CoreColumnStore = {}
         const defs = this.columnsAsArray
@@ -989,7 +989,7 @@ export class CoreTable<
         )
     }
 
-    dropColumns(slugs: ColumnSlug[], message?: string) {
+    dropColumns(slugs: readonly ColumnSlug[], message?: string) {
         const columnsToDrop = new Set(slugs)
         const newStore = {
             ...this.columnStore,
@@ -1072,7 +1072,7 @@ export class CoreTable<
         )
     }
 
-    dropRowsAt(indices: number[], message?: string) {
+    dropRowsAt(indices: readonly number[], message?: string) {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1092,7 +1092,9 @@ export class CoreTable<
         )
     }
 
-    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []) {
+    replaceNonPositiveCellsForLogScale(
+        columnSlugs: readonly ColumnSlug[] = []
+    ) {
         return this.transform(
             replaceCells(this.columnStore, columnSlugs, (val) =>
                 val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
@@ -1105,7 +1107,7 @@ export class CoreTable<
         )
     }
 
-    replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]) {
+    replaceNonNumericCellsWithErrorValues(columnSlugs: readonly ColumnSlug[]) {
         return this.transform(
             replaceCells(this.columnStore, columnSlugs, (val) =>
                 !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
@@ -1120,7 +1122,7 @@ export class CoreTable<
 
     replaceRandomCells(
         howMany = 1,
-        columnSlugs: ColumnSlug[] = [],
+        columnSlugs: readonly ColumnSlug[] = [],
         seed = Date.now(),
         replacementGenerator: () => any = () =>
             ErrorValueTypes.DroppedForTesting
@@ -1227,14 +1229,14 @@ export class CoreTable<
         )
     }
 
-    columnIntersection(tables: CoreTable[]) {
+    columnIntersection(tables: readonly CoreTable[]) {
         return intersection(
             this.columnSlugs,
             ...tables.map((table) => table.columnSlugs)
         )
     }
 
-    private intersectingRowIndices(tables: CoreTable[]) {
+    private intersectingRowIndices(tables: readonly CoreTable[]) {
         const columnSlugs = this.columnIntersection(tables)
         if (!columnSlugs.length) return []
         const thisIndex = this.rowIndex(columnSlugs)
@@ -1248,7 +1250,7 @@ export class CoreTable<
         return Array.from(keys).map((key) => thisIndex.get(key)![0]) // Only include first match if many b/c we are treating tables as sets here
     }
 
-    intersection(tables: CoreTable[]) {
+    intersection(tables: readonly CoreTable[]) {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1262,7 +1264,7 @@ export class CoreTable<
         )
     }
 
-    difference(tables: CoreTable[]) {
+    difference(tables: readonly CoreTable[]) {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1315,7 +1317,7 @@ export class CoreTable<
     private join(
         destinationTable: CoreTable,
         sourceTable: CoreTable,
-        by?: ColumnSlug[]
+        by?: readonly ColumnSlug[]
     ) {
         by =
             by ??
@@ -1353,7 +1355,7 @@ export class CoreTable<
         return defsToAdd
     }
 
-    concat(tables: CoreTable[], message = `Combined tables`) {
+    concat(tables: readonly CoreTable[], message = `Combined tables`) {
         const all = [this, ...tables] as CoreTable[]
         const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
         const uniqDefs = uniqBy(defs, (def) => def.slug)
@@ -1368,7 +1370,7 @@ export class CoreTable<
         )
     }
 
-    complete(columnSlugs: ColumnSlug[]): this {
+    complete(columnSlugs: readonly ColumnSlug[]): this {
         const index = this.rowIndex(columnSlugs)
         const cols = this.getColumns(columnSlugs)
         const product = cartesianProduct(...cols.map((col) => col.uniqValues))
@@ -1406,7 +1408,7 @@ export class CoreTable<
             .dropDuplicateRows()
     }
 
-    union(tables: CoreTable[]) {
+    union(tables: readonly CoreTable[]) {
         return this.concat(tables).dropDuplicateRows()
     }
 
@@ -1458,11 +1460,11 @@ interface ReductionMap {
 type ReductionTypes = keyof CoreColumn
 
 class FilterMask {
-    private mask: boolean[]
+    private mask: readonly boolean[]
     private numRows: number
     constructor(
         numRows: number,
-        input: boolean[] | number[],
+        input: readonly boolean[] | readonly number[],
         keepThese = true
     ) {
         this.numRows = numRows

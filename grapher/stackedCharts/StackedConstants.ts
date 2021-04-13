@@ -1,14 +1,13 @@
-import { Color } from "../../coreTable/CoreTableConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export interface StackedPoint {
-    x: number
-    y: number
+    readonly x: number
+    readonly y: number
+    readonly fake?: boolean
     yOffset: number
-    fake?: boolean
 }
 
 export interface StackedSeries extends ChartSeries {
-    points: StackedPoint[]
-    isProjection?: boolean
+    readonly points: readonly StackedPoint[]
+    readonly isProjection?: boolean
 }

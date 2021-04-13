@@ -59,11 +59,11 @@ const inverseSortOrder = (order: SortOrder) =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
 export interface DataTableManager {
-    table: OwidTable
-    endTime?: Time
-    startTime?: Time
-    minPopulationFilter?: number
-    dataTableSlugs?: ColumnSlug[]
+    readonly table: OwidTable
+    readonly endTime?: Time
+    readonly startTime?: Time
+    readonly minPopulationFilter?: number
+    readonly dataTableSlugs?: ColumnSlug[]
 }
 
 @observer
@@ -318,7 +318,7 @@ export class DataTable extends React.Component<{
 
     private renderEntityRow(
         row: DataTableRow,
-        dimensions: DataTableDimension[]
+        dimensions: readonly DataTableDimension[]
     ) {
         const { sort } = this.tableState
         return (
@@ -751,7 +751,7 @@ enum TargetTimeMode {
 }
 
 interface Dimension {
-    columns: DimensionColumn[]
+    columns: readonly DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
     sourceColumn: CoreColumn
 }
@@ -802,14 +802,14 @@ type DimensionValue = SingleValue | RangeValue
 type ColumnKey = SingleValueKey | RangeValueKey
 
 interface DataTableDimension {
-    columns: DataTableColumn[]
+    columns: readonly DataTableColumn[]
     coreTableColumn: CoreColumn
     sortable: boolean
 }
 
 interface DataTableRow {
     entityName: EntityName
-    dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
+    dimensionValues: readonly (DimensionValue | undefined)[] // TODO make it not undefined
 }
 
 function isDeltaColumn(columnKey?: ColumnKey) {

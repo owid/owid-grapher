@@ -24,9 +24,9 @@ export const Default = () => {
 export const WithTimeRange = () => {
     const manager: DataTableManager = {
         table,
+        startTime: 1950,
+        endTime: 2000,
     }
-    manager.startTime = 1950
-    manager.endTime = 2000
     return <DataTable manager={manager} />
 }
 

@@ -1,5 +1,5 @@
-import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
+import { ckmeans } from "simple-statistics"
 
 import {
     excludeUndefined,
@@ -19,7 +19,7 @@ export const binningStrategyLabels: Record<BinningStrategy, string> = {
 }
 
 function calcEqualIntervalStepSize(
-    sortedValues: number[],
+    sortedValues: readonly number[],
     binCount: number,
     minBinValue: number
 ) {
@@ -30,7 +30,7 @@ function calcEqualIntervalStepSize(
 
 interface GetBinMaximumsWithStrategyArgs {
     binningStrategy: BinningStrategy
-    sortedValues: number[]
+    sortedValues: readonly number[]
     binCount: number
     /** `minBinValue` is only used in the `equalInterval` binning strategy. */
     minBinValue?: number
@@ -40,7 +40,7 @@ interface GetBinMaximumsWithStrategyArgs {
 // This also means the first bin can both start and end at the same value – the minimum
 // value. This is why we uniq() and why we remove any values <= minimum value.
 function normalizeBinValues(
-    binValues: (number | undefined)[],
+    binValues: readonly (number | undefined)[],
     minBinValue?: number
 ) {
     const values = uniq(excludeUndefined(binValues))
@@ -57,7 +57,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
 
     if (binningStrategy === BinningStrategy.ckmeans) {
         const clusters = ckmeans(
-            sortedValues,
+            sortedValues.slice(),
             binCount > valueCount ? valueCount : binCount
         )
         return normalizeBinValues(clusters.map(last), minBinValue)

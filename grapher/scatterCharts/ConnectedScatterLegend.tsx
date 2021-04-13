@@ -5,11 +5,11 @@ import { TextWrap } from "../text/TextWrap"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 
 export interface ConnectedScatterLegendManager {
-    sidebarWidth: number
-    displayStartTime: string
-    displayEndTime: string
-    fontSize?: number
-    compareEndPointsOnly?: boolean
+    readonly sidebarWidth: number
+    readonly displayStartTime: string
+    readonly displayEndTime: string
+    readonly fontSize?: number
+    readonly compareEndPointsOnly?: boolean
 }
 
 export class ConnectedScatterLegend {

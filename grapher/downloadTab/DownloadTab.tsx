@@ -10,18 +10,18 @@ import classNames from "classnames"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 
 export interface DownloadTabManager {
-    idealBounds?: Bounds
-    staticSVG: string
-    displaySlug: string
-    baseUrl?: string
-    queryStr?: string
-    table?: OwidTable
-    externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
+    readonly idealBounds?: Bounds
+    readonly staticSVG: string
+    readonly displaySlug: string
+    readonly baseUrl?: string
+    readonly queryStr?: string
+    readonly table?: OwidTable
+    readonly externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
 }
 
 interface DownloadTabProps {
-    bounds?: Bounds
-    manager: DownloadTabManager
+    readonly bounds?: Bounds
+    readonly manager: DownloadTabManager
 }
 
 declare var Blob: any

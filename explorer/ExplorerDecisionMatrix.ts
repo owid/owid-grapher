@@ -55,7 +55,7 @@ const dropColumnTypes = (delimited: string): string => {
 }
 
 const makeCheckBoxOption = (
-    options: ExplorerChoiceOption[],
+    options: readonly ExplorerChoiceOption[],
     choiceName: string
 ) => {
     const checked = options.some(

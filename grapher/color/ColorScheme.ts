@@ -9,13 +9,13 @@ import { getLeastUsedColor, interpolateArray } from "./ColorUtils"
 
 export class ColorScheme implements ColorSchemeInterface {
     name: string
-    colorSets: Color[][]
+    colorSets: (readonly Color[])[]
     singleColorScale: boolean
     isDistinct: boolean
 
     constructor(
         name: string,
-        colorSets: Color[][],
+        colorSets: readonly (readonly Color[])[],
         singleColorScale?: boolean,
         isDistinct?: boolean
     ) {
@@ -27,10 +27,10 @@ export class ColorScheme implements ColorSchemeInterface {
     }
 
     improviseGradientFromShorter(
-        shortColors: Color[],
+        shortColors: readonly Color[],
         numColors: number
     ): Color[] {
-        const newColors = clone(shortColors)
+        const newColors = shortColors.slice()
 
         while (newColors.length < numColors) {
             for (let index = newColors.length - 1; index > 0; index -= 1) {
@@ -61,7 +61,7 @@ export class ColorScheme implements ColorSchemeInterface {
     getGradientColors(numColors: number): Color[] {
         const { colorSets } = this
 
-        if (colorSets[numColors]) return clone(colorSets[numColors])
+        if (colorSets[numColors]) return colorSets[numColors].slice()
 
         const prevColors = clone(colorSets)
             .reverse()
@@ -78,7 +78,7 @@ export class ColorScheme implements ColorSchemeInterface {
     getDistinctColors(numColors: number): Color[] {
         const { colorSets } = this
         if (colorSets.length === 0) return []
-        if (colorSets[numColors]) return clone(colorSets[numColors])
+        if (colorSets[numColors]) return colorSets[numColors].slice()
 
         if (numColors > colorSets.length - 1) {
             // If more colors are wanted than we have defined, have to improvise
@@ -102,7 +102,7 @@ export class ColorScheme implements ColorSchemeInterface {
             : this.getGradientColors(numColors)
     }
 
-    getUniqValueColorMap(uniqValues: any[], inverseOrder?: boolean) {
+    getUniqValueColorMap(uniqValues: readonly any[], inverseOrder?: boolean) {
         const colors = this.getColors(uniqValues.length) || []
         if (inverseOrder) colors.reverse()
 
@@ -115,24 +115,25 @@ export class ColorScheme implements ColorSchemeInterface {
         return colorByValue
     }
 
-    assignColors(
-        seriesArr: ChartSeries[],
+    assignColors<Series extends ChartSeries>(
+        seriesArr: readonly Series[],
         invertColorScheme = false,
         customColorMap: Map<SeriesName, Color> = new Map(),
         seriesColorMap: SeriesColorMap = new Map()
-    ) {
+    ): readonly Series[] {
         seriesArr.forEach((series) => {
             const customColor = customColorMap.get(series.seriesName)
             if (customColor) seriesColorMap.set(series.seriesName, customColor)
         })
         this.updateColorMap(seriesArr, seriesColorMap, invertColorScheme)
-        seriesArr.forEach((series) => {
-            series.color = seriesColorMap.get(series.seriesName)!
-        })
+        return seriesArr.map((series) => ({
+            ...series,
+            color: seriesColorMap.get(series.seriesName)!,
+        }))
     }
 
     private updateColorMap(
-        seriesArr: ChartSeries[],
+        seriesArr: readonly ChartSeries[],
         seriesColorMap: SeriesColorMap,
         invertColorScheme = false
     ) {

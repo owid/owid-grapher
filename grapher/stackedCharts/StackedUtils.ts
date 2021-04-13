@@ -3,7 +3,7 @@ import { StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points in place.
 // Todo: use a lib?
-export const stackSeries = (seriesArr: StackedSeries[]) => {
+export const stackSeries = (seriesArr: readonly StackedSeries[]) => {
     seriesArr.forEach((series, seriesIndex) => {
         if (!seriesIndex) return // The first series does not need to be shifted
         series.points.forEach((point, pointIndex) => {
@@ -17,7 +17,7 @@ export const stackSeries = (seriesArr: StackedSeries[]) => {
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
 export const withZeroesAsInterpolatedPoints = (
-    seriesArr: StackedSeries[]
+    seriesArr: readonly StackedSeries[]
 ): StackedSeries[] => {
     const allXValuesSorted = sortNumeric(
         uniq(

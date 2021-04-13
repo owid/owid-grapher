@@ -10,7 +10,7 @@ import { AxisConfigInterface } from "./AxisConfigInterface"
 import { ScaleSelectorManager } from "../controls/ScaleSelector"
 
 export interface FontSizeManager {
-    fontSize: number
+    readonly fontSize: number
 }
 
 class AxisConfigDefaults {

@@ -45,7 +45,7 @@ const entityNamesFromV1EncodedParam = (
     return encodedQueryParam.split(V1_DELIMITER).map(decodeURIComponent)
 }
 
-const entityNamesToV2Param = (entityNames: EntityName[]): string => {
+const entityNamesToV2Param = (entityNames: readonly EntityName[]): string => {
     // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
     if (entityNames.length === 1) return ENTITY_V2_DELIMITER + entityNames[0]
     return entityNames.join(ENTITY_V2_DELIMITER)
@@ -94,7 +94,7 @@ const migrateV1Delimited: UrlMigration = (url) => {
 const LegacyDimensionRegex = /\-\d+$/
 
 const injectEntityNamesInLegacyDimension = (
-    entityNames: EntityName[]
+    entityNames: readonly EntityName[]
 ): EntityName[] => {
     // If an entity has the old name-dimension encoding, removing the dimension part and add it as
     // a new selection. So USA-1 becomes USA.
@@ -130,7 +130,7 @@ const migrateLegacyDimensionPairs: UrlMigration = (url) => {
  * Combining all migrations
  */
 
-const urlMigrations: UrlMigration[] = [
+const urlMigrations: readonly UrlMigration[] = [
     migrateV1Delimited,
     migrateLegacyDimensionPairs,
 ]
@@ -156,7 +156,7 @@ export const getSelectedEntityNamesParam = (
 
 export const setSelectedEntityNamesParam = (
     url: Url,
-    entityNames: EntityName[] | undefined
+    entityNames: readonly EntityName[] | undefined
 ) => {
     return migrateSelectedEntityNamesParam(url).updateQueryParams({
         country: entityNames

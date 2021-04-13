@@ -24,9 +24,9 @@ import { TimelineController } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 
 export interface HighlightToggleManager {
-    highlightToggle?: HighlightToggleConfig
-    selectionArray?: SelectionArray
-    populateFromQueryParams: (obj: QueryParams) => void
+    readonly highlightToggle?: HighlightToggleConfig
+    readonly selectionArray?: SelectionArray
+    readonly populateFromQueryParams: (obj: QueryParams) => void
 }
 
 // Todo: Add tests and stories
@@ -85,8 +85,8 @@ export class HighlightToggle extends React.Component<{
 }
 
 export interface AbsRelToggleManager {
+    readonly relativeToggleLabel?: string
     stackMode?: StackMode
-    relativeToggleLabel?: string
 }
 
 @observer
@@ -154,7 +154,7 @@ export class ZoomToggle extends React.Component<{
 }
 
 export interface SmallCountriesFilterManager {
-    populationFilterOption?: number
+    readonly populationFilterOption?: number
     minPopulationFilter?: number
 }
 
@@ -196,17 +196,17 @@ export class FilterSmallCountriesToggle extends React.Component<{
 }
 
 export interface FooterControlsManager extends ShareMenuManager {
-    isShareMenuActive?: boolean
-    isSelectingData?: boolean
-    availableTabs?: GrapherTabOption[]
+    readonly isSelectingData?: boolean
+    readonly availableTabs?: GrapherTabOption[]
+    readonly isInIFrame?: boolean
+    readonly canonicalUrl?: string
+    readonly hasTimeline?: boolean
+    readonly hasRelatedQuestion?: boolean
+    readonly relatedQuestions: readonly RelatedQuestionsConfig[]
+    readonly footerControlsHeight?: number
+    readonly timelineController?: TimelineController
     currentTab?: GrapherTabOption
-    isInIFrame?: boolean
-    canonicalUrl?: string
-    hasTimeline?: boolean
-    hasRelatedQuestion?: boolean
-    relatedQuestions: RelatedQuestionsConfig[]
-    footerControlsHeight?: number
-    timelineController?: TimelineController
+    isShareMenuActive?: boolean
 }
 
 @observer

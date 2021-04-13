@@ -49,7 +49,7 @@ export class GrapherAnalytics {
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
     }
 
-    logEntitiesNotFoundError(entities: string[]) {
+    logEntitiesNotFoundError(entities: readonly string[]) {
         this.logToAmplitude(EventNames.entitiesNotFound, { entities })
         this.logToGA(
             Categories.GrapherError,
