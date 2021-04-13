@@ -7,7 +7,7 @@ describe("Cookie preferences", function () {
     const today = moment().format(DATE_FORMAT)
 
     beforeEach(() => {
-        cy.visit("http://localhost:3030/privacy-policy")
+        cy.visit("/privacy-policy")
         cy.get("[data-test=cookie-notice]").as(COOKIE_NOTICE.substr(1))
     })
 

@@ -356,6 +356,8 @@ export class Grapher
         if (this.isEditor) this.ensureValidConfigWhenEditing()
 
         if (getGrapherInstance) getGrapherInstance(this)
+
+        this.checkVisibility = throttle(this.checkVisibility, 400)
     }
 
     toObject() {
@@ -1473,7 +1475,7 @@ export class Grapher
 
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
-        containerNode: HTMLElement
+        containerNode: Element
     ) {
         const setBoundsFromContainerAndRender = () => {
             const props: GrapherProgrammaticInterface = {
@@ -1486,7 +1488,7 @@ export class Grapher
         setBoundsFromContainerAndRender()
         window.addEventListener(
             "resize",
-            throttle(setBoundsFromContainerAndRender)
+            throttle(setBoundsFromContainerAndRender, 400)
         )
     }
 

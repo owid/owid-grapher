@@ -197,7 +197,7 @@ mockSiteRouter.get("/*", async (req, res) => {
         res.send(await renderPageBySlug(slug))
     } catch (e) {
         console.error(e)
-        res.send(await renderNotFoundPage())
+        res.status(404).send(await renderNotFoundPage())
     }
 })
 
