@@ -1240,11 +1240,16 @@ export class Grapher
             )
         )
 
+        const originalTimeSlugs = this.activeColumnSlugs.map(
+            (slug) => this.inputTable.get(slug).originalTimeColumnSlug
+        )
+
         // not all of these columns might actually exist in our inputTable, so we intersect them with
         // the actually-existing column slugs below
         const maybeRequiredColumnSlugs = excludeUndefined([
             ...this.activeColumnSlugs,
             ...annotationSlugs,
+            ...originalTimeSlugs,
             this.inputTable.timeColumn.slug,
             this.inputTable.entityNameSlug,
             this.inputTable.entityIdColumn.slug,
