@@ -14,7 +14,9 @@ module.exports = {
     password: DB_PASS || "",
     database: DB_NAME,
     entities: ["itsJustJavascript/db/model/**/*.js"],
+    migrations: ["itsJustJavascript/db/migration/**/*.js"],
     cli: {
         entitiesDir: "db/model",
+        migrationsDir: ["db/migration"],
     },
 }
