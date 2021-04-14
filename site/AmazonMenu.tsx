@@ -3,6 +3,7 @@
 
 import * as React from "react"
 import { bind } from "decko"
+import { DeviceCapability } from "../clientUtils/owidTypes"
 
 interface Position {
     x: number
@@ -10,6 +11,7 @@ interface Position {
 }
 
 const ATTRIBUTE = "data-submenu-id"
+const MENU_CLASS_NAME = "amazon-menu-container"
 const MOUSE_LOCS_TRACKED = 3
 const DELAY = 400
 const TOLERANCE_PX = 20
@@ -38,14 +40,21 @@ const slope = (a: Position, b: Position) => (b.y - a.y) / (b.x - a.x)
 export class AmazonMenu extends React.Component<{
     children: React.ReactNode
     submenuRect?: DOMRect | ClientRect | null
-    onActivate?: (submenuId: any) => void
-    onDeactivate?: (submenuId: any) => void
+    onActivate: (submenuId: any) => void
+    onDeactivate: (submenuId: any) => void
+    activeSubmenuId?: string
 }> {
     container: React.RefObject<HTMLDivElement> = React.createRef()
-    activeSubmenuId?: string
     mouseLocs: Position[] = []
     lastDelayLoc?: Position
     timeoutId?: number
+    deviceCapability?: DeviceCapability
+
+    componentDidMount() {
+        this.deviceCapability = window.matchMedia("(any-hover: none)").matches
+            ? DeviceCapability.Touch
+            : DeviceCapability.Hover
+    }
 
     @bind onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
         this.mouseLocs.push({
@@ -68,10 +77,6 @@ export class AmazonMenu extends React.Component<{
         this.possiblyActivate(submenuId)
     }
 
-    @bind onClickItem(submenuId: any) {
-        this.activate(submenuId)
-    }
-
     possiblyActivate(submenuId: any) {
         const delay = this.activationDelay()
 
@@ -80,24 +85,8 @@ export class AmazonMenu extends React.Component<{
                 this.possiblyActivate(submenuId)
             }, delay)
         } else {
-            this.activate(submenuId)
+            this.props.onActivate(submenuId)
         }
-    }
-
-    activate(submenuId: any) {
-        if (submenuId === this.activeSubmenuId) {
-            return
-        }
-        if (this.activeSubmenuId) {
-            this.deactivate(this.activeSubmenuId)
-        }
-        if (this.props.onActivate) this.props.onActivate(submenuId)
-        this.activeSubmenuId = submenuId
-    }
-
-    deactivate(submenuId: any) {
-        if (this.props.onDeactivate) this.props.onDeactivate(submenuId)
-        this.activeSubmenuId = undefined
     }
 
     activationDelay() {
@@ -202,20 +191,32 @@ export class AmazonMenu extends React.Component<{
     }
 
     @bind onClick(event: React.MouseEvent<HTMLDivElement>) {
+        const { activeSubmenuId, onActivate, onDeactivate } = this.props
         const submenuId = getSubmenuId(event.target as HTMLElement)
+
         if (submenuId) {
-            this.onClickItem(submenuId)
+            activeSubmenuId === submenuId
+                ? onDeactivate(submenuId)
+                : onActivate(submenuId)
         }
     }
 
     render() {
-        return (
+        return this.deviceCapability === DeviceCapability.Hover ? (
             <div
                 ref={this.container}
-                className="amazon-menu-container"
+                className={MENU_CLASS_NAME}
                 onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeaveMenu}
                 onMouseOver={this.onMouseOver}
+                onClick={this.onClick}
+            >
+                {this.props.children}
+            </div>
+        ) : (
+            <div
+                ref={this.container}
+                className={MENU_CLASS_NAME}
                 onClick={this.onClick}
             >
                 {this.props.children}

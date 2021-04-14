@@ -4,8 +4,6 @@ import { observer } from "mobx-react"
 import { flatten } from "../clientUtils/Util"
 import { bind } from "decko"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { AmazonMenu } from "./AmazonMenu"
 import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes"
 
@@ -139,18 +137,18 @@ export class TopicsMenu extends React.Component<{
         const { activeCategory } = this
         const { categories } = this.props
 
-        let sizeClass = ""
+        let subcolumnCountClass = ""
 
         if (activeCategory) {
-            sizeClass =
+            subcolumnCountClass =
                 // Count root and subcategories entries
                 activeCategory.subcategories.reduce(
                     (acc: number, subcategory) =>
                         subcategory.entries.length + acc,
                     activeCategory.entries.length
                 ) > 10
-                    ? "two-column"
-                    : "one-column"
+                    ? "many-subcolumn"
+                    : "one-subcolumn"
         }
 
         return (
@@ -172,9 +170,13 @@ export class TopicsMenu extends React.Component<{
                     </span>
                 </a>
                 <div
-                    className={classnames("topics-dropdown", sizeClass, {
-                        open: this.dropdownIsOpen,
-                    })}
+                    className={classnames(
+                        "topics-dropdown",
+                        subcolumnCountClass,
+                        {
+                            open: this.dropdownIsOpen,
+                        }
+                    )}
                     onMouseEnter={() => this.setOpen(true)}
                     onMouseLeave={() => this.scheduleCloseTimeout(350)}
                     aria-hidden={this.dropdownIsOpen}
@@ -183,6 +185,7 @@ export class TopicsMenu extends React.Component<{
                         <AmazonMenu
                             onActivate={this.onActivate}
                             onDeactivate={this.onDeactivate}
+                            activeSubmenuId={activeCategory?.slug}
                             submenuRect={
                                 this.submenuRef.current &&
                                 this.submenuRef.current.getBoundingClientRect()
@@ -199,17 +202,31 @@ export class TopicsMenu extends React.Component<{
                                         }
                                         data-submenu-id={category.slug}
                                     >
-                                        <span className="label">
-                                            {category.name}
+                                        <span className="label-icon">
+                                            <span className="label">
+                                                {category.name}
+                                            </span>
+                                            <span className="icon">
+                                                <svg width="5" height="10">
+                                                    <path
+                                                        d="M0,0 L5,5 L0,10 Z"
+                                                        fill="currentColor"
+                                                    />
+                                                </svg>
+                                            </span>
                                         </span>
-                                        <span className="icon">
-                                            <svg width="5" height="10">
-                                                <path
-                                                    d="M0,0 L5,5 L0,10 Z"
-                                                    fill="currentColor"
-                                                />
-                                            </svg>
-                                        </span>
+                                        {category === activeCategory && (
+                                            <ul
+                                                className={`submenu ${subcolumnCountClass}`}
+                                                ref={this.submenuRef}
+                                            >
+                                                {allEntries(
+                                                    activeCategory
+                                                ).map((entry) =>
+                                                    renderEntry(entry)
+                                                )}
+                                            </ul>
+                                        )}
                                     </li>
                                 ))}
                                 {/* <hr />
@@ -238,12 +255,6 @@ export class TopicsMenu extends React.Component<{
                             </ul>
                         </AmazonMenu>
                     </div>
-                    <ul className="submenu" ref={this.submenuRef}>
-                        {activeCategory &&
-                            allEntries(activeCategory).map((entry) =>
-                                renderEntry(entry)
-                            )}
-                    </ul>
                 </div>
             </div>
         )

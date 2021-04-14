@@ -217,3 +217,8 @@ export interface Deploy {
     status: DeployStatus
     changes: DeployChange[]
 }
+
+export enum DeviceCapability {
+    Hover = "hover",
+    Touch = "touch",
+}

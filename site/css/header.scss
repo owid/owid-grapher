@@ -285,13 +285,15 @@
 }
 
 .topics-dropdown {
+    $first_column_width: 14rem;
+    $subcolumn_width: 12rem;
+
     display: none;
 
     &.open {
-        display: flex;
+        display: block;
     }
 
-    flex-direction: row;
     min-height: 5rem;
     position: absolute;
     top: 100%;
@@ -310,14 +312,16 @@
     font-weight: 700;
     line-height: 1.35;
 
-    width: 14rem;
+    width: $first_column_width;
 
-    &.one-column {
-        width: 30rem;
-    }
+    @include md-up {
+        &.one-subcolumn {
+            width: $first_column_width + $subcolumn_width;
+        }
 
-    &.two-column {
-        width: 45rem;
+        &.many-subcolumn {
+            width: $first_column_width + 3 * $subcolumn_width;
+        }
     }
 
     ul {
@@ -325,12 +329,12 @@
     }
 
     .menu {
-        flex: 0 0 14rem;
+        width: $first_column_width;
         padding: 0.5rem 0;
 
-        .item {
+        .label-icon {
             color: $primary-color-600;
-            padding: 0.35rem 1rem 0.4rem 1.15rem;
+            padding: 0.4rem 1rem;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -345,16 +349,19 @@
             }
         }
 
-        .item.active,
-        a.item:hover {
-            color: $primary-color;
-            .icon {
-                color: $primary-color-600;
+        .active .label-icon {
+            @include sm-only {
+                .icon {
+                    transform: rotate(90deg);
+                }
             }
-        }
-
-        .item.active {
-            background-color: $primary-color-100;
+            @include md-up {
+                color: $primary-color;
+                background-color: $primary-color-100;
+                .icon {
+                    color: $primary-color-600;
+                }
+            }
         }
 
         hr {
@@ -365,31 +372,40 @@
             display: block;
             height: 1px;
         }
-
-        a.item {
-            font-weight: 600;
-        }
     }
 
     .submenu {
-        flex: 1;
-        padding: 1rem 1.25rem;
+        padding: 1rem;
         background-color: $primary-color-100;
 
-        .item {
-            color: $primary-color;
-            display: block;
-            margin: 0 0.5rem 0.8rem;
+        @include md-up {
+            position: absolute;
+            top: 0;
+            left: $first_column_width;
+            height: 100%;
+            width: $subcolumn_width;
+            padding: 1rem 0;
 
-            &:hover {
-                color: $primary-color-600;
+            &.many-subcolumn {
+                width: 3 * $subcolumn_width;
+                column-count: 3;
+                column-gap: 0;
             }
         }
-    }
 
-    &.two-column .submenu {
-        column-count: 2;
-        column-gap: 0;
+        li {
+            // https://stackoverflow.com/a/44671098
+            display: inline-block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            a {
+                color: $primary-color;
+
+                &:hover {
+                    color: $primary-color-600;
+                }
+            }
+        }
     }
 }
 
