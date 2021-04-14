@@ -122,7 +122,7 @@ export class ExplorerControlPanel extends React.Component<{
             (option) => option.value === this.props.choice.value
         ) ?? { label: "-", value: "-" }
 
-        const styles = getStylesForTargetHeight(16)
+        const styles = getStylesForTargetHeight(30)
 
         return (
             <Select
