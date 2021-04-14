@@ -35,7 +35,7 @@ export class Deployer {
         this.progressBar = new ProgressBar(
             `Baking and deploying to ${target} [:bar] :current/:total :elapseds :name\n`,
             {
-                total: 21 + testSteps,
+                total: 22 + testSteps,
                 renderThrottle: 0, // print on every tick
                 stream: (this.stream as unknown) as WriteStream,
             }
@@ -215,6 +215,7 @@ yarn testPrettierAll`
             createSettingsSoftlinks: `ln -sf ${finalDataDir}/.env ${rsyncTargetDirTmp}/.env`,
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
+            migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
             algolia: `cd ${rsyncTargetDirTmp} && node itsJustJavascript/baker/algolia/configureAlgolia.js`,
             createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
