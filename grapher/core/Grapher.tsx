@@ -520,12 +520,6 @@ export class Grapher
         )
     }
 
-    @computed get tableAfterAuthorTimelineAndColumnFilter() {
-        return this.tableAfterAuthorTimelineFilter.select(
-            this.columnSlugsNecessaryForCurrentView
-        )
-    }
-
     // Convenience method for debugging
     windowQueryParams(str = location.search) {
         return strToQueryParams(str)
@@ -533,7 +527,7 @@ export class Grapher
 
     @computed
     private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
-        const table = this.tableAfterAuthorTimelineAndColumnFilter
+        const table = this.tableAfterAuthorTimelineFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
     }
@@ -558,7 +552,7 @@ export class Grapher
     }
 
     @computed get table() {
-        return this.tableAfterAuthorTimelineAndColumnFilter
+        return this.tableAfterAuthorTimelineFilter
     }
 
     @computed
@@ -1230,38 +1224,6 @@ export class Grapher
             sizeColumnSlug,
             colorColumnSlug,
         ])
-    }
-
-    // All columns that are necessary for the current view, including meta columns like entityName
-    // and time
-    @computed get columnSlugsNecessaryForCurrentView() {
-        const annotationSlugs = this.activeColumnSlugs.map((slug) =>
-            this.inputTable.getAnnotationColumnSlug(
-                this.inputTable.get(slug).def as OwidColumnDef
-            )
-        )
-
-        const originalTimeSlugs = this.activeColumnSlugs.map(
-            (slug) => this.inputTable.get(slug).originalTimeColumnSlug
-        )
-
-        // not all of these columns might actually exist in our inputTable, so we intersect them with
-        // the actually-existing column slugs below
-        const maybeRequiredColumnSlugs = excludeUndefined([
-            ...this.activeColumnSlugs,
-            ...annotationSlugs,
-            ...originalTimeSlugs,
-            this.inputTable.timeColumn.slug,
-            this.inputTable.entityNameSlug,
-            this.inputTable.entityIdColumn.slug,
-            this.inputTable.entityCodeColumn.slug,
-            OwidTableSlugs.entityColor,
-        ])
-
-        return intersection(
-            maybeRequiredColumnSlugs,
-            this.inputTable.columnSlugs
-        )
     }
 
     @computed get columnsWithSources() {

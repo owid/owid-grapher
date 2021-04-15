@@ -817,7 +817,7 @@ it("migrates map.targetYear correctly", () => {
     expect(grapher.map.time).toEqual(2005)
 })
 
-describe("identifies and drops unnecessary table columns", () => {
+it("correctly identifies activeColumnSlugs", () => {
     const table = new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
     Belgium,BEL,#f6f,2010,80000,pretty damn high,1.5,9000000,Europe,81.2
     `)
@@ -830,40 +830,13 @@ describe("identifies and drops unnecessary table columns", () => {
         sizeSlug: "population",
     })
 
-    it("correctly identifies activeColumnSlugs", () => {
-        expect(grapher.activeColumnSlugs.length).toEqual(4)
-        expect(grapher.activeColumnSlugs.sort()).toEqual([
-            "child_mortality",
-            "continent",
-            "gdp",
-            "population",
-        ])
-    })
-
-    it("correctly identifies columnSlugsNecessaryForCurrentView", () => {
-        expect(grapher.columnSlugsNecessaryForCurrentView.length).toEqual(9)
-        expect(grapher.columnSlugsNecessaryForCurrentView.sort()).toEqual([
-            "child_mortality",
-            "continent",
-            "entityColor",
-            "entityId",
-            "entityName",
-            "gdp",
-            "gdp-annotations",
-            "population",
-            "year",
-        ])
-    })
-
-    it("drops unnecessary column in tableAfterAuthorTimelineAndColumnFilter", () => {
-        const table = grapher.tableAfterAuthorTimelineAndColumnFilter
-
-        expect(table.columnSlugs.length).toEqual(9)
-        expect(table.columnSlugs).not.toContain("happiness")
-
-        expect(Object.keys(table.columnStore).length).toEqual(9)
-        expect(Object.keys(table.columnStore)).not.toContain("happiness")
-    })
+    expect(grapher.activeColumnSlugs.length).toEqual(4)
+    expect(grapher.activeColumnSlugs.sort()).toEqual([
+        "child_mortality",
+        "continent",
+        "gdp",
+        "population",
+    ])
 })
 
 it("considers map tolerance before using column tolerance", () => {
