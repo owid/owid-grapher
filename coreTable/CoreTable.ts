@@ -414,7 +414,14 @@ export class CoreTable<
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
     @imemo get timeColumn() {
-        // For now, return a day column first if present. But see note above about removing this method.
+        // "time" is the canonical time column slug.
+        // See LegacyToOwidTable where this column is injected for all Graphers.
+        const maybeTimeColumn = this.get(OwidTableSlugs.time)
+        if (maybeTimeColumn instanceof ColumnTypeMap.Time)
+            return maybeTimeColumn
+        // If a valid "time" column doesn't exist, find _some_ time column to use.
+        // This is somewhat unreliable and currently only used to infer the time
+        // column on explorers.
         return (
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Day
@@ -428,7 +435,7 @@ export class CoreTable<
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Quarter
             ) ??
-            this.get(OwidTableSlugs.time)
+            maybeTimeColumn
         )
     }
 

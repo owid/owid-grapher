@@ -162,6 +162,7 @@ import {
 } from "../../settings/clientSettings"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
+import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
 
 declare const window: any
 
@@ -1240,11 +1241,16 @@ export class Grapher
             )
         )
 
+        const originalTimeSlugs = this.activeColumnSlugs.map(
+            (slug) => this.inputTable.get(slug).originalTimeColumnSlug
+        )
+
         // not all of these columns might actually exist in our inputTable, so we intersect them with
         // the actually-existing column slugs below
         const maybeRequiredColumnSlugs = excludeUndefined([
             ...this.activeColumnSlugs,
             ...annotationSlugs,
+            ...originalTimeSlugs,
             this.inputTable.timeColumn.slug,
             this.inputTable.entityNameSlug,
             this.inputTable.entityIdColumn.slug,
@@ -2205,26 +2211,26 @@ export class Grapher
     }
 
     @computed get timeParam() {
-        const formatAsDay = this.table.hasDayColumn
-        if (
-            this.isOnMapTab &&
-            this.map.time !== undefined &&
-            this.hasUserChangedMapTimeHandle
-        )
-            return timeBoundToTimeBoundString(this.map.time, formatAsDay)
+        const { timeColumn } = this.table
+        const formatTime = (t: Time) =>
+            timeBoundToTimeBoundString(
+                t,
+                timeColumn instanceof ColumnTypeMap.Day
+            )
+
+        if (this.isOnMapTab) {
+            return this.map.time !== undefined &&
+                this.hasUserChangedMapTimeHandle
+                ? formatTime(this.map.time)
+                : undefined
+        }
+
         if (!this.hasUserChangedTimeHandles) return undefined
 
-        const [startHandleTime, rightHandleTime] = this.timelineHandleTimeBounds
-        const startTimeBoundString = timeBoundToTimeBoundString(
-            startHandleTime,
-            formatAsDay
+        const [startTime, endTime] = this.timelineHandleTimeBounds.map(
+            formatTime
         )
-        return startHandleTime === rightHandleTime
-            ? startTimeBoundString
-            : `${startTimeBoundString}..${timeBoundToTimeBoundString(
-                  rightHandleTime,
-                  formatAsDay
-              )}`
+        return startTime === endTime ? startTime : `${startTime}..${endTime}`
     }
 
     msPerTick = DEFAULT_MS_PER_TICK

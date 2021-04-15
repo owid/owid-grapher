@@ -724,6 +724,7 @@ export const ColumnTypeMap = {
     Date: DateColumn,
     Year: YearColumn,
     Quarter: QuarterColumn,
+    Time: TimeColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
     Percentage: PercentageColumn,

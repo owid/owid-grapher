@@ -127,10 +127,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.sortedByTime.get(this.timeColumn.slug).values
     }
 
-    @imemo get hasDayColumn() {
-        return this.has(OwidTableSlugs.day)
-    }
-
     @imemo get rowIndicesByEntityName() {
         return this.rowIndex([this.entityNameSlug])
     }

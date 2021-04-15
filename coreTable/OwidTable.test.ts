@@ -8,7 +8,7 @@ import {
 import { BlankOwidTable, OwidTable } from "./OwidTable"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { ErrorValueTypes } from "./ErrorValues"
-import { OwidColumnDef } from "./OwidTableConstants"
+import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 
 const sampleRows = [
     {
@@ -102,12 +102,44 @@ it("can group data by entity and time", () => {
     expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])
 })
 
-it("prefers a day column when both year and day are in the chart", () => {
-    const csv = `entityName,entityCode,entityId,pop,year,day
-usa,usa,1,322,2000,2`
+describe("timeColumn", () => {
+    it("uses 'time' as the canonical timeColumn", () => {
+        const columnStore = {
+            [OwidTableSlugs.entityName]: ["usa"],
+            [OwidTableSlugs.time]: [2000],
+            year: [2000],
+            day: ["2000-01-01"],
+            x: [0],
+        }
+        const colDefs: OwidColumnDef[] = [
+            {
+                slug: "year",
+                type: ColumnTypeNames.Year,
+            },
+            {
+                slug: "day",
+                type: ColumnTypeNames.Day,
+            },
+            {
+                slug: OwidTableSlugs.time,
+                type: ColumnTypeNames.Year,
+            },
+            {
+                slug: "x",
+                type: ColumnTypeNames.Numeric,
+            },
+        ]
+        const table = new OwidTable(columnStore, colDefs)
+        expect(table.timeColumn.slug).toEqual(OwidTableSlugs.time)
+    })
 
-    const table = new OwidTable(csv)
-    expect(table.timeColumn!.slug).toBe("day")
+    it("prefers a day column when both year and day are in the chart", () => {
+        const csv = `entityName,entityCode,entityId,pop,year,day
+    usa,usa,1,322,2000,2`
+
+        const table = new OwidTable(csv)
+        expect(table.timeColumn!.slug).toBe("day")
+    })
 })
 
 it("can get the latest values for an entity", () => {
