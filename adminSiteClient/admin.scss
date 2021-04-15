@@ -941,6 +941,23 @@ main:not(.ChartEditorPage) {
                     margin-right: 10px;
                 }
             }
+
+            .json-view {
+                // width: 100%;
+                // height: 100%;
+                background-color: #eeeeee;
+                overflow-y: auto;
+                border: 1px solid rgba(0, 0, 0, 0.2);
+                border-radius: 0.4em;
+
+                pre {
+                    white-space: pre-wrap; /* Since CSS 2.1 */
+                    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+                    white-space: -pre-wrap; /* Opera 4-6 */
+                    white-space: -o-pre-wrap; /* Opera 7 */
+                    word-wrap: break-word; /* Internet Explorer 5.5+ */
+                }
+            }
         }
     }
 

@@ -275,7 +275,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
             >
                 <main className="SuggestedChartRevisionApproverPage">
                     {this.renderReadme()}
-                    {this.renderApprovalTool()}
+                    {this.numTotalRows > 0 ? (
+                        this.renderApprovalTool()
+                    ) : (
+                        <div style={{ paddingBottom: 20 }}>
+                            0 pending chart revisions found. All suggested chart
+                            revisions have already been approved or rejected.
+                        </div>
+                    )}
                 </main>
             </AdminLayout>
         )
@@ -443,6 +450,12 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                         you reject a suggested chart revision, it is STRONGLY
                         RECOMMENDED that you describe your reasoning in the
                         "Notes" field.
+                    </li>
+                    <li>
+                        There is currently no "undo" button. So if you
+                        mistakenly approve/reject a suggested chart revision,
+                        you will need to manually edit the chart to fix the
+                        unintended changes.
                     </li>
                 </ul>
                 <h5>Settings</h5>
