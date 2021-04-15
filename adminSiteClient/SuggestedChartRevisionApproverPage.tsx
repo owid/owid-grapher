@@ -41,6 +41,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
     @observable.ref numTotalRows: number = 0
     @observable.ref previewMode = "mobile"
     @observable.ref desktopPreviewSize = "normal"
+    @observable.ref previewSvgOrJson = "svg"
     @observable.ref isVerticalLayout: boolean = false
     @observable.ref decisionReasonInput?: string = ""
 
@@ -119,6 +120,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
         this.clearDecisionReasonInput()
         await this.fetchGraphers()
         await this.fetchRefs()
+        this.admin.loadingIndicatorSetting = "off"
     }
 
     @action.bound async fetchGraphers() {
@@ -159,9 +161,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                     }}
                 />
             )
+            this._isGraphersSet = true
         }
-        this._isGraphersSet = true
-        this.admin.loadingIndicatorSetting = "off"
     }
 
     @action.bound async rerenderGraphers() {
@@ -172,7 +173,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
     }
 
     @action.bound async fetchRefs() {
-        const { chartId } = this.suggestedRevision
+        const chartId = this?.suggestedRevision?.chartId
         const { admin } = this.context
         const json =
             chartId === undefined
@@ -257,6 +258,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
         this.rerenderGraphers()
     }
 
+    @action.bound onChangePreviewSvgOrJson(value: string) {
+        this.previewSvgOrJson = value
+        this.rerenderGraphers()
+    }
+
     componentDidMount() {
         this.refresh()
     }
@@ -269,30 +275,36 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
             >
                 <main className="SuggestedChartRevisionApproverPage">
                     {this.renderReadme()}
-
-                    {this.renderGraphers()}
-
-                    {this.warning && (
-                        <div className="warning border rounded border-danger text-danger">
-                            <h5>Warning</h5>
-                            <span>{this.warning}</span>
-                        </div>
-                    )}
-
-                    {this.renderControls()}
-
-                    <section className="references">
-                        <h5>References to existing chart</h5>
-                        {this.references.length ? (
-                            this.renderReferences()
-                        ) : (
-                            <p>No public posts reference the existing chart.</p>
-                        )}
-                    </section>
+                    {this.renderApprovalTool()}
                 </main>
             </AdminLayout>
         )
     }
+
+    renderApprovalTool() {
+        return (
+            <React.Fragment>
+                {this.renderMeta()}
+                {this.renderGraphers()}
+                {this.warning && (
+                    <div className="warning border rounded border-danger text-danger">
+                        <h5>Warning</h5>
+                        <span>{this.warning}</span>
+                    </div>
+                )}
+                {this.renderControls()}
+                <section className="references">
+                    <h5>References to existing chart</h5>
+                    {this.references.length ? (
+                        this.renderReferences()
+                    ) : (
+                        <p>No public posts reference the existing chart.</p>
+                    )}
+                </section>
+            </React.Fragment>
+        )
+    }
+
     renderReadme() {
         return (
             <section className="readme">
@@ -512,6 +524,17 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                         />
                     </div>
                     <VisionDeficiencySvgFilters />
+                    <div>
+                        Preview chart SVG or JSON?
+                        <RadioGroup
+                            options={[
+                                { label: "SVG", value: "svg" },
+                                { label: "JSON", value: "json" },
+                            ]}
+                            value={this.previewSvgOrJson}
+                            onChange={this.onChangePreviewSvgOrJson}
+                        />
+                    </div>
                 </div>
             </section>
         )
@@ -520,105 +543,109 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
     renderGraphers() {
         return (
             <React.Fragment>
-                <div>
-                    <h3>
-                        Suggested revision for chart{" "}
-                        {this.suggestedRevision
-                            ? this.suggestedRevision.chartId
-                            : ""}
-                        <button
-                            className="btn btn-outline-secondary"
-                            onClick={this.refresh}
-                            title="Refresh the charts view"
-                            style={{ marginLeft: "10px" }}
-                        >
-                            <FontAwesomeIcon icon={faRedo} />
-                        </button>
-                    </h3>
-                    <div>
-                        <ul className="meta">
-                            <li>
-                                <b>Suggested revision created by:</b>{" "}
-                                {this.suggestedRevision
-                                    ? this.suggestedRevision.user
-                                    : ""}
-                            </li>
-                            <li>
-                                <b>Created:</b>{" "}
-                                {this.suggestedRevision
-                                    ? format(this.suggestedRevision.createdAt)
-                                    : ""}
-                            </li>
-                            <li>
-                                <b>Last updated:</b>{" "}
-                                {this.suggestedRevision
-                                    ? format(this.suggestedRevision.createdAt)
-                                    : ""}
-                            </li>
-                            <li>
-                                <b>Reason for suggestion:</b>{" "}
-                                {this.suggestedRevision &&
-                                this.suggestedRevision.createdReason
-                                    ? this.suggestedRevision.createdReason
-                                    : "None provided."}
-                            </li>
-                            <li>
-                                <b>Status:</b>{" "}
-                                {this.suggestedRevision &&
-                                    this.suggestedRevision.status ===
-                                        "pending" && (
-                                        <FontAwesomeIcon
-                                            icon={faQuestionCircle}
-                                            style={{ color: "#9E9E9E" }}
-                                        />
-                                    )}
-                                {this.suggestedRevision &&
-                                    this.suggestedRevision.status ===
-                                        "approved" && (
-                                        <FontAwesomeIcon
-                                            icon={faCheckCircle}
-                                            style={{ color: "#2196F3" }}
-                                        />
-                                    )}
-                                {this.suggestedRevision &&
-                                    this.suggestedRevision.status ===
-                                        "rejected" && (
-                                        <FontAwesomeIcon
-                                            icon={faTimesCircle}
-                                            style={{ color: "#f44336" }}
-                                        />
-                                    )}{" "}
-                                {this.suggestedRevision
-                                    ? this.suggestedRevision.status
-                                    : ""}
-                            </li>
-                        </ul>
-                    </div>
+                <div
+                    className="charts-view"
+                    style={{
+                        flexDirection: this.isVerticalLayout ? "column" : "row",
+                    }}
+                >
                     <div
-                        className="charts-view"
+                        className="chart-view"
                         style={{
-                            flexDirection: this.isVerticalLayout
-                                ? "column"
-                                : "row",
+                            height: this.grapherBounds.height + 70,
+                            maxWidth: this.grapherBounds.width,
                         }}
                     >
-                        <div
-                            className="chart-view"
-                            style={{
-                                minHeight: this.grapherBounds.height + 70,
-                            }}
-                        >
-                            {this._isGraphersSet && this.renderGrapher(true)}
-                        </div>
-                        <div
-                            className="chart-view"
-                            style={{
-                                minHeight: this.grapherBounds.height + 70,
-                            }}
-                        >
-                            {this._isGraphersSet && this.renderGrapher(false)}
-                        </div>
+                        {this._isGraphersSet && this.renderGrapher(true)}
                     </div>
+                    <div
+                        className="chart-view"
+                        style={{
+                            height: this.grapherBounds.height + 70,
+                            maxWidth: this.grapherBounds.width,
+                        }}
+                    >
+                        {this._isGraphersSet && this.renderGrapher(false)}
+                    </div>
+                </div>
+            </React.Fragment>
+        )
+    }
+
+    renderMeta() {
+        return (
+            <React.Fragment>
+                <h3>
+                    Suggested revision for chart{" "}
+                    {this.suggestedRevision
+                        ? this.suggestedRevision.chartId
+                        : ""}
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={this.refresh}
+                        title="Refresh the charts view"
+                        style={{ marginLeft: "10px" }}
+                    >
+                        <FontAwesomeIcon icon={faRedo} />
+                    </button>
+                </h3>
+                <div>
+                    <ul className="meta">
+                        <li>
+                            <b>Suggested revision created by:</b>{" "}
+                            {this.suggestedRevision
+                                ? this.suggestedRevision.user
+                                : ""}
+                        </li>
+                        <li>
+                            <b>Created:</b>{" "}
+                            {this.suggestedRevision
+                                ? format(this.suggestedRevision.createdAt)
+                                : ""}
+                        </li>
+                        <li>
+                            <b>Last updated:</b>{" "}
+                            {this.suggestedRevision
+                                ? format(this.suggestedRevision.createdAt)
+                                : ""}
+                        </li>
+                        <li>
+                            <b>Reason for suggestion:</b>{" "}
+                            {this.suggestedRevision &&
+                            this.suggestedRevision.createdReason
+                                ? this.suggestedRevision.createdReason
+                                : "None provided."}
+                        </li>
+                        <li>
+                            <b>Status:</b>{" "}
+                            {this.suggestedRevision &&
+                                this.suggestedRevision.status === "pending" && (
+                                    <FontAwesomeIcon
+                                        icon={faQuestionCircle}
+                                        style={{ color: "#9E9E9E" }}
+                                    />
+                                )}
+                            {this.suggestedRevision &&
+                                this.suggestedRevision.status ===
+                                    "approved" && (
+                                    <FontAwesomeIcon
+                                        icon={faCheckCircle}
+                                        style={{ color: "#2196F3" }}
+                                    />
+                                )}
+                            {this.suggestedRevision &&
+                                this.suggestedRevision.status ===
+                                    "rejected" && (
+                                    <FontAwesomeIcon
+                                        icon={faTimesCircle}
+                                        style={{ color: "#f44336" }}
+                                    />
+                                )}{" "}
+                            {this.suggestedRevision
+                                ? this.suggestedRevision.status
+                                : ""}
+                        </li>
+                    </ul>
                 </div>
             </React.Fragment>
         )
@@ -667,20 +694,49 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                     {link}
                 </div>
                 <div>
-                    <figure
-                        data-grapher-src
-                        style={{
-                            filter:
-                                this.simulateVisionDeficiency &&
-                                `url(#${this.simulateVisionDeficiency.id})`,
-                        }}
-                    >
-                        {grapherElement}
-                    </figure>
+                    {this.previewSvgOrJson === "json" ? (
+                        <div
+                            className="json-view"
+                            style={{
+                                height: this.grapherBounds.height,
+                                maxWidth: this.grapherBounds.width,
+                            }}
+                        >
+                            <pre>
+                                <code>
+                                    {isExisting
+                                        ? JSON.stringify(
+                                              this.suggestedRevision
+                                                  .existingConfig,
+                                              null,
+                                              2
+                                          )
+                                        : JSON.stringify(
+                                              this.suggestedRevision
+                                                  .suggestedConfig,
+                                              null,
+                                              2
+                                          )}
+                                </code>
+                            </pre>
+                        </div>
+                    ) : (
+                        <figure
+                            data-grapher-src
+                            style={{
+                                filter:
+                                    this.simulateVisionDeficiency &&
+                                    `url(#${this.simulateVisionDeficiency.id})`,
+                            }}
+                        >
+                            {grapherElement}
+                        </figure>
+                    )}
                 </div>
             </React.Fragment>
         )
     }
+
     renderControls() {
         return (
             <div className="controls">
