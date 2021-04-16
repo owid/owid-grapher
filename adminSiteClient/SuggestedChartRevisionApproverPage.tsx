@@ -63,11 +63,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
     }
 
     @computed get prevBtnIsDisabled() {
-        return this.rowNumValid <= 1
+        return !this._isGraphersSet || this.rowNumValid <= 1
     }
 
     @computed get nextBtnIsDisabled() {
-        return this.rowNumValid >= this.numTotalRows
+        return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
     }
 
     @computed get warning() {
@@ -116,15 +116,17 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
         return Math.max(Math.min(this.rowNum, this.numTotalRows), 1)
     }
 
+    @computed get approveRejectButtonsIsDisabled() {
+        return !this._isGraphersSet
+    }
+
     @action.bound async refresh() {
         this.clearDecisionReasonInput()
         await this.fetchGraphers()
         await this.fetchRefs()
-        this.admin.loadingIndicatorSetting = "off"
     }
 
     @action.bound async fetchGraphers() {
-        this._isGraphersSet = false
         const { admin } = this.context
         const json = await admin.getJSON("/api/suggested-chart-revisions", {
             limit: 1,
@@ -133,11 +135,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
         })
         this.numTotalRows = json.numTotalRows
         this.suggestedRevision = json.suggestedRevisions[0]
-        this.loadGraphersJson()
+        this.rerenderGraphers()
     }
 
     @action.bound private loadGraphersJson() {
-        // console.log(this.suggestedRevision)
         if (this.suggestedRevision) {
             this.existingGrapherElement = (
                 <Grapher
@@ -194,6 +195,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
         status: string,
         decisionReason: string | undefined
     ) {
+        this._isGraphersSet = false
         const { admin } = this.context
         const data = { status, decisionReason }
         await admin.requestJSON(
@@ -218,14 +220,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
 
     @action.bound onPrev() {
         if (!this.prevBtnIsDisabled) {
-            this.rowNum -= 1
+            this.rowNum = this.rowNumValid - 1
             this.refresh()
         }
     }
 
     @action.bound onNext() {
         if (!this.nextBtnIsDisabled) {
-            this.rowNum += 1
+            this.rowNum = this.rowNumValid + 1
             this.refresh()
         }
     }
@@ -250,7 +252,9 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
             return
         }
         this.rowNum = input
-        this.refresh()
+        setTimeout(() => {
+            this.refresh()
+        }, 100)
     }
 
     @action.bound onChangeDesktopPreviewSize(value: string) {
@@ -264,7 +268,9 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
     }
 
     componentDidMount() {
-        this.refresh()
+        this.refresh().then(() => {
+            this.admin.loadingIndicatorSetting = "off"
+        })
     }
 
     render() {
@@ -787,6 +793,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                         className="btn btn-danger"
                         onClick={this.onRejectSuggestedRevision}
                         title="Reject the suggestion, keeping the existing chart as it is"
+                        disabled={this.approveRejectButtonsIsDisabled}
+                        aria-disabled={this.approveRejectButtonsIsDisabled}
                     >
                         Reject
                     </button>
@@ -794,6 +802,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                         className="btn btn-primary"
                         onClick={this.onApproveSuggestedRevision}
                         title="Approve the suggestion, replacing the existing chart with the suggested chart (also republishes the chart)"
+                        disabled={this.approveRejectButtonsIsDisabled}
+                        aria-disabled={this.approveRejectButtonsIsDisabled}
                     >
                         Approve
                     </button>
@@ -817,7 +827,6 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
                     </button>
                 </div>
                 <TextAreaField
-                    // className="notes"
                     label="Notes"
                     placeholder="e.g. why are you rejecting this suggested revision?"
                     value={this.decisionReasonInput}
@@ -827,6 +836,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component {
             </div>
         )
     }
+
     renderReferences() {
         return (
             <React.Fragment>
