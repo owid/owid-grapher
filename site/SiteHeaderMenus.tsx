@@ -25,7 +25,10 @@ import {
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription"
 import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes"
+import { SiteAnalytics } from "./SiteAnalytics"
+import { ENV } from "../settings/clientSettings"
 
+const analytics = new SiteAnalytics(ENV)
 @observer
 class Header extends React.Component<{
     categories: CategoryWithEntries[]
@@ -76,10 +79,10 @@ class Header extends React.Component<{
     }
 
     @action.bound scheduleOpenTimeout(delay: number) {
-        this.dropdownOpenTimeoutId = window.setTimeout(
-            () => this.setOpen(true),
-            delay
-        )
+        this.dropdownOpenTimeoutId = window.setTimeout(() => {
+            this.setOpen(true)
+            analytics.logSiteClick("Articles by topic", "header-open-menu")
+        }, delay)
         this.clearCloseTimeout()
     }
 
