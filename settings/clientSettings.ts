@@ -4,7 +4,10 @@
 // bundled and shipped out to our users.
 
 import dotenv from "dotenv"
-dotenv.config()
+import findBaseDir from "./findBaseDir"
+
+const baseDir = findBaseDir(__dirname)
+if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 
 import { parseIntOrUndefined } from "../clientUtils/Util"
 
