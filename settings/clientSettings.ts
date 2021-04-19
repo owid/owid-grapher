@@ -4,18 +4,10 @@
 // bundled and shipped out to our users.
 
 import dotenv from "dotenv"
-import fs from "fs"
+import findBaseDir from "./findBaseDir"
 
-// only run the below code if we're in a node environment
-if (fs.statSync !== undefined) {
-    const pkgDir = require("pkg-dir")
-
-    const baseDir = pkgDir.sync(__dirname)
-    if (baseDir === undefined)
-        throw new Error("could not locate base package.json")
-
-    dotenv.config({ path: `${baseDir}/.env` })
-}
+const baseDir = findBaseDir(__dirname)
+if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 
 import { parseIntOrUndefined } from "../clientUtils/Util"
 

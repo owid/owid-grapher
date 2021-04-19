@@ -3,9 +3,9 @@
 
 import path from "path"
 import dotenv from "dotenv"
-import pkgDir from "pkg-dir"
+import findBaseDir from "./findBaseDir"
 
-const baseDir = pkgDir.sync(__dirname)
+const baseDir = findBaseDir(__dirname)
 if (baseDir === undefined) throw new Error("could not locate base package.json")
 
 dotenv.config({ path: `${baseDir}/.env` })
