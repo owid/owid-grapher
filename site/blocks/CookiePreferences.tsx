@@ -44,8 +44,8 @@ const CookiePreference = ({
     const onChange = () => {
         toggleConsent()
         analytics.logSiteClick(
-            `${consent ? "Refuse" : "Accept"} ${name}`,
-            ANALYTICS_ACTION
+            ANALYTICS_ACTION,
+            `${consent ? "Refuse" : "Accept"} ${name}`
         )
     }
 

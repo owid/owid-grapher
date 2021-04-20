@@ -81,7 +81,7 @@ class Header extends React.Component<{
     @action.bound scheduleOpenTimeout(delay: number) {
         this.dropdownOpenTimeoutId = window.setTimeout(() => {
             this.setOpen(true)
-            analytics.logSiteClick("Articles by topic", "header-open-menu")
+            analytics.logSiteClick("header-open-menu", "Articles by topic")
         }, delay)
         this.clearCloseTimeout()
     }

@@ -152,8 +152,8 @@ export const NewsletterSubscriptionForm = ({
                     disabled={!isSubmittable}
                     onClick={() =>
                         analytics.logSiteClick(
-                            `Subscribe [${context ?? "other-contexts"}]`,
-                            "newsletter-subscribe"
+                            "newsletter-subscribe",
+                            `Subscribe [${context ?? "other-contexts"}]`
                         )
                     }
                 >
