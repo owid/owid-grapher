@@ -1,3 +1,5 @@
+import { getDOMParent } from "../../clientUtils/Util"
+
 const DEBUG = false
 
 declare var window: any
@@ -88,8 +90,11 @@ export class GrapherAnalytics {
         const dataTrackAttr = "data-track-note"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
-            const trackedAttr = targetElement.getAttribute(dataTrackAttr)
-            if (!trackedAttr) return
+            const trackedElement = getDOMParent(
+                targetElement,
+                (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
+            )
+            if (!trackedElement) return
 
             // Note that browsers will cancel all pending requests once a user
             // navigates away from a page. An earlier implementation had a
