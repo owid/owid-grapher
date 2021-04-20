@@ -21,6 +21,7 @@ import {
     StackMode,
 } from "../grapher/core/GrapherConstants"
 import { Url } from "../clientUtils/urls/Url"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"
@@ -353,7 +354,14 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                 {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
                         <div className="chart-id">
-                            <a href={`?ids=${chart.id}`}>{chart.id}</a>
+                            <a
+                                href={queryParamsToStr({
+                                    ids: chart.id.toString(),
+                                    comparisonUrl: props.comparisonUrl,
+                                })}
+                            >
+                                {chart.id}
+                            </a>
                         </div>
                         <div className="side-by-side">
                             <iframe
