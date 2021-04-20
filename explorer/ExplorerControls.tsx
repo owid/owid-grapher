@@ -87,9 +87,6 @@ export class ExplorerControlPanel extends React.Component<{
                             ? AVAILABLE_OPTION_CLASS
                             : UNAVAILABLE_OPTION_CLASS
                     )}
-                    data-track-note={`${
-                        explorerSlug ?? "explorer"
-                    }-click-${title.toLowerCase()}`}
                 >
                     <input
                         onChange={() => this.customOnChange(onChangeValue)}
@@ -98,6 +95,9 @@ export class ExplorerControlPanel extends React.Component<{
                         name={title}
                         checked={checked}
                         value={currentValue}
+                        data-track-note={`${
+                            explorerSlug ?? "explorer"
+                        }-click-${title.toLowerCase()}`}
                     />{" "}
                     {label}
                 </label>
