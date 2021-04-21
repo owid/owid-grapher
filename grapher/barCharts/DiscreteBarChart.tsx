@@ -255,10 +255,6 @@ export class DiscreteBarChart
         this.animateBarWidth()
     }
 
-    @action.bound private onAddClick() {
-        this.manager.isSelectingData = true
-    }
-
     render() {
         if (this.failMessage)
             return (
