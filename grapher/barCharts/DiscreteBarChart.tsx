@@ -324,7 +324,6 @@ export class DiscreteBarChart
                             key={series.seriesName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
-                            style={{ transition: "transform 200ms ease" }}
                         >
                             <text
                                 x={0}
