@@ -1151,6 +1151,12 @@ export class Grapher
             .map((dim) => dim.column)
     }
 
+    @computed get yColumnSlugsInSelectionOrder() {
+        return this.selectedColumnSlugs?.length
+            ? this.selectedColumnSlugs
+            : this.yColumnSlugs
+    }
+
     @computed get yColumnSlugs() {
         return this.ySlugs
             ? this.ySlugs.split(" ")

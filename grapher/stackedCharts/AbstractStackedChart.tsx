@@ -105,7 +105,10 @@ export class AbstactStackedChart
     }
 
     @computed protected get yColumnSlugs() {
-        return autoDetectYColumnSlugs(this.manager)
+        return (
+            this.manager.yColumnSlugsInSelectionOrder ??
+            autoDetectYColumnSlugs(this.manager)
+        )
     }
 
     private animSelection?: d3.Selection<
@@ -186,22 +189,16 @@ export class AbstactStackedChart
         return axis
     }
 
-    @computed private get yColumnsInSelectionOrder() {
-        // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
-        const slugsInSelectionOrder = this.manager.selectedColumnSlugs?.length
-            ? this.manager.selectedColumnSlugs
-            : this.yColumnSlugs
-        return this.transformedTable.getColumns(slugsInSelectionOrder).reverse()
-    }
-
     @computed private get columnsAsSeries() {
-        return this.yColumnsInSelectionOrder.map((col) => {
-            return {
-                isProjection: col.isProjection,
-                seriesName: col.displayName,
-                rows: col.owidRows,
-            }
-        })
+        return this.yColumns
+            .map((col) => {
+                return {
+                    isProjection: col.isProjection,
+                    seriesName: col.displayName,
+                    rows: col.owidRows,
+                }
+            })
+            .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
     @computed private get entitiesAsSeries() {
