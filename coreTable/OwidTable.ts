@@ -8,7 +8,6 @@ import {
     uniq,
     sortNumeric,
     last,
-    keyBy,
     groupBy,
     isNumber,
     isEmpty,

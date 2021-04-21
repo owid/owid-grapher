@@ -1,4 +1,3 @@
-import { Color } from "../../coreTable/CoreTableConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export interface StackedPoint {

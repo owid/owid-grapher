@@ -10,7 +10,7 @@ import {
     first,
     excludeUndefined,
 } from "../../clientUtils/Util"
-import { computed, action } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import {
