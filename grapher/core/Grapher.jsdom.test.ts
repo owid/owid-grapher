@@ -27,6 +27,7 @@ import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
 import { Url } from "../../clientUtils/urls/Url"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -852,6 +853,7 @@ it("considers map tolerance before using column tolerance", () => {
         [
             {
                 slug: "gdp",
+                type: ColumnTypeNames.Numeric,
                 tolerance: 2,
             },
         ]
@@ -867,28 +869,22 @@ it("considers map tolerance before using column tolerance", () => {
 
     expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
     expect(
-        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
-    ).toEqual(0)
+        grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
+            .values
+    ).toEqual([])
 
     grapher.map.time = 2001
     expect(
-        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
-    ).toEqual(1)
-
-    const grapherColumnTolerance = new Grapher({
-        table,
-        type: ChartTypeName.WorldMap,
-        ySlugs: "gdp",
-        tab: GrapherTabOption.map,
-        map: new MapConfig({ columnSlug: "gdp", time: 2002 }),
-    })
+        grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
+            .values
+    ).toEqual([2])
 
     grapher.map.time = 2002
     grapher.map.timeTolerance = undefined
-
     expect(
-        grapher.transformedTable.filterByEntityNames(["Germany"]).numRows
-    ).toEqual(1)
+        grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
+            .values
+    ).toEqual([2])
 })
 
 describe("tableForSelection", () => {
@@ -934,4 +930,52 @@ describe("tableForSelection", () => {
 
         expect(grapher.tableForSelection.availableEntityNames).toEqual(["UK"])
     })
+})
+
+it("handles tolerance when there are gaps in ScatterPlot data", () => {
+    const table = new OwidTable(
+        [
+            ["entityName", "year", "x", "y"],
+            ["usa", 1998, 1, 1],
+            ["uk", 1999, 0, 0],
+            ["uk", 2000, 0, 0],
+            ["uk", 2001, 0, 0],
+            ["usa", 2002, 2, 2],
+        ],
+        [
+            {
+                slug: "x",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 1,
+            },
+            {
+                slug: "y",
+                type: ColumnTypeNames.Numeric,
+                tolerance: 1,
+            },
+        ]
+    )
+
+    const grapher = new Grapher({
+        table,
+        type: ChartTypeName.ScatterPlot,
+        xSlug: "x",
+        ySlugs: "y",
+        minTime: 1999,
+        maxTime: 1999,
+    })
+
+    expect(
+        grapher.transformedTable.filterByEntityNames(["usa"]).get("x").values
+    ).toEqual([1])
+
+    grapher.timelineHandleTimeBounds = [2000, 2000]
+    expect(
+        grapher.transformedTable.filterByEntityNames(["usa"]).get("x").values
+    ).toEqual([])
+
+    grapher.timelineHandleTimeBounds = [2001, 2001]
+    expect(
+        grapher.transformedTable.filterByEntityNames(["usa"]).get("x").values
+    ).toEqual([2])
 })

@@ -934,11 +934,7 @@ export class CoreTable<
 
     appendRows(rows: ROW_TYPE[], opDescription: string) {
         return this.concat(
-            [
-                new (this.constructor as any)(rows, this.defs, {
-                    parent: this.parent,
-                }) as CoreTable,
-            ],
+            [new (this.constructor as any)(rows, this.defs) as CoreTable],
             opDescription
         )
     }
@@ -1375,6 +1371,31 @@ export class CoreTable<
         )
     }
 
+    /**
+     * Ensure a row exists for all values in columnSlug1 × columnSlug2 × ...
+     *
+     * For example, if we have a table:
+     *
+     *   ```
+     *   entityName, year, …
+     *   UK, 2000, …
+     *   UK, 2005, …
+     *   USA, 2003, …
+     *   ```
+     *
+     * After `complete(["entityName", "year"])`, we'd get:
+     *
+     *   ```
+     *   entityName, year, …
+     *   UK, 2000, …
+     *   UK, 2003, …
+     *   UK, 2005, …
+     *   USA, 2000, …
+     *   USA, 2003, …
+     *   USA, 2005, …
+     *   ```
+     *
+     */
     complete(columnSlugs: ColumnSlug[]): this {
         const index = this.rowIndex(columnSlugs)
         const cols = this.getColumns(columnSlugs)

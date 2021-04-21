@@ -757,8 +757,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const columnA = this.get(columnSlugA)
         const columnB = this.get(columnSlugB)
 
-        const toleranceA = columnA.display.tolerance ?? 0
-        const toleranceB = columnB.display.tolerance ?? 0
+        const toleranceA = columnA.tolerance ?? 0
+        const toleranceB = columnB.tolerance ?? 0
 
         // If the columns are of mismatching time types, then we can't do any time matching.
         // This can happen when we have a ScatterPlot with days in one column, and a column with
@@ -768,7 +768,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             this.timeColumn.isMissing ||
             this.timeColumn.slug !== columnA.originalTimeColumnSlug ||
             this.timeColumn.slug !== columnB.originalTimeColumnSlug ||
-            // Check for a non-zero, non-undefined tolerance
             (toleranceA === 0 && toleranceB === 0)
         ) {
             return this
