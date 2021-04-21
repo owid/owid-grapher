@@ -87,6 +87,10 @@ export class DiscreteBarChart
         return this.manager.endTime
     }
 
+    @computed private get isLogScale() {
+        return this.yAxis.scaleType === ScaleType.log
+    }
+
     @computed private get bounds() {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
@@ -125,12 +129,12 @@ export class DiscreteBarChart
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed private get rightEndLabelWidth() {
+    @computed private get rightValueLabelWidth() {
         if (!this.hasPositive) return 0
 
         const positiveLabels = this.series
-            .filter((mark) => mark.value >= 0)
-            .map((mark) => this.formatValue(mark))
+            .filter((d) => d.value >= 0)
+            .map((d) => this.formatValue(d))
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
         return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
@@ -138,7 +142,7 @@ export class DiscreteBarChart
     // The amount of space we need to allocate for bar end labels on the left
     // These are only present if there are negative values
     // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed private get leftEndLabelWidth() {
+    @computed private get leftValueLabelWidth() {
         if (!this.hasNegative) return 0
 
         const negativeLabels = this.series
@@ -161,18 +165,16 @@ export class DiscreteBarChart
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
         const allValues = this.series.map((d) => d.value)
-
-        const minStart = this.x0
         return [
-            Math.min(minStart, min(allValues) as number),
-            Math.max(minStart, max(allValues) as number),
+            Math.min(this.x0, min(allValues) as number),
+            Math.max(this.x0, max(allValues) as number),
         ]
     }
 
     @computed private get xRange(): [number, number] {
         return [
-            this.bounds.left + this.legendWidth + this.leftEndLabelWidth,
-            this.bounds.right - this.rightEndLabelWidth,
+            this.bounds.left + this.legendWidth + this.leftValueLabelWidth,
+            this.bounds.right - this.rightValueLabelWidth,
         ]
     }
 
@@ -193,9 +195,9 @@ export class DiscreteBarChart
 
     @computed private get innerBounds() {
         return this.bounds
-            .padLeft(this.legendWidth + this.leftEndLabelWidth)
+            .padLeft(this.legendWidth + this.leftValueLabelWidth)
             .padBottom(this.axis.height)
-            .padRight(this.rightEndLabelWidth)
+            .padRight(this.rightValueLabelWidth)
     }
 
     @computed private get selectionArray() {
@@ -203,16 +205,16 @@ export class DiscreteBarChart
     }
 
     // Leave space for extra bar at bottom to show "Add country" button
-    @computed private get totalBars() {
+    @computed private get barCount() {
         return this.series.length
     }
 
     @computed private get barHeight() {
-        return (0.8 * this.innerBounds.height) / this.totalBars
+        return (0.8 * this.innerBounds.height) / this.barCount
     }
 
     @computed private get barSpacing() {
-        return this.innerBounds.height / this.totalBars - this.barHeight
+        return this.innerBounds.height / this.barCount - this.barHeight
     }
 
     @computed private get barPlacements() {
@@ -506,9 +508,5 @@ export class DiscreteBarChart
             )
         }
         return series
-    }
-
-    @computed private get isLogScale() {
-        return this.yAxis.scaleType === ScaleType.log
     }
 }
