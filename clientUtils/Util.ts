@@ -1038,7 +1038,7 @@ export const differenceObj = <
     return result
 }
 
-export const getDOMParent = (
+export const findDOMParent = (
     el: HTMLElement,
     condition: (el: HTMLElement) => boolean
 ): HTMLElement | null => {

@@ -1,4 +1,4 @@
-import { getDOMParent } from "../../clientUtils/Util"
+import { findDOMParent } from "../../clientUtils/Util"
 
 const DEBUG = false
 
@@ -90,7 +90,7 @@ export class GrapherAnalytics {
         const dataTrackAttr = "data-track-note"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
-            const trackedElement = getDOMParent(
+            const trackedElement = findDOMParent(
                 targetElement,
                 (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
             )

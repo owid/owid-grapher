@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { bind } from "decko"
-import { getDOMParent } from "../clientUtils/Util"
+import { findDOMParent } from "../clientUtils/Util"
 
 interface Position {
     x: number
@@ -16,7 +16,7 @@ const DELAY = 400
 const TOLERANCE_PX = 20
 
 const getSubmenuId = (targetEl: HTMLElement): string | null => {
-    const listItem = getDOMParent(targetEl, (el: HTMLElement) =>
+    const listItem = findDOMParent(targetEl, (el: HTMLElement) =>
         el.matches(`[${ATTRIBUTE}]`)
     )
     return listItem ? listItem.getAttribute(ATTRIBUTE) : null
