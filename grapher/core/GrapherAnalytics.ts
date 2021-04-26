@@ -1,3 +1,5 @@
+import { findDOMParent } from "../../clientUtils/Util"
+
 const DEBUG = false
 
 declare var window: any
@@ -74,12 +76,8 @@ export class GrapherAnalytics {
         this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
     }
 
-    logSiteClick(text: string, note?: string, href?: string) {
-        this.logToGA(
-            Categories.SiteClick,
-            note || href || "unknown-category",
-            text
-        )
+    logSiteClick(action: string = "unknown-action", label: string) {
+        this.logToGA(Categories.SiteClick, action, label)
     }
 
     logKeyboardShortcut(shortcut: string, combo: string) {
@@ -92,17 +90,19 @@ export class GrapherAnalytics {
         const dataTrackAttr = "data-track-note"
         document.addEventListener("click", async (ev) => {
             const targetElement = ev.target as HTMLElement
-            const trackedAttr = targetElement.getAttribute(dataTrackAttr)
-            if (!trackedAttr) return
+            const trackedElement = findDOMParent(
+                targetElement,
+                (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
+            )
+            if (!trackedElement) return
 
             // Note that browsers will cancel all pending requests once a user
             // navigates away from a page. An earlier implementation had a
             // timeout to send the event before navigating, but it broke
             // CMD+CLICK for opening a new tab.
             this.logSiteClick(
-                targetElement.innerText,
-                trackedAttr || undefined,
-                targetElement.getAttribute("href") || undefined
+                trackedElement.getAttribute(dataTrackAttr) || undefined,
+                trackedElement.innerText
             )
         })
     }

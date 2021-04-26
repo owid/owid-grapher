@@ -88,35 +88,4 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     popstate: false,
 })
 
-const dataTrackAttr = "data-track-note"
-
-const getParent = (
-    el: HTMLElement,
-    condition: (el: HTMLElement) => boolean
-): HTMLElement | null => {
-    let current: HTMLElement | null = el
-    while (current) {
-        if (condition(current)) return current
-        current = current.parentElement
-    }
-    return null
-}
-
-document.addEventListener("click", async (ev) => {
-    const targetElement = ev.target as HTMLElement
-    const trackedElement = getParent(
-        targetElement,
-        (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
-    )
-    if (trackedElement) {
-        // Note that browsers will cancel all pending requests once a user
-        // navigates away from a page. An earlier implementation had a
-        // timeout to send the event before navigating, but it broke
-        // CMD+CLICK for opening a new tab.
-        analytics.logSiteClick(
-            trackedElement.innerText,
-            trackedElement.getAttribute("href") || undefined,
-            trackedElement.getAttribute(dataTrackAttr) || undefined
-        )
-    }
-})
+analytics.startClickTracking()

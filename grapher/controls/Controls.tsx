@@ -241,11 +241,11 @@ export class FooterControls extends React.Component<{
                                             ? " active"
                                             : "")
                                     }
-                                    onClick={() =>
-                                        (manager.currentTab = tabName)
-                                    }
                                 >
                                     <a
+                                        onClick={() =>
+                                            (manager.currentTab = tabName)
+                                        }
                                         data-track-note={
                                             "chart-click-" + tabName
                                         }
@@ -263,13 +263,14 @@ export class FooterControls extends React.Component<{
                                 ? " active"
                                 : "")
                         }
-                        data-track-note="chart-click-download"
-                        onClick={() =>
-                            (manager.currentTab = GrapherTabOption.download)
-                        }
                         title="Download as .png or .svg"
                     >
-                        <a>
+                        <a
+                            data-track-note="chart-click-download"
+                            onClick={() =>
+                                (manager.currentTab = GrapherTabOption.download)
+                            }
+                        >
                             <FontAwesomeIcon icon={faDownload} /> Download
                         </a>
                     </li>
