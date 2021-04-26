@@ -185,6 +185,21 @@ const multiplyBy = (
         isNotErrorValue(value) ? (value as number) * factor : value
     )
 
+const subtract = (
+    columnStore: CoreColumnStore,
+    columnSlugA: ColumnSlug,
+    columnSlugB: ColumnSlug
+) => {
+    const values = columnStore[columnSlugA] as number[]
+    const subValues = columnStore[columnSlugB] as number[]
+    return subValues.map((subValue, index) => {
+        const value = values[index]
+        if (!isNotErrorValue(value)) return value
+        if (!isNotErrorValue(subValue)) return subValue
+        return value - subValue
+    })
+}
+
 enum WhereOperators {
     is = "is",
     isNot = "isNot",
@@ -281,6 +296,7 @@ const availableTransforms: any = {
     rollingAverage: rollingAverage,
     percentChange: percentChange,
     multiplyBy: multiplyBy,
+    subtract: subtract,
     where: where,
 } as const
 
