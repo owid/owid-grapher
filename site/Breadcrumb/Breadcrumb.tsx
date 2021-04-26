@@ -58,9 +58,13 @@ export const Breadcrumb = ({
             {breadcrumbItems ? (
                 breadcrumbItems.map((item, idx) => (
                     <React.Fragment key={item.href}>
-                        <span>{item.label}</span>
-                        {idx !== breadcrumbItems.length - 1 && (
-                            <span className="separator">&gt;</span>
+                        {idx !== breadcrumbItems.length - 1 ? (
+                            <>
+                                <a href={item.href}>{item.label}</a>
+                                <span className="separator">&gt;</span>
+                            </>
+                        ) : (
+                            <span>{item.label}</span>
                         )}
                     </React.Fragment>
                 ))
