@@ -2,7 +2,7 @@ import React from "react"
 import { SubNavId } from "../../clientUtils/owidTypes"
 import { SubnavItem, subnavs } from "../SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faHome } from "@fortawesome/free-solid-svg-icons/faHome"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const getSubnavItem = (
     id: string | undefined,
@@ -44,7 +44,11 @@ export const getBreadcrumbItems = (
     return breadcrumb.reverse()
 }
 
-const BreadcrumbSeparator = () => <span className="separator">&gt;</span>
+const BreadcrumbSeparator = () => (
+    <span className="separator">
+        <FontAwesomeIcon icon={faAngleRight} />
+    </span>
+)
 
 export const Breadcrumb = ({
     subnavId,
@@ -59,9 +63,7 @@ export const Breadcrumb = ({
 
     return breadcrumbItems ? (
         <div className="breadcrumb">
-            <a href="/">
-                <FontAwesomeIcon icon={faHome} />
-            </a>
+            <a href="/">Home</a>
             <BreadcrumbSeparator />
             {breadcrumbItems.map((item, idx) => (
                 <React.Fragment key={item.href}>
