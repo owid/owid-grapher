@@ -809,7 +809,7 @@ export class Grapher
     }
 
     set startHandleTimeBound(newValue: TimeBound) {
-        if (this.isOnMapTab)
+        if (this.onlySingleTimeSelectionPossible)
             this.timelineHandleTimeBounds = [newValue, newValue]
         else
             this.timelineHandleTimeBounds = [
