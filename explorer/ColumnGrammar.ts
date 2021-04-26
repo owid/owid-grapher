@@ -108,6 +108,11 @@ export const ColumnGrammar: Grammar = {
         description:
             "Describe the dataset and the methodology used in its construction. This can be as long and detailed as you like.",
     },
+    color: {
+        ...StringCellDef,
+        keyword: "color",
+        description: "Default color for column",
+    },
     colorScaleScheme: {
         ...EnumCellDef,
         keyword: "colorScaleScheme",
