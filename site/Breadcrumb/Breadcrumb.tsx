@@ -1,6 +1,8 @@
 import React from "react"
 import { SubNavId } from "../../clientUtils/owidTypes"
 import { SubnavItem, subnavs } from "../SiteSubnavigation"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHome } from "@fortawesome/free-solid-svg-icons/faHome"
 
 export const getSubnavItem = (
     id: string | undefined,
@@ -42,6 +44,8 @@ export const getBreadcrumbItems = (
     return breadcrumb.reverse()
 }
 
+const BreadcrumbSeparator = () => <span className="separator">&gt;</span>
+
 export const Breadcrumb = ({
     subnavId,
     subnavCurrentId,
@@ -53,24 +57,24 @@ export const Breadcrumb = ({
         ? getBreadcrumbItems(subnavCurrentId, subnavs[subnavId])
         : null
 
-    return (
+    return breadcrumbItems ? (
         <div className="breadcrumb">
-            {breadcrumbItems ? (
-                breadcrumbItems.map((item, idx) => (
-                    <React.Fragment key={item.href}>
-                        {idx !== breadcrumbItems.length - 1 ? (
-                            <>
-                                <a href={item.href}>{item.label}</a>
-                                <span className="separator">&gt;</span>
-                            </>
-                        ) : (
-                            <span>{item.label}</span>
-                        )}
-                    </React.Fragment>
-                ))
-            ) : (
-                <span>Contents</span>
-            )}
+            <a href="/">
+                <FontAwesomeIcon icon={faHome} />
+            </a>
+            <BreadcrumbSeparator />
+            {breadcrumbItems.map((item, idx) => (
+                <React.Fragment key={item.href}>
+                    {idx !== breadcrumbItems.length - 1 ? (
+                        <>
+                            <a href={item.href}>{item.label}</a>
+                            <BreadcrumbSeparator />
+                        </>
+                    ) : (
+                        <span>{item.label}</span>
+                    )}
+                </React.Fragment>
+            ))}
         </div>
-    )
+    ) : null
 }
