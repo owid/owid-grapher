@@ -9,7 +9,6 @@ import {
 const subnavs = {
     coronavirus: [
         { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
-        { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
         {
             label: "Excess mortality",
             href: "/excess-mortality-covid",
