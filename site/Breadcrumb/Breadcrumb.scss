@@ -1,0 +1,9 @@
+.breadcrumb {
+    margin-top: $vertical-spacing;
+    font-size: 0.875rem;
+
+    .separator {
+        margin: 0 0.5rem;
+        color: $primary-color-400;
+    }
+}

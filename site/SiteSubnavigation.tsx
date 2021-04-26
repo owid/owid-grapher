@@ -3,14 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes"
 
-interface SubnavItem {
+export interface SubnavItem {
     label: string
     href: string
     id: string
     highlight?: boolean
+    parentId?: string
 }
 
-const subnavs: { [key in SubNavId]: SubnavItem[] } = {
+export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     about: [
         // `label` is shown in the UI, `id` is specified as a formatting option
         // on a page (the top html comment in WordPress)
