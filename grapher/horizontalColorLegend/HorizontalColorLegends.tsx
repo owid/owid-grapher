@@ -17,6 +17,7 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { Color } from "../../clientUtils/owidTypes"
 
 interface PositionedBin {
     x: number
@@ -69,6 +70,7 @@ export interface HorizontalColorLegendManager {
     scale?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
+    categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
     equalSizeBins?: boolean
@@ -520,16 +522,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     render() {
         const { manager, marks } = this
-        const { categoricalFocusBracket } = manager
 
         return (
             <g>
                 <g className="categoricalColorLegend">
                     {marks.map((mark, index) => {
-                        const isFocus =
-                            categoricalFocusBracket &&
-                            mark.bin.value === categoricalFocusBracket.value
-                        const stroke = isFocus ? FOCUS_BORDER_COLOR : "#333"
                         return (
                             <g
                                 key={index}
@@ -550,7 +547,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     width={mark.rectSize}
                                     height={mark.rectSize}
                                     fill={mark.bin.color}
-                                    stroke={stroke}
+                                    stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
                                 />
                                 ,

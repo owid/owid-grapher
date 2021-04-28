@@ -64,9 +64,12 @@ import {
 } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { Color } from "../../clientUtils/owidTypes"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
+
+const DEFAULT_STROKE_COLOR = "#333"
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -464,6 +467,10 @@ export class MapChart
             return categoricalLegendData.find((bin) => bin.contains(focusValue))
 
         return undefined
+    }
+
+    @computed get categoricalBinStroke(): Color {
+        return DEFAULT_STROKE_COLOR
     }
 
     @computed get legendBounds() {
@@ -927,7 +934,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                             const stroke =
                                 isFocus || showSelectedStyle
                                     ? focusStrokeColor
-                                    : "#333"
+                                    : DEFAULT_STROKE_COLOR
                             const fill = series ? series.color : defaultFill
                             const fillOpacity = outOfFocusBracket
                                 ? blurFillOpacity
