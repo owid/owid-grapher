@@ -52,9 +52,16 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
+export enum LegendAlign {
+    left = "left",
+    center = "center",
+    right = "right",
+}
+
 export interface MapLegendManager {
     fontSize?: number
     legendX?: number
+    legendAlign?: LegendAlign
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
@@ -95,6 +102,11 @@ class MapLegend extends React.Component<{
 
     @computed get legendHeight() {
         return this.manager.legendHeight ?? 200
+    }
+
+    @computed get legendAlign() {
+        // Assume center alignment if none specified, for backwards-compatibility
+        return this.manager.legendAlign ?? LegendAlign.center
     }
 
     @computed get fontSize() {
@@ -481,10 +493,16 @@ export class MapCategoricalColorLegend extends MapLegend {
 
     @computed get marks() {
         const lines = this.markLines
+        const align = this.legendAlign
 
         // Center each line
         lines.forEach((line) => {
-            const xShift = this.width / 2 - line.totalWidth / 2
+            const xShift =
+                align === LegendAlign.center
+                    ? (this.width - line.totalWidth) / 2
+                    : align === LegendAlign.right
+                    ? this.width - line.totalWidth
+                    : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
                 mark.label.bounds = mark.label.bounds.extend({
