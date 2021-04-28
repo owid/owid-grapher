@@ -6,6 +6,7 @@ export enum ChartTypeName {
     TimeScatter = "TimeScatter",
     StackedArea = "StackedArea",
     DiscreteBar = "DiscreteBar",
+    StackedDiscreteBar = "StackedDiscreteBar",
     SlopeChart = "SlopeChart",
     StackedBar = "StackedBar",
     WorldMap = "WorldMap",

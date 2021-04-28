@@ -265,7 +265,7 @@ export class AbstactStackedChart
         return this.series.map((series) => series.color)
     }
 
-    @computed get unstackedSeries() {
+    @computed get unstackedSeries(): StackedSeries[] {
         return this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {

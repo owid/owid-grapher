@@ -11,6 +11,7 @@ import { ChartInterface } from "./ChartInterface"
 import { ChartManager } from "./ChartManager"
 import { ComponentClass, Component } from "react"
 import { Bounds } from "../../clientUtils/Bounds"
+import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 
 interface ChartComponentProps {
     manager: ChartManager
@@ -31,6 +32,7 @@ export const ChartComponentClassMap = new Map<
     [ChartTypeName.SlopeChart, SlopeChart],
     [ChartTypeName.StackedArea, StackedAreaChart],
     [ChartTypeName.StackedBar, StackedBarChart],
+    [ChartTypeName.StackedDiscreteBar, StackedDiscreteBarChart],
     [ChartTypeName.ScatterPlot, ScatterPlotChart],
     [ChartTypeName.TimeScatter, TimeScatterChart],
     [ChartTypeName.WorldMap, MapChart],

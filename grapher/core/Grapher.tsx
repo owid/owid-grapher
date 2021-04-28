@@ -844,7 +844,9 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible() {
-        return this.type === ChartTypeName.DiscreteBar || this.isOnMapTab
+        return (
+            this.isDiscreteBar || this.isStackedDiscreteBar || this.isOnMapTab
+        )
     }
 
     @computed get shouldLinkToOwid() {
@@ -1345,6 +1347,9 @@ export class Grapher
     }
     @computed get isStackedBar() {
         return this.type === ChartTypeName.StackedBar
+    }
+    @computed get isStackedDiscreteBar() {
+        return this.type === ChartTypeName.StackedDiscreteBar
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar() {

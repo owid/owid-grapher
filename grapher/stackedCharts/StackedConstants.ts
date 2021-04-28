@@ -5,6 +5,7 @@ export interface StackedPoint {
     y: number
     yOffset: number
     fake?: boolean
+    color?: string
 }
 
 export interface StackedSeries extends ChartSeries {
