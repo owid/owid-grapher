@@ -8,6 +8,7 @@ import { formatAuthors, formatDate } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { faSync } from "@fortawesome/free-solid-svg-icons/faSync"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "../site/TableOfContents"
 import {
@@ -169,23 +170,32 @@ export const LongFormPage = (props: {
                                     />
                                 )}
 
-                                {post.lastUpdated && (
-                                    <div
-                                        className="last-updated"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.lastUpdated,
-                                        }}
-                                    />
-                                )}
-                                {(isPost || isEntry || isSubEntry) && (
+                                {(isPost ||
+                                    isEntry ||
+                                    isSubEntry ||
+                                    post.lastUpdated) && (
                                     <div className="tools">
-                                        <a href="#licence">
-                                            <FontAwesomeIcon
-                                                icon={faCreativeCommons}
-                                            />
-                                            Reuse our work{" "}
-                                            <strong>freely</strong>
-                                        </a>
+                                        {post.lastUpdated && (
+                                            <div className="last-updated">
+                                                <FontAwesomeIcon
+                                                    icon={faSync}
+                                                />
+                                                <span
+                                                    dangerouslySetInnerHTML={{
+                                                        __html:
+                                                            post.lastUpdated,
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        {(isPost || isEntry || isSubEntry) && (
+                                            <a href="#licence">
+                                                <FontAwesomeIcon
+                                                    icon={faCreativeCommons}
+                                                />
+                                                Reuse our work freely
+                                            </a>
+                                        )}
                                         {(isEntry || isSubEntry) && (
                                             <a href="#citation">
                                                 <FontAwesomeIcon
