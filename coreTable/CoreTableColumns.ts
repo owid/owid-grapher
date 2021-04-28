@@ -659,6 +659,8 @@ class DayColumn extends TimeColumn {
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn extends DayColumn {
     parse(val: any) {
+        // skip parsing if a date is a number, it's already been parsed
+        if (typeof val === "number") return val
         if (!dateToTimeCache.has(val))
             dateToTimeCache.set(
                 val,
@@ -675,6 +677,8 @@ class QuarterColumn extends TimeColumn {
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
     parse(val: any): number | ErrorValue {
+        // skip parsing if a date is a number, it's already been parsed
+        if (typeof val === "number") return val
         if (typeof val === "string") {
             const match = val.match(QuarterColumn.regEx)
             if (match) {
