@@ -25,7 +25,7 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
-    stackedSeriesMaxY,
+    stackedSeriesMaxValue,
     stackSeries,
     stackSeriesOrthogonal,
 } from "../stackedCharts/StackedUtils"
@@ -128,13 +128,13 @@ export class StackedDiscreteBarChart
     @computed private get x0() {
         if (!this.isLogScale) return 0
 
-        const minValue = min(this.series.map(stackedSeriesMaxY))
+        const minValue = min(this.series.map(stackedSeriesMaxValue))
         return minValue !== undefined ? Math.min(1, minValue) : 1
     }
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const maxYs = this.series.map(stackedSeriesMaxY)
+        const maxYs = this.series.map(stackedSeriesMaxValue)
         return [
             Math.min(this.x0, min(maxYs) as number),
             Math.max(this.x0, max(maxYs) as number),
@@ -255,9 +255,12 @@ export class StackedDiscreteBarChart
                                 {series.seriesName}
                             </text>
                             {series.points.map((point, i) => {
-                                const barX = axis.place(this.x0 + point.yOffset)
+                                const barX = axis.place(
+                                    this.x0 + point.valueOffset
+                                )
                                 const barWidth =
-                                    axis.place(point.y) - axis.place(this.x0)
+                                    axis.place(point.value) -
+                                    axis.place(this.x0)
                                 return (
                                     <rect
                                         // TODO pick a better `key`
@@ -333,12 +336,12 @@ export class StackedDiscreteBarChart
                         color: DEFAULT_BAR_COLOR,
                         rows: col.owidRows,
                         points: col.owidRows.map((row) => ({
-                            x: row.time,
-                            y: row.value,
+                            position: row.time,
+                            value: row.value,
+                            valueOffset: 0,
                             color: this.transformedTable.getColorForEntityName(
                                 row.entityName
                             ),
-                            yOffset: 0,
                         })),
                     }
                 })
@@ -347,7 +350,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed private get entitiesAsSeries() {
+    @computed private get entitiesAsSeries(): StackedSeries[] {
         return this.selectionArray.selectedEntityNames
             .map((seriesName) => {
                 return {
@@ -360,10 +363,10 @@ export class StackedDiscreteBarChart
                             if (!rows) return undefined
                             const row = rows[0]
                             return {
-                                x: row.time,
-                                y: row.value,
+                                position: row.time,
+                                value: row.value,
+                                valueOffset: 0,
                                 color: col.def.color,
-                                yOffset: 0,
                             }
                         })
                     ),
@@ -400,7 +403,7 @@ export class StackedDiscreteBarChart
     @computed get series() {
         return sortBy(
             stackSeriesOrthogonal(this.unstackedSeries),
-            stackedSeriesMaxY
+            stackedSeriesMaxValue
         ).reverse()
     }
 }

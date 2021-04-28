@@ -16,7 +16,8 @@ export const stackSeries = (seriesArr: StackedSeries[]) => {
         series.points.forEach((point, pointIndex) => {
             const pointBelowThisOne =
                 seriesArr[seriesIndex - 1].points[pointIndex]
-            point.yOffset = pointBelowThisOne.y + pointBelowThisOne.yOffset
+            point.valueOffset =
+                pointBelowThisOne.value + pointBelowThisOne.valueOffset
         })
     })
     return seriesArr
@@ -28,7 +29,8 @@ export const stackSeriesOrthogonal = (seriesArr: StackedSeries[]) => {
             // first point doesn't need to be shifted
             if (pointIndex === 0) return
             const pointBelowThisOne = series.points[pointIndex - 1]
-            point.yOffset = pointBelowThisOne.y + pointBelowThisOne.yOffset
+            point.valueOffset =
+                pointBelowThisOne.value + pointBelowThisOne.valueOffset
         })
     })
     return seriesArr
@@ -41,21 +43,21 @@ export const withZeroesAsInterpolatedPoints = (
     const allXValuesSorted = sortNumeric(
         uniq(
             flatten(seriesArr.map((series) => series.points)).map(
-                (point) => point.x
+                (point) => point.position
             )
         )
     )
     return seriesArr.map((series) => {
-        const xValueToPoint = keyBy(series.points, "x")
+        const pointsByPosition = keyBy(series.points, "position")
         return {
             ...series,
-            points: allXValuesSorted.map((x) => {
-                const point = xValueToPoint[x]
-                const y = point?.y ?? 0
+            points: allXValuesSorted.map((position) => {
+                const point = pointsByPosition[position]
+                const value = point?.value ?? 0
                 return {
-                    x,
-                    y,
-                    yOffset: 0,
+                    position,
+                    value,
+                    valueOffset: 0,
                     fake: !point,
                 }
             }),
@@ -63,10 +65,10 @@ export const withZeroesAsInterpolatedPoints = (
     })
 }
 
-export const stackedSeriesMaxY = (series: StackedSeries): number => {
+export const stackedSeriesMaxValue = (series: StackedSeries): number => {
     const { points } = series
     if (points.length === 0) return 0
-    if (points.length === 1) return first(points)!.y
+    if (points.length === 1) return first(points)!.value
     const lastPoint = last(points)!
-    return lastPoint.y + lastPoint.yOffset
+    return lastPoint.value + lastPoint.valueOffset
 }

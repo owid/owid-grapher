@@ -176,7 +176,7 @@ export class AbstactStackedChart
         // const lastSeries = this.series[this.series.length - 1]
         // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yValues = this.allStackedPoints.map(
-            (point) => point.y + point.yOffset
+            (point) => point.value + point.valueOffset
         )
         const axisConfig =
             this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
@@ -275,9 +275,9 @@ export class AbstactStackedChart
                     isProjection,
                     points: rows.map((row) => {
                         return {
-                            x: row.time,
-                            y: row.value,
-                            yOffset: 0,
+                            position: row.time,
+                            value: row.value,
+                            valueOffset: 0,
                         }
                     }),
                     color: this.getColorForSeries(seriesName),

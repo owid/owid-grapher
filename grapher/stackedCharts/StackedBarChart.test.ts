@@ -61,7 +61,7 @@ describe("stackedbar chart with entities as series", () => {
 
     it("can render complete data correctly", () => {
         expect(chart.series.length).toEqual(5)
-        expect(chart.series[0].points[0].y).toBeTruthy()
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 
     it("can handle a missing row", () => {
@@ -76,7 +76,7 @@ describe("stackedbar chart with entities as series", () => {
         }
         const chart = new StackedBarChart({ manager })
         expect(chart.series.length).toEqual(5)
-        expect(chart.series[0].points[0].y).toBeTruthy()
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 })
 
@@ -99,7 +99,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every((series) =>
             series.points.every(
-                (point) => isNumber(point.x) && isNumber(point.y)
+                (point) => isNumber(point.position) && isNumber(point.value)
             )
         )
     ).toBeTruthy()
