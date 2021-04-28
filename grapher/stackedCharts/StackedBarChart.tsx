@@ -26,16 +26,20 @@ import { VerticalAxis } from "../axis/Axis"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
+import { Time } from "../../clientUtils/owidTypes"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
-    bar: StackedPoint
-    series: StackedSeries
+    bar: StackedPoint<Time>
+    series: StackedSeries<Time>
     color: string
     opacity: number
     yAxis: VerticalAxis
     xOffset: number
     barWidth: number
-    onBarMouseOver: (bar: StackedPoint, series: StackedSeries) => void
+    onBarMouseOver: (
+        bar: StackedPoint<Time>,
+        series: StackedSeries<Time>
+    ) => void
     onBarMouseLeave: () => void
 }
 
@@ -91,7 +95,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
 @observer
 export class StackedBarChart
-    extends AbstactStackedChart
+    extends AbstactStackedChart<Time>
     implements VerticalColorLegendManager, ColorScaleManager {
     readonly minBarSpacing = 4
 
@@ -102,8 +106,8 @@ export class StackedBarChart
     // currently hovered legend color
     @observable hoverColor?: string
     // current hovered individual bar
-    @observable hoverBar?: StackedPoint
-    @observable hoverSeries?: StackedSeries
+    @observable hoverBar?: StackedPoint<Time>
+    @observable hoverSeries?: StackedSeries<Time>
 
     @computed private get baseFontSize() {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -322,7 +326,10 @@ export class StackedBarChart
 
     @action.bound onLegendClick() {}
 
-    @action.bound onBarMouseOver(bar: StackedPoint, series: StackedSeries) {
+    @action.bound onBarMouseOver(
+        bar: StackedPoint<Time>,
+        series: StackedSeries<Time>
+    ) {
         this.hoverBar = bar
         this.hoverSeries = series
     }

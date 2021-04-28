@@ -28,10 +28,11 @@ import {
 import { StackedSeries } from "./StackedConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
+import { Time } from "../../clientUtils/owidTypes"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
-    seriesArr: StackedSeries[]
+    seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
     onHover: (hoverIndex: number | undefined) => void
 }
@@ -73,7 +74,7 @@ class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    private seriesIsBlur(series: StackedSeries) {
+    private seriesIsBlur(series: StackedSeries<Time>) {
         return (
             this.props.focusedSeriesNames.length > 0 &&
             !this.props.focusedSeriesNames.includes(series.seriesName)
@@ -210,7 +211,7 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends AbstactStackedChart
+    extends AbstactStackedChart<Time>
     implements LineLegendManager {
     constructor(props: AbstactStackedChartProps) {
         super(props)
@@ -286,7 +287,7 @@ export class StackedAreaChart
         return this.focusedSeriesNames.length > 0
     }
 
-    seriesIsBlur(series: StackedSeries) {
+    seriesIsBlur(series: StackedSeries<Time>) {
         return (
             this.focusedSeriesNames.length > 0 &&
             !this.focusedSeriesNames.includes(series.seriesName)

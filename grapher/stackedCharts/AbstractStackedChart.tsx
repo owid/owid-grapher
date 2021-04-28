@@ -17,7 +17,7 @@ import {
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { StackedSeries } from "./StackedConstants"
+import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -34,7 +34,7 @@ export interface AbstactStackedChartProps {
 }
 
 @observer
-export class AbstactStackedChart
+export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable) {
@@ -265,7 +265,7 @@ export class AbstactStackedChart
         return this.series.map((series) => series.color)
     }
 
-    @computed get unstackedSeries(): StackedSeries[] {
+    @computed get unstackedSeries(): readonly StackedSeries<PositionType>[] {
         return this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {
@@ -281,11 +281,11 @@ export class AbstactStackedChart
                         }
                     }),
                     color: this.getColorForSeries(seriesName),
-                } as StackedSeries
+                } as StackedSeries<PositionType>
             })
     }
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries<PositionType>[] {
         return this.unstackedSeries
     }
 }
