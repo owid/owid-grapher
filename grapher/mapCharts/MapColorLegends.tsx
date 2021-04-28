@@ -428,7 +428,7 @@ export class MapCategoricalColorLegend extends MapLegend {
         const rectSize = 12 * scale
         const rectPadding = 5
         const markPadding = 5
-        const fontSize = 0.7 * scale * this.fontSize
+        const fontSize = 0.8 * scale * this.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
