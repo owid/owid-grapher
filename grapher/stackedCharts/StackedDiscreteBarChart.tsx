@@ -4,16 +4,19 @@ import {
     max,
     maxBy,
     exposeInstanceOnWindow,
+    last,
+    flatten,
     excludeUndefined,
     sortBy,
 } from "../../clientUtils/Util"
-import { computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
+    SeriesName,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -24,23 +27,36 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import {
-    stackedSeriesMaxValue,
-    stackSeries,
-    stackSeriesOrthogonal,
-} from "../stackedCharts/StackedUtils"
+import { stackSeries } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Time } from "../../clientUtils/owidTypes"
-import { StackedSeries } from "./StackedConstants"
+import { Color, Time } from "../../clientUtils/owidTypes"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { EntityName } from "../../coreTable/OwidTableConstants"
+import {
+    LegendAlign,
+    MapCategoricalColorLegend,
+    MapLegendManager,
+} from "../mapCharts/MapColorLegends"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 // const labelToTextPadding = 10
-// const labelToBarPadding = 5
+const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
     endTime?: Time
 }
 
-const DEFAULT_BAR_COLOR = "#2E5778"
+interface Item {
+    label: string
+    bars: Bar[]
+}
+
+interface Bar {
+    color: Color
+    seriesName: string
+    point: StackedPoint<EntityName>
+}
 
 @observer
 export class StackedDiscreteBarChart
@@ -48,7 +64,7 @@ export class StackedDiscreteBarChart
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
     }>
-    implements ChartInterface {
+    implements ChartInterface, MapLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
@@ -72,6 +88,8 @@ export class StackedDiscreteBarChart
 
         return table
     }
+
+    @observable focusSeriesName?: SeriesName
 
     @computed get inputTable() {
         return this.manager.table
@@ -97,14 +115,16 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get bounds() {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+        return (this.props.bounds ?? DEFAULT_BOUNDS)
+            .padRight(10)
+            .padTop(this.legendPaddingTop)
     }
 
     @computed private get baseFontSize() {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get legendLabelStyle() {
+    @computed private get labelStyle() {
         return {
             fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
@@ -119,30 +139,37 @@ export class StackedDiscreteBarChart
     }
 
     // Account for the width of the legend
-    @computed private get legendWidth() {
-        const labels = this.series.map((series) => series.seriesName)
+    @computed private get labelWidth() {
+        const labels = this.items.map((item) => item.label)
         const longestLabel = maxBy(labels, (d) => d.length)
-        return Bounds.forText(longestLabel, this.legendLabelStyle).width
+        return Bounds.forText(longestLabel, this.labelStyle).width
     }
 
     @computed private get x0() {
-        if (!this.isLogScale) return 0
+        return 0
+        // TODO handle log scales?
+        // if (!this.isLogScale) return 0
+        // const minValue = min(this.series.map(stackedSeriesMaxValue))
+        // return minValue !== undefined ? Math.min(1, minValue) : 1
+    }
 
-        const minValue = min(this.series.map(stackedSeriesMaxValue))
-        return minValue !== undefined ? Math.min(1, minValue) : 1
+    @computed private get allPoints(): StackedPoint<EntityName>[] {
+        return flatten(this.series.map((series) => series.points))
     }
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const maxYs = this.series.map(stackedSeriesMaxValue)
+        const maxValues = this.allPoints.map(
+            (point) => point.value + point.valueOffset
+        )
         return [
-            Math.min(this.x0, min(maxYs) as number),
-            Math.max(this.x0, max(maxYs) as number),
+            Math.min(this.x0, min(maxValues) as number),
+            Math.max(this.x0, max(maxValues) as number),
         ]
     }
 
     @computed private get xRange(): [number, number] {
-        return [this.bounds.left + this.legendWidth, this.bounds.right]
+        return [this.bounds.left + this.labelWidth, this.bounds.right]
     }
 
     @computed private get yAxis() {
@@ -161,24 +188,96 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get innerBounds() {
-        return this.bounds.padLeft(this.legendWidth).padBottom(this.axis.height)
+        return this.bounds
+            .padLeft(this.labelWidth)
+            .padBottom(this.axis.height)
+            .padTop(this.legend.height)
     }
 
     @computed private get selectionArray() {
         return makeSelectionArray(this.manager)
     }
 
-    // Leave space for extra bar at bottom to show "Add country" button
-    @computed private get barCount() {
-        return this.series.length
+    @computed private get items(): Item[] {
+        const entityNames = this.selectionArray.selectedEntityNames
+        const items = entityNames.map((entityName) => ({
+            label: entityName,
+            bars: excludeUndefined(
+                this.series.map((series) => {
+                    const point = series.points.find(
+                        (point) => point.position === entityName
+                    )
+                    if (!point) return undefined
+                    return {
+                        point,
+                        color: series.color,
+                        seriesName: series.seriesName,
+                    }
+                })
+            ),
+        }))
+        return sortBy(items, (item) => {
+            const lastPoint = last(item.bars)?.point
+            if (!lastPoint) return 0
+            return lastPoint.valueOffset + lastPoint.value
+        }).reverse()
     }
 
     @computed private get barHeight() {
-        return (0.8 * this.innerBounds.height) / this.barCount
+        return (0.8 * this.innerBounds.height) / this.items.length
     }
 
     @computed private get barSpacing() {
-        return this.innerBounds.height / this.barCount - this.barHeight
+        return this.innerBounds.height / this.items.length - this.barHeight
+    }
+
+    // legend props
+
+    @computed get legendPaddingTop(): number {
+        return 13
+    }
+
+    @computed get legendX(): number {
+        return this.axis.place(this.x0)
+    }
+
+    @computed get categoryLegendY(): number {
+        return this.legendPaddingTop
+    }
+
+    @computed get legendWidth(): number {
+        return this.bounds.width * 0.8
+    }
+
+    @computed get legendAlign(): LegendAlign {
+        return LegendAlign.left
+    }
+
+    @computed get fontSize(): number {
+        return this.baseFontSize
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        return this.series.map((series, index) => {
+            return new CategoricalBin({
+                index,
+                value: series.seriesName,
+                label: series.seriesName,
+                color: series.color,
+            })
+        })
+    }
+
+    @action.bound onLegendMouseOver(bin: CategoricalBin) {
+        this.focusSeriesName = bin.value
+    }
+
+    @action.bound onLegendMouseLeave() {
+        this.focusSeriesName = undefined
+    }
+
+    @computed private get legend(): MapCategoricalColorLegend {
+        return new MapCategoricalColorLegend({ manager: this })
     }
 
     componentDidMount() {
@@ -231,30 +330,34 @@ export class StackedDiscreteBarChart
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {series.map((series) => {
+                <MapCategoricalColorLegend manager={this} />
+                {this.items.map(({ label, bars }) => {
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={series.seriesName}
+                            key={label}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
                             <text
                                 x={0}
                                 y={0}
-                                transform={`translate(${axis.place(
-                                    this.x0
-                                )}, 0)`}
+                                transform={`translate(${
+                                    axis.place(this.x0) - labelToBarPadding
+                                }, 0)`}
                                 fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
-                                {...this.legendLabelStyle}
+                                {...this.labelStyle}
                             >
-                                {series.seriesName}
+                                {label}
                             </text>
-                            {series.points.map((point, i) => {
+                            {bars.map(({ point, color, seriesName }) => {
+                                const isFaint =
+                                    this.focusSeriesName !== undefined &&
+                                    this.focusSeriesName !== seriesName
                                 const barX = axis.place(
                                     this.x0 + point.valueOffset
                                 )
@@ -263,8 +366,7 @@ export class StackedDiscreteBarChart
                                     axis.place(this.x0)
                                 return (
                                     <rect
-                                        // TODO pick a better `key`
-                                        key={i}
+                                        key={seriesName}
                                         x={0}
                                         y={0}
                                         transform={`translate(${barX}, ${
@@ -272,8 +374,8 @@ export class StackedDiscreteBarChart
                                         })`}
                                         width={barWidth}
                                         height={barHeight}
-                                        fill={point.color}
-                                        opacity={0.85}
+                                        fill={color}
+                                        opacity={isFaint ? 0.1 : 0.85}
                                         style={{
                                             transition: "height 200ms ease",
                                         }}
@@ -311,37 +413,32 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed private get seriesStrategy() {
-        return (
-            this.manager.seriesStrategy ??
-            (this.yColumnSlugs.length > 1 &&
-            this.selectionArray.numSelectedEntities === 1
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
-        )
-    }
-
     @computed protected get yColumns() {
         // We want the first selected series to be on top, so we reverse the order.
         return this.transformedTable.getColumns(this.yColumnSlugs).reverse()
     }
 
-    @computed private get columnsAsSeries() {
+    @computed private get colorScheme() {
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : undefined) ?? ColorSchemes["owid-distinct"]
+        )
+    }
+
+    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
         return (
             this.yColumns
-                .map((col) => {
+                .map((col, i) => {
                     return {
-                        isProjection: col.isProjection,
                         seriesName: col.displayName,
-                        color: DEFAULT_BAR_COLOR,
-                        rows: col.owidRows,
+                        color:
+                            col.def.color ??
+                            this.colorScheme.getColors(this.yColumns.length)[i],
                         points: col.owidRows.map((row) => ({
-                            position: row.time,
+                            position: row.entityName,
                             value: row.value,
                             valueOffset: 0,
-                            color: this.transformedTable.getColorForEntityName(
-                                row.entityName
-                            ),
                         })),
                     }
                 })
@@ -350,60 +447,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed private get entitiesAsSeries(): StackedSeries[] {
-        return this.selectionArray.selectedEntityNames
-            .map((seriesName) => {
-                return {
-                    seriesName,
-                    points: excludeUndefined(
-                        this.yColumns.map((col) => {
-                            const rows = col.owidRowsByEntityName.get(
-                                seriesName
-                            )
-                            if (!rows) return undefined
-                            const row = rows[0]
-                            return {
-                                position: row.time,
-                                value: row.value,
-                                valueOffset: 0,
-                                color: col.def.color,
-                            }
-                        })
-                    ),
-                    color: DEFAULT_BAR_COLOR,
-                }
-            })
-            .reverse()
-    }
-
-    @computed private get rawSeries(): readonly StackedSeries[] {
-        // TODO sort series
-        return this.seriesStrategy === SeriesStrategy.entity
-            ? this.entitiesAsSeries
-            : this.columnsAsSeries
-    }
-
-    @computed get unstackedSeries() {
-        const series = this.rawSeries
-            .slice() // we need to clone/slice here so `.reverse()` doesn't modify `this.sortedRawSeries` in-place
-            .reverse()
-            .map((rawSeries) => {
-                const { seriesName, color, points } = rawSeries
-                const series: StackedSeries = {
-                    points,
-                    seriesName,
-                    color: color ?? DEFAULT_BAR_COLOR,
-                }
-                return series
-            })
-
-        return series
-    }
-
-    @computed get series() {
-        return sortBy(
-            stackSeriesOrthogonal(this.unstackedSeries),
-            stackedSeriesMaxValue
-        ).reverse()
+    @computed get series(): readonly StackedSeries<EntityName>[] {
+        return stackSeries(this.unstackedSeries)
     }
 }

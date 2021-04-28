@@ -235,9 +235,9 @@ export const defaultTo = <T, K>(
     defaultValue: K
 ): T | K => value ?? defaultValue
 
-export const first = <T>(arr: T[]): T | undefined => arr[0]
+export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
 
-export const last = <T>(arr: T[]): T | undefined => arr[arr.length - 1]
+export const last = <T>(arr: readonly T[]): T | undefined => arr[arr.length - 1]
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]

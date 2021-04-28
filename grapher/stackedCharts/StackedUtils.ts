@@ -1,11 +1,4 @@
-import { last } from "lodash"
-import {
-    first,
-    flatten,
-    keyBy,
-    sortNumeric,
-    uniq,
-} from "../../clientUtils/Util"
+import { flatten, keyBy, sortNumeric, uniq } from "../../clientUtils/Util"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points in place.
@@ -54,16 +47,4 @@ export const withZeroesAsInterpolatedPoints = <
             }),
         }
     })
-}
-
-export const stackedSeriesMaxValue = <
-    PositionType extends StackedPointPositionType
->(
-    series: StackedSeries<PositionType>
-): number => {
-    const { points } = series
-    if (points.length === 0) return 0
-    if (points.length === 1) return first(points)!.value
-    const lastPoint = last(points)!
-    return lastPoint.value + lastPoint.valueOffset
 }
