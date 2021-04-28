@@ -37,7 +37,7 @@ export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
 export interface TableDef {
     url?: string
-    columnDefinitions?: string
+    columnDefinitions?: CoreColumnDef[]
     inlineData?: string
 }
 
@@ -223,10 +223,7 @@ export class ExplorerProgram extends GridProgram {
         this.tableSlugs.forEach((tableSlug) => {
             const tableDef = this.getTableDef(tableSlug)
             if (tableDef && tableDef.columnDefinitions) {
-                result.set(
-                    tableSlug,
-                    columnDefinitionsFromDelimited(tableDef.columnDefinitions)
-                )
+                result.set(tableSlug, tableDef.columnDefinitions)
             }
         })
         return result
@@ -409,10 +406,16 @@ export class ExplorerProgram extends GridProgram {
             tableSlug
         )
 
+        const columnDefinitions: CoreColumnDef[] | undefined =
+            colDefsRow !== -1
+                ? columnDefinitionsFromDelimited(
+                      this.getBlock(colDefsRow)
+                  ).map((row) => trimAndParseObject(row, ColumnGrammar))
+                : undefined
+
         return {
             url,
-            columnDefinitions:
-                colDefsRow !== -1 ? this.getBlock(colDefsRow) : undefined,
+            columnDefinitions,
             inlineData,
         }
     }
