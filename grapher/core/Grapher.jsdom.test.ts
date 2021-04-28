@@ -28,6 +28,7 @@ import { Url } from "../../clientUtils/urls/Url"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
+import { SelectionArray } from "../selection/SelectionArray"
 
 const TestGrapherConfig = () => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -112,6 +113,21 @@ it("can apply legacy chart dimension settings", () => {
     const col = grapher.yColumns[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
+})
+
+it("correctly identifies changes to passed-in selection", () => {
+    const selection = new SelectionArray()
+    const grapher = new Grapher({
+        ...legacyConfig,
+        manager: { selection },
+    })
+
+    expect(grapher.changedParams).toEqual({})
+    expect(selection.selectedEntityNames).toEqual(["Iceland", "Afghanistan"])
+
+    selection.deselectEntity("Afghanistan")
+
+    expect(grapher.changedParams).toEqual({ country: "~ISL" })
 })
 
 it("can fallback to a ycolumn if a map variableId does not exist", () => {

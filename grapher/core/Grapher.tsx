@@ -31,7 +31,6 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
-    intersection,
 } from "../../clientUtils/Util"
 import {
     ChartTypeName,
@@ -2125,6 +2124,7 @@ export class Grapher
     @computed private get authorsVersion() {
         return new Grapher({
             ...this.legacyConfigAsAuthored,
+            manager: undefined,
             manuallyProvideData: true,
             queryStr: "",
         })
