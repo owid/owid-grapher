@@ -218,7 +218,7 @@ export const formatWordpressPost = async (
 
     // Extract last updated
     let lastUpdated
-    const $lastUpdated = cheerioEl(".wp-block-last-updated")
+    const $lastUpdated = cheerioEl(".wp-block-last-updated p")
     if ($lastUpdated.length) {
         lastUpdated = $lastUpdated.html()
         $lastUpdated.remove()

@@ -89,29 +89,31 @@
         }
     }
 
-    .last-updated {
-        margin-top: 2 * $vertical-spacing;
-        color: $grey-text-color;
-    }
-
     // Cite this research and other potential tools located at the top of entries
     .tools {
-        display: flex;
         margin-top: 3rem;
-        a {
+        color: $secondary-text-color;
+        font-size: 0.875rem;
+        > * {
             margin-right: 1rem;
-            font-size: 0.8125rem;
-            color: $grey-text-color;
+        }
+        @include lg-up {
+            .last-updated {
+                display: inline;
+            }
+        }
+
+        a {
+            color: inherit;
+            text-decoration: underline;
             transition: all 0.2s;
             &:hover {
                 color: $secondary-color;
             }
-            svg {
-                margin-right: 0.5rem;
-            }
         }
-        strong {
-            text-decoration: underline;
+
+        svg {
+            margin-right: 0.5rem;
         }
     }
 
