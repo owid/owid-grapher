@@ -80,31 +80,6 @@ yarn testPrettierAll`
         })
     }
 
-    private async runLiveSafetyChecks() {
-        const { simpleGit } = this
-        const branches = await simpleGit.branchLocal()
-        const branch = await branches.current
-        if (branch !== "master")
-            this.printAndExit(
-                "To deploy to live please run from the master branch."
-            )
-
-        // Making sure we have the latest changes from the upstream
-        // Also, will fail if working copy is not clean
-        try {
-            await simpleGit.pull("origin", undefined, { "--rebase": "true" })
-        } catch (err) {
-            this.printAndExit(JSON.stringify(err))
-        }
-
-        const response = await prompts.prompt({
-            type: "confirm",
-            name: "confirmed",
-            message: "Are you sure you want to deploy to live?",
-        })
-        if (!response.value) this.printAndExit("Cancelled")
-    }
-
     private _simpleGit?: SimpleGit
     private get simpleGit() {
         if (!this._simpleGit)
@@ -155,8 +130,9 @@ yarn testPrettierAll`
     async deploy() {
         const { skipChecks, runChecksRemotely } = this.options
 
-        if (this.targetIsProd) await this.runLiveSafetyChecks()
-        else if (!this.isValidTarget)
+        // Important: if we're here, some checks were already performed in deploy.sh when deploying to live
+
+        if (!this.isValidTarget)
             this.printAndExit(
                 "Please select either live or a valid test target."
             )
