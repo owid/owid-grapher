@@ -5,7 +5,7 @@
         "node": ">=12.13.1"
     },
     "scripts": {
-        "buildAndDeploySite": "./baker/deploy.sh",
+        "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "node ./itsJustJavascript/baker/buildLocalBake.js",
         "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
