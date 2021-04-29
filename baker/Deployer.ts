@@ -102,7 +102,7 @@ yarn testPrettierAll`
             name: "confirmed",
             message: "Are you sure you want to deploy to live?",
         })
-        if (!response) this.printAndExit("Cancelled")
+        if (!response.value) this.printAndExit("Cancelled")
     }
 
     private _simpleGit?: SimpleGit
