@@ -42,12 +42,10 @@ export const EntriesByYearPage = (props: {
                 <main>
                     <div className="page with-sidebar">
                         <div className="content-wrapper">
-                            <div>
-                                <TableOfContents
-                                    headings={tocEntries}
-                                    pageTitle={pageTitle}
-                                />
-                            </div>
+                            <TableOfContents
+                                headings={tocEntries}
+                                pageTitle={pageTitle}
+                            />
                             <div className="offset-content">
                                 <div className="content">
                                     <p>

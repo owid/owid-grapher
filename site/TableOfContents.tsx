@@ -5,8 +5,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { useTriggerWhenClickOutside } from "./hooks"
+import { wrapInDiv } from "../clientUtils/Util"
 
-const TOC_CLASS_NAME = "entry-sidebar"
+const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
 interface TableOfContentsData {
     headings: { isSubheading: boolean; slug: string; text: string }[]
@@ -182,6 +183,7 @@ export const TableOfContents = ({
                                         ? " active"
                                         : "")
                                 }
+        <div className={TOC_WRAPPER_CLASSNAME}>
                             >
                                 <a onClick={toggle} href={`#${heading.slug}`}>
                                     {heading.text}
@@ -204,13 +206,16 @@ export const TableOfContents = ({
                 </button>
             </div>
         </aside>
+        </div>
     )
 }
 
 export const runTableOfContents = (tocData: TableOfContentsData) => {
-    const tocEl = document.querySelector<HTMLElement>(`.${TOC_CLASS_NAME}`)
-    if (tocEl) {
-        const tocWrapper = tocEl.parentElement
-        ReactDOM.hydrate(<TableOfContents {...tocData} />, tocWrapper)
-    }
+    const tocWrapperEl = document.querySelector<HTMLElement>(
+        `.${TOC_WRAPPER_CLASSNAME}`
+    )
+    if (!tocWrapperEl) return
+
+    const sidebarRootEl = wrapInDiv(tocWrapperEl, ["sidebar-root"])
+    ReactDOM.hydrate(<TableOfContents {...tocData} />, sidebarRootEl)
 }
