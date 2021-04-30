@@ -1,6 +1,7 @@
 .global-entity-control-container {
     position: sticky;
     top: 5px;
+    margin-left: 6rem; // HACK, making horizontal space for "Contents" button
     z-index: $zindex-global-entity-select;
 }
 
