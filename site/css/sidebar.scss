@@ -1,7 +1,7 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
 .toc-wrapper {
-    height: 3rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
+    height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
 }
 
 .entry-sidebar {
@@ -79,7 +79,11 @@
             top: 0;
             bottom: 0;
             padding: $vertical-spacing 0;
-            left: $sidebar-content-width + 2 * $padding-x-md + 1rem;
+            left: $sidebar-content-width + 2 * $padding-x-md;
+            margin-left: $padding-x-sm;
+            @include md-up {
+                margin-left: $padding-x-md;
+            }
             button {
                 @include popover-box-button;
                 z-index: $zindex-sidebar;
