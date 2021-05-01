@@ -115,9 +115,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get bounds() {
-        return (this.props.bounds ?? DEFAULT_BOUNDS)
-            .padRight(10)
-            .padTop(this.legendPaddingTop)
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
     @computed private get baseFontSize() {
@@ -191,6 +189,7 @@ export class StackedDiscreteBarChart
         return this.bounds
             .padLeft(this.labelWidth)
             .padBottom(this.axis.height)
+            .padTop(this.legendPaddingTop)
             .padTop(this.legend.height)
     }
 
@@ -242,7 +241,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed get categoryLegendY(): number {
-        return this.legendPaddingTop
+        return this.bounds.top
     }
 
     @computed get legendWidth(): number {
