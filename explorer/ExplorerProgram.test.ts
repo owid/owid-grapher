@@ -43,7 +43,7 @@ ${ExplorerGrammar.graphers.keyword}
     it("supports comments", () => {
         const program = new ExplorerProgram(
             "test",
-            `# a comment
+            `## a comment
 \t\t💬 another comment starting with a 💬 `
         )
         expect(program.getCell({ row: 0, column: 0 }).cssClasses).toContain(
