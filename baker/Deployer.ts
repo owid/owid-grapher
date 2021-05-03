@@ -31,11 +31,11 @@ export class Deployer {
 
         this.stream = new ProgressStream(process.stderr)
         // todo: a smarter way to precompute out the number of steps?
-        const testSteps = !skipChecks && !runChecksRemotely ? 2 : 0
+        const testSteps = !skipChecks && !runChecksRemotely ? 1 : 0
         this.progressBar = new ProgressBar(
             `Baking and deploying to ${target} [:bar] :current/:total :elapseds :name\n`,
             {
-                total: 22 + testSteps,
+                total: 24 + testSteps,
                 renderThrottle: 0, // print on every tick
                 stream: (this.stream as unknown) as WriteStream,
             }
@@ -102,7 +102,7 @@ yarn testPrettierAll`
             name: "confirmed",
             message: "Are you sure you want to deploy to live?",
         })
-        if (!response) this.printAndExit("Cancelled")
+        if (!response.value) this.printAndExit("Cancelled")
     }
 
     private _simpleGit?: SimpleGit
@@ -165,6 +165,10 @@ yarn testPrettierAll`
             name: "✅ finished validating deploy arguments",
         })
 
+        // make sure that no old assets are left over from an old deploy
+        await this.runAndTick(`yarn cleanTsc`)
+        await this.runAndTick(`yarn buildTsc`)
+
         if (runChecksRemotely) await this.runPreDeployChecksRemotely()
         else if (skipChecks) {
             if (this.targetIsProd)
@@ -174,7 +178,6 @@ yarn testPrettierAll`
             })
         } else {
             await this.runAndTick(`yarn testPrettierChanged`)
-            await this.runAndTick(`yarn buildTsc`)
             await this.runAndTick(`yarn testJest`)
         }
 
