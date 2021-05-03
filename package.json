@@ -229,6 +229,7 @@
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
         "storybook": "^6.1.21",
+        "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9",
         "xhr-mock": "^2.5.1"
     },
