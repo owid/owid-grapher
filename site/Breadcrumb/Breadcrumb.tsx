@@ -69,7 +69,9 @@ export const Breadcrumb = ({
                 <React.Fragment key={item.href}>
                     {idx !== breadcrumbItems.length - 1 ? (
                         <>
-                            <a href={item.href}>{item.label}</a>
+                            <a data-track-note="breadcrumb" href={item.href}>
+                                {item.label}
+                            </a>
                             <BreadcrumbSeparator />
                         </>
                     ) : (
