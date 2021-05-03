@@ -1,0 +1,20 @@
+.breadcrumb {
+    margin-top: $vertical-spacing;
+    font-size: 0.875rem;
+    color: $secondary-text-color;
+    a {
+        color: inherit;
+        font-weight: bold;
+        text-decoration: underline;
+
+        &:hover {
+            color: #c0023e;
+        }
+    }
+
+    .separator {
+        margin: 0 0.5rem;
+        vertical-align: -0.0625em;
+        color: $primary-color-400;
+    }
+}

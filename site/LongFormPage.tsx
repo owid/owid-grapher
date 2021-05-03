@@ -17,6 +17,7 @@ import {
     PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
+import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -140,6 +141,16 @@ export const LongFormPage = (props: {
                                         <div className="subtitle">
                                             {post.subtitle}
                                         </div>
+                                    )}
+                                    {formattingOptions.subnavId && (
+                                        <Breadcrumb
+                                            subnavId={
+                                                formattingOptions.subnavId
+                                            }
+                                            subnavCurrentId={
+                                                formattingOptions.subnavCurrentId
+                                            }
+                                        />
                                     )}
                                 </div>
                                 {!formattingOptions.hideAuthors && (
