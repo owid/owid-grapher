@@ -18,7 +18,7 @@ services:
         build_as_root:
             - ln -sf /user/.ssh/config /var/www/.ssh/config
     node:
-        type: node
+        type: node:12.13.1
     database:
         portforward: 3306
         healthcheck:
