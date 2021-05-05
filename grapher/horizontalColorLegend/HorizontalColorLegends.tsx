@@ -58,7 +58,7 @@ export enum LegendAlign {
     right = "right",
 }
 
-export interface MapLegendManager {
+export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
     legendAlign?: LegendAlign
@@ -77,8 +77,8 @@ export interface MapLegendManager {
 }
 
 @observer
-class MapLegend extends React.Component<{
-    manager: MapLegendManager
+class HorizontalColorLegend extends React.Component<{
+    manager: HorizontalColorLegendManager
 }> {
     @computed get manager() {
         return this.props.manager
@@ -115,7 +115,7 @@ class MapLegend extends React.Component<{
 }
 
 @observer
-export class MapNumericColorLegend extends MapLegend {
+export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get numericLegendData() {
@@ -429,7 +429,7 @@ export class MapNumericColorLegend extends MapLegend {
 }
 
 @observer
-export class MapCategoricalColorLegend extends MapLegend {
+export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     @computed get categoricalLegendData() {
         return this.manager.categoricalLegendData ?? []
     }
@@ -523,7 +523,7 @@ export class MapCategoricalColorLegend extends MapLegend {
         const { categoricalFocusBracket } = manager
 
         return (
-            <g className="mapLegend">
+            <g>
                 <g className="categoricalColorLegend">
                     {marks.map((mark, index) => {
                         const isFocus =

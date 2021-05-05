@@ -2,11 +2,11 @@
 
 import { CategoricalBin, NumericBin } from "../color/ColorScaleBin"
 import {
-    MapCategoricalColorLegend,
-    MapNumericColorLegend,
-} from "./MapColorLegends"
+    HorizontalCategoricalColorLegend,
+    HorizontalNumericColorLegend,
+} from "./HorizontalColorLegends"
 
-describe(MapNumericColorLegend, () => {
+describe(HorizontalNumericColorLegend, () => {
     test("can create one", () => {
         const bin = new NumericBin({
             isFirst: false,
@@ -19,14 +19,14 @@ describe(MapNumericColorLegend, () => {
             color: "blue",
         })
 
-        const legend = new MapNumericColorLegend({
+        const legend = new HorizontalNumericColorLegend({
             manager: { numericLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)
     })
 })
 
-describe(MapCategoricalColorLegend, () => {
+describe(HorizontalCategoricalColorLegend, () => {
     test("can create one", () => {
         const bin = new CategoricalBin({
             index: 1,
@@ -35,7 +35,7 @@ describe(MapCategoricalColorLegend, () => {
             color: "red",
         })
 
-        const legend = new MapCategoricalColorLegend({
+        const legend = new HorizontalCategoricalColorLegend({
             manager: { categoricalLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)

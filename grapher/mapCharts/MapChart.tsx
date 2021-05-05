@@ -3,10 +3,10 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
-    MapCategoricalColorLegend,
-    MapLegendManager,
-    MapNumericColorLegend,
-} from "../mapCharts/MapColorLegends"
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
+} from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     flatten,
     getRelativeMouse,
@@ -159,7 +159,7 @@ const renderFeaturesFor = (projectionName: MapProjectionName) => {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, MapLegendManager, ColorScaleManager {
+    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -488,13 +488,13 @@ export class MapChart
 
     @computed get categoryLegend() {
         return this.categoricalLegendData.length > 1
-            ? new MapCategoricalColorLegend({ manager: this })
+            ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
 
     @computed get numericLegend() {
         return this.numericLegendData.length > 1
-            ? new MapNumericColorLegend({ manager: this })
+            ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
 
@@ -532,9 +532,13 @@ export class MapChart
         const { numericLegend, categoryLegend } = this
 
         return (
-            <g className="mapLegend">
-                {numericLegend && <MapNumericColorLegend manager={this} />}
-                {categoryLegend && <MapCategoricalColorLegend manager={this} />}
+            <g>
+                {numericLegend && (
+                    <HorizontalNumericColorLegend manager={this} />
+                )}
+                {categoryLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
             </g>
         )
     }

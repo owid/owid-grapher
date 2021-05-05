@@ -35,9 +35,9 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import {
     LegendAlign,
-    MapCategoricalColorLegend,
-    MapLegendManager,
-} from "../mapCharts/MapColorLegends"
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 
 // const labelToTextPadding = 10
@@ -64,7 +64,7 @@ export class StackedDiscreteBarChart
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
     }>
-    implements ChartInterface, MapLegendManager {
+    implements ChartInterface, HorizontalColorLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
@@ -275,8 +275,8 @@ export class StackedDiscreteBarChart
         this.focusSeriesName = undefined
     }
 
-    @computed private get legend(): MapCategoricalColorLegend {
-        return new MapCategoricalColorLegend({ manager: this })
+    @computed private get legend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
     componentDidMount() {
@@ -329,7 +329,7 @@ export class StackedDiscreteBarChart
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                <MapCategoricalColorLegend manager={this} />
+                <HorizontalCategoricalColorLegend manager={this} />
                 {this.items.map(({ label, bars }) => {
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
