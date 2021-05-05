@@ -233,11 +233,11 @@ export class StackedDiscreteBarChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return 13
+        return this.baseFontSize
     }
 
     @computed get legendX(): number {
-        return this.axis.place(this.x0)
+        return this.bounds.x
     }
 
     @computed get categoryLegendY(): number {
@@ -245,7 +245,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed get legendWidth(): number {
-        return this.bounds.width * 0.8
+        return this.bounds.width
     }
 
     @computed get legendAlign(): LegendAlign {
