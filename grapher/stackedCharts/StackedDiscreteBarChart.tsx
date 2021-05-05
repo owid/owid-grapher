@@ -12,12 +12,7 @@ import {
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import {
-    ScaleType,
-    BASE_FONT_SIZE,
-    SeriesStrategy,
-    SeriesName,
-} from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -40,7 +35,6 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 
-// const labelToTextPadding = 10
 const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
@@ -77,9 +71,6 @@ export class StackedDiscreteBarChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
         table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
         this.yColumnSlugs.forEach((slug) => {
@@ -106,14 +97,6 @@ export class StackedDiscreteBarChart
         return this.props.manager
     }
 
-    @computed private get targetTime() {
-        return this.manager.endTime
-    }
-
-    @computed private get isLogScale() {
-        return this.yAxis.scaleType === ScaleType.log
-    }
-
     @computed private get bounds() {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
@@ -129,13 +112,6 @@ export class StackedDiscreteBarChart
         }
     }
 
-    @computed private get valueLabelStyle() {
-        return {
-            fontSize: 0.75 * this.baseFontSize,
-            fontWeight: 400,
-        }
-    }
-
     // Account for the width of the legend
     @computed private get labelWidth() {
         const labels = this.items.map((item) => item.label)
@@ -145,10 +121,6 @@ export class StackedDiscreteBarChart
 
     @computed private get x0() {
         return 0
-        // TODO handle log scales?
-        // if (!this.isLogScale) return 0
-        // const minValue = min(this.series.map(stackedSeriesMaxValue))
-        // return minValue !== undefined ? Math.min(1, minValue) : 1
     }
 
     @computed private get allPoints(): StackedPoint<EntityName>[] {
