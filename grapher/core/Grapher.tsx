@@ -1799,7 +1799,7 @@ export class Grapher
                     )
                 return columnSlug
             })
-            return excludeUndefined(columnSlugs)
+            return uniq(excludeUndefined(columnSlugs))
         }
 
         return []
