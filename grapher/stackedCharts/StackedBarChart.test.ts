@@ -32,11 +32,7 @@ describe("stackedbar chart with columns as series", () => {
     const manager: ChartManager = {
         table,
         selection: table.sampleEntityName(1),
-        selectedColumnSlugs: [
-            SampleColumnSlugs.GDP,
-            SampleColumnSlugs.Population,
-        ],
-        yColumnSlugs: [SampleColumnSlugs.Population, SampleColumnSlugs.GDP],
+        yColumnSlugs: [SampleColumnSlugs.GDP, SampleColumnSlugs.Population],
     }
     const chart = new StackedBarChart({ manager })
 
@@ -46,7 +42,6 @@ describe("stackedbar chart with columns as series", () => {
         expect(
             chart.series.map((series) => series.seriesName).reverse()
         ).toEqual([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
-        expect(chart.series[0].seriesName).toEqual(SampleColumnSlugs.Population)
     })
 })
 
