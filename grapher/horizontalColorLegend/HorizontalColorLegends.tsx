@@ -36,6 +36,8 @@ interface NumericLabel {
 
 const FOCUS_BORDER_COLOR = "#111"
 
+const SPACE_BETWEEN_CATEGORICAL_BINS = 7
+
 interface CategoricalMark {
     x: number
     y: number
@@ -480,7 +482,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 bin,
             })
 
-            xOffset += markWidth
+            xOffset += markWidth + SPACE_BETWEEN_CATEGORICAL_BINS
         })
 
         if (marks.length > 0)
