@@ -148,13 +148,12 @@ export const TableOfContents = ({
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
             <aside
-                ref={tocRef}
                 className={`entry-sidebar${isToggled ? " toggled" : ""}${
                     isSticky ? " sticky" : ""
                 }`}
             >
                 <div className="sticky-sentinel" ref={stickySentinelRef} />
-                <nav className="entry-toc">
+                <nav className="entry-toc" ref={tocRef}>
                     <ul>
                         <li>
                             <a
