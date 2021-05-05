@@ -1,8 +1,13 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
 .toc-wrapper {
-    height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
-    margin-bottom: 1rem;
+    @include xxlg-down {
+        height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
+        margin-bottom: 1rem;
+    }
+    @include xxlg-up {
+        height: 100%;
+    }
 }
 
 .entry-sidebar {
