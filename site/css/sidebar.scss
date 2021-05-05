@@ -7,6 +7,7 @@
 
 .entry-sidebar {
     width: $sidebar-content-width + 2 * $padding-x-md;
+    z-index: $zindex-sidebar;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     background-color: $white;
 
@@ -100,7 +101,6 @@
         }
 
         &.toggled {
-            z-index: $zindex-sidebar;
             margin-left: 0;
             @include block-shadow;
 
