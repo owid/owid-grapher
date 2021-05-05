@@ -451,7 +451,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
 
-            if (xOffset + markWidth > this.legendWidth) {
+            if (xOffset + markWidth > this.legendWidth && marks.length > 0) {
                 lines.push({ totalWidth: xOffset - markPadding, marks: marks })
                 marks = []
                 xOffset = 0
