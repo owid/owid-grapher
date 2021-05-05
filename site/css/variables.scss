@@ -73,11 +73,6 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
 }
 
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
-@mixin xlg-down {
-    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
-        @content;
-    }
-}
 
 @mixin xlg-only {
     @media only screen and (min-width: $xlg-min-width) and (max-width: $xxlg-min-width - 0.0625rem) {
@@ -87,6 +82,12 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
 
 @mixin xlg-up {
     @media only screen and (min-width: $xlg-min-width) {
+        @content;
+    }
+}
+
+@mixin xxlg-down {
+    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
         @content;
     }
 }
