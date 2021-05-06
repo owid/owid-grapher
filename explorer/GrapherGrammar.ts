@@ -132,8 +132,9 @@ export const GrapherGrammar: Grammar = {
     },
     baseColorScheme: {
         ...EnumCellDef,
-        keyword: "tab",
-        description: "Which tab to show by default",
+        keyword: "baseColorScheme",
+        description:
+            "The default color scheme if no color overrides are specified",
         terminalOptions: Object.keys(ColorSchemes).map((keyword) => ({
             keyword,
             description: "",
