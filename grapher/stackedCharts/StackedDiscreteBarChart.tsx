@@ -367,8 +367,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed protected get yColumns() {
-        // We want the first selected series to be on top, so we reverse the order.
-        return this.transformedTable.getColumns(this.yColumnSlugs).reverse()
+        return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
     @computed private get colorScheme() {
