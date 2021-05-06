@@ -1,8 +1,18 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
+.toc-wrapper {
+    @include xxlg-down {
+        height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
+        margin-bottom: 1rem;
+    }
+    @include xxlg-up {
+        height: 100%;
+    }
+}
 
 .entry-sidebar {
     width: $sidebar-content-width + 2 * $padding-x-md;
+    z-index: $zindex-sidebar;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     background-color: $white;
 
@@ -61,7 +71,7 @@
         }
     }
 
-    @include xlg-down {
+    @include xxlg-down {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -76,30 +86,17 @@
             top: 0;
             bottom: 0;
             padding: $vertical-spacing 0;
-            right: -$sidebar-toggle-width / 2;
-            @include sm-only {
-                right: -$sidebar-toggle-width - $padding-x-sm/2;
+            left: $sidebar-content-width + 2 * $padding-x-md;
+            margin-left: $padding-x-sm;
+            @include md-up {
+                margin-left: $padding-x-md;
             }
             button {
+                @include popover-box-button;
                 z-index: $zindex-sidebar;
                 position: sticky;
                 top: $vertical-spacing;
-                @include sm-only {
-                    top: $padding-x-sm/2;
-                }
-                width: $sidebar-toggle-width;
-                height: $sidebar-toggle-width;
-                background-color: $primary-color;
-                &:hover {
-                    background-color: $primary-color-700;
-                }
-
-                color: $white;
-                border-radius: 50%;
-                outline: none;
-                border: none;
-                padding: 0;
-                cursor: pointer;
+                white-space: nowrap;
             }
         }
 
@@ -109,16 +106,8 @@
         }
 
         &.toggled {
-            z-index: $zindex-sidebar;
             margin-left: 0;
             @include block-shadow;
-
-            .toggle-toc {
-                right: -$sidebar-toggle-width;
-                button {
-                    border-radius: 0 50% 50% 0;
-                }
-            }
 
             ul {
                 display: block;
