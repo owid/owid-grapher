@@ -3,7 +3,6 @@ import {
     min,
     max,
     maxBy,
-    exposeInstanceOnWindow,
     last,
     flatten,
     excludeUndefined,
@@ -251,16 +250,6 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
-    componentDidMount() {
-        exposeInstanceOnWindow(this)
-    }
-
-    componentDidUpdate() {
-        // Animating the bar width after a render ensures there's no race condition, where the
-        // initial animation (in componentDidMount) did override the now-changed bar width in
-        // some cases. Updating the animation with the updated bar widths fixes that.
-    }
-
     render() {
         if (this.failMessage)
             return (
@@ -271,14 +260,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const {
-            series,
-            bounds,
-            axis,
-            innerBounds,
-            barHeight,
-            barSpacing,
-        } = this
+        const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
