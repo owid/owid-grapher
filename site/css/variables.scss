@@ -19,7 +19,7 @@ $content-max-width: 50rem;
 $sidebar-content-width: 14rem;
 $sidebar-padding-top: 2rem;
 $sidebar-toggle-width: 2rem;
-$sidebar-closed-drawer-width: 0;
+$sidebar-closed-drawer-width: $padding-x-sm;
 $text-min-content-width: 30rem;
 $text-max-content-width: 40rem;
 // NB: the side by side layout depends on
@@ -73,6 +73,11 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
 }
 
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
+@mixin xlg-down {
+    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
+        @content;
+    }
+}
 
 @mixin xlg-only {
     @media only screen and (min-width: $xlg-min-width) and (max-width: $xxlg-min-width - 0.0625rem) {
@@ -82,12 +87,6 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
 
 @mixin xlg-up {
     @media only screen and (min-width: $xlg-min-width) {
-        @content;
-    }
-}
-
-@mixin xxlg-down {
-    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
         @content;
     }
 }

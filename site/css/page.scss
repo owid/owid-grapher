@@ -20,7 +20,7 @@
     }
 
     &.with-sidebar {
-        @include xxlg-down {
+        @include xlg-down {
             @include md-up {
                 .offset-header,
                 .offset-content,

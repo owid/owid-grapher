@@ -118,29 +118,24 @@
     }
 }
 
-@mixin button-hover {
-    &:hover {
-        background-color: $primary-color-700;
-    }
-}
-
 @mixin popover-box-button {
-    padding: 0.2rem 0.5rem;
-    line-height: 1.6rem;
-    border: none;
-    border-radius: 3px;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
-    color: white;
-    cursor: pointer;
-    font-size: 0.875rem;
-    background: $primary-color;
-    outline: none;
+    button {
+        padding: 0.2rem 0.5rem;
+        line-height: 1.6rem;
+        border: none;
+        border-radius: 3px;
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+        color: white;
+        cursor: pointer;
+        font-size: 0.875rem;
+        background: #002147;
 
-    @include button-hover;
-    @include button-disabled;
+        @include button-disabled;
 
-    svg {
-        margin-right: 0.5rem;
+        svg {
+            margin-right: 0.15rem;
+            color: rgba(white, 0.75);
+        }
     }
 }
 
@@ -163,9 +158,8 @@
         display: flex;
         flex-direction: column;
     }
-    button {
-        @include popover-box-button;
-    }
+
+    @include popover-box-button;
 }
 
 @mixin expandable-block-button {

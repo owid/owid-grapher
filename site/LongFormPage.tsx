@@ -230,11 +230,13 @@ export const LongFormPage = (props: {
 
                         <div className="content-wrapper">
                             {hasSidebar && (
-                                <TableOfContents
-                                    headings={tocHeadings}
-                                    pageTitle={pageTitle}
-                                    // hideSubheadings={true}
-                                />
+                                <div>
+                                    <TableOfContents
+                                        headings={tocHeadings}
+                                        pageTitle={pageTitle}
+                                        // hideSubheadings={true}
+                                    />
+                                </div>
                             )}
                             <div className="offset-content">
                                 <div className="content-and-footnotes">

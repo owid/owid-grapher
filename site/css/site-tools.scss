@@ -25,6 +25,7 @@
 
         .prompt {
             position: relative;
+            outline: none;
             margin-left: 0.75rem;
         }
 
@@ -44,8 +45,7 @@
             right: 0;
             @include popover-box-styles;
         }
-        button {
-            @include popover-box-button;
-        }
+
+        @include popover-box-button;
     }
 }

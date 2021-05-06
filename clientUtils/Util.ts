@@ -1049,12 +1049,3 @@ export const findDOMParent = (
     }
     return null
 }
-
-export const wrapInDiv = (el: Element, classes?: string[]): Element => {
-    if (!el.parentNode) return el
-    const wrapper = document.createElement("div")
-    if (classes) wrapper.classList.add(...classes)
-    el.parentNode.insertBefore(wrapper, el)
-    wrapper.appendChild(el)
-    return wrapper
-}
