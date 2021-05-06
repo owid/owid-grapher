@@ -2275,7 +2275,10 @@ export class Grapher
         return (
             !this.hideEntityControls &&
             this.canSelectMultipleEntities &&
-            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
+            (this.isLineChart ||
+                this.isStackedArea ||
+                this.isDiscreteBar ||
+                this.isStackedDiscreteBar)
         )
     }
 
