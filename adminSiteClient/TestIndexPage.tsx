@@ -93,6 +93,15 @@ export class TestIndexPage extends React.Component {
                                 Stacked Bar
                             </Link>
                         </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
+                                to="/test/embeds?type=StackedDiscreteBar"
+                            >
+                                Stacked Discrete Bar
+                            </Link>
+                        </li>
 
                         <li>
                             <Link
