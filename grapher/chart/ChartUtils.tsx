@@ -24,10 +24,14 @@ export const getDefaultFailMessage = (manager: ChartManager) => {
     return ""
 }
 
-export const autoDetectSeriesStrategy = (manager: ChartManager) => {
+export const autoDetectSeriesStrategy = (
+    manager: ChartManager,
+    hasNormalAndProjectedSeries?: boolean
+) => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 
-    return autoDetectYColumnSlugs(manager).length > 1
+    const columnThreshold = hasNormalAndProjectedSeries ? 2 : 1
+    return autoDetectYColumnSlugs(manager).length > columnThreshold
         ? SeriesStrategy.column
         : SeriesStrategy.entity
 }
