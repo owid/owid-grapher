@@ -13,6 +13,7 @@ import {
     FacetStrategy,
     GrapherTabOption,
 } from "../grapher/core/GrapherConstants"
+import { ColorSchemes } from "../grapher/color/ColorSchemes"
 
 export const GrapherGrammar: Grammar = {
     title: {
@@ -128,5 +129,16 @@ export const GrapherGrammar: Grammar = {
         ...NumericCellDef,
         keyword: "yAxisMin",
         description: "Set the minimum value for the yAxis",
+    },
+    baseColorScheme: {
+        ...EnumCellDef,
+        keyword: "baseColorScheme",
+        description:
+            "The default color scheme if no color overrides are specified",
+        terminalOptions: Object.keys(ColorSchemes).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
 } as const

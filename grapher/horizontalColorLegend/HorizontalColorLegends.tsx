@@ -17,6 +17,7 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { Color } from "../../clientUtils/owidTypes"
 
 interface PositionedBin {
     x: number
@@ -35,6 +36,8 @@ interface NumericLabel {
 
 const FOCUS_BORDER_COLOR = "#111"
 
+const SPACE_BETWEEN_CATEGORICAL_BINS = 7
+
 interface CategoricalMark {
     x: number
     y: number
@@ -52,9 +55,16 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-export interface MapLegendManager {
+export enum LegendAlign {
+    left = "left",
+    center = "center",
+    right = "right",
+}
+
+export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
+    legendAlign?: LegendAlign
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
@@ -62,6 +72,7 @@ export interface MapLegendManager {
     scale?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
+    categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
     equalSizeBins?: boolean
@@ -70,8 +81,8 @@ export interface MapLegendManager {
 }
 
 @observer
-class MapLegend extends React.Component<{
-    manager: MapLegendManager
+class HorizontalColorLegend extends React.Component<{
+    manager: HorizontalColorLegendManager
 }> {
     @computed get manager() {
         return this.props.manager
@@ -97,13 +108,18 @@ class MapLegend extends React.Component<{
         return this.manager.legendHeight ?? 200
     }
 
+    @computed get legendAlign() {
+        // Assume center alignment if none specified, for backwards-compatibility
+        return this.manager.legendAlign ?? LegendAlign.center
+    }
+
     @computed get fontSize() {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 }
 
 @observer
-export class MapNumericColorLegend extends MapLegend {
+export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed get numericLegendData() {
@@ -417,7 +433,7 @@ export class MapNumericColorLegend extends MapLegend {
 }
 
 @observer
-export class MapCategoricalColorLegend extends MapLegend {
+export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     @computed get categoricalLegendData() {
         return this.manager.categoricalLegendData ?? []
     }
@@ -428,7 +444,7 @@ export class MapCategoricalColorLegend extends MapLegend {
         const rectSize = 12 * scale
         const rectPadding = 5
         const markPadding = 5
-        const fontSize = 0.7 * scale * this.fontSize
+        const fontSize = 0.8 * scale * this.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
@@ -439,7 +455,7 @@ export class MapCategoricalColorLegend extends MapLegend {
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
 
-            if (xOffset + markWidth > this.legendWidth) {
+            if (xOffset + markWidth > this.legendWidth && marks.length > 0) {
                 lines.push({ totalWidth: xOffset - markPadding, marks: marks })
                 marks = []
                 xOffset = 0
@@ -466,7 +482,7 @@ export class MapCategoricalColorLegend extends MapLegend {
                 bin,
             })
 
-            xOffset += markWidth
+            xOffset += markWidth + SPACE_BETWEEN_CATEGORICAL_BINS
         })
 
         if (marks.length > 0)
@@ -481,10 +497,16 @@ export class MapCategoricalColorLegend extends MapLegend {
 
     @computed get marks() {
         const lines = this.markLines
+        const align = this.legendAlign
 
         // Center each line
         lines.forEach((line) => {
-            const xShift = this.width / 2 - line.totalWidth / 2
+            const xShift =
+                align === LegendAlign.center
+                    ? (this.width - line.totalWidth) / 2
+                    : align === LegendAlign.right
+                    ? this.width - line.totalWidth
+                    : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
                 mark.label.bounds = mark.label.bounds.extend({
@@ -502,16 +524,11 @@ export class MapCategoricalColorLegend extends MapLegend {
 
     render() {
         const { manager, marks } = this
-        const { categoricalFocusBracket } = manager
 
         return (
-            <g className="mapLegend">
+            <g>
                 <g className="categoricalColorLegend">
                     {marks.map((mark, index) => {
-                        const isFocus =
-                            categoricalFocusBracket &&
-                            mark.bin.value === categoricalFocusBracket.value
-                        const stroke = isFocus ? FOCUS_BORDER_COLOR : "#333"
                         return (
                             <g
                                 key={index}
@@ -532,7 +549,7 @@ export class MapCategoricalColorLegend extends MapLegend {
                                     width={mark.rectSize}
                                     height={mark.rectSize}
                                     fill={mark.bin.color}
-                                    stroke={stroke}
+                                    stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
                                 />
                                 ,

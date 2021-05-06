@@ -26,16 +26,20 @@ import { VerticalAxis } from "../axis/Axis"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
+import { Time } from "../../clientUtils/owidTypes"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
-    bar: StackedPoint
-    series: StackedSeries
+    bar: StackedPoint<Time>
+    series: StackedSeries<Time>
     color: string
     opacity: number
     yAxis: VerticalAxis
     xOffset: number
     barWidth: number
-    onBarMouseOver: (bar: StackedPoint, series: StackedSeries) => void
+    onBarMouseOver: (
+        bar: StackedPoint<Time>,
+        series: StackedSeries<Time>
+    ) => void
     onBarMouseLeave: () => void
 }
 
@@ -47,12 +51,12 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @computed get yPos() {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.y + bar.yOffset)
+        return yAxis.place(bar.value + bar.valueOffset)
     }
 
     @computed get barHeight() {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.yOffset) - this.yPos
+        return yAxis.place(bar.valueOffset) - this.yPos
     }
 
     @computed get trueOpacity() {
@@ -91,7 +95,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
 @observer
 export class StackedBarChart
-    extends AbstactStackedChart
+    extends AbstactStackedChart<Time>
     implements VerticalColorLegendManager, ColorScaleManager {
     readonly minBarSpacing = 4
 
@@ -102,8 +106,8 @@ export class StackedBarChart
     // currently hovered legend color
     @observable hoverColor?: string
     // current hovered individual bar
-    @observable hoverBar?: StackedPoint
-    @observable hoverSeries?: StackedSeries
+    @observable hoverBar?: StackedPoint<Time>
+    @observable hoverSeries?: StackedSeries<Time>
 
     @computed private get baseFontSize() {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -210,10 +214,12 @@ export class StackedBarChart
         } = this
         if (hoverBar === undefined) return
 
-        const xPos = mapXValueToOffset.get(hoverBar.x)
+        const xPos = mapXValueToOffset.get(hoverBar.position)
         if (xPos === undefined) return
 
-        const yPos = dualAxis.verticalAxis.place(hoverBar.yOffset + hoverBar.y)
+        const yPos = dualAxis.verticalAxis.place(
+            hoverBar.valueOffset + hoverBar.value
+        )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         return (
@@ -242,12 +248,12 @@ export class StackedBarChart
                         fontSize: "0.8em",
                     }}
                 >
-                    <span>{yColumn.formatValueLong(hoverBar.y)}</span>
+                    <span>{yColumn.formatValueLong(hoverBar.value)}</span>
                     <br />
                     in
                     <br />
                     <span>
-                        {inputTable.timeColumnFormatFunction(hoverBar.x)}
+                        {inputTable.timeColumnFormatFunction(hoverBar.position)}
                     </span>
                 </p>
             </Tooltip>
@@ -320,7 +326,10 @@ export class StackedBarChart
 
     @action.bound onLegendClick() {}
 
-    @action.bound onBarMouseOver(bar: StackedPoint, series: StackedSeries) {
+    @action.bound onBarMouseOver(
+        bar: StackedPoint<Time>,
+        series: StackedSeries<Time>
+    ) {
         this.hoverBar = bar
         this.hoverSeries = series
     }
@@ -424,7 +433,7 @@ export class StackedBarChart
                             >
                                 {series.points.map((bar, index) => {
                                     const xPos = mapXValueToOffset.get(
-                                        bar.x
+                                        bar.position
                                     ) as number
                                     const barOpacity =
                                         bar === this.hoverBar ? 1 : opacity
@@ -466,7 +475,7 @@ export class StackedBarChart
     }
 
     @computed private get xValues() {
-        return uniq(this.allStackedPoints.map((bar) => bar.x))
+        return uniq(this.allStackedPoints.map((bar) => bar.position))
     }
 
     @computed get colorScaleConfig() {

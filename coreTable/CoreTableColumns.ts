@@ -15,15 +15,9 @@ import {
 } from "../clientUtils/Util"
 import { isPresent } from "../clientUtils/isPresent"
 import { CoreTable } from "./CoreTable"
-import {
-    CoreRow,
-    ColumnSlug,
-    Time,
-    PrimitiveType,
-    JsTypes,
-} from "./CoreTableConstants"
+import { ColumnSlug, Time, PrimitiveType, JsTypes } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { EntityName } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { EntityName, LegacyOwidRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
@@ -430,7 +424,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     // assumes table is sorted by time
-    @imemo get owidRows() {
+    @imemo get owidRows(): LegacyOwidRow<JS_TYPE>[] {
         const times = this.originalTimes
         const values = this.values
         const entities = this.allEntityNames
@@ -445,7 +439,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @imemo get owidRowsByEntityName() {
-        const map = new Map<EntityName, CoreRow[]>()
+        const map = new Map<EntityName, LegacyOwidRow<JS_TYPE>[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
             map.get(row.entityName)!.push(row)
@@ -665,6 +659,8 @@ class DayColumn extends TimeColumn {
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn extends DayColumn {
     parse(val: any) {
+        // skip parsing if a date is a number, it's already been parsed
+        if (typeof val === "number") return val
         if (!dateToTimeCache.has(val))
             dateToTimeCache.set(
                 val,
@@ -681,6 +677,8 @@ class QuarterColumn extends TimeColumn {
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
     parse(val: any): number | ErrorValue {
+        // skip parsing if a date is a number, it's already been parsed
+        if (typeof val === "number") return val
         if (typeof val === "string") {
             const match = val.match(QuarterColumn.regEx)
             if (match) {

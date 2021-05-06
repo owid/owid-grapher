@@ -136,14 +136,14 @@ export const NothingGoesThereCellDef: CellDef = {
     keyword: "",
     cssClass: "NothingGoesThereType",
     description:
-        "Nothing should be here. You can make this a comment by prepending a #",
+        "Nothing should be here. You can make this a comment by prepending a ##",
 }
 
 export const CommentCellDef: CellDef = {
     keyword: "",
     cssClass: "CommentType",
     description: "Just a comment.",
-    regex: /^(\#|💬)/,
+    regex: /^(\#\#|💬)/,
 }
 
 export const WorkInProgressCellDef: CellDef = {

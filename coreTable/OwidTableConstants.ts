@@ -1,4 +1,11 @@
-import { ColumnSlug, CoreRow, Integer, Time, Year } from "./CoreTableConstants"
+import {
+    ColumnSlug,
+    CoreRow,
+    Integer,
+    PrimitiveType,
+    Time,
+    Year,
+} from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import { OwidSource } from "./OwidSource"
 
@@ -65,4 +72,10 @@ export interface OwidRow extends CoreRow {
     year?: Year
     day?: Integer
     date?: string
+}
+
+export interface LegacyOwidRow<ValueType extends PrimitiveType> {
+    entityName: EntityName
+    time: Time
+    value: ValueType
 }

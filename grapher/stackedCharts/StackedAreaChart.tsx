@@ -28,10 +28,11 @@ import {
 import { StackedSeries } from "./StackedConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
+import { Time } from "../../clientUtils/owidTypes"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
-    seriesArr: StackedSeries[]
+    seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
     onHover: (hoverIndex: number | undefined) => void
 }
@@ -53,7 +54,7 @@ class Areas extends React.Component<AreasProps> {
 
         if (dualAxis.innerBounds.contains(mouse)) {
             const closestPoint = minBy(seriesArr[0].points, (d) =>
-                Math.abs(dualAxis.horizontalAxis.place(d.x) - mouse.x)
+                Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
             )
             if (closestPoint) {
                 const index = seriesArr[0].points.indexOf(closestPoint)
@@ -73,7 +74,7 @@ class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    private seriesIsBlur(series: StackedSeries) {
+    private seriesIsBlur(series: StackedSeries<Time>) {
         return (
             this.props.focusedSeriesNames.length > 0 &&
             !this.props.focusedSeriesNames.includes(series.seriesName)
@@ -92,8 +93,8 @@ class Areas extends React.Component<AreasProps> {
             const mainPoints = series.points.map(
                 (point) =>
                     [
-                        horizontalAxis.place(point.x),
-                        verticalAxis.place(point.y + point.yOffset),
+                        horizontalAxis.place(point.position),
+                        verticalAxis.place(point.value + point.valueOffset),
                     ] as [number, number]
             )
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
@@ -122,8 +123,8 @@ class Areas extends React.Component<AreasProps> {
             const points = series.points.map(
                 (point) =>
                     [
-                        horizontalAxis.place(point.x),
-                        verticalAxis.place(point.y + point.yOffset),
+                        horizontalAxis.place(point.position),
+                        verticalAxis.place(point.value + point.valueOffset),
                     ] as [number, number]
             )
 
@@ -181,9 +182,9 @@ class Areas extends React.Component<AreasProps> {
                                 point.fake ? null : (
                                 <circle
                                     key={series.seriesName}
-                                    cx={horizontalAxis.place(point.x)}
+                                    cx={horizontalAxis.place(point.position)}
                                     cy={verticalAxis.place(
-                                        point.y + point.yOffset
+                                        point.value + point.valueOffset
                                     )}
                                     r={2}
                                     fill={series.color}
@@ -192,11 +193,11 @@ class Areas extends React.Component<AreasProps> {
                         })}
                         <line
                             x1={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].x
+                                seriesArr[0].points[hoverIndex].position
                             )}
                             y1={verticalAxis.range[0]}
                             x2={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].x
+                                seriesArr[0].points[hoverIndex].position
                             )}
                             y2={verticalAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
@@ -210,7 +211,7 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends AbstactStackedChart
+    extends AbstactStackedChart<Time>
     implements LineLegendManager {
     constructor(props: AbstactStackedChartProps) {
         super(props)
@@ -226,7 +227,7 @@ export class StackedAreaChart
             const lastValue = last(series.points)
             if (!lastValue) return 0
 
-            const y = lastValue.y + lastValue.yOffset
+            const y = lastValue.value + lastValue.valueOffset
             const middleY = prevY + (y - prevY) / 2
             prevY = y
             return middleY
@@ -286,7 +287,7 @@ export class StackedAreaChart
         return this.focusedSeriesNames.length > 0
     }
 
-    seriesIsBlur(series: StackedSeries) {
+    seriesIsBlur(series: StackedSeries<Time>) {
         return (
             this.focusedSeriesNames.length > 0 &&
             !this.focusedSeriesNames.includes(series.seriesName)
@@ -314,14 +315,14 @@ export class StackedAreaChart
         }
 
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
-        const totalValue = lastStackedPoint.y + lastStackedPoint.yOffset
+        const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
 
         const yColumn = this.yColumns[0] // Assumes same type for all columns.
 
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
-                x={dualAxis.horizontalAxis.place(bottomSeriesPoint.x)}
+                x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
                     dualAxis.verticalAxis.rangeSize / 2
@@ -335,7 +336,7 @@ export class StackedAreaChart
                             <td>
                                 <strong>
                                     {this.inputTable.timeColumnFormatFunction(
-                                        bottomSeriesPoint.x
+                                        bottomSeriesPoint.position
                                     )}
                                 </strong>
                             </td>
@@ -374,7 +375,7 @@ export class StackedAreaChart
                                             {point.fake
                                                 ? "No data"
                                                 : yColumn.formatValueLong(
-                                                      point.y
+                                                      point.value
                                                   )}
                                         </td>
                                     </tr>

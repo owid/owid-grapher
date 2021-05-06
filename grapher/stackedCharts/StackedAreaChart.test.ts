@@ -123,7 +123,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every((series) =>
             series.points.every(
-                (point) => isNumber(point.x) && isNumber(point.y)
+                (point) => isNumber(point.position) && isNumber(point.value)
             )
         )
     ).toBeTruthy()

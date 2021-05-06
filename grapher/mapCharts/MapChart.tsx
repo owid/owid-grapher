@@ -3,10 +3,10 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
-    MapCategoricalColorLegend,
-    MapLegendManager,
-    MapNumericColorLegend,
-} from "../mapCharts/MapColorLegends"
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
+} from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     flatten,
     getRelativeMouse,
@@ -64,9 +64,12 @@ import {
 } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { Color } from "../../clientUtils/owidTypes"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
+
+const DEFAULT_STROKE_COLOR = "#333"
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -159,7 +162,7 @@ const renderFeaturesFor = (projectionName: MapProjectionName) => {
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, MapLegendManager, ColorScaleManager {
+    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -466,6 +469,10 @@ export class MapChart
         return undefined
     }
 
+    @computed get categoricalBinStroke(): Color {
+        return DEFAULT_STROKE_COLOR
+    }
+
     @computed get legendBounds() {
         return this.bounds.padBottom(15)
     }
@@ -488,13 +495,13 @@ export class MapChart
 
     @computed get categoryLegend() {
         return this.categoricalLegendData.length > 1
-            ? new MapCategoricalColorLegend({ manager: this })
+            ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
 
     @computed get numericLegend() {
         return this.numericLegendData.length > 1
-            ? new MapNumericColorLegend({ manager: this })
+            ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
 
@@ -532,9 +539,13 @@ export class MapChart
         const { numericLegend, categoryLegend } = this
 
         return (
-            <g className="mapLegend">
-                {numericLegend && <MapNumericColorLegend manager={this} />}
-                {categoryLegend && <MapCategoricalColorLegend manager={this} />}
+            <g>
+                {numericLegend && (
+                    <HorizontalNumericColorLegend manager={this} />
+                )}
+                {categoryLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
             </g>
         )
     }
@@ -923,7 +934,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                             const stroke =
                                 isFocus || showSelectedStyle
                                     ? focusStrokeColor
-                                    : "#333"
+                                    : DEFAULT_STROKE_COLOR
                             const fill = series ? series.color : defaultFill
                             const fillOpacity = outOfFocusBracket
                                 ? blurFillOpacity

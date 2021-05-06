@@ -139,7 +139,6 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
-    OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
@@ -810,7 +809,7 @@ export class Grapher
     }
 
     set startHandleTimeBound(newValue: TimeBound) {
-        if (this.isOnMapTab)
+        if (this.onlySingleTimeSelectionPossible)
             this.timelineHandleTimeBounds = [newValue, newValue]
         else
             this.timelineHandleTimeBounds = [
@@ -845,7 +844,9 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible() {
-        return this.type === ChartTypeName.DiscreteBar || this.isOnMapTab
+        return (
+            this.isDiscreteBar || this.isStackedDiscreteBar || this.isOnMapTab
+        )
     }
 
     @computed get shouldLinkToOwid() {
@@ -1152,6 +1153,12 @@ export class Grapher
             .map((dim) => dim.column)
     }
 
+    @computed get yColumnSlugsInSelectionOrder() {
+        return this.selectedColumnSlugs?.length
+            ? this.selectedColumnSlugs
+            : this.yColumnSlugs
+    }
+
     @computed get yColumnSlugs() {
         return this.ySlugs
             ? this.ySlugs.split(" ")
@@ -1340,6 +1347,9 @@ export class Grapher
     }
     @computed get isStackedBar() {
         return this.type === ChartTypeName.StackedBar
+    }
+    @computed get isStackedDiscreteBar() {
+        return this.type === ChartTypeName.StackedDiscreteBar
     }
 
     @computed get isLineChartThatTurnedIntoDiscreteBar() {
@@ -1789,7 +1799,7 @@ export class Grapher
                     )
                 return columnSlug
             })
-            return excludeUndefined(columnSlugs)
+            return uniq(excludeUndefined(columnSlugs))
         }
 
         return []
@@ -2265,7 +2275,10 @@ export class Grapher
         return (
             !this.hideEntityControls &&
             this.canSelectMultipleEntities &&
-            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
+            (this.isLineChart ||
+                this.isStackedArea ||
+                this.isDiscreteBar ||
+                this.isStackedDiscreteBar)
         )
     }
 

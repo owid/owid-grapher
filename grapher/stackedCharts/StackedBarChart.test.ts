@@ -32,11 +32,7 @@ describe("stackedbar chart with columns as series", () => {
     const manager: ChartManager = {
         table,
         selection: table.sampleEntityName(1),
-        selectedColumnSlugs: [
-            SampleColumnSlugs.GDP,
-            SampleColumnSlugs.Population,
-        ],
-        yColumnSlugs: [SampleColumnSlugs.Population, SampleColumnSlugs.GDP],
+        yColumnSlugs: [SampleColumnSlugs.GDP, SampleColumnSlugs.Population],
     }
     const chart = new StackedBarChart({ manager })
 
@@ -46,7 +42,6 @@ describe("stackedbar chart with columns as series", () => {
         expect(
             chart.series.map((series) => series.seriesName).reverse()
         ).toEqual([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
-        expect(chart.series[0].seriesName).toEqual(SampleColumnSlugs.Population)
     })
 })
 
@@ -61,7 +56,7 @@ describe("stackedbar chart with entities as series", () => {
 
     it("can render complete data correctly", () => {
         expect(chart.series.length).toEqual(5)
-        expect(chart.series[0].points[0].y).toBeTruthy()
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 
     it("can handle a missing row", () => {
@@ -76,7 +71,7 @@ describe("stackedbar chart with entities as series", () => {
         }
         const chart = new StackedBarChart({ manager })
         expect(chart.series.length).toEqual(5)
-        expect(chart.series[0].points[0].y).toBeTruthy()
+        expect(chart.series[0].points[0].value).toBeTruthy()
     })
 })
 
@@ -99,7 +94,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every((series) =>
             series.points.every(
-                (point) => isNumber(point.x) && isNumber(point.y)
+                (point) => isNumber(point.position) && isNumber(point.value)
             )
         )
     ).toBeTruthy()

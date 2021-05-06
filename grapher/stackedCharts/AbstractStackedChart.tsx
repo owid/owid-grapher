@@ -17,7 +17,7 @@ import {
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { StackedSeries } from "./StackedConstants"
+import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -34,7 +34,7 @@ export interface AbstactStackedChartProps {
 }
 
 @observer
-export class AbstactStackedChart
+export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable) {
@@ -105,7 +105,10 @@ export class AbstactStackedChart
     }
 
     @computed protected get yColumnSlugs() {
-        return autoDetectYColumnSlugs(this.manager)
+        return (
+            this.manager.yColumnSlugsInSelectionOrder ??
+            autoDetectYColumnSlugs(this.manager)
+        )
     }
 
     private animSelection?: d3.Selection<
@@ -173,7 +176,7 @@ export class AbstactStackedChart
         // const lastSeries = this.series[this.series.length - 1]
         // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yValues = this.allStackedPoints.map(
-            (point) => point.y + point.yOffset
+            (point) => point.value + point.valueOffset
         )
         const axisConfig =
             this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
@@ -186,22 +189,16 @@ export class AbstactStackedChart
         return axis
     }
 
-    @computed private get yColumnsInSelectionOrder() {
-        // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
-        const slugsInSelectionOrder = this.manager.selectedColumnSlugs?.length
-            ? this.manager.selectedColumnSlugs
-            : this.yColumnSlugs
-        return this.transformedTable.getColumns(slugsInSelectionOrder).reverse()
-    }
-
     @computed private get columnsAsSeries() {
-        return this.yColumnsInSelectionOrder.map((col) => {
-            return {
-                isProjection: col.isProjection,
-                seriesName: col.displayName,
-                rows: col.owidRows,
-            }
-        })
+        return this.yColumns
+            .map((col) => {
+                return {
+                    isProjection: col.isProjection,
+                    seriesName: col.displayName,
+                    rows: col.owidRows,
+                }
+            })
+            .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
     @computed private get entitiesAsSeries() {
@@ -268,7 +265,7 @@ export class AbstactStackedChart
         return this.series.map((series) => series.color)
     }
 
-    @computed get unstackedSeries() {
+    @computed get unstackedSeries(): readonly StackedSeries<PositionType>[] {
         return this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {
@@ -278,17 +275,17 @@ export class AbstactStackedChart
                     isProjection,
                     points: rows.map((row) => {
                         return {
-                            x: row.time,
-                            y: row.value,
-                            yOffset: 0,
+                            position: row.time,
+                            value: row.value,
+                            valueOffset: 0,
                         }
                     }),
                     color: this.getColorForSeries(seriesName),
-                } as StackedSeries
+                } as StackedSeries<PositionType>
             })
     }
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries<PositionType>[] {
         return this.unstackedSeries
     }
 }
