@@ -3,9 +3,11 @@ import throttle from "lodash/throttle"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
+    active: boolean,
     trigger: (arg0: boolean) => void
 ) => {
     useEffect(() => {
+        if (!active) return
         const handleClick = (e: MouseEvent) => {
             if (container && !container.current?.contains(e.target as Node)) {
                 trigger(false)
@@ -16,7 +18,7 @@ export const useTriggerWhenClickOutside = (
         return () => {
             document.removeEventListener("mousedown", handleClick)
         }
-    }, [])
+    }, [active])
 }
 
 export enum ScrollDirection {

@@ -88,6 +88,7 @@
             padding: $vertical-spacing 0;
             left: $sidebar-content-width + 2 * $padding-x-md;
             margin-left: $padding-x-sm;
+            pointer-events: none;
             @include md-up {
                 margin-left: $padding-x-md;
             }
@@ -96,6 +97,7 @@
                 z-index: $zindex-sidebar;
                 position: sticky;
                 top: $vertical-spacing;
+                pointer-events: auto;
                 white-space: nowrap;
             }
         }
@@ -108,6 +110,18 @@
         &.toggled {
             margin-left: 0;
             @include block-shadow;
+
+            .toggle-toc {
+                margin-left: -1rem;
+                @include sm-only {
+                    svg {
+                        margin: 0 0.25rem;
+                    }
+                    .label {
+                        display: none;
+                    }
+                }
+            }
 
             ul {
                 display: block;
