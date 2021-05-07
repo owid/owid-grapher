@@ -2,11 +2,12 @@ import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faListAlt } from "@fortawesome/free-solid-svg-icons/faListAlt"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { useTriggerWhenClickOutside } from "./hooks"
+import { wrapInDiv } from "../clientUtils/Util"
 
-const TOC_CLASS_NAME = "entry-sidebar"
+const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
 interface TableOfContentsData {
     headings: { isSubheading: boolean; slug: string; text: string }[]
@@ -145,72 +146,79 @@ export const TableOfContents = ({
     }, [])
 
     return (
-        <aside
-            ref={tocRef}
-            className={`${TOC_CLASS_NAME}${isToggled ? " toggled" : ""}${
-                isSticky ? " sticky" : ""
-            }`}
-        >
-            <div className="sticky-sentinel" ref={stickySentinelRef} />
-            <nav className="entry-toc">
-                <ul>
-                    <li>
-                        <a
-                            onClick={() => {
-                                toggle()
-                                setActiveHeading("")
-                            }}
-                            href="#"
-                        >
-                            {pageTitle}
-                        </a>
-                    </li>
-                    {headings
-                        .filter((heading) =>
-                            hideSubheadings && heading.isSubheading
-                                ? false
-                                : true
-                        )
-                        .map((heading, i: number) => (
-                            <li
-                                key={i}
-                                className={
-                                    (heading.isSubheading
-                                        ? "subsection"
-                                        : "section") +
-                                    (heading.slug === activeHeading
-                                        ? " active"
-                                        : "")
-                                }
+        <div className={TOC_WRAPPER_CLASSNAME}>
+            <aside
+                className={`entry-sidebar${isToggled ? " toggled" : ""}${
+                    isSticky ? " sticky" : ""
+                }`}
+            >
+                <div className="sticky-sentinel" ref={stickySentinelRef} />
+                <nav className="entry-toc" ref={tocRef}>
+                    <ul>
+                        <li>
+                            <a
+                                onClick={() => {
+                                    toggle()
+                                    setActiveHeading("")
+                                }}
+                                href="#"
                             >
-                                <a onClick={toggle} href={`#${heading.slug}`}>
-                                    {heading.text}
-                                </a>
-                            </li>
-                        ))}
-                </ul>
-            </nav>
-            <div className="toggle-toc">
-                <button
-                    data-track-note="page-toggle-toc"
-                    aria-label={`${
-                        isToggled ? "Close" : "Open"
-                    } table of contents`}
-                    onClick={toggle}
-                >
-                    <FontAwesomeIcon
-                        icon={isToggled ? faChevronLeft : faListAlt}
-                    />
-                </button>
-            </div>
-        </aside>
+                                {pageTitle}
+                            </a>
+                        </li>
+                        {headings
+                            .filter((heading) =>
+                                hideSubheadings && heading.isSubheading
+                                    ? false
+                                    : true
+                            )
+                            .map((heading, i: number) => (
+                                <li
+                                    key={i}
+                                    className={
+                                        (heading.isSubheading
+                                            ? "subsection"
+                                            : "section") +
+                                        (heading.slug === activeHeading
+                                            ? " active"
+                                            : "")
+                                    }
+                                >
+                                    <a
+                                        onClick={toggle}
+                                        href={`#${heading.slug}`}
+                                    >
+                                        {heading.text}
+                                    </a>
+                                </li>
+                            ))}
+                    </ul>
+                </nav>
+                <div className="toggle-toc">
+                    <button
+                        data-track-note="page-toggle-toc"
+                        aria-label={`${
+                            isToggled ? "Close" : "Open"
+                        } table of contents`}
+                        onClick={toggle}
+                    >
+                        <FontAwesomeIcon
+                            icon={isToggled ? faChevronLeft : faBars}
+                        />
+                        Contents
+                    </button>
+                </div>
+            </aside>
+        </div>
     )
 }
 
 export const runTableOfContents = (tocData: TableOfContentsData) => {
-    const tocEl = document.querySelector<HTMLElement>(`.${TOC_CLASS_NAME}`)
-    if (tocEl) {
-        const tocWrapper = tocEl.parentElement
-        ReactDOM.hydrate(<TableOfContents {...tocData} />, tocWrapper)
-    }
+    const tocWrapperEl = document.querySelector<HTMLElement>(
+        `.${TOC_WRAPPER_CLASSNAME}`
+    )
+    if (!tocWrapperEl) return
+
+    const sidebarRootEl = wrapInDiv(tocWrapperEl, ["sidebar-root"])
+    ReactDOM.hydrate(<TableOfContents {...tocData} />, sidebarRootEl)
 }
