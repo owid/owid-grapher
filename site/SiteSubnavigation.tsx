@@ -217,6 +217,11 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "fish",
         },
         {
+            label: "Coral reefs",
+            href: "/coral-reefs",
+            id: "coral-reefs",
+        },
+        {
             label: "Living Planet Index",
             href: "/living-planet-index",
             id: "living-planet-index",
