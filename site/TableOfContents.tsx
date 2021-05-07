@@ -151,9 +151,10 @@ export const TableOfContents = ({
                 className={`entry-sidebar${isToggled ? " toggled" : ""}${
                     isSticky ? " sticky" : ""
                 }`}
+                ref={tocRef}
             >
                 <div className="sticky-sentinel" ref={stickySentinelRef} />
-                <nav className="entry-toc" ref={tocRef}>
+                <nav className="entry-toc">
                     <ul>
                         <li>
                             <a

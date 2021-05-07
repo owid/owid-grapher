@@ -88,6 +88,7 @@
             padding: $vertical-spacing 0;
             left: $sidebar-content-width + 2 * $padding-x-md;
             margin-left: $padding-x-sm;
+            pointer-events: none;
             @include md-up {
                 margin-left: $padding-x-md;
             }
@@ -96,6 +97,7 @@
                 z-index: $zindex-sidebar;
                 position: sticky;
                 top: $vertical-spacing;
+                pointer-events: auto;
                 white-space: nowrap;
             }
         }
