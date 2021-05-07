@@ -242,7 +242,7 @@ class Header extends React.Component<{
                             className="gcdl-logo"
                         >
                             <img
-                                src={`${baseUrl}/gcdl-logo-narrow.png`}
+                                src={`${baseUrl}/gcdl-logo.svg`}
                                 alt="Global Change Data Lab logo"
                             />
                         </a>

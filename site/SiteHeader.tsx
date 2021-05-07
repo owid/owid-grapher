@@ -118,7 +118,7 @@ export const SiteHeader = (props: SiteHeaderProps) => (
                         className="gcdl-logo"
                     >
                         <img
-                            src={`${props.baseUrl}/gcdl-logo-narrow.png`}
+                            src={`${props.baseUrl}/gcdl-logo.svg`}
                             alt="Global Change Data Lab logo"
                         />
                     </a>
