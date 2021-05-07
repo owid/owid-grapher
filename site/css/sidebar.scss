@@ -111,6 +111,18 @@
             margin-left: 0;
             @include block-shadow;
 
+            .toggle-toc {
+                margin-left: -1rem;
+                @include sm-only {
+                    svg {
+                        margin: 0 0.25rem;
+                    }
+                    .label {
+                        display: none;
+                    }
+                }
+            }
+
             ul {
                 display: block;
             }

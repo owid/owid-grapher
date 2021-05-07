@@ -6,6 +6,7 @@ import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { useTriggerWhenClickOutside } from "./hooks"
 import { wrapInDiv } from "../clientUtils/Util"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
@@ -203,10 +204,10 @@ export const TableOfContents = ({
                         } table of contents`}
                         onClick={toggle}
                     >
-                        <FontAwesomeIcon
-                            icon={isToggled ? faChevronLeft : faBars}
-                        />
-                        Contents
+                        <FontAwesomeIcon icon={isToggled ? faTimes : faBars} />
+                        <span className="label">
+                            {isToggled ? "Close" : "Contents"}
+                        </span>
                     </button>
                 </div>
             </aside>
