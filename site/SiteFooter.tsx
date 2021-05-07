@@ -220,7 +220,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     data-track-note="footer-navigation"
                                 >
                                     <img
-                                        src={`${props.baseUrl}/gcdl-logo-narrow.png`}
+                                        src={`${props.baseUrl}/gcdl-logo.svg`}
                                         alt="Global Change Data Lab logo"
                                         loading="lazy"
                                     />
