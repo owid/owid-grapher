@@ -11,7 +11,6 @@ import {
     exposeInstanceOnWindow,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
-import { some } from "lodash"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
@@ -634,8 +633,8 @@ export class LineChart
 
     @computed get seriesStrategy(): SeriesStrategy {
         const hasNormalAndProjectedSeries =
-            some(this.yColumns, (col) => col.isProjection) &&
-            some(this.yColumns, (col) => !col.isProjection)
+            this.yColumns.some((col) => col.isProjection) &&
+            this.yColumns.some((col) => !col.isProjection)
         return autoDetectSeriesStrategy(
             this.manager,
             hasNormalAndProjectedSeries
