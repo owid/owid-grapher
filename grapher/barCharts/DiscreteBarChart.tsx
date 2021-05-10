@@ -33,6 +33,11 @@ import {
 } from "./DiscreteBarChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { HorizontalAxis } from "../axis/Axis"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { ColorScheme } from "../color/ColorScheme"
+import { Time } from "../../clientUtils/owidTypes"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -46,7 +51,7 @@ export class DiscreteBarChart
     implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
 
         table = table.filterByEntityNames(
@@ -68,45 +73,51 @@ export class DiscreteBarChart
         return table
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed private get manager() {
+    @computed private get manager(): DiscreteBarChartManager {
         return this.props.manager
     }
 
-    @computed private get targetTime() {
+    @computed private get targetTime(): Time | undefined {
         return this.manager.endTime
     }
 
-    @computed private get isLogScale() {
+    @computed private get isLogScale(): boolean {
         return this.yAxis.scaleType === ScaleType.log
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
-    @computed private get baseFontSize() {
+    @computed private get baseFontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get legendLabelStyle() {
+    @computed private get legendLabelStyle(): {
+        fontSize: number
+        fontWeight: number
+    } {
         return {
             fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
         }
     }
 
-    @computed private get valueLabelStyle() {
+    @computed private get valueLabelStyle(): {
+        fontSize: number
+        fontWeight: number
+    } {
         return {
             fontSize: 0.75 * this.baseFontSize,
             fontWeight: 400,
@@ -114,22 +125,22 @@ export class DiscreteBarChart
     }
 
     // Account for the width of the legend
-    @computed private get legendWidth() {
+    @computed private get legendWidth(): number {
         const labels = this.series.map((series) => series.seriesName)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
-    @computed private get hasPositive() {
+    @computed private get hasPositive(): boolean {
         return this.series.some((d) => d.value >= 0)
     }
 
-    @computed private get hasNegative() {
+    @computed private get hasNegative(): boolean {
         return this.series.some((d) => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed private get rightValueLabelWidth() {
+    @computed private get rightValueLabelWidth(): number {
         if (!this.hasPositive) return 0
 
         const positiveLabels = this.series
@@ -142,7 +153,7 @@ export class DiscreteBarChart
     // The amount of space we need to allocate for bar end labels on the left
     // These are only present if there are negative values
     // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed private get leftValueLabelWidth() {
+    @computed private get leftValueLabelWidth(): number {
         if (!this.hasNegative) return 0
 
         const negativeLabels = this.series
@@ -155,7 +166,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed private get x0() {
+    @computed private get x0(): number {
         if (!this.isLogScale) return 0
 
         const minValue = min(this.series.map((d) => d.value))
@@ -178,11 +189,11 @@ export class DiscreteBarChart
         ]
     }
 
-    @computed private get yAxis() {
+    @computed private get yAxis(): AxisConfig {
         return this.manager.yAxis || new AxisConfig()
     }
 
-    @computed private get axis() {
+    @computed private get axis(): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
@@ -193,31 +204,31 @@ export class DiscreteBarChart
         return axis
     }
 
-    @computed private get innerBounds() {
+    @computed private get innerBounds(): Bounds {
         return this.bounds
             .padLeft(this.legendWidth + this.leftValueLabelWidth)
             .padBottom(this.axis.height)
             .padRight(this.rightValueLabelWidth)
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
     // Leave space for extra bar at bottom to show "Add country" button
-    @computed private get barCount() {
+    @computed private get barCount(): number {
         return this.series.length
     }
 
-    @computed private get barHeight() {
+    @computed private get barHeight(): number {
         return (0.8 * this.innerBounds.height) / this.barCount
     }
 
-    @computed private get barSpacing() {
+    @computed private get barSpacing(): number {
         return this.innerBounds.height / this.barCount - this.barHeight
     }
 
-    @computed private get barPlacements() {
+    @computed private get barPlacements(): { x: number; width: number }[] {
         const { series, axis } = this
         return series.map((d) => {
             const isNegative = d.value < 0
@@ -230,7 +241,7 @@ export class DiscreteBarChart
         })
     }
 
-    @computed private get barWidths() {
+    @computed private get barWidths(): number[] {
         return this.barPlacements.map((b) => b.width)
     }
 
@@ -238,26 +249,26 @@ export class DiscreteBarChart
         return select(this.base.current).selectAll("g.bar > rect")
     }
 
-    private animateBarWidth() {
+    private animateBarWidth(): void {
         this.d3Bars()
             .transition()
             .attr("width", (_, i) => this.barWidths[i])
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.d3Bars().attr("width", 0)
         this.animateBarWidth()
         exposeInstanceOnWindow(this)
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         // Animating the bar width after a render ensures there's no race condition, where the
         // initial animation (in componentDidMount) did override the now-changed bar width in
         // some cases. Updating the animation with the updated bar widths fixes that.
         this.animateBarWidth()
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -373,7 +384,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         const column = this.yColumns[0]
 
         if (!column) return "No column to chart"
@@ -386,7 +397,7 @@ export class DiscreteBarChart
             : ""
     }
 
-    formatValue(series: DiscreteBarSeries) {
+    formatValue(series: DiscreteBarSeries): string {
         const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { transformedTable } = this
 
@@ -401,11 +412,11 @@ export class DiscreteBarChart
         )
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed private get seriesStrategy() {
+    @computed private get seriesStrategy(): SeriesStrategy {
         return (
             this.manager.seriesStrategy ??
             (this.yColumnSlugs.length > 1 &&
@@ -415,7 +426,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed protected get yColumns() {
+    @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
@@ -453,7 +464,7 @@ export class DiscreteBarChart
         return sortBy(raw, (series) => series.row.value)
     }
 
-    @computed private get colorScheme() {
+    @computed private get colorScheme(): ColorScheme | undefined {
         // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
         // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`undefined`) as default.
         const defaultColorScheme = this.manager.isLineChart
@@ -467,7 +478,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed private get valuesToColorsMap() {
+    @computed private get valuesToColorsMap(): Map<number, string> | undefined {
         const { manager, colorScheme, sortedRawSeries } = this
 
         return colorScheme?.getUniqValueColorMap(
@@ -476,7 +487,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get series() {
+    @computed get series(): DiscreteBarSeries[] {
         const { manager, colorScheme } = this
 
         const series = this.sortedRawSeries

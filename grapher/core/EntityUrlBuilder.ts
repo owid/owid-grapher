@@ -31,7 +31,7 @@ import {
 const V1_DELIMITER = "+"
 export const ENTITY_V2_DELIMITER = "~"
 
-const isV1Param = (encodedQueryParam: string) => {
+const isV1Param = (encodedQueryParam: string): boolean => {
     // No legacy entities have a v2Delimiter in their name,
     // so if a v2Delimiter is present we know it's a v2 link.
     return !decodeURIComponent(encodedQueryParam).includes(ENTITY_V2_DELIMITER)
@@ -157,7 +157,7 @@ export const getSelectedEntityNamesParam = (
 export const setSelectedEntityNamesParam = (
     url: Url,
     entityNames: EntityName[] | undefined
-) => {
+): Url => {
     return migrateSelectedEntityNamesParam(url).updateQueryParams({
         country: entityNames
             ? entityNamesToV2Param(entityNames.map(entityNameToCode))

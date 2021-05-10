@@ -16,7 +16,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { PointVector } from "../../clientUtils/PointVector"
 import {
     LineLegend,
@@ -40,6 +40,8 @@ import {
     LinesProps,
     LineChartSeries,
     LineChartManager,
+    LinePoint,
+    PlacedLineChartSeries,
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "../../coreTable/OwidTable"
@@ -51,6 +53,9 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import { ColorScheme } from "../color/ColorScheme"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { PrimitiveType } from "../../coreTable/CoreTableConstants"
 
 const BLUR_COLOR = "#eee"
 
@@ -58,11 +63,11 @@ const BLUR_COLOR = "#eee"
 class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get allValues() {
+    @computed private get allValues(): LinePoint[] {
         return flatten(this.props.placedSeries.map((series) => series.points))
     }
 
-    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent) {
+    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent): void {
         const { dualAxis } = this.props
         const { horizontalAxis } = dualAxis
 
@@ -79,11 +84,11 @@ class Lines extends React.Component<LinesProps> {
         this.props.onHover(hoverX)
     }
 
-    @action.bound private onCursorLeave() {
+    @action.bound private onCursorLeave(): void {
         this.props.onHover(undefined)
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
             new PointVector(horizontalAxis.range[0], verticalAxis.range[0]),
@@ -91,7 +96,7 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get focusedLines() {
+    @computed private get focusedLines(): PlacedLineChartSeries[] {
         const { focusedSeriesNames } = this.props
         // If nothing is focused, everything is
         if (!focusedSeriesNames.length) return this.props.placedSeries
@@ -100,7 +105,7 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get backgroundLines() {
+    @computed private get backgroundLines(): PlacedLineChartSeries[] {
         const { focusedSeriesNames } = this.props
         return this.props.placedSeries.filter(
             (series) => !focusedSeriesNames.includes(series.seriesName)
@@ -109,7 +114,7 @@ class Lines extends React.Component<LinesProps> {
 
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed private get hasMarkers() {
+    @computed private get hasMarkers(): boolean {
         if (this.props.hidePoints) return false
         return (
             sum(
@@ -120,11 +125,11 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed private get strokeWidth() {
+    @computed private get strokeWidth(): number {
         return this.props.lineStrokeWidth ?? 1.5
     }
 
-    private renderFocusGroups() {
+    private renderFocusGroups(): JSX.Element[] {
         return this.focusedLines.map((series, index) => (
             <g key={index}>
                 <path
@@ -156,7 +161,7 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    private renderBackgroundGroups() {
+    private renderBackgroundGroups(): JSX.Element[] {
         return this.backgroundLines.map((series, index) => (
             <g key={index}>
                 <path
@@ -177,7 +182,7 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private container?: SVGElement
-    componentDidMount() {
+    componentDidMount(): void {
         const base = this.base.current as SVGGElement
         const container = base.closest("svg") as SVGElement
         container.addEventListener("mousemove", this.onCursorMove)
@@ -189,7 +194,7 @@ class Lines extends React.Component<LinesProps> {
         this.container = container
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         const { container } = this
         if (!container) return
 
@@ -201,7 +206,7 @@ class Lines extends React.Component<LinesProps> {
         container.removeEventListener("touchcancel", this.onCursorLeave)
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds } = this
 
         return (
@@ -230,7 +235,7 @@ export class LineChart
     implements ChartInterface, LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
@@ -246,18 +251,18 @@ export class LineChart
         return table
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed private get transformedTableFromGrapher() {
+    @computed private get transformedTableFromGrapher(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
         // The % growth transform cannot be applied in transformTable() because it will filter out
         // any rows before startHandleTimeBound and change the timeline bounds.
@@ -272,34 +277,34 @@ export class LineChart
     }
 
     @observable hoverX?: number
-    @action.bound onHover(hoverX: number | undefined) {
+    @action.bound onHover(hoverX: number | undefined): void {
         this.hoverX = hoverX
     }
 
-    @computed private get manager() {
+    @computed private get manager(): LineChartManager {
         return this.props.manager
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get maxLegendWidth() {
+    @computed get maxLegendWidth(): number {
         return this.bounds.width / 3
     }
 
-    @computed get selectionArray() {
+    @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    seriesIsBlurred(series: LineChartSeries) {
+    seriesIsBlurred(series: LineChartSeries): boolean {
         return (
             this.isFocusMode &&
             !this.focusedSeriesNames.includes(series.seriesName)
         )
     }
 
-    @computed private get tooltip() {
+    @computed private get tooltip(): JSX.Element | undefined {
         const { hoverX, dualAxis, inputTable, formatColumn } = this
 
         if (hoverX === undefined) return undefined
@@ -433,24 +438,24 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-    @action.bound onLegendClick() {
+    @action.bound onLegendClick(): void {
         if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 
-    @action.bound onLegendMouseOver(seriesName: SeriesName) {
+    @action.bound onLegendMouseOver(seriesName: SeriesName): void {
         this.hoveredSeriesName = seriesName
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.hoveredSeriesName = undefined
     }
 
-    @computed get focusedSeriesNames() {
+    @computed get focusedSeriesNames(): string[] {
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
-    @computed get isFocusMode() {
+    @computed get isFocusMode(): boolean {
         return this.focusedSeriesNames.length > 0
     }
 
@@ -460,12 +465,12 @@ export class LineChart
         SVGGElement | null,
         unknown
     >
-    componentDidMount() {
+    componentDidMount(): void {
         if (!this.manager.isExportingtoSvgOrPng) this.runFancyIntroAnimation()
         exposeInstanceOnWindow(this)
     }
 
-    private runFancyIntroAnimation() {
+    private runFancyIntroAnimation(): void {
         this.animSelection = select(this.base.current)
             .selectAll("clipPath > rect")
             .attr("width", 0)
@@ -477,15 +482,15 @@ export class LineChart
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    @computed get renderUid() {
+    @computed get renderUid(): number {
         return guid()
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
@@ -493,13 +498,13 @@ export class LineChart
         return this.bounds.right - (this.legendDimensions?.width || 0)
     }
 
-    @computed private get legendDimensions() {
+    @computed private get legendDimensions(): LineLegend | undefined {
         return this.manager.hideLegend
             ? undefined
             : new LineLegend({ manager: this })
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -577,33 +582,36 @@ export class LineChart
         )
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         const message = getDefaultFailMessage(this.manager)
         if (message) return message
         if (!this.series.length) return "No matching data"
         return ""
     }
 
-    @computed private get yColumns() {
+    @computed private get yColumns(): CoreColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed private get formatColumn() {
+    @computed private get formatColumn(): CoreColumn {
         return this.yColumns[0]
     }
 
     // todo: for now just works with 1 y column
-    @computed private get annotationsMap() {
+    @computed private get annotationsMap(): Map<
+        PrimitiveType,
+        Set<PrimitiveType>
+    > {
         return this.inputTable
             .getAnnotationColumnForColumn(this.yColumnSlugs[0])
             ?.getUniqueValuesGroupedBy(this.inputTable.entityNameSlug)
     }
 
-    getAnnotationsForSeries(seriesName: SeriesName) {
+    getAnnotationsForSeries(seriesName: SeriesName): string | undefined {
         const annotationsMap = this.annotationsMap
         const annos = annotationsMap?.get(seriesName)
         return annos
@@ -625,7 +633,7 @@ export class LineChart
         return autoDetectSeriesStrategy(this.manager)
     }
 
-    @computed get isLogScale() {
+    @computed get isLogScale(): boolean {
         return this.yAxisConfig.scaleType === ScaleType.log
     }
 
@@ -651,7 +659,7 @@ export class LineChart
         return arrOfSeries
     }
 
-    @computed get allPoints() {
+    @computed get allPoints(): LinePoint[] {
         return flatten(this.series.map((series) => series.points))
     }
 
@@ -712,11 +720,11 @@ export class LineChart
         })
     }
 
-    @computed get verticalAxis() {
+    @computed get verticalAxis(): VerticalAxis {
         return this.dualAxis.verticalAxis
     }
 
-    @computed private get horizontalAxisPart() {
+    @computed private get horizontalAxisPart(): HorizontalAxis {
         const { manager } = this
         const axisConfig =
             manager.xAxis ?? new AxisConfig(manager.xAxisConfig, this)
@@ -732,12 +740,12 @@ export class LineChart
         return axis
     }
 
-    @computed private get yAxisConfig() {
+    @computed private get yAxisConfig(): AxisConfig {
         const { manager } = this
         return manager.yAxis ?? new AxisConfig(manager.yAxisConfig, this)
     }
 
-    @computed private get verticalAxisPart() {
+    @computed private get verticalAxisPart(): VerticalAxis {
         const { manager } = this
         const axisConfig = this.yAxisConfig
         if (manager.hideYAxis) axisConfig.hideAxis = true

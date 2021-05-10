@@ -11,7 +11,7 @@ export class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
     bounds: Bounds
 }> {
-    render() {
+    render(): JSX.Element {
         const { bounds, verticalAxis } = this.props
         const axis = verticalAxis.clone()
         axis.range = bounds.yRange()
@@ -47,11 +47,11 @@ export class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
 }> {
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render() {
+    render(): JSX.Element {
         const { horizontalAxis } = this.props
         const { bounds } = this
         const axis = horizontalAxis.clone()
@@ -91,7 +91,7 @@ interface DualAxisViewProps {
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
-    render() {
+    render(): JSX.Element {
         const { dualAxis, showTickMarks } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
@@ -141,7 +141,7 @@ export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
 }> {
-    render() {
+    render(): JSX.Element {
         const { bounds, verticalAxis } = this.props
         const { ticks, labelTextWrap } = verticalAxis
         const textColor = "#666"
@@ -178,7 +178,7 @@ export class HorizontalAxisComponent extends React.Component<{
     axisPosition: number
     showTickMarks?: boolean
 }> {
-    @computed get scaleType() {
+    @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
     }
 
@@ -187,12 +187,12 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 
     // for scale selector. todo: cleanup
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         const { bounds } = this.props
         return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds, axis, axisPosition, showTickMarks } = this.props
         const { ticks, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
@@ -200,7 +200,9 @@ export class HorizontalAxisComponent extends React.Component<{
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
                 tickMarkTopPosition={axisPosition}
-                tickMarkXPositions={ticks.map((tick) => axis.place(tick))}
+                tickMarkXPositions={ticks.map((tick): number =>
+                    axis.place(tick)
+                )}
                 color="#ccc"
             />
         ) : undefined
@@ -252,7 +254,7 @@ export class AxisTickMarks extends React.Component<{
     tickMarkXPositions: number[]
     color: string
 }> {
-    render() {
+    render(): JSX.Element[] {
         const { tickMarkTopPosition, tickMarkXPositions, color } = this.props
         const tickSize = 4
         const tickBottom = tickMarkTopPosition + tickSize

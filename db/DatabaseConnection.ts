@@ -34,7 +34,7 @@ export class DatabaseConnection {
         this.config = config
     }
 
-    async connect() {
+    async connect(): Promise<void> {
         this.pool = mysql.createPool(this.config)
         await this.getConnection()
     }
@@ -86,7 +86,7 @@ export class DatabaseConnection {
         return (await this.query(queryStr, params))[0]
     }
 
-    end() {
+    end(): void {
         this.pool.end()
     }
 }

@@ -148,7 +148,7 @@ export class ScatterPlotChart
 
         if (this.colorColumnSlug) {
             const tolerance =
-                table.get(this.colorColumnSlug)?.display.tolerance ?? Infinity
+                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
                 this.colorColumnSlug,
                 tolerance

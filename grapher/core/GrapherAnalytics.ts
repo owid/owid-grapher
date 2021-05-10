@@ -2,7 +2,7 @@ import { findDOMParent } from "../../clientUtils/Util"
 
 const DEBUG = false
 
-declare var window: any
+declare let window: any
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
@@ -46,12 +46,12 @@ export class GrapherAnalytics {
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
-    logGrapherViewError(error: any, info: any) {
+    logGrapherViewError(error: any, info: any): void {
         this.logToAmplitude(EventNames.grapherViewError, { error, info })
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
     }
 
-    logEntitiesNotFoundError(entities: string[]) {
+    logEntitiesNotFoundError(entities: string[]): void {
         this.logToAmplitude(EventNames.entitiesNotFound, { entities })
         this.logToGA(
             Categories.GrapherError,
@@ -60,11 +60,11 @@ export class GrapherAnalytics {
         )
     }
 
-    logGrapherTimelinePlay(slug?: string) {
+    logGrapherTimelinePlay(slug?: string): void {
         this.logToGA(Categories.GrapherUsage, EventNames.timelinePlay, slug)
     }
 
-    logGlobalEntitySelector(action: entityControlEvent, note?: string) {
+    logGlobalEntitySelector(action: entityControlEvent, note?: string): void {
         this.logToGA(Categories.GlobalEntitySelectorUsage, action, note)
     }
 
@@ -72,19 +72,19 @@ export class GrapherAnalytics {
         pickerSlug: string,
         action: countrySelectorEvent,
         note?: string
-    ) {
+    ): void {
         this.logToGA(`${pickerSlug}ExplorerCountrySelectorUsage`, action, note)
     }
 
-    logSiteClick(action: string = "unknown-action", label: string) {
+    logSiteClick(action: string = "unknown-action", label: string): void {
         this.logToGA(Categories.SiteClick, action, label)
     }
 
-    logKeyboardShortcut(shortcut: string, combo: string) {
+    logKeyboardShortcut(shortcut: string, combo: string): void {
         this.logToGA(Categories.KeyboardShortcut, shortcut, combo)
     }
 
-    startClickTracking() {
+    startClickTracking(): void {
         // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
         // Todo: have different Attributes for Grapher charts vs Site.
         const dataTrackAttr = "data-track-note"
@@ -107,7 +107,7 @@ export class GrapherAnalytics {
         })
     }
 
-    protected logToAmplitude(name: string, props?: any) {
+    protected logToAmplitude(name: string, props?: any): void {
         const allProps = {
             context: {
                 siteVersion: this.version,
@@ -133,7 +133,7 @@ export class GrapherAnalytics {
         eventAction: string,
         eventLabel?: string,
         eventValue?: number
-    ) {
+    ): void {
         // Todo: send the Grapher (or site) version to Git
         const event: GAEvent = {
             hitType: "event",

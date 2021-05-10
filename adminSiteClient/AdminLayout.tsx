@@ -25,29 +25,29 @@ export class AdminLayout extends React.Component<{
     @observable private showFAQ: boolean = false
     @observable private showSidebar: boolean = false
 
-    @action.bound onToggleFAQ() {
+    @action.bound onToggleFAQ(): void {
         this.showFAQ = !this.showFAQ
     }
 
-    @action.bound onToggleSidebar() {
+    @action.bound onToggleSidebar(): void {
         this.showSidebar = !this.showSidebar
     }
 
-    @action.bound private setInitialSidebarState(value: boolean) {
+    @action.bound private setInitialSidebarState(value: boolean): void {
         this.showSidebar = value
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.setInitialSidebarState(!this.props.noSidebar)
         this.componentDidUpdate()
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         if (this.props.title)
             document.title = this.props.title + " - owid-admin"
     }
 
-    @computed get environmentSpan() {
+    @computed get environmentSpan(): JSX.Element {
         const { admin } = this.context
         if (admin.settings.ENV === "development") {
             return <span className="dev">dev</span>
@@ -58,7 +58,7 @@ export class AdminLayout extends React.Component<{
         }
     }
 
-    render() {
+    render(): JSX.Element {
         const { admin } = this.context
         const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
 

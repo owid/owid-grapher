@@ -45,9 +45,9 @@ const basics: GrapherProgrammaticInterface = {
     ],
 }
 
-export const Line = () => <Grapher {...basics} />
+export const Line = (): JSX.Element => <Grapher {...basics} />
 
-export const SlopeChart = () => {
+export const SlopeChart = (): JSX.Element => {
     const model = {
         type: ChartTypeName.SlopeChart,
         ...basics,
@@ -55,7 +55,7 @@ export const SlopeChart = () => {
     return <Grapher {...model} />
 }
 
-export const ScatterPlot = () => {
+export const ScatterPlot = (): JSX.Element => {
     const model = {
         type: ChartTypeName.ScatterPlot,
         ...basics,
@@ -63,7 +63,7 @@ export const ScatterPlot = () => {
     return <Grapher {...model} />
 }
 
-export const DiscreteBar = () => {
+export const DiscreteBar = (): JSX.Element => {
     const model = {
         type: ChartTypeName.DiscreteBar,
         ...basics,
@@ -71,7 +71,7 @@ export const DiscreteBar = () => {
     return <Grapher {...model} />
 }
 
-export const StackedBar = () => {
+export const StackedBar = (): JSX.Element => {
     const model = {
         type: ChartTypeName.StackedBar,
         ...basics,
@@ -79,7 +79,7 @@ export const StackedBar = () => {
     return <Grapher {...model} />
 }
 
-export const StackedArea = () => {
+export const StackedArea = (): JSX.Element => {
     const model = {
         type: ChartTypeName.StackedArea,
         ...basics,
@@ -87,7 +87,7 @@ export const StackedArea = () => {
     return <Grapher {...model} />
 }
 
-export const MapFirst = () => {
+export const MapFirst = (): JSX.Element => {
     const model = {
         ...basics,
         tab: GrapherTabOption.map,
@@ -95,7 +95,7 @@ export const MapFirst = () => {
     return <Grapher {...model} />
 }
 
-export const BlankGrapher = () => {
+export const BlankGrapher = (): JSX.Element => {
     const model = {
         type: ChartTypeName.WorldMap,
         tab: GrapherTabOption.map,
@@ -105,7 +105,7 @@ export const BlankGrapher = () => {
     return <Grapher {...model} />
 }
 
-export const NoMap = () => {
+export const NoMap = (): JSX.Element => {
     const model = {
         ...basics,
         hasMapTab: false,
@@ -113,7 +113,7 @@ export const NoMap = () => {
     return <Grapher {...model} />
 }
 
-export const Faceting = () => {
+export const Faceting = (): JSX.Element => {
     const model = {
         type: ChartTypeName.StackedArea,
         facet: FacetStrategy.country,
@@ -122,7 +122,7 @@ export const Faceting = () => {
     return <Grapher {...model} />
 }
 
-export const WithAuthorTimeFilter = () => {
+export const WithAuthorTimeFilter = (): JSX.Element => {
     const model: GrapherProgrammaticInterface = {
         ...basics,
         timelineMinTime: 1993,
@@ -133,7 +133,7 @@ export const WithAuthorTimeFilter = () => {
 
 @observer
 class PerfGrapher extends React.Component {
-    @action.bound loadBigTable() {
+    @action.bound loadBigTable(): void {
         this.table = SynthesizeGDPTable({
             entityCount: 200,
             timeRange: [1500, 2000],
@@ -142,13 +142,13 @@ class PerfGrapher extends React.Component {
 
     @observable.ref table = basics.table!
 
-    @action.bound private changeChartType(type: ChartTypeName) {
+    @action.bound private changeChartType(type: ChartTypeName): void {
         this.chartTypeName = type
     }
 
     @observable chartTypeName = ChartTypeName.LineChart
 
-    render() {
+    render(): JSX.Element {
         const key = Math.random() // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020
         return (
             <div>
@@ -169,4 +169,4 @@ class PerfGrapher extends React.Component {
     }
 }
 
-export const Perf = () => <PerfGrapher />
+export const Perf = (): JSX.Element => <PerfGrapher />

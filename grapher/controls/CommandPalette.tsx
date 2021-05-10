@@ -7,7 +7,7 @@ declare type keyboardCombo = string
 
 export interface Command {
     combo: keyboardCombo
-    fn: () => any
+    fn: () => void
     title?: string
     category?: string
 }
@@ -19,7 +19,7 @@ export class CommandPalette extends React.Component<{
     commands: Command[]
     display: "none" | "block"
 }> {
-    static togglePalette() {
+    static togglePalette(): void {
         const element = document.getElementsByClassName(
             CommandPaletteClassName
         )[0] as HTMLElement
@@ -28,7 +28,7 @@ export class CommandPalette extends React.Component<{
                 element.style.display === "none" ? "block" : "none"
     }
 
-    render() {
+    render(): JSX.Element {
         const style: any = {
             display: this.props.display,
         }
@@ -50,7 +50,9 @@ export class CommandPalette extends React.Component<{
                             <span className="commandCombo">
                                 {command.combo}
                             </span>
-                            <a onClick={() => command.fn()}>{command.title}</a>
+                            <a onClick={(): void => command.fn()}>
+                                {command.title}
+                            </a>
                         </div>
                     </div>
                 )

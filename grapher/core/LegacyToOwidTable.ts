@@ -212,7 +212,7 @@ export const legacyToOwidTableAndDimensions = (
     return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
-const fullJoinTables = (tables: OwidTable[]) =>
+const fullJoinTables = (tables: OwidTable[]): OwidTable =>
     tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
 const columnDefFromLegacyVariable = (
@@ -282,7 +282,7 @@ const timeColumnValuesFromLegacyVariable = (
         : yearsRaw
 }
 
-const convertLegacyYears = (years: number[], zeroDay: string) => {
+const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     // Only shift years if the variable zeroDay is different from EPOCH_DATE
     // When the dataset uses days (`yearIsDay == true`), the days are expressed as integer
     // days since the specified `zeroDay`, which can be different for different variables.
@@ -310,7 +310,7 @@ const annotationMapAndDefFromLegacyVariable = (
     return []
 }
 
-const annotationsToMap = (annotations: string) => {
+const annotationsToMap = (annotations: string): Map<string, string> => {
     // Todo: let's delete this and switch to traditional columns
     const entityAnnotationsMap = new Map<string, string>()
     const delimiter = ":"

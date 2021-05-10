@@ -1300,7 +1300,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(Post.table)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow
+        .first()) as PostRow | undefined
     return camelCaseProperties(post)
 })
 

@@ -23,12 +23,10 @@ if (!namespacesArg) {
 
 const namespaces: string[] = namespacesArg.split(",")
 
-async function dataExport() {
+async function dataExport(): Promise<void> {
     await db.getConnection()
 
-    const tmpFilename: string = `/tmp/owid_chartdata_${namespaces.join(
-        ","
-    )}.sql`
+    const tmpFilename = `/tmp/owid_chartdata_${namespaces.join(",")}.sql`
 
     // This will also retrieve variables that are not in the specified namespace
     // but are used in a chart that has at least one variable from the specified

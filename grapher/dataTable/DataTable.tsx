@@ -26,6 +26,7 @@ import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { makeSelectionArray } from "../chart/ChartUtils"
+import { SelectionArray } from "../selection/SelectionArray"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -55,7 +56,7 @@ const columnNameByType: Record<ColumnKey, string> = {
     deltaRatio: "Relative Change",
 }
 
-const inverseSortOrder = (order: SortOrder) =>
+const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
 export interface DataTableManager {
@@ -107,29 +108,30 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed get table() {
+    @computed get table(): OwidTable {
         return this.inputTable
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get manager() {
+    @computed get manager(): DataTableManager {
         return this.props.manager || { table: BlankOwidTable() }
     }
 
-    @computed private get entityType() {
+    @computed private get entityType(): string {
         return this.table.entityType
     }
 
     @computed private get sortValueMapper(): (
         row: DataTableRow
-    ) => number | string | undefined {
+    ) => number | string {
         const { dimIndex, columnKey, order } = this.tableState.sort
-        if (dimIndex === ENTITY_DIM_INDEX) return (row) => row.entityName
+        if (dimIndex === ENTITY_DIM_INDEX)
+            return (row): string => row.entityName
 
-        return (row) => {
+        return (row): string | number => {
             const dv = row.dimensionValues[dimIndex] as DimensionValue
 
             let value: number | string | undefined
@@ -155,7 +157,7 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed private get hasSubheaders() {
+    @computed private get hasSubheaders(): boolean {
         return this.displayDimensions.some(
             (header) => header.columns.length > 1
         )
@@ -164,7 +166,7 @@ export class DataTable extends React.Component<{
     @action.bound private updateSort(
         dimIndex: DimensionIndex,
         columnKey?: ColumnKey
-    ) {
+    ): void {
         const { sort } = this.tableState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
@@ -178,7 +180,7 @@ export class DataTable extends React.Component<{
         this.storedState.sort.order = order
     }
 
-    private get entityHeader() {
+    private get entityHeader(): JSX.Element {
         const { sort } = this.tableState
         return (
             <ColumnHeader
@@ -186,7 +188,7 @@ export class DataTable extends React.Component<{
                 sortable={true}
                 sortedCol={sort.dimIndex === ENTITY_DIM_INDEX}
                 sortOrder={sort.order}
-                onClick={() => this.updateSort(ENTITY_DIM_INDEX)}
+                onClick={(): void => this.updateSort(ENTITY_DIM_INDEX)}
                 rowSpan={this.hasSubheaders ? 2 : 1}
                 headerText={capitalize(this.entityType)}
                 colType="entity"
@@ -195,7 +197,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get dimensionHeaders() {
+    private get dimensionHeaders(): JSX.Element[] {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
             const actualColumn = dim.coreTableColumn
@@ -217,9 +219,11 @@ export class DataTable extends React.Component<{
                 sortable: dim.sortable,
                 sortedCol: dim.sortable && sort.dimIndex === dimIndex,
                 sortOrder: sort.order,
-                onClick: () =>
-                    dim.sortable &&
-                    this.updateSort(dimIndex, SingleValueKey.single),
+                onClick: (): void => {
+                    if (dim.sortable) {
+                        this.updateSort(dimIndex, SingleValueKey.single)
+                    }
+                },
                 rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
                 colSpan: dim.columns.length,
                 headerText: dimensionHeaderText,
@@ -231,7 +235,7 @@ export class DataTable extends React.Component<{
         })
     }
 
-    private get dimensionSubheaders() {
+    private get dimensionSubheaders(): JSX.Element[][] {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
             dim.columns.map((column, i) => {
@@ -247,7 +251,9 @@ export class DataTable extends React.Component<{
                             sort.columnKey === column.key
                         }
                         sortOrder={sort.order}
-                        onClick={() => this.updateSort(dimIndex, column.key)}
+                        onClick={(): void =>
+                            this.updateSort(dimIndex, column.key)
+                        }
                         headerText={headerText}
                         colType="subdimension"
                         dataType="numeric"
@@ -259,7 +265,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get headerRow() {
+    private get headerRow(): JSX.Element {
         return (
             <React.Fragment>
                 <tr>
@@ -277,7 +283,7 @@ export class DataTable extends React.Component<{
         dv: DimensionValue | undefined,
         sorted: boolean,
         actualColumn: CoreColumn
-    ) {
+    ): JSX.Element {
         if (dv === undefined || !(column.key in dv))
             return <td key={key} className="dimension" />
 
@@ -319,7 +325,7 @@ export class DataTable extends React.Component<{
     private renderEntityRow(
         row: DataTableRow,
         dimensions: DataTableDimension[]
-    ) {
+    ): JSX.Element {
         const { sort } = this.tableState
         return (
             <tr key={row.entityName}>
@@ -350,17 +356,17 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get valueRows() {
+    private get valueRows(): JSX.Element[] {
         return this.sortedRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <div
                 style={{
@@ -377,7 +383,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get loadedWithData() {
+    @computed private get loadedWithData(): boolean {
         return this.columnsToShow.length > 0
     }
 
@@ -387,7 +393,7 @@ export class DataTable extends React.Component<{
      * If the user or the editor hasn't specified a start, auto-select a start time
      *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
      */
-    @computed get autoSelectedStartTime() {
+    @computed get autoSelectedStartTime(): number | undefined {
         let autoSelectedStartTime: number | undefined = undefined
 
         if (
@@ -399,7 +405,7 @@ export class DataTable extends React.Component<{
 
         const numEntitiesInTable = this.entityNames.length
 
-        this.columnsToShow.forEach((column) => {
+        this.columnsToShow.forEach((column): boolean => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
                 Object.entries(countBy(column.uniqTimesAsc)),
                 (value) => parseInt(value[0])
@@ -427,7 +433,7 @@ export class DataTable extends React.Component<{
         return autoSelectedStartTime
     }
 
-    @computed private get columnsToShow() {
+    @computed private get columnsToShow(): CoreColumn[] {
         const slugs = this.manager.dataTableSlugs ?? []
         if (slugs.length)
             return slugs
@@ -443,15 +449,15 @@ export class DataTable extends React.Component<{
             (column) =>
                 !skips.has(column.slug) &&
                 //  dim.property !== "color" &&
-                (column.display.includeInTable ?? true)
+                (column.display?.includeInTable ?? true)
         )
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get entityNames() {
+    @computed private get entityNames(): string[] {
         let tableForEntities = this.table
         if (this.manager.minPopulationFilter)
             tableForEntities = tableForEntities.filterByPopulationExcept(
@@ -465,7 +471,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         exposeInstanceOnWindow(this, "dataTable")
     }
 
@@ -473,7 +479,7 @@ export class DataTable extends React.Component<{
         column: CoreColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
-    ) {
+    ): string | undefined {
         return value === undefined
             ? value
             : column.formatValueShort(value, {
@@ -483,7 +489,7 @@ export class DataTable extends React.Component<{
               })
     }
 
-    @computed get targetTimes() {
+    @computed get targetTimes(): number[] | undefined {
         const { startTime, endTime } = this.manager
         if (startTime === undefined || endTime === undefined) return undefined
 
@@ -651,7 +657,7 @@ export class DataTable extends React.Component<{
         }))
     }
 
-    @computed private get sortedRows() {
+    @computed private get sortedRows(): DataTableRow[] {
         const { order } = this.tableState.sort
         return orderBy(this.displayRows, this.sortValueMapper, [order])
     }
@@ -680,7 +686,7 @@ function ColumnHeader(props: {
     dataType: "text" | "numeric"
     subdimensionType?: ColumnKey
     lastSubdimension?: boolean
-}) {
+}): JSX.Element {
     const {
         sortable,
         sortedCol,
@@ -725,7 +731,10 @@ function ColumnHeader(props: {
     )
 }
 
-const makeClosestTimeNotice = (targetTime: string, closestTime: string) => (
+const makeClosestTimeNotice = (
+    targetTime: string,
+    closestTime: string
+): JSX.Element => (
     <Tippy
         content={
             <div className="closest-time-notice-tippy">
@@ -812,6 +821,6 @@ interface DataTableRow {
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
 }
 
-function isDeltaColumn(columnKey?: ColumnKey) {
+function isDeltaColumn(columnKey?: ColumnKey): boolean {
     return columnKey === "delta" || columnKey === "deltaRatio"
 }

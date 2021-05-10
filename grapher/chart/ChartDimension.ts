@@ -16,6 +16,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "../persistable/Persistable"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
@@ -50,11 +51,11 @@ export class ChartDimension
         if (obj) this.updateFromObject(obj)
     }
 
-    @computed private get table() {
+    @computed private get table(): OwidTable {
         return this.manager.table
     }
 
-    updateFromObject(obj: LegacyChartDimensionInterface) {
+    updateFromObject(obj: LegacyChartDimensionInterface): void {
         if (obj.display) updatePersistables(this, { display: obj.display })
 
         this.targetYear = obj.targetYear
@@ -80,11 +81,11 @@ export class ChartDimension
     // Do not persist yet, until we migrate off VariableIds
     @observable slug?: ColumnSlug
 
-    @computed get column() {
+    @computed get column(): CoreColumn {
         return this.table.get(this.columnSlug)
     }
 
-    @computed get columnSlug() {
+    @computed get columnSlug(): string {
         return this.slug ?? this.variableId.toString()
     }
 }

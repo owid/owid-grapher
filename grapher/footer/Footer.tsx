@@ -14,41 +14,41 @@ export class Footer extends React.Component<{
     manager: FooterManager
     maxWidth?: number
 }> {
-    @computed private get maxWidth() {
+    @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get manager() {
+    @computed private get manager(): FooterManager {
         return this.props.manager
     }
 
-    @computed private get sourcesText() {
+    @computed private get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
-    @computed private get noteText() {
+    @computed private get noteText(): string {
         return this.manager.note ? `Note: ${this.manager.note}` : ""
     }
 
-    @computed private get ccSvg() {
+    @computed private get ccSvg(): string {
         if (this.manager.hasOWIDLogo)
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
 
-    @computed private get originUrlWithProtocol() {
+    @computed private get originUrlWithProtocol(): string {
         return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
-    @computed private get finalUrl() {
+    @computed private get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed private get finalUrlText() {
+    @computed private get finalUrlText(): string | undefined {
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
@@ -73,7 +73,7 @@ export class Footer extends React.Component<{
         return finalUrlText
     }
 
-    @computed private get licenseSvg() {
+    @computed private get licenseSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
 
@@ -87,11 +87,11 @@ export class Footer extends React.Component<{
         )
     }
 
-    @computed private get fontSize() {
+    @computed private get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get sources() {
+    @computed private get sources(): TextWrap {
         const { maxWidth, fontSize, sourcesText } = this
         return new TextWrap({
             maxWidth,
@@ -101,7 +101,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get note() {
+    @computed private get note(): TextWrap {
         const { maxWidth, fontSize, noteText } = this
         return new TextWrap({
             maxWidth,
@@ -111,7 +111,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get license() {
+    @computed private get license(): TextWrap {
         const { maxWidth, fontSize, licenseSvg } = this
         return new TextWrap({
             maxWidth: maxWidth * 3,
@@ -122,15 +122,15 @@ export class Footer extends React.Component<{
     }
 
     // Put the license stuff to the side if there's room
-    @computed private get isCompact() {
+    @computed private get isCompact(): boolean {
         return this.maxWidth - this.sources.width - 5 > this.license.width
     }
 
-    @computed private get paraMargin() {
+    @computed private get paraMargin(): number {
         return 2
     }
 
-    @computed get height() {
+    @computed get height(): number {
         if (this.manager.isMediaCard) return 0
 
         const { sources, note, license, isCompact, paraMargin } = this
@@ -141,11 +141,11 @@ export class Footer extends React.Component<{
         )
     }
 
-    @action.bound private onSourcesClick() {
+    @action.bound private onSourcesClick(): void {
         this.manager.currentTab = GrapherTabOption.sources
     }
 
-    renderStatic(targetX: number, targetY: number) {
+    renderStatic(targetX: number, targetY: number): JSX.Element | null {
         if (this.manager.isMediaCard) return null
 
         const { sources, note, license, maxWidth, isCompact, paraMargin } = this
@@ -175,7 +175,7 @@ export class Footer extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref tooltipTarget?: { x: number; y: number }
 
-    @action.bound private onMouseMove(e: MouseEvent) {
+    @action.bound private onMouseMove(e: MouseEvent): void {
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(":hover")) {
             const div = this.base.current as HTMLDivElement
@@ -184,15 +184,15 @@ export class Footer extends React.Component<{
         } else this.tooltipTarget = undefined
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         window.addEventListener("mousemove", this.onMouseMove)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         window.removeEventListener("mousemove", this.onMouseMove)
     }
 
-    render() {
+    render(): JSX.Element {
         const { tooltipTarget } = this
 
         const license = (

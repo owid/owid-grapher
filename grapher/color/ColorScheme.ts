@@ -102,7 +102,10 @@ export class ColorScheme implements ColorSchemeInterface {
             : this.getGradientColors(numColors)
     }
 
-    getUniqValueColorMap(uniqValues: any[], inverseOrder?: boolean) {
+    getUniqValueColorMap(
+        uniqValues: any[],
+        inverseOrder?: boolean
+    ): Map<number, string> {
         const colors = this.getColors(uniqValues.length) || []
         if (inverseOrder) colors.reverse()
 
@@ -120,7 +123,7 @@ export class ColorScheme implements ColorSchemeInterface {
         invertColorScheme = false,
         customColorMap: Map<SeriesName, Color> = new Map(),
         seriesColorMap: SeriesColorMap = new Map()
-    ) {
+    ): void {
         seriesArr.forEach((series) => {
             const customColor = customColorMap.get(series.seriesName)
             if (customColor) seriesColorMap.set(series.seriesName, customColor)
@@ -135,7 +138,7 @@ export class ColorScheme implements ColorSchemeInterface {
         seriesArr: ChartSeries[],
         seriesColorMap: SeriesColorMap,
         invertColorScheme = false
-    ) {
+    ): void {
         // For names that don't have a color, assign one.
         seriesArr
             .map((series) => series.seriesName)
@@ -159,10 +162,11 @@ export class ColorScheme implements ColorSchemeInterface {
         name: string,
         colorSets: { [key: string]: Color[] },
         singleColorScale?: boolean
-    ) {
+    ): ColorScheme {
         const colorSetsArray: Color[][] = []
         Object.keys(colorSets).forEach(
-            (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
+            (numColors): string[] =>
+                (colorSetsArray[+numColors] = colorSets[numColors])
         )
         return new ColorScheme(name, colorSetsArray, singleColorScale)
     }

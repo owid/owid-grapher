@@ -6,7 +6,7 @@ export default {
     component: DownloadTab,
 }
 
-export const Default = () => {
+export const Default = (): JSX.Element => {
     return (
         <DownloadTab
             manager={{

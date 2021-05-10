@@ -24,6 +24,11 @@ interface Tickmark {
     isFirstOrLastTick?: boolean
 }
 
+interface TickPlacement {
+    tick: number
+    bounds: Bounds
+    isHidden: boolean
+}
 abstract class AbstractAxis {
     config: AxisConfig
     @observable.ref domain: ValueRange
@@ -39,7 +44,7 @@ abstract class AbstractAxis {
         this.domain = [config.domain[0], config.domain[1]]
     }
 
-    @computed get hideAxis() {
+    @computed get hideAxis(): boolean {
         return this.config.hideAxis
     }
 
@@ -49,7 +54,7 @@ abstract class AbstractAxis {
     // Undefined values are ignored
     updateDomainPreservingUserSettings(
         domain: [number | undefined, number | undefined]
-    ) {
+    ): this {
         this.domain = [
             domain[0] !== undefined
                 ? Math.min(this.domain[0], domain[0])
@@ -61,11 +66,11 @@ abstract class AbstractAxis {
         return this
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.config.fontSize
     }
 
-    @computed get scaleType() {
+    @computed get scaleType(): ScaleType {
         return this._scaleType ?? (this.config.scaleType || ScaleType.linear)
     }
 
@@ -73,7 +78,7 @@ abstract class AbstractAxis {
         this._scaleType = value
     }
 
-    @computed get label() {
+    @computed get label(): string {
         return this._label ?? this.config.label
     }
 
@@ -81,12 +86,12 @@ abstract class AbstractAxis {
         this._label = value
     }
 
-    @computed get canChangeScaleType() {
+    @computed get canChangeScaleType(): boolean | undefined {
         return this.config.canChangeScaleType
     }
 
     // todo: refactor. switch to a parent pattern?
-    _update(parentAxis: AbstractAxis) {
+    _update(parentAxis: AbstractAxis): this {
         this.formatColumn = parentAxis.formatColumn
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
@@ -105,25 +110,25 @@ abstract class AbstractAxis {
         return d3Scale().domain(this.domain).range(this.range)
     }
 
-    @computed get rangeSize() {
+    @computed get rangeSize(): number {
         return Math.abs(this.range[1] - this.range[0])
     }
 
-    @computed get rangeMax() {
+    @computed get rangeMax(): number {
         return Math.max(this.range[1], this.range[0])
     }
 
-    @computed get rangeMin() {
+    @computed get rangeMin(): number {
         return Math.min(this.range[1], this.range[0])
     }
 
     // When this is a log axis, only show so many grid lines because otherwise the chart would get
     // too overwhelming. Different for mobile because screens are usually smaller.
-    @computed private get maxLogLines() {
+    @computed private get maxLogLines(): number {
         return isMobile() ? 8 : 10
     }
 
-    getTickValues() {
+    getTickValues(): Tickmark[] {
         const { scaleType, d3_scale, maxLogLines } = this
 
         let ticks: Tickmark[]
@@ -174,7 +179,11 @@ abstract class AbstractAxis {
                     // Convert all "in-between" lines to faint grid lines without labels
                     ticks = ticks.map((tick) => {
                         if (tick.priority === 3)
-                            tick = { ...tick, faint: true, gridLineOnly: true }
+                            tick = {
+                                ...tick,
+                                faint: true,
+                                gridLineOnly: true,
+                            }
                         return tick
                     })
                 } else {
@@ -191,9 +200,10 @@ abstract class AbstractAxis {
         } else {
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            ticks = d3_scale
-                .ticks(6)
-                .map((tickValue) => ({ value: tickValue, priority: 2 }))
+            ticks = d3_scale.ticks(6).map((tickValue) => ({
+                value: tickValue,
+                priority: 2,
+            }))
         }
 
         if (this.hideFractionalTicks)
@@ -237,14 +247,14 @@ abstract class AbstractAxis {
         return {}
     }
 
-    getFormattedTicks() {
+    getFormattedTicks(): string[] {
         // todo: pass in first or last?
-        return this.getTickValues().map((tickmark) =>
+        return this.getTickValues().map((tickmark): string =>
             this.formatTick(tickmark.value)
         )
     }
 
-    place(value: number) {
+    place(value: number): number {
         if (!this.range) {
             console.error(
                 "Can't place value on scale without a defined output range"
@@ -257,15 +267,15 @@ abstract class AbstractAxis {
         return parseFloat(this.d3_scale(value).toFixed(1))
     }
 
-    @computed get tickFontSize() {
+    @computed get tickFontSize(): number {
         return 0.9 * this.fontSize
     }
 
-    protected doIntersect(bounds: Bounds, bounds2: Bounds) {
+    protected doIntersect(bounds: Bounds, bounds2: Bounds): boolean {
         return bounds.intersects(bounds2)
     }
 
-    @computed get ticks() {
+    @computed get ticks(): number[] {
         const { tickPlacements } = this
         for (let i = 0; i < tickPlacements.length; i++) {
             for (let j = i + 1; j < tickPlacements.length; j++) {
@@ -284,7 +294,7 @@ abstract class AbstractAxis {
     formatTick(
         tick: number,
         formattingOptionsOverride?: TickFormattingOptions
-    ) {
+    ): string {
         const tickFormattingOptions: TickFormattingOptions = {
             ...this.getTickFormattingOptions(),
             ...formattingOptionsOverride,
@@ -296,7 +306,7 @@ abstract class AbstractAxis {
     }
 
     // calculates coordinates for ticks, sorted by priority
-    @computed private get tickPlacements() {
+    @computed private get tickPlacements(): TickPlacement[] {
         return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
             const bounds = Bounds.forText(
                 this.formatTick(tick.value, {
@@ -314,11 +324,11 @@ abstract class AbstractAxis {
         })
     }
 
-    @computed get labelFontSize() {
+    @computed get labelFontSize(): number {
         return 0.7 * this.fontSize
     }
 
-    @computed protected get baseTicks() {
+    @computed protected get baseTicks(): Tickmark[] {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
@@ -345,21 +355,21 @@ const labelPadding = 5
 
 export class HorizontalAxis extends AbstractAxis {
     // todo: test/refactor
-    clone() {
+    clone(): HorizontalAxis {
         return new HorizontalAxis(this.config)._update(this)
     }
 
-    @computed get labelOffset() {
+    @computed get labelOffset(): number {
         return this.labelTextWrap
             ? this.labelTextWrap.height + labelPadding * 2
             : 0
     }
 
-    @computed get labelWidth() {
+    @computed get labelWidth(): number {
         return this.rangeSize
     }
 
-    @computed get height() {
+    @computed get height(): number {
         const { labelOffset } = this
         const firstFormattedTick = this.getFormattedTicks()[0]
         const fontSize = this.tickFontSize
@@ -373,8 +383,10 @@ export class HorizontalAxis extends AbstractAxis {
         )
     }
 
-    @computed protected get baseTicks() {
-        let ticks = this.getTickValues().filter((tick) => !tick.gridLineOnly)
+    @computed protected get baseTicks(): Tickmark[] {
+        let ticks = this.getTickValues().filter(
+            (tick): boolean => !tick.gridLineOnly
+        )
         const { domain } = this
 
         // Make sure the start and end values are present, if they're whole numbers
@@ -400,7 +412,10 @@ export class HorizontalAxis extends AbstractAxis {
         return uniq(ticks)
     }
 
-    protected placeTick(tickValue: number, bounds: Bounds) {
+    protected placeTick(
+        tickValue: number,
+        bounds: Bounds
+    ): { x: number; y: number } {
         const { labelOffset } = this
         return {
             x: this.place(tickValue) - bounds.width / 2,
@@ -409,26 +424,26 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     // Add some padding before checking for intersection
-    protected doIntersect(bounds: Bounds, bounds2: Bounds) {
+    protected doIntersect(bounds: Bounds, bounds2: Bounds): boolean {
         return bounds.intersects(bounds2.padWidth(-5))
     }
 }
 
 export class VerticalAxis extends AbstractAxis {
-    @computed get labelWidth() {
+    @computed get labelWidth(): number {
         return this.height
     }
 
     // todo: test/refactor
-    clone() {
+    clone(): VerticalAxis {
         return new VerticalAxis(this.config)._update(this)
     }
 
-    @computed get labelOffset() {
+    @computed get labelOffset(): number {
         return this.labelTextWrap ? this.labelTextWrap.height + 10 : 0
     }
 
-    @computed get width() {
+    @computed get width(): number {
         const { labelOffset } = this
         const longestTick = maxBy(
             this.getFormattedTicks(),
@@ -441,11 +456,11 @@ export class VerticalAxis extends AbstractAxis {
         )
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return this.rangeSize
     }
 
-    protected placeTick(tickValue: number) {
+    protected placeTick(tickValue: number): { y: number; x: number } {
         return {
             y: this.place(tickValue),
             // x placement doesn't really matter here, so we're using
@@ -471,40 +486,40 @@ export class DualAxis {
         this.props = props
     }
 
-    @computed get horizontalAxis() {
+    @computed get horizontalAxis(): HorizontalAxis {
         const axis = this.props.horizontalAxis.clone()
         axis.range = this.innerBounds.xRange()
         return axis
     }
 
-    @computed get verticalAxis() {
+    @computed get verticalAxis(): VerticalAxis {
         const axis = this.props.verticalAxis.clone()
         axis.range = this.innerBounds.yRange()
         return axis
     }
 
     // We calculate an initial height from the range of the input bounds
-    @computed private get horizontalAxisHeight() {
+    @computed private get horizontalAxisHeight(): number {
         const axis = this.props.horizontalAxis.clone()
         axis.range = [0, this.bounds.width]
         return axis.hideAxis ? 0 : axis.height
     }
 
     // We calculate an initial width from the range of the input bounds
-    @computed private get verticalAxisWidth() {
+    @computed private get verticalAxisWidth(): number {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
         return axis.hideAxis ? 0 : axis.width
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
-    @computed get innerBounds() {
+    @computed get innerBounds(): Bounds {
         return this.bounds
             .padBottom(this.horizontalAxisHeight)
             .padLeft(this.verticalAxisWidth)
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 }

@@ -22,7 +22,7 @@ function calcEqualIntervalStepSize(
     sortedValues: number[],
     binCount: number,
     minBinValue: number
-) {
+): number {
     if (!sortedValues.length) return 10
     const stepSizeInitial = (last(sortedValues)! - minBinValue) / binCount
     return roundSigFig(stepSizeInitial, 1)
@@ -42,7 +42,7 @@ interface GetBinMaximumsWithStrategyArgs {
 function normalizeBinValues(
     binValues: (number | undefined)[],
     minBinValue?: number
-) {
+): any {
     const values = uniq(excludeUndefined(binValues))
     return minBinValue !== undefined
         ? values.filter((v) => v > minBinValue)

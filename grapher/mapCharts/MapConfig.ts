@@ -13,7 +13,7 @@ import {
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,
 } from "../../clientUtils/TimeBounds"
-import { trimObject } from "../../clientUtils/Util"
+import { trimObject, NoUndefinedValues } from "../../clientUtils/Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -38,7 +38,7 @@ interface MapConfigWithLegacyInterface extends MapConfigInterface {
 }
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
-    updateFromObject(obj: Partial<MapConfigWithLegacyInterface>) {
+    updateFromObject(obj: Partial<MapConfigWithLegacyInterface>): void {
         // Migrate variableIds to columnSlugs
         if (obj.variableId && !obj.columnSlug)
             obj.columnSlug = obj.variableId.toString()
@@ -53,7 +53,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
     }
 
-    toObject() {
+    toObject(): NoUndefinedValues<MapConfigWithLegacyInterface> {
         const obj = objectWithPersistablesToObject(
             this
         ) as MapConfigWithLegacyInterface

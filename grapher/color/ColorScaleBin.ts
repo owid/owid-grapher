@@ -27,35 +27,35 @@ abstract class AbstractColorScaleBin<T extends BinProps> {
     constructor(props: T) {
         this.props = props
     }
-    get color() {
+    get color(): string {
         return this.props.color
     }
-    get label() {
+    get label(): string | undefined {
         return this.props.label
     }
 }
 
 export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
-    get min() {
+    get min(): number {
         return this.props.min
     }
-    get max() {
+    get max(): number {
         return this.props.max
     }
-    get minText() {
+    get minText(): string {
         return (this.props.isOpenLeft ? `<` : "") + this.props.displayMin
     }
-    get maxText() {
+    get maxText(): string {
         return (this.props.isOpenRight ? `>` : "") + this.props.displayMax
     }
-    get text() {
+    get text(): string {
         return this.props.label || ""
     }
-    get isHidden() {
+    get isHidden(): boolean {
         return false
     }
 
-    contains(value: string | number | undefined) {
+    contains(value: string | number | undefined): boolean {
         if (value === undefined) return false
 
         if (this.props.isOpenLeft) return value <= this.max
@@ -67,7 +67,7 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
         return value > this.min && value <= this.max
     }
 
-    equals(other: ColorScaleBin) {
+    equals(other: ColorScaleBin): boolean {
         return (
             other instanceof NumericBin &&
             this.min === other.min &&
@@ -77,28 +77,28 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
 }
 
 export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
-    get index() {
+    get index(): number {
         return this.props.index
     }
-    get value() {
+    get value(): string {
         return this.props.value
     }
-    get isHidden() {
+    get isHidden(): boolean | undefined {
         return this.props.isHidden
     }
 
-    get text() {
+    get text(): string {
         return this.props.label || this.props.value
     }
 
-    contains(value: string | number | undefined) {
+    contains(value: string | number | undefined): boolean {
         return (
             (value === undefined && this.props.value === "No data") ||
             (value !== undefined && value === this.props.value)
         )
     }
 
-    equals(other: ColorScaleBin) {
+    equals(other: ColorScaleBin): boolean {
         return (
             other instanceof CategoricalBin &&
             this.props.index === other.props.index

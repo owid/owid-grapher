@@ -1,6 +1,6 @@
 import { PromiseCache } from "./PromiseCache"
 
-const wait = (ms: number) =>
+const wait = (ms: number): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(resolve, ms)
     })

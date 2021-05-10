@@ -29,7 +29,7 @@ const excludeTables = [
     "data_values",
 ]
 
-async function dataExport() {
+async function dataExport(): Promise<void> {
     await db.getConnection()
 
     console.log(`Exporting database structure and metadata to ${filePath}...`)

@@ -557,7 +557,7 @@ describe("tolerance", () => {
         ]
     )
 
-    function applyTolerance(table: OwidTable) {
+    function applyTolerance(table: OwidTable): OwidTable {
         return table.interpolateColumnWithTolerance("gdp", 1)
     }
 

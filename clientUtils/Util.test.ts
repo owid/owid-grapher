@@ -23,7 +23,7 @@ import {
     getClosestTimePairs,
     differenceObj,
 } from "./Util"
-import { SortOrder, ScaleType } from "./owidTypes"
+import { SortOrder } from "./owidTypes"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {
@@ -178,9 +178,12 @@ describe(formatDay, () => {
 })
 
 describe(retryPromise, () => {
-    function resolveAfterNthRetry(nth: number, message: string = "success") {
+    function resolveAfterNthRetry(
+        nth: number,
+        message = "success"
+    ): () => Promise<string> {
         let retried = 0
-        return () =>
+        return (): Promise<string> =>
             new Promise((resolve, reject) =>
                 retried++ >= nth ? resolve(message) : reject()
             )
