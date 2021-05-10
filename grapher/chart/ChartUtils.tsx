@@ -1,6 +1,7 @@
 import React from "react"
 import { Box } from "../../clientUtils/owidTypes"
 import { SeriesStrategy } from "../core/GrapherConstants"
+import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 
@@ -22,6 +23,12 @@ export const getDefaultFailMessage = (manager: ChartManager) => {
     const selection = makeSelectionArray(manager)
     if (!selection.hasSelection) return `No ${selection.entityType} selected`
     return ""
+}
+
+export const getSeriesKey = (series: LineChartSeries, suffix?: string) => {
+    return `${series.seriesName}-${series.color}-${
+        series.isProjection ? "projection" : ""
+    }${suffix ? "-" + suffix : ""}`
 }
 
 export const autoDetectSeriesStrategy = (

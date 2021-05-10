@@ -47,6 +47,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     getDefaultFailMessage,
+    getSeriesKey,
     makeClipPath,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -160,9 +161,7 @@ class Lines extends React.Component<LinesProps> {
         return this.backgroundLines.map((series, index) => (
             <g key={index}>
                 <path
-                    key={`${series.seriesName}-${series.color}-${
-                        series.isProjection ? "projection" : ""
-                    }-line`}
+                    key={getSeriesKey(series, "line")}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
@@ -375,11 +374,7 @@ export class LineChart
                                 : series.color
                             return (
                                 <tr
-                                    key={`${series.seriesName}-${
-                                        series.color
-                                    }-${
-                                        series.isProjection ? "projection" : ""
-                                    }`}
+                                    key={getSeriesKey(series)}
                                     style={{ color: textColor }}
                                 >
                                     <td>
@@ -560,11 +555,7 @@ export class LineChart
 
                             return (
                                 <circle
-                                    key={`${series.seriesName}-${
-                                        series.color
-                                    }-${
-                                        series.isProjection ? "projection" : ""
-                                    }`}
+                                    key={getSeriesKey(series)}
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
                                     r={4}
