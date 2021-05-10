@@ -3,14 +3,14 @@ const jsonCommentDelimiter = "\n//EMBEDDED_JSON\n"
 export const serializeJSONForHTML = (
     obj: any,
     delimiter = jsonCommentDelimiter
-) =>
+): string =>
     `${delimiter}${
         obj === undefined ? "" : JSON.stringify(obj, null, 2)
     }${delimiter}`
 export const deserializeJSONFromHTML = (
     html: string,
     delimiter = jsonCommentDelimiter
-) => {
+): any => {
     const json = html.split(delimiter)[1]
     return json === undefined || json === "" ? undefined : JSON.parse(json)
 }

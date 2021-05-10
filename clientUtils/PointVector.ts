@@ -17,23 +17,23 @@ export class PointVector {
         this.y = y
     }
 
-    subtract(v: PointVector) {
+    subtract(v: PointVector): PointVector {
         return new PointVector(this.x - v.x, this.y - v.y)
     }
 
-    add(v: PointVector) {
+    add(v: PointVector): PointVector {
         return new PointVector(this.x + v.x, this.y + v.y)
     }
 
-    times(n: number) {
+    times(n: number): PointVector {
         return new PointVector(this.x * n, this.y * n)
     }
 
-    get magnitude() {
+    get magnitude(): number {
         return Math.sqrt(this.x ** 2 + this.y ** 2)
     }
 
-    normalize() {
+    normalize(): PointVector {
         const magnitude = this.magnitude
         if (magnitude > 1e-5)
             return new PointVector(this.x / magnitude, this.y / magnitude)
@@ -48,22 +48,22 @@ export class PointVector {
         ]
     }
 
-    toString() {
+    toString(): string {
         return `PointVector<${this.x}, ${this.y}>`
     }
 
     static up = new PointVector(0, -1)
     static zero = new PointVector(0, 0)
 
-    static distanceSq(a: PointVector, b: PointVector) {
+    static distanceSq(a: PointVector, b: PointVector): number {
         return (b.x - a.x) ** 2 + (b.y - a.y) ** 2
     }
 
-    static distance(a: PointVector, b: PointVector) {
+    static distance(a: PointVector, b: PointVector): number {
         return Math.sqrt(PointVector.distanceSq(a, b))
     }
 
-    static angle(a: PointVector, b: PointVector) {
+    static angle(a: PointVector, b: PointVector): number {
         return (
             Math.acos(
                 Math.max(
@@ -74,7 +74,7 @@ export class PointVector {
         )
     }
 
-    private static dot(lhs: PointVector, rhs: PointVector) {
+    private static dot(lhs: PointVector, rhs: PointVector): number {
         return lhs.x * rhs.x + lhs.y * rhs.y
     }
 
@@ -83,7 +83,7 @@ export class PointVector {
         p: PointVector,
         v: PointVector,
         w: PointVector
-    ) {
+    ): number {
         const l2 = PointVector.distanceSq(v, w)
         if (l2 === 0) return PointVector.distanceSq(p, v)
 

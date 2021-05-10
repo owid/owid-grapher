@@ -8,15 +8,15 @@ const slugs = [
     "life-expectancy",
 ]
 
-const getIframe = (slug: string) => {
+const getIframe = (slug: string): string => {
     return `<iframe src="http://ourworldindata.org/grapher/${slug}?tab=chart&stackMode=absolute&region=World" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`
 }
 
-const getLink = (slug: string) => {
+const getLink = (slug: string): string => {
     return `<a href=\"https:\/\/ourworldindata.org\/grapher\/${slug}\">here<\/a>`
 }
 
-const getContent = (slugs: string[]) => {
+const getContent = (slugs: string[]): string => {
     return `
     <p>Sed lacinia vehicula commodo. Praesent vehicula ipsum nec justo vulputate, at
     pellentesque nisi lacinia. Mauris dapibus non orci ut blandit. Maecenas nibh

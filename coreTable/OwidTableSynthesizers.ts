@@ -20,7 +20,7 @@ interface SynthOptions {
 const SynthesizeOwidTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
-) => {
+): OwidTable => {
     const finalOptions: SynthOptions = {
         entityNames: [],
         entityCount: 2,
@@ -70,7 +70,7 @@ const SynthesizeOwidTable = (
 export const SynthesizeNonCountryTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
-) =>
+): OwidTable =>
     SynthesizeOwidTable(
         {
             entityNames: ["Fire", "Earthquake", "Tornado"],
@@ -104,7 +104,7 @@ export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now(),
     display?: LegacyVariableDisplayConfigInterface
-) =>
+): OwidTable =>
     SynthesizeOwidTable(
         {
             columnDefs: [
@@ -142,7 +142,17 @@ export const SynthesizeGDPTable = (
         seed
     )
 
-const SynthSource = (name: string) => {
+const SynthSource = (
+    name: string
+): {
+    id: number
+    name: string
+    dataPublishedBy: string
+    dataPublisherSource: string
+    link: string
+    retrievedDate: string
+    additionalInfo: string
+} => {
     return {
         id: name.charCodeAt(0) + name.charCodeAt(1) + name.charCodeAt(2),
         name: `${name} Almanac`,
@@ -157,7 +167,7 @@ const SynthSource = (name: string) => {
 export const SynthesizeFruitTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
-) =>
+): OwidTable =>
     SynthesizeOwidTable(
         {
             columnDefs: [
@@ -193,7 +203,7 @@ export const SynthesizeFruitTableWithNonPositives = (
     options?: Partial<SynthOptions>,
     howManyNonPositives = 20,
     seed = Date.now()
-) => {
+): OwidTable => {
     const rand = getRandomNumberGenerator(-1000, 0)
     return SynthesizeFruitTable(
         options,
@@ -212,7 +222,7 @@ export const SynthesizeFruitTableWithStringValues = (
     options?: Partial<SynthOptions>,
     howMany = 20,
     seed = Date.now()
-) => {
+): OwidTable => {
     return SynthesizeFruitTable(options, seed).replaceRandomCells(
         howMany,
         [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],

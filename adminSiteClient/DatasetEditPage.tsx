@@ -42,10 +42,10 @@ import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVaria
 import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 class VariableEditable {
-    @observable name: string = ""
-    @observable unit: string = ""
-    @observable shortUnit: string = ""
-    @observable description: string = ""
+    @observable name = ""
+    @observable unit = ""
+    @observable shortUnit = ""
+    @observable description = ""
     @observable display = new LegacyVariableDisplayConfig()
 
     constructor(json: any) {
@@ -67,10 +67,10 @@ class VariableEditRow extends React.Component<{
     @observable.ref private grapher?: Grapher
     @observable private newVariable!: VariableEditable
 
-    componentWillMount() {
-        this.componentWillReceiveProps()
+    UNSAFE_componentWillMount() {
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.newVariable = new VariableEditable(this.props.variable)
     }
 
@@ -333,9 +333,9 @@ interface DatasetPageData {
 }
 
 class DatasetEditable {
-    @observable name: string = ""
-    @observable description: string = ""
-    @observable isPrivate: boolean = false
+    @observable name = ""
+    @observable description = ""
+    @observable isPrivate = false
 
     @observable source: OwidSource = {
         id: -1,
@@ -391,16 +391,16 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
-    @observable isDeleted: boolean = false
+    @observable isDeleted = false
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
-    @observable timesUpdated: number = 0
+    @observable timesUpdated = 0
 
     // Store the original dataset to determine when it is modified
-    componentWillMount() {
-        this.componentWillReceiveProps()
+    UNSAFE_componentWillMount() {
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.newDataset = new DatasetEditable(this.props.dataset)
         this.isDeleted = false
     }
@@ -737,9 +737,9 @@ export class DatasetEditPage extends React.Component<{ datasetId: number }> {
     }
 
     componentDidMount() {
-        this.componentWillReceiveProps()
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.getData()
     }
 }

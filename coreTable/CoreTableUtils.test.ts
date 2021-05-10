@@ -179,11 +179,11 @@ describe(linearInterpolation, () => {
     })
 })
 
-describe("immutable memoization", () => {
+describe("immutable memoization", (): void => {
     class WeatherForecast {
         conditions = "rainy"
 
-        @imemo get forecast() {
+        @imemo get forecast(): string {
             return this.conditions
         }
     }

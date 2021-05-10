@@ -28,6 +28,7 @@ import {
     TransformType,
     CoreColumnStore,
     Color,
+    CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
 import { CoreTable } from "./CoreTable"
@@ -61,16 +62,16 @@ import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     entityType = "Country"
 
-    @imemo get availableEntityNames() {
+    @imemo get availableEntityNames(): any[] {
         return Array.from(this.availableEntityNameSet)
     }
 
-    @imemo get availableEntityNameSet() {
+    @imemo get availableEntityNameSet(): Set<any> {
         return new Set(this.entityNameColumn.uniqValues)
     }
 
     // todo: can we remove at some point?
-    @imemo get entityIdToNameMap() {
+    @imemo get entityIdToNameMap(): Map<number, string> {
         return this.valueIndex(
             this.entityIdColumn.slug,
             this.entityNameColumn.slug
@@ -78,7 +79,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @imemo get entityCodeToNameMap() {
+    @imemo get entityCodeToNameMap(): Map<string, string> {
         return this.valueIndex(
             this.entityCodeColumn.slug,
             this.entityNameColumn.slug
@@ -86,40 +87,40 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @imemo get entityNameToIdMap() {
+    @imemo get entityNameToIdMap(): Map<string, string> {
         return this.valueIndex(
             this.entityNameColumn.slug,
             this.entityIdColumn.slug
-        ) as Map<string, number>
+        ) as Map<string, string>
     }
 
     // todo: can we remove at some point?
-    @imemo get entityNameToCodeMap() {
+    @imemo get entityNameToCodeMap(): Map<string, string> {
         return this.valueIndex(
             this.entityNameColumn.slug,
             this.entityCodeColumn.slug
         ) as Map<string, string>
     }
 
-    @imemo get maxTime() {
+    @imemo get maxTime(): number | undefined {
         return last(this.allTimes)
     }
 
-    @imemo get entityIdColumn() {
+    @imemo get entityIdColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityId) ??
             this.get(OwidTableSlugs.entityId)
         )
     }
 
-    @imemo get entityCodeColumn() {
+    @imemo get entityCodeColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityCode) ??
             this.get(OwidTableSlugs.entityCode)
         )
     }
 
-    @imemo get minTime() {
+    @imemo get minTime(): Time {
         return this.allTimes[0]
     }
 
@@ -127,24 +128,24 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.sortedByTime.get(this.timeColumn.slug).values
     }
 
-    @imemo get rowIndicesByEntityName() {
+    @imemo get rowIndicesByEntityName(): Map<string, number[]> {
         return this.rowIndex([this.entityNameSlug])
     }
 
-    getAnnotationColumnSlug(columnDef: OwidColumnDef) {
+    getAnnotationColumnSlug(columnDef: OwidColumnDef): string | undefined {
         return isEmpty(columnDef?.annotationsColumnSlug)
             ? makeAnnotationsSlug(columnDef.slug)
             : columnDef.annotationsColumnSlug
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
-    getAnnotationColumnForColumn(columnSlug: ColumnSlug) {
+    getAnnotationColumnForColumn(columnSlug: ColumnSlug): CoreColumn {
         const def = this.get(columnSlug).def as OwidColumnDef
         const slug = this.getAnnotationColumnSlug(def)
         return this.get(slug)
     }
 
-    getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]) {
+    getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]): number[] {
         // todo: should be easy to speed up if necessary.
         return sortNumeric(
             uniq(
@@ -173,7 +174,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return [min(mins), max(maxes)]
     }
 
-    filterByEntityNames(names: EntityName[]) {
+    filterByEntityNames(names: EntityName[]): this {
         const namesSet = new Set(names)
         return this.columnFilter(
             this.entityNameSlug,
@@ -183,7 +184,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Does a stable sort by time. You can refer to this table for fast time filtering.
-    @imemo private get sortedByTime() {
+    @imemo private get sortedByTime(): this {
         if (this.timeColumn.isMissing) return this
         return this.sortBy([this.timeColumn.slug])
     }
@@ -203,7 +204,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTargetTimes(targetTimes: Time[], tolerance = 0) {
+    filterByTargetTimes(targetTimes: Time[], tolerance = 0): this {
         const timeColumn = this.timeColumn!
         const timeValues = timeColumn.valuesIncludingErrorValues
         const entityNameToIndices = this.rowIndicesByEntityName
@@ -233,7 +234,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    dropRowsWithErrorValuesForColumn(slug: ColumnSlug) {
+    dropRowsWithErrorValuesForColumn(slug: ColumnSlug): this {
         return this.columnFilter(
             slug,
             (value) => isNotErrorValue(value),
@@ -243,7 +244,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // TODO rewrite with column ops
     // TODO move to CoreTable
-    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAnyColumn(slugs: ColumnSlug[]): this {
         return this.rowFilter(
             (row) => slugs.every((slug) => isNotErrorValue(row[slug])),
             `Drop rows with empty or ErrorValues in any column: ${slugs.join(
@@ -254,7 +255,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // TODO rewrite with column ops
     // TODO move to CoreTable
-    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]) {
+    dropRowsWithErrorValuesForAllColumns(slugs: ColumnSlug[]): this {
         return this.rowFilter(
             (row) => slugs.some((slug) => isNotErrorValue(row[slug])),
             `Drop rows with empty or ErrorValues in every column: ${slugs.join(
@@ -263,7 +264,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    private sumsByTime(columnSlug: ColumnSlug) {
+    private sumsByTime(columnSlug: ColumnSlug): Map<number, number> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
         const map = new Map<number, number>()
@@ -355,7 +356,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     toTotalGrowthForEachColumnComparedToStartTime(
         startTimeBound: TimeBound,
         columnSlugs: ColumnSlug[]
-    ) {
+    ): this {
         if (this.timeColumn.isMissing) return this
         const timeColumnSlug = this.timeColumn.slug
         const newDefs = this.defs.map((def) => {
@@ -531,7 +532,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Return slugs that would be good to chart
-    @imemo get suggestedYColumnSlugs() {
+    @imemo get suggestedYColumnSlugs(): string[] {
         const skips = new Set<ColumnSlug>([
             OwidTableSlugs.entityId,
             OwidTableSlugs.time,
@@ -542,7 +543,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
-    toPrettyCsv() {
+    toPrettyCsv(): string {
         return this.dropColumns([
             OwidTableSlugs.entityId,
             OwidTableSlugs.time,
@@ -552,18 +553,18 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .toCsvWithColumnNames()
     }
 
-    @imemo get entityNameColorIndex() {
+    @imemo get entityNameColorIndex(): Map<EntityName, Color> {
         return this.valueIndex(
             this.entityNameSlug,
             OwidTableSlugs.entityColor
         ) as Map<EntityName, Color>
     }
 
-    getColorForEntityName(entityName: EntityName) {
+    getColorForEntityName(entityName: EntityName): Color | undefined {
         return this.entityNameColorIndex.get(entityName)
     }
 
-    @imemo get columnDisplayNameToColorMap() {
+    @imemo get columnDisplayNameToColorMap(): Map<string, Color> {
         return new Map(
             this.columnsAsArray
                 .filter((col) => col.def.color)
@@ -577,7 +578,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // This assumes the table is sorted where the times for entity names go in asc order.
     // The whole table does not have to be sorted by time.
-    getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
+    getLatestValueForEntity(
+        entityName: EntityName,
+        columnSlug: ColumnSlug
+    ): CoreValueType | undefined {
         const indices = this.rowIndicesByEntityName.get(entityName)
         if (!indices) return undefined
         const values = this.get(columnSlug).valuesIncludingErrorValues
@@ -607,7 +611,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         timeColumnSlug: ColumnSlug,
         interpolation: InterpolationProvider<K>,
         context: K
-    ) {
+    ): { values: number[]; times: number[] } {
         const groupBoundaries = withAllRows.groupBoundaries(this.entityNameSlug)
         const newValues = withAllRows
             .get(columnSlug)
@@ -637,7 +641,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
         toleranceOverride?: number
-    ) {
+    ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
 
@@ -701,8 +705,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     interpolateColumnLinearly(
         columnSlug: ColumnSlug,
-        extrapolate: boolean = false
-    ) {
+        extrapolate = false
+    ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
 
@@ -903,7 +907,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         entityNames: EntityName[],
         targetTime: Time,
         tolerance: Integer
-    ) {
+    ): number[] {
         const indexMap = this.rowIndicesByEntityName
         const timeColumn = this.timeColumn
         if (this.timeColumn.isMissing) return []
@@ -923,7 +927,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
-    filterByPopulationExcept(minPop: number, entityNames: string[] = []) {
+    filterByPopulationExcept(minPop: number, entityNames: string[] = []): this {
         const set = new Set(entityNames)
         return this.columnFilter(
             this.entityNameSlug,
@@ -947,11 +951,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         })
     }
 
-    sampleEntityName(howMany = 1) {
+    sampleEntityName(howMany = 1): any[] {
         return this.availableEntityNames.slice(0, howMany)
     }
 
-    get isBlank() {
+    get isBlank(): boolean {
         return (
             this.tableDescription.startsWith(BLANK_TABLE_MESSAGE) &&
             !this.numRows
@@ -965,7 +969,7 @@ const BLANK_TABLE_MESSAGE = `Table is empty.`
 export const BlankOwidTable = (
     tableSlug = `blankOwidTable`,
     extraTableDescription = ""
-) =>
+): OwidTable =>
     new OwidTable(
         undefined,
         [

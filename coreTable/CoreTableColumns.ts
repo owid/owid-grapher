@@ -21,6 +21,7 @@ import {
     Time,
     PrimitiveType,
     JsTypes,
+    CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import { EntityName } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
@@ -30,6 +31,7 @@ import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "./OwidSource"
 import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
+import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
 
 interface ColumnSummary {
     numErrorValues: number
@@ -57,7 +59,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     abstract jsType: JsTypes
 
-    parse(val: any) {
+    parse(val: any): any {
         return val
     }
 
@@ -65,24 +67,24 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this instanceof MissingColumn
     }
 
-    get sum() {
+    get sum(): number | undefined {
         return this.summary.sum
     }
 
-    get median() {
+    get median(): PrimitiveType | undefined {
         return this.summary.median
     }
 
-    get max() {
+    get max(): PrimitiveType | undefined {
         return this.summary.max
     }
 
-    get min() {
+    get min(): PrimitiveType | undefined {
         return this.summary.min
     }
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
-    @imemo get summary() {
+    @imemo get summary(): Partial<ColumnSummary> {
         const { numErrorValues, numValues, numUniqs } = this
         const basicSummary: Partial<ColumnSummary> = {
             numErrorValues,
@@ -144,24 +146,24 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
     // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
-    @imemo get unitConversionFactor() {
-        return this.display.conversionFactor ?? 1
+    @imemo get unitConversionFactor(): number {
+        return this.display?.conversionFactor ?? 1
     }
 
-    @imemo get isAllIntegers() {
+    @imemo get isAllIntegers(): boolean {
         return false
     }
 
-    @imemo get tolerance() {
-        return this.display.tolerance ?? this.def.tolerance ?? 0
+    @imemo get tolerance(): number {
+        return this.display?.tolerance ?? this.def.tolerance ?? 0
     }
 
-    @imemo get domain() {
+    @imemo get domain(): [JS_TYPE, JS_TYPE] {
         return [this.minValue, this.maxValue]
     }
 
-    @imemo get display() {
-        return this.def.display || {}
+    @imemo get display(): LegacyVariableDisplayConfigInterface | undefined {
+        return this.def.display
     }
 
     abstract formatValue(value: any, options?: TickFormattingOptions): string
@@ -195,7 +197,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get numDecimalPlaces(): number {
-        return this.display.numDecimalPlaces ?? 2
+        return this.display?.numDecimalPlaces ?? 2
     }
 
     @imemo get unit(): string | undefined {
@@ -204,7 +206,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get shortUnit(): string | undefined {
         const shortUnit =
-            this.display.shortUnit ?? this.def.shortUnit ?? undefined
+            this.display?.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
         const unit = this.unit
@@ -219,7 +221,9 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // Returns a map where the key is a series slug such as "name" and the value is a set
     // of all the unique values that this column has for that particular series.
-    getUniqueValuesGroupedBy(indexColumnSlug: ColumnSlug) {
+    getUniqueValuesGroupedBy(
+        indexColumnSlug: ColumnSlug
+    ): Map<PrimitiveType, Set<PrimitiveType>> {
         const map = new Map<PrimitiveType, Set<PrimitiveType>>()
         const values = this.values
         const indexValues = this.table.getValuesAtIndices(
@@ -233,34 +237,34 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    @imemo get description() {
+    @imemo get description(): string | undefined {
         return this.def.description
     }
 
-    @imemo get isEmpty() {
+    @imemo get isEmpty(): boolean {
         return this.valuesIncludingErrorValues.length === 0
     }
 
-    @imemo get name() {
+    @imemo get name(): string {
         return this.def.name ?? this.def.slug
     }
 
-    @imemo get displayName() {
+    @imemo get displayName(): string {
         return this.display?.name ?? this.name ?? ""
     }
 
     // todo: is the isString necessary?
-    @imemo get sortedUniqNonEmptyStringVals() {
+    @imemo get sortedUniqNonEmptyStringVals(): JS_TYPE[] {
         return Array.from(
             new Set(this.values.filter(isString).filter((i) => i))
         ).sort()
     }
 
-    @imemo get slug() {
+    @imemo get slug(): string {
         return this.def.slug
     }
 
-    @imemo get valuesToIndices() {
+    @imemo get valuesToIndices(): Map<any, number[]> {
         const map = new Map<any, number[]>()
         this.valuesIncludingErrorValues.forEach((value, index) => {
             if (!map.has(value)) map.set(value, [])
@@ -269,7 +273,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    indicesWhere(value: JS_TYPE | JS_TYPE[]) {
+    indicesWhere(value: JS_TYPE | JS_TYPE[]): any {
         const queries = Array.isArray(value) ? value : [value]
         return union(
             ...queries
@@ -279,7 +283,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // We approximate whether a column is parsed simply by looking at the first row.
-    needsParsing(value: any) {
+    needsParsing(value: any): boolean {
         // Never parse computeds. The computed should return the correct JS type. Ideally we can provide some error messaging around this.
         if (this.def.transform) return false
 
@@ -291,15 +295,15 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return true
     }
 
-    @imemo get isProjection() {
+    @imemo get isProjection(): boolean {
         return !!this.display?.isProjection
     }
 
-    @imemo get uniqValues() {
+    @imemo get uniqValues(): JS_TYPE[] {
         return uniq(this.values)
     }
 
-    @imemo get uniqValuesAsSet() {
+    @imemo get uniqValuesAsSet(): Set<JS_TYPE> {
         return new Set(this.uniqValues)
     }
 
@@ -308,12 +312,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
      * Normally you want just the valid values, like `[45000, 50000, ...]`. But sometimes you
      * need the ErrorValues too like `[45000, DivideByZeroError, 50000,...]`
      */
-    @imemo get valuesIncludingErrorValues() {
+    @imemo get valuesIncludingErrorValues(): CoreValueType[] {
         const { table, slug } = this
         return table.has(slug) ? table.columnStore[slug] : []
     }
 
-    @imemo get validRowIndices() {
+    @imemo get validRowIndices(): number[] {
         return this.valuesIncludingErrorValues
             .map((value, index) =>
                 (value as any) instanceof ErrorValue ? null : index
@@ -321,20 +325,20 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             .filter(isPresent)
     }
 
-    @imemo get values() {
+    @imemo get values(): JS_TYPE[] {
         const values = this.valuesIncludingErrorValues
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
-    @imemo get originalTimeColumnSlug() {
+    @imemo get originalTimeColumnSlug(): string {
         return getOriginalTimeColumnSlug(this.table, this.slug)
     }
 
-    @imemo get originalTimeColumn() {
+    @imemo get originalTimeColumn(): CoreColumn {
         return this.table.get(this.originalTimeColumnSlug)
     }
 
-    @imemo get originalTimes() {
+    @imemo get originalTimes(): number[] {
         const { originalTimeColumnSlug } = this
         if (!originalTimeColumnSlug) return []
         return this.table.getValuesAtIndices(
@@ -347,32 +351,32 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
      * True if the column has only 1 unique value. ErrorValues are counted as values, so
      * something like [DivideByZeroError, 2, 2] would not be constant.
      */
-    @imemo get isConstant() {
+    @imemo get isConstant(): boolean {
         return new Set(this.valuesIncludingErrorValues).size === 1
     }
 
-    @imemo get minValue() {
+    @imemo get minValue(): JS_TYPE {
         return this.valuesAscending[0]
     }
 
-    @imemo get maxValue() {
+    @imemo get maxValue(): JS_TYPE {
         return last(this.valuesAscending)!
     }
 
-    @imemo get numErrorValues() {
+    @imemo get numErrorValues(): number {
         return this.valuesIncludingErrorValues.length - this.numValues
     }
 
     // Number of correctly parsed values
-    @imemo get numValues() {
+    @imemo get numValues(): number {
         return this.values.length
     }
 
-    @imemo get numUniqs() {
+    @imemo get numUniqs(): number {
         return this.uniqValues.length
     }
 
-    @imemo get valuesAscending() {
+    @imemo get valuesAscending(): JS_TYPE[] {
         const values = this.values.slice()
         return this.jsType === "string" ? values.sort() : sortNumeric(values)
     }
@@ -406,7 +410,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove. should not be on coretable
-    @imemo get maxTime() {
+    @imemo get maxTime(): Time {
         return last(this.uniqTimesAsc) as Time
     }
 
@@ -421,7 +425,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @imemo private get allEntityNames() {
+    @imemo private get allEntityNames(): EntityName[] {
         return this.table.getValuesAtIndices(
             this.table.entityNameSlug,
             this.validRowIndices
@@ -444,7 +448,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @imemo get owidRowsByEntityName() {
+    @imemo get owidRowsByEntityName(): Map<EntityName, CoreRow[]> {
         const map = new Map<EntityName, CoreRow[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
@@ -454,7 +458,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @imemo get valueByEntityNameAndTime() {
+    @imemo get valueByEntityNameAndTime(): Map<EntityName, Map<Time, JS_TYPE>> {
         const valueByEntityNameAndTime = new Map<
             EntityName,
             Map<Time, JS_TYPE>
@@ -475,7 +479,7 @@ export type CoreColumn = AbstractCoreColumn<any>
 export class MissingColumn extends AbstractCoreColumn<any> {
     jsType = JsTypes.string
 
-    formatValue() {
+    formatValue(): string {
         return ""
     }
 }
@@ -483,11 +487,11 @@ export class MissingColumn extends AbstractCoreColumn<any> {
 class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
 
-    formatValue(value: any) {
+    formatValue(value: any): string {
         return anyToString(value)
     }
 
-    parse(val: any) {
+    parse(val: any): any {
         if (val === null) return ErrorValueTypes.NullButShouldBeString
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeString
         return val.toString() || ""
@@ -502,18 +506,18 @@ class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn<boolean> {
     jsType = JsTypes.boolean
 
-    formatValue(value: any) {
+    formatValue(value: any): "true" | "false" {
         return value ? "true" : "false"
     }
 
-    parse(val: any) {
+    parse(val: any): boolean {
         return !!val
     }
 }
 abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
-    formatValue(value: number, options?: TickFormattingOptions) {
+    formatValue(value: number, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return formatValue(value, {
                 numDecimalPlaces: this.numDecimalPlaces,
@@ -526,7 +530,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     formatValueShortWithAbbreviations(
         value: number,
         options?: TickFormattingOptions
-    ) {
+    ): string {
         return super.formatValueShortWithAbbreviations(value, {
             shortNumberPrefixes: true,
             // do not set a unit
@@ -534,7 +538,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    formatValueShort(value: number, options?: TickFormattingOptions) {
+    formatValueShort(value: number, options?: TickFormattingOptions): string {
         return super.formatValueShort(value, {
             ...omitUndefinedValues({
                 unit: this.shortUnit,
@@ -543,7 +547,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    formatValueLong(value: number, options?: TickFormattingOptions) {
+    formatValueLong(value: number, options?: TickFormattingOptions): string {
         return super.formatValueLong(value, {
             ...omitUndefinedValues({
                 unit: this.unit,
@@ -552,7 +556,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    @imemo get isAllIntegers() {
+    @imemo get isAllIntegers(): boolean {
         return this.values.every((val) => val % 1 === 0)
     }
 
@@ -570,7 +574,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         return res
     }
 
-    protected _parse(val: any) {
+    protected _parse(val: any): number {
         return parseFloat(val)
     }
 }
@@ -579,20 +583,20 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    formatValue(value: any, options?: TickFormattingOptions) {
+    formatValue(value: any, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
             ...options,
         })
     }
 
-    protected _parse(val: any) {
+    protected _parse(val: any): number {
         return parseInt(val)
     }
 }
 
 class CurrencyColumn extends NumericColumn {
-    formatValue(value: any, options?: TickFormattingOptions) {
+    formatValue(value: any, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
             unit: "$",
@@ -602,7 +606,7 @@ class CurrencyColumn extends NumericColumn {
 }
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
-    formatValue(value: number, options?: TickFormattingOptions) {
+    formatValue(value: number, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numberPrefixes: false,
             unit: "%",
@@ -616,7 +620,7 @@ class PercentageColumn extends NumericColumn {
 class RelativePercentageColumn extends PercentageColumn {}
 
 class PercentChangeOverTimeColumn extends PercentageColumn {
-    formatValue(value: number, options?: TickFormattingOptions) {
+    formatValue(value: number, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             showPlus: true,
             ...options,
@@ -642,29 +646,29 @@ abstract class TimeColumn extends AbstractCoreColumn<number> {
 }
 
 class YearColumn extends TimeColumn {
-    formatValue(value: number) {
+    formatValue(value: number): string {
         // Include BCE
         return formatYear(value)
     }
 }
 
 class DayColumn extends TimeColumn {
-    formatValue(value: number) {
+    formatValue(value: number): string {
         return formatDay(value)
     }
 
-    formatValueForMobile(value: number) {
+    formatValueForMobile(value: number): string {
         return formatDay(value, { format: "MMM D, 'YY" })
     }
 
-    formatForCsv(value: number) {
+    formatForCsv(value: number): string {
         return formatDay(value, { format: "YYYY-MM-DD" })
     }
 }
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn extends DayColumn {
-    parse(val: any) {
+    parse(val: any): number {
         if (!dateToTimeCache.has(val))
             dateToTimeCache.set(
                 val,
@@ -691,18 +695,18 @@ class QuarterColumn extends TimeColumn {
         return ErrorValueTypes.InvalidQuarterValue
     }
 
-    private static numToQuarter(value: number) {
+    private static numToQuarter(value: number): number[] {
         const year = Math.floor(value / 4)
         const quarter = (Math.abs(value) % 4) + 1
         return [year, quarter]
     }
 
-    formatValue(value: number) {
+    formatValue(value: number): string {
         const [year, quarter] = QuarterColumn.numToQuarter(value)
         return `Q${quarter}/${year}`
     }
 
-    formatForCsv(value: number) {
+    formatForCsv(value: number): string {
         const [year, quarter] = QuarterColumn.numToQuarter(value)
         return `${year}-Q${quarter}`
     }

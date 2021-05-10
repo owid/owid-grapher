@@ -28,6 +28,7 @@ import {
     InputType,
     CoreMatrix,
     TableSlug,
+    JsTypes,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import {
@@ -58,9 +59,14 @@ import {
     truncate,
     replaceCells,
 } from "./CoreTableUtils"
-import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
+import {
+    ErrorValueTypes,
+    isNotErrorValue,
+    DroppedForTesting,
+} from "./ErrorValues"
 import { OwidTableSlugs } from "./OwidTableConstants"
 import { applyTransforms } from "./Transforms"
+import { Transform } from "node:stream"
 
 interface AdvancedOptions {
     tableDescription?: string
@@ -134,7 +140,7 @@ export class CoreTable<
 
     // A method currently used just in debugging but may be useful in the author backend.
     // If your charts look funny, a good thing to check is if the autodetected columns are wrong.
-    get autodetectedColumnDefs() {
+    get autodetectedColumnDefs(): CoreTable {
         const providedSlugs = new Set(
             this.inputColumnDefs.map((def) => def.slug)
         )
@@ -143,7 +149,7 @@ export class CoreTable<
         )
     }
 
-    @imemo get transformCategory() {
+    @imemo get transformCategory(): TransformType {
         const { advancedOptions, inputType } = this
         if (advancedOptions.transformCategory)
             return advancedOptions.transformCategory
@@ -172,7 +178,7 @@ export class CoreTable<
         return originalInput as CoreColumnStore
     }
 
-    @imemo get columnStore() {
+    @imemo get columnStore(): CoreColumnStore {
         const {
             inputColumnStore,
             valuesFromColumnDefs,
@@ -209,7 +215,7 @@ export class CoreTable<
             : columnStore
     }
 
-    private get blankColumnStore() {
+    private get blankColumnStore(): CoreColumnStore {
         const columnsObject: CoreColumnStore = {}
         this.columnSlugs.forEach((slug) => {
             columnsObject[slug] = []
@@ -217,7 +223,7 @@ export class CoreTable<
         return columnsObject
     }
 
-    @imemo private get delimitedAsColumnStore() {
+    @imemo private get delimitedAsColumnStore(): CoreColumnStore {
         const { originalInput, _numericColumnSlugs } = this
         const parsed = parseDelimited(
             originalInput as string,
@@ -232,11 +238,11 @@ export class CoreTable<
         return rowsToColumnStore(renamedRows ? renamedRows.rows : parsed)
     }
 
-    get tableSlug() {
+    get tableSlug(): string | undefined {
         return this.advancedOptions.tableSlug
     }
 
-    private get inputColumnsToParsedColumnStore() {
+    private get inputColumnsToParsedColumnStore(): CoreColumnStore {
         const { inputColumnStore, colsToParse } = this
         const columnsObject: CoreColumnStore = {}
         if (!colsToParse.length) return columnsObject
@@ -264,7 +270,7 @@ export class CoreTable<
         return columnsObject
     }
 
-    private get colsToParse() {
+    private get colsToParse(): CoreColumn[] {
         const { inputType, columnsAsArray, inputColumnStore } = this
         const firstInputRow = makeRowFromColumnStore(0, inputColumnStore)
         if (inputType === InputType.Delimited) {
@@ -304,11 +310,11 @@ export class CoreTable<
         )
     }
 
-    toOneDimensionalArray() {
+    toOneDimensionalArray(): any {
         return flatten(this.toTypedMatrix().slice(1))
     }
 
-    private setColumn(def: COL_DEF_TYPE) {
+    private setColumn(def: COL_DEF_TYPE): void {
         const { type, slug } = def
         const ColumnType = (type && ColumnTypeMap[type]) || ColumnTypeMap.String
         this._columns.set(slug, new ColumnType(this, def))
@@ -340,48 +346,51 @@ export class CoreTable<
             : 0
     }
 
-    @imemo get rows() {
+    @imemo get rows(): ROW_TYPE[] {
         return columnStoreToRows(this.columnStore) as ROW_TYPE[]
     }
 
-    @imemo get indices() {
+    @imemo get indices(): number[] {
         return range(0, this.numRows)
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator](): Generator<CoreRow, void, unknown> {
         const { columnStore, numRows } = this
         for (let index = 0; index < numRows; index++) {
             yield makeRowFromColumnStore(index, columnStore)
         }
     }
 
-    getTimesAtIndices(indices: number[]) {
+    getTimesAtIndices(indices: number[]): number[] {
         if (!indices.length) return []
         return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
     }
 
-    getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
+    getValuesAtIndices(
+        columnSlug: ColumnSlug,
+        indices: number[]
+    ): CoreValueType[] {
         const values = this.get(columnSlug).valuesIncludingErrorValues
         return indices.map((index) => values[index])
     }
 
-    @imemo get firstRow() {
+    @imemo get firstRow(): ROW_TYPE {
         return makeRowFromColumnStore(0, this.columnStore) as ROW_TYPE
     }
 
-    @imemo get lastRow() {
+    @imemo get lastRow(): ROW_TYPE {
         return makeRowFromColumnStore(
             this.numRows - 1,
             this.columnStore
         ) as ROW_TYPE
     }
 
-    @imemo get numRows() {
+    @imemo get numRows(): number {
         const firstColValues = Object.values(this.columnStore)[0]
         return firstColValues ? firstColValues.length : 0
     }
 
-    @imemo get numColumns() {
+    @imemo get numColumns(): number {
         return this.columnSlugs.length
     }
 
@@ -398,12 +407,14 @@ export class CoreTable<
         )
     }
 
-    has(columnSlug: ColumnSlug | undefined) {
+    has(columnSlug: ColumnSlug | undefined): boolean {
         if (columnSlug === undefined) return false
         return this._columns.has(columnSlug)
     }
 
-    getFirstColumnWithType(columnTypeName: ColumnTypeNames) {
+    getFirstColumnWithType(
+        columnTypeName: ColumnTypeNames
+    ): CoreColumn | undefined {
         return this.columnsAsArray.find(
             (col) => col.def.type === columnTypeName
         )
@@ -413,7 +424,7 @@ export class CoreTable<
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
-    @imemo get timeColumn() {
+    @imemo get timeColumn(): CoreColumn {
         // "time" is the canonical time column slug.
         // See LegacyToOwidTable where this column is injected for all Graphers.
         const maybeTimeColumn = this.get(OwidTableSlugs.time)
@@ -440,7 +451,7 @@ export class CoreTable<
     }
 
     // todo: should be on owidtable
-    @imemo get entityNameColumn() {
+    @imemo get entityNameColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
             this.get(OwidTableSlugs.entityName)
@@ -448,35 +459,35 @@ export class CoreTable<
     }
 
     // todo: should be on owidtable
-    @imemo get entityNameSlug() {
+    @imemo get entityNameSlug(): string {
         return this.entityNameColumn.slug
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
     // on the column itself, and not tied tightly to the idea of a time column.
-    @imemo get timeColumnFormatFunction() {
+    @imemo get timeColumnFormatFunction(): (year: number) => string {
         return !this.timeColumn.isMissing
             ? this.timeColumn.formatValue
             : formatYear
     }
 
-    formatTime(value: any) {
+    formatTime(value: any): string {
         return this.timeColumnFormatFunction(value)
     }
 
-    @imemo private get columnsWithParseErrors() {
+    @imemo private get columnsWithParseErrors(): CoreColumn[] {
         return this.columnsAsArray.filter((col) => col.numErrorValues)
     }
 
-    @imemo get numColumnsWithErrorValues() {
+    @imemo get numColumnsWithErrorValues(): number {
         return this.columnsWithParseErrors.length
     }
 
-    @imemo get numErrorValues() {
+    @imemo get numErrorValues(): number {
         return sum(this.columnsAsArray.map((col) => col.numErrorValues))
     }
 
-    @imemo get numValidCells() {
+    @imemo get numValidCells(): number {
         return sum(this.columnsAsArray.map((col) => col.numValues))
     }
 
@@ -493,7 +504,7 @@ export class CoreTable<
      * So `table.rowIndex(["country", "population"]).get("USA 100")` would return [0].
      *
      */
-    rowIndex(columnSlugs: ColumnSlug[]) {
+    rowIndex(columnSlugs: ColumnSlug[]): Map<string, number[]> {
         const index = new Map<string, number[]>()
         const keyFn = makeKeyFn(this.columnStore, columnSlugs)
         this.indices.forEach((rowIndex) => {
@@ -517,7 +528,7 @@ export class CoreTable<
     protected valueIndex(
         indexColumnSlug: ColumnSlug,
         valueColumnSlug: ColumnSlug
-    ) {
+    ): Map<PrimitiveType, PrimitiveType> {
         const indexCol = this.get(indexColumnSlug)
         const valueCol = this.get(valueColumnSlug)
         const indexValues = indexCol.valuesIncludingErrorValues
@@ -537,7 +548,7 @@ export class CoreTable<
         return map
     }
 
-    grep(searchStringOrRegex: string | RegExp) {
+    grep(searchStringOrRegex: string | RegExp): this {
         return this.rowFilter((row) => {
             const line = Object.values(row).join(" ")
             return typeof searchStringOrRegex === "string"
@@ -546,7 +557,7 @@ export class CoreTable<
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    get opposite() {
+    get opposite(): this {
         const { parent } = this
         const { filterMask } = this.advancedOptions
         if (!filterMask || !parent) return this
@@ -559,7 +570,7 @@ export class CoreTable<
         )
     }
 
-    @imemo get oppositeColumns() {
+    @imemo get oppositeColumns(): this {
         if (this.isRoot) return this
         const columnsToDrop = new Set(this.columnSlugs)
         const defs = this.parent!.columnsAsArray.filter(
@@ -573,7 +584,7 @@ export class CoreTable<
         )
     }
 
-    grepColumns(searchStringOrRegex: string | RegExp) {
+    grepColumns(searchStringOrRegex: string | RegExp): this {
         const columnsToDrop = this.columnSlugs.filter((slug) => {
             return typeof searchStringOrRegex === "string"
                 ? !slug.includes(searchStringOrRegex)
@@ -591,7 +602,7 @@ export class CoreTable<
     rowFilter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
-    ) {
+    ): this {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -605,7 +616,7 @@ export class CoreTable<
         columnSlug: ColumnSlug,
         predicate: (value: CoreValueType, index: number) => boolean,
         opName: string
-    ) {
+    ): this {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -618,7 +629,7 @@ export class CoreTable<
         )
     }
 
-    sortBy(slugs: ColumnSlug[]) {
+    sortBy(slugs: ColumnSlug[]): this {
         return this.transform(
             sortColumnStore(this.columnStore, slugs),
             this.defs,
@@ -627,7 +638,7 @@ export class CoreTable<
         )
     }
 
-    sortColumns(slugs: ColumnSlug[]) {
+    sortColumns(slugs: ColumnSlug[]): this {
         const first = this.getColumns(slugs)
         const rest = this.columnsAsArray.filter((col) => !first.includes(col))
         return this.transform(
@@ -638,7 +649,7 @@ export class CoreTable<
         )
     }
 
-    reverse() {
+    reverse(): this {
         return this.transform(
             reverseColumnStore(this.columnStore),
             this.defs,
@@ -648,7 +659,7 @@ export class CoreTable<
     }
 
     // Assumes table is sorted by columnSlug. Returns an array representing the starting index of each new group.
-    protected groupBoundaries(columnSlug: ColumnSlug) {
+    protected groupBoundaries(columnSlug: ColumnSlug): number[] {
         const values = this.get(columnSlug).valuesIncludingErrorValues
         const arr: number[] = []
         let last: CoreValueType
@@ -667,45 +678,45 @@ export class CoreTable<
         return arr
     }
 
-    @imemo get defs() {
+    @imemo get defs(): COL_DEF_TYPE[] {
         return this.columnsAsArray.map((col) => col.def) as COL_DEF_TYPE[]
     }
 
-    @imemo get columnNames() {
+    @imemo get columnNames(): string[] {
         return this.columnsAsArray.map((col) => col.name)
     }
 
-    @imemo get columnTypes() {
+    @imemo get columnTypes(): (ColumnTypeNames | undefined)[] {
         return this.columnsAsArray.map((col) => col.def.type)
     }
 
-    @imemo get columnJsTypes() {
+    @imemo get columnJsTypes(): JsTypes[] {
         return this.columnsAsArray.map((col) => col.jsType)
     }
 
-    @imemo get columnSlugs() {
+    @imemo get columnSlugs(): string[] {
         return Array.from(this._columns.keys())
     }
 
-    @imemo get numericColumnSlugs() {
+    @imemo get numericColumnSlugs(): string[] {
         return this._numericColumnSlugs
     }
 
-    private get _numericColumnSlugs() {
+    private get _numericColumnSlugs(): string[] {
         return this._columnsAsArray
             .filter((col) => col instanceof ColumnTypeMap.Numeric)
             .map((col) => col.slug)
     }
 
-    private get _columnsAsArray() {
+    private get _columnsAsArray(): CoreColumn[] {
         return Array.from(this._columns.values())
     }
 
-    @imemo get columnsAsArray() {
+    @imemo get columnsAsArray(): CoreColumn[] {
         return this._columnsAsArray
     }
 
-    getColumns(slugs: ColumnSlug[]) {
+    getColumns(slugs: ColumnSlug[]): CoreColumn[] {
         return slugs.map((slug) => this.get(slug))
     }
 
@@ -717,7 +728,7 @@ export class CoreTable<
         return [min(mins), max(maxes)]
     }
 
-    private extract(slugs = this.columnSlugs) {
+    private extract(slugs = this.columnSlugs): any[][] {
         return this.rows.map((row) =>
             slugs.map((slug) =>
                 isNotErrorValue(row[slug]) ? row[slug] : undefined
@@ -725,27 +736,27 @@ export class CoreTable<
         )
     }
 
-    private get isRoot() {
+    private get isRoot(): boolean {
         return !this.parent
     }
 
-    dump(rowLimit = 30) {
+    dump(rowLimit = 30): void {
         this.dumpPipeline()
         this.dumpColumns()
         this.dumpRows(rowLimit)
     }
 
-    dumpPipeline() {
+    dumpPipeline(): void {
         // eslint-disable-next-line no-console
         console.table(this.ancestors.map((tb) => tb.explanation))
     }
 
-    dumpColumns() {
+    dumpColumns(): void {
         // eslint-disable-next-line no-console
         console.table(this.explainColumns)
     }
 
-    rowsFrom(start: number, end: number) {
+    rowsFrom(start: number, end: number): any {
         if (start >= this.numRows) return []
         if (end > this.numRows) end = this.numRows
         return range(start, end).map((index) =>
@@ -753,17 +764,17 @@ export class CoreTable<
         )
     }
 
-    dumpRows(rowLimit = 30) {
+    dumpRows(rowLimit = 30): void {
         // eslint-disable-next-line no-console
         console.table(this.rowsFrom(0, rowLimit), this.columnSlugs)
     }
 
-    dumpInputTable() {
+    dumpInputTable(): void {
         // eslint-disable-next-line no-console
         console.table(this.inputAsTable)
     }
 
-    @imemo private get inputType() {
+    @imemo private get inputType(): InputType {
         const { originalInput } = this
         if (typeof originalInput === "string") return InputType.Delimited
         if (Array.isArray(originalInput))
@@ -773,7 +784,10 @@ export class CoreTable<
         return InputType.ColumnStore
     }
 
-    @imemo private get inputColumnStoreToRows() {
+    @imemo private get inputColumnStoreToRows(): Record<
+        string,
+        CoreValueType
+    >[] {
         return columnStoreToRows(this.inputColumnStore)
     }
 
@@ -814,7 +828,7 @@ export class CoreTable<
         return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
-    @imemo private get numColsToParse() {
+    @imemo private get numColsToParse(): number {
         return this.colsToParse.length
     }
 
@@ -852,27 +866,27 @@ export class CoreTable<
     }
 
     // Output a pretty table for consles
-    toAlignedTextTable(options?: AlignedTextTableOptions) {
+    toAlignedTextTable(options?: AlignedTextTableOptions): string {
         return toAlignedTextTable(this.columnSlugs, this.rows, options)
     }
 
-    toMarkdownTable() {
+    toMarkdownTable(): string {
         return toMarkdownTable(this.columnSlugs, this.rows)
     }
 
     toDelimited(
-        delimiter: string = ",",
+        delimiter = ",",
         columnSlugs = this.columnSlugs,
         rows = this.rows
-    ) {
+    ): string {
         return toDelimited(delimiter, columnSlugs, rows)
     }
 
-    toTsv() {
+    toTsv(): string {
         return this.toDelimited("\t")
     }
 
-    toCsvWithColumnNames() {
+    toCsvWithColumnNames(): string {
         const delimiter = ","
         const header =
             this.columnsAsArray
@@ -890,7 +904,7 @@ export class CoreTable<
     }
 
     // Get all the columns that only have 1 value
-    get constantColumns() {
+    get constantColumns(): CoreColumn[] {
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
@@ -901,11 +915,11 @@ export class CoreTable<
         )
     }
 
-    findRows(query: CoreQuery) {
+    findRows(query: CoreQuery): ROW_TYPE[] {
         return this.rowsAt(this.findRowsIndices(query))
     }
 
-    findRowsIndices(query: CoreQuery) {
+    findRowsIndices(query: CoreQuery): any {
         const slugs = Object.keys(query)
         if (!slugs.length) return this.indices
         const arrs = this.getColumns(slugs).map((col) =>
@@ -914,11 +928,11 @@ export class CoreTable<
         return intersection(...arrs)
     }
 
-    indexOf(row: ROW_TYPE) {
+    indexOf(row: ROW_TYPE): any {
         return this.findRowsIndices(row)[0] ?? -1
     }
 
-    where(query: CoreQuery) {
+    where(query: CoreQuery): this {
         const rows = this.findRows(query)
         const queryDescription = Object.entries(query)
             .map(([col, value]) => `${col}=${value}`)
@@ -932,14 +946,14 @@ export class CoreTable<
         )
     }
 
-    appendRows(rows: ROW_TYPE[], opDescription: string) {
+    appendRows(rows: ROW_TYPE[], opDescription: string): this {
         return this.concat(
             [new (this.constructor as any)(rows, this.defs) as CoreTable],
             opDescription
         )
     }
 
-    limit(howMany: number, offset: number = 0) {
+    limit(howMany: number, offset = 0): this {
         const start = offset
         const end = offset + howMany
         return this.transform(
@@ -954,7 +968,7 @@ export class CoreTable<
         )
     }
 
-    updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE) {
+    updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE): this {
         return this.transform(
             this.columnStore,
             this.defs.map(fn),
@@ -963,7 +977,7 @@ export class CoreTable<
         )
     }
 
-    limitColumns(howMany: number, offset: number = 0) {
+    limitColumns(howMany: number, offset = 0): this {
         const slugs = this.columnSlugs.slice(offset, howMany + offset)
         return this.dropColumns(
             slugs,
@@ -971,7 +985,7 @@ export class CoreTable<
         )
     }
 
-    select(slugs: ColumnSlug[]) {
+    select(slugs: ColumnSlug[]): this {
         const columnsToKeep = new Set(slugs)
         const newStore: CoreColumnStore = {}
         const defs = this.columnsAsArray
@@ -992,7 +1006,7 @@ export class CoreTable<
         )
     }
 
-    dropColumns(slugs: ColumnSlug[], message?: string) {
+    dropColumns(slugs: ColumnSlug[], message?: string): this {
         const columnsToDrop = new Set(slugs)
         const newStore = {
             ...this.columnStore,
@@ -1011,7 +1025,7 @@ export class CoreTable<
         )
     }
 
-    @imemo get duplicateRowIndices() {
+    @imemo get duplicateRowIndices(): number[] {
         const keyFn = makeKeyFn(this.columnStore, this.columnSlugs)
         const dupeSet = new Set()
         const dupeIndices: number[] = []
@@ -1023,11 +1037,11 @@ export class CoreTable<
         return dupeIndices
     }
 
-    dropDuplicateRows() {
+    dropDuplicateRows(): this {
         return this.dropRowsAt(this.duplicateRowIndices)
     }
 
-    isRowEmpty(index: number) {
+    isRowEmpty(index: number): boolean {
         const { columnStore } = this
         return (
             this.columnSlugs
@@ -1037,7 +1051,7 @@ export class CoreTable<
         )
     }
 
-    dropEmptyRows() {
+    dropEmptyRows(): this {
         return this.dropRowsAt(
             this.indices
                 .map((index) => (this.isRowEmpty(index) ? index : null))
@@ -1045,12 +1059,12 @@ export class CoreTable<
         )
     }
 
-    renameColumn(oldSlug: ColumnSlug, newSlug: ColumnSlug) {
+    renameColumn(oldSlug: ColumnSlug, newSlug: ColumnSlug): this {
         return this.renameColumns({ [oldSlug]: newSlug })
     }
 
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
-    renameColumns(columnRenameMap: { [columnSlug: string]: ColumnSlug }) {
+    renameColumns(columnRenameMap: { [columnSlug: string]: ColumnSlug }): this {
         const oldSlugs = Object.keys(columnRenameMap)
         const newSlugs = Object.values(columnRenameMap)
 
@@ -1075,7 +1089,7 @@ export class CoreTable<
         )
     }
 
-    dropRowsAt(indices: number[], message?: string) {
+    dropRowsAt(indices: number[], message?: string): this {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1086,7 +1100,7 @@ export class CoreTable<
     }
 
     // for testing. Preserves ordering.
-    dropRandomRows(howMany = 1, seed = Date.now()) {
+    dropRandomRows(howMany = 1, seed = Date.now()): this {
         if (!howMany) return this // todo: clone?
         const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
         return this.dropRowsAt(
@@ -1095,7 +1109,7 @@ export class CoreTable<
         )
     }
 
-    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []) {
+    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
         return this.transform(
             replaceCells(this.columnStore, columnSlugs, (val) =>
                 val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
@@ -1108,7 +1122,7 @@ export class CoreTable<
         )
     }
 
-    replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]) {
+    replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]): this {
         return this.transform(
             replaceCells(this.columnStore, columnSlugs, (val) =>
                 !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
@@ -1125,9 +1139,9 @@ export class CoreTable<
         howMany = 1,
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now(),
-        replacementGenerator: () => any = () =>
+        replacementGenerator: () => any = (): DroppedForTesting =>
             ErrorValueTypes.DroppedForTesting
-    ) {
+    ): this {
         return this.transform(
             replaceRandomCellsInColumnStore(
                 this.columnStore,
@@ -1144,7 +1158,7 @@ export class CoreTable<
         )
     }
 
-    dropRandomPercent(dropHowMuch = 1, seed = Date.now()) {
+    dropRandomPercent(dropHowMuch = 1, seed = Date.now()): this {
         return this.dropRandomRows(
             Math.floor((dropHowMuch / 100) * this.numRows),
             seed
@@ -1155,7 +1169,7 @@ export class CoreTable<
         columnSlug: ColumnSlug,
         value: PrimitiveType,
         opName?: string
-    ) {
+    ): this {
         return this.columnFilter(
             columnSlug,
             (colValue) => colValue > value,
@@ -1163,7 +1177,7 @@ export class CoreTable<
         )
     }
 
-    filterNegativesForLogScale(columnSlug: ColumnSlug) {
+    filterNegativesForLogScale(columnSlug: ColumnSlug): this {
         return this.isGreaterThan(
             columnSlug,
             0,
@@ -1171,7 +1185,7 @@ export class CoreTable<
         )
     }
 
-    filterNegatives(slug: ColumnSlug) {
+    filterNegatives(slug: ColumnSlug): this {
         return this.columnFilter(
             slug,
             (value) => value >= 0,
@@ -1179,7 +1193,7 @@ export class CoreTable<
         )
     }
 
-    appendColumns(defs: COL_DEF_TYPE[]) {
+    appendColumns(defs: COL_DEF_TYPE[]): this {
         return this.transform(
             this.columnStore,
             this.defs.concat(defs),
@@ -1190,7 +1204,7 @@ export class CoreTable<
         )
     }
 
-    duplicateColumn(slug: ColumnSlug, overrides: COL_DEF_TYPE) {
+    duplicateColumn(slug: ColumnSlug, overrides: COL_DEF_TYPE): this {
         return this.transform(
             {
                 ...this.columnStore,
@@ -1210,7 +1224,7 @@ export class CoreTable<
     transpose(
         by: ColumnSlug,
         columnTypeNameForNewColumns = ColumnTypeNames.Numeric
-    ) {
+    ): this {
         const newColumnSlugs = [by, ...this.get(by).uniqValues]
         const newColumnDefs = newColumnSlugs.map((slug) => {
             if (slug === by) return { slug }
@@ -1230,14 +1244,14 @@ export class CoreTable<
         )
     }
 
-    columnIntersection(tables: CoreTable[]) {
+    columnIntersection(tables: CoreTable[]): string[] {
         return intersection(
             this.columnSlugs,
             ...tables.map((table) => table.columnSlugs)
         )
     }
 
-    private intersectingRowIndices(tables: CoreTable[]) {
+    private intersectingRowIndices(tables: CoreTable[]): number[] {
         const columnSlugs = this.columnIntersection(tables)
         if (!columnSlugs.length) return []
         const thisIndex = this.rowIndex(columnSlugs)
@@ -1251,7 +1265,7 @@ export class CoreTable<
         return Array.from(keys).map((key) => thisIndex.get(key)![0]) // Only include first match if many b/c we are treating tables as sets here
     }
 
-    intersection(tables: CoreTable[]) {
+    intersection(tables: CoreTable[]): this {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1265,7 +1279,7 @@ export class CoreTable<
         )
     }
 
-    difference(tables: CoreTable[]) {
+    difference(tables: CoreTable[]): this {
         return this.transform(
             this.columnStore,
             this.defs,
@@ -1279,11 +1293,11 @@ export class CoreTable<
         )
     }
 
-    appendColumnsIfNew(defs: COL_DEF_TYPE[]) {
+    appendColumnsIfNew(defs: COL_DEF_TYPE[]): this {
         return this.appendColumns(defs.filter((def) => !this.has(def.slug)))
     }
 
-    toMatrix() {
+    toMatrix(): any[][] {
         const slugs = this.columnSlugs
         const rows = this.rows.map((row) =>
             slugs.map((slug) =>
@@ -1294,13 +1308,13 @@ export class CoreTable<
     }
 
     // Same as toMatrix, but preserves error types
-    toTypedMatrix() {
+    toTypedMatrix(): any[][] {
         const slugs = this.columnSlugs
         const rows = this.rows.map((row) => slugs.map((slug) => row[slug]))
         return [this.columnSlugs, ...rows]
     }
 
-    defToObject() {
+    defToObject(): any {
         const output: any = {}
         this.columnsAsArray.forEach((col) => {
             output[col.slug] = col.def
@@ -1308,7 +1322,7 @@ export class CoreTable<
         return output
     }
 
-    toJs() {
+    toJs(): { columns: any; rows: ROW_TYPE[] } {
         return {
             columns: this.defToObject(),
             rows: this.rows,
@@ -1319,7 +1333,7 @@ export class CoreTable<
         destinationTable: CoreTable,
         sourceTable: CoreTable,
         by?: ColumnSlug[]
-    ) {
+    ): COL_DEF_TYPE[] {
         by =
             by ??
             intersection(sourceTable.columnSlugs, destinationTable.columnSlugs)
@@ -1356,7 +1370,7 @@ export class CoreTable<
         return defsToAdd
     }
 
-    concat(tables: CoreTable[], message = `Combined tables`) {
+    concat(tables: CoreTable[], message = `Combined tables`): this {
         const all = [this, ...tables] as CoreTable[]
         const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
         const uniqDefs = uniqBy(defs, (def) => def.slug)
@@ -1415,7 +1429,7 @@ export class CoreTable<
         return rightTable.leftJoin(this, by) as any // todo: change parent?
     }
 
-    innerJoin(rightTable: CoreTable, by?: ColumnSlug[]) {
+    innerJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
         const defs = this.join(this, rightTable, by)
         const newValues = defs.map((def) => def.values)
         const rowsToDrop: number[] = []
@@ -1434,11 +1448,11 @@ export class CoreTable<
             .dropDuplicateRows()
     }
 
-    union(tables: CoreTable[]) {
+    union(tables: CoreTable[]): this {
         return this.concat(tables).dropDuplicateRows()
     }
 
-    indexBy(slug: ColumnSlug) {
+    indexBy(slug: ColumnSlug): Map<CoreValueType, number[]> {
         const map = new Map<CoreValueType, number[]>()
         this.get(slug).values.map((value, index) => {
             if (!map.has(value)) map.set(value, [])
@@ -1447,7 +1461,7 @@ export class CoreTable<
         return map
     }
 
-    groupBy(by: ColumnSlug) {
+    groupBy(by: ColumnSlug): this[] {
         const index = this.indexBy(by)
         return Array.from(index.keys()).map((groupName) =>
             this.transform(
@@ -1460,7 +1474,7 @@ export class CoreTable<
         )
     }
 
-    reduce(reductionMap: ReductionMap) {
+    reduce(reductionMap: ReductionMap): this {
         const lastRow = { ...this.lastRow }
         Object.keys(reductionMap).forEach((slug: keyof ROW_TYPE) => {
             const prop = reductionMap[slug]
@@ -1503,14 +1517,14 @@ class FilterMask {
         }
     }
 
-    inverse() {
+    inverse(): FilterMask {
         return new FilterMask(
             this.numRows,
             this.mask.map((bit) => !bit)
         )
     }
 
-    apply(columnStore: CoreColumnStore) {
+    apply(columnStore: CoreColumnStore): CoreColumnStore {
         const columnsObject: CoreColumnStore = {}
         Object.keys(columnStore).forEach((slug) => {
             columnsObject[slug] = columnStore[slug].filter(
@@ -1527,7 +1541,7 @@ class FilterMask {
  *
  * todo: define all column def property types
  */
-export const columnDefinitionsFromDelimited = <T>(delimited: string) =>
+export const columnDefinitionsFromDelimited = <T>(delimited: string): T[] =>
     new CoreTable<T>(delimited.trim()).columnFilter(
         "slug",
         (value) => !!value,

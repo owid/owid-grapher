@@ -41,7 +41,7 @@ export class Admin {
 
     @observable currentRequests: Promise<Response>[] = []
 
-    @computed get showLoadingIndicator() {
+    @computed get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
             ? this.currentRequests.length > 0
             : this.loadingIndicatorSetting === "loading"
@@ -50,7 +50,7 @@ export class Admin {
     @observable loadingIndicatorSetting: "loading" | "off" | "default" =
         "default"
 
-    start(containerNode: HTMLElement, gitCmsBranchName: string) {
+    start(containerNode: HTMLElement, gitCmsBranchName: string): void {
         ReactDOM.render(
             <AdminApp admin={this} gitCmsBranchName={gitCmsBranchName} />,
             containerNode
@@ -61,12 +61,16 @@ export class Admin {
         return urljoin(this.basePath, path)
     }
 
-    goto(path: string) {
+    goto(path: string): void {
         this.url(path)
     }
 
     // Make a request with no error or response handling
-    async rawRequest(path: string, data: string | File, method: HTTPMethod) {
+    async rawRequest(
+        path: string,
+        data: string | File,
+        method: HTTPMethod
+    ): Promise<Response> {
         const headers: any = {}
         const isFile = data instanceof File
         if (!isFile) {
@@ -89,7 +93,7 @@ export class Admin {
         data: Json | File,
         method: HTTPMethod,
         opts: { onFailure?: "show" | "continue" } = {}
-    ) {
+    ): Promise<Json> {
         const onFailure = opts.onFailure || "show"
 
         let targetPath = path
@@ -133,15 +137,15 @@ export class Admin {
         return json
     }
 
-    @action.bound private setErrorMessage(message: any) {
+    @action.bound private setErrorMessage(message: any): void {
         this.errorMessage = message
     }
 
-    @action.bound private addRequest(request: Promise<Response>) {
+    @action.bound private addRequest(request: Promise<Response>): void {
         this.currentRequests.push(request)
     }
 
-    @action.bound private removeRequest(request: Promise<Response>) {
+    @action.bound private removeRequest(request: Promise<Response>): void {
         this.currentRequests = this.currentRequests.filter(
             (req) => req !== request
         )

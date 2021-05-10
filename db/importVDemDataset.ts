@@ -18,7 +18,7 @@ const VARIABLE_START_COLUMN = 7
 
 // TODO design a more long-term import api so these scripts are less fragile
 
-async function importCodebook() {
+async function importCodebook(): Promise<void> {
     const codebookXLS = XLSX.readFile(CODEBOOK_FILE)
     const sheet = codebookXLS.Sheets[codebookXLS.SheetNames[0]]
     const codebookCSV = XLSX.utils.sheet_to_csv(sheet)
@@ -179,7 +179,7 @@ async function importCodebook() {
     })
 }
 
-async function importData() {
+async function importData(): Promise<void> {
     const input = fs.createReadStream(DATA_FILE, "utf8")
 
     // Calculated from running first column through country standardizer
@@ -444,7 +444,7 @@ async function importData() {
         let valueRows: any[][] = []
         let insertCounter = 0
 
-        async function insertRows() {
+        async function insertRows(): Promise<void> {
             insertCounter += valueRows.length
             console.log(insertCounter)
             await t.execute(
@@ -508,7 +508,7 @@ async function importData() {
     })
 }
 
-async function main() {
+async function main(): Promise<void> {
     await db.getConnection()
     try {
         //    await importCodebook()

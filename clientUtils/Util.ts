@@ -148,7 +148,7 @@ export const d3Format = formatLocale({
 export const getRelativeMouse = (
     node: SVGElement,
     event: TouchEvent | { clientX: number; clientY: number }
-) => {
+): PointVector => {
     const isTouchEvent = !!(event as TouchEvent).targetTouches
     const eventOwner = isTouchEvent
         ? (event as TouchEvent).targetTouches[0]
@@ -173,7 +173,7 @@ export const getRelativeMouse = (
 }
 
 // Purely for local development time
-const isStorybook = () =>
+const isStorybook = (): boolean =>
     window.location.host.startsWith("localhost:6006") &&
     document.title === "Storybook"
 
@@ -182,7 +182,7 @@ export const exposeInstanceOnWindow = (
     component: any,
     name = "chart",
     alsoOnTopWindow?: boolean
-) => {
+): void => {
     if (typeof window === "undefined") return
     const win = window as any
     win[name] = component
@@ -192,7 +192,7 @@ export const exposeInstanceOnWindow = (
 }
 
 // Make an arbitrary string workable as a css class name
-export const makeSafeForCSS = (name: string) =>
+export const makeSafeForCSS = (name: string): string =>
     name.replace(/[^a-z0-9]/g, (str) => {
         const char = str.charCodeAt(0)
         if (char === 32) return "-"
@@ -223,7 +223,7 @@ export const formatYear = (year: number) => {
         : year.toString()
 }
 
-export const roundSigFig = (num: number, sigfigs: number = 1) => {
+export const roundSigFig = (num: number, sigfigs = 1): number => {
     if (num === 0) return 0
     const magnitude = Math.floor(Math.log10(Math.abs(num)))
     return round(num, -magnitude + sigfigs - 1)
@@ -255,19 +255,19 @@ export const lastOfNonEmptyArray = <T>(arr: T[]): T => {
 interface ObjectLiteral {
     [key: string]: any
 }
-export const mapToObjectLiteral = (map: Map<string, any>) =>
+export const mapToObjectLiteral = (map: Map<string, any>): ObjectLiteral =>
     Array.from(map).reduce((objLit, [key, value]) => {
         objLit[key.toString()] = value
         return objLit
     }, {} as ObjectLiteral)
 
-export function next<T>(set: T[], current: T) {
+export function next<T>(set: T[], current: T): T {
     let nextIndex = set.indexOf(current) + 1
     nextIndex = nextIndex === -1 ? 0 : nextIndex
     return set[nextIndex === set.length ? 0 : nextIndex]
 }
 
-export const previous = <T>(set: T[], current: T) => {
+export const previous = <T>(set: T[], current: T): T => {
     const nextIndex = set.indexOf(current) - 1
     return set[nextIndex < 0 ? set.length - 1 : nextIndex]
 }
@@ -315,7 +315,7 @@ const cagrFromPoints = (
     startPoint: Point,
     endPoint: Point,
     property: "x" | "y"
-) => {
+): number => {
     const elapsed = endPoint.timeValue - startPoint.timeValue
     if (!elapsed) return 0
     return cagr(startPoint[property]!, endPoint[property]!, elapsed)
@@ -325,7 +325,7 @@ export const cagr = (
     startValue: number,
     endValue: number,
     yearsElapsed: number
-) => {
+): number => {
     const ratio = endValue / startValue
     return (
         Math.sign(ratio) *
@@ -334,7 +334,7 @@ export const cagr = (
     )
 }
 
-export const makeAnnotationsSlug = (columnSlug: string) =>
+export const makeAnnotationsSlug = (columnSlug: string): string =>
     `${columnSlug}-annotations`
 
 // Todo: add unit tests
@@ -364,7 +364,7 @@ export const relativeMinAndMax = (
     return [minChange, maxChange]
 }
 
-export const isVisible = (elm: HTMLElement | null) => {
+export const isVisible = (elm: HTMLElement | null): boolean => {
     if (!elm || !elm.getBoundingClientRect) return false
     const rect = elm.getBoundingClientRect()
     const viewHeight = Math.max(
@@ -375,8 +375,9 @@ export const isVisible = (elm: HTMLElement | null) => {
 }
 
 // Take an arbitrary string and turn it into a nice url slug
-export const slugify = (str: string) => slugifySameCase(str.toLowerCase())
-export const slugifySameCase = (str: string) =>
+export const slugify = (str: string): string =>
+    slugifySameCase(str.toLowerCase())
+export const slugifySameCase = (str: string): string =>
     str
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
@@ -386,10 +387,10 @@ export const slugifySameCase = (str: string) =>
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let _guid = 0
-export const guid = () => ++_guid
+export const guid = (): number => ++_guid
 
 // Take an array of points and make it into an SVG path specification string
-export const pointsToPath = (points: Array<[number, number]>) => {
+export const pointsToPath = (points: Array<[number, number]>): string => {
     let path = ""
     for (let i = 0; i < points.length; i++) {
         if (i === 0) path += `M${points[i][0]} ${points[i][1]}`
@@ -404,10 +405,10 @@ export const pointsToPath = (points: Array<[number, number]>) => {
 export const sortedFindClosestIndex = (
     array: number[],
     value: number,
-    startIndex: number = 0,
+    startIndex = 0,
     // non-inclusive end
     endIndex: number = array.length
-) => {
+): number => {
     if (startIndex >= endIndex) return -1
 
     if (value < array[startIndex]) return startIndex
@@ -443,12 +444,12 @@ export const sortedFindClosest = (
     return index !== -1 ? array[index] : undefined
 }
 
-export const isMobile = () =>
+export const isMobile = (): boolean =>
     typeof window === "undefined"
         ? false
         : !!window?.navigator?.userAgent.toLowerCase().includes("mobi")
 
-export const isTouchDevice = () => !!("ontouchstart" in window)
+export const isTouchDevice = (): boolean => !!("ontouchstart" in window)
 
 // General type reperesenting arbitrary json data; basically a non-nullable 'any'
 export interface Json {
@@ -456,22 +457,23 @@ export interface Json {
 }
 
 // Escape a function for storage in a csv cell
-export const csvEscape = (value: any) => {
+export const csvEscape = (value: any): any => {
     const valueStr = toString(value)
     return valueStr.includes(",") ? `"${value.replace(/\"/g, '""')}"` : value
 }
 
-export const arrToCsvRow = (arr: string[]) =>
+export const arrToCsvRow = (arr: string[]): string =>
     arr.map((x) => csvEscape(x)).join(",") + "\n"
 
-export const urlToSlug = (url: string) =>
+export const urlToSlug = (url: string): string =>
     last(
         parseUrl(url)
             .pathname.split("/")
             .filter((x) => x)
     ) as string
 
-export const sign = (num: number) => (num > 0 ? 1 : num < 0 ? -1 : 0)
+export const sign = (num: number): 0 | 1 | -1 =>
+    num > 0 ? 1 : num < 0 ? -1 : 0
 
 // Removes all undefineds from an object.
 export const trimObject = <Obj>(
@@ -525,7 +527,7 @@ export const getCountryCodeFromNetlifyRedirect = async (): Promise<
         req.send()
     })
 
-export const stripHTML = (html: string) => striptags(html)
+export const stripHTML = (html: string): string => striptags(html)
 
 // Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
 // So we have our own *very* psuedo-RNG.
@@ -546,7 +548,7 @@ export const sampleFrom = <T>(
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-const shuffleArray = (array: any[], seed = Date.now()) => {
+const shuffleArray = (array: any[], seed = Date.now()): any[] => {
     const rand = getRandomNumberGenerator(0, 100, seed)
     const clonedArr = array.slice()
     for (let index = clonedArr.length - 1; index > 0; index--) {
@@ -559,7 +561,7 @@ const shuffleArray = (array: any[], seed = Date.now()) => {
     return clonedArr
 }
 
-export const makeGrid = (pieces: number) => {
+export const makeGrid = (pieces: number): { columns: number; rows: number } => {
     const columns = Math.ceil(Math.sqrt(pieces))
     const rows = Math.ceil(pieces / columns)
     return {
@@ -629,7 +631,7 @@ const valuesAtTimes = (
     valueByTime: Map<number, string | number>,
     targetTimes: Time[],
     tolerance = 0
-) => {
+): { time: number | undefined; value: string | number | undefined }[] => {
     const times = Array.from(valueByTime.keys())
     return targetTimes.map((targetTime) => {
         const time = findClosestTime(times, targetTime, tolerance)
@@ -666,7 +668,9 @@ export const valuesByEntityWithinTimes = (
     )
 }
 
-export const getStartEndValues = (values: DataValue[]) => [
+export const getStartEndValues = (
+    values: DataValue[]
+): (DataValue | undefined)[] => [
     minBy(values, (dv) => dv.time),
     maxBy(values, (dv) => dv.time),
 ]
@@ -674,14 +678,14 @@ export const getStartEndValues = (values: DataValue[]) => [
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 // From https://stackoverflow.com/a/15289883
-export function dateDiffInDays(a: Date, b: Date) {
+export function dateDiffInDays(a: Date, b: Date): number {
     // Discard the time and time-zone information.
     const utca = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
     const utcb = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
     return Math.floor((utca - utcb) / MS_PER_DAY)
 }
 
-export const diffDateISOStringInDays = (a: string, b: string) =>
+export const diffDateISOStringInDays = (a: string, b: string): number =>
     moment.utc(a).diff(moment.utc(b), "days")
 
 export const addDays = (date: Date, days: number): Date => {
@@ -692,8 +696,8 @@ export const addDays = (date: Date, days: number): Date => {
 
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries: number = 3
-) {
+    maxRetries = 3
+): Promise<T> {
     let retried = 0
     let lastError
     while (retried++ < maxRetries) {
@@ -706,7 +710,7 @@ export async function retryPromise<T>(
     throw lastError
 }
 
-export function parseIntOrUndefined(s: string | undefined) {
+export function parseIntOrUndefined(s: string | undefined): number | undefined {
     if (s === undefined) return undefined
     const value = parseInt(s)
     return isNaN(value) ? undefined : value
@@ -718,7 +722,7 @@ export const anyToString = (value: any): string =>
 // Scroll Helpers
 // Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
 
-function isDocumentElement(el: HTMLElement) {
+function isDocumentElement(el: HTMLElement): boolean {
     return [document.documentElement, document.body].indexOf(el) > -1
 }
 
@@ -756,7 +760,7 @@ export function scrollIntoViewIfNeeded(
     }
 }
 
-export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
+export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U): U[] {
     const result: U[] = []
     if (array.length <= 1) return result
     for (let i = 0; i < array.length - 1; i++) {
@@ -792,7 +796,7 @@ export function keyMap<Key, Value>(
     return result
 }
 
-export const linkify = (str: string) => linkifyHtml(str)
+export const linkify = (str: string): string => linkifyHtml(str)
 
 export const oneOf = <T>(value: any, options: T[], defaultOption: T): T => {
     for (const option of options) {
@@ -801,7 +805,7 @@ export const oneOf = <T>(value: any, options: T[], defaultOption: T): T => {
     return defaultOption
 }
 
-export const intersectionOfSets = <T>(sets: Set<T>[]) => {
+export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
 
@@ -830,7 +834,7 @@ export function sortByUndefinedLast<T>(
     array: T[],
     accessor: (t: T) => string | number | undefined,
     order: SortOrder = SortOrder.asc
-) {
+): any {
     const sorted = sortBy(array, (value) => {
         const mapped = accessor(value)
         if (mapped === undefined) {
@@ -841,7 +845,9 @@ export function sortByUndefinedLast<T>(
     return order === SortOrder.asc ? sorted : sorted.reverse()
 }
 
-export function getAttributesOfHTMLElement(el: HTMLElement) {
+export function getAttributesOfHTMLElement(
+    el: HTMLElement
+): { [key: string]: string } {
     const attributes: { [key: string]: string } = {}
     for (let i = 0; i < el.attributes.length; i++) {
         const attr = el.attributes.item(i)
@@ -854,7 +860,7 @@ export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
 
-export const lowerCaseFirstLetterUnlessAbbreviation = (str: string) =>
+export const lowerCaseFirstLetterUnlessAbbreviation = (str: string): string =>
     str.charAt(1).match(/[A-Z]/)
         ? str
         : str.charAt(0).toLowerCase() + str.slice(1)
@@ -872,15 +878,15 @@ export const sortNumeric = <T>(
 ): T[] =>
     arr.sort(
         sortOrder === SortOrder.asc
-            ? (a: T, b: T) => sortByFn(a) - sortByFn(b)
-            : (a: T, b: T) => sortByFn(b) - sortByFn(a)
+            ? (a: T, b: T): number => sortByFn(a) - sortByFn(b)
+            : (a: T, b: T): number => sortByFn(b) - sortByFn(a)
     )
 
 export const mapBy = <T>(
     arr: T[],
     keyAccessor: (t: T) => any,
     valueAccessor: (t: T) => any
-) => {
+): Map<any, any> => {
     const map = new Map()
     arr.forEach((val) => {
         map.set(keyAccessor(val), valueAccessor(val))
@@ -894,7 +900,7 @@ export const findIndexFast = (
     predicate: (value: any, index: number) => boolean,
     fromIndex = 0,
     toIndex = array.length
-) => {
+): number => {
     let index = fromIndex
     while (index < toIndex) {
         if (predicate(array[index], index)) return index
@@ -907,7 +913,7 @@ export const logMe = (
     target: any,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<any>
-) => {
+): TypedPropertyDescriptor<any> => {
     const originalMethod = descriptor.value
     descriptor.value = function (...args: any[]) {
         console.log(`Running ${propertyName} with '${args}'`)
@@ -927,7 +933,7 @@ export function getClosestTimePairs(
     sortedTimesA: Time[],
     sortedTimesB: Time[],
     maxDiff: Integer = Infinity
-) {
+): [number, number][] {
     if (sortedTimesA.length === 0 || sortedTimesB.length === 0) return []
 
     const decidedPairs: [Time, Time][] = []
@@ -1028,7 +1034,7 @@ export const differenceObj = <
 >(
     obj: A,
     defaultObj: B
-) => {
+): Partial<A> => {
     const result: Partial<A> = {}
     for (const key in obj) {
         if (defaultObj[key] !== obj[key]) {

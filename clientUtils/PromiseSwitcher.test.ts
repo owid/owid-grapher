@@ -1,11 +1,11 @@
 import { PromiseSwitcher } from "./PromiseSwitcher"
 
-const delayResolve = (result: any, ms: number = 10) =>
+const delayResolve = (result: any, ms = 10): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(() => resolve(result), ms)
     })
 
-const delayReject = (error: any, ms: number = 10) =>
+const delayReject = (error: any, ms = 10): Promise<void> =>
     new Promise((_, reject) => {
         setTimeout(() => reject(error), ms)
     })

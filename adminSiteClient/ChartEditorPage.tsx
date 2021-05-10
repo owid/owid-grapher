@@ -13,7 +13,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import { Bounds } from "../clientUtils/Bounds"
 import { capitalize } from "../clientUtils/Util"
 import { Grapher } from "../grapher/core/Grapher"
-
+import { Admin } from "./Admin"
 import {
     ChartEditor,
     EditorDatabase,
@@ -47,7 +47,7 @@ import {
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
     dispose!: IReactionDisposer
-    componentDidMount() {
+    componentDidMount(): void {
         //window.addEventListener("hashchange", this.onHashChange)
         this.onHashChange()
 
@@ -56,16 +56,16 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
         })
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         //window.removeEventListener("hashchange", this.onHashChange)
         this.dispose()
     }
 
-    render() {
+    render(): null {
         return null
     }
 
-    @action.bound onHashChange() {
+    @action.bound onHashChange(): void {
         const match = window.location.hash.match(/#(.+?)-tab/)
         if (match) {
             const tab = match[1]
@@ -99,7 +99,7 @@ export class ChartEditorPage
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
-    async fetchGrapher() {
+    async fetchGrapher(): Promise<void> {
         const { grapherId, grapherConfig } = this.props
         const { admin } = this.context
         const json =
@@ -111,11 +111,11 @@ export class ChartEditorPage
 
     @observable private _isDbSet = false
     @observable private _isGrapherSet = false
-    @computed get isReady() {
+    @computed get isReady(): boolean {
         return this._isDbSet && this._isGrapherSet
     }
 
-    @action.bound private loadGrapherJson(json: any) {
+    @action.bound private loadGrapherJson(json: any): void {
         this.grapherElement = (
             <Grapher
                 {...{
@@ -133,18 +133,18 @@ export class ChartEditorPage
         this._isGrapherSet = true
     }
 
-    @action.bound private setDb(json: any) {
+    @action.bound private setDb(json: any): void {
         this.database = new EditorDatabase(json)
         this._isDbSet = true
     }
 
-    async fetchData() {
+    async fetchData(): Promise<void> {
         const { admin } = this.context
         const json = await admin.getJSON(`/api/editorData/namespaces.json`)
         this.setDb(json)
     }
 
-    async fetchLogs() {
+    async fetchLogs(): Promise<void> {
         const { grapherId } = this.props
         const { admin } = this.context
         const json =
@@ -154,7 +154,7 @@ export class ChartEditorPage
         runInAction(() => (this.logs = json.logs))
     }
 
-    async fetchRefs() {
+    async fetchRefs(): Promise<void> {
         const { grapherId } = this.props
         const { admin } = this.context
         const json =
@@ -166,7 +166,7 @@ export class ChartEditorPage
         runInAction(() => (this.references = json.references || []))
     }
 
-    async fetchRedirects() {
+    async fetchRedirects(): Promise<void> {
         const { grapherId } = this.props
         const { admin } = this.context
         const json =
@@ -176,17 +176,17 @@ export class ChartEditorPage
         runInAction(() => (this.redirects = json.redirects))
     }
 
-    @computed get admin() {
+    @computed get admin(): Admin {
         return this.context.admin
     }
 
-    @computed get editor() {
+    @computed get editor(): ChartEditor | undefined {
         if (!this.isReady) return undefined
 
         return new ChartEditor({ manager: this })
     }
 
-    @action.bound refresh() {
+    @action.bound refresh(): void {
         this.fetchGrapher()
         this.fetchData()
         this.fetchLogs()
@@ -195,7 +195,7 @@ export class ChartEditorPage
     }
 
     dispose!: IReactionDisposer
-    componentDidMount() {
+    componentDidMount(): void {
         this.refresh()
 
         this.dispose = reaction(
@@ -213,15 +213,15 @@ export class ChartEditorPage
 
     // This funny construction allows the "new chart" link to work by forcing an update
     // even if the props don't change
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps(): void {
         setTimeout(() => this.refresh(), 0)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         this.dispose()
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <AdminLayout noSidebar>
                 <main className="ChartEditorPage">
@@ -233,7 +233,7 @@ export class ChartEditorPage
         )
     }
 
-    renderReady(editor: ChartEditor) {
+    renderReady(editor: ChartEditor): JSX.Element {
         const { grapher, availableTabs, previewMode } = editor
 
         return (

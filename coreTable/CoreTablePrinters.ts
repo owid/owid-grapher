@@ -11,7 +11,7 @@ export const toAlignedTextTable = (
     headerSlugs: string[],
     rows: any[],
     options: AlignedTextTableOptions = {}
-) => {
+): string => {
     const {
         alignRight = true,
         maxCharactersPerColumn = 20,
@@ -68,7 +68,7 @@ export const toMarkdownTable = (
     slugs: string[],
     rows: any[],
     formatFn?: CellFormatter
-) =>
+): string =>
     [
         slugs,
         slugs.map(() => "-"),
@@ -88,7 +88,7 @@ export const toDelimited = (
     rows: any[],
     cellFn?: CellFormatter,
     rowDelimiter = "\n"
-) => {
+): string => {
     const skipHeaderRow = 1
     const header = columnSlugs.map((columnName, index) =>
         cellFn ? cellFn(columnName, 0, index) : columnName
