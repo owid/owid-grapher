@@ -161,7 +161,7 @@
         "nodemailer": "^6.2.1",
         "normalize.css": "^8.0.1",
         "optimize-css-assets-webpack-plugin": "^5.0.4",
-        "postcss": "^8.0.6",
+        "postcss": "^8.2.10",
         "postcss-loader": "^4.0.2",
         "prettier": "^2.1.2",
         "progress": "^2.0.3",
