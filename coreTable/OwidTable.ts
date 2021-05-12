@@ -87,11 +87,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @imemo get entityNameToIdMap(): Map<string, string> {
+    @imemo get entityNameToIdMap(): Map<string, number> {
         return this.valueIndex(
             this.entityNameColumn.slug,
             this.entityIdColumn.slug
-        ) as Map<string, string>
+        ) as Map<string, number>
     }
 
     // todo: can we remove at some point?

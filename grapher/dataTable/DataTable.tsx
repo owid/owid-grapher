@@ -443,7 +443,7 @@ export class DataTable extends React.Component<{
             (column) =>
                 !skips.has(column.slug) &&
                 //  dim.property !== "color" &&
-                (column.display.includeInTable ?? true)
+                (column.display?.includeInTable ?? true)
         )
     }
 
