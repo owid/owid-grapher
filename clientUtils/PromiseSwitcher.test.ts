@@ -5,7 +5,7 @@ const delayResolve = (result: any, ms = 10): Promise<void> =>
         setTimeout(() => resolve(result), ms)
     })
 
-const delayReject = (error: any, ms = 10): Promise<void> =>
+const delayReject = (error: any, ms: number = 10): Promise<void> =>
     new Promise((_, reject) => {
         setTimeout(() => reject(error), ms)
     })

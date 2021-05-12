@@ -20,19 +20,18 @@ module.exports = {
     ],
     rules: {
         // These rules are only preliminary to ease the migration from tslint, many of them might make sense to have enabled!
-        // "@typescript-eslint/camelcase": "warn",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/no-empty-interface": "warn",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-for-in-array": "warn",
-        "@typescript-eslint/no-inferrable-types": "warn",
+        "@typescript-eslint/no-inferrable-types": "off", // If this is on the ESLint automatic fixing removes type annotations in assignments like "somenumber: number = 4"
         "@typescript-eslint/no-namespace": "warn",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-this-alias": "warn",
         "@typescript-eslint/no-unused-vars": "warn",
-        "@typescript-eslint/no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off
         "@typescript-eslint/no-var-requires": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
         "no-console": ["warn", { allow: ["warn", "error"] }],
@@ -42,7 +41,7 @@ module.exports = {
         "react/jsx-key": "warn",
         "react/jsx-no-target-blank": ["warn", { allowReferrer: true }],
         "react/no-render-return-value": "warn",
-        "react/no-unescaped-entities": "off",
+        "react/no-unescaped-entities": "off", // This rule is overly noisy in JSX blocks when quotes are used for little gain
         "react/prop-types": "warn",
     },
     settings: {
