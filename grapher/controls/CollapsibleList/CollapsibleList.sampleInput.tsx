@@ -7,11 +7,11 @@ import { range } from "../../../clientUtils/Util"
 class SampleCheckBox extends React.Component<{ id: number }> {
     @observable checked: boolean = false
 
-    @action.bound onToggle() {
+    @action.bound onToggle(): void {
         this.checked = !this.checked
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <label className="clickable">
                 <input

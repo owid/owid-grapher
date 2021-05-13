@@ -26,7 +26,10 @@ export class CollapsibleList extends React.Component {
 
     private get children(): ListChild[] {
         return (
-            React.Children.map(this.props.children, (child, i) => {
+            React.Children.map(this.props.children, (child, i): {
+                index: any
+                child: any
+            } => {
                 return {
                     index: i,
                     child,
@@ -35,18 +38,18 @@ export class CollapsibleList extends React.Component {
         )
     }
 
-    private updateOuterContainerWidth() {
+    private updateOuterContainerWidth(): void {
         this.outerContainerWidth =
             this.outerContainerRef.current?.clientWidth ?? 0
     }
 
-    private calculateItemWidths() {
+    private calculateItemWidths(): void {
         this.outerContainerRef.current
             ?.querySelectorAll(".list-item.visible")
-            .forEach((item) => this.itemsWidths.push(item.clientWidth))
+            .forEach((item): number => this.itemsWidths.push(item.clientWidth))
     }
 
-    @action private updateNumItemsVisible() {
+    @action private updateNumItemsVisible(): void {
         const numItemsVisibleWithoutMoreButton = numItemsVisible(
             this.itemsWidths,
             this.outerContainerWidth
@@ -62,26 +65,26 @@ export class CollapsibleList extends React.Component {
                   )
     }
 
-    private get visibleItems() {
+    private get visibleItems(): ListChild[] {
         return this.children.slice(0, this.numItemsVisible)
     }
 
-    private get dropdownItems() {
+    private get dropdownItems(): ListChild[] {
         return this.numItemsVisible
             ? this.children.slice(this.numItemsVisible)
             : []
     }
 
-    @action private onResize = throttle(() => {
+    @action private onResize = throttle((): void => {
         this.updateItemVisibility()
     }, 100)
 
-    @action private updateItemVisibility() {
+    @action private updateItemVisibility(): void {
         this.updateOuterContainerWidth()
         this.updateNumItemsVisible()
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         window.addEventListener("resize", this.onResize)
 
         this.moreButtonWidth = this.moreButtonRef.current?.clientWidth ?? 0
@@ -89,19 +92,21 @@ export class CollapsibleList extends React.Component {
         this.updateItemVisibility()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResize)
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <div className="collapsibleList" ref={this.outerContainerRef}>
                 <ul>
-                    {this.visibleItems.map((item) => (
-                        <li key={item.index} className="list-item visible">
-                            {item.child}
-                        </li>
-                    ))}
+                    {this.visibleItems.map(
+                        (item): JSX.Element => (
+                            <li key={item.index} className="list-item visible">
+                                {item.child}
+                            </li>
+                        )
+                    )}
                     <li
                         className="list-item moreButton"
                         ref={this.moreButtonRef}
@@ -112,14 +117,16 @@ export class CollapsibleList extends React.Component {
                         }}
                     >
                         <MoreButton
-                            options={this.dropdownItems.map((item) => (
-                                <li
-                                    key={item.index}
-                                    className="list-item dropdown"
-                                >
-                                    {item.child}
-                                </li>
-                            ))}
+                            options={this.dropdownItems.map(
+                                (item): JSX.Element => (
+                                    <li
+                                        key={item.index}
+                                        className="list-item dropdown"
+                                    >
+                                        {item.child}
+                                    </li>
+                                )
+                            )}
                         />
                     </li>
                 </ul>
@@ -131,7 +138,7 @@ export class CollapsibleList extends React.Component {
 export class MoreButton extends React.Component<{
     options: React.ReactElement[]
 }> {
-    render() {
+    render(): JSX.Element {
         const { options } = this.props
         return (
             <Tippy
@@ -157,7 +164,7 @@ export function numItemsVisible(
     itemWidths: number[],
     containerWidth: number,
     startingWidth: number = 0
-) {
+): number {
     let total = startingWidth
     for (let i = 0; i < itemWidths.length; i++) {
         if (total + itemWidths[i] > containerWidth) return i

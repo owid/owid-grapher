@@ -15,7 +15,7 @@ import { computed, observable } from "mobx"
 import { SelectionArray } from "../../selection/SelectionArray"
 
 class PickerHolder extends React.Component {
-    render() {
+    render(): JSX.Element {
         return (
             <div
                 style={{
@@ -50,7 +50,7 @@ class SomeThingWithAPicker
     @observable entityPickerMetric?: ColumnSlug
     @observable entityPickerSort?: SortOrder
 
-    @computed get pickerColumnSlugs() {
+    @computed get pickerColumnSlugs(): string[] | undefined {
         return this.props.pickerSlugs
     }
 
@@ -61,7 +61,7 @@ class SomeThingWithAPicker
 
     requiredColumnSlugs = defaultSlugs
 
-    render() {
+    render(): JSX.Element {
         return (
             <PickerHolder>
                 <EntityPicker manager={this} />
@@ -75,7 +75,7 @@ export default {
     component: EntityPicker,
 }
 
-export const Empty = () => (
+export const Empty = (): JSX.Element => (
     <PickerHolder>
         <EntityPicker
             manager={{
@@ -85,13 +85,13 @@ export const Empty = () => (
     </PickerHolder>
 )
 
-export const WithChoices = () => <SomeThingWithAPicker />
+export const WithChoices = (): JSX.Element => <SomeThingWithAPicker />
 
-export const WithPickerMetricsChoices = () => (
+export const WithPickerMetricsChoices = (): JSX.Element => (
     <SomeThingWithAPicker pickerSlugs={defaultSlugs} />
 )
 
-export const WithExistingSelectionChoices = () => (
+export const WithExistingSelectionChoices = (): JSX.Element => (
     <SomeThingWithAPicker
         pickerSlugs={defaultSlugs}
         selection={["Japan", "Samoa"]}

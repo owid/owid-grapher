@@ -11,15 +11,15 @@ export class BodyDiv extends React.Component {
 
     el: HTMLDivElement
 
-    componentDidMount() {
+    componentDidMount(): void {
         document.body.appendChild(this.el)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.body.removeChild(this.el)
     }
 
-    render() {
+    render(): any {
         return ReactDOM.createPortal(this.props.children, this.el)
     }
 }

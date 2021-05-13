@@ -21,7 +21,7 @@ class EntitySelectorMulti extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableEntities() {
+    @computed get availableEntities(): string[] {
         return this.props.selectionArray.availableEntityNames
     }
 
@@ -29,51 +29,55 @@ class EntitySelectorMulti extends React.Component<{
         return new FuzzySearch(this.searchableEntities, "name")
     }
 
-    @computed private get searchableEntities() {
-        return this.availableEntities.map((name) => {
-            return { name } as SearchableEntity
-        })
+    @computed private get searchableEntities(): SearchableEntity[] {
+        return this.availableEntities.map(
+            (name): SearchableEntity => {
+                return { name } as SearchableEntity
+            }
+        )
     }
 
-    @computed get searchResults() {
+    @computed get searchResults(): SearchableEntity[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.searchableEntities, (result) => result.name)
+            : sortBy(this.searchableEntities, (result): any => result.name)
     }
 
-    @action.bound onClickOutside(e: MouseEvent) {
+    @action.bound onClickOutside(e: MouseEvent): void {
         if (this.dismissable) this.props.onDismiss()
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
+        this.base.current!.addEventListener("click", (): void => {
             this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
+            setTimeout((): boolean => (this.dismissable = true), 100)
         })
         setTimeout(
-            () => document.addEventListener("click", this.onClickOutside),
+            (): void => document.addEventListener("click", this.onClickOutside),
             1
         )
         if (!isTouchDevice()) this.searchField.focus()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.removeEventListener("click", this.onClickOutside)
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    @action.bound onSearchKeyDown(
+        e: React.KeyboardEvent<HTMLInputElement>
+    ): void {
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.props.selectionArray.selectEntity(this.searchResults[0].name)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
-    @action.bound onClear() {
+    @action.bound onClear(): void {
         this.props.selectionArray.clearSelection()
     }
 
-    render() {
+    render(): JSX.Element {
         const { selectionArray } = this.props
         const { searchResults, searchInput } = this
 
@@ -96,57 +100,61 @@ class EntitySelectorMulti extends React.Component<{
                                 type="search"
                                 placeholder="Search..."
                                 value={searchInput}
-                                onInput={(e) =>
+                                onInput={(e): string =>
                                     (this.searchInput = e.currentTarget.value)
                                 }
                                 onKeyDown={this.onSearchKeyDown}
-                                ref={(e) =>
+                                ref={(e): HTMLInputElement =>
                                     (this.searchField = e as HTMLInputElement)
                                 }
                             />
                             <ul>
-                                {searchResults.map((result) => {
-                                    return (
-                                        <li key={result.name}>
-                                            <label className="clickable">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectionArray.selectedSet.has(
-                                                        result.name
-                                                    )}
-                                                    onChange={() =>
-                                                        selectionArray.toggleSelection(
+                                {searchResults.map(
+                                    (result): JSX.Element => {
+                                        return (
+                                            <li key={result.name}>
+                                                <label className="clickable">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectionArray.selectedSet.has(
                                                             result.name
-                                                        )
-                                                    }
-                                                />{" "}
-                                                {result.name}
-                                            </label>
-                                        </li>
-                                    )
-                                })}
+                                                        )}
+                                                        onChange={(): SelectionArray =>
+                                                            selectionArray.toggleSelection(
+                                                                result.name
+                                                            )
+                                                        }
+                                                    />{" "}
+                                                    {result.name}
+                                                </label>
+                                            </li>
+                                        )
+                                    }
+                                )}
                             </ul>
                         </div>
                         <div className="selectedData">
                             <ul>
-                                {selectedEntityNames.map((name) => {
-                                    return (
-                                        <li key={name}>
-                                            <label className="clickable">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={true}
-                                                    onChange={() =>
-                                                        selectionArray.deselectEntity(
-                                                            name
-                                                        )
-                                                    }
-                                                />{" "}
-                                                {name}
-                                            </label>
-                                        </li>
-                                    )
-                                })}
+                                {selectedEntityNames.map(
+                                    (name): JSX.Element => {
+                                        return (
+                                            <li key={name}>
+                                                <label className="clickable">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={true}
+                                                        onChange={(): SelectionArray =>
+                                                            selectionArray.deselectEntity(
+                                                                name
+                                                            )
+                                                        }
+                                                    />{" "}
+                                                    {name}
+                                                </label>
+                                            </li>
+                                        )
+                                    }
+                                )}
                             </ul>
                             {selectedEntityNames.length > 1 ? (
                                 <button
@@ -178,15 +186,15 @@ class EntitySelectorSingle extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed private get availableEntities() {
+    @computed private get availableEntities(): { id: string; label: string }[] {
         const availableItems: { id: string; label: string }[] = []
-        this.props.selectionArray.availableEntityNames.forEach((name) => {
+        this.props.selectionArray.availableEntityNames.forEach((name): void => {
             availableItems.push({
                 id: name,
                 label: name,
             })
         })
-        return uniqBy(availableItems, (d) => d.label)
+        return uniqBy(availableItems, (d): any => d.label)
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: string; label: string }> {
@@ -196,44 +204,46 @@ class EntitySelectorSingle extends React.Component<{
     @computed get searchResults(): { id: string; label: string }[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.availableEntities, (result) => result.label)
+            : sortBy(this.availableEntities, (result): any => result.label)
     }
 
-    @action.bound onClickOutside(e: MouseEvent) {
+    @action.bound onClickOutside(e: MouseEvent): void {
         if (this.base && !this.base.current!.contains(e.target as Node))
             this.props.onDismiss()
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
+        this.base.current!.addEventListener("click", (): void => {
             this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
+            setTimeout((): boolean => (this.dismissable = true), 100)
         })
         setTimeout(
-            () => document.addEventListener("click", this.onClickOutside),
+            (): void => document.addEventListener("click", this.onClickOutside),
             1
         )
         if (!this.props.isMobile) this.searchField.focus()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.removeEventListener("click", this.onClickOutside)
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    @action.bound onSearchKeyDown(
+        e: React.KeyboardEvent<HTMLInputElement>
+    ): void {
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].label)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
-    @action.bound onSelect(entityName: string) {
+    @action.bound onSelect(entityName: string): void {
         this.props.selectionArray.setSelectedEntities([entityName])
         this.props.onDismiss()
     }
 
-    render() {
+    render(): JSX.Element {
         const { searchResults, searchInput } = this
 
         return (
@@ -252,26 +262,30 @@ class EntitySelectorSingle extends React.Component<{
                             type="search"
                             placeholder="Search..."
                             value={searchInput}
-                            onInput={(e) =>
+                            onInput={(e): string =>
                                 (this.searchInput = e.currentTarget.value)
                             }
                             onKeyDown={this.onSearchKeyDown}
-                            ref={(e) =>
+                            ref={(e): HTMLInputElement =>
                                 (this.searchField = e as HTMLInputElement)
                             }
                         />
                         <ul>
-                            {searchResults.map((d) => {
-                                return (
-                                    <li
-                                        key={d.id}
-                                        className="clickable"
-                                        onClick={() => this.onSelect(d.id)}
-                                    >
-                                        {d.label}
-                                    </li>
-                                )
-                            })}
+                            {searchResults.map(
+                                (d): JSX.Element => {
+                                    return (
+                                        <li
+                                            key={d.id}
+                                            className="clickable"
+                                            onClick={(): void =>
+                                                this.onSelect(d.id)
+                                            }
+                                        >
+                                            {d.label}
+                                        </li>
+                                    )
+                                }
+                            )}
                         </ul>
                     </div>
                 </div>
@@ -287,7 +301,7 @@ export class EntitySelectorModal extends React.Component<{
     isMobile: boolean
     onDismiss: () => void
 }> {
-    render() {
+    render(): JSX.Element {
         return this.props.canChangeEntity ? (
             <EntitySelectorSingle {...this.props} />
         ) : (

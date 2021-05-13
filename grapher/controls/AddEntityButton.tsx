@@ -11,11 +11,11 @@ export interface AddEntityButtonManager {
 export class AddEntityButton extends React.Component<{
     manager: AddEntityButtonManager
 }> {
-    render() {
+    render(): JSX.Element {
         return (
             <button
                 className="addEntityButton clickable"
-                onClick={() =>
+                onClick={(): boolean =>
                     runInAction(
                         () => (this.props.manager.isSelectingData = true)
                     )

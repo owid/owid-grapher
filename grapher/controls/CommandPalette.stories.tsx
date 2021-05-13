@@ -6,23 +6,23 @@ export default {
     component: CommandPalette,
 }
 
-export const WithCommands = () => {
+export const WithCommands = (): JSX.Element => {
     const demoCommands: Command[] = [
         {
             combo: "ctrl+o",
-            fn: () => {},
+            fn: (): void => {},
             title: "Open",
             category: "File",
         },
         {
             combo: "ctrl+s",
-            fn: () => {},
+            fn: (): void => {},
             title: "Save",
             category: "File",
         },
         {
             combo: "ctrl+c",
-            fn: () => {},
+            fn: (): void => {},
             title: "Copy",
             category: "Edit",
         },

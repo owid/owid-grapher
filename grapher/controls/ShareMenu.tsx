@@ -42,40 +42,40 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get manager() {
+    @computed get manager(): ShareMenuManager {
         return this.props.manager
     }
 
-    @computed get title() {
+    @computed get title(): string {
         return this.manager.currentTitle ?? ""
     }
 
-    @computed get isDisabled() {
+    @computed get isDisabled(): boolean {
         return !this.manager.slug
     }
 
-    @computed get canonicalUrl() {
+    @computed get canonicalUrl(): string | undefined {
         return this.manager.canonicalUrl
     }
 
-    @action.bound dismiss() {
+    @action.bound dismiss(): void {
         this.props.onDismiss()
     }
 
-    @action.bound onClickSomewhere() {
+    @action.bound onClickSomewhere(): void {
         if (this.dismissable) this.dismiss()
         else this.dismissable = true
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         document.addEventListener("click", this.onClickSomewhere)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.removeEventListener("click", this.onClickSomewhere)
     }
 
-    @action.bound onEmbed() {
+    @action.bound onEmbed(): void {
         if (!this.canonicalUrl) return
 
         this.manager.addPopup(
@@ -84,7 +84,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         this.dismiss()
     }
 
-    @action.bound async onNavigatorShare() {
+    @action.bound async onNavigatorShare(): Promise<void> {
         if (!this.canonicalUrl || !navigator.share) return
 
         const shareData = {
@@ -99,13 +99,13 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @action.bound onCopy() {
+    @action.bound onCopy(): void {
         if (!this.canonicalUrl) return
 
         if (copy(this.canonicalUrl)) this.setState({ copied: true })
     }
 
-    @computed get twitterHref() {
+    @computed get twitterHref(): string {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
             encodeURIComponent(this.title)
@@ -114,7 +114,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
-    @computed get facebookHref() {
+    @computed get facebookHref(): string {
         let href =
             "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
         if (this.canonicalUrl)
@@ -122,14 +122,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
-    render() {
+    render(): JSX.Element {
         const { twitterHref, facebookHref, isDisabled, manager } = this
         const { editUrl } = manager
 
         return (
             <div
                 className={"ShareMenu" + (isDisabled ? " disabled" : "")}
-                onClick={action(() => (this.dismissable = false))}
+                onClick={action((): boolean => (this.dismissable = false))}
             >
                 <h2>Share</h2>
                 <a
@@ -201,28 +201,28 @@ class EmbedMenu extends React.Component<{
 }> {
     dismissable = true
 
-    @action.bound onClickSomewhere() {
+    @action.bound onClickSomewhere(): void {
         if (this.dismissable) this.manager.removePopup(EmbedMenu)
         else this.dismissable = true
     }
 
-    @computed get manager() {
+    @computed get manager(): ShareMenuManager {
         return this.props.manager
     }
 
-    @action.bound onClick() {
+    @action.bound onClick(): void {
         this.dismissable = false
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         document.addEventListener("click", this.onClickSomewhere)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.removeEventListener("click", this.onClickSomewhere)
     }
 
-    render() {
+    render(): JSX.Element {
         const url = this.manager.embedUrl ?? this.manager.canonicalUrl
         return (
             <div className="embedMenu" onClick={this.onClick}>
@@ -230,7 +230,7 @@ class EmbedMenu extends React.Component<{
                 <p>Paste this into any HTML page:</p>
                 <textarea
                     readOnly={true}
-                    onFocus={(evt) => evt.currentTarget.select()}
+                    onFocus={(evt): void => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
                 {this.manager.embedDialogAdditionalElements}

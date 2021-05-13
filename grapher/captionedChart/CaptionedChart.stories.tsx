@@ -26,13 +26,13 @@ const manager: CaptionedChartManager = {
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
     note: "Here are some footer notes",
-    populateFromQueryParams: () => {},
+    populateFromQueryParams: (): void => {},
     isReady: true,
 }
 
-export const LineChart = () => <CaptionedChart manager={manager} />
+export const LineChart = (): JSX.Element => <CaptionedChart manager={manager} />
 
-export const StaticLineChartForExport = () => {
+export const StaticLineChartForExport = (): JSX.Element => {
     return (
         <StaticCaptionedChart
             manager={{
@@ -43,10 +43,10 @@ export const StaticLineChartForExport = () => {
     )
 }
 
-export const MapChart = () => (
+export const MapChart = (): JSX.Element => (
     <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.map }} />
 )
-export const StackedArea = () => (
+export const StackedArea = (): JSX.Element => (
     <CaptionedChart
         manager={{
             ...manager,
@@ -55,7 +55,7 @@ export const StackedArea = () => (
         }}
     />
 )
-export const Scatter = () => (
+export const Scatter = (): JSX.Element => (
     <CaptionedChart
         manager={{
             ...manager,

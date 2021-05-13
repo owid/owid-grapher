@@ -19,7 +19,7 @@ export class CommandPalette extends React.Component<{
     commands: Command[]
     display: "none" | "block"
 }> {
-    static togglePalette() {
+    static togglePalette(): void {
         const element = document.getElementsByClassName(
             CommandPaletteClassName
         )[0] as HTMLElement
@@ -28,16 +28,16 @@ export class CommandPalette extends React.Component<{
                 element.style.display === "none" ? "block" : "none"
     }
 
-    render() {
+    render(): JSX.Element {
         const style: any = {
             display: this.props.display,
         }
         let lastCat = ""
         const commands = this.props.commands.filter(
-            (command) => command.title && command.category
+            (command): any => command.title && command.category
         )
         const sortedCommands = sortBy(commands, "category").map(
-            (command, index) => {
+            (command, index): JSX.Element => {
                 let cat = undefined
                 if (command.category !== lastCat) {
                     lastCat = command.category!
@@ -50,7 +50,9 @@ export class CommandPalette extends React.Component<{
                             <span className="commandCombo">
                                 {command.combo}
                             </span>
-                            <a onClick={() => command.fn()}>{command.title}</a>
+                            <a onClick={(): any => command.fn()}>
+                                {command.title}
+                            </a>
                         </div>
                     </div>
                 )

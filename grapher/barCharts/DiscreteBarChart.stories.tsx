@@ -12,7 +12,7 @@ export default {
     component: DiscreteBarChart,
 }
 
-export const EntitiesAsSeries = () => {
+export const EntitiesAsSeries = (): JSX.Element => {
     const table = SynthesizeGDPTable({
         timeRange: [2009, 2010],
         entityCount: 10,
@@ -31,13 +31,13 @@ export const EntitiesAsSeries = () => {
     )
 }
 
-export const EntitiesAsSeriesWithTolerance = () => {
+export const EntitiesAsSeriesWithTolerance = (): JSX.Element => {
     const table = SynthesizeGDPTable({
         timeRange: [2009, 2011],
         entityCount: 10,
     })
         .rowFilter(
-            (row) => row.year === 2010 || Math.random() > 0.5,
+            (row): boolean => row.year === 2010 || Math.random() > 0.5,
             "Remove 50% of 2009 rows"
         )
         .interpolateColumnWithTolerance(SampleColumnSlugs.Population, 1)
@@ -59,7 +59,7 @@ export const EntitiesAsSeriesWithTolerance = () => {
     )
 }
 
-export const ColumnsAsSeries = () => {
+export const ColumnsAsSeries = (): JSX.Element => {
     const table = SynthesizeFruitTable({ entityCount: 1 })
     const manager: DiscreteBarChartManager = {
         table,

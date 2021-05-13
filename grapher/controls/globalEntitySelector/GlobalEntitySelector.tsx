@@ -37,7 +37,7 @@ enum GlobalEntitySelectionModes {
     override = "override",
 }
 
-const allEntities = sortBy(countries, (c) => c.name)
+const allEntities = sortBy(countries, (c): any => c.name)
     // Add 'World'
     .concat([
         {
@@ -47,7 +47,7 @@ const allEntities = sortBy(countries, (c) => c.name)
         },
     ])
 
-const Option = (props: any) => {
+const Option = (props: any): JSX.Element => {
     return (
         <div>
             <components.Option {...props}>
@@ -73,14 +73,14 @@ const SelectOptions: Props = {
     hideSelectedOptions: false,
     placeholder: "Add a country to all charts...",
     styles: {
-        placeholder: (base: any) => ({ ...base, whiteSpace: "nowrap" }),
-        valueContainer: (base: any) => ({
+        placeholder: (base: any): any => ({ ...base, whiteSpace: "nowrap" }),
+        valueContainer: (base: any): any => ({
             ...base,
             paddingTop: 0,
             paddingBottom: 0,
         }),
-        control: (base: any) => ({ ...base, minHeight: "initial" }),
-        dropdownIndicator: (base: any) => ({ ...base, padding: "0 5px" }),
+        control: (base: any): any => ({ ...base, minHeight: "initial" }),
+        dropdownIndicator: (base: any): any => ({ ...base, padding: "0 5px" }),
     },
 }
 
@@ -89,7 +89,7 @@ function SelectedItems(props: {
     emptyLabel: string
     canRemove?: boolean
     onRemove?: (item: EntityName) => void
-}) {
+}): JSX.Element {
     const canRemove = (props.canRemove ?? true) && props.onRemove !== undefined
     const onRemove = props.onRemove || noop
     const isEmpty = props.selectedEntityNames.length === 0
@@ -99,24 +99,28 @@ function SelectedItems(props: {
                 <div className="empty">{props.emptyLabel}</div>
             ) : (
                 <div className="selected-items">
-                    {props.selectedEntityNames.map((entityName) => (
-                        <div
-                            key={entityName}
-                            className={classnames("selected-item", {
-                                removable: canRemove,
-                            })}
-                        >
-                            <div className="label">{entityName}</div>
-                            {canRemove && (
-                                <div
-                                    className="remove-icon"
-                                    onClick={() => onRemove(entityName)}
-                                >
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                    {props.selectedEntityNames.map(
+                        (entityName): JSX.Element => (
+                            <div
+                                key={entityName}
+                                className={classnames("selected-item", {
+                                    removable: canRemove,
+                                })}
+                            >
+                                <div className="label">{entityName}</div>
+                                {canRemove && (
+                                    <div
+                                        className="remove-icon"
+                                        onClick={(): any =>
+                                            onRemove(entityName)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    )}
                 </div>
             )}
         </div>
@@ -142,42 +146,42 @@ export class GlobalEntitySelector extends React.Component<{
 
     @observable.ref private optionGroups: GroupedOptionsType<any> = []
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.onResize()
         window.addEventListener("resize", this.onResizeThrottled)
         this.disposers.push(
             reaction(
-                () => this.isOpen,
-                () => this.prepareOptionGroups()
+                (): boolean => this.isOpen,
+                (): GroupedOptionsType<any> => this.prepareOptionGroups()
             )
         )
         this.populateLocalEntity()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResizeThrottled)
-        this.disposers.forEach((dispose) => dispose())
+        this.disposers.forEach((dispose): void => dispose())
     }
 
     private onResizeThrottled = throttle(this.onResize, 200)
-    @action.bound private onResize() {
+    @action.bound private onResize(): void {
         const container = this.refContainer.current
         if (container) this.isNarrow = container.offsetWidth <= 640
     }
 
-    @action.bound async populateLocalEntity() {
+    @action.bound async populateLocalEntity(): Promise<void> {
         try {
             const localCountryCode = await getCountryCodeFromNetlifyRedirect()
             if (!localCountryCode) return
 
             const country = allEntities.find(
-                (entity) => entity.code === localCountryCode
+                (entity): boolean => entity.code === localCountryCode
             )
             if (country) this.localEntityName = country.name
         } catch (err) {}
     }
 
-    @action.bound private prepareOptionGroups() {
+    @action.bound private prepareOptionGroups(): GroupedOptionsType<any> {
         let optionGroups: GroupedOptionsType<any> = []
         // We want to include the local country, but not if it's already selected, it adds
         // unnecessary duplication.
@@ -206,7 +210,7 @@ export class GlobalEntitySelector extends React.Component<{
             {
                 label: "All countries",
                 options: allEntities
-                    .map((entity) => entity.name)
+                    .map((entity): any => entity.name)
                     .map(entityNameToOption),
             },
         ])
@@ -218,7 +222,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.props.environment ?? "development"
     )
 
-    @action.bound private updateURL() {
+    @action.bound private updateURL(): void {
         setWindowUrl(
             setSelectedEntityNamesParam(
                 getWindowUrl(),
@@ -227,14 +231,14 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound updateSelection(newSelectedEntities: string[]) {
+    @action.bound updateSelection(newSelectedEntities: string[]): void {
         this.selection.setSelectedEntities(newSelectedEntities)
         this.updateAllGraphersAndExplorersOnPage()
         this.updateURL()
     }
 
-    @action.bound private onChange(options: ValueType<any>) {
-        this.updateSelection(options.map((option: any) => option.label))
+    @action.bound private onChange(options: ValueType<any>): void {
+        this.updateSelection(options.map((option: any): any => option.label))
 
         this.analytics.logGlobalEntitySelector(
             "change",
@@ -242,32 +246,32 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound private updateAllGraphersAndExplorersOnPage() {
+    @action.bound private updateAllGraphersAndExplorersOnPage(): void {
         if (!this.props.graphersAndExplorersToUpdate) return
         Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
-            (value) => {
+            (value): void => {
                 value.setSelectedEntities(this.selection.selectedEntityNames)
             }
         )
     }
 
-    @action.bound private onRemove(option: EntityName) {
+    @action.bound private onRemove(option: EntityName): void {
         this.selection.toggleSelection(option)
         this.updateAllGraphersAndExplorersOnPage()
         this.updateURL()
     }
 
-    @action.bound private onMenuOpen() {
+    @action.bound private onMenuOpen(): void {
         this.isOpen = true
     }
 
-    @action.bound private onMenuClose() {
+    @action.bound private onMenuClose(): void {
         this.isOpen = false
     }
 
     @action.bound private onButtonOpen(
         event: React.MouseEvent<HTMLButtonElement>
-    ) {
+    ): void {
         this.analytics.logGlobalEntitySelector(
             "open",
             event.currentTarget.innerText
@@ -277,7 +281,7 @@ export class GlobalEntitySelector extends React.Component<{
 
     @action.bound private onButtonClose(
         event: React.MouseEvent<HTMLButtonElement>
-    ) {
+    ): void {
         this.analytics.logGlobalEntitySelector(
             "close",
             event.currentTarget.innerText
@@ -285,11 +289,14 @@ export class GlobalEntitySelector extends React.Component<{
         this.onMenuClose()
     }
 
-    @computed private get selectedOptions() {
+    @computed private get selectedOptions(): {
+        label: string
+        value: string
+    }[] {
         return this.selection.selectedEntityNames.map(entityNameToOption)
     }
 
-    private renderNarrow() {
+    private renderNarrow(): JSX.Element {
         return (
             <>
                 <div
@@ -311,16 +318,21 @@ export class GlobalEntitySelector extends React.Component<{
                             {!this.selection.hasSelection
                                 ? "None selected"
                                 : this.selection.selectedEntityNames
-                                      .map((entityName) => (
-                                          <span
-                                              className="narrow-summary-selected-item"
-                                              key={entityName}
-                                          >
-                                              {entityName}
-                                          </span>
-                                      ))
+                                      .map(
+                                          (entityName): JSX.Element => (
+                                              <span
+                                                  className="narrow-summary-selected-item"
+                                                  key={entityName}
+                                              >
+                                                  {entityName}
+                                              </span>
+                                          )
+                                      )
                                       .reduce(
-                                          (acc, item) =>
+                                          (
+                                              acc,
+                                              item
+                                          ): (string | JSX.Element)[] =>
                                               acc.length === 0
                                                   ? [item]
                                                   : [...acc, ", ", item],
@@ -346,7 +358,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    private renderWide() {
+    private renderWide(): JSX.Element {
         return (
             <>
                 <div className="select-dropdown-container">
@@ -368,7 +380,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <div
                 className={classnames("global-entity-control", {
@@ -389,7 +401,7 @@ export class GlobalEntitySelector extends React.Component<{
 export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,
     graphersAndExplorersToUpdate: Set<SelectionArray>
-) => {
+): void => {
     const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
     if (!element) return
 
@@ -402,7 +414,9 @@ export const hydrateGlobalEntitySelectorIfAny = (
     )
 }
 
-const entityNameToOption = (label: EntityName) => ({
+const entityNameToOption = (
+    label: EntityName
+): { label: string; value: string } => ({
     label,
     value: label,
 })

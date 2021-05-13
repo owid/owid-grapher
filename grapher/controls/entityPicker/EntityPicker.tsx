@@ -26,15 +26,17 @@ import {
     getStylesForTargetHeight,
     asArray,
 } from "../../../clientUtils/react-select"
-import { ColumnTypeMap } from "../../../coreTable/CoreTableColumns"
+import { ColumnTypeMap, CoreColumn } from "../../../coreTable/CoreTableColumns"
 import {
     EntityName,
     OwidTableSlugs,
 } from "../../../coreTable/OwidTableConstants"
 import { EntityPickerManager } from "./EntityPickerConstants"
 import { CoreColumnDef } from "../../../coreTable/CoreColumnDef"
+import { OwidTable } from "../../../coreTable/OwidTable"
+import { SelectionArray } from "../../selection/SelectionArray"
 
-const toggleSort = (order: SortOrder) =>
+const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
 
 enum FocusDirection {
@@ -51,14 +53,14 @@ interface EntityOptionWithMetricValue {
 }
 
 /** Modulo that wraps negative numbers too */
-const mod = (n: number, m: number) => ((n % m) + m) % m
+const mod = (n: number, m: number): number => ((n % m) + m) % m
 
 @observer
 export class EntityPicker extends React.Component<{
-    manager?: EntityPickerManager
+    manager: EntityPickerManager
     isDropdownMenu?: boolean
 }> {
-    @computed private get analyticsNamespace() {
+    @computed private get analyticsNamespace(): string {
         return this.manager.analyticsNamespace ?? ""
     }
 
@@ -81,11 +83,14 @@ export class EntityPicker extends React.Component<{
 
     @observable private isOpen = false
 
-    @computed private get isDropdownMenu() {
+    @computed private get isDropdownMenu(): boolean {
         return !!this.props.isDropdownMenu
     }
 
-    @action.bound private selectEntity(name: EntityName, checked?: boolean) {
+    @action.bound private selectEntity(
+        name: EntityName,
+        checked?: boolean
+    ): void {
         this.manager.selection.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
@@ -96,11 +101,11 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get manager() {
-        return this.props.manager || ({} as EntityPickerManager)
+    @computed private get manager(): EntityPickerManager {
+        return this.props.manager
     }
 
-    @computed private get metric() {
+    @computed private get metric(): string | undefined {
         return this.manager.entityPickerMetric
     }
 
@@ -114,8 +119,11 @@ export class EntityPicker extends React.Component<{
         return this.manager.entityPickerColumnDefs ?? []
     }
 
-    @computed private get metricOptions() {
-        return this.pickerColumnDefs.map((col) => {
+    @computed private get metricOptions(): { label: string; value: string }[] {
+        return this.pickerColumnDefs.map((col): {
+            label: string
+            value: string
+        } => {
             return {
                 label: col.name || col.slug,
                 value: col.slug,
@@ -123,23 +131,27 @@ export class EntityPicker extends React.Component<{
         })
     }
 
-    @computed private get activePickerMetricColumn() {
+    @computed private get activePickerMetricColumn(): CoreColumn | undefined {
         if (!this.metric) return undefined
         return this.manager.entityPickerTable?.getColumns([this.metric])[0]
     }
 
-    @computed private get availableEntitiesForCurrentView() {
+    @computed private get availableEntitiesForCurrentView(): Set<string> {
         if (!this.manager.requiredColumnSlugs?.length || !this.grapherTable)
             return this.selection.availableEntityNameSet
         return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
     @computed
-    private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
+    private get entitiesWithMetricValue() {
         const { pickerTable, selection } = this
         const col = this.activePickerMetricColumn
         const entityNames = selection.availableEntityNames.slice().sort()
-        return entityNames.map((entityName) => {
+        return entityNames.map((entityName): {
+            entityName: any
+            plotValue: string | number | undefined
+            formattedValue: any
+        } => {
             const plotValue =
                 col && pickerTable
                     ? (pickerTable.getLatestValueForEntity(
@@ -160,19 +172,19 @@ export class EntityPicker extends React.Component<{
         })
     }
 
-    @computed private get grapherTable() {
+    @computed private get grapherTable(): OwidTable | undefined {
         return this.manager.grapherTable
     }
 
-    @computed private get pickerTable() {
+    @computed private get pickerTable(): OwidTable | undefined {
         return this.manager.entityPickerTable
     }
 
-    @computed get selection() {
+    @computed get selection(): SelectionArray {
         return this.manager.selection
     }
 
-    @computed get selectionSet() {
+    @computed get selectionSet(): Set<string> {
         return new Set(this.selection.selectedEntityNames)
     }
 
@@ -190,31 +202,33 @@ export class EntityPicker extends React.Component<{
         const [selected, unselected] = partition(
             sortByUndefinedLast(
                 this.entitiesWithMetricValue,
-                (option) => option.plotValue,
+                (option): string | number | undefined => option.plotValue,
                 this.sortOrder
             ),
-            (option: EntityOptionWithMetricValue) =>
+            (option: EntityOptionWithMetricValue): boolean =>
                 selectionSet.has(option.entityName)
         )
         return [...selected, ...unselected]
     }
 
-    private normalizeFocusIndex(index: number) {
+    private normalizeFocusIndex(index: number): number | undefined {
         if (this.searchResults.length === 0) return undefined
         return mod(index, this.searchResults.length)
     }
 
-    @computed private get focusedOption() {
+    @computed private get focusedOption(): string | undefined {
         return this.focusIndex !== undefined
             ? this.searchResults[this.focusIndex].entityName
             : undefined
     }
 
-    @computed private get showDoneButton() {
+    @computed private get showDoneButton(): boolean {
         return this.isDropdownMenu && this.isOpen
     }
 
-    @action.bound private focusOptionDirection(direction: FocusDirection) {
+    @action.bound private focusOptionDirection(
+        direction: FocusDirection
+    ): void {
         if (direction === FocusDirection.first)
             this.focusIndex = this.normalizeFocusIndex(0)
         else if (direction === FocusDirection.last)
@@ -231,13 +245,13 @@ export class EntityPicker extends React.Component<{
         this.scrollFocusedIntoViewOnUpdate = true
     }
 
-    @action.bound private clearSearchInput() {
+    @action.bound private clearSearchInput(): void {
         if (this.searchInput) this.searchInput = ""
     }
 
     @action.bound private onKeyDown(
         event: React.KeyboardEvent<HTMLDivElement>
-    ) {
+    ): void {
         // We want to block hover if a key is pressed.
         // The hover will be unblocked iff the user moves the mouse (relative to the menu).
         this.blockHover()
@@ -270,17 +284,17 @@ export class EntityPicker extends React.Component<{
         event.preventDefault()
     }
 
-    @bind private focusSearch() {
+    @bind private focusSearch(): void {
         this.searchInputRef.current?.focus()
     }
 
-    @action.bound private onSearchFocus() {
+    @action.bound private onSearchFocus(): void {
         this.isOpen = true
         if (this.focusIndex === undefined)
             this.focusOptionDirection(FocusDirection.first)
     }
 
-    @action.bound private onSearchBlur() {
+    @action.bound private onSearchBlur(): void {
         // Do not allow focus on elements inside menu; shift focus back to search input.
         if (
             this.scrollContainerRef.current &&
@@ -293,27 +307,27 @@ export class EntityPicker extends React.Component<{
         this.focusIndex = undefined
     }
 
-    @action.bound private onHover(index: number) {
+    @action.bound private onHover(index: number): void {
         if (!this.blockOptionHover) this.focusIndex = index
     }
 
-    @action.bound private blockHover() {
+    @action.bound private blockHover(): void {
         this.blockOptionHover = true
     }
 
-    @action.bound private unblockHover() {
+    @action.bound private unblockHover(): void {
         this.blockOptionHover = false
     }
 
     @action.bound private onMenuMouseDown(
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) {
+    ): void {
         event.stopPropagation()
         event.preventDefault()
         this.focusSearch()
     }
 
-    @bind private highlightLabel(label: string) {
+    @bind private highlightLabel(label: string): string | JSX.Element {
         if (!this.searchInput) return label
 
         const result = this.fuzzy.single(this.searchInput, label)
@@ -333,21 +347,24 @@ export class EntityPicker extends React.Component<{
         }
         return (
             <React.Fragment>
-                {tokens.map((token, i) =>
-                    token.match ? (
-                        <mark key={i}>{token.text}</mark>
-                    ) : (
-                        <React.Fragment key={i}>{token.text}</React.Fragment>
-                    )
+                {tokens.map(
+                    (token, i): JSX.Element =>
+                        token.match ? (
+                            <mark key={i}>{token.text}</mark>
+                        ) : (
+                            <React.Fragment key={i}>
+                                {token.text}
+                            </React.Fragment>
+                        )
                 )}
             </React.Fragment>
         )
     }
 
-    @computed private get barScale() {
+    @computed private get barScale(): ScaleLinear<number, number> {
         const maxValue = max(
             this.entitiesWithMetricValue
-                .map((option) => option.plotValue)
+                .map((option): string | number | undefined => option.plotValue)
                 .filter(isNumber)
         )
         return scaleLinear()
@@ -355,15 +372,15 @@ export class EntityPicker extends React.Component<{
             .range([0, 1])
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         // Whenever the search term changes, shift focus to first option in the list
         reaction(
-            () => this.searchInput,
-            () => this.focusOptionDirection(FocusDirection.first)
+            (): string | undefined => this.searchInput,
+            (): void => this.focusOptionDirection(FocusDirection.first)
         )
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         if (
             this.focusIndex !== undefined &&
             this.scrollFocusedIntoViewOnUpdate &&
@@ -374,11 +391,13 @@ export class EntityPicker extends React.Component<{
                 this.scrollContainerRef.current,
                 this.focusRef.current
             )
-            runInAction(() => (this.scrollFocusedIntoViewOnUpdate = false))
+            runInAction(
+                (): boolean => (this.scrollFocusedIntoViewOnUpdate = false)
+            )
         }
     }
 
-    @action private updateMetric(columnSlug: ColumnSlug) {
+    @action private updateMetric(columnSlug: ColumnSlug): void {
         this.manager.setEntityPicker?.({
             metric: columnSlug,
             sort: this.isActivePickerColumnTypeNumeric
@@ -392,11 +411,11 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get isActivePickerColumnTypeNumeric() {
+    @computed private get isActivePickerColumnTypeNumeric(): boolean {
         return this.activePickerMetricColumn instanceof ColumnTypeMap.Numeric
     }
 
-    private get pickerMenu() {
+    private get pickerMenu(): JSX.Element | null {
         if (
             this.isDropdownMenu ||
             !this.manager.entityPickerColumnDefs ||
@@ -410,9 +429,9 @@ export class EntityPicker extends React.Component<{
                     className="metricDropdown"
                     options={this.metricOptions}
                     value={this.metricOptions.find(
-                        (option) => option.value === this.metric
+                        (option): boolean => option.value === this.metric
                     )}
-                    onChange={(option) => {
+                    onChange={(option): void => {
                         const value = first(asArray(option))?.value
                         if (value) this.updateMetric(value)
                     }}
@@ -426,7 +445,7 @@ export class EntityPicker extends React.Component<{
                 />
                 <span
                     className="sort"
-                    onClick={() => {
+                    onClick={(): void => {
                         const sortOrder = toggleSort(this.sortOrder)
                         this.manager.setEntityPicker?.({ sort: sortOrder })
                         this.manager.analytics?.logEntityPickerEvent(
@@ -449,7 +468,7 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { selection } = this
         const entities = this.searchResults
         const selectedEntityNames = selection.selectedEntityNames
@@ -468,7 +487,7 @@ export class EntityPicker extends React.Component<{
                         type="text"
                         placeholder={`Type to add a ${entityType}...`}
                         value={this.searchInput ?? ""}
-                        onChange={(e) =>
+                        onChange={(e): string =>
                             (this.searchInput = e.currentTarget.value)
                         }
                         onFocus={this.onSearchFocus}
@@ -499,7 +518,7 @@ export class EntityPicker extends React.Component<{
                                 scrollLock={true}
                                 className="EntitySearchResults"
                                 contentsId={entities
-                                    .map((c) => c.entityName)
+                                    .map((c): string => c.entityName)
                                     .join(",")}
                                 onMouseMove={this.unblockHover}
                                 ref={this.scrollContainerRef}
@@ -513,30 +532,34 @@ export class EntityPicker extends React.Component<{
                                     // searching
                                     flipKey={selectedEntityNames.join(",")}
                                 >
-                                    {entities.map((option, index) => (
-                                        <PickerOption
-                                            key={index}
-                                            hasDataForActiveMetric={availableEntities.has(
-                                                option.entityName
-                                            )}
-                                            optionWithMetricValue={option}
-                                            highlight={this.highlightLabel}
-                                            barScale={this.barScale}
-                                            onChange={this.selectEntity}
-                                            onHover={() => this.onHover(index)}
-                                            isSelected={this.selectionSet.has(
-                                                option.entityName
-                                            )}
-                                            isFocused={
-                                                this.focusIndex === index
-                                            }
-                                            innerRef={
-                                                this.focusIndex === index
-                                                    ? this.focusRef
-                                                    : undefined
-                                            }
-                                        />
-                                    ))}
+                                    {entities.map(
+                                        (option, index): JSX.Element => (
+                                            <PickerOption
+                                                key={index}
+                                                hasDataForActiveMetric={availableEntities.has(
+                                                    option.entityName
+                                                )}
+                                                optionWithMetricValue={option}
+                                                highlight={this.highlightLabel}
+                                                barScale={this.barScale}
+                                                onChange={this.selectEntity}
+                                                onHover={(): void =>
+                                                    this.onHover(index)
+                                                }
+                                                isSelected={this.selectionSet.has(
+                                                    option.entityName
+                                                )}
+                                                isFocused={
+                                                    this.focusIndex === index
+                                                }
+                                                innerRef={
+                                                    this.focusIndex === index
+                                                        ? this.focusRef
+                                                        : undefined
+                                                }
+                                            />
+                                        )
+                                    )}
                                 </Flipper>
                             </VerticalScrollContainer>
                             <div>
@@ -544,7 +567,9 @@ export class EntityPicker extends React.Component<{
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note={`${this.analyticsNamespace}-clear-selection`}
-                                    onClick={() => selection.clearSelection()}
+                                    onClick={(): any =>
+                                        selection.clearSelection()
+                                    }
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection
@@ -571,7 +596,7 @@ interface PickerOptionProps {
 }
 
 class PickerOption extends React.Component<PickerOptionProps> {
-    @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) {
+    @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>): void {
         event.stopPropagation()
         event.preventDefault()
         this.props.onChange(
@@ -580,7 +605,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const {
             barScale,
             optionWithMetricValue,

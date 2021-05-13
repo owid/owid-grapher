@@ -10,7 +10,6 @@ import {
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
-    DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { SeriesStrategy } from "../core/GrapherConstants"
