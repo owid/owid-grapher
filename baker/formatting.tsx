@@ -39,7 +39,7 @@ export const extractFormattingOptions = (html: string): FormattingOptions => {
 
 // Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
 // If only the key is specified, the value is assumed to be true (e.g. "raw" above)
-const parseFormattingOptions = (text: string): FormattingOptions => {
+export const parseFormattingOptions = (text: string): FormattingOptions => {
     const options: { [key: string]: string | boolean } = {}
     text.split(/\s+/)
         // filter out empty strings
