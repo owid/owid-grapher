@@ -64,6 +64,7 @@ import {
 } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -84,7 +85,7 @@ const GeoFeatures: GeoFeature[] = (topojson.feature(
 
 // Get the svg path specification string for every feature
 const geoPathCache = new Map<MapProjectionName, string[]>()
-const geoPathsFor = (projectionName: MapProjectionName) => {
+const geoPathsFor = (projectionName: MapProjectionName): string[] => {
     if (geoPathCache.has(projectionName))
         return geoPathCache.get(projectionName)!
     const projectionGeo = MapProjectionGeos[projectionName]
@@ -112,7 +113,7 @@ const geoPathsFor = (projectionName: MapProjectionName) => {
 
 // Get the bounding box for every geographical feature
 const geoBoundsCache = new Map<MapProjectionName, Bounds[]>()
-const geoBoundsFor = (projectionName: MapProjectionName) => {
+const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
     if (geoBoundsCache.has(projectionName))
         return geoBoundsCache.get(projectionName)!
     const projectionGeo = MapProjectionGeos[projectionName]
@@ -139,7 +140,9 @@ const geoBoundsFor = (projectionName: MapProjectionName) => {
 
 // Bundle GeoFeatures with the calculated info needed to render them
 const renderFeaturesCache = new Map<MapProjectionName, RenderFeature[]>()
-const renderFeaturesFor = (projectionName: MapProjectionName) => {
+const renderFeaturesFor = (
+    projectionName: MapProjectionName
+): RenderFeature[] => {
     if (renderFeaturesCache.has(projectionName))
         return renderFeaturesCache.get(projectionName)!
     const geoBounds = geoBoundsFor(projectionName)
@@ -166,7 +169,7 @@ export class MapChart
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
 
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
         return this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
@@ -176,45 +179,45 @@ export class MapChart
             )
     }
 
-    private dropNonMapEntities(table: OwidTable) {
+    private dropNonMapEntities(table: OwidTable): OwidTable {
         const entityNamesToSelect = table.availableEntityNames.filter(
             isOnTheMap
         )
         return table.filterByEntityNames(entityNamesToSelect)
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         if (this.mapColumn.isMissing) return "Missing map column"
         return ""
     }
 
-    @computed get mapColumn() {
+    @computed get mapColumn(): CoreColumn {
         return this.transformedTable.get(this.mapColumnSlug)
     }
 
-    @computed get mapColumnSlug() {
+    @computed get mapColumnSlug(): string {
         return (
             this.manager.mapColumnSlug ??
             autoDetectYColumnSlugs(this.manager)[0]!
         )
     }
 
-    @computed private get targetTime() {
+    @computed private get targetTime(): number | undefined {
         return this.manager.endTime
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 

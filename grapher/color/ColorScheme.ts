@@ -23,7 +23,7 @@ export class ColorScheme implements ColorSchemeInterface {
         this.colorSets = []
         this.singleColorScale = !!singleColorScale
         this.isDistinct = !!isDistinct
-        colorSets.forEach((set) => (this.colorSets[set.length] = set))
+        colorSets.forEach((set): string[] => (this.colorSets[set.length] = set))
     }
 
     improviseGradientFromShorter(
@@ -65,12 +65,12 @@ export class ColorScheme implements ColorSchemeInterface {
 
         const prevColors = clone(colorSets)
             .reverse()
-            .find((set) => set && set.length < numColors)
+            .find((set): boolean => set && set.length < numColors)
         if (prevColors)
             return this.improviseGradientFromShorter(prevColors, numColors)
         else
             return this.improviseGradientFromLonger(
-                colorSets.find((set) => !!set) as Color[],
+                colorSets.find((set): boolean => !!set) as Color[],
                 numColors
             )
     }
@@ -102,15 +102,19 @@ export class ColorScheme implements ColorSchemeInterface {
             : this.getGradientColors(numColors)
     }
 
-    getUniqValueColorMap(uniqValues: any[], inverseOrder?: boolean) {
+    getUniqValueColorMap(
+        uniqValues: any[],
+        inverseOrder?: boolean
+    ): Map<number, string> {
         const colors = this.getColors(uniqValues.length) || []
         if (inverseOrder) colors.reverse()
 
         // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
         // Therefore, we create a map from all possible (unique) values to the corresponding color
         const colorByValue = new Map<number, Color>()
-        uniqValues.forEach((value, index) =>
-            colorByValue.set(value, colors[index])
+        uniqValues.forEach(
+            (value, index): Map<number, string> =>
+                colorByValue.set(value, colors[index])
         )
         return colorByValue
     }
@@ -120,13 +124,13 @@ export class ColorScheme implements ColorSchemeInterface {
         invertColorScheme = false,
         customColorMap: Map<SeriesName, Color> = new Map(),
         seriesColorMap: SeriesColorMap = new Map()
-    ) {
-        seriesArr.forEach((series) => {
+    ): void {
+        seriesArr.forEach((series): void => {
             const customColor = customColorMap.get(series.seriesName)
             if (customColor) seriesColorMap.set(series.seriesName, customColor)
         })
         this.updateColorMap(seriesArr, seriesColorMap, invertColorScheme)
-        seriesArr.forEach((series) => {
+        seriesArr.forEach((series): void => {
             series.color = seriesColorMap.get(series.seriesName)!
         })
     }
@@ -135,12 +139,12 @@ export class ColorScheme implements ColorSchemeInterface {
         seriesArr: ChartSeries[],
         seriesColorMap: SeriesColorMap,
         invertColorScheme = false
-    ) {
+    ): void {
         // For names that don't have a color, assign one.
         seriesArr
-            .map((series) => series.seriesName)
-            .filter((name) => !seriesColorMap.has(name))
-            .forEach((name) => {
+            .map((series): string => series.seriesName)
+            .filter((name): boolean => !seriesColorMap.has(name))
+            .forEach((name): void => {
                 const availableColors = lastOfNonEmptyArray(
                     this.colorSets
                 ).slice()
@@ -159,10 +163,11 @@ export class ColorScheme implements ColorSchemeInterface {
         name: string,
         colorSets: { [key: string]: Color[] },
         singleColorScale?: boolean
-    ) {
+    ): ColorScheme {
         const colorSetsArray: Color[][] = []
         Object.keys(colorSets).forEach(
-            (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
+            (numColors): string[] =>
+                (colorSetsArray[+numColors] = colorSets[numColors])
         )
         return new ColorScheme(name, colorSetsArray, singleColorScale)
     }

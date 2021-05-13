@@ -8,7 +8,7 @@ import { ColorScaleConfigInterface } from "./ColorScaleConfig"
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
     colorScaleConfig: ColorScaleConfigInterface
-) => {
+): ColorScale => {
     const table = new CoreTable({
         colorValues: colorValuePairs.map((pair) => pair.value),
     })

@@ -3,7 +3,7 @@ import { CustomColorSchemes } from "./CustomSchemes"
 import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
 import { ColorScheme } from "./ColorScheme"
 
-const initAllSchemes = () => {
+const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
     const schemes = [...ColorBrewerSchemes, ...CustomColorSchemes]
 
     // NB: Temporarily switch to any typing to build the ColorScheme map. Ideally it would just be an enum, but in TS in enums you can only have primitive values.

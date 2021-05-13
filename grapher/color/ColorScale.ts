@@ -1,6 +1,10 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
-import { ColorScaleConfig, ColorScaleConfigInterface } from "./ColorScaleConfig"
+import {
+    ColorScaleConfig,
+    ColorScaleConfigDefaults,
+    ColorScaleConfigInterface,
+} from "./ColorScaleConfig"
 import {
     isEmpty,
     reverse,
@@ -12,6 +16,7 @@ import {
 } from "../../clientUtils/Util"
 import { Color } from "../../coreTable/CoreTableConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { ColorSchemeName } from "./ColorConstants"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
@@ -36,15 +41,15 @@ export class ColorScale {
 
     // Config accessors
 
-    @computed get config() {
+    @computed get config(): ColorScaleConfigDefaults {
         return this.manager.colorScaleConfig ?? new ColorScaleConfig()
     }
 
-    @computed get customNumericValues() {
+    @computed get customNumericValues(): number[] {
         return this.config.customNumericValues ?? []
     }
 
-    @computed get customNumericColorsActive() {
+    @computed get customNumericColorsActive(): boolean {
         return this.config.customNumericColorsActive ?? false
     }
 
@@ -60,7 +65,7 @@ export class ColorScale {
         return this.config.customHiddenCategories ?? {}
     }
 
-    @computed get customNumericLabels() {
+    @computed get customNumericLabels(): (string | undefined)[] {
         if (!this.isManualBuckets) return []
 
         const labels =
@@ -69,7 +74,7 @@ export class ColorScale {
         return labels
     }
 
-    @computed get isColorSchemeInverted() {
+    @computed get isColorSchemeInverted(): boolean {
         return this.config.colorSchemeInvert ?? false
     }
 
@@ -79,7 +84,7 @@ export class ColorScale {
         return this.config.customCategoryLabels ?? {}
     }
 
-    @computed get baseColorScheme() {
+    @computed get baseColorScheme(): ColorSchemeName {
         return (
             this.config.baseColorScheme ??
             this.manager.defaultBaseColorScheme ??
@@ -87,29 +92,29 @@ export class ColorScale {
         )
     }
 
-    @computed private get defaultColorScheme() {
+    @computed private get defaultColorScheme(): ColorScheme {
         return ColorSchemes[ColorSchemeName.BuGn]
     }
 
-    @computed private get defaultNoDataColor() {
+    @computed private get defaultNoDataColor(): string {
         return this.manager.defaultNoDataColor ?? "#eee"
     }
 
-    @computed get colorScaleColumn() {
+    @computed get colorScaleColumn(): CoreColumn | undefined {
         return this.manager.colorScaleColumn
     }
 
-    @computed get legendDescription() {
+    @computed get legendDescription(): string | undefined {
         return this.config.legendDescription
     }
 
     // Transforms
 
-    @computed private get hasNoDataBin() {
+    @computed private get hasNoDataBin(): boolean {
         return this.manager.hasNoDataBin || false
     }
 
-    @computed get sortedNumericValues() {
+    @computed get sortedNumericValues(): any[] {
         return (
             this.colorScaleColumn?.valuesAscending?.filter(
                 (x) => typeof x === "number"
@@ -117,36 +122,36 @@ export class ColorScale {
         )
     }
 
-    @computed private get minPossibleValue() {
+    @computed private get minPossibleValue(): any {
         return first(this.sortedNumericValues)
     }
 
-    @computed private get maxPossibleValue() {
+    @computed private get maxPossibleValue(): any {
         return last(this.sortedNumericValues)
     }
 
-    @computed private get categoricalValues() {
+    @computed private get categoricalValues(): any[] {
         return this.colorScaleColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
-    @computed private get colorScheme() {
+    @computed private get colorScheme(): ColorScheme {
         return ColorSchemes[this.baseColorScheme] ?? this.defaultColorScheme
     }
 
-    @computed get singleColorScale() {
+    @computed get singleColorScale(): boolean {
         return this.colorScheme.singleColorScale
     }
 
-    @computed get autoMinBinValue() {
+    @computed get autoMinBinValue(): number {
         const minValue = Math.min(0, this.sortedNumericValuesWithoutOutliers[0])
         return isNaN(minValue) ? 0 : roundSigFig(minValue, 1)
     }
 
-    @computed private get minBinValue() {
+    @computed private get minBinValue(): number {
         return this.config.customNumericMinValue ?? this.autoMinBinValue
     }
 
-    @computed private get manualBinMaximums() {
+    @computed private get manualBinMaximums(): number[] {
         if (!this.sortedNumericValues.length || this.numBins <= 0) return []
 
         const { numBins, customNumericValues } = this
@@ -159,7 +164,7 @@ export class ColorScale {
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-    @computed get autoBinMaximums() {
+    @computed get autoBinMaximums(): number[] {
         return getBinMaximums({
             binningStrategy: this.config.binningStrategy,
             sortedValues: this.sortedNumericBinningValues,
@@ -168,7 +173,7 @@ export class ColorScale {
         })
     }
 
-    @computed private get bucketMaximums() {
+    @computed private get bucketMaximums(): number[] {
         return this.isManualBuckets
             ? this.manualBinMaximums
             : this.autoBinMaximums
@@ -201,22 +206,22 @@ export class ColorScale {
         return colors
     }
 
-    @computed get numAutoBins() {
+    @computed get numAutoBins(): number {
         return this.config.binningStrategyBinCount ?? 5
     }
 
-    @computed get isManualBuckets() {
+    @computed get isManualBuckets(): boolean {
         return this.config.binningStrategy === BinningStrategy.manual
     }
 
-    @computed get numBins() {
+    @computed get numBins(): number {
         return this.isManualBuckets
             ? this.customNumericValues.length
             : this.numAutoBins
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed get sortedNumericValuesWithoutOutliers() {
+    @computed get sortedNumericValuesWithoutOutliers(): any[] {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
@@ -236,13 +241,13 @@ export class ColorScale {
     }
 
     /** Sorted numeric values passed onto the binning algorithms */
-    @computed private get sortedNumericBinningValues() {
+    @computed private get sortedNumericBinningValues(): any[] {
         return this.sortedNumericValuesWithoutOutliers.filter(
             (v) => v > this.minBinValue
         )
     }
 
-    @computed private get numericLegendBins() {
+    @computed private get numericLegendBins(): NumericBin[] {
         const {
             customNumericLabels,
             minBinValue,
@@ -286,7 +291,7 @@ export class ColorScale {
         })
     }
 
-    @computed get legendBins() {
+    @computed get legendBins(): ColorScaleBin[] {
         // todo: turn comment into unit test
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
@@ -298,7 +303,7 @@ export class ColorScale {
         ] as ColorScaleBin[]
     }
 
-    @computed private get categoricalLegendBins() {
+    @computed private get categoricalLegendBins(): CategoricalBin[] {
         const {
             bucketMaximums,
             baseColors,
@@ -338,7 +343,7 @@ export class ColorScale {
         })
     }
 
-    getColor(value: number | string | undefined) {
+    getColor(value: number | string | undefined): string | undefined {
         return value === undefined
             ? this.noDataColor
             : this.legendBins.find((bin) => bin.contains(value))?.color

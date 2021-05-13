@@ -48,7 +48,7 @@ interface ColumnSummary {
     deciles: { [decile: number]: PrimitiveType }
 }
 
-abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
+export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     def: CoreColumnDef
     table: CoreTable
 

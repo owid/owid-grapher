@@ -3,7 +3,9 @@ import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { difference, groupBy, minBy } from "../../clientUtils/Util"
 
-export const interpolateArray = (scaleArr: string[]) => {
+export const interpolateArray = (
+    scaleArr: string[]
+): ((t: number) => string) => {
     const N = scaleArr.length - 2 // -1 for spacings, -1 for number of interpolate fns
     const intervalWidth = 1 / N
     const intervals: Array<(t: number) => string> = []
@@ -12,7 +14,7 @@ export const interpolateArray = (scaleArr: string[]) => {
         intervals[i] = interpolate(rgb(scaleArr[i]), rgb(scaleArr[i + 1]))
     }
 
-    return (t: number) => {
+    return (t: number): string => {
         if (t < 0 || t > 1)
             throw new Error("Outside the allowed range of [0, 1]")
 
@@ -26,7 +28,7 @@ export const interpolateArray = (scaleArr: string[]) => {
 export function getLeastUsedColor(
     availableColors: Color[],
     usedColors: Color[]
-) {
+): any {
     // If there are unused colors, return the first available
     const unusedColors = difference(availableColors, usedColors)
     if (unusedColors.length > 0) return unusedColors[0]
@@ -35,8 +37,8 @@ export function getLeastUsedColor(
     // unused one.
     const colorCounts = Object.entries(
         groupBy(usedColors)
-    ).map(([color, arr]) => [color, arr.length])
-    const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
+    ).map(([color, arr]): any[] => [color, arr.length])
+    const mostUnusedColor = minBy(colorCounts, ([, count]): any => count) as [
         string,
         number
     ]

@@ -39,7 +39,7 @@ export class AxisConfig
     @observable hideAxis = false
 
     // todo: test/refactor
-    updateFromObject(props?: AxisConfigInterface) {
+    updateFromObject(props?: AxisConfigInterface): void {
         if (props) extend(this, props)
     }
 
@@ -58,26 +58,26 @@ export class AxisConfig
         return obj
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
     }
 
     // A log scale domain cannot have values <= 0, so we double check here
-    @computed private get constrainedMin() {
+    @computed private get constrainedMin(): number {
         if (this.scaleType === ScaleType.log && (this.min ?? 0) <= 0)
             return Infinity
         return this.min ?? Infinity
     }
 
     // If the author has specified a min/max AND to remove points outside the domain, this should return true
-    shouldRemovePoint(value: number) {
+    shouldRemovePoint(value: number): boolean {
         if (!this.removePointsOutsideDomain) return false
         if (this.min !== undefined && value < this.min) return true
         if (this.max !== undefined && value > this.max) return true
         return false
     }
 
-    @computed private get constrainedMax() {
+    @computed private get constrainedMax(): number {
         if (this.scaleType === ScaleType.log && (this.max || 0) <= 0)
             return -Infinity
         return this.max ?? -Infinity
@@ -89,11 +89,11 @@ export class AxisConfig
 
     // Convert axis configuration to a finalized axis spec by supplying
     // any needed information calculated from the data
-    toHorizontalAxis() {
+    toHorizontalAxis(): HorizontalAxis {
         return new HorizontalAxis(this)
     }
 
-    toVerticalAxis() {
+    toVerticalAxis(): VerticalAxis {
         return new VerticalAxis(this)
     }
 }

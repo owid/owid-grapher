@@ -10,6 +10,7 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { bind } from "decko"
+import { ColorScale } from "../color/ColorScale"
 import {
     uniqWith,
     isEqual,
@@ -32,6 +33,7 @@ import {
     isInIFrame,
     differenceObj,
 } from "../../clientUtils/Util"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -139,7 +141,6 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
-    OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
@@ -161,7 +162,8 @@ import {
 } from "../../settings/clientSettings"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
-import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
+import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
+import { ChartInterface } from "../chart/ChartInterface"
 
 declare const window: any
 
@@ -320,13 +322,15 @@ export class Grapher
      * But currently some Grapher features depend on knowing how the current state is different than the "authored state".
      * So when an Explorer updates the grapher, it also needs to update this "original state".
      */
-    @action.bound setAuthoredVersion(config: Partial<LegacyGrapherInterface>) {
+    @action.bound setAuthoredVersion(
+        config: Partial<LegacyGrapherInterface>
+    ): void {
         this.legacyConfigAsAuthored = config
     }
 
     @action.bound updateAuthoredVersion(
         config: Partial<LegacyGrapherInterface>
-    ) {
+    ): void {
         this.legacyConfigAsAuthored = {
             ...this.legacyConfigAsAuthored,
             ...config,
@@ -360,7 +364,7 @@ export class Grapher
         this.checkVisibility = throttle(this.checkVisibility, 400)
     }
 
-    toObject() {
+    toObject(): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
@@ -385,14 +389,14 @@ export class Grapher
         return obj
     }
 
-    @action.bound downloadData() {
+    @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
         } else if (this.owidDataset)
             this._receiveLegacyDataAndApplySelection(this.owidDataset)
         else this.downloadLegacyDataFromOwidVariableIds()
     }
 
-    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
+    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
         if (!obj) return
 
         // we can remove when we purge current graphers which have this set.
@@ -412,7 +416,7 @@ export class Grapher
             this.setDimensionsFromConfigs(obj.dimensions)
     }
 
-    @action.bound populateFromQueryParams(params: GrapherQueryParams) {
+    @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
         // Set tab if specified
         const tab = params.tab
         if (tab) {
@@ -473,21 +477,21 @@ export class Grapher
             this.selection.setSelectedEntities(selection)
     }
 
-    @action.bound private setTimeFromTimeQueryParam(time: string) {
+    @action.bound private setTimeFromTimeQueryParam(time: string): void {
         this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
     }
 
-    @computed private get isChartOrMapTab() {
+    @computed private get isChartOrMapTab(): boolean {
         return this.tab === GrapherTabOption.chart || this.isOnMapTab
     }
 
-    @computed private get isOnMapTab() {
+    @computed private get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
     }
 
-    @computed get tableForSelection() {
+    @computed get tableForSelection(): OwidTable {
         // This table specifies which entities can be selected in the charts EntitySelectorModal.
         // It should contain all entities that can be selected, and none more.
         // Depending on the chart type, the criteria for being able to select an entity are
@@ -506,7 +510,7 @@ export class Grapher
     }
 
     // If an author sets a timeline filter run it early in the pipeline so to the charts it's as if the filtered times do not exist
-    @computed get tableAfterAuthorTimelineFilter() {
+    @computed get tableAfterAuthorTimelineFilter(): OwidTable {
         const table = this.inputTable
         if (
             this.timelineMinTime === undefined &&
@@ -520,7 +524,7 @@ export class Grapher
     }
 
     // Convenience method for debugging
-    windowQueryParams(str = location.search) {
+    windowQueryParams(str = location.search): QueryParams {
         return strToQueryParams(str)
     }
 
@@ -531,7 +535,7 @@ export class Grapher
         return this.chartInstance.transformTable(table)
     }
 
-    @computed get chartInstance() {
+    @computed get chartInstance(): ChartInterface {
         // Note: when timeline handles on a LineChart are collapsed into a single handle, the
         // LineChart turns into a DiscreteBar.
 
@@ -541,7 +545,7 @@ export class Grapher
     }
 
     // When Map becomes a first-class chart instance, we should drop this
-    @computed get chartInstanceExceptMap() {
+    @computed get chartInstanceExceptMap(): ChartInterface {
         const chartTypeName = this
             .typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
@@ -550,12 +554,12 @@ export class Grapher
         return new ChartClass({ manager: this })
     }
 
-    @computed get table() {
+    @computed get table(): OwidTable {
         return this.tableAfterAuthorTimelineFilter
     }
 
     @computed
-    get tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter() {
+    get tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter(): OwidTable {
         const table = this.tableAfterAuthorTimelineAndActiveChartTransform
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
@@ -568,7 +572,7 @@ export class Grapher
     }
 
     @computed
-    private get tableAfterAllTransformsAndFilters() {
+    private get tableAfterAllTransformsAndFilters(): OwidTable {
         const { startTime, endTime } = this
         const table = this
             .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
@@ -594,7 +598,7 @@ export class Grapher
         return table.filterByTimeRange(startTime, endTime)
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return this.tableAfterAllTransformsAndFilters
     }
 
@@ -604,29 +608,29 @@ export class Grapher
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
-    private get isStaging() {
+    private get isStaging(): boolean {
         if (typeof location === undefined) return false
         return location.host.includes("staging")
     }
 
-    @computed get editUrl() {
+    @computed get editUrl(): string | undefined {
         if (!this.showAdminControls && !this.isDev && !this.isStaging)
             return undefined
         return `${this.adminBaseUrl}/admin/${
-            this.manager.editUrl ?? `charts/${this.id}/edit`
+            this.manager?.editUrl ?? `charts/${this.id}/edit`
         }`
     }
 
     private populationFilterToggleOption = 1e6
     // Make the default filter toggle option reflect what is initially loaded.
-    @computed get populationFilterOption() {
+    @computed get populationFilterOption(): number {
         if (this.minPopulationFilter)
             this.populationFilterToggleOption = this.minPopulationFilter
         return this.populationFilterToggleOption
     }
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
-    @computed private get hasCountriesSmallerThanFilterOption() {
+    @computed private get hasCountriesSmallerThanFilterOption(): boolean {
         return this.inputTable.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
@@ -640,7 +644,7 @@ export class Grapher
     /**
      * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
      */
-    @computed get useAdminAPI() {
+    @computed get useAdminAPI(): boolean {
         if (typeof window === "undefined") return false
         return window.admin !== undefined
     }
@@ -649,13 +653,14 @@ export class Grapher
      * Whether the user viewing the chart is an admin and we should show admin controls,
      * like the "Edit" option in the share menu.
      */
-    @computed get showAdminControls() {
+    @computed get showAdminControls(): boolean {
         // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
         // There is an iframe on owid.cloud to trigger a visit to that page.
         return !!Cookies.get(CookieKey.isAdmin)
     }
 
-    @action.bound private async downloadLegacyDataFromOwidVariableIds() {
+    @action.bound
+    private async downloadLegacyDataFromOwidVariableIds(): Promise<void> {
         if (this.variableIds.length === 0)
             // No data to download
             return
@@ -678,14 +683,14 @@ export class Grapher
         }
     }
 
-    @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey) {
+    @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey): void {
         this._receiveLegacyDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
         json: LegacyVariablesAndEntityKey,
         legacyConfig: Partial<LegacyGrapherInterface>
-    ) {
+    ): void {
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             legacyConfig
@@ -698,14 +703,14 @@ export class Grapher
 
         this.appendNewEntitySelectionOptions()
 
-        if (this.manager.selection && this.manager.selection.hasSelection) {
+        if (this.manager?.selection?.hasSelection) {
             // Selection is managed externally, do nothing.
         } else if (this.selection.hasSelection) {
             // User has changed the selection, use theris
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    @action rebuildInputOwidTable() {
+    @action rebuildInputOwidTable(): void {
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
@@ -717,13 +722,13 @@ export class Grapher
 
     @action.bound private _receiveLegacyDataAndApplySelection(
         json: LegacyVariablesAndEntityKey
-    ) {
+    ): void {
         this.legacyVariableDataJson = json
 
         this.rebuildInputOwidTable()
     }
 
-    @action.bound appendNewEntitySelectionOptions() {
+    @action.bound appendNewEntitySelectionOptions(): void {
         const { selection } = this
         const currentEntities = selection.availableEntityNameSet
         const missingEntities = this.availableEntities.filter(
@@ -732,7 +737,7 @@ export class Grapher
         selection.addAvailableEntityNames(missingEntities)
     }
 
-    @action.bound private applyOriginalSelectionAsAuthored() {
+    @action.bound private applyOriginalSelectionAsAuthored(): void {
         if (this.selectedEntityNames.length)
             this.selection.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
@@ -741,7 +746,7 @@ export class Grapher
 
     @observable private _baseFontSize = BASE_FONT_SIZE
 
-    @computed get baseFontSize() {
+    @computed get baseFontSize(): number {
         if (this.isMediaCard) return 24
         else if (this.isExportingtoSvgOrPng) return 18
         return this._baseFontSize
@@ -752,11 +757,11 @@ export class Grapher
     }
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
-    @computed get isReady() {
+    @computed get isReady(): boolean {
         return this.whatAreWeWaitingFor === ""
     }
 
-    @computed get whatAreWeWaitingFor() {
+    @computed get whatAreWeWaitingFor(): string {
         const { newSlugs, inputTable, dimensions } = this
         if (newSlugs.length || dimensions.length === 0) {
             const missingColumns = newSlugs.filter(
@@ -774,19 +779,19 @@ export class Grapher
     }
 
     // If we are using new slugs and not dimensions, Grapher is ready.
-    @computed get newSlugs() {
+    @computed get newSlugs(): string[] {
         const { xSlug, colorSlug, sizeSlug } = this
         const ySlugs = this.ySlugs ? this.ySlugs.split(" ") : []
         return excludeUndefined([...ySlugs, xSlug, colorSlug, sizeSlug])
     }
 
-    @computed private get loadingDimensions() {
+    @computed private get loadingDimensions(): ChartDimension[] {
         return this.dimensions.filter(
             (dim) => !this.inputTable.has(dim.columnSlug)
         )
     }
 
-    @computed get isInIFrame() {
+    @computed get isInIFrame(): boolean {
         return isInIFrame()
     }
 
@@ -844,11 +849,11 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
-    @computed private get onlySingleTimeSelectionPossible() {
+    @computed private get onlySingleTimeSelectionPossible(): boolean {
         return this.type === ChartTypeName.DiscreteBar || this.isOnMapTab
     }
 
-    @computed get shouldLinkToOwid() {
+    @computed get shouldLinkToOwid(): boolean {
         if (
             this.props.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
@@ -859,17 +864,17 @@ export class Grapher
         return true
     }
 
-    @computed.struct private get variableIds() {
+    @computed.struct private get variableIds(): number[] {
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed private get dataFileName() {
+    @computed private get dataFileName(): string {
         return `${this.variableIds.join("+")}.json?v=${
             this.isEditor ? undefined : this.cacheTag
         }`
     }
 
-    @computed get dataUrl() {
+    @computed get dataUrl(): string {
         return `${this.bakedGrapherURL ?? ""}/data/variables/${
             this.dataFileName
         }`
@@ -877,14 +882,14 @@ export class Grapher
 
     externalCsvLink = ""
 
-    @computed get hasOWIDLogo() {
+    @computed get hasOWIDLogo(): boolean {
         return (
             !this.hideLogo && (this.logo === undefined || this.logo === "owid")
         )
     }
 
     // todo: did this name get botched in a merge?
-    @computed get hasFatalErrors() {
+    @computed get hasFatalErrors(): boolean {
         return this.relatedQuestions.some(
             (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
@@ -892,17 +897,17 @@ export class Grapher
 
     disposers: IReactionDisposer[] = []
 
-    @bind dispose() {
+    @bind dispose(): void {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.baseFontSize
     }
 
     // todo: can we remove this?
     // I believe these states can only occur during editing.
-    @action.bound private ensureValidConfigWhenEditing() {
+    @action.bound private ensureValidConfigWhenEditing(): void {
         this.disposers.push(
             reaction(
                 () => this.variableIds,
@@ -923,7 +928,7 @@ export class Grapher
         this.disposers.push(...disposers)
     }
 
-    @computed private get validDimensions() {
+    @computed private get validDimensions(): ChartDimension[] {
         const { dimensions } = this
         const validProperties = this.dimensionSlots.map((d) => d.property)
         let validDimensions = dimensions.filter((dim) =>
@@ -947,21 +952,21 @@ export class Grapher
     }
 
     // todo: do we need this?
-    @computed get originUrlWithProtocol() {
+    @computed get originUrlWithProtocol(): string {
         let url = this.originUrl
         if (!url.startsWith("http")) url = `https://${url}`
         return url
     }
 
-    @computed get overlayTab() {
+    @computed get overlayTab(): GrapherTabOption | undefined {
         return this.overlay
     }
 
-    @computed get currentTab() {
+    @computed get currentTab(): GrapherTabOption {
         return this.overlay ? this.overlay : this.tab
     }
 
-    set currentTab(desiredTab) {
+    set currentTab(desiredTab: GrapherTabOption) {
         if (
             desiredTab === GrapherTabOption.chart ||
             desiredTab === GrapherTabOption.map ||
@@ -1000,7 +1005,7 @@ export class Grapher
     }
 
     // Get the dimension slots appropriate for this type of chart
-    @computed get dimensionSlots() {
+    @computed get dimensionSlots(): DimensionSlot[] {
         const xAxis = new DimensionSlot(this, DimensionProperty.x)
         const yAxis = new DimensionSlot(this, DimensionProperty.y)
         const color = new DimensionSlot(this, DimensionProperty.color)
@@ -1012,18 +1017,18 @@ export class Grapher
         return [yAxis]
     }
 
-    @computed.struct get filledDimensions() {
+    @computed.struct get filledDimensions(): ChartDimension[] {
         return this.isReady ? this.dimensions : []
     }
 
-    @action.bound addDimension(config: LegacyChartDimensionInterface) {
+    @action.bound addDimension(config: LegacyChartDimensionInterface): void {
         this.dimensions.push(new ChartDimension(config, this))
     }
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
         newConfigs: LegacyChartDimensionInterface[]
-    ) {
+    ): void {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
             if (slot.property === property)
@@ -1037,17 +1042,17 @@ export class Grapher
 
     @action.bound setDimensionsFromConfigs(
         configs: LegacyChartDimensionInterface[]
-    ) {
+    ): void {
         this.dimensions = configs.map(
             (config) => new ChartDimension(config, this)
         )
     }
 
-    @computed get displaySlug() {
+    @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
     }
 
-    @computed get availableTabs() {
+    @computed get availableTabs(): GrapherTabOption[] {
         return [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
@@ -1057,7 +1062,7 @@ export class Grapher
         ].filter(identity) as GrapherTabOption[]
     }
 
-    @computed get currentTitle() {
+    @computed get currentTitle(): string {
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
         const showTitleAnnotation = !this.hideTitleAnnotation
@@ -1118,7 +1123,7 @@ export class Grapher
         }
     }
 
-    @computed private get areHandlesOnSameTime() {
+    @computed private get areHandlesOnSameTime(): boolean {
         const times = this.tableAfterAuthorTimelineFilter.timeColumn.uniqValues
         const [start, end] = this.timelineHandleTimeBounds.map((time) =>
             findClosestTime(times, time)
@@ -1126,7 +1131,7 @@ export class Grapher
         return start === end
     }
 
-    @computed get mapColumnSlug() {
+    @computed get mapColumnSlug(): string {
         const mapColumnSlug = this.map.columnSlug
         // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn
         if (
@@ -1137,22 +1142,22 @@ export class Grapher
         return mapColumnSlug
     }
 
-    getColumnForProperty(property: DimensionProperty) {
+    getColumnForProperty(property: DimensionProperty): CoreColumn | undefined {
         return this.dimensions.find((dim) => dim.property === property)?.column
     }
 
-    getSlugForProperty(property: DimensionProperty) {
+    getSlugForProperty(property: DimensionProperty): string | undefined {
         return this.dimensions.find((dim) => dim.property === property)
             ?.columnSlug
     }
 
-    @computed get yColumns() {
+    @computed get yColumns(): CoreColumn[] {
         return this.filledDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
     }
 
-    @computed get yColumnSlugs() {
+    @computed get yColumnSlugs(): string[] {
         return this.ySlugs
             ? this.ySlugs.split(" ")
             : this.dimensions
@@ -1160,35 +1165,35 @@ export class Grapher
                   .map((dim) => dim.columnSlug)
     }
 
-    @computed get yColumnSlug() {
+    @computed get yColumnSlug(): string | undefined {
         return this.ySlugs
             ? this.ySlugs.split(" ")[0]
             : this.getSlugForProperty(DimensionProperty.y)
     }
 
-    @computed get xColumnSlug() {
+    @computed get xColumnSlug(): string | undefined {
         return this.xSlug ?? this.getSlugForProperty(DimensionProperty.x)
     }
 
-    @computed get sizeColumnSlug() {
+    @computed get sizeColumnSlug(): string | undefined {
         return this.sizeSlug ?? this.getSlugForProperty(DimensionProperty.size)
     }
 
-    @computed get colorColumnSlug() {
+    @computed get colorColumnSlug(): string | undefined {
         return (
             this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
         )
     }
 
-    @computed get yScaleType() {
+    @computed get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
     }
 
-    @computed get xScaleType() {
+    @computed get xScaleType(): ScaleType | undefined {
         return this.xAxis.scaleType
     }
 
-    @computed private get timeTitleSuffix() {
+    @computed private get timeTitleSuffix(): string {
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this
@@ -1204,12 +1209,12 @@ export class Grapher
         return ", " + time
     }
 
-    @computed get sourcesLine() {
+    @computed get sourcesLine(): string {
         return this.sourceDesc ?? this.defaultSourcesLine
     }
 
     // Columns that are used as a dimension in the currently active view
-    @computed get activeColumnSlugs() {
+    @computed get activeColumnSlugs(): string[] {
         const {
             yColumnSlugs,
             xColumnSlug,
@@ -1225,7 +1230,7 @@ export class Grapher
         ])
     }
 
-    @computed get columnsWithSources() {
+    @computed get columnsWithSources(): CoreColumn[] {
         // Only use dimensions/columns that are actually part of the visualization
         // In Explorers, this also ensures that only columns which are currently in use will be shown in Sources tab
         const columnSlugs = uniq(this.activeColumnSlugs)
@@ -1246,7 +1251,7 @@ export class Grapher
             )
     }
 
-    @computed private get defaultSourcesLine() {
+    @computed private get defaultSourcesLine(): string {
         let sourceNames = this.columnsWithSources.map(
             (column) => column.source.name ?? ""
         )
@@ -1266,7 +1271,7 @@ export class Grapher
         return uniq(sourceNames).join(", ")
     }
 
-    @computed private get axisDimensions() {
+    @computed private get axisDimensions(): ChartDimension[] {
         return this.filledDimensions.filter(
             (dim) =>
                 dim.property === DimensionProperty.y ||
@@ -1275,13 +1280,13 @@ export class Grapher
     }
 
     // todo: remove when we remove dimensions
-    @computed private get yColumnsFromDimensionsOrSlugsOrAuto() {
+    @computed private get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
         return this.yColumns.length
             ? this.yColumns
             : this.table.getColumns(autoDetectYColumnSlugs(this))
     }
 
-    @computed private get defaultTitle() {
+    @computed private get defaultTitle(): string {
         const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
 
         if (this.isScatter)
@@ -1304,63 +1309,64 @@ export class Grapher
         return yColumns.map((col) => col.displayName).join(", ")
     }
 
-    @computed get displayTitle() {
+    @computed get displayTitle(): string {
         return this.title ?? this.defaultTitle
     }
 
     // Returns an object ready to be serialized to JSON
-    @computed get object() {
+    @computed get object(): GrapherInterface {
         return this.toObject()
     }
 
-    @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
+    @computed
+    get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
         return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
             : this.type
     }
 
-    @computed get isLineChart() {
+    @computed get isLineChart(): boolean {
         return this.type === ChartTypeName.LineChart
     }
-    @computed get isScatter() {
+    @computed get isScatter(): boolean {
         return this.type === ChartTypeName.ScatterPlot
     }
-    @computed get isTimeScatter() {
+    @computed get isTimeScatter(): boolean {
         return this.type === ChartTypeName.TimeScatter
     }
-    @computed get isStackedArea() {
+    @computed get isStackedArea(): boolean {
         return this.type === ChartTypeName.StackedArea
     }
-    @computed get isSlopeChart() {
+    @computed get isSlopeChart(): boolean {
         return this.type === ChartTypeName.SlopeChart
     }
-    @computed get isDiscreteBar() {
+    @computed get isDiscreteBar(): boolean {
         return this.type === ChartTypeName.DiscreteBar
     }
-    @computed get isStackedBar() {
+    @computed get isStackedBar(): boolean {
         return this.type === ChartTypeName.StackedBar
     }
 
-    @computed get isLineChartThatTurnedIntoDiscreteBar() {
+    @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
         return this.isLineChart && this.areHandlesOnSameTime
     }
 
-    @computed get activeColorScale() {
-        const chart = this.chartInstance as any
+    @computed get activeColorScale(): ColorScale | undefined {
+        const chart = this.chartInstance
         return chart.colorScale
     }
 
-    @computed get activeColorScaleExceptMap() {
-        const chart = this.chartInstanceExceptMap as any
+    @computed get activeColorScaleExceptMap(): ColorScale | undefined {
+        const chart = this.chartInstanceExceptMap
         return chart.colorScale
     }
 
-    @computed get supportsMultipleYColumns() {
+    @computed get supportsMultipleYColumns(): boolean {
         return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
     }
 
-    @computed private get xDimension() {
+    @computed private get xDimension(): ChartDimension | undefined {
         return this.filledDimensions.find(
             (d) => d.property === DimensionProperty.x
         )
@@ -1370,8 +1376,8 @@ export class Grapher
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
-    @computed get xOverrideTime() {
-        return this.xDimension && this.xDimension.targetYear
+    @computed get xOverrideTime(): number | undefined {
+        return this.xDimension?.targetYear
     }
 
     // todo: this is only relevant for scatter plots. move to scatter plot class?
@@ -1379,31 +1385,31 @@ export class Grapher
         this.xDimension!.targetYear = value
     }
 
-    @computed get idealBounds() {
+    @computed get idealBounds(): Bounds {
         return this.isMediaCard
             ? new Bounds(0, 0, 1200, 630)
             : new Bounds(0, 0, 850, 600)
     }
 
-    @computed get hasYDimension() {
+    @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    get staticSVG() {
+    get staticSVG(): string {
         return ReactDOMServer.renderToStaticMarkup(
             <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
         )
     }
 
-    @computed get mapConfig() {
+    @computed get mapConfig(): MapConfig {
         return this.map
     }
 
-    @computed get cacheTag() {
+    @computed get cacheTag(): string {
         return this.version.toString()
     }
 
-    @computed get mapIsClickable() {
+    @computed get mapIsClickable(): boolean {
         return (
             this.hasChartTab &&
             (this.isLineChart || this.isScatter) &&
@@ -1411,7 +1417,7 @@ export class Grapher
         )
     }
 
-    @computed get relativeToggleLabel() {
+    @computed get relativeToggleLabel(): string {
         if (this.isScatter || this.isTimeScatter) return "Average annual change"
         else if (this.isLineChart) return "Relative change"
         return "Relative"
@@ -1419,11 +1425,11 @@ export class Grapher
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode() {
+    @computed get isRelativeMode(): boolean {
         return this.stackMode === StackMode.relative
     }
 
-    @computed get canToggleRelativeMode() {
+    @computed get canToggleRelativeMode(): boolean {
         if (this.isLineChart)
             return (
                 !this.hideRelativeToggle &&
@@ -1443,8 +1449,8 @@ export class Grapher
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
-    ) {
-        const setBoundsFromContainerAndRender = () => {
+    ): void {
+        const setBoundsFromContainerAndRender = (): void => {
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
@@ -1459,7 +1465,9 @@ export class Grapher
         )
     }
 
-    static renderSingleGrapherOnGrapherPage(jsonConfig: GrapherInterface) {
+    static renderSingleGrapherOnGrapherPage(
+        jsonConfig: GrapherInterface
+    ): void {
         const container = document.getElementsByTagName("figure")[0]
 
         try {
@@ -1479,27 +1487,27 @@ export class Grapher
         }
     }
 
-    @computed get isMobile() {
+    @computed get isMobile(): boolean {
         return isMobile()
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get isPortrait() {
+    @computed private get isPortrait(): boolean {
         return this.bounds.width < this.bounds.height && this.bounds.width < 850
     }
 
-    @computed private get widthForDeviceOrientation() {
+    @computed private get widthForDeviceOrientation(): number {
         return this.isPortrait ? 400 : 680
     }
 
-    @computed private get heightForDeviceOrientation() {
+    @computed private get heightForDeviceOrientation(): number {
         return this.isPortrait ? 640 : 480
     }
 
-    @computed private get useIdealBounds() {
+    @computed private get useIdealBounds(): boolean {
         const {
             isEditor,
             isExportingtoSvgOrPng,
@@ -1534,7 +1542,7 @@ export class Grapher
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed private get scaleToFitIdeal() {
+    @computed private get scaleToFitIdeal(): number {
         return Math.min(
             (this.bounds.width * 0.95) / this.widthForDeviceOrientation,
             (this.bounds.height * 0.95) / this.heightForDeviceOrientation
@@ -1543,18 +1551,18 @@ export class Grapher
 
     // These are the final render dimensions
     // Todo: add explanation around why isExporting removes 5 px
-    @computed private get renderWidth() {
+    @computed private get renderWidth(): number {
         return this.useIdealBounds
             ? this.widthForDeviceOrientation * this.scaleToFitIdeal
             : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
     }
-    @computed private get renderHeight() {
+    @computed private get renderHeight(): number {
         return this.useIdealBounds
             ? this.heightForDeviceOrientation * this.scaleToFitIdeal
             : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
     }
 
-    @computed get tabBounds() {
+    @computed get tabBounds(): Bounds {
         const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
         return this.isExportingtoSvgOrPng
             ? bounds
@@ -1565,35 +1573,35 @@ export class Grapher
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get containerElement() {
+    @computed get containerElement(): HTMLDivElement | undefined {
         return this.base.current || undefined
     }
 
     @observable private hasBeenVisible = false
     @observable private uncaughtError?: Error
 
-    @action.bound setError(err: Error) {
+    @action.bound setError(err: Error): void {
         this.uncaughtError = err
     }
 
-    @action.bound clearErrors() {
+    @action.bound clearErrors(): void {
         this.uncaughtError = undefined
     }
 
     // todo: clean up this popup stuff
-    addPopup(vnode: VNode) {
+    addPopup(vnode: VNode): void {
         this.popups = this.popups.concat([vnode])
     }
 
-    removePopup(vnodeType: any) {
+    removePopup(vnodeType: any): void {
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
-    @computed private get isOnTableTab() {
+    @computed private get isOnTableTab(): boolean {
         return this.tab === GrapherTabOption.table
     }
 
-    private renderPrimaryTab() {
+    private renderPrimaryTab(): JSX.Element | undefined {
         if (this.isChartOrMapTab) return <CaptionedChart manager={this} />
 
         const { tabBounds } = this
@@ -1611,7 +1619,7 @@ export class Grapher
         return undefined
     }
 
-    private renderOverlayTab() {
+    private renderOverlayTab(): JSX.Element | undefined {
         const bounds = this.tabBounds
         if (this.overlayTab === GrapherTabOption.sources)
             return (
@@ -1624,26 +1632,26 @@ export class Grapher
         return undefined
     }
 
-    private get commandPalette() {
+    private get commandPalette(): JSX.Element | null {
         return this.props.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }
 
-    formatTimeFn(time: Time) {
+    formatTimeFn(time: Time): string {
         return this.inputTable.timeColumnFormatFunction(time)
     }
 
-    @action.bound private toggleTabCommand() {
+    @action.bound private toggleTabCommand(): void {
         this.currentTab = next(this.availableTabs, this.currentTab)
     }
 
-    @action.bound private togglePlayingCommand() {
+    @action.bound private togglePlayingCommand(): void {
         this.timelineController.togglePlay()
     }
 
     selection =
-        this.manager.selection ??
+        this.manager?.selection ??
         new SelectionArray(
             this.props.selectedEntityNames ?? [],
             this.props.table?.availableEntities ?? []
@@ -1655,25 +1663,28 @@ export class Grapher
 
     private get keyboardShortcuts(): Command[] {
         const temporaryFacetTestCommands = range(0, 10).map((num) => {
-            return { combo: `${num}`, fn: () => this.randomSelection(num) }
+            return {
+                combo: `${num}`,
+                fn: (): void => this.randomSelection(num),
+            }
         })
         const shortcuts = [
             ...temporaryFacetTestCommands,
             {
                 combo: "t",
-                fn: () => this.toggleTabCommand(),
+                fn: (): void => this.toggleTabCommand(),
                 title: "Toggle tab",
                 category: "Navigation",
             },
             {
                 combo: "?",
-                fn: () => CommandPalette.togglePalette(),
+                fn: (): void => CommandPalette.togglePalette(),
                 title: `Toggle Help`,
                 category: "Navigation",
             },
             {
                 combo: "a",
-                fn: () =>
+                fn: (): void | SelectionArray =>
                     this.selection.hasSelection
                         ? this.selection.clearSelection()
                         : this.selection.selectAll(),
@@ -1684,41 +1695,41 @@ export class Grapher
             },
             {
                 combo: "f",
-                fn: () => this.toggleFilterAllCommand(),
+                fn: (): void => this.toggleFilterAllCommand(),
                 title: "Hide unselected",
                 category: "Selection",
             },
             {
                 combo: "p",
-                fn: () => this.togglePlayingCommand(),
+                fn: (): void => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
             },
             {
                 combo: "f",
-                fn: () => this.toggleFacetStrategy(),
+                fn: (): void => this.toggleFacetStrategy(),
                 title: `Toggle Faceting`,
                 category: "Chart",
             },
             {
                 combo: "l",
-                fn: () => this.toggleYScaleTypeCommand(),
+                fn: (): void => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
                 category: "Chart",
             },
             {
                 combo: "esc",
-                fn: () => this.clearErrors(),
+                fn: (): void => this.clearErrors(),
             },
             {
                 combo: "z",
-                fn: () => this.toggleTimelineCommand(),
+                fn: (): void => this.toggleTimelineCommand(),
                 title: "Latest/Earliest/All period",
                 category: "Timeline",
             },
             {
                 combo: "shift+o",
-                fn: () => this.clearQueryParams(),
+                fn: (): void => this.clearQueryParams(),
                 title: "Reset to original",
                 category: "Navigation",
             },
@@ -1745,32 +1756,32 @@ export class Grapher
 
     @observable slideShow?: SlideShowController<any>
 
-    @action.bound private toggleTimelineCommand() {
+    @action.bound private toggleTimelineCommand(): void {
         // Todo: add tests for this
         this.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.timeParam!)
         )
     }
 
-    @action.bound private toggleFilterAllCommand() {
+    @action.bound private toggleFilterAllCommand(): void {
         this.minPopulationFilter =
             this.minPopulationFilter === 2e9 ? undefined : 2e9
     }
 
-    @action.bound private toggleYScaleTypeCommand() {
+    @action.bound private toggleYScaleTypeCommand(): void {
         this.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
             this.yAxis.scaleType
         )
     }
 
-    @action.bound private toggleFacetStrategy() {
+    @action.bound private toggleFacetStrategy(): void {
         this.facet = next(this.availableFacetStrategies, this.facet)
     }
 
     @observable facet?: FacetStrategy
 
-    @computed private get hasMultipleYColumns() {
+    @computed private get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
 
@@ -1795,7 +1806,10 @@ export class Grapher
         return []
     }
 
-    @computed private get availableFacetStrategies() {
+    @computed private get availableFacetStrategies(): (
+        | FacetStrategy
+        | undefined
+    )[] {
         const strategies: (FacetStrategy | undefined)[] = [undefined]
 
         if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
@@ -1807,7 +1821,7 @@ export class Grapher
     }
 
     private disableAutoFaceting = true // turned off for now
-    @computed get facetStrategy() {
+    @computed get facetStrategy(): FacetStrategy | undefined {
         if (this.facet && this.availableFacetStrategies.includes(this.facet))
             return this.facet
 
@@ -1831,7 +1845,7 @@ export class Grapher
         return undefined
     }
 
-    @action.bound randomSelection(num: number) {
+    @action.bound randomSelection(num: number): void {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         this.clearErrors()
         const currentSelection = this.selection.selectedEntityNames.length
@@ -1841,7 +1855,7 @@ export class Grapher
         )
     }
 
-    private renderError() {
+    private renderError(): JSX.Element {
         return (
             <div
                 title={this.uncaughtError?.message}
@@ -1881,7 +1895,7 @@ export class Grapher
         )
     }
 
-    render() {
+    render(): JSX.Element | undefined {
         const { isExportingtoSvgOrPng, isPortrait } = this
         // TODO how to handle errors in exports?
         // TODO tidy this up
@@ -1909,7 +1923,7 @@ export class Grapher
         )
     }
 
-    private renderReady() {
+    private renderReady(): JSX.Element {
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
@@ -1935,12 +1949,12 @@ export class Grapher
     }
 
     // Chart should only render SVG when it's on the screen
-    @action.bound private checkVisibility() {
+    @action.bound private checkVisibility(): void {
         if (!this.hasBeenVisible && isVisible(this.base.current))
             this.hasBeenVisible = true
     }
 
-    @action.bound private setBaseFontSize() {
+    @action.bound private setBaseFontSize(): void {
         const { renderWidth } = this
         if (renderWidth <= 400) this.baseFontSize = 14
         else if (renderWidth < 1080) this.baseFontSize = 16
@@ -1949,10 +1963,10 @@ export class Grapher
 
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
-    private bindToWindow() {
+    private bindToWindow(): void {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = () =>
+        const pushParams = (): void =>
             setWindowQueryStr(queryParamsToStr(this.changedParams))
         const debouncedPushParams = debounce(pushParams, 100)
 
@@ -1964,7 +1978,7 @@ export class Grapher
         autorun(() => (document.title = this.currentTitle))
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         window.addEventListener("scroll", this.checkVisibility)
         this.setBaseFontSize()
         this.checkVisibility()
@@ -1974,7 +1988,7 @@ export class Grapher
     }
 
     private _shortcutsBound = false
-    private bindKeyboardShortcuts() {
+    private bindKeyboardShortcuts(): void {
         if (this._shortcutsBound) return
         this.keyboardShortcuts.forEach((shortcut) => {
             Mousetrap.bind(shortcut.combo, () => {
@@ -1989,7 +2003,7 @@ export class Grapher
         this._shortcutsBound = true
     }
 
-    private unbindKeyboardShortcuts() {
+    private unbindKeyboardShortcuts(): void {
         if (!this._shortcutsBound) return
         this.keyboardShortcuts.forEach((shortcut) => {
             Mousetrap.unbind(shortcut.combo)
@@ -1997,35 +2011,35 @@ export class Grapher
         this._shortcutsBound = false
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         this.unbindKeyboardShortcuts()
         window.removeEventListener("scroll", this.checkVisibility)
         this.dispose()
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         this.setBaseFontSize()
         this.checkVisibility()
     }
 
-    componentDidCatch(error: Error, info: any) {
+    componentDidCatch(error: Error, info: any): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error, info)
     }
 
     @observable isShareMenuActive = false
 
-    @computed get hasRelatedQuestion() {
+    @computed get hasRelatedQuestion(): boolean {
         if (!this.relatedQuestions.length) return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
     }
 
-    @computed private get footerControlsLines() {
+    @computed private get footerControlsLines(): number {
         return this.hasTimeline ? 2 : 1
     }
 
-    @computed get footerControlsHeight() {
+    @computed get footerControlsHeight(): number {
         const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
             this.footerControlsLines * footerRowHeight +
@@ -2033,7 +2047,7 @@ export class Grapher
         )
     }
 
-    @action.bound clearQueryParams() {
+    @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
         this.tab = authorsVersion.tab
         this.xAxis.scaleType = authorsVersion.xAxis.scaleType
@@ -2053,7 +2067,7 @@ export class Grapher
     // Todo: come up with a more general pattern?
     // The idea here is to reset the Grapher to a blank slate, so that if you updateFromObject and the object contains some blanks, those blanks
     // won't overwrite defaults (like type == LineChart). RAII would probably be better, but this works for now.
-    @action.bound reset() {
+    @action.bound reset(): void {
         const grapher = new Grapher()
         this.title = grapher.title
         this.subtitle = grapher.subtitle
@@ -2116,12 +2130,12 @@ export class Grapher
 
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
-    @computed.struct get changedParams() {
+    @computed.struct get changedParams(): Partial<GrapherQueryParams> {
         return differenceObj(this.allParams, this.authorsVersion.allParams)
     }
 
     // If you want to compare current state against the published grapher.
-    @computed private get authorsVersion() {
+    @computed private get authorsVersion(): Grapher {
         return new Grapher({
             ...this.legacyConfigAsAuthored,
             manager: undefined,
@@ -2130,37 +2144,39 @@ export class Grapher
         })
     }
 
-    @computed get queryStr() {
+    @computed get queryStr(): string {
         return queryParamsToStr(this.changedParams)
     }
 
-    @computed get baseUrl() {
+    @computed get baseUrl(): string | undefined {
         return this.isPublished
             ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
             : undefined
     }
 
-    @computed private get manager() {
-        return this.props.manager ?? {}
+    @computed private get manager(): GrapherManager | undefined {
+        return this.props.manager
     }
 
     // Get the full url representing the canonical location of this grapher state
-    @computed get canonicalUrl() {
+    @computed get canonicalUrl(): string | undefined {
         return (
-            this.manager.canonicalUrl ??
+            this.manager?.canonicalUrl ??
             (this.baseUrl ? this.baseUrl + this.queryStr : undefined)
         )
     }
 
-    @computed get embedUrl() {
-        return this.manager.embedDialogUrl ?? this.canonicalUrl
+    @computed get embedUrl(): string | undefined {
+        return this.manager?.embedDialogUrl ?? this.canonicalUrl
     }
 
-    @computed get embedDialogAdditionalElements() {
-        return this.manager.embedDialogAdditionalElements
+    @computed get embedDialogAdditionalElements():
+        | React.ReactElement
+        | undefined {
+        return this.manager?.embedDialogAdditionalElements
     }
 
-    @computed private get hasUserChangedTimeHandles() {
+    @computed private get hasUserChangedTimeHandles(): boolean {
         const authorsVersion = this.authorsVersion
         return (
             this.minTime !== authorsVersion.minTime ||
@@ -2168,11 +2184,11 @@ export class Grapher
         )
     }
 
-    @computed private get hasUserChangedMapTimeHandle() {
+    @computed private get hasUserChangedMapTimeHandle(): boolean {
         return this.map.time !== this.authorsVersion.map.time
     }
 
-    @computed get timeParam() {
+    @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
         const formatTime = (t: Time) =>
             timeBoundToTimeBoundString(
@@ -2199,26 +2215,26 @@ export class Grapher
 
     timelineController = new TimelineController(this)
 
-    onPlay() {
+    onPlay(): void {
         this.analytics.logGrapherTimelinePlay(this.slug)
     }
 
     // todo: restore this behavior??
-    onStartPlayOrDrag() {
+    onStartPlayOrDrag(): void {
         this.debounceMode = true
         this.useTimelineDomains = true
     }
 
-    onStopPlayOrDrag() {
+    onStopPlayOrDrag(): void {
         this.debounceMode = false
         this.useTimelineDomains = false
     }
 
-    @computed get disablePlay() {
+    @computed get disablePlay(): boolean {
         return this.isSlopeChart
     }
 
-    formatTime(value: Time) {
+    formatTime(value: Time): string {
         const timeColumn = this.table.timeColumn
         if (timeColumn.isMissing)
             return this.table.timeColumnFormatFunction(value)
@@ -2227,41 +2243,41 @@ export class Grapher
             : timeColumn.formatValue(value)
     }
 
-    @computed get showSmallCountriesFilterToggle() {
+    @computed get showSmallCountriesFilterToggle(): boolean {
         return this.isScatter && this.hasCountriesSmallerThanFilterOption
     }
 
-    @computed get showYScaleToggle() {
+    @computed get showYScaleToggle(): boolean | undefined {
         if (this.isRelativeMode) return false
         if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
         return this.yAxis.canChangeScaleType
     }
 
-    @computed get showXScaleToggle() {
+    @computed get showXScaleToggle(): boolean | undefined {
         if (this.isRelativeMode) return false
         return this.xAxis.canChangeScaleType
     }
 
-    @computed get showZoomToggle() {
+    @computed get showZoomToggle(): boolean {
         return this.isScatter && this.selection.hasSelection
     }
 
-    @computed get showAbsRelToggle() {
+    @computed get showAbsRelToggle(): boolean {
         if (!this.canToggleRelativeMode) return false
         if (this.isScatter)
             return this.xOverrideTime === undefined && this.hasTimeline
         return this.isStackedArea || this.isScatter || this.isLineChart
     }
 
-    @computed get showHighlightToggle() {
+    @computed get showHighlightToggle(): boolean {
         return this.isScatter && !!this.highlightToggle
     }
 
-    @computed get showChangeEntityButton() {
+    @computed get showChangeEntityButton(): boolean {
         return !this.hideEntityControls && this.canChangeEntity
     }
 
-    @computed get showAddEntityButton() {
+    @computed get showAddEntityButton(): boolean {
         return (
             !this.hideEntityControls &&
             this.canSelectMultipleEntities &&
@@ -2269,7 +2285,7 @@ export class Grapher
         )
     }
 
-    @computed get showSelectEntitiesButton() {
+    @computed get showSelectEntitiesButton(): boolean {
         return (
             !this.hideEntityControls &&
             this.addCountryMode !== EntitySelectionMode.Disabled &&
@@ -2279,7 +2295,7 @@ export class Grapher
         )
     }
 
-    @computed get canSelectMultipleEntities() {
+    @computed get canSelectMultipleEntities(): boolean {
         if (this.numSelectableEntityNames < 2) return false
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
@@ -2297,11 +2313,11 @@ export class Grapher
     // A user may have added time or other filters that would filter out all rows from certain entities, but
     // we may still want to show those entities as available in a picker. We also do not want to do things like
     // hide the Add Entity button as the user drags the timeline.
-    @computed private get numSelectableEntityNames() {
+    @computed private get numSelectableEntityNames(): number {
         return this.selection.numAvailableEntityNames
     }
 
-    @computed get canChangeEntity() {
+    @computed get canChangeEntity(): boolean {
         return (
             !this.isScatter &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
@@ -2309,7 +2325,7 @@ export class Grapher
         )
     }
 
-    @computed get startSelectingWhenLineClicked() {
+    @computed get startSelectingWhenLineClicked(): boolean {
         return this.showAddEntityButton
     }
 

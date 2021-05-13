@@ -83,7 +83,7 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 export class ColorScaleConfig
     extends ColorScaleConfigDefaults
     implements Persistable {
-    updateFromObject(obj: any) {
+    updateFromObject(obj: any): void {
         extend(this, obj)
     }
 
@@ -109,7 +109,7 @@ export class ColorScaleConfig
         const customNumericColors: (Color | undefined)[] = []
         scale.colorScaleNumericBins
             ?.split(INTER_BIN_DELIMITER)
-            .forEach((bin) => {
+            .forEach((bin): void => {
                 const [value, color, ...label] = bin.split(
                     INTRA_BIN_DELIMITER
                 ) as (string | undefined)[]
@@ -138,7 +138,7 @@ export class ColorScaleConfig
         } = {}
         scale.colorScaleCategoricalBins
             ?.split(INTER_BIN_DELIMITER)
-            .forEach((bin) => {
+            .forEach((bin): void => {
                 const [value, color, ...label] = bin.split(
                     INTRA_BIN_DELIMITER
                 ) as (string | undefined)[]
@@ -204,7 +204,7 @@ export class ColorScaleConfig
             colorScaleLegendDescription: legendDescription,
             colorScaleNumericMinValue: customNumericMinValue,
             colorScaleNumericBins: (customNumericValues ?? [])
-                .map((value: any, index: number) =>
+                .map((value: any, index: number): string =>
                     [
                         value,
                         customNumericColors[index] ?? "",
@@ -214,7 +214,7 @@ export class ColorScaleConfig
                 .join(INTER_BIN_DELIMITER),
             colorScaleNoDataLabel: customCategoryLabels[NO_DATA_LABEL],
             colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
-                .map((value) =>
+                .map((value): string =>
                     [
                         value,
                         customCategoryColors[value],
