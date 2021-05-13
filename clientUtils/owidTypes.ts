@@ -82,7 +82,7 @@ export interface FormattingOptions {
     subnavCurrentId?: string
     raw?: boolean
     hideDonateFooter?: boolean
-    [key: string]: string | boolean | undefined
+    footnotes?: boolean
 }
 
 export interface GitCommit {
