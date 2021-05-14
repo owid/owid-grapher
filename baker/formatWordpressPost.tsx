@@ -27,10 +27,11 @@ import { formatGlossaryTerms } from "../site/formatGlossary"
 import { getMutableGlossary, glossary } from "../site/glossary"
 import { DataToken } from "../site/DataToken"
 import {
+    dataValueRegex,
     DEEP_LINK_CLASS,
+    extractDataValuesConfiguration,
     formatLinks,
     getHtmlContentWithStyles,
-    parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
 import { TeX } from "mathjax-full/js/input/tex"
@@ -40,8 +41,8 @@ import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
 import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
-import { DataValue, DATA_VALUE } from "../site/DataValue"
 import { getDataValue } from "../db/model/Variable"
+import { DataValue } from "../site/DataValue"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -147,24 +148,44 @@ export const formatWordpressPost = async (
         }
     })
 
-    const dataValueRegex = new RegExp(`{{${DATA_VALUE}\\s*(.*?)}}`, "gm")
+    const dataValuesConfigurationsMap = await extractDataValuesConfiguration(
+        html
+    )
     const dataValues = new Map()
-    const dataValueMatches = html.matchAll(dataValueRegex)
-    for (const match of dataValueMatches) {
-        const dataValueQueryParams = match[1]
-        if (dataValues.has(dataValueQueryParams)) continue
-        const props = parseKeyValueArgs(dataValueQueryParams)
-        const value = await getDataValue(props)
+    for (const [
+        dataValueConfigurationString,
+        dataValueConfiguration,
+    ] of dataValuesConfigurationsMap) {
+        const { value, year, unit, entity } = await getDataValue(
+            dataValueConfiguration.queryArgs
+        )
         if (!value)
             throw new JsonError(
-                `${post.title}: missing data value for query ${dataValueQueryParams}`
+                `Missing data value for query ${dataValueConfigurationString}`
             )
-        dataValues.set(dataValueQueryParams, value)
+
+        dataValues.set(dataValueConfigurationString, {
+            value,
+            template: dataValueConfiguration.template,
+            year,
+            unit,
+            entity,
+        })
     }
 
-    html = html.replace(dataValueRegex, (_, dataValueQueryParams) => {
+    html = html.replace(dataValueRegex, (_, dataValueConfigurationString) => {
+        const { value, template, year, unit, entity } = dataValues.get(
+            dataValueConfigurationString
+        )
         return ReactDOMServer.renderToString(
-            <DataValue value={dataValues.get(dataValueQueryParams)} />
+            // <DataValue value={dataValues.get(dataValueConfiguration).value} />
+            <DataValue
+                value={value}
+                template={template}
+                year={year}
+                unit={unit}
+                entity={entity}
+            />
         )
     })
 

@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio"
 import {
+    DataValueConfiguration,
+    DataValueQueryArgs,
     FormattedPost,
     FormattingOptions,
     KeyValueProps,
@@ -7,6 +9,7 @@ import {
 import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
+import { DATA_VALUE } from "../site/DataValue"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
@@ -41,6 +44,50 @@ export const extractFormattingOptions = (html: string): FormattingOptions => {
         : {}
 }
 
+// Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
+// If only the key is specified, the value is assumed to be true (e.g. "raw" above)
+export const parseFormattingOptions = (text: string): FormattingOptions => {
+    return parseKeyValueArgs(text)
+}
+
+export const dataValueRegex = new RegExp(
+    `{{\\s*${DATA_VALUE}\\s*(.+?)\\s*}}`,
+    "g"
+)
+
+export const extractDataValuesConfiguration = async (
+    html: string
+): Promise<Map<string, DataValueConfiguration>> => {
+    const dataValueSeparator = /\s*\|\s*/
+    const dataValuesConfigurations = new Map()
+
+    const dataValueMatches = html.matchAll(dataValueRegex)
+    for (const match of dataValueMatches) {
+        const dataValueConfigurationString = match[1]
+        const [queryArgsString, template] = dataValueConfigurationString.split(
+            dataValueSeparator
+        )
+        const queryArgs = parseDataValueArgs(queryArgsString)
+
+        dataValuesConfigurations.set(dataValueConfigurationString, {
+            queryArgs,
+            template,
+        })
+    }
+    return dataValuesConfigurations
+}
+
+export const parseDataValueArgs = (
+    rawArgsString: string
+): DataValueQueryArgs => {
+    return Object.fromEntries(
+        Object.entries(parseKeyValueArgs(rawArgsString)).map(([k, v]) => [
+            k,
+            Number(v),
+        ])
+    )
+}
+
 export const parseKeyValueArgs = (text: string): KeyValueProps => {
     const options: { [key: string]: string | boolean } = {}
     text.split(/\s+/)
@@ -59,12 +106,6 @@ export const parseKeyValueArgs = (text: string): KeyValueProps => {
             options[name] = parsedValue
         })
     return options
-}
-
-// Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
-// If only the key is specified, the value is assumed to be true (e.g. "raw" above)
-export const parseFormattingOptions = (text: string): FormattingOptions => {
-    return parseKeyValueArgs(text)
 }
 
 export const formatCountryProfile = (

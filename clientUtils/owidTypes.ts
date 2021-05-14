@@ -89,6 +89,17 @@ export interface KeyValueProps {
     [key: string]: string | boolean | undefined
 }
 
+export interface DataValueQueryArgs {
+    variableId?: number
+    entityId?: number
+    year?: number
+}
+
+export interface DataValueConfiguration {
+    queryArgs: DataValueQueryArgs
+    template: string
+}
+
 export interface GitCommit {
     author_email: string
     author_name: string
