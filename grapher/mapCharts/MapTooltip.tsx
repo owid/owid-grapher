@@ -12,7 +12,9 @@ import { SparkBarTimeSeriesValue } from "../sparkBars/SparkBarTimeSeriesValue"
 import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
 import { ColorScale } from "../color/ColorScale"
 import { Time } from "../../coreTable/CoreTableConstants"
-import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { ChartTypeName } from "../core/GrapherConstants"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 interface MapTooltipProps {
     tooltipDatum?: ChoroplethSeries
@@ -25,9 +27,9 @@ interface MapTooltipProps {
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
-    private sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.time
+    private sparkBarsDatumXAccessor = (d: SparkBarsDatum): number => d.time
 
-    @computed private get sparkBarsToDisplay() {
+    @computed private get sparkBarsToDisplay(): number {
         return isMobile() ? 13 : 20
     }
 
@@ -35,26 +37,26 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return {
             data: this.sparkBarsData,
             x: this.sparkBarsDatumXAccessor,
-            y: (d: SparkBarsDatum) => d.value,
+            y: (d: SparkBarsDatum): number => d.value,
             xDomain: this.sparkBarsDomain,
         }
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.props.manager.table
     }
 
-    @computed private get mapColumnSlug() {
+    @computed private get mapColumnSlug(): string | undefined {
         return this.props.manager.mapColumnSlug
     }
 
     // Uses the rootTable because if a target year is set, we filter the years at the grapher level.
     // Todo: might want to do all filtering a step below the Grapher level?
-    @computed private get sparkBarColumn() {
+    @computed private get sparkBarColumn(): CoreColumn {
         return this.inputTable.rootTable.get(this.mapColumnSlug)
     }
 
-    @computed private get sparkBarsData() {
+    @computed private get sparkBarsData(): SparkBarsDatum[] {
         const tooltipDatum = this.props.tooltipDatum
         if (!tooltipDatum) return []
 
@@ -83,25 +85,25 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return [start, end]
     }
 
-    @computed private get currentSparkBar() {
+    @computed private get currentSparkBar(): number | undefined {
         const lastVal = last(this.sparkBarsData)
         return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
     }
 
     colorScale = this.props.colorScale ?? new ColorScale()
 
-    @computed private get renderSparkBars() {
+    @computed private get renderSparkBars(): boolean | undefined {
         return this.props.manager.mapIsClickable
     }
 
-    @computed private get darkestColorInColorScheme() {
+    @computed private get darkestColorInColorScheme(): string | undefined {
         const { colorScale } = this
         return colorScale.isColorSchemeInverted
             ? first(colorScale.baseColors)
             : last(colorScale.baseColors)
     }
 
-    @computed private get barColor() {
+    @computed private get barColor(): string | undefined {
         const { colorScale } = this
         return colorScale.singleColorScale &&
             !colorScale.customNumericColorsActive
@@ -109,7 +111,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             : undefined
     }
 
-    @computed private get tooltipTarget() {
+    @computed private get tooltipTarget(): {
+        x: number
+        y: number
+        featureId: string
+    } {
         return (
             this.props.tooltipTarget ?? {
                 x: 0,
@@ -119,7 +125,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const {
             tooltipDatum,
             isEntityClickable,

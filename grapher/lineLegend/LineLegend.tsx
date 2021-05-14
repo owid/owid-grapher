@@ -49,7 +49,7 @@ interface PlacedSeries extends SizedSeries {
     totalLevels: number
 }
 
-function groupBounds(group: PlacedSeries[]) {
+function groupBounds(group: PlacedSeries[]): Bounds {
     const first = group[0]
     const last = group[group.length - 1]
     const height = last.bounds.bottom - first.bounds.top
@@ -57,7 +57,10 @@ function groupBounds(group: PlacedSeries[]) {
     return new Bounds(first.bounds.x, first.bounds.y, width, height)
 }
 
-function stackGroupVertically(group: PlacedSeries[], y: number) {
+function stackGroupVertically(
+    group: PlacedSeries[],
+    y: number
+): PlacedSeries[] {
     let currentY = y
     group.forEach((mark) => {
         mark.bounds = mark.bounds.extend({ y: currentY })
@@ -77,7 +80,7 @@ class Label extends React.Component<{
     onClick: () => void
     onMouseLeave?: () => void
 }> {
-    render() {
+    render(): JSX.Element {
         const {
             series,
             manager,
@@ -160,12 +163,12 @@ export interface LineLegendManager {
 export class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
-    @computed private get fontSize() {
+    @computed private get fontSize(): number {
         return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
     leftPadding = 35
 
-    @computed private get maxWidth() {
+    @computed private get maxWidth(): number {
         return this.manager.maxLegendWidth ?? 300
     }
 
@@ -204,7 +207,7 @@ export class LineLegend extends React.Component<{
         })
     }
 
-    @computed get width() {
+    @computed get width(): number {
         if (this.sizedLabels.length === 0) return 0
         return max(this.sizedLabels.map((d) => d.width)) ?? 0
     }
@@ -219,13 +222,13 @@ export class LineLegend extends React.Component<{
         return this.manager.onLegendClick ?? noop
     }
 
-    @computed get isFocusMode() {
+    @computed get isFocusMode(): boolean {
         return this.sizedLabels.some((label) =>
             this.manager.focusedSeriesNames.includes(label.seriesName)
         )
     }
 
-    @computed get legendX() {
+    @computed get legendX(): number {
         return this.manager.legendX ?? 0
     }
 
@@ -270,7 +273,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed get standardPlacement() {
+    @computed get standardPlacement(): PlacedSeries[] {
         const { verticalAxis } = this.manager
 
         const groups: PlacedSeries[][] = cloneDeep(
@@ -341,7 +344,7 @@ export class LineLegend extends React.Component<{
     }
 
     // Overlapping placement, for when we really can't find a solution without overlaps.
-    @computed get overlappingPlacement() {
+    @computed get overlappingPlacement(): PlacedSeries[] {
         const series = cloneDeep(this.initialSeries)
         for (let i = 0; i < series.length; i++) {
             const m1 = series[i]
@@ -356,7 +359,7 @@ export class LineLegend extends React.Component<{
         return series
     }
 
-    @computed get placedSeries() {
+    @computed get placedSeries(): PlacedSeries[] {
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
@@ -378,7 +381,7 @@ export class LineLegend extends React.Component<{
         return this.standardPlacement
     }
 
-    @computed private get backgroundSeries() {
+    @computed private get backgroundSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>
@@ -388,7 +391,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed private get focusedSeries() {
+    @computed private get focusedSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>
@@ -399,25 +402,25 @@ export class LineLegend extends React.Component<{
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
-    @computed private get needsLines() {
+    @computed private get needsLines(): boolean {
         return this.placedSeries.some((series) => series.totalLevels > 1)
     }
 
-    private renderBackground() {
+    private renderBackground(): JSX.Element[] {
         return this.backgroundSeries.map((series, index) => (
             <Label
                 key={`background-${index}-` + series.seriesName}
                 series={series}
                 manager={this}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(series.seriesName)}
-                onClick={() => this.onClick(series.seriesName)}
+                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
+                onClick={(): void => this.onClick(series.seriesName)}
             />
         ))
     }
 
     // All labels are focused by default, moved to background when mouseover of other label
-    private renderFocus() {
+    private renderFocus(): JSX.Element[] {
         return this.focusedSeries.map((series, index) => (
             <Label
                 key={`focus-${index}-` + series.seriesName}
@@ -425,18 +428,18 @@ export class LineLegend extends React.Component<{
                 manager={this}
                 isFocus={true}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(series.seriesName)}
-                onClick={() => this.onClick(series.seriesName)}
-                onMouseLeave={() => this.onMouseLeave(series.seriesName)}
+                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
+                onClick={(): void => this.onClick(series.seriesName)}
+                onMouseLeave={(): void => this.onMouseLeave(series.seriesName)}
             />
         ))
     }
 
-    @computed get manager() {
+    @computed get manager(): LineLegendManager {
         return this.props.manager
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <g
                 className="LineLabels"

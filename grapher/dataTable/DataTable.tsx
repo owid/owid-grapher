@@ -108,19 +108,19 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed get table() {
+    @computed get table(): OwidTable {
         return this.inputTable
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get manager() {
+    @computed get manager(): DataTableManager {
         return this.props.manager || { table: BlankOwidTable() }
     }
 
-    @computed private get entityType() {
+    @computed private get entityType(): string {
         return this.table.entityType
     }
 
@@ -157,7 +157,7 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed private get hasSubheaders() {
+    @computed private get hasSubheaders(): boolean {
         return this.displayDimensions.some(
             (header): boolean => header.columns.length > 1
         )
@@ -180,7 +180,7 @@ export class DataTable extends React.Component<{
         this.storedState.sort.order = order
     }
 
-    private get entityHeader() {
+    private get entityHeader(): JSX.Element {
         const { sort } = this.tableState
         return (
             <ColumnHeader
@@ -197,7 +197,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    private get dimensionHeaders() {
+    private get dimensionHeaders(): JSX.Element[] {
         const { sort } = this.tableState
         return this.displayDimensions.map(
             (dim, dimIndex): JSX.Element => {
@@ -495,7 +495,7 @@ export class DataTable extends React.Component<{
         column: CoreColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
-    ): string | number | undefined {
+    ): string | undefined {
         return value === undefined
             ? value
             : column.formatValueShort(value, {
@@ -696,7 +696,7 @@ export class DataTable extends React.Component<{
         }))
     }
 
-    @computed private get sortedRows() {
+    @computed private get sortedRows(): DataTableRow[] {
         const { order } = this.tableState.sort
         return orderBy(this.displayRows, this.sortValueMapper, [order])
     }

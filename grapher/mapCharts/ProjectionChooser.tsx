@@ -19,12 +19,12 @@ export class ProjectionChooser extends React.Component<{
     value: string
     onChange: (value: MapProjectionName) => void
 }> {
-    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
+    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>): void {
         const selectedValue = first(asArray(selected))?.value
         if (selectedValue) this.props.onChange(selectedValue)
     }
 
-    @computed get options() {
+    @computed get options(): { value: MapProjectionName; label: string }[] {
         return Object.values(MapProjectionName).map((projectName) => {
             return {
                 value: projectName,
@@ -33,7 +33,7 @@ export class ProjectionChooser extends React.Component<{
         })
     }
 
-    render() {
+    render(): JSX.Element {
         const { value } = this.props
 
         const style: React.CSSProperties = {

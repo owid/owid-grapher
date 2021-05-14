@@ -5,7 +5,7 @@ export const getFontSize = (
     count: number,
     baseFontSize = BASE_FONT_SIZE,
     min = 8
-) => {
+): number => {
     if (count === 2) return baseFontSize
     if (count < 5) return baseFontSize - 2
     if (count < 10) return baseFontSize - 4
@@ -14,7 +14,9 @@ export const getFontSize = (
     return min
 }
 
-export const getChartPadding = (count: number) => {
+export const getChartPadding = (
+    count: number
+): { rowPadding: number; columnPadding: number; outerPadding: number } => {
     if (count > 9) {
         return {
             rowPadding: 20,

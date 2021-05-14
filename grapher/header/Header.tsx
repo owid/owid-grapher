@@ -12,27 +12,27 @@ export class Header extends React.Component<{
     manager: HeaderManager
     maxWidth?: number
 }> {
-    @computed private get manager() {
+    @computed private get manager(): HeaderManager {
         return this.props.manager
     }
 
-    @computed private get fontSize() {
+    @computed private get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get maxWidth() {
+    @computed private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get titleText() {
+    @computed private get titleText(): string {
         return this.manager.currentTitle ?? ""
     }
 
-    @computed private get subtitleText() {
+    @computed private get subtitleText(): string {
         return this.manager.subtitle ?? ""
     }
 
-    @computed get logo() {
+    @computed get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
 
@@ -43,14 +43,14 @@ export class Header extends React.Component<{
         })
     }
 
-    @computed private get logoWidth() {
+    @computed private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
-    @computed private get logoHeight() {
+    @computed private get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
-    @computed get title() {
+    @computed get title(): TextWrap {
         const { logoWidth } = this
         const maxWidth = this.maxWidth - logoWidth - 20
 
@@ -78,14 +78,14 @@ export class Header extends React.Component<{
 
     titleMarginBottom = 4
 
-    @computed get subtitleWidth() {
+    @computed get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight
             ? this.maxWidth
             : this.maxWidth - this.logoWidth - 10
     }
 
-    @computed get subtitle() {
+    @computed get subtitle(): TextWrap {
         return new TextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: 0.8 * this.fontSize,
@@ -95,7 +95,7 @@ export class Header extends React.Component<{
         })
     }
 
-    @computed get height() {
+    @computed get height(): number {
         if (this.manager.isMediaCard) return 0
 
         return Math.max(
@@ -104,7 +104,7 @@ export class Header extends React.Component<{
         )
     }
 
-    renderStatic(x: number, y: number) {
+    renderStatic(x: number, y: number): JSX.Element | null {
         const { title, logo, subtitle, manager, maxWidth } = this
 
         if (manager.isMediaCard) return null
@@ -132,7 +132,7 @@ export class Header extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { manager } = this
 
         const titleStyle = {
