@@ -85,6 +85,10 @@ export interface FormattingOptions {
     footnotes?: boolean
 }
 
+export interface KeyValueProps {
+    [key: string]: string | boolean | undefined
+}
+
 export interface GitCommit {
     author_email: string
     author_name: string

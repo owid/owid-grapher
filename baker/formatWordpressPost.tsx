@@ -15,6 +15,7 @@ import {
     FormattedPost,
     FormattingOptions,
     FullPost,
+    JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
@@ -29,6 +30,7 @@ import {
     DEEP_LINK_CLASS,
     formatLinks,
     getHtmlContentWithStyles,
+    parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
 import { TeX } from "mathjax-full/js/input/tex"
@@ -38,6 +40,8 @@ import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
 import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+import { DataValue, DATA_VALUE } from "../site/DataValue"
+import { getDataValue } from "../db/model/Variable"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -143,7 +147,30 @@ export const formatWordpressPost = async (
         }
     })
 
-    html = html.replace(/{{([A-Z_]+)}}/gm, (_, token) => {
+    const dataValueRegex = new RegExp(`{{${DATA_VALUE}\\s*(.*?)}}`, "gm")
+    const dataValues = new Map()
+    const dataValueMatches = html.matchAll(dataValueRegex)
+    for (const match of dataValueMatches) {
+        const dataValueQueryParams = match[1]
+        if (dataValues.has(dataValueQueryParams)) continue
+        const props = parseKeyValueArgs(dataValueQueryParams)
+        const value = await getDataValue(props)
+        if (!value)
+            throw new JsonError(
+                `${post.title}: missing data value for query ${dataValueQueryParams}`
+            )
+        dataValues.set(dataValueQueryParams, value)
+    }
+
+    html = html.replace(dataValueRegex, (_, dataValueQueryParams) => {
+        return ReactDOMServer.renderToString(
+            <DataValue value={dataValues.get(dataValueQueryParams)} />
+        )
+    })
+
+    const dataTokenRegex = /{{([A-Z_]+)}}/gm
+
+    html = html.replace(dataTokenRegex, (_, token) => {
         return ReactDOMServer.renderToString(<DataToken token={token} />)
     })
 

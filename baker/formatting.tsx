@@ -1,5 +1,9 @@
 import * as cheerio from "cheerio"
-import { FormattedPost, FormattingOptions } from "../clientUtils/owidTypes"
+import {
+    FormattedPost,
+    FormattingOptions,
+    KeyValueProps,
+} from "../clientUtils/owidTypes"
 import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
@@ -37,9 +41,7 @@ export const extractFormattingOptions = (html: string): FormattingOptions => {
         : {}
 }
 
-const parseOptions = (
-    text: string
-): { [key: string]: string | boolean | undefined } => {
+export const parseKeyValueArgs = (text: string): KeyValueProps => {
     const options: { [key: string]: string | boolean } = {}
     text.split(/\s+/)
         // filter out empty strings
@@ -62,7 +64,7 @@ const parseOptions = (
 // Converts "toc:false raw somekey:somevalue" to { toc: false, raw: true, somekey: "somevalue" }
 // If only the key is specified, the value is assumed to be true (e.g. "raw" above)
 export const parseFormattingOptions = (text: string): FormattingOptions => {
-    return parseOptions(text)
+    return parseKeyValueArgs(text)
 }
 
 export const formatCountryProfile = (
