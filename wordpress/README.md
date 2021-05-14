@@ -1,5 +1,7 @@
 # Our World in Data - Headless Wordpress
 
+_Note: this is meant for internal use only at this stage. The installation procedure described below will fail at the `lando refresh` step (which tries to generate and retrieve a database dump from our servers)._
+
 ## Stack
 
 -   [Bedrock](https://roots.io/bedrock/): Wordpress stack
