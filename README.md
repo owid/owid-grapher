@@ -12,7 +12,25 @@ An example of what this can make (click for interactive):
 
 The owid-grapher visualization frontend code can run isomorphically under node to render data directly to an SVG string, which is how the above image works!
 
+### Overview of this repository
+
+[The Grapher](grapher/) is the central visualization component that displays data interactively (almost every interactive chart on the https://ourworldindata.org uses this). It can fetch data either encoded as a json file or is sometimes also used with json embedded in the HTML document for faster loading. Every grapher needs one json config file that configures it.
+
+The [baker](baker/) is the tool that is used to build the static Our World In Data website by fusing the content of the wordpress that is used for authoring the text and site structure with the graphers. The data for this wordpress is store in a mysql database.
+
+The [Grapher Admin](adminSiteServer/) is both a server side and client side typescript project that allows interactive configuring of graphers and manages the mysql database that stores all the data for all grapher instances. The data model is roughly: One variable is a series of observations of 4-tuples of (`variable id`, `entity` e.g. country, `time point` like year and `data value`). Several variables are grouped together into one data set. Datasets can be grouped into namespaces which is usually done for groups of datasets that are bulk imported from a specific upstream provider like the world bank.
+
+The [wordpress](wordpress/) installation is a relatively stock setup that is used by authors to write their content with a custom OWID plugin to customize some minor aspects.
+
+[Explorers](explorer/) are a relatively new addition that visually shows some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdmin/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
+
 ## Initial development setup
+
+If you want to work on the Grapher then you do not need to set up everything described in the previous section (e.g. you don't need to run Wordpress unless you want to test the integration and baking locally). In theory you could just build the grapher and embed it in a static page and test it locally like this but to have some flexibility it is usually nicer to get the Grapher Admin interface running. For this you need a Mysql database with the right schema (and for convenience one of the public data dumps of a subset of our world in data) and the admin server running.
+
+To get this setup running you can follow the instructions below to install things locally.
+
+If you are a member of the Our World In Data team and want to get a full setup including wordpress and without much manual configuration you can use the [Lando](https://lando.dev/) project setup in the [wordpress folder](wordpress/) to automate much of the setup (see inside that folder for additional instructions).
 
 ### macOS
 
