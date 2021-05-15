@@ -25,6 +25,7 @@ import {
     migrateSelectedEntityNamesParam,
 } from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
+import { action } from "mobx"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -101,6 +102,7 @@ class MultiEmbedder {
         })
     }
 
+    @action.bound
     async renderInteractiveFigure(figure: Element) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR

@@ -217,3 +217,5 @@ export interface Deploy {
     status: DeployStatus
     changes: DeployChange[]
 }
+
+export type RenderInteractiveFigure = (figure: HTMLElement) => Promise<void>

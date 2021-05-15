@@ -33,6 +33,7 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
+import { runResetChart } from "../grapher/ResetChart"
 
 declare var window: any
 window.Grapher = Grapher
@@ -65,6 +66,7 @@ window.runSiteFooterScripts = () => {
     } else {
         renderProminentLink()
     }
+    runResetChart(MultiEmbedderSingleton.renderInteractiveFigure)
 }
 
 const analytics = new SiteAnalytics(ENV)

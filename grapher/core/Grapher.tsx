@@ -1459,7 +1459,10 @@ export class Grapher
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            ReactDOM.render(<Grapher {...props} />, containerNode)
+            ReactDOM.render(
+                <Grapher key={Math.random()} {...props} />,
+                containerNode
+            )
         }
 
         setBoundsFromContainerAndRender()
