@@ -32,6 +32,7 @@ stop:
 destroy:
 	@echo '==> Tearing down dev environment'
 	cd wordpress && lando destroy
+	rm -f .db-snapshot-imported
 
 check-node-version:
 	@echo '==> Checking node version'
