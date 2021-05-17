@@ -8,7 +8,6 @@ import {
     sortBy,
     sumBy,
     flatten,
-    sign,
 } from "../../clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -325,7 +324,9 @@ export class LineLegend extends React.Component<{
             let currentLevel = 0
             let prevSign = 0
             for (const series of group) {
-                const currentSign = sign(series.bounds.y - series.origBounds.y)
+                const currentSign = Math.sign(
+                    series.bounds.y - series.origBounds.y
+                )
                 if (prevSign === currentSign) {
                     currentLevel -= currentSign
                 }

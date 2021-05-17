@@ -480,9 +480,6 @@ export const urlToSlug = (url: string): string =>
             .filter((x) => x)
     ) as string
 
-export const sign = (num: number): 0 | 1 | -1 =>
-    num > 0 ? 1 : num < 0 ? -1 : 0
-
 // Removes all undefineds from an object.
 export const trimObject = <Obj>(
     obj: Obj,
@@ -556,7 +553,7 @@ export const sampleFrom = <T>(
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-const shuffleArray = (array: any[], seed = Date.now()): any[] => {
+const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     const rand = getRandomNumberGenerator(0, 100, seed)
     const clonedArr = array.slice()
     for (let index = clonedArr.length - 1; index > 0; index--) {
