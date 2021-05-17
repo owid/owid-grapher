@@ -98,7 +98,6 @@
         "@types/url-parse": "^1.4.3",
         "@types/webpack": "^4.41.25",
         "algoliasearch": "^4.2.0",
-        "asciify-string": "^0.1.1",
         "autoprefixer": "^10.0.0",
         "bcrypt": "^5.0.0",
         "body-parser": "^1.19.0",
