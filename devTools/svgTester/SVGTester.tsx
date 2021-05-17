@@ -3,6 +3,7 @@ import { csvParse } from "d3-dsv"
 import md5 from "md5"
 import { BAKED_GRAPHER_URL } from "../../settings/clientSettings"
 import React from "react"
+import { closeTypeOrmAndKnexConnections } from "../../db/db"
 import {
     bakeGrapherToSvg,
     getPublishedGraphersBySlug,
@@ -79,7 +80,7 @@ export async function bakeAndSaveResultsFile(
         fs.appendFileSync(resultsPath, line + "\n")
         bakeOrder++
     }
-    // Todo: DB end
+    await closeTypeOrmAndKnexConnections()
 }
 
 const compareSets = (liveSvgs: BakedSvgInfo[], localSvgs: BakedSvgInfo[]) => {
