@@ -1911,10 +1911,6 @@ export class Grapher
 
     @action.bound
     renderAnnotation(annotation: Annotation | undefined) {
-        // console.log("in ResetWhenClickButton reaction")
-        //         // if (!this.manager.reset) return
-        console.log("reaction run", annotation)
-
         this.setAuthoredVersion(this.props)
         this.reset()
         this.updateFromObject(this.props)
