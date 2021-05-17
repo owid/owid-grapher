@@ -37,7 +37,7 @@ export const getSeriesKey = (
 export const autoDetectSeriesStrategy = (
     manager: ChartManager,
     hasNormalAndProjectedSeries?: boolean
-): SeriesStrategy.column | SeriesStrategy | SeriesStrategy.entity => {
+): SeriesStrategy => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 
     const columnThreshold = hasNormalAndProjectedSeries ? 2 : 1

@@ -37,6 +37,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ColorScheme } from "../color/ColorScheme"
+import { Time } from "../../clientUtils/owidTypes"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -87,7 +88,7 @@ export class DiscreteBarChart
         return this.props.manager
     }
 
-    @computed private get targetTime(): number | undefined {
+    @computed private get targetTime(): Time | undefined {
         return this.manager.endTime
     }
 

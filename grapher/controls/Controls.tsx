@@ -242,11 +242,7 @@ export class FooterControls extends React.Component<{
                                 }
                             >
                                 <a
-                                    onClick={():
-                                        | GrapherTabOption.chart
-                                        | GrapherTabOption.map
-                                        | GrapherTabOption.sources
-                                        | GrapherTabOption.table =>
+                                    onClick={(): GrapherTabOption =>
                                         (manager.currentTab = tabName)
                                     }
                                     data-track-note={"chart-click-" + tabName}
