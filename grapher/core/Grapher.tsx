@@ -293,7 +293,7 @@ export class Grapher
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
-    @observable annotation?: Annotation = undefined
+    @observable.ref annotation?: Annotation = undefined
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
@@ -356,7 +356,7 @@ export class Grapher
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
 
-        if (getGrapherInstance) getGrapherInstance(this)
+        if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
 
         this.checkVisibility = throttle(this.checkVisibility, 400)
     }
@@ -1454,17 +1454,25 @@ export class Grapher
 
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
-        containerNode: Element
+        containerNode: Element,
+        registerGrapherInstance?: (
+            figure: Element,
+            grapherInstance: Grapher
+        ) => void
     ) {
         const setBoundsFromContainerAndRender = () => {
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
+            const grapherInstance = React.createRef<Grapher>()
             ReactDOM.render(
-                <Grapher key={Math.random()} {...props} />,
+                <Grapher ref={grapherInstance} {...props} />,
                 containerNode
             )
+            if (!grapherInstance.current || !registerGrapherInstance) return
+
+            registerGrapherInstance(containerNode, grapherInstance.current)
         }
 
         setBoundsFromContainerAndRender()
@@ -1896,6 +1904,26 @@ export class Grapher
         )
     }
 
+    @action.bound
+    resetAnnotation() {
+        this.renderAnnotation(undefined)
+    }
+
+    @action.bound
+    renderAnnotation(annotation: Annotation | undefined) {
+        // console.log("in ResetWhenClickButton reaction")
+        //         // if (!this.manager.reset) return
+        console.log("reaction run", annotation)
+
+        this.setAuthoredVersion(this.props)
+        this.reset()
+        this.updateFromObject(this.props)
+        this.populateFromQueryParams(
+            legacyToCurrentGrapherQueryParams(this.props.queryStr ?? "")
+        )
+        this.annotation = annotation
+    }
+
     render() {
         const { isExportingtoSvgOrPng, isPortrait } = this
         // TODO how to handle errors in exports?
@@ -1945,6 +1973,7 @@ export class Grapher
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
+                {/* {this.annotation && <span></span>} */}
             </>
         )
     }

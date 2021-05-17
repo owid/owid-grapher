@@ -66,7 +66,7 @@ window.runSiteFooterScripts = () => {
     } else {
         renderProminentLink()
     }
-    runResetChart(MultiEmbedderSingleton.renderInteractiveFigure)
+    runResetChart(MultiEmbedderSingleton.getGrapherRegisteredWithFigure)
 }
 
 const analytics = new SiteAnalytics(ENV)

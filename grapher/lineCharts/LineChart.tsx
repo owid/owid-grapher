@@ -271,9 +271,16 @@ export class LineChart
         return table
     }
 
-    @observable hoverX?: number = this.props.manager.annotation?.year
+    // todo: rename mouseHoverX -> hoverX and hoverX -> activeX
+    @observable mouseHoverX?: number = undefined
     @action.bound onHover(hoverX: number | undefined) {
-        this.hoverX = hoverX
+        if (this.props.manager.resetAnnotation)
+            this.props.manager.resetAnnotation()
+        this.mouseHoverX = hoverX
+    }
+
+    @computed get hoverX() {
+        return this.props.manager.annotation?.year ?? this.mouseHoverX
     }
 
     @computed private get manager() {

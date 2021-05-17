@@ -1,12 +1,12 @@
 import React, { useRef } from "react"
 import ReactDOM from "react-dom"
-import { RenderInteractiveFigure } from "../clientUtils/owidTypes"
+import { Grapher } from "./core/Grapher"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "./core/GrapherConstants"
 
 export const ResetChart = ({
-    renderInteractiveFigure,
+    getGrapherRegisteredWithFigure,
 }: {
-    renderInteractiveFigure: RenderInteractiveFigure
+    getGrapherRegisteredWithFigure: (figure: HTMLElement) => Grapher | undefined
 }) => {
     const onClick = () => {
         const grapherFigureInNextColumn = buttonRef.current
@@ -17,7 +17,11 @@ export const ResetChart = ({
 
         if (!grapherFigureInNextColumn) return
 
-        renderInteractiveFigure(grapherFigureInNextColumn, {
+        const grapher = getGrapherRegisteredWithFigure(
+            grapherFigureInNextColumn
+        )
+
+        grapher?.renderAnnotation({
             entityId: 137,
             value: 35.4,
             year: 2015,
@@ -33,13 +37,15 @@ export const ResetChart = ({
 }
 
 export function runResetChart(
-    renderInteractiveFigure: RenderInteractiveFigure
+    getGrapherRegisteredWithFigure: (figure: HTMLElement) => Grapher | undefined
 ) {
     const resetButtons = document.querySelectorAll("button.reset-chart")
 
     resetButtons.forEach((resetButton) => {
         ReactDOM.hydrate(
-            <ResetChart renderInteractiveFigure={renderInteractiveFigure} />,
+            <ResetChart
+                getGrapherRegisteredWithFigure={getGrapherRegisteredWithFigure}
+            />,
             resetButton.parentElement
         )
     })

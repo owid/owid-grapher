@@ -54,6 +54,7 @@ class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
     selection: SelectionArray = new SelectionArray()
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
+    grapherInstances: Map<Element, Grapher> = new Map()
 
     constructor() {
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
@@ -166,8 +167,23 @@ class MultiEmbedder {
             }
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
-            Grapher.renderGrapherIntoContainer(config, figure)
+
+            Grapher.renderGrapherIntoContainer(
+                config,
+                figure,
+                this.registerGrapherInstance
+            )
         }
+    }
+
+    @action.bound
+    registerGrapherInstance(figure: Element, grapherInstance: Grapher) {
+        this.grapherInstances.set(figure, grapherInstance)
+    }
+
+    @action.bound
+    getGrapherRegisteredWithFigure(figure: Element): Grapher | undefined {
+        return this.grapherInstances.get(figure)
     }
 
     setUpGlobalEntitySelectorForEmbeds() {

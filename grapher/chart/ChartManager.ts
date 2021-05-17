@@ -71,4 +71,5 @@ export interface ChartManager {
     seriesStrategy?: SeriesStrategy
 
     annotation?: Annotation
+    resetAnnotation?: () => void
 }
