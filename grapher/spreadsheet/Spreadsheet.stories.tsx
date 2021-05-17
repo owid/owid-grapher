@@ -63,18 +63,8 @@ class Editor extends React.Component {
         const ChartClass =
             ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
 
-        // Due to a bug with postcss (or maybe autoprefixer, or storybook, or webpack) we can't load the simple handsontable.css from the node_modules folder.
-        // So for this story to work, just load it from the web.
-        const css = (
-            <link
-                rel="stylesheet"
-                href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/8.1.0/handsontable.css"
-            />
-        )
-
         return (
             <div>
-                {css}
                 <Spreadsheet manager={this} />
                 <svg width={400} height={300}>
                     <ChartClass
