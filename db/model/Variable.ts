@@ -3,6 +3,7 @@ import { Writable } from "stream"
 import * as db from "../db"
 import { LegacyVariableDisplayConfigInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 import { arrToCsvRow } from "../../clientUtils/Util"
+import { DataValueQueryArgs } from "../../clientUtils/owidTypes"
 
 export namespace Variable {
     export interface Row {
@@ -180,4 +181,24 @@ export async function writeVariableCSV(
         }
         row[variableColumnIndex[datum.variableId]] = datum.value
     }
+}
+
+export const getDataValue = async ({
+    variableId,
+    entityId,
+    year,
+}: DataValueQueryArgs) => {
+    if (!variableId || !entityId || !year) return
+
+    const row = await db.queryMysql(
+        `
+        SELECT value, year, variables.unit as unit, entities.name as entity FROM data_values
+        JOIN entities on entities.id = data_values.entityId
+        JOIN variables on variables.id = data_values.variableId
+        WHERE data_values.year = ?
+        AND entities.id = ?
+        AND variables.id= ?`,
+        [year, entityId, variableId]
+    )
+    return row.length ? row[0] : {}
 }
