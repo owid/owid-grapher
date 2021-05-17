@@ -17,7 +17,11 @@ export const ResetChart = ({
 
         if (!grapherFigureInNextColumn) return
 
-        renderInteractiveFigure(grapherFigureInNextColumn)
+        renderInteractiveFigure(grapherFigureInNextColumn, {
+            entityId: 137,
+            value: 35.4,
+            year: 2015,
+        })
     }
     const buttonRef = useRef<HTMLButtonElement>(null)
 

@@ -161,6 +161,7 @@ import {
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
+import { Annotation } from "../../clientUtils/owidTypes"
 
 declare const window: any
 
@@ -292,6 +293,7 @@ export class Grapher
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    @observable annotation?: Annotation = undefined
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.

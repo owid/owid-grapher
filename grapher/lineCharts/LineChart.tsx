@@ -271,7 +271,7 @@ export class LineChart
         return table
     }
 
-    @observable hoverX?: number
+    @observable hoverX?: number = this.props.manager.annotation?.year
     @action.bound onHover(hoverX: number | undefined) {
         this.hoverX = hoverX
     }

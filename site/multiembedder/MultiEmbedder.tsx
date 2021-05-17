@@ -26,6 +26,7 @@ import {
 } from "../../grapher/core/EntityUrlBuilder"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 import { action } from "mobx"
+import { Annotation } from "../../clientUtils/owidTypes"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -103,7 +104,7 @@ class MultiEmbedder {
     }
 
     @action.bound
-    async renderInteractiveFigure(figure: Element) {
+    async renderInteractiveFigure(figure: Element, annotation?: Annotation) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR
         )
@@ -161,6 +162,7 @@ class MultiEmbedder {
                         this.selection.selectedEntityNames
                     ),
                 },
+                annotation,
             }
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
