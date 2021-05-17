@@ -668,32 +668,22 @@ export class DataTable extends React.Component<{
 
     @computed get displayDimensions(): DataTableDimension[] {
         // Todo: for sorting etc, use CoreTable?
-        return this.columnsWithValues.map((d): {
-            sortable: boolean
-            columns: {
-                sortable: true
-                key: ColumnKey
-                targetTime?: number
-                targetTimeMode?: TargetTimeMode
-            }[]
-            coreTableColumn: CoreColumn
-        } => ({
-            // A top-level header is only sortable if it has a single nested column, because
-            // in that case the nested column is not rendered.
-            sortable: d.columns.length === 1,
-            columns: d.columns.map((column): {
-                sortable: true
-                key: ColumnKey
-                targetTime?: number
-                targetTimeMode?: TargetTimeMode
-            } => ({
-                ...column,
-                // All columns are sortable for now, but in the future we will have a sparkline that
-                // is not sortable.
-                sortable: true,
-            })),
-            coreTableColumn: d.sourceColumn,
-        }))
+        return this.columnsWithValues.map(
+            (d): DataTableDimension => ({
+                // A top-level header is only sortable if it has a single nested column, because
+                // in that case the nested column is not rendered.
+                sortable: d.columns.length === 1,
+                columns: d.columns.map(
+                    (column): DataTableColumn => ({
+                        ...column,
+                        // All columns are sortable for now, but in the future we will have a sparkline that
+                        // is not sortable.
+                        sortable: true,
+                    })
+                ),
+                coreTableColumn: d.sourceColumn,
+            })
+        )
     }
 
     @computed private get sortedRows(): DataTableRow[] {
