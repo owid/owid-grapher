@@ -135,7 +135,6 @@
         "fuzzyset": "^1.0.5",
         "fuzzysort": "^1.1.4",
         "glob": "^7.1.4",
-        "google-trends-api": "^4.9.0",
         "handsontable": "^8.1.0",
         "html-to-text": "^5.1.1",
         "js-base64": "^3.4.5",

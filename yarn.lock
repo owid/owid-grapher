@@ -10052,11 +10052,6 @@ good-listener@^1.2.2:
   dependencies:
     delegate "^3.1.2"
 
-google-trends-api@^4.9.0:
-  version "4.9.0"
-  resolved "https://registry.yarnpkg.com/google-trends-api/-/google-trends-api-4.9.0.tgz#907ad9f02df6c10596dfe887f5e16517b8510f60"
-  integrity sha512-ujOLHM98bE7Igy8YA4Lrb5naDpaY1wGt215zgHXPznCDwHmMjMK1FW8yW//dHQ9CKyG/HzaNBDfF7jEAUk8Kkw==
-
 got@^10.7.0:
   version "10.7.0"
   resolved "https://registry.yarnpkg.com/got/-/got-10.7.0.tgz#62889dbcd6cca32cd6a154cc2d0c6895121d091f"
