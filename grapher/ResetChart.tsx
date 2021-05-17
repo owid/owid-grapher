@@ -23,6 +23,7 @@ export const ResetChart = ({
 
         grapher?.renderAnnotation({
             entityId: 137,
+            entityName: "Chad",
             value: 35.4,
             year: 2015,
         })

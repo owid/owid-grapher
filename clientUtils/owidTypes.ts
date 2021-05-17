@@ -226,5 +226,6 @@ export type RenderInteractiveFigure = (
 export interface Annotation {
     value: number
     entityId?: number
+    entityName?: string
     year?: number
 }

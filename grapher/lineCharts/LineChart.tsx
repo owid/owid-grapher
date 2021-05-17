@@ -454,7 +454,11 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames() {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+        const entityName =
+            this.props.manager.annotation?.entityName ??
+            this.hoveredSeriesName ??
+            undefined
+        return entityName ? [entityName] : []
     }
 
     @computed get isFocusMode() {
