@@ -189,30 +189,30 @@ export const getDataValue = async ({
     year,
 }: DataValueQueryArgs) => {
     if (!variableId || !entityId) return
+
+    const queryStart = `
+        SELECT value, year, variables.unit as unit, entities.name as entity FROM data_values
+        JOIN entities on entities.id = data_values.entityId
+        JOIN variables on variables.id = data_values.variableId
+        WHERE entities.id = ?
+        AND variables.id= ?`
+
+    const queryStartVariables = [entityId, variableId]
+
     let row
 
     if (year) {
         row = await db.queryMysql(
-            `
-            SELECT value, year, variables.unit as unit, entities.name as entity FROM data_values
-            JOIN entities on entities.id = data_values.entityId
-            JOIN variables on variables.id = data_values.variableId
-            WHERE data_values.year = ?
-            AND entities.id = ?
-            AND variables.id= ?`,
-            [year, entityId, variableId]
+            `${queryStart}
+            AND data_values.year = ?`,
+            [...queryStartVariables, year]
         )
     } else {
         row = await db.queryMysql(
-            `
-            SELECT value, year, variables.unit as unit, entities.name as entity FROM data_values
-            JOIN entities on entities.id = data_values.entityId
-            JOIN variables on variables.id = data_values.variableId
-            WHERE entities.id = ?
-            AND variables.id= ?
+            `${queryStart}
             ORDER BY data_values.year DESC
             LIMIT 1`,
-            [entityId, variableId]
+            queryStartVariables
         )
     }
 
