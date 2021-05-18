@@ -27,6 +27,7 @@ export namespace Variable {
 }
 
 export async function getVariableData(variableIds: number[]): Promise<any> {
+    variableIds = lodash.uniq(variableIds)
     const data: any = { variables: {}, entityKey: {} }
 
     const variableQuery = db.queryMysql(
