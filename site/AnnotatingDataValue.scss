@@ -1,0 +1,6 @@
+.annotating-data-value {
+    button {
+        @include expandable-block-button;
+        font-weight: bold;
+    }
+}

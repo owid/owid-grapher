@@ -1454,25 +1454,18 @@ export class Grapher
 
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
-        containerNode: Element,
-        registerGrapherInstance?: (
-            figure: Element,
-            grapherInstance: Grapher
-        ) => void
+        containerNode: Element
     ) {
+        const grapherInstanceRef = React.createRef<Grapher>()
         const setBoundsFromContainerAndRender = () => {
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            const grapherInstance = React.createRef<Grapher>()
             ReactDOM.render(
-                <Grapher ref={grapherInstance} {...props} />,
+                <Grapher ref={grapherInstanceRef} {...props} />,
                 containerNode
             )
-            if (!grapherInstance.current || !registerGrapherInstance) return
-
-            registerGrapherInstance(containerNode, grapherInstance.current)
         }
 
         setBoundsFromContainerAndRender()
@@ -1480,6 +1473,7 @@ export class Grapher
             "resize",
             throttle(setBoundsFromContainerAndRender, 400)
         )
+        return grapherInstanceRef.current
     }
 
     static renderSingleGrapherOnGrapherPage(jsonConfig: GrapherInterface) {

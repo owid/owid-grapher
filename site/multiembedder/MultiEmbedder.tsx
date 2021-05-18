@@ -27,6 +27,7 @@ import {
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 import { action } from "mobx"
 import { Annotation } from "../../clientUtils/owidTypes"
+import { runAnnotatingDataValue } from "../AnnotatingDataValue"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -168,22 +169,13 @@ class MultiEmbedder {
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-            Grapher.renderGrapherIntoContainer(
+            const grapherInstance = Grapher.renderGrapherIntoContainer(
                 config,
-                figure,
-                this.registerGrapherInstance
+                figure
             )
+            if (!grapherInstance) return
+            runAnnotatingDataValue(grapherInstance, figure)
         }
-    }
-
-    @action.bound
-    registerGrapherInstance(figure: Element, grapherInstance: Grapher) {
-        this.grapherInstances.set(figure, grapherInstance)
-    }
-
-    @action.bound
-    getGrapherRegisteredWithFigure(figure: Element): Grapher | undefined {
-        return this.grapherInstances.get(figure)
     }
 
     setUpGlobalEntitySelectorForEmbeds() {

@@ -2,11 +2,11 @@ import React from "react"
 
 export const DATA_VALUE = "DataValue"
 
-interface DataValueProps {
+export interface DataValueProps {
     value: string
     year?: string
     unit?: string
-    entity?: string
+    entityName?: string
     template?: string
 }
 
@@ -15,29 +15,19 @@ const processTemplate = (props: DataValueProps) => {
         ?.replace("%value", props.value)
         .replace("%year", props.year || "")
         .replace("%unit", props.unit || "")
-        .replace("%entity", props.entity || "")
+        .replace("%entity", props.entityName || "")
 }
 
 export const DataValue = ({
     value,
     year,
     unit,
-    entity,
+    entityName,
     template,
 }: DataValueProps) => {
     return (
-        <span>
-            {/* <script
-            data-type={DataToken_name}
-            type="component/props"
-            data-token={token}
-            dangerouslySetInnerHTML={{
-                __html: JSON.stringify(restProps),
-            }}
-        ></script> */}
-            <span className="data-value">
-                {processTemplate({ template, value, year, unit, entity })}
-            </span>
+        <span className="data-value">
+            {processTemplate({ template, value, year, unit, entityName })}
         </span>
     )
 }

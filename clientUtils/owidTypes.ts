@@ -233,14 +233,7 @@ export interface Deploy {
     changes: DeployChange[]
 }
 
-export type RenderInteractiveFigure = (
-    figure: HTMLElement,
-    annotation?: Annotation
-) => Promise<void>
-
 export interface Annotation {
-    value: number
-    entityId?: number
     entityName?: string
     year?: number
 }

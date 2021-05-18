@@ -42,7 +42,8 @@ import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { getDataValue } from "../db/model/Variable"
-import { DataValue } from "../site/DataValue"
+import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
+import { DataValueProps } from "../site/DataValue"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -151,12 +152,12 @@ export const formatWordpressPost = async (
     const dataValuesConfigurationsMap = await extractDataValuesConfiguration(
         html
     )
-    const dataValues = new Map()
+    const dataValues = new Map<string, DataValueProps>()
     for (const [
         dataValueConfigurationString,
         dataValueConfiguration,
     ] of dataValuesConfigurationsMap) {
-        const { value, year, unit, entity } = await getDataValue(
+        const { value, year, unit, entityName } = await getDataValue(
             dataValueConfiguration.queryArgs
         )
         if (!value)
@@ -169,23 +170,20 @@ export const formatWordpressPost = async (
             template: dataValueConfiguration.template,
             year,
             unit,
-            entity,
+            entityName,
         })
     }
 
     html = html.replace(dataValueRegex, (_, dataValueConfigurationString) => {
-        const { value, template, year, unit, entity } = dataValues.get(
+        const dataValueProps: DataValueProps | undefined = dataValues.get(
             dataValueConfigurationString
         )
+        if (!dataValueProps)
+            throw new JsonError(
+                `Missing data value for query ${dataValueConfigurationString}`
+            )
         return ReactDOMServer.renderToString(
-            // <DataValue value={dataValues.get(dataValueConfiguration).value} />
-            <DataValue
-                value={value}
-                template={template}
-                year={year}
-                unit={unit}
-                entity={entity}
-            />
+            <AnnotatingDataValue dataValueProps={dataValueProps} />
         )
     })
 

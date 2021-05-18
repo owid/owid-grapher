@@ -192,7 +192,7 @@ export const getDataValue = async ({
 
     const row = await db.queryMysql(
         `
-        SELECT value, year, variables.unit as unit, entities.name as entity FROM data_values
+        SELECT value, year, variables.unit as unit, entities.name as entityName FROM data_values
         JOIN entities on entities.id = data_values.entityId
         JOIN variables on variables.id = data_values.variableId
         WHERE data_values.year = ?
