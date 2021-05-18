@@ -196,34 +196,27 @@ export class FacetChart
 
     render(): JSX.Element[] {
         const { subtitleFontSize } = this
-        return this.placedSeries.map(
-            (smallChart, index: number): JSX.Element => {
-                const ChartClass =
-                    ChartComponentClassMap.get(smallChart.chartTypeName) ??
-                    DefaultChartClass
-                const { bounds, seriesName } = smallChart
-                const shiftTop =
-                    smallChart.chartTypeName === ChartTypeName.LineChart
-                        ? 6
-                        : 10
-                return (
-                    <React.Fragment key={index}>
-                        <text
-                            x={bounds.x}
-                            y={bounds.top - shiftTop}
-                            fill={"#1d3d63"}
-                            fontSize={subtitleFontSize}
-                            style={{ fontWeight: 700 }}
-                        >
-                            {seriesName}
-                        </text>
-                        <ChartClass
-                            bounds={bounds}
-                            manager={smallChart.manager}
-                        />
-                    </React.Fragment>
-                )
-            }
-        )
+        return this.placedSeries.map((smallChart, index: number) => {
+            const ChartClass =
+                ChartComponentClassMap.get(smallChart.chartTypeName) ??
+                DefaultChartClass
+            const { bounds, seriesName } = smallChart
+            const shiftTop =
+                smallChart.chartTypeName === ChartTypeName.LineChart ? 6 : 10
+            return (
+                <React.Fragment key={index}>
+                    <text
+                        x={bounds.x}
+                        y={bounds.top - shiftTop}
+                        fill={"#1d3d63"}
+                        fontSize={subtitleFontSize}
+                        style={{ fontWeight: 700 }}
+                    >
+                        {seriesName}
+                    </text>
+                    <ChartClass bounds={bounds} manager={smallChart.manager} />
+                </React.Fragment>
+            )
+        })
     }
 }

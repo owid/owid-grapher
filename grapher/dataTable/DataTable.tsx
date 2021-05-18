@@ -93,7 +93,7 @@ export class DataTable extends React.Component<{
         if (dimIndex !== ENTITY_DIM_INDEX) {
             const availableColumns = this.columnsWithValues[
                 dimIndex
-            ].columns.map((sub): ColumnKey => sub.key)
+            ].columns.map((sub) => sub.key)
             if (
                 columnKey === undefined ||
                 !availableColumns.includes(columnKey)
@@ -126,7 +126,7 @@ export class DataTable extends React.Component<{
 
     @computed private get sortValueMapper(): (
         row: DataTableRow
-    ) => number | string | undefined {
+    ) => number | string {
         const { dimIndex, columnKey, order } = this.tableState.sort
         if (dimIndex === ENTITY_DIM_INDEX)
             return (row): string => row.entityName
@@ -159,7 +159,7 @@ export class DataTable extends React.Component<{
 
     @computed private get hasSubheaders(): boolean {
         return this.displayDimensions.some(
-            (header): boolean => header.columns.length > 1
+            (header) => header.columns.length > 1
         )
     }
 
@@ -199,78 +199,69 @@ export class DataTable extends React.Component<{
 
     private get dimensionHeaders(): JSX.Element[] {
         const { sort } = this.tableState
-        return this.displayDimensions.map(
-            (dim, dimIndex): JSX.Element => {
-                const actualColumn = dim.coreTableColumn
-                const unit =
-                    actualColumn.unit === "%"
-                        ? "percent"
-                        : dim.coreTableColumn.unit
-                const columnName =
-                    actualColumn.displayName !== ""
-                        ? actualColumn.displayName
-                        : actualColumn.name
+        return this.displayDimensions.map((dim, dimIndex) => {
+            const actualColumn = dim.coreTableColumn
+            const unit =
+                actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const columnName =
+                actualColumn.displayName !== ""
+                    ? actualColumn.displayName
+                    : actualColumn.name
 
-                const dimensionHeaderText = (
-                    <React.Fragment>
-                        <span className="name">{upperFirst(columnName)}</span>
-                        <span className="unit">{unit}</span>
-                    </React.Fragment>
-                )
+            const dimensionHeaderText = (
+                <React.Fragment>
+                    <span className="name">{upperFirst(columnName)}</span>
+                    <span className="unit">{unit}</span>
+                </React.Fragment>
+            )
 
-                const props = {
-                    sortable: dim.sortable,
-                    sortedCol: dim.sortable && sort.dimIndex === dimIndex,
-                    sortOrder: sort.order,
-                    onClick: (): void => {
-                        if (dim.sortable) {
-                            this.updateSort(dimIndex, SingleValueKey.single)
-                        }
-                    },
-                    rowSpan:
-                        this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
-                    colSpan: dim.columns.length,
-                    headerText: dimensionHeaderText,
-                    colType: "dimension" as const,
-                    dataType: "numeric" as const,
-                }
-
-                return <ColumnHeader key={actualColumn.slug} {...props} />
+            const props = {
+                sortable: dim.sortable,
+                sortedCol: dim.sortable && sort.dimIndex === dimIndex,
+                sortOrder: sort.order,
+                onClick: (): void => {
+                    if (dim.sortable) {
+                        this.updateSort(dimIndex, SingleValueKey.single)
+                    }
+                },
+                rowSpan: this.hasSubheaders && dim.columns.length < 2 ? 2 : 1,
+                colSpan: dim.columns.length,
+                headerText: dimensionHeaderText,
+                colType: "dimension" as const,
+                dataType: "numeric" as const,
             }
-        )
+
+            return <ColumnHeader key={actualColumn.slug} {...props} />
+        })
     }
 
     private get dimensionSubheaders(): JSX.Element[][] {
         const { sort } = this.tableState
-        return this.displayDimensions.map((dim, dimIndex): JSX.Element[] =>
-            dim.columns.map(
-                (column, i): JSX.Element => {
-                    const headerText = isDeltaColumn(column.key)
-                        ? columnNameByType[column.key]
-                        : dim.coreTableColumn.table.formatTime(
-                              column.targetTime!
-                          )
-                    return (
-                        <ColumnHeader
-                            key={column.key}
-                            sortable={column.sortable}
-                            sortedCol={
-                                sort.dimIndex === dimIndex &&
-                                sort.columnKey === column.key
-                            }
-                            sortOrder={sort.order}
-                            onClick={(): void =>
-                                this.updateSort(dimIndex, column.key)
-                            }
-                            headerText={headerText}
-                            colType="subdimension"
-                            dataType="numeric"
-                            subdimensionType={column.key}
-                            lastSubdimension={i === dim.columns.length - 1}
-                        />
-                    )
-                }
-            )
+        return this.displayDimensions.map((dim, dimIndex) =>
+            dim.columns.map((column, i) => {
+                const headerText = isDeltaColumn(column.key)
+                    ? columnNameByType[column.key]
+                    : dim.coreTableColumn.table.formatTime(column.targetTime!)
+                return (
+                    <ColumnHeader
+                        key={column.key}
+                        sortable={column.sortable}
+                        sortedCol={
+                            sort.dimIndex === dimIndex &&
+                            sort.columnKey === column.key
+                        }
+                        sortOrder={sort.order}
+                        onClick={(): void =>
+                            this.updateSort(dimIndex, column.key)
+                        }
+                        headerText={headerText}
+                        colType="subdimension"
+                        dataType="numeric"
+                        subdimensionType={column.key}
+                        lastSubdimension={i === dim.columns.length - 1}
+                    />
+                )
+            })
         )
     }
 
@@ -347,30 +338,27 @@ export class DataTable extends React.Component<{
                 >
                     {row.entityName}
                 </td>
-                {row.dimensionValues.map((dv, dimIndex): JSX.Element[] => {
+                {row.dimensionValues.map((dv, dimIndex) => {
                     const dimension = dimensions[dimIndex]
-                    return dimension.columns.map(
-                        (column, colIndex): JSX.Element => {
-                            const key = `${dimIndex}-${colIndex}`
-                            return this.renderValueCell(
-                                key,
-                                column,
-                                dv,
-                                sort.dimIndex === dimIndex &&
-                                    sort.columnKey === column.key,
-                                dimension.coreTableColumn
-                            )
-                        }
-                    )
+                    return dimension.columns.map((column, colIndex) => {
+                        const key = `${dimIndex}-${colIndex}`
+                        return this.renderValueCell(
+                            key,
+                            column,
+                            dv,
+                            sort.dimIndex === dimIndex &&
+                                sort.columnKey === column.key,
+                            dimension.coreTableColumn
+                        )
+                    })
                 })}
             </tr>
         )
     }
 
     private get valueRows(): JSX.Element[] {
-        return this.sortedRows.map(
-            (row): JSX.Element =>
-                this.renderEntityRow(row, this.displayDimensions)
+        return this.sortedRows.map((row) =>
+            this.renderEntityRow(row, this.displayDimensions)
         )
     }
 
@@ -420,11 +408,11 @@ export class DataTable extends React.Component<{
         this.columnsToShow.forEach((column): boolean => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
                 Object.entries(countBy(column.uniqTimesAsc)),
-                (value): number => parseInt(value[0])
+                (value) => parseInt(value[0])
             )
 
             const firstTimeWithSufficientData = numberOfEntitiesWithDataSortedByTime.find(
-                (time): boolean => {
+                (time) => {
                     const numEntitiesWithData = time[1]
                     const percentEntitiesWithData =
                         numEntitiesWithData / numEntitiesInTable
@@ -449,19 +437,16 @@ export class DataTable extends React.Component<{
         const slugs = this.manager.dataTableSlugs ?? []
         if (slugs.length)
             return slugs
-                .map(
-                    (slug: string): CoreColumn => {
-                        const col = this.table.get(slug)
-                        if (!col)
-                            console.log(`Warning: column '${slug}' not found`)
-                        return col
-                    }
-                )
-                .filter((col): CoreColumn => col)
+                .map((slug: string) => {
+                    const col = this.table.get(slug)
+                    if (!col) console.log(`Warning: column '${slug}' not found`)
+                    return col
+                })
+                .filter((col) => col)
 
         const skips = new Set(Object.keys(OwidTableSlugs))
         return this.table.columnsAsArray.filter(
-            (column): boolean =>
+            (column) =>
                 !skips.has(column.slug) &&
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
@@ -481,8 +466,7 @@ export class DataTable extends React.Component<{
             )
         return union(
             ...this.columnsToShow.map(
-                (col): string[] =>
-                    tableForEntities.get(col.slug).uniqEntityNames
+                (col) => tableForEntities.get(col.slug).uniqEntityNames
             )
         )
     }
@@ -515,175 +499,162 @@ export class DataTable extends React.Component<{
 
     // todo: this function should be refactored. It's about 5x-10x too long. I'm currently getting an undefined value but it's very hard to figure out where.
     @computed get columnsWithValues(): Dimension[] {
-        return this.columnsToShow.map(
-            (sourceColumn): Dimension => {
-                const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
+        return this.columnsToShow.map((sourceColumn) => {
+            const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
 
-                const targetTimeMode =
-                    targetTimes.length < 2
-                        ? TargetTimeMode.point
-                        : TargetTimeMode.range
+            const targetTimeMode =
+                targetTimes.length < 2
+                    ? TargetTimeMode.point
+                    : TargetTimeMode.range
 
-                const prelimValuesByEntity =
-                    targetTimeMode === TargetTimeMode.range
-                        ? // In the "range" mode, we receive all data values within the range. But we
-                          // only want to plot the start & end values in the table.
-                          // getStartEndValues() extracts these two values.
-                          es6mapValues(
-                              valuesByEntityWithinTimes(
-                                  sourceColumn.valueByEntityNameAndTime,
-                                  targetTimes
-                              ),
-                              getStartEndValues
-                          )
-                        : valuesByEntityAtTimes(
+            const prelimValuesByEntity =
+                targetTimeMode === TargetTimeMode.range
+                    ? // In the "range" mode, we receive all data values within the range. But we
+                      // only want to plot the start & end values in the table.
+                      // getStartEndValues() extracts these two values.
+                      es6mapValues(
+                          valuesByEntityWithinTimes(
                               sourceColumn.valueByEntityNameAndTime,
-                              targetTimes,
-                              sourceColumn.tolerance
-                          )
+                              targetTimes
+                          ),
+                          getStartEndValues
+                      )
+                    : valuesByEntityAtTimes(
+                          sourceColumn.valueByEntityNameAndTime,
+                          targetTimes,
+                          sourceColumn.tolerance
+                      )
 
-                const isRange = targetTimes.length === 2
+            const isRange = targetTimes.length === 2
 
-                // Inject delta columns if we have start & end values to compare in the table.
-                // One column for absolute difference, another for % difference.
-                const deltaColumns: DimensionColumn[] = []
+            // Inject delta columns if we have start & end values to compare in the table.
+            // One column for absolute difference, another for % difference.
+            const deltaColumns: DimensionColumn[] = []
+            if (isRange) {
+                const tableDisplay = {} as any
+                if (!tableDisplay?.hideAbsoluteChange)
+                    deltaColumns.push({ key: RangeValueKey.delta })
+                if (!tableDisplay?.hideRelativeChange)
+                    deltaColumns.push({ key: RangeValueKey.deltaRatio })
+            }
+
+            const columns: DimensionColumn[] = [
+                ...targetTimes.map((targetTime, index) => ({
+                    key: isRange
+                        ? index === 0
+                            ? RangeValueKey.start
+                            : RangeValueKey.end
+                        : SingleValueKey.single,
+                    targetTime,
+                    targetTimeMode,
+                })),
+                ...deltaColumns,
+            ]
+
+            const valueByEntity = es6mapValues(prelimValuesByEntity, (dvs) => {
+                // There is always a column, but not always a data value (in the delta column the
+                // value needs to be calculated)
                 if (isRange) {
-                    const tableDisplay = {} as any
-                    if (!tableDisplay?.hideAbsoluteChange)
-                        deltaColumns.push({ key: RangeValueKey.delta })
-                    if (!tableDisplay?.hideRelativeChange)
-                        deltaColumns.push({ key: RangeValueKey.deltaRatio })
-                }
+                    const [start, end]: (Value | undefined)[] = dvs
+                    const result: RangeValue = {
+                        start: {
+                            ...start,
+                            displayValue: this.formatValue(
+                                sourceColumn,
+                                start?.value
+                            ),
+                        },
+                        end: {
+                            ...end,
+                            displayValue: this.formatValue(
+                                sourceColumn,
+                                end?.value
+                            ),
+                        },
+                        delta: undefined,
+                        deltaRatio: undefined,
+                    }
 
-                const columns: DimensionColumn[] = [
-                    ...targetTimes.map((targetTime, index): {
-                        key: ColumnKey
-                        targetTime: number
-                        targetTimeMode: TargetTimeMode
-                    } => ({
-                        key: isRange
-                            ? index === 0
-                                ? RangeValueKey.start
-                                : RangeValueKey.end
-                            : SingleValueKey.single,
-                        targetTime,
-                        targetTimeMode,
-                    })),
-                    ...deltaColumns,
-                ]
+                    if (
+                        start !== undefined &&
+                        end !== undefined &&
+                        typeof start.value === "number" &&
+                        typeof end.value === "number"
+                    ) {
+                        const deltaValue = end.value - start.value
+                        const deltaRatioValue =
+                            deltaValue / Math.abs(start.value)
 
-                const valueByEntity = es6mapValues(
-                    prelimValuesByEntity,
-                    (dvs): DimensionValue => {
-                        // There is always a column, but not always a data value (in the delta column the
-                        // value needs to be calculated)
-                        if (isRange) {
-                            const [start, end]: (Value | undefined)[] = dvs
-                            const result: RangeValue = {
-                                start: {
-                                    ...start,
-                                    displayValue: this.formatValue(
-                                        sourceColumn,
-                                        start?.value
-                                    ),
-                                },
-                                end: {
-                                    ...end,
-                                    displayValue: this.formatValue(
-                                        sourceColumn,
-                                        end?.value
-                                    ),
-                                },
-                                delta: undefined,
-                                deltaRatio: undefined,
-                            }
-
-                            if (
-                                start !== undefined &&
-                                end !== undefined &&
-                                typeof start.value === "number" &&
-                                typeof end.value === "number"
-                            ) {
-                                const deltaValue = end.value - start.value
-                                const deltaRatioValue =
-                                    deltaValue / Math.abs(start.value)
-
-                                result.delta = {
-                                    value: deltaValue,
-                                    displayValue: this.formatValue(
-                                        sourceColumn,
-                                        deltaValue,
-                                        {
-                                            showPlus: true,
-                                            unit:
-                                                sourceColumn.shortUnit === "%"
-                                                    ? "pp"
-                                                    : sourceColumn.shortUnit,
-                                        }
-                                    ),
+                        result.delta = {
+                            value: deltaValue,
+                            displayValue: this.formatValue(
+                                sourceColumn,
+                                deltaValue,
+                                {
+                                    showPlus: true,
+                                    unit:
+                                        sourceColumn.shortUnit === "%"
+                                            ? "pp"
+                                            : sourceColumn.shortUnit,
                                 }
+                            ),
+                        }
 
-                                result.deltaRatio = {
-                                    value: deltaRatioValue,
-                                    displayValue:
-                                        isFinite(deltaRatioValue) &&
-                                        !isNaN(deltaRatioValue)
-                                            ? this.formatValue(
-                                                  sourceColumn,
-                                                  deltaRatioValue * 100,
-                                                  {
-                                                      unit: "%",
-                                                      numDecimalPlaces: 0,
-                                                      showPlus: true,
-                                                  }
-                                              )
-                                            : undefined,
-                                }
-                            }
-                            return result
-                        } else {
-                            // if single time
-                            const dv = dvs[0]
-                            const result: SingleValue = {
-                                single: { ...dv },
-                            }
-                            if (dv !== undefined)
-                                result.single!.displayValue = this.formatValue(
-                                    sourceColumn,
-                                    dv.value
-                                )
-                            return result
+                        result.deltaRatio = {
+                            value: deltaRatioValue,
+                            displayValue:
+                                isFinite(deltaRatioValue) &&
+                                !isNaN(deltaRatioValue)
+                                    ? this.formatValue(
+                                          sourceColumn,
+                                          deltaRatioValue * 100,
+                                          {
+                                              unit: "%",
+                                              numDecimalPlaces: 0,
+                                              showPlus: true,
+                                          }
+                                      )
+                                    : undefined,
                         }
                     }
-                )
-
-                return {
-                    columns,
-                    valueByEntity,
-                    sourceColumn,
+                    return result
+                } else {
+                    // if single time
+                    const dv = dvs[0]
+                    const result: SingleValue = {
+                        single: { ...dv },
+                    }
+                    if (dv !== undefined)
+                        result.single!.displayValue = this.formatValue(
+                            sourceColumn,
+                            dv.value
+                        )
+                    return result
                 }
+            })
+
+            return {
+                columns,
+                valueByEntity,
+                sourceColumn,
             }
-        )
+        })
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
         // Todo: for sorting etc, use CoreTable?
-        return this.columnsWithValues.map(
-            (d): DataTableDimension => ({
-                // A top-level header is only sortable if it has a single nested column, because
-                // in that case the nested column is not rendered.
-                sortable: d.columns.length === 1,
-                columns: d.columns.map(
-                    (column): DataTableColumn => ({
-                        ...column,
-                        // All columns are sortable for now, but in the future we will have a sparkline that
-                        // is not sortable.
-                        sortable: true,
-                    })
-                ),
-                coreTableColumn: d.sourceColumn,
-            })
-        )
+        return this.columnsWithValues.map((d) => ({
+            // A top-level header is only sortable if it has a single nested column, because
+            // in that case the nested column is not rendered.
+            sortable: d.columns.length === 1,
+            columns: d.columns.map((column) => ({
+                ...column,
+                // All columns are sortable for now, but in the future we will have a sparkline that
+                // is not sortable.
+                sortable: true,
+            })),
+            coreTableColumn: d.sourceColumn,
+        }))
     }
 
     @computed private get sortedRows(): DataTableRow[] {
@@ -692,15 +663,12 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get displayRows(): DataTableRow[] {
-        return this.entityNames.map((entityName): {
-            entityName: any
-            dimensionValues: (DimensionValue | undefined)[]
-        } => {
+        return this.entityNames.map((entityName) => {
             return {
                 entityName,
-                dimensionValues: this.columnsWithValues.map((d):
-                    | DimensionValue
-                    | undefined => d.valueByEntity.get(entityName)),
+                dimensionValues: this.columnsWithValues.map((d) =>
+                    d.valueByEntity.get(entityName)
+                ),
             }
         })
     }

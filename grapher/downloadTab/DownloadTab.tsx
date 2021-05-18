@@ -120,7 +120,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 ctx.setTransform(4, 0, 0, 4, 0, 0)
                 ctx.drawImage(img, 0, 0)
                 this.pngPreviewUrl = canvas.toDataURL("image/png")
-                canvas.toBlob((blob): void => {
+                canvas.toBlob((blob) => {
                     this.pngBlob = blob as Blob
                     this.pngDownloadUrl = createObjectURL(blob)
                     this.markAsReady()
