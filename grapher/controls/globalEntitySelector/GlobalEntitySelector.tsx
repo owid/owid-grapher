@@ -37,7 +37,7 @@ enum GlobalEntitySelectionModes {
     override = "override",
 }
 
-const allEntities = sortBy(countries, (c): any => c.name)
+const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
     .concat([
         {
@@ -99,28 +99,24 @@ function SelectedItems(props: {
                 <div className="empty">{props.emptyLabel}</div>
             ) : (
                 <div className="selected-items">
-                    {props.selectedEntityNames.map(
-                        (entityName): JSX.Element => (
-                            <div
-                                key={entityName}
-                                className={classnames("selected-item", {
-                                    removable: canRemove,
-                                })}
-                            >
-                                <div className="label">{entityName}</div>
-                                {canRemove && (
-                                    <div
-                                        className="remove-icon"
-                                        onClick={(): any =>
-                                            onRemove(entityName)
-                                        }
-                                    >
-                                        <FontAwesomeIcon icon={faTimes} />
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    )}
+                    {props.selectedEntityNames.map((entityName) => (
+                        <div
+                            key={entityName}
+                            className={classnames("selected-item", {
+                                removable: canRemove,
+                            })}
+                        >
+                            <div className="label">{entityName}</div>
+                            {canRemove && (
+                                <div
+                                    className="remove-icon"
+                                    onClick={(): void => onRemove(entityName)}
+                                >
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
@@ -151,8 +147,8 @@ export class GlobalEntitySelector extends React.Component<{
         window.addEventListener("resize", this.onResizeThrottled)
         this.disposers.push(
             reaction(
-                (): boolean => this.isOpen,
-                (): GroupedOptionsType<any> => this.prepareOptionGroups()
+                () => this.isOpen,
+                () => this.prepareOptionGroups()
             )
         )
         this.populateLocalEntity()
@@ -210,7 +206,7 @@ export class GlobalEntitySelector extends React.Component<{
             {
                 label: "All countries",
                 options: allEntities
-                    .map((entity): any => entity.name)
+                    .map((entity) => entity.name)
                     .map(entityNameToOption),
             },
         ])
@@ -238,7 +234,7 @@ export class GlobalEntitySelector extends React.Component<{
     }
 
     @action.bound private onChange(options: ValueType<any>): void {
-        this.updateSelection(options.map((option: any): any => option.label))
+        this.updateSelection(options.map((option: any) => option.label))
 
         this.analytics.logGlobalEntitySelector(
             "change",
@@ -249,7 +245,7 @@ export class GlobalEntitySelector extends React.Component<{
     @action.bound private updateAllGraphersAndExplorersOnPage(): void {
         if (!this.props.graphersAndExplorersToUpdate) return
         Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
-            (value): void => {
+            (value) => {
                 value.setSelectedEntities(this.selection.selectedEntityNames)
             }
         )
@@ -318,21 +314,16 @@ export class GlobalEntitySelector extends React.Component<{
                             {!this.selection.hasSelection
                                 ? "None selected"
                                 : this.selection.selectedEntityNames
-                                      .map(
-                                          (entityName): JSX.Element => (
-                                              <span
-                                                  className="narrow-summary-selected-item"
-                                                  key={entityName}
-                                              >
-                                                  {entityName}
-                                              </span>
-                                          )
-                                      )
+                                      .map((entityName) => (
+                                          <span
+                                              className="narrow-summary-selected-item"
+                                              key={entityName}
+                                          >
+                                              {entityName}
+                                          </span>
+                                      ))
                                       .reduce(
-                                          (
-                                              acc,
-                                              item
-                                          ): (string | JSX.Element)[] =>
+                                          (acc, item) =>
                                               acc.length === 0
                                                   ? [item]
                                                   : [...acc, ", ", item],

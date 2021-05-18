@@ -26,10 +26,7 @@ export class CollapsibleList extends React.Component {
 
     private get children(): ListChild[] {
         return (
-            React.Children.map(this.props.children, (child, i): {
-                index: any
-                child: any
-            } => {
+            React.Children.map(this.props.children, (child, i) => {
                 return {
                     index: i,
                     child,

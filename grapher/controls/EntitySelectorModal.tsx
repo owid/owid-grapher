@@ -30,11 +30,9 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     @computed private get searchableEntities(): SearchableEntity[] {
-        return this.availableEntities.map(
-            (name): SearchableEntity => {
-                return { name } as SearchableEntity
-            }
-        )
+        return this.availableEntities.map((name) => {
+            return { name } as SearchableEntity
+        })
     }
 
     @computed get searchResults(): SearchableEntity[] {
@@ -49,12 +47,12 @@ class EntitySelectorMulti extends React.Component<{
 
     componentDidMount(): void {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", (): void => {
+        this.base.current!.addEventListener("click", () => {
             this.dismissable = false
-            setTimeout((): boolean => (this.dismissable = true), 100)
+            setTimeout(() => (this.dismissable = true), 100)
         })
         setTimeout(
-            (): void => document.addEventListener("click", this.onClickOutside),
+            () => document.addEventListener("click", this.onClickOutside),
             1
         )
         if (!isTouchDevice()) this.searchField.focus()
@@ -100,9 +98,9 @@ class EntitySelectorMulti extends React.Component<{
                                 type="search"
                                 placeholder="Search..."
                                 value={searchInput}
-                                onInput={(e): string =>
-                                    (this.searchInput = e.currentTarget.value)
-                                }
+                                onInput={(e): void => {
+                                    this.searchInput = e.currentTarget.value
+                                }}
                                 onKeyDown={this.onSearchKeyDown}
                                 ref={(e): HTMLInputElement =>
                                     (this.searchField = e as HTMLInputElement)
@@ -135,26 +133,24 @@ class EntitySelectorMulti extends React.Component<{
                         </div>
                         <div className="selectedData">
                             <ul>
-                                {selectedEntityNames.map(
-                                    (name): JSX.Element => {
-                                        return (
-                                            <li key={name}>
-                                                <label className="clickable">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={true}
-                                                        onChange={(): SelectionArray =>
-                                                            selectionArray.deselectEntity(
-                                                                name
-                                                            )
-                                                        }
-                                                    />{" "}
-                                                    {name}
-                                                </label>
-                                            </li>
-                                        )
-                                    }
-                                )}
+                                {selectedEntityNames.map((name) => {
+                                    return (
+                                        <li key={name}>
+                                            <label className="clickable">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={true}
+                                                    onChange={(): void => {
+                                                        selectionArray.deselectEntity(
+                                                            name
+                                                        )
+                                                    }}
+                                                />{" "}
+                                                {name}
+                                            </label>
+                                        </li>
+                                    )
+                                })}
                             </ul>
                             {selectedEntityNames.length > 1 ? (
                                 <button
@@ -188,13 +184,13 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities(): { id: string; label: string }[] {
         const availableItems: { id: string; label: string }[] = []
-        this.props.selectionArray.availableEntityNames.forEach((name): void => {
+        this.props.selectionArray.availableEntityNames.forEach((name) => {
             availableItems.push({
                 id: name,
                 label: name,
             })
         })
-        return uniqBy(availableItems, (d): any => d.label)
+        return uniqBy(availableItems, (d) => d.label)
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: string; label: string }> {
@@ -214,12 +210,12 @@ class EntitySelectorSingle extends React.Component<{
 
     componentDidMount(): void {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", (): void => {
+        this.base.current!.addEventListener("click", () => {
             this.dismissable = false
-            setTimeout((): boolean => (this.dismissable = true), 100)
+            setTimeout(() => (this.dismissable = true), 100)
         })
         setTimeout(
-            (): void => document.addEventListener("click", this.onClickOutside),
+            () => document.addEventListener("click", this.onClickOutside),
             1
         )
         if (!this.props.isMobile) this.searchField.focus()
@@ -262,9 +258,9 @@ class EntitySelectorSingle extends React.Component<{
                             type="search"
                             placeholder="Search..."
                             value={searchInput}
-                            onInput={(e): string =>
-                                (this.searchInput = e.currentTarget.value)
-                            }
+                            onInput={(e): void => {
+                                this.searchInput = e.currentTarget.value
+                            }}
                             onKeyDown={this.onSearchKeyDown}
                             ref={(e): HTMLInputElement =>
                                 (this.searchField = e as HTMLInputElement)

@@ -129,7 +129,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return (
             <div
                 className={"ShareMenu" + (isDisabled ? " disabled" : "")}
-                onClick={action((): boolean => (this.dismissable = false))}
+                onClick={action(() => (this.dismissable = false))}
             >
                 <h2>Share</h2>
                 <a

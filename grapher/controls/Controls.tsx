@@ -230,7 +230,7 @@ export class FooterControls extends React.Component<{
         return (
             <nav className="tabs">
                 <ul>
-                    {this.availableTabs.map((tabName): JSX.Element | null => {
+                    {this.availableTabs.map((tabName) => {
                         return tabName !== GrapherTabOption.download ? (
                             <li
                                 key={tabName}
@@ -242,9 +242,9 @@ export class FooterControls extends React.Component<{
                                 }
                             >
                                 <a
-                                    onClick={(): GrapherTabOption =>
-                                        (manager.currentTab = tabName)
-                                    }
+                                    onClick={(): void => {
+                                        manager.currentTab = tabName
+                                    }}
                                     data-track-note={"chart-click-" + tabName}
                                 >
                                     {tabName}
