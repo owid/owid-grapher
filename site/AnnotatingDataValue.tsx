@@ -12,7 +12,7 @@ export const AnnotatingDataValue = ({
     dataValueProps: DataValueProps
     grapherInstance?: Grapher
 }) => {
-    const onClick = () => {
+    const renderAnnotationInGrapher = () => {
         grapherInstance?.renderAnnotation({
             entityName: dataValueProps.entityName,
             year: Number(dataValueProps.year),
@@ -28,9 +28,12 @@ export const AnnotatingDataValue = ({
                     __html: JSON.stringify(dataValueProps),
                 }}
             ></script>
-            <button onClick={onClick}>
+            <span
+                onMouseEnter={renderAnnotationInGrapher}
+                onMouseLeave={grapherInstance?.resetAnnotation}
+            >
                 <DataValue {...dataValueProps}></DataValue>
-            </button>
+            </span>
         </span>
     )
 }
