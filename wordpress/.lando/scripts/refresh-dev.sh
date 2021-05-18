@@ -5,9 +5,9 @@
 ##################################################
 
 # env variables are set by lando's env_file directive
-WORDPRESS_DB_HOST=$DB_HOST
-WORDPRESS_DB_NAME=$DB_NAME
-GRAPHER_DB_HOST=database-grapher
+WORDPRESS_DB_HOST=database
+WORDPRESS_DB_NAME=wordpress
+GRAPHER_DB_HOST=database
 GRAPHER_DB_NAME=grapher
 MYSQL="mysql -u root --default-character-set=utf8mb4"
 DL_FOLDER="."
@@ -59,7 +59,7 @@ done
 
 
 purge_db(){
-  $MYSQL -h $1 -e "DROP DATABASE $2;CREATE DATABASE $2"
+  $MYSQL -h $1 -e "DROP DATABASE IF EXISTS $2; CREATE DATABASE $2"
 }
 
 import_db(){

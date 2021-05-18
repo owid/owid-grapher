@@ -25,4 +25,4 @@ public/covidChartAndVariableMeta.json
 clientSettings.json
 serverSettings.json
 localBake/
-.db-snapshot-imported
+.full-snapshot-imported
