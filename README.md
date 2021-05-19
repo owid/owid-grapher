@@ -95,10 +95,6 @@ These instructions are a little experimental, please give us feedback if they do
 
 You should then be able to browse to http://localhost:3030/admin/charts
 
-### Other platforms
-
-You will need: [MySQL 5.7](https://www.mysql.com/), [Node 12.13.1+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
-
 ### Inspecting the database
 
 - Command-line: `make mysql`
