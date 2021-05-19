@@ -61,7 +61,7 @@ Instructions are for MacOS, please adapt for your platform.
 
 6. Spin up the environment:
 
-   You now have everything you need! You can spin up your environment with:
+    You now have everything you need! You can spin up your environment with:
 
     ```sh
     make start
@@ -97,8 +97,8 @@ You should then be able to browse to http://localhost:3030/admin/charts
 
 ### Inspecting the database
 
-- Command-line: `make mysql`
-- MacOS: [Sequel Ace](https://apps.apple.com/us/app/sequel-ace/id1518036000?mt=12) is our recommended free client
+-   Command-line: `make mysql`
+-   MacOS: [Sequel Ace](https://apps.apple.com/us/app/sequel-ace/id1518036000?mt=12) is our recommended free client
 
 We also have [**a rough sketch of the schema**](https://user-images.githubusercontent.com/1308115/64631358-d920e680-d3ee-11e9-90a7-b45d942a7259.png) as it was on November 2019 (there may be slight changes).
 
