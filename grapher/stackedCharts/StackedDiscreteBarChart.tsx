@@ -76,6 +76,12 @@ export class StackedDiscreteBarChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
+        if (this.manager.isRelativeMode) {
+            table = table.toPercentageFromEachColumnForEachEntityAndTime(
+                this.yColumnSlugs
+            )
+        }
+
         return table
     }
 
