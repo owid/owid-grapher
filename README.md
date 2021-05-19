@@ -32,13 +32,7 @@ Instructions are for MacOS, please adapt for your platform.
 
 1. Install Homebrew first, follow the instructions here: <https://brew.sh/>
 
-2. Install Homebrew services:
-
-    ```sh
-    brew tap homebrew/services
-    ```
-
-3. Install nvm:
+2. Install nvm:
 
     ```sh
     brew update
@@ -46,13 +40,13 @@ Instructions are for MacOS, please adapt for your platform.
     source $(brew --prefix nvm)/nvm.sh
     ```
 
-4. Install Node 12.13.1+:
+3. Install Node 12.13.1+:
 
     ```sh
     nvm install 12.13.1
     ```
 
-5. Install lando:
+4. Install lando:
 
     ```sh
     brew install lando
@@ -60,12 +54,12 @@ Instructions are for MacOS, please adapt for your platform.
 
     For other platforms: https://docs.lando.dev/basics/installation.html
 
-6. Submit your ssh public key:
+5. Submit your ssh public key:
 
     Generate an SSH keypair and submit your key to existing developers for access to production servers. This will be used
     to pull a database snapshot.
 
-7. Spin up the environment:
+6. Spin up the environment:
 
    You now have everything you need! You can spin up your environment with:
 
