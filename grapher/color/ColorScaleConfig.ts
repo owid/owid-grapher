@@ -204,7 +204,7 @@ export class ColorScaleConfig
             colorScaleLegendDescription: legendDescription,
             colorScaleNumericMinValue: customNumericMinValue,
             colorScaleNumericBins: (customNumericValues ?? [])
-                .map((value: any, index: number): string =>
+                .map((value: any, index: number) =>
                     [
                         value,
                         customNumericColors[index] ?? "",
@@ -214,7 +214,7 @@ export class ColorScaleConfig
                 .join(INTER_BIN_DELIMITER),
             colorScaleNoDataLabel: customCategoryLabels[NO_DATA_LABEL],
             colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
-                .map((value): string =>
+                .map((value) =>
                     [
                         value,
                         customCategoryColors[value],

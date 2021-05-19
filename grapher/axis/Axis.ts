@@ -161,10 +161,7 @@ abstract class AbstractAxis {
             //
             // -@MarcelGerber, 2020-08-07
             const tickCandidates = d3_scale.ticks(maxLogLines)
-            ticks = tickCandidates.map((value): {
-                value: number
-                priority: number
-            } => {
+            ticks = tickCandidates.map((value) => {
                 // 10^x
                 if (Math.fround(Math.log10(value)) % 1 === 0)
                     return { value, priority: 1 }
@@ -180,24 +177,22 @@ abstract class AbstractAxis {
             if (ticks.length > maxLogLines) {
                 if (ticks.length <= 2 * maxLogLines) {
                     // Convert all "in-between" lines to faint grid lines without labels
-                    ticks = ticks.map(
-                        (tick): Tickmark => {
-                            if (tick.priority === 3)
-                                tick = {
-                                    ...tick,
-                                    faint: true,
-                                    gridLineOnly: true,
-                                }
-                            return tick
-                        }
-                    )
+                    ticks = ticks.map((tick) => {
+                        if (tick.priority === 3)
+                            tick = {
+                                ...tick,
+                                faint: true,
+                                gridLineOnly: true,
+                            }
+                        return tick
+                    })
                 } else {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
                     for (let priority = 3; priority > 1; priority--) {
                         if (ticks.length > maxLogLines)
                             ticks = ticks.filter(
-                                (tick): boolean => tick.priority < priority
+                                (tick) => tick.priority < priority
                             )
                     }
                 }
@@ -205,17 +200,14 @@ abstract class AbstractAxis {
         } else {
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            ticks = d3_scale.ticks(6).map((tickValue): {
-                value: number
-                priority: number
-            } => ({
+            ticks = d3_scale.ticks(6).map((tickValue) => ({
                 value: tickValue,
                 priority: 2,
             }))
         }
 
         if (this.hideFractionalTicks)
-            ticks = ticks.filter((t): boolean => t.value % 1 === 0)
+            ticks = ticks.filter((t) => t.value % 1 === 0)
 
         return uniq(ticks)
     }
@@ -244,9 +236,7 @@ abstract class AbstractAxis {
         // -@danielgavrilov, 2020-05-27
         const tickValues = this.getTickValues()
         const minDist = min(
-            rollingMap(tickValues, (a, b): number =>
-                Math.abs(a.value - b.value)
-            )
+            rollingMap(tickValues, (a, b) => Math.abs(a.value - b.value))
         )
         if (minDist === undefined) return {}
 
@@ -297,9 +287,7 @@ abstract class AbstractAxis {
         }
 
         return sortBy(
-            tickPlacements
-                .filter((t): boolean => !t.isHidden)
-                .map((t): number => t.tick)
+            tickPlacements.filter((t) => !t.isHidden).map((t) => t.tick)
         )
     }
 
@@ -319,23 +307,21 @@ abstract class AbstractAxis {
 
     // calculates coordinates for ticks, sorted by priority
     @computed private get tickPlacements(): TickPlacement[] {
-        return sortBy(this.baseTicks, (tick): number => tick.priority).map(
-            (tick): TickPlacement => {
-                const bounds = Bounds.forText(
-                    this.formatTick(tick.value, {
-                        isFirstOrLastTick: tick.isFirstOrLastTick,
-                    }),
-                    {
-                        fontSize: this.tickFontSize,
-                    }
-                )
-                return {
-                    tick: tick.value,
-                    bounds: bounds.extend(this.placeTick(tick.value, bounds)),
-                    isHidden: false,
+        return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
+            const bounds = Bounds.forText(
+                this.formatTick(tick.value, {
+                    isFirstOrLastTick: tick.isFirstOrLastTick,
+                }),
+                {
+                    fontSize: this.tickFontSize,
                 }
+            )
+            return {
+                tick: tick.value,
+                bounds: bounds.extend(this.placeTick(tick.value, bounds)),
+                isHidden: false,
             }
-        )
+        })
     }
 
     @computed get labelFontSize(): number {
@@ -343,9 +329,7 @@ abstract class AbstractAxis {
     }
 
     @computed protected get baseTicks(): Tickmark[] {
-        return this.getTickValues().filter(
-            (tick): boolean => !tick.gridLineOnly
-        )
+        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
     abstract get labelWidth(): number
@@ -463,7 +447,7 @@ export class VerticalAxis extends AbstractAxis {
         const { labelOffset } = this
         const longestTick = maxBy(
             this.getFormattedTicks(),
-            (tick): any => tick.length
+            (tick) => tick.length
         )
         return (
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
