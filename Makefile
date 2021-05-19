@@ -16,6 +16,7 @@ help:
 	@echo '  make import-grapher     Re-import the grapher database'
 	@echo '  make import-full        Re-import the full database (OWID staff only)'
 	@echo '  make mysql              Connect to dev MySQL database'
+	@echo '  make deploy             Build and deploy the live site'
 	@echo '  make destroy            Destroy images and docker resources'
 	@echo
 
@@ -75,3 +76,7 @@ import-full:
 .env:
 	@echo '==> Using .env.example to configure environment'
 	cp .env.example .env
+
+deploy:
+	@echo '==> Beginning deploy to production'
+	yarn buildAndDeploySite
