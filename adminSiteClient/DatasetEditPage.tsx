@@ -42,11 +42,12 @@ import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVaria
 import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 class VariableEditable {
-    @observable name = ""
-    @observable unit = ""
-    @observable shortUnit = ""
-    @observable description = ""
-    @observable display = new LegacyVariableDisplayConfig()
+    @observable name: string = ""
+    @observable unit: string = ""
+    @observable shortUnit: string = ""
+    @observable description: string = ""
+    @observable
+    display: LegacyVariableDisplayConfig = new LegacyVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {
