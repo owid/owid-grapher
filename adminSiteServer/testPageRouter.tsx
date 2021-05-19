@@ -99,11 +99,11 @@ async function propsFromQueryParams(
                     `(
                         config->"$.type" = "LineChart"
                         OR config->"$.type" IS NULL
-                    ) AND config->"$.hasChartTab" IS TRUE`
+                    ) AND COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`
                 )
             } else {
                 query = query.andWhere(
-                    `config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`,
+                    `config->"$.type" = :type AND COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`,
                     { type: params.type }
                 )
             }
@@ -185,7 +185,9 @@ async function propsFromQueryParams(
     if (tab === GrapherTabOption.map) {
         query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
     } else if (tab === GrapherTabOption.chart) {
-        query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
+        query = query.andWhere(
+            `COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`
+        )
     }
 
     // Exclude charts that have the "Private" tag assigned, unless `includePrivate` is passed.
