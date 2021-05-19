@@ -85,9 +85,9 @@ netlify deploy
 
 ## PM2
 cd ~/NEW_NAME
-pm2 start yarn --name NEW_NAME --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- startAdminServer
+pm2 start --name NEW_NAME "yarn startAdminServer"
 pm2 save
-pm2 start yarn --name NEW_NAME-deploy-queue --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- startDeployQueueServer
+pm2 start --name NEW_NAME-deploy-queue "yarn startDeployQueueServer"
 pm2 save
 
 ## Make deployable.
