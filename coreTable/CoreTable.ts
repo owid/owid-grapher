@@ -1158,7 +1158,10 @@ export class CoreTable<
         )
     }
 
-    dropRandomPercent(dropHowMuch: number = 1, seed: number = Date.now()): this {
+    dropRandomPercent(
+        dropHowMuch: number = 1,
+        seed: number = Date.now()
+    ): this {
         return this.dropRandomRows(
             Math.floor((dropHowMuch / 100) * this.numRows),
             seed
