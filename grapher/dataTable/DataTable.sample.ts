@@ -2,7 +2,9 @@ import { Grapher } from "../core/Grapher"
 import { DimensionProperty, GrapherTabOption } from "../core/GrapherConstants"
 import { GrapherInterface } from "../core/GrapherInterface"
 
-export const childMortalityGrapher = (props: Partial<GrapherInterface> = {}) =>
+export const childMortalityGrapher = (
+    props: Partial<GrapherInterface> = {}
+): Grapher =>
     new Grapher({
         hasMapTab: true,
         tab: GrapherTabOption.map,
@@ -35,7 +37,9 @@ export const childMortalityGrapher = (props: Partial<GrapherInterface> = {}) =>
         },
     })
 
-export const IncompleteDataTable = (props: Partial<GrapherInterface> = {}) =>
+export const IncompleteDataTable = (
+    props: Partial<GrapherInterface> = {}
+): Grapher =>
     new Grapher({
         tab: GrapherTabOption.table,
         dimensions: [

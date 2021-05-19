@@ -7,7 +7,7 @@ export default {
     component: MapChart,
 }
 
-export const AutoColors = () => {
+export const AutoColors = (): JSX.Element => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
         entityCount: 200,

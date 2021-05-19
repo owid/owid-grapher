@@ -65,6 +65,7 @@ import {
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { SelectionArray } from "../selection/SelectionArray"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -222,7 +223,10 @@ export class MapChart
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
-    @action.bound onMapMouseOver(feature: GeoFeature, ev: React.MouseEvent) {
+    @action.bound onMapMouseOver(
+        feature: GeoFeature,
+        ev: React.MouseEvent
+    ): void {
         const series =
             feature.id === undefined
                 ? undefined
@@ -244,12 +248,12 @@ export class MapChart
             }
     }
 
-    @action.bound onMapMouseLeave() {
+    @action.bound onMapMouseLeave(): void {
         this.focusEntity = undefined
         this.tooltipTarget = undefined
     }
 
-    @computed get manager() {
+    @computed get manager(): MapChartManager {
         return this.props.manager
     }
 
@@ -260,16 +264,19 @@ export class MapChart
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
-    private isEntityClickable(entityName?: EntityName) {
+    private isEntityClickable(entityName?: EntityName): boolean {
         if (!this.manager.mapIsClickable || !entityName) return false
         return this.entityNamesWithData.has(entityName)
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
+    @action.bound onClick(
+        d: GeoFeature,
+        ev: React.MouseEvent<SVGElement>
+    ): void {
         const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 
@@ -279,24 +286,24 @@ export class MapChart
         } else this.selectionArray.toggleSelection(entityName)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
     }
 
-    @action.bound onLegendMouseOver(bracket: MapBracket) {
+    @action.bound onLegendMouseOver(bracket: MapBracket): void {
         this.focusBracket = bracket
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.focusBracket = undefined
     }
 
-    @computed get mapConfig() {
+    @computed get mapConfig(): MapConfig {
         return this.manager.mapConfig || new MapConfig()
     }
 
-    @action.bound onProjectionChange(value: MapProjectionName) {
+    @action.bound onProjectionChange(value: MapProjectionName): void {
         this.mapConfig.projection = value
     }
 
@@ -306,7 +313,7 @@ export class MapChart
         const customLabels = mapConfig.tooltipUseCustomLabels
             ? colorScale.customNumericLabels
             : []
-        return (d: number | string) => {
+        return (d: number | string): string => {
             if (isString(d)) return d
             else return customLabels[d] ?? mapColumn?.formatValueLong(d) ?? ""
         }
@@ -340,7 +347,7 @@ export class MapChart
             .filter(isPresent)
     }
 
-    @computed private get seriesMap() {
+    @computed private get seriesMap(): Map<SeriesName, ChoroplethSeries> {
         const map = new Map<SeriesName, ChoroplethSeries>()
         this.series.forEach((series) => {
             map.set(series.seriesName, series)
@@ -348,7 +355,7 @@ export class MapChart
         return map
     }
 
-    @computed get colorScaleColumn() {
+    @computed get colorScaleColumn(): CoreColumn {
         // Use the table before transform to build the legend.
         // Otherwise the legend jumps around as you slide the timeline handle.
         return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
@@ -356,7 +363,7 @@ export class MapChart
 
     colorScale = new ColorScale(this)
 
-    @computed get colorScaleConfig() {
+    @computed get colorScaleConfig(): ColorScaleConfig {
         return (
             ColorScaleConfig.fromDSL(this.mapColumn.def) ??
             this.mapConfig.colorScale
@@ -366,7 +373,7 @@ export class MapChart
     defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
-    componentDidMount() {
+    componentDidMount(): void {
         select(this.base.current)
             .selectAll("path")
             .attr("data-fill", function () {
@@ -385,7 +392,7 @@ export class MapChart
         exposeInstanceOnWindow(this)
     }
 
-    @computed get projectionChooserBounds() {
+    @computed get projectionChooserBounds(): Bounds {
         const { bounds } = this
         return new Bounds(
             bounds.width - PROJECTION_CHOOSER_WIDTH + 15 - 3,
@@ -395,23 +402,23 @@ export class MapChart
         )
     }
 
-    @computed get legendData() {
+    @computed get legendData(): ColorScaleBin[] {
         return this.colorScale.legendBins
     }
 
-    @computed get equalSizeBins() {
+    @computed get equalSizeBins(): boolean | undefined {
         return this.colorScale.config.equalSizeBins
     }
 
-    @computed get focusValue() {
+    @computed get focusValue(): string | number | undefined {
         return this.focusEntity?.series?.value
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get numericLegendData() {
+    @computed get numericLegendData(): ColorScaleBin[] {
         if (
             this.hasCategorical ||
             !this.legendData.some(
@@ -431,17 +438,18 @@ export class MapChart
         return flatten([bin[bin.length - 1], bin.slice(0, -1)])
     }
 
-    @computed get hasNumeric() {
+    @computed get hasNumeric(): boolean {
         return this.numericLegendData.length > 1
     }
 
-    @computed get categoricalLegendData() {
+    @computed get categoricalLegendData(): CategoricalBin[] {
         return this.legendData.filter(
-            (bin) => bin instanceof CategoricalBin && !bin.isHidden
-        ) as CategoricalBin[]
+            (bin): bin is CategoricalBin =>
+                bin instanceof CategoricalBin && !bin.isHidden
+        )
     }
 
-    @computed get hasCategorical() {
+    @computed get hasCategorical(): boolean {
         return this.categoricalLegendData.length > 1
     }
 
@@ -457,7 +465,7 @@ export class MapChart
         return undefined
     }
 
-    @computed get categoricalFocusBracket() {
+    @computed get categoricalFocusBracket(): CategoricalBin | undefined {
         const { focusBracket, focusValue } = this
         const { categoricalLegendData } = this
         if (focusBracket && focusBracket instanceof CategoricalBin)
@@ -469,15 +477,15 @@ export class MapChart
         return undefined
     }
 
-    @computed get legendBounds() {
+    @computed get legendBounds(): Bounds {
         return this.bounds.padBottom(15)
     }
 
-    @computed get legendWidth() {
+    @computed get legendWidth(): number {
         return this.legendBounds.width * 0.8
     }
 
-    @computed get legendHeight() {
+    @computed get legendHeight(): number {
         return this.categoryLegendHeight + this.numericLegendHeight + 10
     }
 
@@ -489,13 +497,13 @@ export class MapChart
         return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
-    @computed get categoryLegend() {
+    @computed get categoryLegend(): MapCategoricalColorLegend | undefined {
         return this.categoricalLegendData.length > 1
             ? new MapCategoricalColorLegend({ manager: this })
             : undefined
     }
 
-    @computed get numericLegend() {
+    @computed get numericLegend(): MapNumericColorLegend | undefined {
         return this.numericLegendData.length > 1
             ? new MapNumericColorLegend({ manager: this })
             : undefined
@@ -531,7 +539,7 @@ export class MapChart
         return 0
     }
 
-    renderMapLegend() {
+    renderMapLegend(): JSX.Element {
         const { numericLegend, categoryLegend } = this
 
         return (
@@ -542,7 +550,7 @@ export class MapChart
         )
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -622,37 +630,40 @@ declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get uid() {
+    @computed private get uid(): number {
         return guid()
     }
 
-    @computed.struct private get bounds() {
+    @computed.struct private get bounds(): Bounds {
         return this.props.bounds
     }
 
-    @computed.struct private get choroplethData() {
+    @computed.struct private get choroplethData(): Map<
+        string,
+        ChoroplethSeries
+    > {
         return this.props.choroplethData
     }
 
-    @computed.struct private get defaultFill() {
+    @computed.struct private get defaultFill(): string {
         return this.props.defaultFill
     }
 
     // Combine bounding boxes to get the extents of the entire map
-    @computed private get mapBounds() {
+    @computed private get mapBounds(): Bounds {
         return Bounds.merge(geoBoundsFor(this.props.projection))
     }
 
-    @computed private get focusBracket() {
+    @computed private get focusBracket(): ColorScaleBin | undefined {
         return this.props.focusBracket
     }
 
-    @computed private get focusEntity() {
+    @computed private get focusEntity(): MapEntity | undefined {
         return this.props.focusEntity
     }
 
     // Check if a geo entity is currently focused, either directly or via the bracket
-    private hasFocus(id: string) {
+    private hasFocus(id: string): boolean {
         const { choroplethData, focusBracket, focusEntity } = this
         if (focusEntity && focusEntity.id === id) return true
         else if (!focusBracket) return false
@@ -662,12 +673,17 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         else return false
     }
 
-    private isSelected(id: string) {
+    private isSelected(id: string): boolean | undefined {
         return this.choroplethData.get(id)!.isSelected
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
-    @computed private get viewport() {
+    @computed private get viewport(): {
+        x: number
+        y: number
+        width: number
+        height: number
+    } {
         const viewports = {
             World: { x: 0.565, y: 0.5, width: 1, height: 1 },
             Europe: { x: 0.5, y: 0.22, width: 0.2, height: 0.2 },
@@ -682,7 +698,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
-    @computed private get viewportScale() {
+    @computed private get viewportScale(): number {
         const { bounds, viewport, mapBounds } = this
         const viewportWidth = viewport.width * mapBounds.width
         const viewportHeight = viewport.height * mapBounds.height
@@ -692,7 +708,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         )
     }
 
-    @computed private get matrixTransform() {
+    @computed private get matrixTransform(): string {
         const { bounds, mapBounds, viewport, viewportScale } = this
 
         // Calculate our reference dimensions. These values are independent of the current
@@ -717,14 +733,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
-    @computed private get featuresOutsideProjection() {
+    @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
             renderFeaturesFor(this.props.projection),
             this.featuresInProjection
         )
     }
 
-    @computed private get featuresInProjection() {
+    @computed private get featuresInProjection(): RenderFeature[] {
         const { projection } = this.props
         const features = renderFeaturesFor(this.props.projection)
         if (projection === MapProjectionName.World) return features
@@ -738,11 +754,11 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         )
     }
 
-    @computed private get featuresWithNoData() {
+    @computed private get featuresWithNoData(): RenderFeature[] {
         return difference(this.featuresInProjection, this.featuresWithData)
     }
 
-    @computed private get featuresWithData() {
+    @computed private get featuresWithData(): RenderFeature[] {
         return this.featuresInProjection.filter((feature) =>
             this.choroplethData.has(feature.id)
         )
@@ -755,7 +771,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @observable private hoverEnterFeature?: RenderFeature
     @observable private hoverNearbyFeature?: RenderFeature
-    @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound private onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
         if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         if (this.hoverEnterFeature) return
 
@@ -788,21 +804,21 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @action.bound private onMouseEnter(
         feature: RenderFeature,
         ev: SVGMouseEvent
-    ) {
+    ): void {
         this.hoverEnterFeature = feature
         this.props.onHover(feature.geo, ev)
     }
 
-    @action.bound private onMouseLeave() {
+    @action.bound private onMouseLeave(): void {
         this.hoverEnterFeature = undefined
         this.props.onHoverStop()
     }
 
-    @computed private get hoverFeature() {
+    @computed private get hoverFeature(): RenderFeature | undefined {
         return this.hoverEnterFeature || this.hoverNearbyFeature
     }
 
-    @action.bound private onClick(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound private onClick(ev: React.MouseEvent<SVGGElement>): void {
         if (this.hoverFeature !== undefined)
             this.props.onClick(this.hoverFeature.geo, ev)
     }
@@ -812,7 +828,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
-    render() {
+    render(): JSX.Element {
         const {
             uid,
             bounds,
@@ -838,7 +854,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 className="ChoroplethMap"
                 clipPath={clipPath.id}
                 onMouseDown={
-                    (ev: SVGMouseEvent) =>
+                    (ev: SVGMouseEvent): void =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
                 }
                 onMouseMove={this.onMouseMove}
@@ -899,10 +915,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         cursor="pointer"
                                         fill={defaultFill}
                                         fillOpacity={fillOpacity}
-                                        onClick={(ev: SVGMouseEvent) =>
+                                        onClick={(ev: SVGMouseEvent): void =>
                                             this.props.onClick(feature.geo, ev)
                                         }
-                                        onMouseEnter={(ev) =>
+                                        onMouseEnter={(ev): void =>
                                             this.onMouseEnter(feature, ev)
                                         }
                                         onMouseLeave={this.onMouseLeave}
@@ -951,10 +967,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     cursor="pointer"
                                     fill={fill}
                                     fillOpacity={fillOpacity}
-                                    onClick={(ev: SVGMouseEvent) =>
+                                    onClick={(ev: SVGMouseEvent): void =>
                                         this.props.onClick(feature.geo, ev)
                                     }
-                                    onMouseEnter={(ev) =>
+                                    onMouseEnter={(ev): void =>
                                         this.onMouseEnter(feature, ev)
                                     }
                                     onMouseLeave={this.onMouseLeave}
