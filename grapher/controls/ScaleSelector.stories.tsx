@@ -12,6 +12,6 @@ class MockScaleSelectorManager implements ScaleSelectorManager {
     @observable scaleType = ScaleType.log
 }
 
-export const Default = () => (
+export const Default = (): JSX.Element => (
     <ScaleSelector manager={new MockScaleSelectorManager()} />
 )

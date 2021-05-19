@@ -7,11 +7,11 @@ export default {
     component: CollapsibleList,
 }
 
-export const CollapsibleListComponent = () => {
+export const CollapsibleListComponent = (): JSX.Element => {
     return <CollapsibleList>{collapsibleListSampleItems}</CollapsibleList>
 }
 
-export const MoreButtonComponent = () => {
+export const MoreButtonComponent = (): JSX.Element => {
     const options = [
         <div key="option1">option1</div>,
         <div key="option2">option2</div>,

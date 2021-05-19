@@ -16,7 +16,7 @@ export class FuzzySearch<T> {
             .map((result: any) => this.datamap[result.target])
     }
 
-    single(input: string, target: string) {
+    single(input: string, target: string): Fuzzysort.Result | null {
         return fuzzysort.single(input, target)
     }
 

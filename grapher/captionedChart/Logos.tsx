@@ -50,24 +50,24 @@ export class Logo {
         this.props = props
     }
 
-    @computed private get spec() {
+    @computed private get spec(): LogoAttributes {
         return this.props.logo !== undefined
             ? logos[this.props.logo]
             : logos.owid
     }
 
-    @computed private get scale() {
+    @computed private get scale(): number {
         return this.spec.targetHeight / this.spec.height
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return this.spec.width * this.scale
     }
-    @computed get height() {
+    @computed get height(): number {
         return this.spec.height * this.scale
     }
 
-    renderSVG(targetX: number, targetY: number) {
+    renderSVG(targetX: number, targetY: number): JSX.Element {
         const { scale } = this
         const svg =
             (this.spec.svg.match(/<svg>(.*)<\/svg>/) || "")[1] || this.spec.svg
@@ -81,7 +81,7 @@ export class Logo {
         )
     }
 
-    renderHTML() {
+    renderHTML(): JSX.Element {
         const { spec } = this
         const props: React.HTMLAttributes<
             HTMLDivElement & HTMLAnchorElement

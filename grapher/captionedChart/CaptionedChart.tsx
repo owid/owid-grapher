@@ -35,6 +35,8 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { exposeInstanceOnWindow } from "../../clientUtils/Util"
+import { SelectionArray } from "../selection/SelectionArray"
+import { EntityName } from "../../coreTable/OwidTableConstants"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -78,33 +80,33 @@ const PADDING_ABOVE_FOOTER = 25
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
-    @computed protected get manager() {
+    @computed protected get manager(): CaptionedChartManager {
         return this.props.manager
     }
 
-    @computed private get containerElement() {
+    @computed private get containerElement(): HTMLDivElement | undefined {
         return this.manager?.containerElement
     }
 
-    @computed private get maxWidth() {
+    @computed private get maxWidth(): number {
         return this.props.maxWidth ?? this.bounds.width - OUTSIDE_PADDING * 2
     }
 
-    @computed protected get header() {
+    @computed protected get header(): Header {
         return new Header({
             manager: this.manager,
             maxWidth: this.maxWidth,
         })
     }
 
-    @computed protected get footer() {
+    @computed protected get footer(): Footer {
         return new Footer({
             manager: this.manager,
             maxWidth: this.maxWidth,
         })
     }
 
-    @computed protected get chartHeight() {
+    @computed protected get chartHeight(): number {
         const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
         return (
             this.bounds.height -
@@ -116,23 +118,23 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     // todo: should we remove this and not make a distinction between map and chart tabs?
-    @computed protected get isMapTab() {
+    @computed protected get isMapTab(): boolean {
         return this.manager.tab === GrapherTabOption.map
     }
 
-    @computed protected get bounds() {
+    @computed protected get bounds(): Bounds {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     // The bounds for the middle chart part
-    @computed protected get boundsForChart() {
+    @computed protected get boundsForChart(): Bounds {
         return new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
             .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
             .padBottom(OUTSIDE_PADDING)
     }
 
-    renderChart() {
+    renderChart(): JSX.Element {
         const { manager } = this
         const bounds = this.boundsForChart
 
@@ -163,15 +165,15 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         exposeInstanceOnWindow(this, "captionedChart")
     }
 
-    @action.bound startSelecting() {
+    @action.bound startSelecting(): void {
         this.manager.isSelectingData = true
     }
 
-    @computed get controls() {
+    @computed get controls(): JSX.Element[] {
         const manager = this.manager
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
         if (!manager.isReady || this.isMapTab) return []
@@ -254,11 +256,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return controls
     }
 
-    @computed get selectionArray() {
+    @computed get selectionArray(): SelectionArray | EntityName[] | undefined {
         return this.manager.selection
     }
 
-    private renderControlsRow() {
+    private renderControlsRow(): JSX.Element | null {
         return this.controls.length ? (
             <div className="controlsRow">
                 <CollapsibleList>{this.controls}</CollapsibleList>
@@ -266,7 +268,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         ) : null
     }
 
-    private renderLoadingIndicator() {
+    private renderLoadingIndicator(): JSX.Element {
         return (
             <foreignObject {...this.boundsForChart.toProps()}>
                 <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
@@ -274,7 +276,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds, chartHeight, maxWidth } = this
         const { width } = bounds
 
@@ -326,19 +328,19 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
-    @computed private get paddedBounds() {
+    @computed private get paddedBounds(): Bounds {
         return this.bounds.pad(OUTSIDE_PADDING)
     }
 
     // The bounds for the middle chart part
-    @computed protected get boundsForChart() {
+    @computed protected get boundsForChart(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
             .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds, paddedBounds } = this
         const { width, height } = bounds
 

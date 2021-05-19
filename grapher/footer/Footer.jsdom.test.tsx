@@ -12,7 +12,7 @@ import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 configure({ adapter: new Adapter() })
 
-const TestGrapherConfig = () => {
+const TestGrapherConfig = (): GrapherProgrammaticInterface => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
         table,

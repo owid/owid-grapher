@@ -131,7 +131,9 @@ import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 export type SVGElement = any
 export type VNode = any
 
-type NoUndefinedValues<T> = { [P in keyof T]: Required<NonNullable<T[P]>> }
+export type NoUndefinedValues<T> = {
+    [P in keyof T]: Required<NonNullable<T[P]>>
+}
 
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.

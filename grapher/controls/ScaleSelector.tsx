@@ -14,7 +14,7 @@ export class ScaleSelector extends React.Component<{
     manager?: ScaleSelectorManager
     prefix?: string
 }> {
-    @action.bound private onClick() {
+    @action.bound private onClick(): void {
         const manager = this.props.manager ?? {}
         manager.scaleType = next(
             [ScaleType.linear, ScaleType.log],
@@ -22,7 +22,7 @@ export class ScaleSelector extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { manager, prefix } = this.props
         const { scaleType } = manager ?? {}
         return (

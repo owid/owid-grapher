@@ -5,10 +5,10 @@ import { ChartTypeName } from "../core/GrapherConstants"
 export class ChartTypeSwitcher extends React.Component<{
     onChange: (chartType: ChartTypeName) => void
 }> {
-    render() {
+    render(): JSX.Element {
         return (
             <select
-                onChange={(event) =>
+                onChange={(event): void =>
                     this.props.onChange(event.target.value as any)
                 }
             >
