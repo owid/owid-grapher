@@ -192,11 +192,19 @@ export class StackedDiscreteBarChart
                 })
             ),
         }))
-        return sortBy(items, (item) => {
-            const lastPoint = last(item.bars)?.point
-            if (!lastPoint) return 0
-            return lastPoint.valueOffset + lastPoint.value
-        }).reverse()
+
+        if (this.manager.isRelativeMode) {
+            // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
+            // relative mode. Once we have an option to sort by a specific metric, that'll help.
+            // Until then, we're sorting by label to prevent any jumping.
+            return sortBy(items, (item) => item.label)
+        } else {
+            return sortBy(items, (item) => {
+                const lastPoint = last(item.bars)?.point
+                if (!lastPoint) return 0
+                return lastPoint.valueOffset + lastPoint.value
+            }).reverse()
+        }
     }
 
     @computed private get barHeight() {
