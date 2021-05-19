@@ -24,15 +24,11 @@ The [baker](baker/) is the tool that is used to build the static [Our World in D
 
 [Explorers](explorer/) are a relatively new addition that visually show some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdmin/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
 
-## Initial development setup
+## Development
 
-If you want to work on the Grapher then you do not need to set up everything described in the previous section (e.g. you don't need to run Wordpress unless you want to test the integration and baking locally). In theory you could just build the grapher and embed it in a static page and test it locally like this but to have some flexibility it is usually nicer to get the Grapher Admin interface running. For this you need a Mysql database with the right schema (and for convenience one of the public data dumps of a subset of our world in data) and the admin server running.
+### Full stack (OWID staff only)
 
-To get this setup running you can follow the instructions below to install things locally.
-
-If you are a member of the Our World In Data team and want to get a full setup including wordpress and without much manual configuration you can use the [Lando](https://lando.dev/) project setup in the [wordpress folder](wordpress/) to automate much of the setup (see inside that folder for additional instructions).
-
-### macOS
+Instructions are for MacOS, please adapt for your platform.
 
 1. Install Homebrew first, follow the instructions here: <https://brew.sh/>
 
@@ -56,98 +52,65 @@ If you are a member of the Our World In Data team and want to get a full setup i
     nvm install 12.13.1
     ```
 
-5. Install MySQL 5.7:
+5. Install lando:
 
     ```sh
-    brew install mysql@5.7
+    brew install lando
     ```
 
-6. Start the MySQL service:
+    For other platforms: https://docs.lando.dev/basics/installation.html
+
+6. Submit your ssh public key:
+
+    Generate an SSH keypair and submit your key to existing developers for access to production servers. This will be used
+    to pull a database snapshot.
+
+7. Spin up the environment:
+
+   You now have everything you need! You can spin up your environment with:
 
     ```sh
-    brew services start mysql@5.7
+    make start
     ```
 
-7. Install yarn:
+    This will leave you with a partial DB import, background services running (nginx, MySQL) and foreground services (admin, webpack) in tmux.
 
-    ```sh
-    npm install -g yarn
-    ```
+Once your server is running, head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is `admin@example.com` with a password of `admin`.
 
-8. Git clone the "owid-content" folder as a sibling to owid-grapher:
+To shut down your server, kill the foreground services, then run:
 
-    ```bash
-    git clone https://github.com/owid/owid-content
-    ```
+```sh
+make stop
+```
 
-9. Inside the repo folder, install all dependencies by running:
+To fully clean up your environment, run:
 
-    ```sh
-    yarn
-    ```
+```sh
+make destroy
+```
+
+### Grapher only (general public)
+
+These instructions are a little experimental, please give us feedback if they don't work for you:
+
+1. Install node 12.13.1 and yarn
+2. Install MySQL 5.7 and configure credentials
+3. Make a `.env` file with MySQL credentials for grapher (copy `.env.example`)
+4. Run `make import-grapher` (you may need to edit db credentials in `./db/downloadAndCreateDatabase.sh`, or remove your MySQL root password temporarily)
+5. Run `yarn startAdminServer`
+
+You should then be able to browse to http://localhost:3030/admin/charts
 
 ### Other platforms
 
 You will need: [MySQL 5.7](https://www.mysql.com/), [Node 12.13.1+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
 
-## Database setup
-
-### Remove the password
-
-Remove the password for root by opening the MySQL shell with `mysql` and running:
-
-```sql
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY ''
-```
-
-We do this for convenience so we can run `mysql` commands without providing a password each time. You can also set a password, just make sure you include it in your settings file later.
-
-### Import the latest data extract
-
-Daily exports from the live OWID database are published here and can be used for testing:
-
-| File                                                                            | Description                                                   | Size (compressed) |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------- |
-| [owid_metadata.sql.gz](https://files.ourworldindata.org/owid_metadata.sql.gz)   | Table structure and metadata, everything except `data_values` | ~15 MB            |
-| [owid_chartdata.sql.gz](https://files.ourworldindata.org/owid_chartdata.sql.gz) | All data values used by published visualizations              | >200MB            |
-
-This script will create a database, then download and import all OWID charts and their data (might take a while!):
-
-```bash
-./db/downloadAndCreateDatabase.sh
-```
-
-Note that the `data_values` table will be incomplete – it will only contain data used in charts. In production, this table is >20GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
-
 ### Inspecting the database
 
-On macOS, we recommend using [Sequel Pro](http://www.sequelpro.com/) (it's free).
+- Command-line: `make mysql`
+- MacOS: [Sequel Ace](https://apps.apple.com/us/app/sequel-ace/id1518036000?mt=12) is our recommended free client
 
 We also have [**a rough sketch of the schema**](https://user-images.githubusercontent.com/1308115/64631358-d920e680-d3ee-11e9-90a7-b45d942a7259.png) as it was on November 2019 (there may be slight changes).
-
-## Development server
-
-Set up your `.env` file by copying the example:
-
-```sh
-cp .env.example .env
-```
-
-Then run the three development processes:
-
-```sh
-yarn startTscServer
-yarn startAdminServer
-yarn startWebpackServer
-```
-
-Or alternatively, you can also start all 3 processes in one terminal window with tmux:
-
-```sh
-yarn startTmuxServer
-```
-
-Then head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is `admin@example.com` with a password of `admin`.
 
 This development server will rebuild the site upon changes, so you can just make changes to the code, and reload the browser to see the changes.
 
