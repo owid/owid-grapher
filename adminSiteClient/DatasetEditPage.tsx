@@ -333,9 +333,9 @@ interface DatasetPageData {
 }
 
 class DatasetEditable {
-    @observable name = ""
-    @observable description = ""
-    @observable isPrivate = false
+    @observable name: string = ""
+    @observable description: string = ""
+    @observable isPrivate: boolean = false
 
     @observable source: OwidSource = {
         id: -1,
@@ -391,10 +391,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
-    @observable isDeleted = false
+    @observable isDeleted: boolean = false
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
-    @observable timesUpdated = 0
+    @observable timesUpdated: number = 0
 
     // Store the original dataset to determine when it is modified
     UNSAFE_componentWillMount() {

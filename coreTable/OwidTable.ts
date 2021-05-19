@@ -705,7 +705,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     interpolateColumnLinearly(
         columnSlug: ColumnSlug,
-        extrapolate = false
+        extrapolate: boolean = false
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this

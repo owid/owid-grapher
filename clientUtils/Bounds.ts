@@ -72,7 +72,7 @@ export class Bounds {
     }
 
     static forText(
-        str = "",
+        str: string = "",
         {
             x = 0,
             y = 0,

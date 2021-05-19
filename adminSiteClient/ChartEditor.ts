@@ -83,7 +83,7 @@ export class ChartEditor {
     @observable.ref tab: EditorTab = "basic"
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref savedGrapherJson = ""
+    @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url

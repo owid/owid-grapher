@@ -875,7 +875,7 @@ export class CoreTable<
     }
 
     toDelimited(
-        delimiter = ",",
+        delimiter: string = ",",
         columnSlugs = this.columnSlugs,
         rows = this.rows
     ): string {
@@ -953,7 +953,7 @@ export class CoreTable<
         )
     }
 
-    limit(howMany: number, offset = 0): this {
+    limit(howMany: number, offset: number = 0): this {
         const start = offset
         const end = offset + howMany
         return this.transform(
@@ -977,7 +977,7 @@ export class CoreTable<
         )
     }
 
-    limitColumns(howMany: number, offset = 0): this {
+    limitColumns(howMany: number, offset: number = 0): this {
         const slugs = this.columnSlugs.slice(offset, howMany + offset)
         return this.dropColumns(
             slugs,
@@ -1100,7 +1100,7 @@ export class CoreTable<
     }
 
     // for testing. Preserves ordering.
-    dropRandomRows(howMany = 1, seed = Date.now()): this {
+    dropRandomRows(howMany: number = 1, seed: number = Date.now()): this {
         if (!howMany) return this // todo: clone?
         const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
         return this.dropRowsAt(
@@ -1158,7 +1158,7 @@ export class CoreTable<
         )
     }
 
-    dropRandomPercent(dropHowMuch = 1, seed = Date.now()): this {
+    dropRandomPercent(dropHowMuch: number = 1, seed: number = Date.now()): this {
         return this.dropRandomRows(
             Math.floor((dropHowMuch / 100) * this.numRows),
             seed
@@ -1370,7 +1370,7 @@ export class CoreTable<
         return defsToAdd
     }
 
-    concat(tables: CoreTable[], message = `Combined tables`): this {
+    concat(tables: CoreTable[], message: string = `Combined tables`): this {
         const all = [this, ...tables] as CoreTable[]
         const defs = flatten(all.map((table) => table.defs)) as COL_DEF_TYPE[]
         const uniqDefs = uniqBy(defs, (def) => def.slug)

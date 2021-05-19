@@ -52,7 +52,7 @@ export class Chart extends BaseEntity {
     @OneToMany(() => ChartRevision, (rev) => rev.chart)
     logs!: ChartRevision[]
 
-    static table = "charts"
+    static table: string = "charts"
 
     // Only considers published charts, because only in that case the mapping slug -> id is unique
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {

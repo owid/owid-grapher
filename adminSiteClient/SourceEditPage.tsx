@@ -25,7 +25,7 @@ interface SourcePageData {
 }
 
 class SourceEditable {
-    @observable name = ""
+    @observable name: string = ""
     @observable description = {
         dataPublishedBy: undefined,
         dataPublisherSource: undefined,
@@ -46,7 +46,7 @@ class SourceEditable {
 @observer
 class SourceEditor extends React.Component<{ source: SourcePageData }> {
     @observable newSource!: SourceEditable
-    @observable isDeleted = false
+    @observable isDeleted: boolean = false
 
     // Store the original source to determine when it is modified
     UNSAFE_componentWillMount() {

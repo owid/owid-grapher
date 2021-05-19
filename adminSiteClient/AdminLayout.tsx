@@ -22,8 +22,8 @@ export class AdminLayout extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable private showFAQ = false
-    @observable private showSidebar = false
+    @observable private showFAQ: boolean = false
+    @observable private showSidebar: boolean = false
 
     @action.bound onToggleFAQ(): void {
         this.showFAQ = !this.showFAQ

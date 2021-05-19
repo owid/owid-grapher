@@ -237,8 +237,8 @@ export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
 
 export const getDocumentsInfo = async (
     type: WP_PostType,
-    cursor = "",
-    where = ""
+    cursor: string = "",
+    where: string = ""
 ): Promise<DocumentNode[]> => {
     const typePlural = `${type}s`
     const query = `

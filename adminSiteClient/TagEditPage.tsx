@@ -25,7 +25,7 @@ interface TagPageData {
 }
 
 class TagEditable {
-    @observable name = ""
+    @observable name: string = ""
     @observable parentId?: number
 
     constructor(json: TagPageData) {
@@ -41,7 +41,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
     context!: AdminAppContextType
 
     @observable newtag!: TagEditable
-    @observable isDeleted = false
+    @observable isDeleted: boolean = false
 
     // Store the original tag to determine when it is modified
     UNSAFE_componentWillMount() {

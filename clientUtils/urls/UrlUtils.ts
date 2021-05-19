@@ -22,7 +22,7 @@ export const getWindowQueryParams = (): QueryParams =>
  */
 export const strToQueryParams = (
     queryStr = "",
-    doNotDecode = false
+    doNotDecode: boolean = false
 ): QueryParams => {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 

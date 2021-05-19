@@ -214,7 +214,7 @@ export function linearInterpolation(
     valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
     context: LinearInterpolationContext,
-    start = 0,
+    start: number = 0,
     end: number = valuesSortedByTimeAsc.length
 ): void {
     if (!valuesSortedByTimeAsc.length) return
@@ -273,7 +273,7 @@ export function toleranceInterpolation(
     valuesSortedByTimeAsc: (number | ErrorValue)[],
     timesAsc: Time[],
     context: ToleranceInterpolationContext,
-    start = 0,
+    start: number = 0,
     end: number = valuesSortedByTimeAsc.length
 ): void {
     if (!valuesSortedByTimeAsc.length) return

@@ -212,7 +212,7 @@ export function formatDay(
     return moment.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
 }
 
-export const formatYear = (year: number) => {
+export const formatYear = (year: number): string => {
     if (isNaN(year)) {
         console.warn(`Invalid year '${year}'`)
         return ""
@@ -223,7 +223,7 @@ export const formatYear = (year: number) => {
         : year.toString()
 }
 
-export const roundSigFig = (num: number, sigfigs = 1): number => {
+export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     if (num === 0) return 0
     const magnitude = Math.floor(Math.log10(Math.abs(num)))
     return round(num, -magnitude + sigfigs - 1)
@@ -405,7 +405,7 @@ export const pointsToPath = (points: Array<[number, number]>): string => {
 export const sortedFindClosestIndex = (
     array: number[],
     value: number,
-    startIndex = 0,
+    startIndex: number = 0,
     // non-inclusive end
     endIndex: number = array.length
 ): number => {
@@ -696,7 +696,7 @@ export const addDays = (date: Date, days: number): Date => {
 
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries = 3
+    maxRetries: number = 3
 ): Promise<T> {
     let retried = 0
     let lastError

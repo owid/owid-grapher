@@ -54,7 +54,7 @@ class VariableEditable implements Omit<LegacyVariableConfig, "id"> {
 @observer
 class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     @observable newVariable!: VariableEditable
-    @observable isDeleted = false
+    @observable isDeleted: boolean = false
 
     // Store the original dataset to determine when it is modified
     UNSAFE_componentWillMount() {
