@@ -14,15 +14,15 @@ The owid-grapher visualization frontend code can run isomorphically under node t
 
 ### Overview of this repository
 
-[The Grapher](grapher/) is the central visualization component that displays data interactively (almost every interactive chart on the https://ourworldindata.org uses this). It can fetch data either encoded as a json file or is sometimes also used with json embedded in the HTML document for faster loading. Every grapher needs one json config file that configures it.
+[The Grapher](grapher/) is the central visualization component that displays data interactively (almost every interactive chart on [Our World in Data](https://ourworldindata.org) uses this). It can fetch data either encoded as a JSON file or is sometimes also used with JSON embedded in the HTML document for faster loading. Every grapher needs one JSON config file that configures it.
 
-The [baker](baker/) is the tool that is used to build the static Our World In Data website by fusing the content of the wordpress that is used for authoring the text and site structure with the graphers. The data for this wordpress is store in a mysql database.
+The [Grapher Admin](adminSiteServer/) is both a server side and client side typescript project that allows interactive configuration of graphers and manages the MySQL database that stores all the data for all grapher instances. The data model is roughly: one variable is a series of observations of 4-tuples of [`variable id`, `entity` (e.g. country), `time point` (e.g. year), `data value`].Several variables are grouped together into one data set. Datasets can be grouped into namespaces which is usually done for groups of datasets that are bulk imported from a specific upstream provider like the World Bank.
 
-The [Grapher Admin](adminSiteServer/) is both a server side and client side typescript project that allows interactive configuring of graphers and manages the mysql database that stores all the data for all grapher instances. The data model is roughly: One variable is a series of observations of 4-tuples of (`variable id`, `entity` e.g. country, `time point` like year and `data value`). Several variables are grouped together into one data set. Datasets can be grouped into namespaces which is usually done for groups of datasets that are bulk imported from a specific upstream provider like the world bank.
+The [Wordpress admin](wordpress/) is used by authors to write the content published on [Our World in Data](https://ourworldindata.org). It is a relatively stock setup including a custom plugin to provide additional blocks for the editor. The Wordpress content and configuration is stored in a MySQL database.
 
-The [wordpress](wordpress/) installation is a relatively stock setup that is used by authors to write their content with a custom OWID plugin to customize some minor aspects.
+The [baker](baker/) is the tool that is used to build the static [Our World in Data](https://ourworldindata.org) website by merging the content authored in the headless Wordpress admin with the graphers.
 
-[Explorers](explorer/) are a relatively new addition that visually shows some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdmin/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
+[Explorers](explorer/) are a relatively new addition that visually show some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdmin/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
 
 ## Initial development setup
 
