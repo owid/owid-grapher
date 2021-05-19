@@ -4720,11 +4720,6 @@ ascii-table@0.0.9:
   resolved "https://registry.yarnpkg.com/ascii-table/-/ascii-table-0.0.9.tgz#06a6604d6a55d4bf41a9a47d9872d7a78da31e73"
   integrity sha1-BqZgTWpV1L9BqaR9mHLXp42jHnM=
 
-asciify-string@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/asciify-string/-/asciify-string-0.1.1.tgz#7e1702cd0a1d2c7ca2c0b81e784a3be9048a29de"
-  integrity sha1-fhcCzQodLHyiwLgeeEo76QSKKd4=
-
 asn1.js@^4.0.0:
   version "4.10.1"
   resolved "https://registry.yarnpkg.com/asn1.js/-/asn1.js-4.10.1.tgz#b9c2bf5805f1e64aadeed6df3a2bfafb5a73f5a0"
@@ -10056,11 +10051,6 @@ good-listener@^1.2.2:
   integrity sha1-1TswzfkxPf+33JoNR3CWqm0UXFA=
   dependencies:
     delegate "^3.1.2"
-
-google-trends-api@^4.9.0:
-  version "4.9.0"
-  resolved "https://registry.yarnpkg.com/google-trends-api/-/google-trends-api-4.9.0.tgz#907ad9f02df6c10596dfe887f5e16517b8510f60"
-  integrity sha512-ujOLHM98bE7Igy8YA4Lrb5naDpaY1wGt215zgHXPznCDwHmMjMK1FW8yW//dHQ9CKyG/HzaNBDfF7jEAUk8Kkw==
 
 got@^10.7.0:
   version "10.7.0"
