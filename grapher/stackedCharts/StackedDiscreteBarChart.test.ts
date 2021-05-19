@@ -1,5 +1,7 @@
 #! /usr/bin/env jest
 
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
+import { OwidTable } from "../../coreTable/OwidTable"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -27,6 +29,37 @@ it("can create a chart", () => {
     expect(chart.failMessage).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(5)
+})
+
+it("can display a StackedDiscreteBar chart in relative mode", () => {
+    const csv = `coal,gas,year,entityName
+    20,30,2000,France
+    6,14,2000,Spain`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "gas", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["coal", "gas"],
+        isRelativeMode: true,
+    }
+    const chart = new StackedDiscreteBarChart({ manager })
+
+    // Check that our absolute values get properly transformed into percentages
+    expect(chart.failMessage).toEqual("")
+    expect(chart.series.length).toEqual(2)
+    expect(chart.series[0].points).toEqual([
+        { position: "France", value: 40, valueOffset: 0 },
+        { position: "Spain", value: 30, valueOffset: 0 },
+    ])
+    expect(chart.series[1].points).toEqual([
+        { position: "France", value: 60, valueOffset: 40 },
+        { position: "Spain", value: 70, valueOffset: 30 },
+    ])
 })
 
 describe("columns as series", () => {
