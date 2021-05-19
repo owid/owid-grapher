@@ -158,7 +158,7 @@
         "mysql": "^2.17.1",
         "netlify-cli": "^3.17.1",
         "node-fetch": "^2.6.1",
-        "nodemailer": "^6.2.1",
+        "nodemailer": "^6.4.16",
         "normalize.css": "^8.0.1",
         "optimize-css-assets-webpack-plugin": "^5.0.4",
         "postcss": "^8.0.6",
