@@ -1,12 +1,23 @@
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import { CoreTable } from "./CoreTable"
+import { ColumnTypeMap } from "./CoreTableColumns"
 import { ColumnSlug } from "./CoreTableConstants"
+import { OwidTable } from "./OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 
-export function timeColumnSlugFromColumnDef(
-    def: OwidColumnDef
-): OwidTableSlugs.day | OwidTableSlugs.year {
-    return def.isDailyMeasurement ? OwidTableSlugs.day : OwidTableSlugs.year
+export function timeColumnSlugOfValueColumn(
+    table: OwidTable,
+    valueColumnSlug: ColumnSlug
+): ColumnSlug {
+    const def = table.get(valueColumnSlug).def as OwidColumnDef
+    if (def.isDailyMeasurement) {
+        return table.timeColumn instanceof ColumnTypeMap.Day
+            ? table.timeColumn.slug
+            : OwidTableSlugs.day
+    }
+    return table.timeColumn instanceof ColumnTypeMap.Year
+        ? table.timeColumn.slug
+        : OwidTableSlugs.year
 }
 
 export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {

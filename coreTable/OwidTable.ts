@@ -43,7 +43,7 @@ import { TimeBound } from "../clientUtils/TimeBounds"
 import {
     getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
-    timeColumnSlugFromColumnDef,
+    timeColumnSlugOfValueColumn,
     toPercentageColumnDef,
 } from "./OwidTableUtil"
 import {
@@ -645,7 +645,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         if (!this.has(columnSlug)) return this
 
         const column = this.get(columnSlug)
-        const columnDef = column.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column.tolerance ?? 0
 
         const timeColumnOfTable = !this.timeColumn.isMissing
@@ -655,7 +654,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         const maybeTimeColumnOfValue =
             getOriginalTimeColumnSlug(this, columnSlug) ??
-            timeColumnSlugFromColumnDef(columnDef)
+            timeColumnSlugOfValueColumn(this, columnSlug)
         const timeColumnOfValue = this.get(maybeTimeColumnOfValue)
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
 
@@ -710,11 +709,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         if (!this.has(columnSlug)) return this
 
         const column = this.get(columnSlug)
-        const columnDef = column?.def as OwidColumnDef
 
         const maybeTimeColumnSlug =
             getOriginalTimeColumnSlug(this, columnSlug) ??
-            timeColumnSlugFromColumnDef(columnDef)
+            timeColumnSlugOfValueColumn(this, columnSlug)
         const timeColumn =
             this.get(maybeTimeColumnSlug) ??
             (this.get(OwidTableSlugs.time) as CoreColumn) // CovidTable does not have a day or year column so we need to use time.
