@@ -2260,7 +2260,12 @@ export class Grapher
         if (!this.canToggleRelativeMode) return false
         if (this.isScatter)
             return this.xOverrideTime === undefined && this.hasTimeline
-        return this.isStackedArea || this.isScatter || this.isLineChart
+        return (
+            this.isStackedArea ||
+            this.isStackedDiscreteBar ||
+            this.isScatter ||
+            this.isLineChart
+        )
     }
 
     @computed get showHighlightToggle() {

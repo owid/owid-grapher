@@ -14,9 +14,28 @@ export const ColumnsAsSeries = () => {
     })
 
     return (
-        <svg width={600} height={600}>
+        <svg width={640} height={600}>
             <StackedDiscreteBarChart
                 manager={{ table, selection: table.sampleEntityName(5) }}
+            />
+        </svg>
+    )
+}
+
+export const ColumnsAsSeriesRelative = () => {
+    const table = SynthesizeFruitTable({
+        timeRange: [2000, 2001],
+        entityCount: 5,
+    })
+
+    return (
+        <svg width={640} height={600}>
+            <StackedDiscreteBarChart
+                manager={{
+                    table,
+                    selection: table.sampleEntityName(5),
+                    isRelativeMode: true,
+                }}
             />
         </svg>
     )

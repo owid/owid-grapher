@@ -76,6 +76,12 @@ export class StackedDiscreteBarChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
+        if (this.manager.isRelativeMode) {
+            table = table.toPercentageFromEachColumnForEachEntityAndTime(
+                this.yColumnSlugs
+            )
+        }
+
         return table
     }
 
@@ -170,27 +176,37 @@ export class StackedDiscreteBarChart
 
     @computed private get items(): Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
-        const items = entityNames.map((entityName) => ({
-            label: entityName,
-            bars: excludeUndefined(
-                this.series.map((series) => {
-                    const point = series.points.find(
-                        (point) => point.position === entityName
-                    )
-                    if (!point) return undefined
-                    return {
-                        point,
-                        color: series.color,
-                        seriesName: series.seriesName,
-                    }
-                })
-            ),
-        }))
-        return sortBy(items, (item) => {
-            const lastPoint = last(item.bars)?.point
-            if (!lastPoint) return 0
-            return lastPoint.valueOffset + lastPoint.value
-        }).reverse()
+        const items = entityNames
+            .map((entityName) => ({
+                label: entityName,
+                bars: excludeUndefined(
+                    this.series.map((series) => {
+                        const point = series.points.find(
+                            (point) => point.position === entityName
+                        )
+                        if (!point) return undefined
+                        return {
+                            point,
+                            color: series.color,
+                            seriesName: series.seriesName,
+                        }
+                    })
+                ),
+            }))
+            .filter((item) => item.bars.length)
+
+        if (this.manager.isRelativeMode) {
+            // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
+            // relative mode. Once we have an option to sort by a specific metric, that'll help.
+            // Until then, we're sorting by label to prevent any jumping.
+            return sortBy(items, (item) => item.label)
+        } else {
+            return sortBy(items, (item) => {
+                const lastPoint = last(item.bars)?.point
+                if (!lastPoint) return 0
+                return lastPoint.valueOffset + lastPoint.value
+            }).reverse()
+        }
     }
 
     @computed private get barHeight() {
