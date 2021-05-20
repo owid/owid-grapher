@@ -20,11 +20,14 @@ help:
 	@echo '  make destroy            Destroy images and docker resources'
 	@echo
 
-start: check-node-version ../owid-content build-complete .env wordpress/.env
+start: check-node-version ../owid-content .env wordpress/.env
 	@echo '==> Bringing up dev environment'
 	cd wordpress && lando start
 
-	# one-time setup of necessary databases
+	@make .wordpress-built
+
+	@make .admin-built
+
 	@make .full-snapshot-imported
 
 	@echo '==> Starting services in tmux'
@@ -56,9 +59,16 @@ mysql:
 	@echo '==> Checking out content in sibling directory'
 	git clone git@github.com:owid/owid-content $@
 
-build-complete: .env
-	@echo '==> Installing dev packages'
+.admin-built: package.json
+	@echo '==> Installing admin packages'
 	yarn
+	touch $@
+
+.wordpress-built: wordpress/composer.json wordpress/composer.lock
+	@echo '==> Building wordpress'
+	cd wordpress
+	lando build
+	touch $@
 
 .full-snapshot-imported:
 	@make import-full
@@ -71,7 +81,7 @@ import-grapher:
 
 import-full:
 	@echo '==> Importing full db snapshot'
-	cd wordpress && lando refresh --with-chartdata
+	cd wordpress && lando refresh --with-chartdata --with-uploads
 
 .env:
 	@echo '==> Using .env.example to configure grapher'
