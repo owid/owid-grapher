@@ -24,7 +24,9 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
     return ""
 }
 
-export const autoDetectSeriesStrategy = (manager: ChartManager): SeriesStrategy => {
+export const autoDetectSeriesStrategy = (
+    manager: ChartManager
+): SeriesStrategy => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 
     return autoDetectYColumnSlugs(manager).length > 1
