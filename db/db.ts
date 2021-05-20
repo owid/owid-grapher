@@ -74,14 +74,14 @@ export const mysqlFirst = async (
     return (await queryMysql(queryStr, params))[0]
 }
 
-export const closeTypeOrmAndKnexConnections = async () => {
+export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
     if (typeormConnection) await typeormConnection.close()
     if (knexInstance) await knexInstance.destroy()
 }
 
 let knexInstance: Knex
 
-export const knex = () => {
+export const knex = (): Knex<any, any[]> => {
     if (knexInstance) return knexInstance
 
     knexInstance = Knex({
@@ -108,6 +108,44 @@ export const knex = () => {
     return knexInstance
 }
 
-export const knexTable = (table: string) => knex().table(table)
+export const knexTable = (
+    table: string
+): Knex.QueryBuilder<
+    Record<string, unknown>,
+    | {
+          _base: unknown
+          _hasSelection: false
+          _keys: never
+          _aliases: Record<string, unknown>
+          _single: false
+          _intersectProps: Record<string, unknown>
 
-export const knexRaw = (str: string) => knex().raw(str)
+          _unionProps: never
+      }[]
+    | (
+          | {
+                _base: unknown
+                _hasSelection: boolean
+                _keys: string
+                _aliases: Record<string, unknown>
+
+                _single: boolean
+                _intersectProps: Record<string, unknown>
+
+                _unionProps: unknown
+            }
+          | {
+                _base: unknown
+                _hasSelection: false
+                _keys: never
+                _aliases: Record<string, unknown>
+
+                _single: false
+                _intersectProps: Record<string, unknown>
+
+                _unionProps: never
+            }
+      )[]
+> => knex().table(table)
+
+export const knexRaw = (str: string): Knex.Raw<any> => knex().raw(str)

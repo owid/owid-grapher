@@ -2,7 +2,7 @@ import { flatten } from "./Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 
-export const htmlToPlaintext = (html: string) =>
+export const htmlToPlaintext = (html: string): string =>
     fromString(html, {
         tables: true,
         ignoreHref: true,
@@ -11,10 +11,13 @@ export const htmlToPlaintext = (html: string) =>
         ignoreImage: true,
     })
 
-export const chunkWords = (text: string, maxChunkLength: number) =>
+export const chunkWords = (text: string, maxChunkLength: number): string[] =>
     chunk(text, maxChunkLength)
 
-export const chunkSentences = (text: string, maxChunkLength: number) => {
+export const chunkSentences = (
+    text: string,
+    maxChunkLength: number
+): string[] => {
     // See https://stackoverflow.com/a/25736082/1983739
     // Not perfect, just works in most cases
     const sentenceRegex = /(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\n)\s/g
@@ -52,7 +55,10 @@ export const chunkSentences = (text: string, maxChunkLength: number) => {
 
 // Chunks a given bit of text into an array of fragments less than or equal to maxChunkLength in size
 // These chunks will honor sentence boundaries where possible
-export const chunkParagraphs = (text: string, maxChunkLength: number) => {
+export const chunkParagraphs = (
+    text: string,
+    maxChunkLength: number
+): string[] => {
     const paragraphs = flatten(
         text
             .split("\n\n")

@@ -44,10 +44,10 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
     @observable isDeleted: boolean = false
 
     // Store the original tag to determine when it is modified
-    componentWillMount() {
-        this.componentWillReceiveProps(this.props)
+    UNSAFE_componentWillMount() {
+        this.UNSAFE_componentWillReceiveProps(this.props)
     }
-    componentWillReceiveProps(nextProps: any) {
+    UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.newtag = new TagEditable(nextProps.tag)
         this.isDeleted = false
     }
@@ -231,7 +231,7 @@ export class TagEditPage extends React.Component<{ tagId: number }> {
     componentDidMount() {
         this.getData(this.props.tagId)
     }
-    componentWillReceiveProps(nextProps: any) {
+    UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.getData(nextProps.tagId)
     }
 }

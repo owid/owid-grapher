@@ -16,7 +16,7 @@ import { execWrapper } from "./execWrapper"
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
 
-const dataExport = async () => {
+const dataExport = async (): Promise<void> => {
     await db.getConnection()
 
     const variablesToExportQuery = `

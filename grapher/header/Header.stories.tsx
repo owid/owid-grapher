@@ -12,4 +12,4 @@ const manager: HeaderManager = {
     subtitle: "This is my chart subtitle",
 }
 
-export const Default = () => <Header manager={manager} />
+export const Default = (): JSX.Element => <Header manager={manager} />

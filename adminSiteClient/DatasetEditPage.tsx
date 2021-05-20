@@ -46,7 +46,8 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display = new LegacyVariableDisplayConfig()
+    @observable
+    display: LegacyVariableDisplayConfig = new LegacyVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {
@@ -67,10 +68,10 @@ class VariableEditRow extends React.Component<{
     @observable.ref private grapher?: Grapher
     @observable private newVariable!: VariableEditable
 
-    componentWillMount() {
-        this.componentWillReceiveProps()
+    UNSAFE_componentWillMount() {
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.newVariable = new VariableEditable(this.props.variable)
     }
 
@@ -397,10 +398,10 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     @observable timesUpdated: number = 0
 
     // Store the original dataset to determine when it is modified
-    componentWillMount() {
-        this.componentWillReceiveProps()
+    UNSAFE_componentWillMount() {
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.newDataset = new DatasetEditable(this.props.dataset)
         this.isDeleted = false
     }
@@ -737,9 +738,9 @@ export class DatasetEditPage extends React.Component<{ datasetId: number }> {
     }
 
     componentDidMount() {
-        this.componentWillReceiveProps()
+        this.UNSAFE_componentWillReceiveProps()
     }
-    componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps() {
         this.getData()
     }
 }

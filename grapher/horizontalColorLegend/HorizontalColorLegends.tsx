@@ -84,27 +84,27 @@ export interface HorizontalColorLegendManager {
 class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
-    @computed get manager() {
+    @computed get manager(): HorizontalColorLegendManager {
         return this.props.manager
     }
 
-    @computed get legendX() {
+    @computed get legendX(): number {
         return this.manager.legendX ?? 0
     }
 
-    @computed get categoryLegendY() {
+    @computed get categoryLegendY(): number {
         return this.manager.categoryLegendY ?? 0
     }
 
-    @computed get numericLegendY() {
+    @computed get numericLegendY(): number {
         return this.manager.numericLegendY ?? 0
     }
 
-    @computed get legendWidth() {
+    @computed get legendWidth(): number {
         return this.manager.legendWidth ?? 200
     }
 
-    @computed get legendHeight() {
+    @computed get legendHeight(): number {
         return this.manager.legendHeight ?? 200
     }
 
@@ -113,7 +113,7 @@ class HorizontalColorLegend extends React.Component<{
         return this.manager.legendAlign ?? LegendAlign.center
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 }
@@ -122,39 +122,39 @@ class HorizontalColorLegend extends React.Component<{
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get numericLegendData() {
+    @computed get numericLegendData(): ColorScaleBin[] {
         return this.manager.numericLegendData ?? []
     }
 
-    @computed get numericBins() {
+    @computed get numericBins(): NumericBin[] {
         return this.numericLegendData.filter(
-            (bin) => bin instanceof NumericBin
-        ) as NumericBin[]
+            (bin): bin is NumericBin => bin instanceof NumericBin
+        )
     }
     rectHeight = 10
 
-    @computed get tickFontSize() {
+    @computed get tickFontSize(): number {
         return 0.75 * this.fontSize
     }
 
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue() {
+    @computed get minValue(): number {
         return min(this.numericBins.map((bin) => bin.min)) as number
     }
-    @computed get maxValue() {
+    @computed get maxValue(): number {
         return max(this.numericBins.map((bin) => bin.max)) as number
     }
-    @computed get rangeSize() {
+    @computed get rangeSize(): number {
         return this.maxValue - this.minValue
     }
-    @computed get categoryBinWidth() {
+    @computed get categoryBinWidth(): number {
         return Bounds.forText("No data", { fontSize: this.tickFontSize }).width
     }
-    @computed get categoryBinMargin() {
+    @computed get categoryBinMargin(): number {
         return this.rectHeight * 1.5
     }
-    @computed get totalCategoricalWidth() {
+    @computed get totalCategoricalWidth(): number {
         const { numericLegendData } = this
         const { categoryBinWidth, categoryBinMargin } = this
         const widths = numericLegendData.map((bin) =>
@@ -164,11 +164,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
         return sum(widths)
     }
-    @computed get availableNumericWidth() {
+    @computed get availableNumericWidth(): number {
         return this.legendWidth - this.totalCategoricalWidth
     }
 
-    @computed get positionedBins() {
+    @computed get positionedBins(): PositionedBin[] {
         const {
             manager,
             rangeSize,
@@ -201,18 +201,18 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 width,
                 margin,
                 bin: bin,
-            } as PositionedBin
+            }
         })
     }
 
-    @computed get numericLabels() {
+    @computed get numericLabels(): NumericLabel[] {
         const { rectHeight, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
             bin: PositionedBin,
             minOrMax: "min" | "max",
             text: string
-        ) => {
+        ): NumericLabel => {
             const labelBounds = Bounds.forText(text, { fontSize: tickFontSize })
             const x =
                 bin.x +
@@ -228,7 +228,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             }
         }
 
-        const makeRangeLabel = (bin: PositionedBin) => {
+        const makeRangeLabel = (bin: PositionedBin): NumericLabel => {
             const labelBounds = Bounds.forText(bin.bin.text, {
                 fontSize: tickFontSize,
             })
@@ -295,13 +295,13 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return labels
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return Math.abs(
             min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
         )
     }
 
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return new Bounds(
             this.legendX,
             this.numericLegendY,
@@ -310,7 +310,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
+    @action.bound onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { manager, base, positionedBins } = this
         const { numericFocusBracket } = manager
         const mouse = getRelativeMouse(base.current, ev)
@@ -343,12 +343,12 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             manager.onLegendMouseOver(newFocusBracket)
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         document.documentElement.addEventListener("mousemove", this.onMouseMove)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.documentElement.removeEventListener(
             "mousemove",
             this.onMouseMove
@@ -359,7 +359,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const {
             manager,
             numericLabels,
@@ -434,11 +434,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    @computed get categoricalLegendData() {
+    @computed get categoricalLegendData(): CategoricalBin[] {
         return this.manager.categoricalLegendData ?? []
     }
 
-    @computed private get markLines() {
+    @computed private get markLines(): MarkLine[] {
         const manager = this.manager
         const scale = manager.scale ?? 1
         const rectSize = 12 * scale
@@ -491,11 +491,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return lines
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
-    @computed get marks() {
+    @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
 
@@ -518,11 +518,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return flatten(lines.map((l) => l.marks))
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return max(this.marks.map((mark) => mark.y + mark.rectSize)) as number
     }
 
-    render() {
+    render(): JSX.Element {
         const { manager, marks } = this
 
         return (
@@ -532,12 +532,12 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                         return (
                             <g
                                 key={index}
-                                onMouseOver={() =>
+                                onMouseOver={(): void =>
                                     manager.onLegendMouseOver
                                         ? manager.onLegendMouseOver(mark.bin)
                                         : undefined
                                 }
-                                onMouseLeave={() =>
+                                onMouseLeave={(): void =>
                                     manager.onLegendMouseLeave
                                         ? manager.onLegendMouseLeave()
                                         : undefined

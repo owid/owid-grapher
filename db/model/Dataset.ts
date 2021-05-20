@@ -34,7 +34,7 @@ export class Dataset extends BaseEntity {
     createdByUser!: User
 
     // Export dataset variables to CSV (not including metadata)
-    static async writeCSV(datasetId: number, stream: Writable) {
+    static async writeCSV(datasetId: number, stream: Writable): Promise<void> {
         const csvHeader = ["Entity", "Year"]
         const variables = await db.queryMysql(
             `SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`,
@@ -86,7 +86,7 @@ export class Dataset extends BaseEntity {
         stream.end()
     }
 
-    static async setTags(datasetId: number, tagIds: number[]) {
+    static async setTags(datasetId: number, tagIds: number[]): Promise<void> {
         await db.transaction(async (t) => {
             const tagRows = tagIds.map((tagId) => [tagId, datasetId])
             await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [
@@ -109,11 +109,11 @@ export class Dataset extends BaseEntity {
         return csv
     }
 
-    get filename() {
+    get filename(): string {
         return filenamify(this.name)
     }
 
-    get slug() {
+    get slug(): string {
         return slugify(this.name)
     }
 

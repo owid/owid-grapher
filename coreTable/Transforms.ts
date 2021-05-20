@@ -1,7 +1,19 @@
 import { flatten } from "../clientUtils/Util"
-import { ColumnSlug, CoreColumnStore, Time } from "./CoreTableConstants"
+import {
+    ColumnSlug,
+    CoreColumnStore,
+    Time,
+    CoreValueType,
+} from "./CoreTableConstants"
 import { CoreColumnDef } from "./CoreColumnDef"
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
+import {
+    ErrorValue,
+    ErrorValueTypes,
+    isNotErrorValue,
+    MissingValuePlaceholder,
+    ValueTooLow,
+    DivideByZeroError,
+} from "./ErrorValues"
 
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
 // in the spots where we are missing values (added to make computing rolling windows easier).
@@ -11,7 +23,7 @@ import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 export const insertMissingValuePlaceholders = (
     values: number[],
     times: number[]
-) => {
+): (number | MissingValuePlaceholder)[] => {
     const startTime = times[0]
     const endTime = times[times.length - 1]
     const filledRange = []
@@ -36,7 +48,7 @@ export function computeRollingAverage(
     numbers: (number | undefined | null | ErrorValue)[],
     windowSize: number,
     align: "right" | "center" = "right"
-) {
+): (number | ErrorValue)[] {
     const result: (number | ErrorValue)[] = []
 
     for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
@@ -97,7 +109,7 @@ const timeSinceEntityExceededThreshold = (
     entitySlug: ColumnSlug,
     columnSlug: ColumnSlug,
     thresholdAsString: string
-) => {
+): (number | ValueTooLow)[] => {
     const threshold = parseFloat(thresholdAsString)
     const groupValues = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
@@ -126,7 +138,7 @@ const rollingAverage = (
     entitySlug: ColumnSlug,
     columnSlug: ColumnSlug,
     windowSize: number
-) => {
+): (number | ErrorValue)[] => {
     const entityNames = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
     const timeValues = columnStore[timeSlug] as number[]
@@ -164,7 +176,7 @@ const divideBy = (
     columnStore: CoreColumnStore,
     numeratorSlug: ColumnSlug,
     denominatorSlug: ColumnSlug
-) => {
+): (number | DivideByZeroError)[] => {
     const numeratorValues = columnStore[numeratorSlug] as number[]
     const denominatorValues = columnStore[denominatorSlug] as number[]
     return denominatorValues.map((denominator, index) => {
@@ -215,7 +227,7 @@ const where = (
     columnSlug: ColumnSlug,
     conditionSlug: ColumnSlug,
     ...condition: string[]
-) => {
+): CoreValueType[] => {
     const values = columnStore[columnSlug]
     const conditionValues = columnStore[conditionSlug]
     const operator = condition.shift()
@@ -247,7 +259,7 @@ const percentChange = (
     entitySlug: ColumnSlug,
     columnSlug: ColumnSlug,
     windowSize: number
-) => {
+): (number | ErrorValue)[] => {
     const entityNames = columnStore[entitySlug] as string[]
     const columnValues = columnStore[columnSlug] as number[]
 
@@ -284,7 +296,7 @@ const asPercentageOf = (
     columnStore: CoreColumnStore,
     numeratorSlug: ColumnSlug,
     denominatorSlug: ColumnSlug
-) =>
+): (number | DivideByZeroError)[] =>
     divideBy(columnStore, numeratorSlug, denominatorSlug).map((num) =>
         typeof num === "number" ? 100 * num : num
     )
@@ -305,14 +317,14 @@ export const AvailableTransforms = Object.keys(availableTransforms)
 export const applyTransforms = (
     columnStore: CoreColumnStore,
     defs: CoreColumnDef[]
-) => {
+): CoreColumnStore => {
     defs.forEach((def) => {
         const words = def.transform!.split(" ")
         const transformName = words.find(
             (word) => availableTransforms[word] !== undefined
         )
         if (!transformName) {
-            console.log(`Warning: transform '${transformName}' not found`)
+            console.warn(`Warning: transform '${transformName}' not found`)
             return
         }
         const params = words.filter((word) => word !== transformName)

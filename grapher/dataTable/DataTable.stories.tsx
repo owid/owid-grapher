@@ -14,14 +14,14 @@ const table = SynthesizeGDPTable({
     entityCount: 7,
 })
 
-export const Default = () => {
+export const Default = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
     }
     return <DataTable manager={manager} />
 }
 
-export const WithTimeRange = () => {
+export const WithTimeRange = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
     }
@@ -30,7 +30,7 @@ export const WithTimeRange = () => {
     return <DataTable manager={manager} />
 }
 
-export const WithTolerance = () => {
+export const WithTolerance = (): JSX.Element => {
     const table = SynthesizeGDPTable(
         {
             timeRange: [2010, 2020],
@@ -68,12 +68,12 @@ export const WithTolerance = () => {
     )
 }
 
-export const FromLegacy = () => {
+export const FromLegacy = (): JSX.Element => {
     const grapher = childMortalityGrapher()
     return <DataTable manager={grapher} />
 }
 
-export const FromLegacyWithTimeRange = () => {
+export const FromLegacyWithTimeRange = (): JSX.Element => {
     const grapher = childMortalityGrapher({
         type: ChartTypeName.LineChart,
         tab: GrapherTabOption.chart,
@@ -83,7 +83,7 @@ export const FromLegacyWithTimeRange = () => {
     return <DataTable manager={grapher} />
 }
 
-export const IncompleteDataTableComponent = () => {
+export const IncompleteDataTableComponent = (): JSX.Element => {
     const grapher = IncompleteDataTable()
     grapher.timelineHandleTimeBounds = [2000, 2000]
     return <DataTable manager={grapher} />

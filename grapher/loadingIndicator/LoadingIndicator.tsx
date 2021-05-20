@@ -8,7 +8,7 @@ export const LoadingIndicator = (props: {
     bounds?: Bounds
     color?: string
     title?: string
-}) => {
+}): JSX.Element => {
     return (
         <div
             className="loading-indicator"

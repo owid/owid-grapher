@@ -38,7 +38,7 @@ import { AdminLayout } from "./AdminLayout"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
-    render() {
+    render(): JSX.Element | null {
         const { admin } = this.props
         const error = admin.errorMessage
 
@@ -80,7 +80,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 
 @observer
 class AdminLoader extends React.Component<{ admin: Admin }> {
-    render() {
+    render(): JSX.Element | null {
         const { admin } = this.props
         return admin.showLoadingIndicator ? <LoadingBlocker /> : null
     }
@@ -95,7 +95,7 @@ export class AdminApp extends React.Component<{
         return { admin: this.props.admin }
     }
 
-    render() {
+    render(): JSX.Element {
         const { admin, gitCmsBranchName } = this.props
 
         return (

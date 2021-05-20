@@ -8,16 +8,16 @@
  * For a good read on the "Errors are values" pattern: https://blog.golang.org/errors-are-values
  */
 export abstract class ErrorValue {
-    toString() {
+    toString(): string {
         return ""
     }
-    toErrorString() {
+    toErrorString(): string {
         return this.constructor.name
     }
 }
 
 class NaNButShouldBeNumber extends ErrorValue {}
-class DroppedForTesting extends ErrorValue {}
+export class DroppedForTesting extends ErrorValue {}
 class InvalidOnALogScale extends ErrorValue {}
 class UndefinedButShouldBeNumber extends ErrorValue {}
 class NullButShouldBeNumber extends ErrorValue {}
@@ -25,10 +25,10 @@ class BlankButShouldBeNumber extends ErrorValue {}
 class UndefinedButShouldBeString extends ErrorValue {}
 class NullButShouldBeString extends ErrorValue {}
 class NotAParseableNumberButShouldBeNumber extends ErrorValue {}
-class DivideByZeroError extends ErrorValue {}
+export class DivideByZeroError extends ErrorValue {}
 class NoValueWithinTolerance extends ErrorValue {}
 class NoMatchingValueAfterJoin extends ErrorValue {}
-class ValueTooLow extends ErrorValue {}
+export class ValueTooLow extends ErrorValue {}
 class NoValueToCompareAgainst extends ErrorValue {}
 class FilteredValue extends ErrorValue {}
 class NoValueForInterpolation extends ErrorValue {}

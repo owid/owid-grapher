@@ -9,5 +9,5 @@ mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
 import { Grapher } from "../core/Grapher"
-declare var window: any
+declare let window: any
 window.Grapher = Grapher

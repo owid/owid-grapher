@@ -82,7 +82,7 @@ export class Chart extends BaseEntity {
         return await Chart.findOne({ id: slugsById[slug] })
     }
 
-    static async setTags(chartId: number, tagIds: number[]) {
+    static async setTags(chartId: number, tagIds: number[]): Promise<void> {
         await db.transaction(async (t) => {
             const tagRows = tagIds.map((tagId) => [tagId, chartId])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
@@ -108,7 +108,9 @@ export class Chart extends BaseEntity {
         })
     }
 
-    static async assignTagsForCharts(charts: { id: number; tags: any[] }[]) {
+    static async assignTagsForCharts(
+        charts: { id: number; tags: any[] }[]
+    ): Promise<void> {
         const chartTags = await db.queryMysql(`
             SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
@@ -134,7 +136,7 @@ export class Chart extends BaseEntity {
             row.config = JSON.parse(row.config)
         }
 
-        return rows
+        return rows as ChartRow[] // This cast might be a lie?
     }
 }
 
