@@ -20,6 +20,14 @@ See https://docs.lando.dev/basics/installation.html#hardware-requirements
 -   Extra REST API fields
 -   Custom Gutenberg blocks
 
+## Overview
+
+This setup uses [Lando](https://lando.dev/) which internally uses docker-compose to run mysql (with one DB for wordpress and one for the grapher data) and wordpress inside containers. It comes with scripts that will fill the database for you from the (production?) server.
+
+When you want to work with the grapher you would still run the grapher admin node server, grapher typescript server and webpack locally on your dev machine and set them up so that they talk to the mysql db and where required wordpress when necessary.
+
+Basically this setup allows you to just follow the [top level readme](../) instruction from the section "Development server". Ask another dev for an .env variable file preconfigured with the correct settings for the top level .env config file.
+
 ## Installation
 
 _Note: the following commands need to run in the current folder, not the root of the project._
