@@ -70,8 +70,7 @@ mysql:
 
 .wordpress-built: wordpress/composer.json wordpress/composer.lock
 	@echo '==> Building wordpress'
-	cd wordpress
-	lando build
+	cd wordpress && lando build
 	touch $@
 
 .full-snapshot-imported:
