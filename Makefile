@@ -31,7 +31,11 @@ start: check-node-version ../owid-content .env wordpress/.env
 	@make .full-snapshot-imported
 
 	@echo '==> Starting services in tmux'
-	@yarn startTmuxServer
+	tmux \
+		new-session -s dev -n admin 'yarn startSiteBack' \; \
+		new-window -n admin-webpack 'yarn startSiteFront' \; \
+		new-window -n wp-webpack 'cd wordpress && lando dev' \; \
+		new-window -n log 'cd wordpress && lando logs --follow'
 
 stop:
 	@echo '==> Stopping dev environment'
