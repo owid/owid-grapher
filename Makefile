@@ -20,7 +20,7 @@ help:
 	@echo '  make destroy            Destroy images and docker resources'
 	@echo
 
-start: check-node-version ../owid-content build-complete .env
+start: check-node-version ../owid-content build-complete .env wordpress/.env
 	@echo '==> Bringing up dev environment'
 	cd wordpress && lando start
 
@@ -74,8 +74,12 @@ import-full:
 	cd wordpress && lando refresh --with-chartdata
 
 .env:
-	@echo '==> Using .env.example to configure environment'
+	@echo '==> Using .env.example to configure grapher'
 	cp .env.example .env
+
+wordpress/.env:
+	@echo '==> Using wordpress/.env.example to configure wordpress'
+	cp wordpress/.env.example wordpress/.env
 
 deploy:
 	@echo '==> Beginning deploy to production'
