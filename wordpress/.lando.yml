@@ -22,6 +22,14 @@ services:
     database:
         portforward: 3306
         healthcheck:
+    database-grapher:
+        type: mysql
+        creds:
+            user: grapher
+            password: grapher
+            database: grapher
+        portforward: 3307
+        healthcheck:
 events:
     pre-build:
         # post-start:

@@ -25,7 +25,7 @@
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLando": "cd wordpress && lando start",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
-        "startTmuxServer": "tmux new-session -s dev -n admin 'tsc-watch -b --onSuccess \"yarn startAdminServer\"' \\; new-window -n webpack 'yarn startSiteFront' \\;",
+        "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack-dev-server --no-live-reload --config ./itsJustJavascript/webpack.config.js",
         "startSiteFront": "webpack-dev-server --config ./itsJustJavascript/webpack.config.js",
