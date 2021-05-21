@@ -16,6 +16,7 @@ import md5 from "md5"
 import * as util from "util"
 //import pMap from "p-map"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface"
+import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -58,6 +59,8 @@ export async function renderSvg(
     verbose: boolean
 ): Promise<[string, SvgRecord, string]> {
     const [config, data] = await loadGrapherConfigAndData(dir)
+
+    TESTING_ONLY_reset_guid()
     const grapher = initGrapherForSvgExport(config, "")
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilename(
