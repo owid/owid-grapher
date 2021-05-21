@@ -24,15 +24,16 @@ start: check-node-version ../owid-content .env wordpress/.env
 	@echo '==> Bringing up dev environment'
 	cd wordpress && lando start
 
+	@# once-off commands
 	@make .wordpress-built
-
 	@make .admin-built
-
 	@make .full-snapshot-imported
+
+	@make check-wordpress-api-credentials
 
 	@echo '==> Starting services in tmux'
 	tmux \
-		new-session -s dev -n admin-node 'yarn run tsc-watch -b --onSuccess="yarn startAdminServer"' \; \
+		new-session -s dev -n admin-node 'yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 		new-window -n admin-webpack 'yarn startSiteFront' \; \
 		new-window -n wp-webpack 'cd wordpress && lando dev' \; \
 		new-window -n log 'cd wordpress && lando logs --follow'
@@ -97,3 +98,9 @@ wordpress/.env:
 deploy:
 	@echo '==> Beginning deploy to production'
 	yarn buildAndDeploySite
+
+check-wordpress-api-credentials:
+	@if (! grep -Eq '^WORDPRESS_API_USER=.+' .env) || (! grep -Eq '^WORDPRESS_API_PASS=.+' .env); then \
+		echo 'MANUAL STEP: please set wordpress api credentials in .env, then run "make start" again'; \
+		exit 1; \
+	fi
