@@ -84,7 +84,7 @@ import-grapher:
 
 import-full:
 	@echo '==> Importing full db snapshot'
-	cd wordpress && lando refresh --with-chartdata --with-uploads
+	cd wordpress && lando refresh --with-chartdata
 
 .env:
 	@echo '==> Using .env.example to configure grapher'
