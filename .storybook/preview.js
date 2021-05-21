@@ -2,7 +2,7 @@ import { addParameters } from "@storybook/client-api"
 import { INITIAL_VIEWPORTS } from "@storybook/addon-viewport"
 import "site/owid.scss"
 import "grapher/core/grapher.scss"
-// import "handsontable/dist/handsontable.full.css" .. This currently breaks with postcss/autoprefixer. Uncomment this and then remove the autoprefixer line in postcss to enable.
+import "handsontable/dist/handsontable.full.css"
 
 addParameters({
     viewport: {
