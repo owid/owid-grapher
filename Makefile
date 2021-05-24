@@ -35,7 +35,6 @@ start: check-node-version ../owid-content .env wordpress/.env
 	tmux \
 		new-session -s dev -n admin-node 'yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 		new-window -n admin-webpack 'yarn startSiteFront' \; \
-		new-window -n wp-webpack 'cd wordpress && lando dev' \; \
 		new-window -n log 'cd wordpress && lando logs --follow'
 
 stop:
