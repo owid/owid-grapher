@@ -91,7 +91,7 @@ export async function bakeGrapherToSvg(
 ) {
     const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
     const { width, height } = grapher.idealBounds
-    const outPath = buildSvgOutFilename(
+    const outPath = buildSvgOutFilepath(
         slug,
         queryStr,
         outDir,
@@ -129,14 +129,32 @@ export function initGrapherForSvgExport(
 export function buildSvgOutFilename(
     slug: string,
     queryStr: string,
+    version: number | undefined,
+    width: number,
+    height: number
+) {
+    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
+    const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
+    return outFilename
+}
+
+export function buildSvgOutFilepath(
+    slug: string,
+    queryStr: string,
     outDir: string,
     version: number | undefined,
     width: number,
     height: number,
     verbose: boolean
 ) {
-    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
-    const outPath = `${outDir}/${fileKey}_v${version}_${width}x${height}.svg`
+    const outFilename = buildSvgOutFilename(
+        slug,
+        queryStr,
+        version,
+        width,
+        height
+    )
+    const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)
     return outPath
 }

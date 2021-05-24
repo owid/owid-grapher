@@ -56,6 +56,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
                     slug: items[1],
                     chartType: items[2] as ChartTypeName,
                     md5: items[3],
+                    svgFilename: items[4],
                 },
             ]
         })
@@ -64,21 +65,26 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const differences = []
 
     for (const dir of directoriesToProcess) {
-        const [svg, svgRecord, outputPath] = await utils.renderSvg(
-            dir,
-            outDir,
-            verbose
-        )
+        const [svg, svgRecord] = await utils.renderSvg(dir)
         const referenceEntry = csvContentMap.get(svgRecord.chartId)
         if (referenceEntry === undefined)
             throw `Reference entry not found for ${svgRecord.chartId}`
-        const newMd5 = svgRecord.md5
-        if (newMd5 !== referenceEntry.md5) {
-            console.warn(
-                `Hash was different for ${svgRecord.chartId}. Reference is ${referenceEntry.md5}, current is ${newMd5}`
-            )
-            await fs.writeFile(outputPath, svg)
-            differences.push(svgRecord.chartId)
+        const validationResult = await utils.verifySvg(
+            svg,
+            svgRecord,
+            referenceEntry,
+            referenceDir
+        )
+        switch (validationResult.kind) {
+            case "error":
+                console.warn(
+                    `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.error.startIndex}.
+Reference: ${validationResult.error.referenceSvgFragment}
+Current  : ${validationResult.error.newSvgFragment}`
+                )
+                const outputPath = path.join(outDir, svgRecord.svgFilename)
+                await fs.writeFile(outputPath, svg)
+                differences.push(svgRecord.chartId)
         }
     }
 

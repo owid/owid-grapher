@@ -6,7 +6,6 @@ import * as fs from "fs-extra"
 
 import * as path from "path"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
-    const verbose = false
     const inDir = parsedArgs["i"] ?? "grapherData"
     const outDir = parsedArgs["o"] ?? "grapherSvgs"
     const numPartitions = parsedArgs["n"] ?? 1
@@ -36,7 +35,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
     const svgRecords: utils.SvgRecord[] = []
     for (const dir of directoriesToProcess) {
-        const svgRecord = await utils.renderSvgAndSave(dir, outDir, verbose)
+        const svgRecord = await utils.renderSvgAndSave(dir, outDir)
         svgRecords.push(svgRecord)
     }
 
@@ -46,7 +45,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const csvFileStream = fs.createWriteStream(resultsPath)
     csvFileStream.write(utils.svgCsvHeader + "\n")
     for (const row of svgRecords) {
-        const line = `${row.chartId},${row.slug},${row.chartType},${row.md5}`
+        const line = `${row.chartId},${row.slug},${row.chartType},${row.md5},${row.svgFilename}`
         csvFileStream.write(line + "\n")
     }
     csvFileStream.end()
