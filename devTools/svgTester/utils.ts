@@ -78,9 +78,15 @@ export async function renderSvg(
         chartId: config.id!,
         slug: config.slug!,
         chartType: config.type,
-        md5: md5(svg),
+        md5: processSvgAndCalculateHash(svg),
     }
     return Promise.resolve([svg, svgRecord, outPath])
+}
+
+const removeIdsRegex = /id="[^"]*"/g.compile()
+export function processSvgAndCalculateHash(svg: string): string {
+    const processed = svg.replace(removeIdsRegex, "")
+    return md5(processed)
 }
 
 export async function renderSvgAndSave(

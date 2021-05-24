@@ -72,7 +72,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const referenceEntry = csvContentMap.get(svgRecord.chartId)
         if (referenceEntry === undefined)
             throw `Reference entry not found for ${svgRecord.chartId}`
-        const newMd5 = md5(svg)
+        const newMd5 = svgRecord.md5
         if (newMd5 !== referenceEntry.md5) {
             console.warn(
                 `Hash was different for ${svgRecord.chartId}. Reference is ${referenceEntry.md5}, current is ${newMd5}`

@@ -6,11 +6,20 @@
     "configurations": [
         {
             "name": "Run SVGTester",
-            "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/run.js",
+            "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node",
-            "args": ["100"]
+            "args": [
+                "-i",
+                "${workspaceFolder}/../owid-reference/testdata",
+                "-o",
+                "${workspaceFolder}/../owid-reference/svg-diffs",
+                "-r",
+                "${workspaceFolder}/../owid-reference/svgs",
+                "-n",
+                "100"
+            ]
         },
         {
             "name": "Launch Admin Server",
