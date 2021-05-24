@@ -5,9 +5,9 @@
 ##################################################
 
 # env variables are set by lando's env_file directive
-WORDPRESS_DB_HOST=$DB_HOST
-WORDPRESS_DB_NAME=$DB_NAME
-GRAPHER_DB_HOST=database-grapher
+WORDPRESS_DB_HOST=database
+WORDPRESS_DB_NAME=wordpress
+GRAPHER_DB_HOST=database
 GRAPHER_DB_NAME=grapher
 MYSQL="mysql -u root --default-character-set=utf8mb4"
 DL_FOLDER="."
@@ -19,7 +19,7 @@ SKIP_DB_DL=false
 
 usage()
 {
-  echo "Refreshes content. At the minimum, both Wordress and Grapher databases are cleared and populated after downloading the latest archives."
+  echo "Refreshes content. At the minimum, both Wordpress and Grapher databases are cleared and populated after downloading the latest archives."
   echo "The Grapher database is only populated with owid_metadata by default. Add --with-chartdata to have access to the full content."
   echo "Usage: refresh [options...]"
   echo ""
@@ -59,7 +59,7 @@ done
 
 
 purge_db(){
-  $MYSQL -h $1 -e "DROP DATABASE $2;CREATE DATABASE $2"
+  $MYSQL -h $1 -e "DROP DATABASE IF EXISTS $2; CREATE DATABASE $2"
 }
 
 import_db(){
@@ -68,17 +68,17 @@ import_db(){
 
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
-  echo "Downloading Wordress database (live_wordpress)"
+  echo "Downloading Wordpress database (live_wordpress)"
     ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql && sudo gzip -f /tmp/live_wordpress.sql"
     rsync -hav --progress owid-live:/tmp/live_wordpress.sql.gz $DL_FOLDER
 fi
-echo "Importing Wordress database (live_wordpress)"
+echo "Importing Wordpress database (live_wordpress)"
 purge_db $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
 import_db $DL_FOLDER/live_wordpress.sql.gz $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
 
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
-  echo "Downloading Wordress uploads"
+  echo "Downloading Wordpress uploads"
   rsync -havz --delete --exclude=/.gitkeep --progress owid-live:live-data/wordpress/uploads/ web/app/uploads
 fi
 
