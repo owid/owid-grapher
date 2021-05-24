@@ -361,7 +361,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    renderBar(bar: Bar, tooltipContext: TooltipContext) {
+    private renderBar(bar: Bar, tooltipContext: TooltipContext) {
         const { axis, formatColumn, focusSeriesName, barHeight } = this
         const { point, color, seriesName } = bar
 
@@ -418,7 +418,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    renderTooltip(tooltipContext: TooltipContext) {
+    private renderTooltip(tooltipContext: TooltipContext) {
         return (
             <table
                 style={{
