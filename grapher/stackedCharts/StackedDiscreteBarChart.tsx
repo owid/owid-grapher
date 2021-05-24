@@ -35,6 +35,7 @@ import {
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import Color from "color"
+import { Tippy } from "../chart/Tippy"
 
 const labelToBarPadding = 5
 
@@ -51,6 +52,12 @@ interface Bar {
     color: ColorType
     seriesName: string
     point: StackedPoint<EntityName>
+}
+
+interface TooltipContext {
+    label: string
+    bars: Bar[]
+    highlightedSeriesName?: string
 }
 
 @observer
@@ -316,20 +323,33 @@ export class StackedDiscreteBarChart
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
-                            <text
-                                x={0}
-                                y={0}
-                                transform={`translate(${
-                                    axis.place(this.x0) - labelToBarPadding
-                                }, 0)`}
-                                fill="#555"
-                                dominantBaseline="middle"
-                                textAnchor="end"
-                                {...this.labelStyle}
+                            <Tippy
+                                content={this.renderTooltip({
+                                    label,
+                                    bars,
+                                })}
                             >
-                                {label}
-                            </text>
-                            {bars.map((bar) => this.renderBar(bar))}
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        axis.place(this.x0) - labelToBarPadding
+                                    }, 0)`}
+                                    fill="#555"
+                                    dominantBaseline="middle"
+                                    textAnchor="end"
+                                    {...this.labelStyle}
+                                >
+                                    {label}
+                                </text>
+                            </Tippy>
+                            {bars.map((bar) =>
+                                this.renderBar(bar, {
+                                    label,
+                                    bars,
+                                    highlightedSeriesName: bar.seriesName,
+                                })
+                            )}
                         </g>
                     )
 
@@ -341,7 +361,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    renderBar(bar: Bar) {
+    renderBar(bar: Bar, tooltipContext: TooltipContext) {
         const { axis, formatColumn, focusSeriesName, barHeight } = this
         const { point, color, seriesName } = bar
 
@@ -361,35 +381,120 @@ export class StackedDiscreteBarChart
         const labelColor = Color(color).isLight() ? "#000" : "#fff"
 
         return (
-            <g key={seriesName}>
-                <rect
-                    x={0}
-                    y={0}
-                    transform={`translate(${barX}, ${-barHeight / 2})`}
-                    width={barWidth}
-                    height={barHeight}
-                    fill={color}
-                    opacity={isFaint ? 0.1 : 0.85}
-                    style={{
-                        transition: "height 200ms ease",
-                    }}
-                />
-                {showLabelInsideBar && (
-                    <text
-                        x={barX + barWidth / 2}
+            <Tippy
+                key={seriesName}
+                content={this.renderTooltip(tooltipContext)}
+            >
+                <g>
+                    <rect
+                        x={0}
                         y={0}
+                        transform={`translate(${barX}, ${-barHeight / 2})`}
                         width={barWidth}
                         height={barHeight}
-                        fill={labelColor}
-                        opacity={isFaint ? 0 : 1}
-                        fontSize="0.7em"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                    >
-                        {barLabel}
-                    </text>
-                )}
-            </g>
+                        fill={color}
+                        opacity={isFaint ? 0.1 : 0.85}
+                        style={{
+                            transition: "height 200ms ease",
+                        }}
+                    />
+                    {showLabelInsideBar && (
+                        <text
+                            x={barX + barWidth / 2}
+                            y={0}
+                            width={barWidth}
+                            height={barHeight}
+                            fill={labelColor}
+                            opacity={isFaint ? 0 : 1}
+                            fontSize="0.7em"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                        >
+                            {barLabel}
+                        </text>
+                    )}
+                </g>
+            </Tippy>
+        )
+    }
+
+    renderTooltip(tooltipContext: TooltipContext) {
+        return (
+            <table
+                style={{
+                    fontSize: "0.95em",
+                    lineHeight: "1.4em",
+                    whiteSpace: "normal",
+                }}
+            >
+                <tbody>
+                    <tr>
+                        <td colSpan={3}>
+                            <strong>{tooltipContext.label}</strong>
+                        </td>
+                    </tr>
+                    {tooltipContext.bars.map((bar) => {
+                        const { highlightedSeriesName } = tooltipContext
+                        const circleColor = bar.color
+                        const isHighlighted =
+                            bar.seriesName === highlightedSeriesName
+                        const isFaded =
+                            highlightedSeriesName !== undefined &&
+                            !isHighlighted
+                        return (
+                            <tr
+                                key={`${bar.seriesName}`}
+                                style={{
+                                    color: isHighlighted
+                                        ? "#111"
+                                        : isFaded
+                                        ? "#707070"
+                                        : "#555",
+                                    fontWeight: isHighlighted
+                                        ? "bold"
+                                        : undefined,
+                                }}
+                            >
+                                <td>
+                                    <div
+                                        style={{
+                                            width: "10px",
+                                            height: "10px",
+                                            borderRadius: "5px",
+                                            backgroundColor: circleColor,
+                                            display: "inline-block",
+                                            marginRight: "2px",
+                                        }}
+                                    />
+                                </td>
+                                <td
+                                    style={{
+                                        paddingRight: "0.8em",
+                                        fontSize: "0.9em",
+                                    }}
+                                >
+                                    {bar.seriesName}
+                                </td>
+                                <td
+                                    style={{
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {!bar.point.value
+                                        ? "No data"
+                                        : this.formatColumn.formatValueShort(
+                                              bar.point.value,
+                                              {
+                                                  noTrailingZeroes: false,
+                                              }
+                                          )}
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
         )
     }
 
