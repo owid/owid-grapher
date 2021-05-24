@@ -23,7 +23,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color, Time } from "../../clientUtils/owidTypes"
+import { Color as ColorType, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
@@ -33,6 +33,8 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import Color from "color"
 
 const labelToBarPadding = 5
 
@@ -46,7 +48,7 @@ interface Item {
 }
 
 interface Bar {
-    color: Color
+    color: ColorType
     seriesName: string
     point: StackedPoint<EntityName>
 }
@@ -266,6 +268,10 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
+    @computed private get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -276,7 +282,14 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, axis, innerBounds, barHeight, barSpacing } = this
+        const {
+            bounds,
+            axis,
+            innerBounds,
+            barHeight,
+            barSpacing,
+            formatColumn,
+        } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
@@ -333,22 +346,53 @@ export class StackedDiscreteBarChart
                                 const barWidth =
                                     axis.place(point.value) -
                                     axis.place(this.x0)
+
+                                const barLabel = formatColumn.formatValueShort(
+                                    point.value
+                                )
+                                const labelBounds = Bounds.forText(barLabel, {
+                                    fontSize: 11,
+                                })
+                                // Check that we have enough space to show the bar label
+                                const showLabelInsideBar =
+                                    labelBounds.width < 0.8 * barWidth &&
+                                    labelBounds.height < 0.9 * barHeight
+                                const labelColor = Color(color).isLight()
+                                    ? "#000"
+                                    : "#fff"
+
                                 return (
-                                    <rect
-                                        key={seriesName}
-                                        x={0}
-                                        y={0}
-                                        transform={`translate(${barX}, ${
-                                            -barHeight / 2
-                                        })`}
-                                        width={barWidth}
-                                        height={barHeight}
-                                        fill={color}
-                                        opacity={isFaint ? 0.1 : 0.85}
-                                        style={{
-                                            transition: "height 200ms ease",
-                                        }}
-                                    />
+                                    <g key={seriesName}>
+                                        <rect
+                                            x={0}
+                                            y={0}
+                                            transform={`translate(${barX}, ${
+                                                -barHeight / 2
+                                            })`}
+                                            width={barWidth}
+                                            height={barHeight}
+                                            fill={color}
+                                            opacity={isFaint ? 0.1 : 0.85}
+                                            style={{
+                                                transition: "height 200ms ease",
+                                            }}
+                                        />
+                                        {showLabelInsideBar && (
+                                            <text
+                                                x={barX + barWidth / 2}
+                                                y={0}
+                                                width={barWidth}
+                                                height={barHeight}
+                                                fill={labelColor}
+                                                opacity={isFaint ? 0 : 1}
+                                                fontSize="0.7em"
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                            >
+                                                {barLabel}
+                                            </text>
+                                        )}
+                                    </g>
                                 )
                             })}
                         </g>
