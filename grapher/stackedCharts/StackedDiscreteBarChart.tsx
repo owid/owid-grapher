@@ -35,7 +35,7 @@ import {
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import Color from "color"
-import { Tippy } from "../chart/Tippy"
+import { TippyIfInteractive } from "../chart/Tippy"
 
 const labelToBarPadding = 5
 
@@ -323,7 +323,10 @@ export class StackedDiscreteBarChart
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
-                            <Tippy
+                            <TippyIfInteractive
+                                isInteractive={
+                                    !this.manager.isExportingtoSvgOrPng
+                                }
                                 content={this.renderTooltip({
                                     label,
                                     bars,
@@ -342,7 +345,7 @@ export class StackedDiscreteBarChart
                                 >
                                     {label}
                                 </text>
-                            </Tippy>
+                            </TippyIfInteractive>
                             {bars.map((bar) =>
                                 this.renderBar(bar, {
                                     label,
@@ -381,7 +384,8 @@ export class StackedDiscreteBarChart
         const labelColor = Color(color).isLight() ? "#000" : "#fff"
 
         return (
-            <Tippy
+            <TippyIfInteractive
+                isInteractive={!this.manager.isExportingtoSvgOrPng}
                 key={seriesName}
                 content={this.renderTooltip(tooltipContext)}
             >
@@ -414,7 +418,7 @@ export class StackedDiscreteBarChart
                         </text>
                     )}
                 </g>
-            </Tippy>
+            </TippyIfInteractive>
         )
     }
 
