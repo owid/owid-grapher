@@ -141,4 +141,9 @@ export const GrapherGrammar: Grammar = {
             cssClass: "",
         })),
     },
+    note: {
+        ...StringCellDef,
+        keyword: "note",
+        description: "Chart footnote",
+    },
 } as const
