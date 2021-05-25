@@ -45,10 +45,7 @@ destroy:
 	@echo '==> Tearing down dev environment'
 	cd wordpress && lando destroy
 
-	@make clean
-
-clean:
-	rm -f .grapher-snapshot-imported .wordpress-snapshot-imported
+	rm -rf .wordpress-built .admin-built .full-snapshot-imported node_modules
 
 check-node-version:
 	@echo '==> Checking node version'
@@ -94,9 +91,16 @@ wordpress/.env:
 	@echo '==> Using wordpress/.env.example to configure wordpress'
 	cp wordpress/.env.example wordpress/.env
 
-deploy:
+deploy: itsJustJavascript/baker/buildAndDeploySite.js
 	@echo '==> Beginning deploy to production'
-	yarn buildAndDeploySite
+	@if [ -z "$(ENV)" ]; then \
+		echo 'Usage: ENV=live make deploy'; \
+		exit 1; \
+	fi
+	yarn buildAndDeploySite $(ENV)
+
+itsJustJavascript/baker/buildAndDeploySite.js:
+	yarn buildTsc
 
 check-wordpress-api-credentials:
 	@if (! grep -Eq '^WORDPRESS_API_USER=.+' .env) || (! grep -Eq '^WORDPRESS_API_PASS=.+' .env); then \
