@@ -437,15 +437,14 @@ export class StackedDiscreteBarChart
         return (
             <table
                 style={{
-                    fontSize: "0.95em",
-                    lineHeight: "1.1em",
+                    lineHeight: "1em",
                     whiteSpace: "normal",
-                    borderSpacing: "0.3em",
+                    borderSpacing: "0.5em",
                 }}
             >
                 <tbody>
                     <tr>
-                        <td colSpan={4}>
+                        <td colSpan={4} style={{ color: "#111" }}>
                             <strong>{tooltipContext.label}</strong>
                         </td>
                     </tr>
@@ -467,7 +466,7 @@ export class StackedDiscreteBarChart
                                 key={`${bar.seriesName}`}
                                 style={{
                                     color: isHighlighted
-                                        ? "#111"
+                                        ? "#000"
                                         : isFaded
                                         ? "#707070"
                                         : "#444",
@@ -523,6 +522,9 @@ export class StackedDiscreteBarChart
                                         <span className="icon">
                                             <FontAwesomeIcon
                                                 icon={faInfoCircle}
+                                                style={{
+                                                    marginRight: "0.25em",
+                                                }}
                                             />{" "}
                                         </span>
                                         {timeColumn.formatValue(bar.point.time)}
@@ -544,7 +546,7 @@ export class StackedDiscreteBarChart
                                 <div style={{ display: "flex" }}>
                                     <span
                                         className="icon"
-                                        style={{ marginRight: "3px" }}
+                                        style={{ marginRight: "0.5em" }}
                                     >
                                         <FontAwesomeIcon icon={faInfoCircle} />{" "}
                                     </span>
