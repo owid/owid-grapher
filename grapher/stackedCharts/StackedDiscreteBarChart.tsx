@@ -450,7 +450,7 @@ export class StackedDiscreteBarChart
                     </tr>
                     {tooltipContext.bars.map((bar) => {
                         const { highlightedSeriesName } = tooltipContext
-                        const circleColor = bar.color
+                        const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
                         const isFaded =
@@ -480,8 +480,7 @@ export class StackedDiscreteBarChart
                                         style={{
                                             width: "10px",
                                             height: "10px",
-                                            borderRadius: "5px",
-                                            backgroundColor: circleColor,
+                                            backgroundColor: squareColor,
                                             display: "inline-block",
                                         }}
                                     />
