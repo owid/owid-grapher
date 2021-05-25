@@ -7,8 +7,9 @@ import { Box } from "./owidTypes"
 // Since we want to be able to render charts headlessly and functionally, we
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
+
 export class Bounds {
-    static textBoundsCache: { [key: string]: Bounds } = {}
+    static textBoundsCache: Map<string, Bounds> = new Map()
     static ctx: CanvasRenderingContext2D
 
     static fromProps(props: Box): Bounds {
@@ -88,25 +89,33 @@ export class Bounds {
     ): Bounds {
         // Collapse contiguous spaces into one
         str = str.replace(/ +/g, " ")
-        const key = `${str}-${fontSize}`
-        let bounds = this.textBoundsCache[key]
-        if (bounds) {
-            if (bounds.x === x && bounds.y === y - bounds.height) return bounds
-            return bounds.extend({ x: x, y: y - bounds.height })
+
+        // Keep the options for pixelWidth in sync with the cache key below!
+        const isBold = fontWeight >= 600
+        const textProperties = {
+            font: "arial",
+            size: fontSize,
+            bold: isBold,
+        } as const
+        // str might be pretty long and we could waste quite a lot of money with this.
+        // It would be good to hash this but hashing in a way that is fast and works
+        // in browsers and node is non-trivial
+        const cacheKey = `${str}-${fontSize}-${isBold}`
+
+        const cached = this.textBoundsCache.get(cacheKey)
+        if (cached !== undefined) {
+            if (cached.x === x && cached.y === y - cached.height) return cached
+            return cached.extend({ x: x, y: y - cached.height })
         }
 
-        if (str === "") bounds = Bounds.empty()
-        else {
-            const width = pixelWidth(str, {
-                font: "arial",
-                size: fontSize,
-                bold: fontWeight >= 600,
-            })
+        let bounds = Bounds.empty()
+        if (str !== "") {
+            const width = pixelWidth(str, textProperties)
             const height = fontSize
             bounds = new Bounds(x, y - height, width, height)
         }
 
-        this.textBoundsCache[key] = bounds
+        this.textBoundsCache.set(cacheKey, bounds)
         return bounds
     }
 

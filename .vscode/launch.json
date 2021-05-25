@@ -14,11 +14,11 @@
                 "-i",
                 "${workspaceFolder}/../owid-reference/testdata",
                 "-o",
-                "${workspaceFolder}/../owid-reference/svg-diffs",
+                "${workspaceFolder}/../owid-reference/svgs-diffs",
                 "-r",
                 "${workspaceFolder}/../owid-reference/svgs",
                 "-g",
-                "861"
+                "367"
             ]
         },
         {
