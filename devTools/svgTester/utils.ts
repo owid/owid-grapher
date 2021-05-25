@@ -32,6 +32,16 @@ interface ResultError<E> {
 }
 
 type Result<T, E> = ResultOk<T> | ResultError<E>
+
+const resultOk = <T, E>(value: T): Result<T, E> => ({
+    kind: "ok",
+    value: value,
+})
+const resultError = <T, E>(error: E): Result<T, E> => ({
+    kind: "error",
+    error: error,
+})
+
 export type SvgRecord = {
     chartId: number
     slug: string
@@ -48,15 +58,6 @@ interface SvgDifference {
 
 export const svgCsvHeader = `grapherId,slug,chartType,md5,svgFilename`
 
-const resultOk = <T, E>(value: T): Result<T, E> => ({
-    kind: "ok",
-    value: value,
-})
-const resultError = <T, E>(error: E): Result<T, E> => ({
-    kind: "error",
-    error: error,
-})
-
 function findFirstDiffIndex(a: string, b: string): number {
     var i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
@@ -72,23 +73,24 @@ export async function verifySvg(
     referenceSvgRecord: SvgRecord,
     referenceSvgsPath: string
 ): Promise<Result<null, SvgDifference>> {
-    console.log(`processing ${newSvgRecord.chartId}`)
+    console.log(`verifying ${newSvgRecord.chartId}`)
+
     if (newSvgRecord.md5 === referenceSvgRecord.md5) {
+        // if the md5 hash is unchanged then there is no difference
         return resultOk(null)
     }
+
     const referenceSvg = await loadReferenceSvg(
         referenceSvgsPath,
         referenceSvgRecord
     )
-    console.log("preparing")
     const preparedNewSvg = prepareSvgForComparision(newSvg)
     const preparedReferenceSvg = prepareSvgForComparision(referenceSvg)
-    console.log("prepared")
     const firstDiffIndex = findFirstDiffIndex(
         preparedNewSvg,
         preparedReferenceSvg
     )
-    console.log("diffs found")
+    console.log(`${newSvgRecord.chartId} had differences`)
     return resultError({
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substr(
@@ -97,6 +99,52 @@ export async function verifySvg(
         ),
         newSvgFragment: preparedNewSvg.substr(firstDiffIndex - 20, 40),
     })
+}
+export async function decideDirectoriesToProcess(
+    grapherIds: number[],
+    inDir: string,
+    reverseDirectories: boolean,
+    numPartitions: number,
+    partition: number
+) {
+    let directories: string[] = []
+    if (grapherIds.length === 0) {
+        // If no grapher ids were given scan all directories in the inDir folder
+        const dir = await fs.opendir(inDir)
+        for await (const entry of dir) {
+            if (entry.isDirectory()) {
+                directories.push(entry.name)
+            }
+        }
+    } else {
+        // if grapher ids were given check which ones exist in inDir and filter to those
+        // -> if by doing so we drop some, warn the user
+        directories = grapherIds.map((id) => id.toString())
+        const allDirsCount = directories.length
+        directories = directories.filter((item) =>
+            fs.existsSync(path.join(inDir, item))
+        )
+        if (directories.length < allDirsCount) {
+            console.log(
+                `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
+            )
+        }
+    }
+
+    // Sort directories numerically (this assumes every dir == a grapher id and those are numeric)
+    directories.sort((a, b) => parseInt(a) - parseInt(b))
+    if (reverseDirectories) {
+        directories.reverse()
+    }
+    directories = directories.map((name) => path.join(inDir, name))
+    const directoriesToProcess = []
+    // Pick ever numPartition-tht element, using partition as the offset
+    for (let i = 0; i < directories.length; i++) {
+        if (i % numPartitions === partition - 1) {
+            directoriesToProcess.push(directories[i])
+        }
+    }
+    return directoriesToProcess
 }
 
 export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
@@ -252,4 +300,41 @@ export async function loadGrapherConfigAndData(
     const data = await readGzippedJsonFile(dataFilename)
 
     return Promise.resolve([config, data])
+}
+
+export function logDifferencesToConsole(
+    svgRecord: SvgRecord,
+    validationResult: ResultError<SvgDifference>
+) {
+    console.warn(
+        `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.error.startIndex}.
+Reference: ${validationResult.error.referenceSvgFragment}
+Current  : ${validationResult.error.newSvgFragment}`
+    )
+}
+
+export async function getReferenceCsvContentMap(referenceDir: string) {
+    const results = await fs.readFile(
+        path.join(referenceDir, "results.csv"),
+        "utf-8"
+    )
+    const csvContentArray = results
+        .split("\n")
+        .splice(1)
+        .map((line): [number, SvgRecord] => {
+            const items = line.split(",")
+            const chartId = parseInt(items[0])
+            return [
+                chartId,
+                {
+                    chartId: chartId,
+                    slug: items[1],
+                    chartType: items[2] as ChartTypeName,
+                    md5: items[3],
+                    svgFilename: items[4],
+                },
+            ]
+        })
+    const csvContentMap = new Map<number, SvgRecord>(csvContentArray)
+    return csvContentMap
 }

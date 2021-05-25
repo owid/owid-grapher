@@ -17,11 +17,6 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     for (const grapher of allGraphers) {
         await utils.saveGrapherSchemaAndData(grapher, outDir)
     }
-    // const allDone = await pMap(
-    //     allGraphers,
-    //     (grapherConfig) => saveGrapherSchemaAndData(grapherConfig, outDir),
-    //     { concurrency: 16, stopOnError: false }
-    // )
     await closeTypeOrmAndKnexConnections()
     console.log("Done")
 }

@@ -7,13 +7,16 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
+    // perpare and check arguments
     const inDir = parsedArgs["i"] ?? "grapherData"
     const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
     const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
     const numPartitions = parsedArgs["n"] ?? 1
     const partition = parsedArgs["p"] ?? 1
     const reverseDirectories = parsedArgs["l"] ?? false
-    const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString() // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
+    // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
+    const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
+
     if (partition <= 0) throw "Partition must be >= 1"
     if (partition > numPartitions) throw "Partition must be <= numPartitions"
     if (numPartitions <= 0) throw "numPartitions must be >= 1"
@@ -22,84 +25,35 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(referenceDir))
         throw `Reference directory does not exist ${inDir}`
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
+
     const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
-
-    let directories: string[] = []
-    if (grapherIds.length === 0) {
-        const dir = await fs.opendir(inDir)
-        for await (const entry of dir) {
-            if (entry.isDirectory()) {
-                directories.push(entry.name)
-            }
-        }
-    } else {
-        directories = grapherIds.map((id) => id.toString())
-        const allDirsCount = directories.length
-        directories = directories.filter((item) =>
-            fs.existsSync(path.join(inDir, item))
-        )
-        if (directories.length < allDirsCount) {
-            console.log(
-                `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
-            )
-        }
-    }
-
-    directories.sort((a, b) => parseInt(a) - parseInt(b))
-    if (reverseDirectories) {
-        directories.reverse()
-    }
-    directories = directories.map((name) => path.join(inDir, name))
-    const directoriesToProcess = []
-    for (let i = 0; i < directories.length; i++) {
-        if (i % numPartitions === partition - 1) {
-            directoriesToProcess.push(directories[i])
-        }
-    }
-
-    const results = await fs.readFile(
-        path.join(referenceDir, "results.csv"),
-        "utf-8"
+    const directoriesToProcess = await utils.decideDirectoriesToProcess(
+        grapherIds,
+        inDir,
+        reverseDirectories,
+        numPartitions,
+        partition
     )
-    const csvContentArray = results
-        .split("\n")
-        .splice(1)
-        .map((line): [number, utils.SvgRecord] => {
-            const items = line.split(",")
-            const chartId = parseInt(items[0])
-            return [
-                chartId,
-                {
-                    chartId: chartId,
-                    slug: items[1],
-                    chartType: items[2] as ChartTypeName,
-                    md5: items[3],
-                    svgFilename: items[4],
-                },
-            ]
-        })
-    const csvContentMap = new Map<number, utils.SvgRecord>(csvContentArray)
+    const csvContentMap = await utils.getReferenceCsvContentMap(referenceDir)
 
-    const differences = []
-
+    const differences: number[] = []
     for (const dir of directoriesToProcess) {
         const [svg, svgRecord] = await utils.renderSvg(dir)
+
         const referenceEntry = csvContentMap.get(svgRecord.chartId)
         if (referenceEntry === undefined)
             throw `Reference entry not found for ${svgRecord.chartId}`
+
         const validationResult = await utils.verifySvg(
             svg,
             svgRecord,
             referenceEntry,
             referenceDir
         )
+
         switch (validationResult.kind) {
             case "error":
-                console.warn(
-                    `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.error.startIndex}.
-Reference: ${validationResult.error.referenceSvgFragment}
-Current  : ${validationResult.error.newSvgFragment}`
-                )
+                utils.logDifferencesToConsole(svgRecord, validationResult)
                 const outputPath = path.join(outDir, svgRecord.svgFilename)
                 await fs.writeFile(outputPath, svg)
                 differences.push(svgRecord.chartId)
