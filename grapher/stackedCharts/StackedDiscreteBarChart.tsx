@@ -327,6 +327,7 @@ export class StackedDiscreteBarChart
                                 isInteractive={
                                     !this.manager.isExportingtoSvgOrPng
                                 }
+                                hideOnClick={false}
                                 content={this.renderTooltip({
                                     label,
                                     bars,
@@ -387,6 +388,7 @@ export class StackedDiscreteBarChart
             <TippyIfInteractive
                 isInteractive={!this.manager.isExportingtoSvgOrPng}
                 key={seriesName}
+                hideOnClick={false}
                 content={this.renderTooltip(tooltipContext)}
             >
                 <g>
