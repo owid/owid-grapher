@@ -1,4 +1,5 @@
 import { toJS } from "mobx"
+import { isEqual } from "../../clientUtils/Util"
 
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {
@@ -68,9 +69,9 @@ export function deleteRuntimeAndUnchangedProps<T>(
             return
         }
 
-        const currentValue = JSON.stringify(obj[key])
-        const defaultValue = JSON.stringify(defaultObj[key])
-        if (currentValue === defaultValue) {
+        const currentValue = obj[key]
+        const defaultValue = defaultObj[key]
+        if (isEqual(currentValue, defaultValue)) {
             // Don't persist any values that weren't changed from the default
             delete obj[key]
         }
