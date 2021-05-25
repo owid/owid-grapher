@@ -23,7 +23,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color as ColorType, Time } from "../../clientUtils/owidTypes"
+import { Color, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
@@ -51,7 +51,7 @@ interface Item {
 }
 
 interface Bar {
-    color: ColorType
+    color: Color
     seriesName: string
     point: StackedPoint<EntityName>
 }
