@@ -34,10 +34,10 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import Color from "color"
 import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { isDarkColor } from "../color/ColorUtils"
 
 const labelToBarPadding = 5
 
@@ -387,7 +387,7 @@ export class StackedDiscreteBarChart
         const showLabelInsideBar =
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
-        const labelColor = Color(color).isLight() ? "#000" : "#fff"
+        const labelColor = isDarkColor(color) ? "#fff" : "#000"
 
         return (
             <TippyIfInteractive
