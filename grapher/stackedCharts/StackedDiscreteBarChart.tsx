@@ -540,6 +540,7 @@ export class StackedDiscreteBarChart
                             col.def.color ??
                             this.colorScheme.getColors(this.yColumns.length)[i],
                         points: col.owidRows.map((row) => ({
+                            time: row.time,
                             position: row.entityName,
                             value: row.value,
                             valueOffset: 0,
