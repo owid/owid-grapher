@@ -2,14 +2,23 @@
 #
 #  downloadAndCreateDatabase.sh
 #
-#  Download and ingest the publicly shared subset of the production grapher 
+#  Download and ingest the publicly shared subset of the production grapher
 #  database, containing data for every published graph.
 #
 
 set -e
 
-DB_NAME=grapher
-MYSQL="mysql -h 127.0.0.1 -u root"
+function bail() {
+    echo "ERROR: $@" 1>&2
+    exit 1
+}
+
+test -f .env || bail "You must run this from the owid-grapher folder and have a .env file"
+
+# use whatever database settings are in .env
+source ../.env
+
+MYSQL="mysql -h ${DB_HOST} -u ${DB_USER} --password='${DB_PASS}'"
 
 # database should not exist for a fresh lando spin-up
 $MYSQL -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
