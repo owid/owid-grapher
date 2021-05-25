@@ -6,14 +6,13 @@ import * as fs from "fs-extra"
 
 import * as path from "path"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
-import md5 from "md5"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
-    const verbose = false
     const inDir = parsedArgs["i"] ?? "grapherData"
     const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
     const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
     const numPartitions = parsedArgs["n"] ?? 1
     const partition = parsedArgs["p"] ?? 1
+    const rawGrapherIds: string = parsedArgs["g"].toString() ?? ""
     if (partition <= 0) throw "Partition must be >= 1"
     if (partition > numPartitions) throw "Partition must be <= numPartitions"
     if (numPartitions <= 0) throw "numPartitions must be >= 1"
@@ -22,12 +21,24 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(referenceDir))
         throw `Reference directory does not exist ${inDir}`
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
+    const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
 
-    const dir = await fs.opendir(inDir)
-    const directories = []
-    for await (const entry of dir) {
-        if (entry.isDirectory()) {
-            directories.push(path.join(inDir, entry.name))
+    let directories: string[] = []
+    if (grapherIds.length === 0) {
+        const dir = await fs.opendir(inDir)
+        for await (const entry of dir) {
+            if (entry.isDirectory()) {
+                directories.push(path.join(inDir, entry.name))
+            }
+        }
+    } else {
+        directories = grapherIds.map((id) => path.join(inDir, id.toString()))
+        const allDirsCount = directories.length
+        directories = directories.filter((item) => fs.existsSync(item))
+        if (directories.length < allDirsCount) {
+            console.log(
+                `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
+            )
         }
     }
 
@@ -111,6 +122,7 @@ Options:
     -o DIR         Output directory that will contain the svg files that were different [default: differentGrapherSvgs]
     -n PARTITIONS  Number of partitions - if specified then only 1/PARTITIONS of directories will be processed [default: 1]
     -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
+    -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     `)
 } else {
     main(parsedArgs)

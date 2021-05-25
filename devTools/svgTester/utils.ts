@@ -17,6 +17,7 @@ import * as util from "util"
 //import pMap from "p-map"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
+import _ from "lodash"
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -95,6 +96,24 @@ export async function verifySvg(
             40
         ),
         newSvgFragment: preparedNewSvg.substr(firstDiffIndex - 20, 40),
+    })
+}
+
+export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
+    return rawGrapherIds.split(",").flatMap((item) => {
+        if (item.includes("-")) {
+            const subparts = item.split("-")
+            if (subparts.length !== 2) {
+                console.warn(`Invalid graphid range: ${item}`)
+                return []
+            } else {
+                const first = parseInt(subparts[0])
+                const second = parseInt(subparts[1])
+                return _.range(first, second + 1)
+            }
+        } else {
+            return [parseInt(item)]
+        }
     })
 }
 
