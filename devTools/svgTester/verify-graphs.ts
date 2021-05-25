@@ -12,7 +12,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
     const numPartitions = parsedArgs["n"] ?? 1
     const partition = parsedArgs["p"] ?? 1
-    const rawGrapherIds: string = parsedArgs["g"].toString() ?? ""
+    const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString() // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
     if (partition <= 0) throw "Partition must be >= 1"
     if (partition > numPartitions) throw "Partition must be <= numPartitions"
     if (numPartitions <= 0) throw "numPartitions must be >= 1"

@@ -112,7 +112,12 @@ export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
                 return _.range(first, second + 1)
             }
         } else {
-            return [parseInt(item)]
+            const parsed = parseInt(item)
+            if (isNaN(parsed)) {
+                return []
+            } else {
+                return [parsed]
+            }
         }
     })
 }

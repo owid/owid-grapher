@@ -17,8 +17,8 @@
                 "${workspaceFolder}/../owid-reference/svg-diffs",
                 "-r",
                 "${workspaceFolder}/../owid-reference/svgs",
-                "-n",
-                "100"
+                "-g",
+                "861"
             ]
         },
         {
