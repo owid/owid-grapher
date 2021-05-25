@@ -61,6 +61,10 @@ class MultiEmbedder {
                     rootMargin: "200%",
                 }
             )
+        } else {
+            console.warn(
+                "IntersectionObserver not available; interactive embeds won't load on this page"
+            )
         }
     }
 
