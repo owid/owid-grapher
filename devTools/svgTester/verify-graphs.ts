@@ -12,6 +12,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
     const numPartitions = parsedArgs["n"] ?? 1
     const partition = parsedArgs["p"] ?? 1
+    const reverseDirectories = parsedArgs["l"] ?? false
     const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString() // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
     if (partition <= 0) throw "Partition must be >= 1"
     if (partition > numPartitions) throw "Partition must be <= numPartitions"
@@ -28,13 +29,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                directories.push(path.join(inDir, entry.name))
+                directories.push(entry.name)
             }
         }
     } else {
-        directories = grapherIds.map((id) => path.join(inDir, id.toString()))
+        directories = grapherIds.map((id) => id.toString())
         const allDirsCount = directories.length
-        directories = directories.filter((item) => fs.existsSync(item))
+        directories = directories.filter((item) =>
+            fs.existsSync(path.join(inDir, item))
+        )
         if (directories.length < allDirsCount) {
             console.log(
                 `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
@@ -42,7 +45,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
     }
 
-    directories.sort()
+    directories.sort((a, b) => parseInt(a) - parseInt(b))
+    if (reverseDirectories) {
+        directories.reverse()
+    }
+    directories = directories.map((name) => path.join(inDir, name))
     const directoriesToProcess = []
     for (let i = 0; i < directories.length; i++) {
         if (i % numPartitions === partition - 1) {
@@ -123,6 +130,7 @@ Options:
     -n PARTITIONS  Number of partitions - if specified then only 1/PARTITIONS of directories will be processed [default: 1]
     -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
+    -l             Reverse the order (start from last). Useful to test different generation order.
     `)
 } else {
     main(parsedArgs)

@@ -18,14 +18,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
     const dir = await fs.opendir(inDir)
-    const directories = []
+    let directories = []
     for await (const entry of dir) {
         if (entry.isDirectory()) {
-            directories.push(path.join(inDir, entry.name))
+            directories.push(entry.name)
         }
     }
 
-    directories.sort()
+    directories.sort((a, b) => parseInt(a) - parseInt(b))
+    directories = directories.map((dir) => path.join(inDir, dir))
     const directoriesToProcess = []
     for (let i = 0; i < directories.length; i++) {
         if (i % numPartitions === partition - 1) {

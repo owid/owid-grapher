@@ -212,7 +212,6 @@ export async function renderSvgAndSave(
 }
 
 export async function readGzippedJsonFile(filename: string): Promise<unknown> {
-    console.log(`Reading file ${filename}`)
     const readStream = fs.createReadStream(filename)
 
     // const content = await getStream(readStream)
