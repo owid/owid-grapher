@@ -36,6 +36,8 @@ import { CategoricalBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import Color from "color"
 import { TippyIfInteractive } from "../chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 const labelToBarPadding = 5
 
@@ -58,6 +60,7 @@ interface TooltipContext {
     label: string
     bars: Bar[]
     highlightedSeriesName?: string
+    targetTime?: Time
 }
 
 @observer
@@ -331,6 +334,7 @@ export class StackedDiscreteBarChart
                                 content={this.renderTooltip({
                                     label,
                                     bars,
+                                    targetTime: this.manager.endTime,
                                 })}
                             >
                                 <text
@@ -352,6 +356,7 @@ export class StackedDiscreteBarChart
                                     label,
                                     bars,
                                     highlightedSeriesName: bar.seriesName,
+                                    targetTime: this.manager.endTime,
                                 })
                             )}
                         </g>
@@ -425,17 +430,22 @@ export class StackedDiscreteBarChart
     }
 
     private renderTooltip(tooltipContext: TooltipContext) {
+        const { timeColumn } = this.inputTable
+
+        let hasTimeNotice = false
+
         return (
             <table
                 style={{
                     fontSize: "0.95em",
-                    lineHeight: "1.4em",
+                    lineHeight: "1.1em",
                     whiteSpace: "normal",
+                    borderSpacing: "0.3em",
                 }}
             >
                 <tbody>
                     <tr>
-                        <td colSpan={3}>
+                        <td colSpan={4}>
                             <strong>{tooltipContext.label}</strong>
                         </td>
                     </tr>
@@ -447,6 +457,11 @@ export class StackedDiscreteBarChart
                         const isFaded =
                             highlightedSeriesName !== undefined &&
                             !isHighlighted
+                        const shouldShowTimeNotice =
+                            bar.point.value !== undefined &&
+                            bar.point.time !== tooltipContext.targetTime
+                        hasTimeNotice ||= shouldShowTimeNotice
+
                         return (
                             <tr
                                 key={`${bar.seriesName}`}
@@ -455,7 +470,7 @@ export class StackedDiscreteBarChart
                                         ? "#111"
                                         : isFaded
                                         ? "#707070"
-                                        : "#555",
+                                        : "#444",
                                     fontWeight: isHighlighted
                                         ? "bold"
                                         : undefined,
@@ -469,7 +484,6 @@ export class StackedDiscreteBarChart
                                             borderRadius: "5px",
                                             backgroundColor: circleColor,
                                             display: "inline-block",
-                                            marginRight: "2px",
                                         }}
                                     />
                                 </td>
@@ -487,7 +501,7 @@ export class StackedDiscreteBarChart
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {!bar.point.value
+                                    {bar.point.value === undefined
                                         ? "No data"
                                         : this.formatColumn.formatValueShort(
                                               bar.point.value,
@@ -496,9 +510,56 @@ export class StackedDiscreteBarChart
                                               }
                                           )}
                                 </td>
+                                {shouldShowTimeNotice && (
+                                    <td
+                                        style={{
+                                            fontWeight: "normal",
+                                            color: "#707070",
+                                            fontSize: "0.8em",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "8px",
+                                        }}
+                                    >
+                                        <span className="icon">
+                                            <FontAwesomeIcon
+                                                icon={faInfoCircle}
+                                            />{" "}
+                                        </span>
+                                        {timeColumn.formatValue(bar.point.time)}
+                                    </td>
+                                )}
                             </tr>
                         )
                     })}
+                    {hasTimeNotice && (
+                        <tr>
+                            <td
+                                colSpan={4}
+                                style={{
+                                    color: "#707070",
+                                    fontSize: "0.8em",
+                                    paddingTop: "10px",
+                                }}
+                            >
+                                <div style={{ display: "flex" }}>
+                                    <span
+                                        className="icon"
+                                        style={{ marginRight: "3px" }}
+                                    >
+                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
+                                    </span>
+                                    <span>
+                                        No data available for{" "}
+                                        {timeColumn.formatValue(
+                                            tooltipContext.targetTime
+                                        )}
+                                        . Showing closest available data point
+                                        instead.
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         )
