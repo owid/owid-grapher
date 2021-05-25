@@ -53,12 +53,12 @@ it("can display a StackedDiscreteBar chart in relative mode", () => {
     expect(chart.failMessage).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points).toEqual([
-        { position: "France", value: 40, valueOffset: 0 },
-        { position: "Spain", value: 30, valueOffset: 0 },
+        { position: "France", value: 40, valueOffset: 0, time: 2000 },
+        { position: "Spain", value: 30, valueOffset: 0, time: 2000 },
     ])
     expect(chart.series[1].points).toEqual([
-        { position: "France", value: 60, valueOffset: 40 },
-        { position: "Spain", value: 70, valueOffset: 30 },
+        { position: "France", value: 60, valueOffset: 40, time: 2000 },
+        { position: "Spain", value: 70, valueOffset: 30, time: 2000 },
     ])
 })
 
