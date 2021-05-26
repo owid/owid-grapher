@@ -36,6 +36,9 @@ import { memoize } from "../clientUtils/Util"
 
 let knexInstance: Knex
 
+export const isWordpressAPIEnabled = WORDPRESS_URL.length > 0
+export const isWordpressDBEnabled = WORDPRESS_DB_NAME.length > 0
+
 class WPDB {
     private conn?: DatabaseConnection
 
