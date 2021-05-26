@@ -302,6 +302,7 @@ let cachedEntries: CategoryWithEntries[] = []
 export const getEntriesByCategory = async (): Promise<
     CategoryWithEntries[]
 > => {
+    if (!isWordpressAPIEnabled) return []
     if (cachedEntries.length) return cachedEntries
 
     const first = 100
@@ -440,6 +441,9 @@ export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     limit?: number
 ): Promise<any[]> => {
+    if (!isWordpressAPIEnabled) {
+        return []
+    }
     const perPage = 50
     let posts: any[] = []
 
