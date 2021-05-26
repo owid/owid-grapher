@@ -5,8 +5,36 @@ export const Tippy = (props: TippyProps): JSX.Element => (
     <OriginalTippy theme="light" {...props} />
 )
 
+// A Tippy instance that only evaluates `content` when the tooltip is shown.
+// Taken from https://gist.github.com/atomiks/520f4b0c7b537202a23a3059d4eec908
+// This will hopefully become supported in Tippy itself someday: See https://github.com/atomiks/tippyjs-react/issues/209
+export const LazyTippy = (props: TippyProps): React.ReactElement => {
+    const [mounted, setMounted] = React.useState(false)
+
+    const lazyPlugin = {
+        fn: () => ({
+            onMount: () => setMounted(true),
+            onHidden: () => setMounted(false),
+        }),
+    }
+
+    const computedProps = { ...props }
+
+    computedProps.plugins = [lazyPlugin, ...(props.plugins || [])]
+
+    if (props.render) {
+        const render = props.render // let TypeScript safely derive that render is not undefined
+        computedProps.render = (...args) => (mounted ? render(...args) : "")
+    } else {
+        computedProps.content = mounted ? props.content : ""
+    }
+
+    return <Tippy {...computedProps} />
+}
+
 interface TippyIfInteractiveProps extends TippyProps {
     isInteractive: boolean
+    lazy: boolean
 }
 
 // We sometimes need a conditional Tippy instance, i.e. a Tippy that is only hooked up to
@@ -15,8 +43,10 @@ interface TippyIfInteractiveProps extends TippyProps {
 export const TippyIfInteractive = (
     props: TippyIfInteractiveProps
 ): JSX.Element => {
-    const { isInteractive, ...tippyProps } = props
+    const { lazy, isInteractive, ...tippyProps } = props
 
-    if (isInteractive) return <Tippy {...tippyProps} />
+    const TippyInstance = lazy ? LazyTippy : Tippy
+
+    if (isInteractive) return <TippyInstance {...tippyProps} />
     else return <>{props.children}</>
 }

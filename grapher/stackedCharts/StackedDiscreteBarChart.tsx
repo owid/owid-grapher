@@ -337,6 +337,7 @@ export class StackedDiscreteBarChart
                             transform={`translate(0, ${yOffset})`}
                         >
                             <TippyIfInteractive
+                                lazy
                                 isInteractive={
                                     !this.manager.isExportingtoSvgOrPng
                                 }
@@ -405,6 +406,7 @@ export class StackedDiscreteBarChart
 
         return (
             <TippyIfInteractive
+                lazy
                 isInteractive={!this.manager.isExportingtoSvgOrPng}
                 key={seriesName}
                 hideOnClick={false}
