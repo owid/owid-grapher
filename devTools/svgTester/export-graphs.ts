@@ -4,7 +4,6 @@ import parseArgs from "minimist"
 import * as utils from "./utils"
 import * as fs from "fs-extra"
 
-import * as path from "path"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const inDir = parsedArgs["i"] ?? "grapherData"
     const outDir = parsedArgs["o"] ?? "grapherSvgs"
@@ -15,45 +14,30 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (numPartitions <= 0) throw "numPartitions must be >= 1"
     if (numPartitions > 1000) throw "numPartitions must be <= 1000"
     if (!fs.existsSync(inDir)) throw `Input directory does not exist ${inDir}`
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
     const dir = await fs.opendir(inDir)
-    let directories = []
+    const directories = []
     for await (const entry of dir) {
         if (entry.isDirectory()) {
             directories.push(entry.name)
         }
     }
 
-    directories.sort((a, b) => parseInt(a) - parseInt(b))
-    directories = directories.map((dir) => path.join(inDir, dir))
-    const directoriesToProcess = []
-    for (let i = 0; i < directories.length; i++) {
-        if (i % numPartitions === partition - 1) {
-            directoriesToProcess.push(directories[i])
-        }
-    }
-
+    const directoriesToProcess = utils.sortAndPartitionDirectories(
+        directories,
+        false,
+        inDir,
+        numPartitions,
+        partition
+    )
     const svgRecords: utils.SvgRecord[] = []
     for (const dir of directoriesToProcess) {
         const svgRecord = await utils.renderSvgAndSave(dir, outDir)
         svgRecords.push(svgRecord)
     }
 
-    svgRecords.sort((a, b) => a.chartId - b.chartId)
-
-    const resultsPath = path.join(outDir, "results.csv")
-    const csvFileStream = fs.createWriteStream(resultsPath)
-    csvFileStream.write(utils.svgCsvHeader + "\n")
-    for (const row of svgRecords) {
-        const line = `${row.chartId},${row.slug},${row.chartType},${row.md5},${row.svgFilename}`
-        csvFileStream.write(line + "\n")
-    }
-    csvFileStream.end()
-    await utils.finished(csvFileStream)
-    csvFileStream.close()
-
-    console.log("Done")
+    await utils.writeResultsCsvFile(outDir, svgRecords)
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
@@ -70,5 +54,11 @@ Options:
     -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
     `)
 } else {
-    main(parsedArgs)
+    try {
+        main(parsedArgs)
+        process.exitCode = 0
+    } catch (error) {
+        console.error("Encountered an error", error)
+        process.exitCode = 23
+    }
 }

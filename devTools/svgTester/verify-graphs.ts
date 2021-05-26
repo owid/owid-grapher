@@ -14,6 +14,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const numPartitions = parsedArgs["n"] ?? 1
     const partition = parsedArgs["p"] ?? 1
     const reverseDirectories = parsedArgs["l"] ?? false
+    const verbose = parsedArgs["v"] ?? false
     // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
     const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
 
@@ -27,7 +28,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
     const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
-    const directoriesToProcess = await utils.decideDirectoriesToProcess(
+    const directoriesToProcess = await utils.decideDirectoriesToVerify(
         grapherIds,
         inDir,
         reverseDirectories,
@@ -48,9 +49,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             svg,
             svgRecord,
             referenceEntry,
-            referenceDir
+            referenceDir,
+            verbose
         )
 
+        // verifySvg returns a Result type - if it is success we don't care any further
+        // but if there was an error then we write the svg and a message to stderr
         switch (validationResult.kind) {
             case "error":
                 utils.logDifferencesToConsole(svgRecord, validationResult)
@@ -61,17 +65,22 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     }
 
     if (differences.length === 0) {
-        console.log(
+        utils.logIfVerbose(
+            verbose,
             `There were no differences in all ${directoriesToProcess.length} graphs processed`
         )
+        process.exitCode = 0
     } else {
         console.warn(
             `${
                 differences.length
             } graphs had differences: ${differences.join()}`
         )
+        for (const id of differences) {
+            console.log("", id) // write to stdout one grapher id per file for easy piping to other processes
+        }
+        process.exitCode = differences.length
     }
-    console.log("Done")
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
@@ -89,7 +98,13 @@ Options:
     -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -l             Reverse the order (start from last). Useful to test different generation order.
+    -v             Verbose mode
     `)
 } else {
-    main(parsedArgs)
+    try {
+        main(parsedArgs)
+    } catch (error) {
+        console.error("Encountered an error", error)
+        process.exitCode = -1
+    }
 }

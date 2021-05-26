@@ -42,6 +42,8 @@ const resultError = <T, E>(error: E): Result<T, E> => ({
     error: error,
 })
 
+const configFilename: string = "config.json.gz"
+const dataFilename = "data.json.gz"
 export type SvgRecord = {
     chartId: number
     slug: string
@@ -56,13 +58,21 @@ interface SvgDifference {
     newSvgFragment: string
 }
 
+export function logIfVerbose(
+    verbose: boolean,
+    message: string,
+    param?: unknown
+) {
+    if (verbose) console.log(message, param)
+}
+
 export const svgCsvHeader = `grapherId,slug,chartType,md5,svgFilename`
 
 function findFirstDiffIndex(a: string, b: string): number {
     var i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
     if (a.length === b.length && a.length === i) {
-        console.log("Weird - everything was the same")
+        console.warn("No difference found!")
     }
     return i
 }
@@ -71,9 +81,10 @@ export async function verifySvg(
     newSvg: string,
     newSvgRecord: SvgRecord,
     referenceSvgRecord: SvgRecord,
-    referenceSvgsPath: string
+    referenceSvgsPath: string,
+    verbose: boolean
 ): Promise<Result<null, SvgDifference>> {
-    console.log(`verifying ${newSvgRecord.chartId}`)
+    logIfVerbose(verbose, `verifying ${newSvgRecord.chartId}`)
 
     if (newSvgRecord.md5 === referenceSvgRecord.md5) {
         // if the md5 hash is unchanged then there is no difference
@@ -90,7 +101,7 @@ export async function verifySvg(
         preparedNewSvg,
         preparedReferenceSvg
     )
-    console.log(`${newSvgRecord.chartId} had differences`)
+    logIfVerbose(verbose, `${newSvgRecord.chartId} had differences`)
     return resultError({
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substr(
@@ -100,13 +111,13 @@ export async function verifySvg(
         newSvgFragment: preparedNewSvg.substr(firstDiffIndex - 20, 40),
     })
 }
-export async function decideDirectoriesToProcess(
+export async function decideDirectoriesToVerify(
     grapherIds: number[],
     inDir: string,
     reverseDirectories: boolean,
     numPartitions: number,
     partition: number
-) {
+): Promise<string[]> {
     let directories: string[] = []
     if (grapherIds.length === 0) {
         // If no grapher ids were given scan all directories in the inDir folder
@@ -125,28 +136,46 @@ export async function decideDirectoriesToProcess(
             fs.existsSync(path.join(inDir, item))
         )
         if (directories.length < allDirsCount) {
-            console.log(
+            console.warn(
                 `${allDirsCount} grapher ids were given but only ${directories.length} existed as directories`
             )
         }
     }
 
     // Sort directories numerically (this assumes every dir == a grapher id and those are numeric)
+    const directoriesToProcess = sortAndPartitionDirectories(
+        directories,
+        reverseDirectories,
+        inDir,
+        numPartitions,
+        partition
+    )
+    return directoriesToProcess
+}
+
+export function sortAndPartitionDirectories(
+    directories: string[],
+    reverseDirectories: boolean,
+    inDir: string,
+    numPartitions: number,
+    partition: number
+): string[] {
     directories.sort((a, b) => parseInt(a) - parseInt(b))
     if (reverseDirectories) {
         directories.reverse()
     }
-    directories = directories.map((name) => path.join(inDir, name))
+    const paths = directories.map((name) => path.join(inDir, name))
     const directoriesToProcess = []
     // Pick ever numPartition-tht element, using partition as the offset
-    for (let i = 0; i < directories.length; i++) {
+    for (let i = 0; i < paths.length; i++) {
         if (i % numPartitions === partition - 1) {
-            directoriesToProcess.push(directories[i])
+            directoriesToProcess.push(paths[i])
         }
     }
     return directoriesToProcess
 }
 
+/** Turn a list of comma separated numbers and ranges into an array of numbers */
 export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
     return rawGrapherIds.split(",").flatMap((item) => {
         if (item.includes("-")) {
@@ -170,7 +199,7 @@ export function getGrapherIdListFromString(rawGrapherIds: string): number[] {
     })
 }
 
-export async function writeToFile(
+export async function writeToGzippedFile(
     data: unknown,
     filename: string
 ): Promise<void> {
@@ -190,26 +219,29 @@ export async function writeToFile(
 export async function saveGrapherSchemaAndData(
     config: GrapherInterface,
     outDir: string
-) {
+): Promise<void> {
     const dataDir = path.join(outDir, config.id?.toString() ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
-    const configFilename = path.join(dataDir, "config.json.gz")
-    const promise1 = writeToFile(config, configFilename)
+    const configPath = path.join(dataDir, configFilename)
+    const promise1 = writeToGzippedFile(config, configPath)
 
-    const dataFilename = path.join(dataDir, "data.json.gz")
+    const dataPath = path.join(dataDir, dataFilename)
     const grapher = initGrapherForSvgExport(config, "")
     const variableIds = grapher.dimensions.map((d) => d.variableId)
 
     const promise2 = getVariableData(variableIds).then((vardata) =>
-        writeToFile(vardata, dataFilename)
+        writeToGzippedFile(vardata, dataPath)
     )
 
-    const settled = await Promise.allSettled([promise1, promise2])
+    await Promise.allSettled([promise1, promise2])
 }
 
 export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     const [config, data] = await loadGrapherConfigAndData(dir)
 
+    // Graphers sometimes need to generate ids (incrementing numbers). For this
+    // they keep a stateful variable in clientutils. To minimize differences
+    // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
     const grapher = initGrapherForSvgExport(config, "")
     const { width, height } = grapher.idealBounds
@@ -233,10 +265,9 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     return Promise.resolve([svg, svgRecord])
 }
 
-const replaceRegexes = [
-    // /id="[-\w\d]{1,100}"/g.compile(),
-    /-select-[0-9]+-input/g,
-]
+const replaceRegexes = [/-select-[0-9]+-input/g]
+/** Some fragments of the svgs are non-deterministic. This function is used to
+    delete all such fragments */
 function prepareSvgForComparision(svg: string) {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
@@ -244,6 +275,7 @@ function prepareSvgForComparision(svg: string) {
     }
     return current
 }
+/** Remove all non-deterministic parts of the svg and then calculate an md5 hash */
 export function processSvgAndCalculateHash(svg: string): string {
     const processed = prepareSvgForComparision(svg)
     return md5(processed)
@@ -262,8 +294,6 @@ export async function renderSvgAndSave(
 export async function readGzippedJsonFile(filename: string): Promise<unknown> {
     const readStream = fs.createReadStream(filename)
 
-    // const content = await getStream(readStream)
-
     const gzipStream = createGunzip()
     readStream.pipe(gzipStream)
     const content = await getStream(gzipStream)
@@ -274,7 +304,7 @@ export async function readGzippedJsonFile(filename: string): Promise<unknown> {
 export async function loadReferenceSvg(
     referenceDir: string,
     referenceSvgRecord: SvgRecord
-) {
+): Promise<string> {
     const referenceFilename = path.join(
         referenceDir,
         referenceSvgRecord.svgFilename
@@ -291,13 +321,11 @@ export async function loadGrapherConfigAndData(
     if (!fs.existsSync(inputDir))
         throw `Input directory does not exist ${inputDir}`
 
-    const configFilename = path.join(inputDir, "config.json.gz")
-    const config = (await readGzippedJsonFile(
-        configFilename
-    )) as GrapherInterface
+    const configPath = path.join(inputDir, configFilename)
+    const config = (await readGzippedJsonFile(configPath)) as GrapherInterface
 
-    const dataFilename = path.join(inputDir, "data.json.gz")
-    const data = await readGzippedJsonFile(dataFilename)
+    const dataPath = path.join(inputDir, dataFilename)
+    const data = await readGzippedJsonFile(dataPath)
 
     return Promise.resolve([config, data])
 }
@@ -305,7 +333,7 @@ export async function loadGrapherConfigAndData(
 export function logDifferencesToConsole(
     svgRecord: SvgRecord,
     validationResult: ResultError<SvgDifference>
-) {
+): void {
     console.warn(
         `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.error.startIndex}.
 Reference: ${validationResult.error.referenceSvgFragment}
@@ -313,9 +341,12 @@ Current  : ${validationResult.error.newSvgFragment}`
     )
 }
 
-export async function getReferenceCsvContentMap(referenceDir: string) {
+const resultsFilename = "results.csv"
+export async function getReferenceCsvContentMap(
+    referenceDir: string
+): Promise<Map<number, SvgRecord>> {
     const results = await fs.readFile(
-        path.join(referenceDir, "results.csv"),
+        path.join(referenceDir, resultsFilename),
         "utf-8"
     )
     const csvContentArray = results
@@ -337,4 +368,20 @@ export async function getReferenceCsvContentMap(referenceDir: string) {
         })
     const csvContentMap = new Map<number, SvgRecord>(csvContentArray)
     return csvContentMap
+}
+
+export async function writeResultsCsvFile(
+    outDir: any,
+    svgRecords: SvgRecord[]
+): Promise<void> {
+    const resultsPath = path.join(outDir, resultsFilename)
+    const csvFileStream = fs.createWriteStream(resultsPath)
+    csvFileStream.write(svgCsvHeader + "\n")
+    for (const row of svgRecords) {
+        const line = `${row.chartId},${row.slug},${row.chartType},${row.md5},${row.svgFilename}`
+        csvFileStream.write(line + "\n")
+    }
+    csvFileStream.end()
+    await finished(csvFileStream)
+    csvFileStream.close()
 }
