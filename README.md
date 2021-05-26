@@ -133,15 +133,6 @@ Set up your `.env` file by copying the example:
 cp .env.example .env
 ```
 
-If you are operating a partial stack (grapher-only), you should also set these variables to be empty in your `.env` file:
-
-```
-WORDPRESS_DB_NAME=''
-WORDPRESS_API_URL=''
-```
-
-This disable any requirements on wordpress from Grapher.
-
 Then run the three development processes:
 
 ```sh
