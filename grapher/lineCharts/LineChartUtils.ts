@@ -10,12 +10,20 @@ export const columnToLineChartSeriesArray = (
     const { isProjection, owidRowsByEntityName } = col
     const entityNames = Array.from(owidRowsByEntityName.keys())
     return entityNames.map((entityName) => {
-        const seriesName =
-            seriesStrategy === SeriesStrategy.entity
-                ? entityName
-                : canSelectMultipleEntities
-                ? `${entityName} - ${col.displayName}`
-                : col.displayName
+        let seriesName = ""
+        if (seriesStrategy === SeriesStrategy.entity) {
+            if (col.isProjection && col.displayName) {
+                seriesName = `${entityName} - ${col.displayName}`
+            } else {
+                seriesName = entityName
+            }
+        } else {
+            if (canSelectMultipleEntities) {
+                seriesName = `${entityName} - ${col.displayName}`
+            } else {
+                seriesName = col.displayName
+            }
+        }
         return {
             points: owidRowsByEntityName.get(entityName)!.map((row) => {
                 return {
