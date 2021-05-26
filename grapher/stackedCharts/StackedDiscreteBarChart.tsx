@@ -56,11 +56,13 @@ interface Bar {
     point: StackedPoint<EntityName>
 }
 
-interface TooltipContext {
+interface TooltipProps {
     label: string
     bars: Bar[]
     highlightedSeriesName?: string
     targetTime?: Time
+    timeColumn: CoreColumn
+    formatColumn: CoreColumn
 }
 
 @observer
@@ -320,6 +322,14 @@ export class StackedDiscreteBarChart
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
                     // it appears very slow. Also be careful with negative bar charts.
+                    const tooltipProps = {
+                        label,
+                        bars,
+                        targetTime: this.manager.endTime,
+                        timeColumn: this.inputTable.timeColumn,
+                        formatColumn: this.formatColumn,
+                    }
+
                     const result = (
                         <g
                             key={label}
@@ -331,11 +341,11 @@ export class StackedDiscreteBarChart
                                     !this.manager.isExportingtoSvgOrPng
                                 }
                                 hideOnClick={false}
-                                content={this.renderTooltip({
-                                    label,
-                                    bars,
-                                    targetTime: this.manager.endTime,
-                                })}
+                                content={
+                                    <StackedDiscreteBarChart.Tooltip
+                                        {...tooltipProps}
+                                    />
+                                }
                             >
                                 <text
                                     x={0}
@@ -353,10 +363,8 @@ export class StackedDiscreteBarChart
                             </TippyIfInteractive>
                             {bars.map((bar) =>
                                 this.renderBar(bar, {
-                                    label,
-                                    bars,
+                                    ...tooltipProps,
                                     highlightedSeriesName: bar.seriesName,
-                                    targetTime: this.manager.endTime,
                                 })
                             )}
                         </g>
@@ -370,7 +378,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    private renderBar(bar: Bar, tooltipContext: TooltipContext) {
+    private renderBar(bar: Bar, tooltipProps: TooltipProps) {
         const { axis, formatColumn, focusSeriesName, barHeight } = this
         const { point, color, seriesName } = bar
 
@@ -400,7 +408,7 @@ export class StackedDiscreteBarChart
                 isInteractive={!this.manager.isExportingtoSvgOrPng}
                 key={seriesName}
                 hideOnClick={false}
-                content={this.renderTooltip(tooltipContext)}
+                content={<StackedDiscreteBarChart.Tooltip {...tooltipProps} />}
             >
                 <g>
                     <rect
@@ -435,9 +443,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    private renderTooltip(tooltipContext: TooltipContext) {
-        const { timeColumn } = this.inputTable
-
+    private static Tooltip(props: TooltipProps) {
         let hasTimeNotice = false
 
         return (
@@ -451,11 +457,11 @@ export class StackedDiscreteBarChart
                 <tbody>
                     <tr>
                         <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{tooltipContext.label}</strong>
+                            <strong>{props.label}</strong>
                         </td>
                     </tr>
-                    {tooltipContext.bars.map((bar) => {
-                        const { highlightedSeriesName } = tooltipContext
+                    {props.bars.map((bar) => {
+                        const { highlightedSeriesName } = props
                         const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
@@ -464,7 +470,7 @@ export class StackedDiscreteBarChart
                             !isHighlighted
                         const shouldShowTimeNotice =
                             bar.point.value !== undefined &&
-                            bar.point.time !== tooltipContext.targetTime
+                            bar.point.time !== props.targetTime
                         hasTimeNotice ||= shouldShowTimeNotice
 
                         return (
@@ -507,7 +513,7 @@ export class StackedDiscreteBarChart
                                 >
                                     {bar.point.value === undefined
                                         ? "No data"
-                                        : this.formatColumn.formatValueShort(
+                                        : props.formatColumn.formatValueShort(
                                               bar.point.value,
                                               {
                                                   noTrailingZeroes: false,
@@ -532,7 +538,9 @@ export class StackedDiscreteBarChart
                                                 }}
                                             />{" "}
                                         </span>
-                                        {timeColumn.formatValue(bar.point.time)}
+                                        {props.timeColumn.formatValue(
+                                            bar.point.time
+                                        )}
                                     </td>
                                 )}
                             </tr>
@@ -557,8 +565,8 @@ export class StackedDiscreteBarChart
                                     </span>
                                     <span>
                                         No data available for{" "}
-                                        {timeColumn.formatValue(
-                                            tooltipContext.targetTime
+                                        {props.timeColumn.formatValue(
+                                            props.targetTime
                                         )}
                                         . Showing closest available data point
                                         instead.
