@@ -396,7 +396,7 @@ export class StackedDiscreteBarChart
             numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
         })
         const labelBounds = Bounds.forText(barLabel, {
-            fontSize: 12.6,
+            fontSize: 0.7 * this.baseFontSize,
         })
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
@@ -467,7 +467,7 @@ export class StackedDiscreteBarChart
                         const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
-                        const isFaded =
+                        const isFaint =
                             highlightedSeriesName !== undefined &&
                             !isHighlighted
                         const shouldShowTimeNotice =
@@ -481,7 +481,7 @@ export class StackedDiscreteBarChart
                                 style={{
                                     color: isHighlighted
                                         ? "#000"
-                                        : isFaded
+                                        : isFaint
                                         ? "#707070"
                                         : "#444",
                                     fontWeight: isHighlighted
