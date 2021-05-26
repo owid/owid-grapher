@@ -7,14 +7,14 @@ const seriesArr = [
         seriesName: "Canada",
         color: "red",
         points: [
-            { position: 2000, value: 10, valueOffset: 0 },
-            { position: 2002, value: 12, valueOffset: 0 },
+            { position: 2000, time: 2000, value: 10, valueOffset: 0 },
+            { position: 2002, time: 2002, value: 12, valueOffset: 0 },
         ],
     },
     {
         seriesName: "USA",
         color: "red",
-        points: [{ position: 2000, value: 2, valueOffset: 0 }],
+        points: [{ position: 2000, time: 2000, value: 2, valueOffset: 0 }],
     },
 ]
 

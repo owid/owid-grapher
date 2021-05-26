@@ -33,6 +33,11 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { TippyIfInteractive } from "../chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { isDarkColor } from "../color/ColorUtils"
 
 const labelToBarPadding = 5
 
@@ -49,6 +54,15 @@ interface Bar {
     color: Color
     seriesName: string
     point: StackedPoint<EntityName>
+}
+
+interface TooltipProps {
+    label: string
+    bars: Bar[]
+    highlightedSeriesName?: string
+    targetTime?: Time
+    timeColumn: CoreColumn
+    formatColumn: CoreColumn
 }
 
 @observer
@@ -266,6 +280,10 @@ export class StackedDiscreteBarChart
         return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
+    @computed private get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -304,53 +322,52 @@ export class StackedDiscreteBarChart
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
                     // it appears very slow. Also be careful with negative bar charts.
+                    const tooltipProps = {
+                        label,
+                        bars,
+                        targetTime: this.manager.endTime,
+                        timeColumn: this.inputTable.timeColumn,
+                        formatColumn: this.formatColumn,
+                    }
+
                     const result = (
                         <g
                             key={label}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                         >
-                            <text
-                                x={0}
-                                y={0}
-                                transform={`translate(${
-                                    axis.place(this.x0) - labelToBarPadding
-                                }, 0)`}
-                                fill="#555"
-                                dominantBaseline="middle"
-                                textAnchor="end"
-                                {...this.labelStyle}
-                            >
-                                {label}
-                            </text>
-                            {bars.map(({ point, color, seriesName }) => {
-                                const isFaint =
-                                    this.focusSeriesName !== undefined &&
-                                    this.focusSeriesName !== seriesName
-                                const barX = axis.place(
-                                    this.x0 + point.valueOffset
-                                )
-                                const barWidth =
-                                    axis.place(point.value) -
-                                    axis.place(this.x0)
-                                return (
-                                    <rect
-                                        key={seriesName}
-                                        x={0}
-                                        y={0}
-                                        transform={`translate(${barX}, ${
-                                            -barHeight / 2
-                                        })`}
-                                        width={barWidth}
-                                        height={barHeight}
-                                        fill={color}
-                                        opacity={isFaint ? 0.1 : 0.85}
-                                        style={{
-                                            transition: "height 200ms ease",
-                                        }}
+                            <TippyIfInteractive
+                                lazy
+                                isInteractive={
+                                    !this.manager.isExportingtoSvgOrPng
+                                }
+                                hideOnClick={false}
+                                content={
+                                    <StackedDiscreteBarChart.Tooltip
+                                        {...tooltipProps}
                                     />
-                                )
-                            })}
+                                }
+                            >
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        axis.place(this.x0) - labelToBarPadding
+                                    }, 0)`}
+                                    fill="#555"
+                                    dominantBaseline="middle"
+                                    textAnchor="end"
+                                    {...this.labelStyle}
+                                >
+                                    {label}
+                                </text>
+                            </TippyIfInteractive>
+                            {bars.map((bar) =>
+                                this.renderBar(bar, {
+                                    ...tooltipProps,
+                                    highlightedSeriesName: bar.seriesName,
+                                })
+                            )}
                         </g>
                     )
 
@@ -359,6 +376,209 @@ export class StackedDiscreteBarChart
                     return result
                 })}
             </g>
+        )
+    }
+
+    private renderBar(bar: Bar, tooltipProps: TooltipProps) {
+        const { axis, formatColumn, focusSeriesName, barHeight } = this
+        const { point, color, seriesName } = bar
+
+        const isFaint =
+            focusSeriesName !== undefined && focusSeriesName !== seriesName
+        const barX = axis.place(this.x0 + point.valueOffset)
+        const barWidth = axis.place(point.value) - axis.place(this.x0)
+
+        // Compute how many decimal places we should show.
+        // Basically, this makes us show 2 significant digits, or no decimal places if the number
+        // is big enough already.
+        const dp = Math.ceil(-Math.log10(point.value) + 1)
+        const barLabel = formatColumn.formatValueShort(point.value, {
+            numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
+        })
+        const labelBounds = Bounds.forText(barLabel, {
+            fontSize: 0.7 * this.baseFontSize,
+        })
+        // Check that we have enough space to show the bar label
+        const showLabelInsideBar =
+            labelBounds.width < 0.85 * barWidth &&
+            labelBounds.height < 0.85 * barHeight
+        const labelColor = isDarkColor(color) ? "#fff" : "#000"
+
+        return (
+            <TippyIfInteractive
+                lazy
+                isInteractive={!this.manager.isExportingtoSvgOrPng}
+                key={seriesName}
+                hideOnClick={false}
+                content={<StackedDiscreteBarChart.Tooltip {...tooltipProps} />}
+            >
+                <g>
+                    <rect
+                        x={0}
+                        y={0}
+                        transform={`translate(${barX}, ${-barHeight / 2})`}
+                        width={barWidth}
+                        height={barHeight}
+                        fill={color}
+                        opacity={isFaint ? 0.1 : 0.85}
+                        style={{
+                            transition: "height 200ms ease",
+                        }}
+                    />
+                    {showLabelInsideBar && (
+                        <text
+                            x={barX + barWidth / 2}
+                            y={0}
+                            width={barWidth}
+                            height={barHeight}
+                            fill={labelColor}
+                            opacity={isFaint ? 0 : 1}
+                            fontSize="0.7em"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                        >
+                            {barLabel}
+                        </text>
+                    )}
+                </g>
+            </TippyIfInteractive>
+        )
+    }
+
+    private static Tooltip(props: TooltipProps) {
+        let hasTimeNotice = false
+
+        return (
+            <table
+                style={{
+                    lineHeight: "1em",
+                    whiteSpace: "normal",
+                    borderSpacing: "0.5em",
+                }}
+            >
+                <tbody>
+                    <tr>
+                        <td colSpan={4} style={{ color: "#111" }}>
+                            <strong>{props.label}</strong>
+                        </td>
+                    </tr>
+                    {props.bars.map((bar) => {
+                        const { highlightedSeriesName } = props
+                        const squareColor = bar.color
+                        const isHighlighted =
+                            bar.seriesName === highlightedSeriesName
+                        const isFaint =
+                            highlightedSeriesName !== undefined &&
+                            !isHighlighted
+                        const shouldShowTimeNotice =
+                            bar.point.value !== undefined &&
+                            bar.point.time !== props.targetTime
+                        hasTimeNotice ||= shouldShowTimeNotice
+
+                        return (
+                            <tr
+                                key={`${bar.seriesName}`}
+                                style={{
+                                    color: isHighlighted
+                                        ? "#000"
+                                        : isFaint
+                                        ? "#707070"
+                                        : "#444",
+                                    fontWeight: isHighlighted
+                                        ? "bold"
+                                        : undefined,
+                                }}
+                            >
+                                <td>
+                                    <div
+                                        style={{
+                                            width: "10px",
+                                            height: "10px",
+                                            backgroundColor: squareColor,
+                                            display: "inline-block",
+                                        }}
+                                    />
+                                </td>
+                                <td
+                                    style={{
+                                        paddingRight: "0.8em",
+                                        fontSize: "0.9em",
+                                    }}
+                                >
+                                    {bar.seriesName}
+                                </td>
+                                <td
+                                    style={{
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {bar.point.value === undefined
+                                        ? "No data"
+                                        : props.formatColumn.formatValueShort(
+                                              bar.point.value,
+                                              {
+                                                  noTrailingZeroes: false,
+                                              }
+                                          )}
+                                </td>
+                                {shouldShowTimeNotice && (
+                                    <td
+                                        style={{
+                                            fontWeight: "normal",
+                                            color: "#707070",
+                                            fontSize: "0.8em",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "8px",
+                                        }}
+                                    >
+                                        <span className="icon">
+                                            <FontAwesomeIcon
+                                                icon={faInfoCircle}
+                                                style={{
+                                                    marginRight: "0.25em",
+                                                }}
+                                            />{" "}
+                                        </span>
+                                        {props.timeColumn.formatValue(
+                                            bar.point.time
+                                        )}
+                                    </td>
+                                )}
+                            </tr>
+                        )
+                    })}
+                    {hasTimeNotice && (
+                        <tr>
+                            <td
+                                colSpan={4}
+                                style={{
+                                    color: "#707070",
+                                    fontSize: "0.8em",
+                                    paddingTop: "10px",
+                                }}
+                            >
+                                <div style={{ display: "flex" }}>
+                                    <span
+                                        className="icon"
+                                        style={{ marginRight: "0.5em" }}
+                                    >
+                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
+                                    </span>
+                                    <span>
+                                        No data available for{" "}
+                                        {props.timeColumn.formatValue(
+                                            props.targetTime
+                                        )}
+                                        . Showing closest available data point
+                                        instead.
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
         )
     }
 
@@ -404,6 +624,7 @@ export class StackedDiscreteBarChart
                             col.def.color ??
                             this.colorScheme.getColors(this.yColumns.length)[i],
                         points: col.owidRows.map((row) => ({
+                            time: row.time,
                             position: row.entityName,
                             value: row.value,
                             valueOffset: 0,

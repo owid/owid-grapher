@@ -1,5 +1,5 @@
 import { Color } from "../../coreTable/CoreTableConstants"
-import { rgb } from "d3-color"
+import { rgb, color } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { difference, groupBy, minBy } from "../../clientUtils/Util"
 
@@ -43,4 +43,13 @@ export function getLeastUsedColor(
         number
     ]
     return mostUnusedColor[0]
+}
+
+// Taken from https://github.com/Qix-/color/blob/594a9af778f9a89541510bd1ae24061c82f24693/index.js#L287-L292
+export function isDarkColor(colorSpecifier: string): boolean | undefined {
+    // YIQ equation from http://24ways.org/2010/calculating-color-contrast
+    const rgb = color(colorSpecifier)?.rgb()
+    if (!rgb) return undefined
+    const yiq = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+    return yiq < 128
 }

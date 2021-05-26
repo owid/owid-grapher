@@ -1407,9 +1407,13 @@ export class Grapher
     }
 
     get staticSVG(): string {
-        return ReactDOMServer.renderToStaticMarkup(
+        const _isExportingtoSvgOrPng = this.isExportingtoSvgOrPng
+        this.isExportingtoSvgOrPng = true
+        const staticSvg = ReactDOMServer.renderToStaticMarkup(
             <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
         )
+        this.isExportingtoSvgOrPng = _isExportingtoSvgOrPng
+        return staticSvg
     }
 
     @computed get mapConfig(): MapConfig {
