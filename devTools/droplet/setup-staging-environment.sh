@@ -10,7 +10,7 @@
 # NEW_NAME.owid.cloud.	1	IN	CNAME	staging.owid.cloud.
 
 # Output commands to stdout as they execute
-set -x
+set -ex
 
 ## Move files
 cd ~
