@@ -30,8 +30,8 @@ html.IsInIframe #ExplorerContainer {
     justify-content: space-around;
 
     .ExplorerTitle {
-        font-size: max(16px, min(1.5vw, 19px));
-        line-height: max(18px, min(1.7vw, 23px));
+        font-size: clamp(16px, 1.5vw, 19px);
+        line-height: clamp(18px, 1.7vw, 23px);
         font-weight: bold;
         font-family: "Lato";
     }
