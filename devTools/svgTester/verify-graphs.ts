@@ -65,7 +65,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             `There were no differences in all ${directoriesToProcess.length} graphs processed`
         )
     } else {
-        console.warn(`${differences.length} graphs had differences`)
+        console.warn(
+            `${
+                differences.length
+            } graphs had differences: ${differences.join()}`
+        )
     }
     console.log("Done")
 }
