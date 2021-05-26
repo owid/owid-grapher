@@ -379,7 +379,13 @@ export class StackedDiscreteBarChart
         const barX = axis.place(this.x0 + point.valueOffset)
         const barWidth = axis.place(point.value) - axis.place(this.x0)
 
-        const barLabel = formatColumn.formatValueShort(point.value)
+        // Compute how many decimal places we should show.
+        // Basically, this makes us show 2 significant digits, or no decimal places if the number
+        // is big enough already.
+        const dp = Math.ceil(-Math.log10(point.value) + 1)
+        const barLabel = formatColumn.formatValueShort(point.value, {
+            numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
+        })
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: 12.6,
         })
