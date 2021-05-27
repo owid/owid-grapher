@@ -264,10 +264,18 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     @computed get seriesColors() {
         return this.series.map((series) => series.color)
     }
+    get showAll0Series(): boolean {
+        return true
+    }
 
     @computed get unstackedSeries(): readonly StackedSeries<PositionType>[] {
         return this.rawSeries
-            .filter((series) => series.rows.length)
+            .filter(
+                (series) =>
+                    series.rows.length &&
+                    (this.showAll0Series ||
+                        series.rows.some((row) => row.value !== 0))
+            )
             .map((series) => {
                 const { isProjection, seriesName, rows } = series
                 return {

@@ -447,6 +447,9 @@ export class StackedAreaChart
             </g>
         )
     }
+    get showAll0Series() {
+        return false
+    }
 
     @computed get legendX(): number {
         return this.legendDimensions
