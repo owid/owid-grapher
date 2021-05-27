@@ -206,9 +206,6 @@ export async function writeToGzippedFile(
     const json = JSON.stringify(data)
     const writeStream = fs.createWriteStream(filename)
 
-    // writeStream.write(json)
-    // writeStream.end()
-
     const gzipStream = createGzip()
     gzipStream.pipe(writeStream)
     gzipStream.write(json)

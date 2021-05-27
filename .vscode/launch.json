@@ -10,16 +10,7 @@
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node",
-            "args": [
-                "-i",
-                "${workspaceFolder}/../owid-reference/testdata",
-                "-o",
-                "${workspaceFolder}/../owid-reference/svgs-diffs",
-                "-r",
-                "${workspaceFolder}/../owid-reference/svgs",
-                "-g",
-                "367"
-            ]
+            "args": ["-g", "367"]
         },
         {
             "name": "Launch Admin Server",

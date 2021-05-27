@@ -61,6 +61,7 @@ export async function getPublishedGraphersBySlug(
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
     const graphersById: Map<number, GrapherInterface> = new Map()
 
+    // Select all graphers that are published and that do not have the tag Private
     const sql = includePrivate
         ? `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
         : `SELECT charts.id as id, charts.config as config FROM charts
