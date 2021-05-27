@@ -9,7 +9,6 @@ import { Box } from "./owidTypes"
 // calculate using geometry and first principles
 
 export class Bounds {
-    static textBoundsCache: Map<string, Bounds> = new Map()
     static ctx: CanvasRenderingContext2D
 
     static fromProps(props: Box): Bounds {
@@ -90,32 +89,22 @@ export class Bounds {
         // Collapse contiguous spaces into one
         str = str.replace(/ +/g, " ")
 
-        // Keep the options for pixelWidth in sync with the cache key below!
         const isBold = fontWeight >= 600
-        const textProperties = {
-            font: "arial",
-            size: fontSize,
-            bold: isBold,
-        } as const
-        // str might be pretty long and we could waste quite a lot of money with this.
-        // It would be good to hash this but hashing in a way that is fast and works
-        // in browsers and node is non-trivial
-        const cacheKey = `${str}-${fontSize}-${isBold}`
-
-        const cached = this.textBoundsCache.get(cacheKey)
-        if (cached !== undefined) {
-            if (cached.x === x && cached.y === y - cached.height) return cached
-            return cached.extend({ x: x, y: y - cached.height })
-        }
 
         let bounds = Bounds.empty()
         if (str !== "") {
-            const width = pixelWidth(str, textProperties)
+            // pixelWidth uses a precomputed character width table to quickly give a
+            // rough estimate of string width based on characters in a string - it is probably not
+            // worth caching further
+            const width = pixelWidth(str, {
+                font: "arial",
+                size: fontSize,
+                bold: isBold,
+            })
             const height = fontSize
             bounds = new Bounds(x, y - height, width, height)
         }
 
-        this.textBoundsCache.set(cacheKey, bounds)
         return bounds
     }
 
