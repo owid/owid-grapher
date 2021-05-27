@@ -489,6 +489,10 @@ export const getPostType = async (search: number | string): Promise<string> => {
 }
 
 export const getPostBySlug = async (slug: string): Promise<any[]> => {
+    if (!isWordpressAPIEnabled) {
+        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
+    }
+
     try {
         const type = await getPostType(slug)
         const postArr = await apiQuery(
