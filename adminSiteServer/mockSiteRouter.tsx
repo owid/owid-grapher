@@ -41,6 +41,7 @@ import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPa
 import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { isWordpressAPIEnabled } from "../db/wpdb"
 
 require("express-async-errors")
 
@@ -138,9 +139,13 @@ mockSiteRouter.get("/blog/page/:pageno", async (req, res) => {
     else throw new Error("invalid page number")
 })
 
-mockSiteRouter.get("/headerMenu.json", async (req, res) =>
+mockSiteRouter.get("/headerMenu.json", async (req, res) => {
+    if (!isWordpressAPIEnabled) {
+        res.status(404).send(await renderNotFoundPage())
+        return
+    }
     res.send(await renderMenuJson())
-)
+})
 
 mockSiteRouter.use(
     // Not all /app/uploads paths are going through formatting

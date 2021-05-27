@@ -69,6 +69,8 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
 const getReferencesByChartId = async (
     chartId: number
 ): Promise<PostReference[]> => {
+    if (!wpdb.isWordpressDBEnabled) return []
+
     const rows = await db.queryMysql(
         `
         SELECT config->"$.slug" AS slug
