@@ -441,9 +441,8 @@ export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     limit?: number
 ): Promise<any[]> => {
-    if (!isWordpressAPIEnabled) {
-        return []
-    }
+    if (!isWordpressAPIEnabled) return []
+
     const perPage = 50
     let posts: any[] = []
 
@@ -577,6 +576,8 @@ export const getRelatedArticles = async (
 export const getBlockContent = async (
     id: number
 ): Promise<string | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
     const query = `
     query getBlock($id: ID!) {
         wp_block(id: $id, idType: DATABASE_ID) {
