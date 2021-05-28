@@ -41,8 +41,8 @@ export const AnnotatingDataValue = ({
                 onMouseLeave={grapherInstance?.resetAnnotation}
                 className={isInteractive ? "interactive" : ""}
             >
-                {isInteractive ? <FontAwesomeIcon icon={faChartLine} /> : null}
                 <DataValue {...dataValueProps}></DataValue>
+                {isInteractive ? <FontAwesomeIcon icon={faChartLine} /> : null}
             </span>
         </span>
     )
