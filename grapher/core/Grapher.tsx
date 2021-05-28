@@ -884,7 +884,10 @@ export class Grapher
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
         return (
-            this.isDiscreteBar || this.isStackedDiscreteBar || this.isOnMapTab
+            this.isDiscreteBar ||
+            this.isStackedDiscreteBar ||
+            this.isOnMapTab ||
+            this.isMarimekko
         )
     }
 
@@ -1047,7 +1050,7 @@ export class Grapher
         const size = new DimensionSlot(this, DimensionProperty.size)
 
         if (this.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.isTimeScatter) return [yAxis, xAxis]
+        else if (this.isTimeScatter || this.isMarimekko) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
     }
@@ -1388,7 +1391,10 @@ export class Grapher
     @computed get isStackedBar(): boolean {
         return this.type === ChartTypeName.StackedBar
     }
-    @computed get isStackedDiscreteBar() {
+    @computed get isMarimekko(): boolean {
+        return this.type === ChartTypeName.Marimekko
+    }
+    @computed get isStackedDiscreteBar(): boolean {
         return this.type === ChartTypeName.StackedDiscreteBar
     }
 

@@ -97,6 +97,15 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?type=Marimekko"
+                            >
+                                Marimekko
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embeds?type=StackedDiscreteBar"
                             >
                                 Stacked Discrete Bar

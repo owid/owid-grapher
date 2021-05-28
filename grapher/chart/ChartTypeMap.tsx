@@ -12,6 +12,7 @@ import { ChartManager } from "./ChartManager"
 import { ComponentClass, Component } from "react"
 import { Bounds } from "../../clientUtils/Bounds"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
+import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
 
 interface ChartComponentProps {
     manager: ChartManager
@@ -34,6 +35,7 @@ export const ChartComponentClassMap = new Map<
     [ChartTypeName.StackedBar, StackedBarChart],
     [ChartTypeName.StackedDiscreteBar, StackedDiscreteBarChart],
     [ChartTypeName.ScatterPlot, ScatterPlotChart],
+    [ChartTypeName.Marimekko, MarimekkoChart],
     [ChartTypeName.TimeScatter, TimeScatterChart],
     [ChartTypeName.WorldMap, MapChart],
 ])
