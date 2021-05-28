@@ -76,24 +76,24 @@ export class MarimekkoChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        if (!this.yColumnSlugs.length) return table
+        if (!this.xColumnSlugs.length) return table
 
         // table = table.filterByEntityNames(
         //     this.selectionArray.selectedEntityNames
         // )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+        table = table.replaceNonNumericCellsWithErrorValues(this.xColumnSlugs)
 
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+        table = table.dropRowsWithErrorValuesForAllColumns(this.xColumnSlugs)
 
-        this.yColumnSlugs.forEach((slug) => {
+        this.xColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
 
         if (this.manager.isRelativeMode) {
             table = table.toPercentageFromEachColumnForEachEntityAndTime(
-                this.yColumnSlugs
+                this.xColumnSlugs
             )
         }
 
@@ -143,32 +143,44 @@ export class MarimekkoChart
         return 0
     }
 
+    @computed private get y0() {
+        return 0
+    }
+
     @computed private get allPoints(): StackedPoint<EntityName>[] {
         return flatten(this.series.map((series) => series.points))
     }
 
     // Now we can work out the main x axis scale
-    @computed private get xDomainDefault(): [number, number] {
+    @computed private get yDomainDefault(): [number, number] {
         const maxValues = this.allPoints.map(
             (point) => point.value + point.valueOffset
         )
         return [
-            Math.min(this.x0, min(maxValues) as number),
-            Math.max(this.x0, max(maxValues) as number),
+            Math.min(this.y0, min(maxValues) as number),
+            Math.max(this.y0, max(maxValues) as number),
         ]
     }
 
-    @computed private get xRange(): [number, number] {
-        return [this.bounds.left + this.labelWidth, this.bounds.right]
+    @computed private get yRange(): [number, number] {
+        return [this.bounds.top, this.bounds.bottom - this.labelWidth]
     }
 
-    @computed private get yAxis() {
+    @computed private get xRange(): [number, number] {
+        return [this.bounds.left, this.bounds.right]
+    }
+
+    @computed private get yAxisPart() {
         return this.manager.yAxis || new AxisConfig()
     }
 
+    @computed private get xAxisPart() {
+        return this.manager.xAxis || new AxisConfig()
+    }
+
     @computed private get axis() {
-        // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.yAxis.toHorizontalAxis()
+        // TODO: set up DualAxis here
+        const axis = this.yAxisPart.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
@@ -590,11 +602,11 @@ export class MarimekkoChart
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            ? `No matching data in columns ${this.xColumnSlugs.join(", ")}`
             : ""
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get xColumnSlugs() {
         return (
             this.manager.yColumnSlugsInSelectionOrder ??
             autoDetectYColumnSlugs(this.manager)
@@ -602,7 +614,7 @@ export class MarimekkoChart
     }
 
     @computed protected get yColumns() {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
+        return this.transformedTable.getColumns(this.xColumnSlugs)
     }
 
     @computed private get colorScheme() {
