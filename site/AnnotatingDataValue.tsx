@@ -1,3 +1,5 @@
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { Grapher } from "../grapher/core/Grapher"
@@ -12,7 +14,7 @@ export const AnnotatingDataValue = ({
     dataValueProps: DataValueProps
     grapherInstance?: Grapher
 }) => {
-    const [interactive, setInteractive] = useState("")
+    const [isInteractive, setInteractive] = useState(false)
 
     const renderAnnotationInGrapher = () => {
         grapherInstance?.renderAnnotation({
@@ -22,7 +24,7 @@ export const AnnotatingDataValue = ({
     }
 
     useEffect(() => {
-        setInteractive("interactive")
+        setInteractive(true)
     }, [])
 
     return (
@@ -37,8 +39,9 @@ export const AnnotatingDataValue = ({
             <span
                 onMouseEnter={renderAnnotationInGrapher}
                 onMouseLeave={grapherInstance?.resetAnnotation}
-                className={interactive}
+                className={isInteractive ? "interactive" : ""}
             >
+                {isInteractive ? <FontAwesomeIcon icon={faChartLine} /> : null}
                 <DataValue {...dataValueProps}></DataValue>
             </span>
         </span>

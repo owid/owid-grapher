@@ -2,4 +2,7 @@
     .interactive {
         @include expandable-block-button;
     }
+    svg {
+        margin-right: 0.5rem;
+    }
 }
