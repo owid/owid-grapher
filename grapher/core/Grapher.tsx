@@ -1907,7 +1907,7 @@ export class Grapher
     renderAnnotation(annotation: Annotation | undefined) {
         this.setAuthoredVersion(this.props)
         this.reset()
-        this.updateFromObject(this.props)
+        this.updateFromObject({ ...this.props })
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(this.props.queryStr ?? "")
         )
