@@ -26,8 +26,17 @@ export const DataValue = ({
     template,
 }: DataValueProps) => {
     return (
-        <span className="data-value">
-            {processTemplate({ template, value, year, unit, entityName })}
-        </span>
+        <span
+            className="data-value"
+            dangerouslySetInnerHTML={{
+                __html: processTemplate({
+                    template,
+                    value,
+                    year,
+                    unit,
+                    entityName,
+                }),
+            }}
+        ></span>
     )
 }
