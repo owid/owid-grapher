@@ -274,13 +274,11 @@ export class LineChart
     // todo: rename mouseHoverX -> hoverX and hoverX -> activeX
     @observable mouseHoverX?: number = undefined
     @action.bound onHover(hoverX: number | undefined) {
-        if (this.props.manager.resetAnnotation)
-            this.props.manager.resetAnnotation()
         this.mouseHoverX = hoverX
     }
 
     @computed get hoverX() {
-        return this.props.manager.annotation?.year ?? this.mouseHoverX
+        return this.mouseHoverX ?? this.props.manager.annotation?.year
     }
 
     @computed private get manager() {
