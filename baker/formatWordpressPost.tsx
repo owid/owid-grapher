@@ -160,14 +160,20 @@ export const formatWordpressPost = async (
         const { value, year, unit, entityName } = await getDataValue(
             dataValueConfiguration.queryArgs
         )
+        const template = dataValueConfiguration.template
+
         if (!value)
             throw new JsonError(
                 `Missing data value for query ${dataValueConfigurationString}`
             )
+        if (!template)
+            throw new JsonError(
+                `Missing template for query ${dataValueConfigurationString}`
+            )
 
         dataValues.set(dataValueConfigurationString, {
             value,
-            template: dataValueConfiguration.template,
+            template,
             year,
             unit,
             entityName,

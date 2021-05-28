@@ -7,12 +7,12 @@ export interface DataValueProps {
     year?: string
     unit?: string
     entityName?: string
-    template?: string
+    template: string
 }
 
 const processTemplate = (props: DataValueProps) => {
     return props.template
-        ?.replace("%value", props.value)
+        .replace("%value", props.value)
         .replace("%year", props.year || "")
         .replace("%unit", props.unit || "")
         .replace("%entity", props.entityName || "")
