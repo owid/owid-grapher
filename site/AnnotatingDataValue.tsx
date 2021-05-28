@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { Grapher } from "../grapher/core/Grapher"
 import { DataValue, DataValueProps } from "./DataValue"
@@ -12,12 +12,18 @@ export const AnnotatingDataValue = ({
     dataValueProps: DataValueProps
     grapherInstance?: Grapher
 }) => {
+    const [interactive, setInteractive] = useState("")
+
     const renderAnnotationInGrapher = () => {
         grapherInstance?.renderAnnotation({
             entityName: dataValueProps.entityName,
             year: Number(dataValueProps.year),
         })
     }
+
+    useEffect(() => {
+        setInteractive("interactive")
+    }, [])
 
     return (
         <span className="annotating-data-value">
@@ -31,6 +37,7 @@ export const AnnotatingDataValue = ({
             <span
                 onMouseEnter={renderAnnotationInGrapher}
                 onMouseLeave={grapherInstance?.resetAnnotation}
+                className={interactive}
             >
                 <DataValue {...dataValueProps}></DataValue>
             </span>

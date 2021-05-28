@@ -1,6 +1,5 @@
 .annotating-data-value {
-    & > span {
+    .interactive {
         @include expandable-block-button;
-        font-weight: bold;
     }
 }
