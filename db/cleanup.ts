@@ -1,9 +1,10 @@
 type Handler = () => any
 const handlers: Handler[] = []
 
-export const cleanup = async () => await Promise.all(handlers)
+export const cleanup = async (): Promise<Handler[]> =>
+    await Promise.all(handlers)
 
-export const exit = async () => {
+export const exit = async (): Promise<never> => {
     try {
         await cleanup()
         process.exit(0)
@@ -13,7 +14,7 @@ export const exit = async () => {
     }
 }
 
-export const registerExitHandler = (fn: Handler) => handlers.push(fn)
+export const registerExitHandler = (fn: Handler): number => handlers.push(fn)
 
 process.on("SIGINT", exit)
 process.on("SIGTERM", exit)

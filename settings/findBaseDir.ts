@@ -7,7 +7,7 @@ import fs from "fs"
  * Here, we just traverse the directory tree upwards until we find a `package.json` file, which
  * should indicate that we have found the root directory of the `owid-grapher` repo.
  */
-export default function findProjectBaseDir(from: string) {
+export default function findProjectBaseDir(from: string): string | undefined {
     if (!fs.existsSync) return undefined // if fs.existsSync doesn't exist, we're probably running in the browser
 
     let dir = path.dirname(from)

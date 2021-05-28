@@ -35,7 +35,7 @@ export class User extends BaseEntity {
     @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
     createdDatasets!: Dataset[]
 
-    async setPassword(password: string) {
+    async setPassword(password: string): Promise<void> {
         const h = new BCryptHasher()
         this.password = await h.encode(password)
     }

@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
@@ -12,7 +12,6 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
-import { makeGrid } from "../../clientUtils/Util"
 import { ChartInterface } from "../chart/ChartInterface"
 import { getChartPadding, getFontSize } from "./FacetChartUtils"
 import {
@@ -22,6 +21,8 @@ import {
 } from "./FacetChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -29,29 +30,28 @@ const facetBackgroundColor = "transparent" // we don't use color yet but may use
 export class FacetChart
     extends React.Component<FacetChartProps>
     implements ChartInterface {
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         return table
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed get placedSeries() {
+    @computed get placedSeries(): PlacedFacetSeries[] {
         const { manager, series } = this
         const chartTypeName =
             this.props.chartTypeName ?? ChartTypeName.LineChart
         const count = series.length
 
         const boundsArr = this.bounds.split(count, getChartPadding(count))
-        const { columns, rows } = makeGrid(count)
         const {
             yColumnSlug,
             xColumnSlug,
@@ -68,8 +68,6 @@ export class FacetChart
 
         return series.map((series, index) => {
             const bounds = boundsArr[index]
-            const column = index % columns
-            const row = Math.floor(index / columns)
             const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
             const hideYAxis = false // column > 0 // todo: figure out design issues here
             const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
@@ -104,7 +102,7 @@ export class FacetChart
         })
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
@@ -164,39 +162,39 @@ export class FacetChart
         })
     }
 
-    @computed private get yColumns() {
+    @computed private get yColumns(): CoreColumn[] {
         return this.yColumnSlugs.map((slug) => this.inputTable.get(slug))
     }
 
-    @computed private get yColumnSlugs() {
+    @computed private get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
 
-    @computed get series() {
+    @computed get series(): FacetSeries[] {
         const { facetStrategy } = this.manager
         return facetStrategy === FacetStrategy.column
             ? this.columnFacets
             : this.countryFacets
     }
 
-    @computed protected get bounds() {
+    @computed protected get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed protected get manager() {
+    @computed protected get manager(): ChartManager {
         return this.props.manager
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         return ""
     }
 
-    @computed private get subtitleFontSize() {
+    @computed private get subtitleFontSize(): number {
         const { placedSeries, manager } = this
         return getFontSize(placedSeries.length, manager.baseFontSize)
     }
 
-    render() {
+    render(): JSX.Element[] {
         const { subtitleFontSize } = this
         return this.placedSeries.map((smallChart, index: number) => {
             const ChartClass =

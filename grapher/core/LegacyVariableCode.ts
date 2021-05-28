@@ -7,7 +7,7 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "../persistable/Persistable"
-import { ColumnSlug, Integer, Time } from "../../coreTable/CoreTableConstants"
+import { ColumnSlug, Time } from "../../coreTable/CoreTableConstants"
 import { DimensionProperty } from "../core/GrapherConstants"
 import { OwidSource } from "../../coreTable/OwidSource"
 import {
@@ -43,11 +43,13 @@ class LegacyVariableDisplayConfigDefaults {
 export class LegacyVariableDisplayConfig
     extends LegacyVariableDisplayConfigDefaults
     implements Persistable {
-    updateFromObject(obj?: Partial<LegacyVariableDisplayConfigInterface>) {
+    updateFromObject(
+        obj?: Partial<LegacyVariableDisplayConfigInterface>
+    ): void {
         if (obj) updatePersistables(this, obj)
     }
 
-    toObject() {
+    toObject(): LegacyVariableDisplayConfigDefaults {
         return deleteRuntimeAndUnchangedProps(
             objectWithPersistablesToObject(this),
             new LegacyVariableDisplayConfigDefaults()

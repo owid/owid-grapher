@@ -36,12 +36,28 @@ import { memoize } from "../clientUtils/Util"
 
 let knexInstance: Knex
 
+export const isWordpressAPIEnabled = WORDPRESS_URL.length > 0
+export const isWordpressDBEnabled = WORDPRESS_DB_NAME.length > 0
+
 class WPDB {
     private conn?: DatabaseConnection
 
     private knex(
         tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
-    ) {
+    ): Knex.QueryBuilder<
+        Record<string, unknown>,
+        {
+            _base: any
+            _hasSelection: false
+            _keys: never
+            _aliases: Record<string, unknown>
+
+            _single: false
+            _intersectProps: Record<string, unknown>
+
+            _unionProps: never
+        }[]
+    > {
         if (!knexInstance) {
             knexInstance = Knex({
                 client: "mysql",
@@ -60,11 +76,11 @@ class WPDB {
         return knexInstance(tableName)
     }
 
-    private async destroyKnex() {
+    private async destroyKnex(): Promise<void> {
         if (knexInstance) await knexInstance.destroy()
     }
 
-    async connect() {
+    async connect(): Promise<void> {
         this.conn = new DatabaseConnection({
             host: WORDPRESS_DB_HOST,
             port: WORDPRESS_DB_PORT,
@@ -79,7 +95,7 @@ class WPDB {
         })
     }
 
-    async end() {
+    async end(): Promise<void> {
         if (this.conn) this.conn.end()
         this.destroyKnex()
     }
@@ -112,7 +128,10 @@ export const ENTRIES_CATEGORY_ID = 44
  * every query. So it is the caller's responsibility to throw (if necessary) on
  * "faux 404".
  */
-const graphqlQuery = async (query: string, variables: any = {}) => {
+const graphqlQuery = async (
+    query: string,
+    variables: any = {}
+): Promise<any> => {
     const response = await fetch(WP_GRAPHQL_ENDPOINT, {
         method: "POST",
         headers: {
@@ -253,14 +272,24 @@ export const getDocumentsInfo = async (
     }
 }
 
-const getEntryNode = ({ slug, title, excerpt, kpi }: EntryNode) => ({
+const getEntryNode = ({
+    slug,
+    title,
+    excerpt,
+    kpi,
+}: EntryNode): {
+    slug: string
+    title: string
+    excerpt: string
+    kpi: string
+} => ({
     slug,
     title: decodeHTML(title),
     excerpt: excerpt === null ? "" : decodeHTML(excerpt),
     kpi,
 })
 
-const isEntryInSubcategories = (entry: EntryNode, subcategories: any) => {
+const isEntryInSubcategories = (entry: EntryNode, subcategories: any): any => {
     return subcategories.some((subcategory: any) => {
         return subcategory.pages.nodes.some(
             (node: EntryNode) => entry.slug === node.slug
@@ -273,6 +302,7 @@ let cachedEntries: CategoryWithEntries[] = []
 export const getEntriesByCategory = async (): Promise<
     CategoryWithEntries[]
 > => {
+    if (!isWordpressAPIEnabled) return []
     if (cachedEntries.length) return cachedEntries
 
     const first = 100
@@ -374,14 +404,17 @@ export const getPageType = async (post: FullPost): Promise<PageType> => {
     return isEntry ? PageType.Entry : PageType.Standard
 }
 
-export const getPermalinks = async () => ({
+export const getPermalinks = async (): Promise<{
     // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
-    get: (ID: number, postName: string) =>
+    get: (ID: number, postName: string) => string
+}> => ({
+    // Strip trailing slashes, and convert __ into / to allow custom subdirs like /about/media-coverage
+    get: (ID: number, postName: string): string =>
         postName.replace(/\/+$/g, "").replace(/--/g, "/").replace(/__/g, "/"),
 })
 
 let cachedFeaturedImages: Map<number, string> | undefined
-export const getFeaturedImages = async () => {
+export const getFeaturedImages = async (): Promise<Map<number, string>> => {
     if (cachedFeaturedImages) return cachedFeaturedImages
 
     const rows = await singleton.query(
@@ -398,7 +431,7 @@ export const getFeaturedImages = async () => {
 }
 
 // page => pages, post => posts
-const getEndpointSlugFromType = (type: string) => `${type}s`
+const getEndpointSlugFromType = (type: string): string => `${type}s`
 
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
@@ -408,6 +441,8 @@ export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
     limit?: number
 ): Promise<any[]> => {
+    if (!isWordpressAPIEnabled) return []
+
     const perPage = 50
     let posts: any[] = []
 
@@ -454,6 +489,10 @@ export const getPostType = async (search: number | string): Promise<string> => {
 }
 
 export const getPostBySlug = async (slug: string): Promise<any[]> => {
+    if (!isWordpressAPIEnabled) {
+        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
+    }
+
     try {
         const type = await getPostType(slug)
         const postArr = await apiQuery(
@@ -514,7 +553,9 @@ export const getRelatedCharts = async (
         ORDER BY title ASC
     `)
 
-export const getRelatedArticles = async (chartSlug: string) => {
+export const getRelatedArticles = async (
+    chartSlug: string
+): Promise<PostReference[] | undefined> => {
     const graph = await getContentGraph()
 
     const chartRecord = await graph.find(GraphType.Chart, chartSlug)
@@ -539,6 +580,8 @@ export const getRelatedArticles = async (chartSlug: string) => {
 export const getBlockContent = async (
     id: number
 ): Promise<string | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
     const query = `
     query getBlock($id: ID!) {
         wp_block(id: $id, idType: DATABASE_ID) {

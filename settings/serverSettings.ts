@@ -54,8 +54,7 @@ export const BAKED_SITE_DIR: string =
 export const SECRET_KEY: string =
     serverSettings.SECRET_KEY ??
     "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
-export const WORDPRESS_DB_NAME: string =
-    serverSettings.WORDPRESS_DB_NAME ?? DB_NAME
+export const WORDPRESS_DB_NAME: string = serverSettings.WORDPRESS_DB_NAME ?? ""
 export const WORDPRESS_DB_USER: string =
     serverSettings.WORDPRESS_DB_USER ?? DB_USER
 export const WORDPRESS_DB_PASS: string =
@@ -85,7 +84,7 @@ export const EMAIL_USE_TLS: boolean =
     serverSettings.EMAIL_USE_TLS !== "false" ?? true
 
 // Wordpress target setting
-export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? ""
+export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
 export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false" ?? true
 
 // Node slack webhook to report errors to using express-error-slac

@@ -144,7 +144,7 @@ export class ChartEditor {
     }
 
     // Load index of datasets and variables for the given namespace
-    async loadNamespace(namespace: string) {
+    async loadNamespace(namespace: string): Promise<void> {
         const data = await this.manager.admin.getJSON(
             `/api/editorData/${namespace}.json`
         )
@@ -153,7 +153,9 @@ export class ChartEditor {
         )
     }
 
-    async saveGrapher({ onError }: { onError?: () => void } = {}) {
+    async saveGrapher({ onError }: { onError?: () => void } = {}): Promise<
+        void
+    > {
         const { grapher, isNewGrapher } = this
         const currentGrapherObject = {
             ...this.grapher.object,
@@ -198,7 +200,7 @@ export class ChartEditor {
         }
     }
 
-    async saveAsNewGrapher() {
+    async saveAsNewGrapher(): Promise<void> {
         const currentGrapherObject = this.grapher.object
 
         const chartJson = { ...currentGrapherObject }
@@ -219,7 +221,7 @@ export class ChartEditor {
             )
     }
 
-    publishGrapher() {
+    publishGrapher(): void {
         const url = `${BAKED_GRAPHER_URL}/${this.grapher.displaySlug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
@@ -230,7 +232,7 @@ export class ChartEditor {
         }
     }
 
-    unpublishGrapher() {
+    unpublishGrapher(): void {
         const message =
             this.references && this.references.length > 0
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"

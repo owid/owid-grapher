@@ -38,7 +38,9 @@ export const withZeroesAsInterpolatedPoints = <
             points: allXValuesSorted.map((position) => {
                 const point = pointsByPosition[position]
                 const value = point?.value ?? 0
+                const time = point?.time ?? 0
                 return {
+                    time,
                     position,
                     value,
                     valueOffset: 0,

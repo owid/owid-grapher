@@ -25,43 +25,43 @@ export const getStylesForTargetHeight = (
         menu,
     } = props
     return {
-        container: (base: React.CSSProperties) => ({
+        container: (base: React.CSSProperties): any => ({
             ...base,
             ...container,
         }),
-        control: (base: React.CSSProperties) => ({
+        control: (base: React.CSSProperties): any => ({
             ...base,
             minHeight: "initial",
             ...control,
         }),
-        valueContainer: (base: React.CSSProperties) => ({
+        valueContainer: (base: React.CSSProperties): any => ({
             ...base,
             height: `${targetHeight - 1 - 1}px`,
             padding: "0 4px",
             flexWrap: "nowrap",
             ...valueContainer,
         }),
-        singleValue: (base: React.CSSProperties) => ({
+        singleValue: (base: React.CSSProperties): any => ({
             ...base,
             ...singleValue,
         }),
-        clearIndicator: (base: React.CSSProperties) => ({
+        clearIndicator: (base: React.CSSProperties): any => ({
             ...base,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
             ...clearIndicator,
         }),
-        dropdownIndicator: (base: React.CSSProperties) => ({
+        dropdownIndicator: (base: React.CSSProperties): any => ({
             ...base,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
             ...dropdownIndicator,
         }),
-        option: (base: React.CSSProperties) => ({
+        option: (base: React.CSSProperties): any => ({
             ...base,
             paddingTop: "5px",
             paddingBottom: "5px",
             ...option,
         }),
-        menu: (base: React.CSSProperties) => ({
+        menu: (base: React.CSSProperties): any => ({
             ...base,
             zIndex: 10000,
             ...menu,

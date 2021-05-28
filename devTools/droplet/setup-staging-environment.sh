@@ -10,7 +10,7 @@
 # NEW_NAME.owid.cloud.	1	IN	CNAME	staging.owid.cloud.
 
 # Output commands to stdout as they execute
-set -x
+set -ex
 
 ## Move files
 cd ~
@@ -85,9 +85,9 @@ netlify deploy
 
 ## PM2
 cd ~/NEW_NAME
-pm2 start yarn --name NEW_NAME --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- startAdminServer
+pm2 start --name NEW_NAME "yarn startAdminServer"
 pm2 save
-pm2 start yarn --name NEW_NAME-deploy-queue --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- startDeployQueueServer
+pm2 start --name NEW_NAME-deploy-queue "yarn startDeployQueueServer"
 pm2 save
 
 ## Make deployable.
@@ -101,7 +101,7 @@ pm2 save
 
 
 ## Update mysql DB:
-/home/owid/NEW_NAME-wordpress/scripts/refresh.sh -c -u
+/home/owid/NEW_NAME-wordpress/scripts/refresh-staging.sh -c -u
 
 ## Deploy from grapher on your dev machine
 # yarn buildAndDeploySite NEW_NAME

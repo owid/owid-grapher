@@ -93,9 +93,10 @@ $zindex-EntitySelector: 30;
         width: 100%;
     }
 
-    .searchResults ul {
-        display: flex;
-        flex-wrap: wrap;
+    @media (min-width: 800px) {
+        .searchResults ul {
+            column-count: 2;
+        }
     }
 
     ul {
@@ -105,7 +106,6 @@ $zindex-EntitySelector: 30;
 
     li {
         list-style-type: none;
-        flex: 1 0 15em;
         margin-bottom: 0.3em;
     }
 

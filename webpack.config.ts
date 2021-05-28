@@ -64,15 +64,7 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                     use: [
                         MiniCssExtractPlugin.loader,
                         "css-loader?url=false",
-                        "postcss-loader",
-                        {
-                            loader: "sass-loader",
-                            options: {
-                                sassOptions: {
-                                    outputStyle: "expanded", // Needed so autoprefixer comments are included
-                                },
-                            },
-                        },
+                        "sass-loader",
                     ],
                 },
                 {

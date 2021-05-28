@@ -2,7 +2,6 @@ import {
     geoPath,
     geoConicConformal,
     geoAzimuthalEqualArea,
-    GeoProjection,
     GeoPath,
 } from "d3-geo"
 import { geoRobinson, geoPatterson } from "d3-geo-projection"

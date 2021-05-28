@@ -11,24 +11,24 @@ export class Bounds {
     static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
 
-    static fromProps(props: Box) {
+    static fromProps(props: Box): Bounds {
         const { x, y, width, height } = props
         return new Bounds(x, y, width, height)
     }
 
-    static fromBBox(bbox: Box) {
+    static fromBBox(bbox: Box): Bounds {
         return this.fromProps(bbox)
     }
 
-    static fromRect(rect: ClientRect) {
+    static fromRect(rect: ClientRect): Bounds {
         return new Bounds(rect.left, rect.top, rect.width, rect.height)
     }
 
-    static fromElement(el: HTMLElement) {
+    static fromElement(el: HTMLElement): Bounds {
         return Bounds.fromRect(el.getBoundingClientRect())
     }
 
-    static fromCorners(p1: PointVector, p2: PointVector) {
+    static fromCorners(p1: PointVector, p2: PointVector): Bounds {
         const x1 = Math.min(p1.x, p2.x)
         const x2 = Math.max(p1.x, p2.x)
         const y1 = Math.min(p1.y, p2.y)
@@ -38,7 +38,7 @@ export class Bounds {
     }
 
     // Merge a collection of bounding boxes into a single encompassing Bounds
-    static merge(boundsList: Bounds[]) {
+    static merge(boundsList: Bounds[]): Bounds {
         let x1 = Infinity,
             y1 = Infinity,
             x2 = -Infinity,
@@ -59,7 +59,7 @@ export class Bounds {
         label: string,
         fontSize: number,
         xPosition: number
-    ) {
+    ): number {
         const bounds = Bounds.forText(label, {
             fontSize,
         })
@@ -67,7 +67,7 @@ export class Bounds {
         return overflow < 0 ? Math.abs(overflow) : 0
     }
 
-    static empty() {
+    static empty(): Bounds {
         return new Bounds(0, 0, 0, 0)
     }
 
@@ -85,7 +85,7 @@ export class Bounds {
             fontWeight?: number
             fontFamily?: string
         } = {}
-    ) {
+    ): Bounds {
         // Collapse contiguous spaces into one
         str = str.replace(/ +/g, " ")
         const key = `${str}-${fontSize}`
@@ -122,45 +122,45 @@ export class Bounds {
         this.height = Math.max(height, 0)
     }
 
-    get left() {
+    get left(): number {
         return this.x
     }
-    get top() {
+    get top(): number {
         return this.y
     }
-    get right() {
+    get right(): number {
         return this.x + this.width
     }
-    get bottom() {
+    get bottom(): number {
         return this.y + this.height
     }
-    get centerX() {
+    get centerX(): number {
         return this.x + this.width / 2
     }
-    get centerY() {
+    get centerY(): number {
         return this.y + this.height / 2
     }
-    get centerPos() {
+    get centerPos(): PointVector {
         return new PointVector(this.centerX, this.centerY)
     }
-    get area() {
+    get area(): number {
         return this.width * this.height
     }
 
-    get topLeft() {
+    get topLeft(): PointVector {
         return new PointVector(this.left, this.top)
     }
-    get topRight() {
+    get topRight(): PointVector {
         return new PointVector(this.right, this.top)
     }
-    get bottomLeft() {
+    get bottomLeft(): PointVector {
         return new PointVector(this.left, this.bottom)
     }
-    get bottomRight() {
+    get bottomRight(): PointVector {
         return new PointVector(this.right, this.bottom)
     }
 
-    padLeft(amount: number) {
+    padLeft(amount: number): Bounds {
         return new Bounds(
             this.x + amount,
             this.y,
@@ -169,15 +169,15 @@ export class Bounds {
         )
     }
 
-    padRight(amount: number) {
+    padRight(amount: number): Bounds {
         return new Bounds(this.x, this.y, this.width - amount, this.height)
     }
 
-    padBottom(amount: number) {
+    padBottom(amount: number): Bounds {
         return new Bounds(this.x, this.y, this.width, this.height - amount)
     }
 
-    padTop(amount: number) {
+    padTop(amount: number): Bounds {
         return new Bounds(
             this.x,
             this.y + amount,
@@ -186,7 +186,7 @@ export class Bounds {
         )
     }
 
-    padWidth(amount: number) {
+    padWidth(amount: number): Bounds {
         return new Bounds(
             this.x + amount,
             this.y,
@@ -195,7 +195,7 @@ export class Bounds {
         )
     }
 
-    padHeight(amount: number) {
+    padHeight(amount: number): Bounds {
         return new Bounds(
             this.x,
             this.y + amount,
@@ -204,15 +204,15 @@ export class Bounds {
         )
     }
 
-    fromLeft(amount: number) {
+    fromLeft(amount: number): Bounds {
         return this.padRight(this.width - amount)
     }
 
-    fromBottom(amount: number) {
+    fromBottom(amount: number): Bounds {
         return this.padTop(this.height - amount)
     }
 
-    pad(amount: number) {
+    pad(amount: number): Bounds {
         return new Bounds(
             this.x + amount,
             this.y + amount,
@@ -221,11 +221,16 @@ export class Bounds {
         )
     }
 
-    extend(props: { x?: number; y?: number; width?: number; height?: number }) {
+    extend(props: {
+        x?: number
+        y?: number
+        width?: number
+        height?: number
+    }): Bounds {
         return Bounds.fromProps({ ...this, ...props })
     }
 
-    scale(scale: number) {
+    scale(scale: number): Bounds {
         return new Bounds(
             this.x * scale,
             this.y * scale,
@@ -234,7 +239,7 @@ export class Bounds {
         )
     }
 
-    intersects(otherBounds: Bounds) {
+    intersects(otherBounds: Bounds): boolean {
         const r1 = this
         const r2 = otherBounds
 
@@ -255,14 +260,14 @@ export class Bounds {
         ]
     }
 
-    boundedPoint(p: PointVector) {
+    boundedPoint(p: PointVector): PointVector {
         return new PointVector(
             Math.max(Math.min(p.x, this.right), this.left),
             Math.max(Math.min(p.y, this.bottom), this.top)
         )
     }
 
-    containsPoint(x: number, y: number) {
+    containsPoint(x: number, y: number): boolean {
         return (
             x >= this.left &&
             x <= this.right &&
@@ -271,11 +276,11 @@ export class Bounds {
         )
     }
 
-    contains(p: PointVector) {
+    contains(p: PointVector): boolean {
         return this.containsPoint(p.x, p.y)
     }
 
-    encloses(bounds: Bounds) {
+    encloses(bounds: Bounds): boolean {
         return (
             this.containsPoint(bounds.left, bounds.top) &&
             this.containsPoint(bounds.left, bounds.bottom) &&
@@ -308,7 +313,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    split(pieces: number, padding: SplitBoundsPadding = {}) {
+    split(pieces: number, padding: SplitBoundsPadding = {}): Bounds[] {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -341,7 +346,7 @@ export class Bounds {
         return [this.bottom, this.top]
     }
 
-    equals(bounds: Bounds) {
+    equals(bounds: Bounds): boolean {
         return (
             this.x === bounds.x &&
             this.y === bounds.y &&
@@ -352,7 +357,7 @@ export class Bounds {
 
     // Calculate squared distance between a given point and the closest border of the bounds
     // If the point is within the bounds, returns 0
-    private distanceToPointSq(p: PointVector) {
+    private distanceToPointSq(p: PointVector): number {
         if (this.contains(p)) return 0
 
         const cx = Math.max(Math.min(p.x, this.x + this.width), this.x)
@@ -360,7 +365,7 @@ export class Bounds {
         return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy)
     }
 
-    distanceToPoint(p: PointVector) {
+    distanceToPoint(p: PointVector): number {
         return Math.sqrt(this.distanceToPointSq(p))
     }
 }

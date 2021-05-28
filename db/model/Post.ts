@@ -8,10 +8,12 @@ export namespace Post {
     export const select = <K extends keyof PostRow>(
         ...args: K[]
     ): { from: (query: QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
-        from: (query) => query.select(...args) as any,
+        from: (query): any => query.select(...args) as any,
     })
 
-    export const tagsByPostId = async () => {
+    export const tagsByPostId = async (): Promise<
+        Map<number, { id: number; name: string }[]>
+    > => {
         const postTags = await db.queryMysql(`
             SELECT pt.post_id AS postId, pt.tag_id AS tagId, t.name as tagName FROM post_tags pt
             JOIN posts p ON p.id=pt.post_id

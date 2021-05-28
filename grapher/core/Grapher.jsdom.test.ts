@@ -9,6 +9,7 @@ import {
 } from "./GrapherConstants"
 import {
     GrapherInterface,
+    GrapherQueryParams,
     LegacyGrapherQueryParams,
 } from "../core/GrapherInterface"
 import {
@@ -30,7 +31,15 @@ import { MapConfig } from "../mapCharts/MapConfig"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { SelectionArray } from "../selection/SelectionArray"
 
-const TestGrapherConfig = () => {
+const TestGrapherConfig = (): {
+    table: OwidTable
+    selection: any[]
+    dimensions: {
+        slug: SampleColumnSlugs
+        property: DimensionProperty
+        variableId: any
+    }[]
+} => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
     return {
         table,
@@ -200,7 +209,7 @@ describe("hasTimeline", () => {
     })
 })
 
-const getGrapher = () =>
+const getGrapher = (): Grapher =>
     new Grapher({
         dimensions: [
             {
@@ -230,7 +239,7 @@ const getGrapher = () =>
 function fromQueryParams(
     params: LegacyGrapherQueryParams,
     props?: Partial<GrapherInterface>
-) {
+): Grapher {
     const grapher = new Grapher(props)
     grapher.populateFromQueryParams(
         legacyToCurrentGrapherQueryParams(queryParamsToStr(params))
@@ -238,7 +247,9 @@ function fromQueryParams(
     return grapher
 }
 
-function toQueryParams(props?: Partial<GrapherInterface>) {
+function toQueryParams(
+    props?: Partial<GrapherInterface>
+): Partial<GrapherQueryParams> {
     const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,

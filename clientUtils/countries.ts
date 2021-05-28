@@ -1512,10 +1512,10 @@ export const countries: Country[] = allCountriesSortedByCode.filter(
     (country) => !country.filter
 )
 
-export const getCountry = (slug: string) =>
+export const getCountry = (slug: string): Country | undefined =>
     countries.find((c) => c.slug === slug)
 
-export const getCountryDetectionRedirects = () =>
+export const getCountryDetectionRedirects = (): string[] =>
     countries
         .filter((country) => country.iso3166 && country.code)
         .map(

@@ -37,7 +37,7 @@ export const execFormatted = async (
     cmd: string,
     args: string[],
     verbose = true
-) => {
+): Promise<ExecReturn> => {
     const formatCmd = util.format(cmd, ...args.map((word) => quote([word])))
     if (verbose) console.log(formatCmd)
     return await execWrapper(formatCmd, { silent: !verbose })

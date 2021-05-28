@@ -1,4 +1,4 @@
-import { dsvFormat } from "d3-dsv"
+import { dsvFormat, DSVParsedArray } from "d3-dsv"
 import fastCartesian from "fast-cartesian"
 import {
     findIndexFast,
@@ -26,12 +26,14 @@ import {
     OwidTableSlugs,
 } from "./OwidTableConstants"
 
-export const columnStoreToRows = (columnStore: CoreColumnStore) => {
+export const columnStoreToRows = (
+    columnStore: CoreColumnStore
+): Record<string, CoreValueType>[] => {
     const firstCol = Object.values(columnStore)[0]
     if (!firstCol) return []
     const slugs = Object.keys(columnStore)
     return firstCol.map((val, index) => {
-        const newRow: any = {}
+        const newRow: Record<string, CoreValueType> = {}
         slugs.forEach((slug) => {
             newRow[slug] = columnStore[slug][index]
         })
@@ -40,18 +42,20 @@ export const columnStoreToRows = (columnStore: CoreColumnStore) => {
 }
 
 // If string exceeds maxLength, will replace the end char with a ... and drop the rest
-export const truncate = (str: string, maxLength: number) =>
+export const truncate = (str: string, maxLength: number): string =>
     str.length > maxLength ? `${str.substr(0, maxLength - 3)}...` : str
 
 // Picks a type for each column from the first row then autotypes all rows after that so all values in
 // a column will have the same type. Only chooses between strings and numbers.
 const numberOnly = /^-?\d+\.?\d*$/
-export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
+export const makeAutoTypeFn = (
+    numericSlugs?: ColumnSlug[]
+): ((object: any) => any) => {
     const slugToType: any = {}
     numericSlugs?.forEach((slug) => {
         slugToType[slug] = "number"
     })
-    return (object: any) => {
+    return (object: any): any => {
         for (const columnSlug in object) {
             const value = object[columnSlug]
             const type = slugToType[columnSlug]
@@ -83,7 +87,9 @@ export const makeAutoTypeFn = (numericSlugs?: ColumnSlug[]) => {
 
 // Removes whitespace and non-word characters from column slugs if any exist.
 // The original names are moved to the name property on the column def.
-export const standardizeSlugs = (rows: CoreRow[]) => {
+export const standardizeSlugs = (
+    rows: CoreRow[]
+): { rows: CoreRow[]; defs: { name: string; slug: string }[] } | undefined => {
     const firstRow = rows[0] ?? {}
     const colsToRename = Object.keys(firstRow)
         .map((name) => {
@@ -167,7 +173,7 @@ export const guessColumnDefFromSlugAndRow = (
 export const makeRowFromColumnStore = (
     rowIndex: number,
     columnStore: CoreColumnStore
-) => {
+): CoreRow => {
     const row: CoreRow = {}
     const columns = Object.values(columnStore)
     Object.keys(columnStore).forEach((slug, colIndex) => {
@@ -210,7 +216,7 @@ export function linearInterpolation(
     context: LinearInterpolationContext,
     start: number = 0,
     end: number = valuesSortedByTimeAsc.length
-) {
+): void {
     if (!valuesSortedByTimeAsc.length) return
 
     let prevNonBlankIndex = -1
@@ -269,7 +275,7 @@ export function toleranceInterpolation(
     context: ToleranceInterpolationContext,
     start: number = 0,
     end: number = valuesSortedByTimeAsc.length
-) {
+): void {
     if (!valuesSortedByTimeAsc.length) return
 
     let prevNonBlankIndex: number | undefined = undefined
@@ -354,18 +360,18 @@ export function interpolateRowValuesWithTolerance<
 export const makeKeyFn = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[]
-) => (rowIndex: number) =>
+) => (rowIndex: number): string =>
     // toString() handles `undefined` and `null` values, which can be in the table.
     columnSlugs.map((slug) => toString(columnStore[slug][rowIndex])).join(" ")
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
-export const imemo = (
-    target: any,
+export const imemo = <Type>(
+    target: unknown,
     propertyName: string,
-    descriptor: TypedPropertyDescriptor<any>
-) => {
+    descriptor: TypedPropertyDescriptor<Type>
+): void => {
     const originalFn = descriptor.get!
-    descriptor.get = function (this: any) {
+    descriptor.get = function (this: Record<string, Type>): Type {
         const propName = `${propertyName}_memoized`
         if (this[propName] === undefined) {
             // Define the prop the long way so we don't enumerate over it
@@ -383,7 +389,7 @@ export const imemo = (
 export const appendRowsToColumnStore = (
     columnStore: CoreColumnStore,
     rows: CoreRow[]
-) => {
+): CoreColumnStore => {
     const slugs = Object.keys(columnStore)
     const newColumnStore = columnStore
     slugs.forEach((slug) => {
@@ -394,7 +400,7 @@ export const appendRowsToColumnStore = (
     return newColumnStore
 }
 
-const getColumnStoreLength = (store: CoreColumnStore) => {
+const getColumnStoreLength = (store: CoreColumnStore): number => {
     for (const slug in store) {
         return store[slug].length
     }
@@ -404,7 +410,7 @@ const getColumnStoreLength = (store: CoreColumnStore) => {
 export const concatColumnStores = (
     stores: CoreColumnStore[],
     slugsToKeep?: ColumnSlug[]
-) => {
+): CoreColumnStore => {
     if (!stores.length) return {}
 
     const lengths = stores.map(getColumnStoreLength)
@@ -425,7 +431,7 @@ export const concatColumnStores = (
     return newColumnStore
 }
 
-export const rowsToColumnStore = (rows: CoreRow[]) => {
+export const rowsToColumnStore = (rows: CoreRow[]): CoreColumnStore => {
     const columnsObject: CoreColumnStore = {}
     if (!rows.length) return columnsObject
 
@@ -438,7 +444,7 @@ export const rowsToColumnStore = (rows: CoreRow[]) => {
 const guessColumnDefsFromRows = (
     rows: CoreRow[],
     definedSlugs: Map<ColumnSlug, any>
-) => {
+): CoreColumnDef[] => {
     if (!rows[0]) return []
     return Object.keys(rows[0])
         .filter((slug) => !definedSlugs.has(slug))
@@ -460,7 +466,7 @@ const guessColumnDefsFromRows = (
 export const autodetectColumnDefs = (
     rowsOrColumnStore: CoreColumnStore | CoreRow[],
     definedSlugs: Map<ColumnSlug, any>
-) => {
+): CoreColumnDef[] => {
     if (!Array.isArray(rowsOrColumnStore)) {
         const columnStore = rowsOrColumnStore as CoreColumnStore
         return Object.keys(columnStore)
@@ -481,13 +487,15 @@ export const autodetectColumnDefs = (
 export const replaceDef = <ColumnDef extends CoreColumnDef>(
     defs: ColumnDef[],
     newDefs: ColumnDef[]
-) =>
+): ColumnDef[] =>
     defs.map((def) => {
         const newDef = newDefs.find((newDef) => newDef.slug === def.slug)
         return newDef ?? def
     })
 
-export const reverseColumnStore = (columnStore: CoreColumnStore) => {
+export const reverseColumnStore = (
+    columnStore: CoreColumnStore
+): CoreColumnStore => {
     const newStore: CoreColumnStore = {}
     Object.keys(columnStore).forEach((slug) => {
         newStore[slug] = columnStore[slug].slice().reverse()
@@ -498,7 +506,7 @@ export const reverseColumnStore = (columnStore: CoreColumnStore) => {
 export const renameColumnStore = (
     columnStore: CoreColumnStore,
     columnRenameMap: { [columnSlug: string]: ColumnSlug }
-) => {
+): CoreColumnStore => {
     const newStore: CoreColumnStore = {}
     Object.keys(columnStore).forEach((slug) => {
         if (columnRenameMap[slug])
@@ -512,7 +520,7 @@ export const replaceCells = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[],
     replaceFn: (val: CoreValueType) => CoreValueType
-) => {
+): CoreColumnStore => {
     const newStore: CoreColumnStore = { ...columnStore }
     columnSlugs.forEach((slug) => {
         newStore[slug] = newStore[slug].map(replaceFn)
@@ -525,7 +533,7 @@ export const getDropIndexes = (
     arrayLength: number,
     howMany: number,
     seed = Date.now()
-) => new Set(sampleFrom(range(0, arrayLength), howMany, seed))
+): Set<number> => new Set(sampleFrom(range(0, arrayLength), howMany, seed))
 
 export const replaceRandomCellsInColumnStore = (
     columnStore: CoreColumnStore,
@@ -533,7 +541,7 @@ export const replaceRandomCellsInColumnStore = (
     columnSlugs: ColumnSlug[] = [],
     seed = Date.now(),
     replacementGenerator: () => any = () => ErrorValueTypes.DroppedForTesting
-) => {
+): CoreColumnStore => {
     const newStore: CoreColumnStore = Object.assign({}, columnStore)
     columnSlugs.forEach((slug) => {
         const values = newStore[slug]
@@ -554,7 +562,7 @@ export class Timer {
     private _tickTime: number
     private _firstTickTime: number
 
-    tick(msg?: string) {
+    tick(msg?: string): number {
         const elapsed = Date.now() - this._tickTime
         // eslint-disable-next-line no-console
         if (msg) console.log(`${elapsed}ms ${msg}`)
@@ -562,12 +570,12 @@ export class Timer {
         return elapsed
     }
 
-    getTotalElapsedTime() {
+    getTotalElapsedTime(): number {
         return Date.now() - this._firstTickTime
     }
 }
 
-export const rowsFromMatrix = (matrix: CoreMatrix) => {
+export const rowsFromMatrix = (matrix: CoreMatrix): any[] => {
     const table = trimMatrix(matrix)
     const header = table[0]
     return table.slice(1).map((row) => {
@@ -584,7 +592,10 @@ const trimEmptyColumns = (matrix: CoreMatrix): CoreMatrix =>
 export const trimMatrix = (matrix: CoreMatrix): CoreMatrix =>
     trimEmptyColumns(trimEmptyRows(matrix))
 
-export const matrixToDelimited = (table: CoreMatrix, delimiter = "\t") => {
+export const matrixToDelimited = (
+    table: CoreMatrix,
+    delimiter = "\t"
+): string => {
     return table
         .map((row: any) =>
             row
@@ -600,9 +611,10 @@ export const parseDelimited = (
     str: string,
     delimiter?: string,
     parseFn?: any
-) => dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn)
+): DSVParsedArray<Record<string, unknown>> =>
+    dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn)
 
-export const detectDelimiter = (str: string) =>
+export const detectDelimiter = (str: string): "\t" | "," | " " =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
 export const rowsToMatrix = (rows: any[]): CoreMatrix | undefined =>
@@ -610,9 +622,9 @@ export const rowsToMatrix = (rows: any[]): CoreMatrix | undefined =>
         ? [Object.keys(rows[0]), ...rows.map((row) => Object.values(row))]
         : undefined
 
-const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
+const isRowEmpty = (row: any[]): boolean => row.every(isCellEmpty)
 
-export const isCellEmpty = (cell: any) =>
+export const isCellEmpty = (cell: any): boolean =>
     cell === null || cell === undefined || cell === ""
 
 export const trimEmptyRows = (matrix: CoreMatrix): CoreMatrix => {
@@ -624,7 +636,7 @@ export const trimEmptyRows = (matrix: CoreMatrix): CoreMatrix => {
     return trimAt === undefined ? matrix : matrix.slice(0, trimAt)
 }
 
-export const trimArray = (arr: any[]) => {
+export const trimArray = (arr: any[]): any[] => {
     let rightIndex: number
     for (rightIndex = arr.length - 1; rightIndex >= 0; rightIndex--) {
         if (!isCellEmpty(arr[rightIndex])) break
@@ -636,13 +648,13 @@ export function cartesianProduct<T>(...allEntries: T[][]): T[][] {
     return fastCartesian(allEntries)
 }
 
-const applyNewSortOrder = (arr: any[], newOrder: number[]) =>
+const applyNewSortOrder = (arr: any[], newOrder: number[]): any[] =>
     newOrder.map((index) => arr[index])
 
 export const sortColumnStore = (
     columnStore: CoreColumnStore,
     slugs: ColumnSlug[]
-) => {
+): CoreColumnStore => {
     const firstCol = Object.values(columnStore)[0]
     if (!firstCol) return {}
     const len = firstCol.length
@@ -657,9 +669,9 @@ export const sortColumnStore = (
 const makeSortByFn = (
     columnStore: CoreColumnStore,
     columnSlugs: ColumnSlug[]
-) => {
+): ((indexA: number, indexB: number) => 1 | 0 | -1) => {
     const numSlugs = columnSlugs.length
-    return (indexA: number, indexB: number) => {
+    return (indexA: number, indexB: number): 1 | 0 | -1 => {
         const nodeAFirst = -1
         const nodeBFirst = 1
 
@@ -676,7 +688,7 @@ const makeSortByFn = (
     }
 }
 
-export const emptyColumnsInFirstRowInDelimited = (str: string) => {
+export const emptyColumnsInFirstRowInDelimited = (str: string): string[] => {
     // todo: don't split a big string here, just do a faster first line scan
     const shortCsv = parseDelimited(str.split("\n").slice(0, 2).join("\n"))
     const firstRow: any = shortCsv[0] ?? {}

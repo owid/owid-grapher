@@ -4,6 +4,7 @@ import { Grapher } from "../core/Grapher"
 import { computed } from "mobx"
 import { DimensionProperty } from "../core/GrapherConstants"
 import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util"
+import { ChartDimension } from "./ChartDimension"
 
 export class DimensionSlot {
     private grapher: Grapher
@@ -13,7 +14,7 @@ export class DimensionSlot {
         this.property = property
     }
 
-    @computed get name() {
+    @computed get name(): string {
         const names = {
             y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
@@ -25,24 +26,24 @@ export class DimensionSlot {
         return (names as any)[this.property] || ""
     }
 
-    @computed get allowMultiple() {
+    @computed get allowMultiple(): boolean {
         return (
             this.property === DimensionProperty.y &&
             this.grapher.supportsMultipleYColumns
         )
     }
 
-    @computed get isOptional() {
+    @computed get isOptional(): boolean {
         return this.allowMultiple
     }
 
-    @computed get dimensions() {
+    @computed get dimensions(): ChartDimension[] {
         return this.grapher.dimensions.filter(
             (d) => d.property === this.property
         )
     }
 
-    @computed get dimensionsOrderedAsInPersistedSelection() {
+    @computed get dimensionsOrderedAsInPersistedSelection(): ChartDimension[] {
         const legacyConfig = this.grapher.legacyConfigAsAuthored
         const variableIDsInSelectionOrder = excludeUndefined(
             legacyConfig.selectedData?.map(

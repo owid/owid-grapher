@@ -103,7 +103,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
 export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable
-) {
+): Promise<void> {
     const variableQuery: Promise<
         { id: number; name: string }[]
     > = db.queryMysql(

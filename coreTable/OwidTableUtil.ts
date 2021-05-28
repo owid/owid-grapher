@@ -3,11 +3,13 @@ import { CoreTable } from "./CoreTable"
 import { ColumnSlug } from "./CoreTableConstants"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 
-export function timeColumnSlugFromColumnDef(def: OwidColumnDef) {
+export function timeColumnSlugFromColumnDef(
+    def: OwidColumnDef
+): OwidTableSlugs.day | OwidTableSlugs.year {
     return def.isDailyMeasurement ? OwidTableSlugs.day : OwidTableSlugs.year
 }
 
-export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug) {
+export function makeOriginalTimeSlugFromColumnSlug(slug: ColumnSlug): string {
     return `${slug}-originalTime`
 }
 

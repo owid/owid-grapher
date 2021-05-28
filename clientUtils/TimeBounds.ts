@@ -26,8 +26,10 @@ enum TimeBoundValueStr {
     unboundedRight = "latest",
 }
 
-export const timeFromTimebounds = (timeBound: TimeBound, fallbackTime: Time) =>
-    Math.abs(timeBound) !== Infinity ? timeBound : fallbackTime
+export const timeFromTimebounds = (
+    timeBound: TimeBound,
+    fallbackTime: Time
+): number => (Math.abs(timeBound) !== Infinity ? timeBound : fallbackTime)
 
 const hasAnInfinity = (timeBound: TimeBound): timeBound is TimeBoundValue =>
     isNegativeInfinity(timeBound) || isPositiveInfinity(timeBound)
@@ -40,7 +42,7 @@ export const isPositiveInfinity = (
     timeBound: TimeBound
 ): timeBound is TimeBoundValue => timeBound === TimeBoundValue.positiveInfinity
 
-const formatTimeBound = (timeBound: TimeBound) => {
+const formatTimeBound = (timeBound: TimeBound): string => {
     if (isNegativeInfinity(timeBound)) return TimeBoundValueStr.unboundedLeft
     if (isPositiveInfinity(timeBound)) return TimeBoundValueStr.unboundedRight
     return `${timeBound}`
@@ -57,7 +59,7 @@ const parseTimeBound = (str: string): TimeBound | undefined => {
 }
 
 // Use this to not repeat logic
-const fromJSON = (value: TimeBound | string | undefined) =>
+const fromJSON = (value: TimeBound | string | undefined): number | undefined =>
     isString(value) ? parseTimeBound(value) : value
 
 const toJSON = (bound: TimeBound | undefined): string | number | undefined => {
@@ -84,7 +86,7 @@ const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
 export const timeBoundToTimeBoundString = (
     timeBound: TimeBound,
     isDate: boolean
-) => {
+): string => {
     if (hasAnInfinity(timeBound)) return formatTimeBound(timeBound)
     return isDate
         ? formatDay(timeBound, { format: "YYYY-MM-DD" })
@@ -96,7 +98,7 @@ const parseTimeURIComponent = (param: string): TimeBound | undefined =>
         ? diffDateISOStringInDays(param, EPOCH_DATE)
         : parseTimeBound(param)
 
-const upgradeLegacyTimeString = (time: string) => {
+const upgradeLegacyTimeString = (time: string): string => {
     // In the past we supported unbounded time parameters like time=2015.. which would be
     // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
     // more because URLs ending with dots are not interpreted correctly by many services

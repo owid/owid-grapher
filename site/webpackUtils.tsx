@@ -47,7 +47,7 @@ const checkReady = () => {
 }
 
 const coreScripts = [
-    'https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,fetch',
+    'https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry',
     '${webpackUrl("commons.js", baseUrl)}',
     '${webpackUrl("owid.js", baseUrl)}'
 ]

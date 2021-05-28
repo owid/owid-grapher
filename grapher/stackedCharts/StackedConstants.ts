@@ -7,6 +7,7 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
     position: PositionType
     value: number
     valueOffset: number
+    time: number
     fake?: boolean
 }
 

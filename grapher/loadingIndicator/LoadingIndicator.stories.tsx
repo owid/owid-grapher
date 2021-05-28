@@ -6,7 +6,7 @@ export default {
     component: LoadingIndicator,
 }
 
-export const Default = () => {
+export const Default = (): JSX.Element => {
     return (
         <div>
             <LoadingIndicator />

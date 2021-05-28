@@ -46,7 +46,7 @@ export class CSVStreamParser {
         this.parser = parser
     }
 
-    private update() {
+    private update(): void {
         if (!this.rowResolve || !this.rowReject) return
 
         if (this.error) {

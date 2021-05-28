@@ -24,9 +24,9 @@ interface DownloadTabProps {
     manager: DownloadTabManager
 }
 
-declare var Blob: any
+declare let Blob: any
 
-const polyfillToBlob = () => {
+const polyfillToBlob = (): void => {
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
     Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
         value: function (
@@ -53,27 +53,27 @@ const polyfillToBlob = () => {
 
 // Wrapped because JSDOM does not support this method yet:
 // https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
-const createObjectURL = (obj: any) =>
+const createObjectURL = (obj: any): string =>
     URL.createObjectURL ? URL.createObjectURL(obj) : ""
 
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed private get idealBounds() {
+    @computed private get idealBounds(): Bounds {
         return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get targetWidth() {
+    @computed private get targetWidth(): number {
         return this.idealBounds.width
     }
-    @computed private get targetHeight() {
+    @computed private get targetHeight(): number {
         return this.idealBounds.height
     }
 
-    @computed private get manager() {
+    @computed private get manager(): DownloadTabManager {
         return this.props.manager
     }
 
@@ -84,18 +84,18 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @observable private pngDownloadUrl?: string
     @observable private pngPreviewUrl?: string
     @observable private isReady: boolean = false
-    @action.bound private export() {
+    @action.bound private export(): void {
         if (!HTMLCanvasElement.prototype.toBlob) polyfillToBlob()
         this.createSvg()
         const reader = new FileReader()
-        reader.onload = (ev: any) => {
+        reader.onload = (ev: any): void => {
             this.svgPreviewUrl = ev.target.result as string
             this.tryCreatePng(this.svgPreviewUrl)
         }
         reader.readAsDataURL(this.svgBlob as Blob)
     }
 
-    @action.bound private createSvg() {
+    @action.bound private createSvg(): void {
         const staticSVG = this.manager.staticSVG
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
@@ -103,11 +103,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         this.svgDownloadUrl = createObjectURL(this.svgBlob)
     }
 
-    @action.bound private tryCreatePng(svgPreviewUrl: string) {
+    @action.bound private tryCreatePng(svgPreviewUrl: string): void {
         const { targetWidth, targetHeight } = this
         // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
         const img = new Image()
-        img.onload = () => {
+        img.onload = (): void => {
             try {
                 const canvas = document.createElement("canvas")
                 // We draw the chart at 4x res then scale it down again -- much better text quality
@@ -130,27 +130,27 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 this.markAsReady()
             }
         }
-        img.onerror = (err) => {
+        img.onerror = (err): void => {
             console.error(JSON.stringify(err))
             this.markAsReady()
         }
         img.src = svgPreviewUrl
     }
 
-    @action.bound private markAsReady() {
+    @action.bound private markAsReady(): void {
         this.isReady = true
     }
 
-    @computed private get fallbackPngUrl() {
+    @computed private get fallbackPngUrl(): string {
         return `${this.manager.baseUrl || ""}.png${this.manager.queryStr || ""}`
     }
-    @computed private get baseFilename() {
+    @computed private get baseFilename(): string {
         return this.manager.displaySlug
     }
 
     @action.bound private onPNGDownload(
         ev: React.MouseEvent<HTMLAnchorElement>
-    ) {
+    ): void {
         if (window.navigator.msSaveBlob) {
             window.navigator.msSaveBlob(
                 this.pngBlob,
@@ -162,18 +162,18 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
     @action.bound private onSVGDownload(
         ev: React.MouseEvent<HTMLAnchorElement>
-    ) {
+    ): void {
         if (!window.navigator.msSaveBlob) return
 
         window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
         ev.preventDefault()
     }
 
-    @computed private get inputTable() {
+    @computed private get inputTable(): OwidTable {
         return this.manager.table ?? BlankOwidTable()
     }
 
-    private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+    private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>): void {
         const { manager, inputTable } = this
         const csvFilename = manager.displaySlug + ".csv"
         const csv = inputTable.toPrettyCsv() || ""
@@ -196,7 +196,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
-    @computed private get csvButton() {
+    @computed private get csvButton(): JSX.Element {
         const { manager } = this
         const externalCsvLink = manager.externalCsvLink
         const csvFilename = manager.displaySlug + ".csv"
@@ -206,7 +206,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                   download: csvFilename,
               }
             : {
-                  onClick: (ev: React.MouseEvent<HTMLAnchorElement>) =>
+                  onClick: (ev: React.MouseEvent<HTMLAnchorElement>): void =>
                       this.onCsvDownload(ev),
               }
 
@@ -227,7 +227,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         )
     }
 
-    private renderReady() {
+    private renderReady(): JSX.Element {
         const {
             targetWidth,
             targetHeight,
@@ -310,18 +310,18 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         )
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.export()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         if (this.pngDownloadUrl !== undefined)
             URL.revokeObjectURL(this.pngDownloadUrl)
         if (this.svgDownloadUrl !== undefined)
             URL.revokeObjectURL(this.svgDownloadUrl)
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <div
                 className={classNames("DownloadTab", {

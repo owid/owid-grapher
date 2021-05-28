@@ -46,7 +46,7 @@ export class PromiseSwitcher<Result> {
         }
     }
 
-    clear() {
+    clear(): void {
         this.pendingPromise = undefined
     }
 }

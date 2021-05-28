@@ -104,7 +104,7 @@ function getShadowOpacity(
     maxOpacity: number,
     maxDistance: number,
     scrollDistance: number | undefined
-) {
+): number {
     const distance =
         scrollDistance !== undefined ? Math.min(scrollDistance, maxDistance) : 0
     return (distance / maxDistance) * maxOpacity
@@ -114,7 +114,7 @@ const ScrollingShadow = (props: {
     direction: "up" | "down"
     size: number
     opacity: number
-}) => {
+}): JSX.Element => {
     // "Eased" gradient
     // https://larsenwork.com/easing-gradients/
     const background = `linear-gradient(
@@ -162,7 +162,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
         if (el) {
             let pendingUpdate = false
 
-            function onScroll() {
+            function onScroll(): void {
                 const { scrollTop, scrollHeight, offsetHeight } = el
                 onScrollTop(scrollTop)
                 onScrollBottom(scrollHeight - offsetHeight - scrollTop)
@@ -170,7 +170,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
             }
             onScroll() // execute for first time to setState
 
-            const onScrollThrottled = () => {
+            const onScrollThrottled = (): void => {
                 if (!pendingUpdate) {
                     window.requestAnimationFrame(onScroll)
                     pendingUpdate = true
@@ -178,7 +178,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
             }
 
             el.addEventListener("scroll", onScrollThrottled)
-            return () => {
+            return (): void => {
                 el.removeEventListener("scroll", onScrollThrottled)
             }
         }
@@ -199,7 +199,7 @@ interface ScrollLockOptions {
 function useScrollLock<ElementType extends HTMLElement>(
     ref: React.RefObject<ElementType>,
     opts?: Partial<ScrollLockOptions>
-) {
+): void {
     useEffect(() => {
         const el = ref.current
         const options: ScrollLockOptions = {
@@ -207,7 +207,7 @@ function useScrollLock<ElementType extends HTMLElement>(
             ...opts,
         }
         if (el) {
-            function onWheel(ev: MouseWheelEvent) {
+            function onWheel(ev: MouseWheelEvent): void {
                 const el = ref.current
                 if (el) {
                     const delta = ev.deltaY
@@ -221,7 +221,7 @@ function useScrollLock<ElementType extends HTMLElement>(
                         return
                     }
 
-                    function prevent() {
+                    function prevent(): void {
                         ev.stopPropagation()
                         ev.preventDefault()
                     }
@@ -244,7 +244,7 @@ function useScrollLock<ElementType extends HTMLElement>(
                 // We need to be in non-passive mode to be able to cancel the event
                 passive: false,
             })
-            return () => {
+            return (): void => {
                 if (el) {
                     el.removeEventListener("mousewheel", onWheel as any)
                 }

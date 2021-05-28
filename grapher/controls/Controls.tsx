@@ -34,20 +34,20 @@ export interface HighlightToggleManager {
 export class HighlightToggle extends React.Component<{
     manager: HighlightToggleManager
 }> {
-    @computed private get manager() {
+    @computed private get manager(): HighlightToggleManager {
         return this.props.manager
     }
-    @computed private get highlight() {
+    @computed private get highlight(): HighlightToggleConfig | undefined {
         return this.props.manager.highlightToggle
     }
 
-    @computed private get highlightParams() {
+    @computed private get highlightParams(): QueryParams {
         return getQueryParams((this.highlight?.paramStr || "").substring(1))
     }
 
     @action.bound private onHighlightToggle(
         event: React.FormEvent<HTMLInputElement>
-    ) {
+    ): void {
         if (!event.currentTarget.checked) {
             this.manager.selectionArray?.clearSelection()
             return
@@ -60,16 +60,16 @@ export class HighlightToggle extends React.Component<{
         this.manager.populateFromQueryParams(params)
     }
 
-    private get isHighlightActive() {
+    private get isHighlightActive(): boolean {
         const params = getWindowQueryParams()
         let isActive = true
-        Object.keys(this.highlightParams).forEach((key) => {
+        Object.keys(this.highlightParams).forEach((key): void => {
             if (params[key] !== this.highlightParams[key]) isActive = false
         })
         return isActive
     }
 
-    render() {
+    render(): JSX.Element {
         const { highlight, isHighlightActive } = this
         return (
             <label className="clickable HighlightToggle">
@@ -93,21 +93,21 @@ export interface AbsRelToggleManager {
 export class AbsRelToggle extends React.Component<{
     manager: AbsRelToggleManager
 }> {
-    @action.bound onToggle() {
+    @action.bound onToggle(): void {
         this.manager.stackMode = this.isRelativeMode
             ? StackMode.absolute
             : StackMode.relative
     }
 
-    @computed get isRelativeMode() {
+    @computed get isRelativeMode(): boolean {
         return this.manager.stackMode === StackMode.relative
     }
 
-    @computed get manager() {
+    @computed get manager(): AbsRelToggleManager {
         return this.props.manager
     }
 
-    render() {
+    render(): JSX.Element {
         const label = this.manager.relativeToggleLabel ?? "Relative"
         return (
             <label className="clickable">
@@ -131,13 +131,13 @@ export interface ZoomToggleManager {
 export class ZoomToggle extends React.Component<{
     manager: ZoomToggleManager
 }> {
-    @action.bound onToggle() {
+    @action.bound onToggle(): void {
         this.props.manager.zoomToSelection = this.props.manager.zoomToSelection
             ? undefined
             : true
     }
 
-    render() {
+    render(): JSX.Element {
         const label = "Zoom to selection"
         return (
             <label className="clickable">
@@ -162,21 +162,21 @@ export interface SmallCountriesFilterManager {
 export class FilterSmallCountriesToggle extends React.Component<{
     manager: SmallCountriesFilterManager
 }> {
-    @action.bound private onChange() {
+    @action.bound private onChange(): void {
         this.manager.minPopulationFilter = this.manager.minPopulationFilter
             ? undefined
             : this.filterOption
     }
 
-    @computed private get manager() {
+    @computed private get manager(): SmallCountriesFilterManager {
         return this.props.manager
     }
 
-    @computed private get filterOption() {
+    @computed private get filterOption(): number {
         return this.manager.populationFilterOption ?? 1e6
     }
 
-    render() {
+    render(): JSX.Element {
         const label = `Hide countries < ${formatValue(
             this.filterOption,
             {}
@@ -213,48 +213,44 @@ export interface FooterControlsManager extends ShareMenuManager {
 export class FooterControls extends React.Component<{
     manager: FooterControlsManager
 }> {
-    @computed private get manager() {
+    @computed private get manager(): FooterControlsManager {
         return this.props.manager
     }
 
-    @action.bound onShareMenu() {
+    @action.bound onShareMenu(): void {
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
 
-    @computed private get availableTabs() {
+    @computed private get availableTabs(): GrapherTabOption[] {
         return this.manager.availableTabs || []
     }
 
-    private _getTabsElement() {
+    private _getTabsElement(): JSX.Element {
         const { manager } = this
         return (
             <nav className="tabs">
                 <ul>
                     {this.availableTabs.map((tabName) => {
-                        return (
-                            tabName !== GrapherTabOption.download && (
-                                <li
-                                    key={tabName}
-                                    className={
-                                        "tab clickable" +
-                                        (tabName === manager.currentTab
-                                            ? " active"
-                                            : "")
-                                    }
+                        return tabName !== GrapherTabOption.download ? (
+                            <li
+                                key={tabName}
+                                className={
+                                    "tab clickable" +
+                                    (tabName === manager.currentTab
+                                        ? " active"
+                                        : "")
+                                }
+                            >
+                                <a
+                                    onClick={(): void => {
+                                        manager.currentTab = tabName
+                                    }}
+                                    data-track-note={"chart-click-" + tabName}
                                 >
-                                    <a
-                                        onClick={() =>
-                                            (manager.currentTab = tabName)
-                                        }
-                                        data-track-note={
-                                            "chart-click-" + tabName
-                                        }
-                                    >
-                                        {tabName}
-                                    </a>
-                                </li>
-                            )
-                        )
+                                    {tabName}
+                                </a>
+                            </li>
+                        ) : null
                     })}
                     <li
                         className={
@@ -267,7 +263,7 @@ export class FooterControls extends React.Component<{
                     >
                         <a
                             data-track-note="chart-click-download"
-                            onClick={() =>
+                            onClick={(): GrapherTabOption =>
                                 (manager.currentTab = GrapherTabOption.download)
                             }
                         >
@@ -301,7 +297,7 @@ export class FooterControls extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { manager } = this
         const {
             isShareMenuActive,

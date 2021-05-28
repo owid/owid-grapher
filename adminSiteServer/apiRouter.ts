@@ -69,6 +69,8 @@ async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
 const getReferencesByChartId = async (
     chartId: number
 ): Promise<PostReference[]> => {
+    if (!wpdb.isWordpressDBEnabled) return []
+
     const rows = await db.queryMysql(
         `
         SELECT config->"$.slug" AS slug
@@ -1300,7 +1302,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .knexTable(Post.table)
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow
+        .first()) as PostRow | undefined
     return camelCaseProperties(post)
 })
 

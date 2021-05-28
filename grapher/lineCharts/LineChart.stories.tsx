@@ -16,7 +16,7 @@ export default {
     component: LineChart,
 }
 
-export const SingleColumnMultiCountry = () => {
+export const SingleColumnMultiCountry = (): JSX.Element => {
     const table = SynthesizeGDPTable()
     const bounds = new Bounds(0, 0, 500, 250)
     return (
@@ -46,7 +46,7 @@ export const SingleColumnMultiCountry = () => {
     )
 }
 
-export const WithLogScaleAndNegativeAndZeroValues = () => {
+export const WithLogScaleAndNegativeAndZeroValues = (): JSX.Element => {
     const table = SynthesizeFruitTableWithNonPositives({
         entityCount: 2,
         timeRange: [1900, 2000],
@@ -76,7 +76,7 @@ export const WithLogScaleAndNegativeAndZeroValues = () => {
     )
 }
 
-export const WithoutCirclesOnPoints = () => {
+export const WithoutCirclesOnPoints = (): JSX.Element => {
     const table = SynthesizeGDPTable({
         entityCount: 6,
         timeRange: [1900, 2000],
@@ -96,7 +96,7 @@ export const WithoutCirclesOnPoints = () => {
     )
 }
 
-export const WithAnnotations = () => {
+export const WithAnnotations = (): JSX.Element => {
     let table = SynthesizeGDPTable({
         entityCount: 6,
         timeRange: [1900, 2000],
@@ -107,7 +107,7 @@ export const WithAnnotations = () => {
             slug: makeAnnotationsSlug(SampleColumnSlugs.GDP),
             values: table
                 .get(OwidTableSlugs.entityName)
-                .values.map((name) => `${name} is a country`),
+                .values.map((name): string => `${name} is a country`),
         },
     ])
     return (
@@ -125,7 +125,7 @@ export const WithAnnotations = () => {
     )
 }
 
-export const MultiColumnSingleCountry = () => {
+export const MultiColumnSingleCountry = (): JSX.Element => {
     const table = SynthesizeGDPTable()
     const bounds = new Bounds(0, 0, 500, 250)
     return (
@@ -150,7 +150,7 @@ export const MultiColumnSingleCountry = () => {
     )
 }
 
-export const MultiColumnMultiCountry = () => {
+export const MultiColumnMultiCountry = (): JSX.Element => {
     const table = SynthesizeFruitTable({ entityCount: 5 })
     const bounds = new Bounds(0, 0, 500, 250)
     return (
