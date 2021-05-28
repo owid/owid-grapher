@@ -1982,7 +1982,6 @@ export class Grapher
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
-                {/* {this.annotation && <span></span>} */}
             </>
         )
     }
