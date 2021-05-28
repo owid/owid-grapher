@@ -10,7 +10,7 @@ export interface DataValueProps {
     template: string
 }
 
-const processTemplate = (props: DataValueProps) => {
+export const processTemplate = (props: DataValueProps) => {
     return props.template
         .replace("%value", props.value)
         .replace("%year", props.year || "")
@@ -18,24 +18,12 @@ const processTemplate = (props: DataValueProps) => {
         .replace("%entity", props.entityName || "")
 }
 
-export const DataValue = ({
-    value,
-    year,
-    unit,
-    entityName,
-    template,
-}: DataValueProps) => {
+export const DataValue = ({ label }: { label: string }) => {
     return (
         <span
             className="data-value"
             dangerouslySetInnerHTML={{
-                __html: processTemplate({
-                    template,
-                    value,
-                    year,
-                    unit,
-                    entityName,
-                }),
+                __html: label,
             }}
         ></span>
     )

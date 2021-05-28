@@ -17,4 +17,8 @@ export class SiteAnalytics extends GrapherAnalytics {
     logPageLoad() {
         this.logToAmplitude("OWID_PAGE_LOAD")
     }
+
+    logDataValueAnnotate(label: string) {
+        this.logToGA("Hover", "data-value-annotate", label)
+    }
 }

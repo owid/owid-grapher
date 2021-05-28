@@ -3,9 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { Grapher } from "../grapher/core/Grapher"
-import { DataValue, DataValueProps } from "./DataValue"
+import { ENV } from "../settings/clientSettings"
+import { DataValue, DataValueProps, processTemplate } from "./DataValue"
+import { SiteAnalytics } from "./SiteAnalytics"
 
 const AnnotatingDataValue_name = "AnnotatingDataValue"
+const analytics = new SiteAnalytics(ENV)
 
 export const AnnotatingDataValue = ({
     dataValueProps,
@@ -15,12 +18,14 @@ export const AnnotatingDataValue = ({
     grapherInstance?: Grapher
 }) => {
     const [isInteractive, setInteractive] = useState(false)
+    const [label] = useState(processTemplate(dataValueProps))
 
     const renderAnnotationInGrapher = () => {
         grapherInstance?.renderAnnotation({
             entityName: dataValueProps.entityName,
             year: Number(dataValueProps.year),
         })
+        analytics.logDataValueAnnotate(label)
     }
 
     useEffect(() => {
@@ -41,7 +46,7 @@ export const AnnotatingDataValue = ({
                 onMouseLeave={grapherInstance?.resetAnnotation}
                 className={isInteractive ? "interactive" : ""}
             >
-                <DataValue {...dataValueProps}></DataValue>
+                <DataValue label={label}></DataValue>
                 {isInteractive ? <FontAwesomeIcon icon={faChartLine} /> : null}
             </span>
         </span>
