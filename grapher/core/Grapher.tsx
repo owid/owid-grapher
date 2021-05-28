@@ -1098,7 +1098,7 @@ export class Grapher
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.tab) {
+        switch (this.currentTab) {
             // the map tab has its own `hideTimeline` option
             case GrapherTabOption.map:
                 return !this.map.hideTimeline
