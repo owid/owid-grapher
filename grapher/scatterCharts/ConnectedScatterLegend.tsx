@@ -18,17 +18,17 @@ export class ConnectedScatterLegend {
         this.manager = manager
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    @computed get fontColor() {
+    @computed get fontColor(): string {
         return "#333"
     }
-    @computed get maxLabelWidth() {
+    @computed get maxLabelWidth(): number {
         return this.manager.sidebarWidth / 3
     }
 
-    @computed get startLabel() {
+    @computed get startLabel(): TextWrap {
         const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
             text: manager.displayStartTime,
@@ -37,7 +37,7 @@ export class ConnectedScatterLegend {
         })
     }
 
-    @computed get endLabel() {
+    @computed get endLabel(): TextWrap {
         const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
             text: manager.displayEndTime,
@@ -46,11 +46,11 @@ export class ConnectedScatterLegend {
         })
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return this.manager.sidebarWidth
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return Math.max(this.startLabel.height, this.endLabel.height)
     }
 
@@ -58,7 +58,7 @@ export class ConnectedScatterLegend {
         targetX: number,
         targetY: number,
         renderOptions: React.SVGAttributes<SVGGElement> = {}
-    ) {
+    ): JSX.Element {
         const { manager, startLabel, endLabel, fontColor } = this
 
         const lineLeft = targetX + startLabel.width + 5

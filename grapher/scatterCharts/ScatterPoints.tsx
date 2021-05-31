@@ -13,7 +13,7 @@ export class ScatterPoint extends React.Component<{
     isLayerMode?: boolean
     isConnected?: boolean
 }> {
-    render() {
+    render(): JSX.Element | null {
         const { series, isLayerMode, isConnected } = this.props
         const value = first(series.points)
         if (value === undefined) return null
@@ -58,7 +58,7 @@ export class ScatterLine extends React.Component<{
     isLayerMode: boolean
     isConnected: boolean
 }> {
-    render() {
+    render(): JSX.Element | null {
         const { series, isLayerMode, isConnected } = this.props
 
         if (series.points.length === 1)
