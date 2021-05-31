@@ -884,12 +884,12 @@ export const sortNumeric = <T>(
             : (a: T, b: T): number => sortByFn(b) - sortByFn(a)
     )
 
-export const mapBy = <T>(
+export const mapBy = <T, K, V>(
     arr: T[],
-    keyAccessor: (t: T) => any,
-    valueAccessor: (t: T) => any
-): Map<any, any> => {
-    const map = new Map()
+    keyAccessor: (t: T) => K,
+    valueAccessor: (t: T) => V
+): Map<K, V> => {
+    const map = new Map<K, V>()
     arr.forEach((val) => {
         map.set(keyAccessor(val), valueAccessor(val))
     })
@@ -924,7 +924,10 @@ export const logMe = (
     return descriptor
 }
 
-export const splitArrayIntoGroupsOfN = (arr: any[], maxPerGroup: number) => {
+export const splitArrayIntoGroupsOfN = (
+    arr: any[],
+    maxPerGroup: number
+): any[] => {
     const result: any[] = []
     for (let index = 0; index < arr.length; index += maxPerGroup)
         result.push(arr.slice(index, index + maxPerGroup))

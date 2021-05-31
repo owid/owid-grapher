@@ -2,7 +2,6 @@ import {
     EntityCode,
     EntityId,
     EntityName,
-    OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import { difference, mapBy } from "../../clientUtils/Util"
 import { isPresent } from "../../clientUtils/isPresent"
@@ -29,47 +28,52 @@ export class SelectionArray {
     @observable selectedEntityNames: EntityName[]
     @observable private availableEntities: Entity[]
 
-    @computed get availableEntityNames() {
+    @computed get availableEntityNames(): string[] {
         return this.availableEntities.map((entity) => entity.entityName)
     }
 
-    @computed get availableEntityNameSet() {
+    @computed get availableEntityNameSet(): Set<string> {
         return new Set(this.availableEntityNames)
     }
 
-    private mapBy(col: keyof Entity, val: keyof Entity) {
+    @computed get entityNameToIdMap(): Map<string, number | undefined> {
         return mapBy(
             this.availableEntities,
-            (v) => v[col],
-            (v) => v[val]
+            (e) => e.entityName,
+            (e) => e.entityId
+        )
+        //return this.mapBy(OwidTableSlugs.entityName, OwidTableSlugs.entityId)
+    }
+
+    @computed get entityCodeToNameMap(): Map<string | undefined, string> {
+        return mapBy(
+            this.availableEntities,
+            (e) => e.entityCode,
+            (e) => e.entityName
         )
     }
 
-    @computed get entityNameToIdMap() {
-        return this.mapBy(OwidTableSlugs.entityName, OwidTableSlugs.entityId)
+    @computed get entityIdToNameMap(): Map<number | undefined, string> {
+        return mapBy(
+            this.availableEntities,
+            (e) => e.entityId,
+            (e) => e.entityName
+        )
     }
 
-    @computed get entityCodeToNameMap() {
-        return this.mapBy(OwidTableSlugs.entityCode, OwidTableSlugs.entityName)
-    }
-
-    @computed get entityIdToNameMap() {
-        return this.mapBy(OwidTableSlugs.entityId, OwidTableSlugs.entityName)
-    }
-
-    @computed get hasSelection() {
+    @computed get hasSelection(): boolean {
         return this.selectedEntityNames.length > 0
     }
 
-    @computed get unselectedEntityNames() {
+    @computed get unselectedEntityNames(): string[] {
         return difference(this.availableEntityNames, this.selectedEntityNames)
     }
 
-    @computed get numSelectedEntities() {
+    @computed get numSelectedEntities(): number {
         return this.selectedEntityNames.length
     }
 
-    @computed get selectedSet() {
+    @computed get selectedSet(): Set<EntityName> {
         return new Set<EntityName>(this.selectedEntityNames)
     }
 
@@ -81,22 +85,22 @@ export class SelectionArray {
     }
 
     // Clears and sets selected entities
-    @action.bound setSelectedEntities(entityNames: EntityName[]) {
+    @action.bound setSelectedEntities(entityNames: EntityName[]): this {
         this.clearSelection()
         return this.addToSelection(entityNames)
     }
 
-    @action.bound addToSelection(entityNames: EntityName[]) {
+    @action.bound addToSelection(entityNames: EntityName[]): this {
         this.selectedEntityNames = this.selectedEntityNames.concat(entityNames)
         return this
     }
 
-    @action.bound addAvailableEntityNames(entities: Entity[]) {
+    @action.bound addAvailableEntityNames(entities: Entity[]): this {
         this.availableEntities.push(...entities)
         return this
     }
 
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
+    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]): this {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
         return this.setSelectedEntities(
@@ -104,43 +108,43 @@ export class SelectionArray {
         )
     }
 
-    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
+    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]): this {
         const map = this.entityIdToNameMap
         return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }
 
-    @action.bound selectAll() {
+    @action.bound selectAll(): this {
         return this.addToSelection(this.unselectedEntityNames)
     }
 
-    @action.bound clearSelection() {
+    @action.bound clearSelection(): void {
         this.selectedEntityNames = []
     }
 
-    @action.bound toggleSelection(entityName: EntityName) {
+    @action.bound toggleSelection(entityName: EntityName): this {
         return this.selectedSet.has(entityName)
             ? this.deselectEntity(entityName)
             : this.selectEntity(entityName)
     }
 
-    @computed get numAvailableEntityNames() {
+    @computed get numAvailableEntityNames(): number {
         return this.availableEntityNames.length
     }
 
-    @action.bound selectEntity(entityName: EntityName) {
+    @action.bound selectEntity(entityName: EntityName): this {
         if (!this.selectedSet.has(entityName))
             return this.addToSelection([entityName])
         return this
     }
 
     // Mainly for testing
-    @action.bound selectSample(howMany = 1) {
+    @action.bound selectSample(howMany = 1): this {
         return this.setSelectedEntities(
             this.availableEntityNames.slice(0, howMany)
         )
     }
 
-    @action.bound deselectEntity(entityName: EntityName) {
+    @action.bound deselectEntity(entityName: EntityName): this {
         this.selectedEntityNames = this.selectedEntityNames.filter(
             (name) => name !== entityName
         )
