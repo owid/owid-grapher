@@ -10,7 +10,7 @@ export const columnToLineChartSeriesArray = (
     const { isProjection, owidRowsByEntityName } = col
     const entityNames = Array.from(owidRowsByEntityName.keys())
     return entityNames.map((entityName) => {
-        let seriesName = ""
+        let seriesName
         if (seriesStrategy === SeriesStrategy.entity) {
             if (col.isProjection && col.displayName) {
                 seriesName = `${entityName} - ${col.displayName}`
