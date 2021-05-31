@@ -447,6 +447,10 @@ export class StackedAreaChart
             </g>
         )
     }
+    /** Whether we want to display series with only zeroes (inherited). False for this class, true for others */
+    get showAllZeroSeries() {
+        return false
+    }
 
     @computed get legendX(): number {
         return this.legendDimensions

@@ -267,9 +267,19 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return this.series.map((series) => series.color)
     }
 
+    /** Whether we want to display series with only zeroes. Defaults to true but e.g. StackedArea charts want to set this to false */
+    get showAllZeroSeries(): boolean {
+        return true
+    }
+
     @computed get unstackedSeries(): readonly StackedSeries<PositionType>[] {
         return this.rawSeries
-            .filter((series) => series.rows.length)
+            .filter(
+                (series) =>
+                    series.rows.length &&
+                    (this.showAllZeroSeries ||
+                        series.rows.some((row) => row.value !== 0))
+            )
             .map((series) => {
                 const { isProjection, seriesName, rows } = series
                 return {
