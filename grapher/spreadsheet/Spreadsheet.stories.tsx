@@ -14,13 +14,14 @@ import {
 } from "../chart/ChartTypeMap"
 import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
+import { OwidTable } from "../../coreTable/OwidTable"
 
 export default {
     title: "Spreadsheet",
     component: Spreadsheet,
 }
 
-const getRandomTable = () =>
+const getRandomTable = (): OwidTable =>
     SynthesizeGDPTable({
         entityCount: 2,
         timeRange: [2020, 2024],
@@ -37,29 +38,29 @@ const getRandomTable = () =>
 class Editor extends React.Component {
     @observable.ref table = getRandomTable()
 
-    @action.bound private shuffleTable() {
+    @action.bound private shuffleTable(): void {
         this.table = getRandomTable()
     }
 
-    @computed get yColumnSlugs() {
+    @computed get yColumnSlugs(): string[] {
         return this.table.suggestedYColumnSlugs
     }
 
-    @computed get xColumnSlug() {
+    @computed get xColumnSlug(): string {
         return this.table.timeColumn?.slug
     }
 
     @observable chartTypeName = ChartTypeName.LineChart
 
-    @computed get selection() {
+    @computed get selection(): any[] {
         return this.table.availableEntityNames
     }
 
-    @action.bound private changeChartType(type: ChartTypeName) {
+    @action.bound private changeChartType(type: ChartTypeName): void {
         this.chartTypeName = type
     }
 
-    render() {
+    render(): JSX.Element {
         const ChartClass =
             ChartComponentClassMap.get(this.chartTypeName) ?? DefaultChartClass
 
@@ -79,4 +80,4 @@ class Editor extends React.Component {
     }
 }
 
-export const Default = () => <Editor />
+export const Default = (): JSX.Element => <Editor />
