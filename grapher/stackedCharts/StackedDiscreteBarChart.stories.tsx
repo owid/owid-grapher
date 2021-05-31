@@ -7,7 +7,7 @@ export default {
     component: StackedDiscreteBarChart,
 }
 
-export const ColumnsAsSeries = () => {
+export const ColumnsAsSeries = (): JSX.Element => {
     const table = SynthesizeFruitTable({
         timeRange: [2000, 2001],
         entityCount: 5,
@@ -22,7 +22,7 @@ export const ColumnsAsSeries = () => {
     )
 }
 
-export const ColumnsAsSeriesRelative = () => {
+export const ColumnsAsSeriesRelative = (): JSX.Element => {
     const table = SynthesizeFruitTable({
         timeRange: [2000, 2001],
         entityCount: 5,

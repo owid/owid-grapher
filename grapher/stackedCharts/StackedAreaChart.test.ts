@@ -14,7 +14,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { isNumber } from "../../clientUtils/Util"
-import { SeriesStrategy } from "../core/GrapherConstants"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

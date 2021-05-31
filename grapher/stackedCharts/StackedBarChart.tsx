@@ -27,6 +27,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { Time } from "../../clientUtils/owidTypes"
+import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>
@@ -49,31 +50,31 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @observable mouseOver: boolean = false
 
-    @computed get yPos() {
+    @computed get yPos(): number {
         const { bar, yAxis } = this.props
         return yAxis.place(bar.value + bar.valueOffset)
     }
 
-    @computed get barHeight() {
+    @computed get barHeight(): number {
         const { bar, yAxis } = this.props
         return yAxis.place(bar.valueOffset) - this.yPos
     }
 
-    @computed get trueOpacity() {
+    @computed get trueOpacity(): number {
         return this.mouseOver ? 1 : this.props.opacity
     }
 
-    @action.bound onBarMouseOver() {
+    @action.bound onBarMouseOver(): void {
         this.mouseOver = true
         this.props.onBarMouseOver(this.props.bar, this.props.series)
     }
 
-    @action.bound onBarMouseLeave() {
+    @action.bound onBarMouseLeave(): void {
         this.mouseOver = false
         this.props.onBarMouseLeave()
     }
 
-    render() {
+    render(): JSX.Element {
         const { color, xOffset, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 
@@ -109,37 +110,37 @@ export class StackedBarChart
     @observable hoverBar?: StackedPoint<Time>
     @observable hoverSeries?: StackedSeries<Time>
 
-    @computed private get baseFontSize() {
+    @computed private get baseFontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get tickFontSize() {
+    @computed get tickFontSize(): number {
         return 0.9 * this.baseFontSize
     }
 
-    @computed get barWidth() {
+    @computed get barWidth(): number {
         const { dualAxis } = this
 
         return (0.8 * dualAxis.innerBounds.width) / this.xValues.length
     }
 
-    @computed get barSpacing() {
+    @computed get barSpacing(): number {
         return (
             this.dualAxis.innerBounds.width / this.xValues.length -
             this.barWidth
         )
     }
 
-    @computed get barFontSize() {
+    @computed get barFontSize(): number {
         return 0.75 * this.baseFontSize
     }
 
-    @computed protected get paddingForLegend() {
+    @computed protected get paddingForLegend(): number {
         return this.sidebarWidth + 20
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys() {
+    @computed get hoverKeys(): string[] {
         const { hoverColor } = this
 
         const hoverKeys =
@@ -154,7 +155,7 @@ export class StackedBarChart
         return hoverKeys
     }
 
-    @computed get activeColors() {
+    @computed get activeColors(): string[] {
         const { hoverKeys } = this
         const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
 
@@ -180,17 +181,17 @@ export class StackedBarChart
             .reverse() // Vertical legend orders things in the opposite direction we want
     }
 
-    @computed get maxLegendWidth() {
+    @computed get maxLegendWidth(): number {
         return this.sidebarMaxWidth
     }
 
-    @computed get sidebarMaxWidth() {
+    @computed get sidebarMaxWidth(): number {
         return this.bounds.width / 5
     }
-    @computed get sidebarMinWidth() {
+    @computed get sidebarMinWidth(): number {
         return 100
     }
-    @computed get sidebarWidth() {
+    @computed get sidebarWidth(): number {
         const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
@@ -202,7 +203,7 @@ export class StackedBarChart
         return new VerticalColorLegend({ manager: this })
     }
 
-    @computed get tooltip() {
+    @computed get tooltip(): JSX.Element | undefined {
         const {
             hoverBar,
             mapXValueToOffset,
@@ -260,7 +261,7 @@ export class StackedBarChart
         )
     }
 
-    @computed get mapXValueToOffset() {
+    @computed get mapXValueToOffset(): Map<number, number> {
         const { dualAxis, barWidth, barSpacing } = this
 
         const xValueToOffset = new Map<number, number>()
@@ -316,29 +317,29 @@ export class StackedBarChart
         return tickPlacements.filter((t) => !t.isHidden)
     }
 
-    @action.bound onLegendMouseOver(color: string) {
+    @action.bound onLegendMouseOver(color: string): void {
         this.hoverColor = color
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.hoverColor = undefined
     }
 
-    @action.bound onLegendClick() {}
+    @action.bound onLegendClick(): void {}
 
     @action.bound onBarMouseOver(
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
-    ) {
+    ): void {
         this.hoverBar = bar
         this.hoverSeries = series
     }
 
-    @action.bound onBarMouseLeave() {
+    @action.bound onBarMouseLeave(): void {
         this.hoverBar = undefined
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -466,25 +467,25 @@ export class StackedBarChart
         )
     }
 
-    @computed get legendY() {
+    @computed get legendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendX() {
+    @computed get legendX(): number {
         return this.bounds.right - this.sidebarWidth
     }
 
-    @computed private get xValues() {
+    @computed private get xValues(): number[] {
         return uniq(this.allStackedPoints.map((bar) => bar.position))
     }
 
-    @computed get colorScaleConfig() {
+    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return this.manager.colorScale
     }
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries<number>[] {
         return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }

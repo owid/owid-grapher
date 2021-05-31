@@ -1,4 +1,4 @@
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -24,8 +24,10 @@ import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import { easeLinear, scaleOrdinal, select } from "d3"
+import { easeLinear, ScaleOrdinal, scaleOrdinal, select, Series } from "d3"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -37,7 +39,7 @@ export interface AbstactStackedChartProps {
 export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
@@ -70,41 +72,41 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return table
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed get manager() {
+    @computed get manager(): ChartManager {
         return this.props.manager
     }
-    @computed get bounds() {
+    @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    protected get paddingForLegend() {
+    protected get paddingForLegend(): number {
         return 0
     }
 
-    @computed get renderUid() {
+    @computed get renderUid(): number {
         return guid()
     }
 
-    @computed protected get yColumns() {
+    @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get yColumnSlugs(): string[] {
         return (
             this.manager.yColumnSlugsInSelectionOrder ??
             autoDetectYColumnSlugs(this.manager)
@@ -119,7 +121,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     >
 
     base: React.RefObject<SVGGElement> = React.createRef()
-    componentDidMount() {
+    componentDidMount(): void {
         // Fancy intro animation
         this.animSelection = select(this.base.current)
             .selectAll("clipPath > rect")
@@ -135,15 +137,15 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         exposeInstanceOnWindow(this)
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    @computed get seriesStrategy() {
+    @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager)
     }
 
-    @computed protected get dualAxis() {
+    @computed protected get dualAxis(): DualAxis {
         const {
             bounds,
             horizontalAxisPart,
@@ -157,7 +159,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         })
     }
 
-    @computed private get horizontalAxisPart() {
+    @computed private get horizontalAxisPart(): HorizontalAxis {
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
@@ -172,7 +174,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return axis
     }
 
-    @computed private get verticalAxisPart() {
+    @computed private get verticalAxisPart(): VerticalAxis {
         // const lastSeries = this.series[this.series.length - 1]
         // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yValues = this.allStackedPoints.map(
@@ -224,7 +226,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return flatten(this.series.map((series) => series.points))
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         const { yColumnSlugs } = this
         if (!yColumnSlugs.length) return "Missing variable"
         if (!this.series.length) return "No matching data"
@@ -232,7 +234,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return ""
     }
 
-    @computed private get colorScheme() {
+    @computed private get colorScheme(): ScaleOrdinal<string, string> {
         const scheme =
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
@@ -245,7 +247,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return scaleOrdinal(baseColors)
     }
 
-    getColorForSeries(seriesName: SeriesName) {
+    getColorForSeries(seriesName: SeriesName): string {
         const table = this.transformedTable
         const color = this.isEntitySeries
             ? table.getColorForEntityName(seriesName)
@@ -253,15 +255,15 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return color ?? this.colorScheme(seriesName) ?? "#ddd"
     }
 
-    @computed protected get selectionArray() {
+    @computed protected get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @computed get isEntitySeries() {
+    @computed get isEntitySeries(): boolean {
         return this.seriesStrategy === SeriesStrategy.entity
     }
 
-    @computed get seriesColors() {
+    @computed get seriesColors(): string[] {
         return this.series.map((series) => series.color)
     }
 
