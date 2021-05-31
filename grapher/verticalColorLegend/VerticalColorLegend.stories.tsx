@@ -25,7 +25,7 @@ const manager: VerticalColorLegendManager = {
     activeColors: ["red", "green"],
 }
 
-export const CategoricalBins = () => {
+export const CategoricalBins = (): JSX.Element => {
     return (
         <svg width={600} height={400}>
             <VerticalColorLegend manager={manager} />

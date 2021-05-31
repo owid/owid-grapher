@@ -38,25 +38,25 @@ interface SizedLegendSeries {
 export class VerticalColorLegend extends React.Component<{
     manager: VerticalColorLegendManager
 }> {
-    @computed get manager() {
+    @computed get manager(): VerticalColorLegendManager {
         return this.props.manager
     }
 
-    @computed private get maxLegendWidth() {
+    @computed private get maxLegendWidth(): number {
         return this.manager.maxLegendWidth ?? 100
     }
 
-    @computed private get fontSize() {
+    @computed private get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    @computed private get rectSize() {
+    @computed private get rectSize(): number {
         return Math.round(this.fontSize / 1.4)
     }
 
     private rectPadding = 5
     private lineHeight = 5
 
-    @computed private get title() {
+    @computed private get title(): TextWrap | undefined {
         if (!this.manager.title) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
@@ -66,12 +66,12 @@ export class VerticalColorLegend extends React.Component<{
         })
     }
 
-    @computed private get titleHeight() {
+    @computed private get titleHeight(): number {
         if (!this.title) return 0
         return this.title.height + 5
     }
 
-    @computed private get series() {
+    @computed private get series(): SizedLegendSeries[] {
         const { manager, fontSize, rectSize, rectPadding } = this
 
         return manager.legendItems
@@ -96,13 +96,13 @@ export class VerticalColorLegend extends React.Component<{
             .filter((v) => !!v) as SizedLegendSeries[]
     }
 
-    @computed get width() {
+    @computed get width(): number {
         const widths = this.series.map((series) => series.width)
         if (this.title) widths.push(this.title.width)
         return max(widths) ?? 0
     }
 
-    @computed get height() {
+    @computed get height(): number {
         return (
             this.titleHeight +
             sum(this.series.map((series) => series.height)) +
@@ -110,7 +110,7 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const {
             title,
             titleHeight,
@@ -145,11 +145,11 @@ export class VerticalColorLegend extends React.Component<{
                         const isFocus =
                             focusColors?.includes(series.color) ?? false
                         const mouseOver = onLegendMouseOver
-                            ? () => onLegendMouseOver(series.color)
+                            ? (): void => onLegendMouseOver(series.color)
                             : undefined
                         const mouseLeave = onLegendMouseLeave || undefined
                         const click = onLegendClick
-                            ? () => onLegendClick(series.color)
+                            ? (): void => onLegendClick(series.color)
                             : undefined
 
                         const result = (
