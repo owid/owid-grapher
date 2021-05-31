@@ -19,7 +19,7 @@ export const stackSeries = <PositionType extends StackedPointPositionType>(
 }
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
-export const withZeroesAsInterpolatedPoints = <
+export const withMissingValuesAsZeroes = <
     PositionType extends StackedPointPositionType
 >(
     seriesArr: readonly StackedSeries<PositionType>[]

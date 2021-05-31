@@ -24,7 +24,7 @@ import {
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "../axis/Axis"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { Time } from "../../clientUtils/owidTypes"
 
@@ -485,6 +485,6 @@ export class StackedBarChart
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
     @computed get series() {
-        return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
+        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }

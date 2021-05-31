@@ -23,7 +23,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     stackSeries,
-    withZeroesAsInterpolatedPoints,
+    withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
 import { Color, Time } from "../../clientUtils/owidTypes"
@@ -640,6 +640,6 @@ export class StackedDiscreteBarChart
     }
 
     @computed get series(): readonly StackedSeries<EntityName>[] {
-        return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
+        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }
