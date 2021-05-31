@@ -6,7 +6,7 @@ export default {
     component: NoDataModal,
 }
 
-export const WithAddDataButtons = () => {
+export const WithAddDataButtons = (): JSX.Element => {
     return (
         <div className="chart" style={{ width: 640, height: 480 }}>
             <svg>
