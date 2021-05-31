@@ -7,11 +7,11 @@ export default {
     component: SourcesTab,
 }
 
-export const WithSources = () => (
+export const WithSources = (): JSX.Element => (
     <SourcesTab
         manager={{ columnsWithSources: SynthesizeGDPTable().columnsAsArray }}
     />
 )
-export const NoSources = () => (
+export const NoSources = (): JSX.Element => (
     <SourcesTab manager={{ columnsWithSources: [] }} />
 )

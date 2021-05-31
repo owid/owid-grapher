@@ -21,15 +21,15 @@ export class SourcesTab extends React.Component<{
     bounds?: Bounds
     manager: SourcesTabManager
 }> {
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get manager() {
+    @computed private get manager(): SourcesTabManager {
         return this.props.manager
     }
 
-    private renderSource(column: CoreColumn) {
+    private renderSource(column: CoreColumn): JSX.Element {
         const { table, slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
 
@@ -137,7 +137,7 @@ export class SourcesTab extends React.Component<{
         )
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds } = this
         const cols = this.manager.columnsWithSources.filter((col) => col.source)
 
