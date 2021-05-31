@@ -6,10 +6,10 @@ import { Bounds } from "../../clientUtils/Bounds"
 const FONT_SIZE = 14
 
 describe("width()", () => {
-    const stringWidth = (text: string) =>
+    const stringWidth = (text: string): number =>
         Bounds.forText(text, { fontSize: FONT_SIZE }).width
 
-    const renderedWidth = (text: string, raw?: boolean) => {
+    const renderedWidth = (text: string, raw?: boolean): number => {
         const textwrap = new TextWrap({
             maxWidth: Infinity,
             fontSize: FONT_SIZE,
@@ -48,7 +48,7 @@ describe("width()", () => {
 })
 
 describe("height()", () => {
-    const renderedHeight = (text: string, raw?: boolean) => {
+    const renderedHeight = (text: string, raw?: boolean): number => {
         const textwrap = new TextWrap({
             maxWidth: Infinity,
             fontSize: FONT_SIZE,

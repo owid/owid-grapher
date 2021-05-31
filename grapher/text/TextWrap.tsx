@@ -22,7 +22,7 @@ interface WrapLine {
     height: number
 }
 
-function startsWithNewline(text: string) {
+function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
 
@@ -32,23 +32,23 @@ export class TextWrap {
         this.props = props
     }
 
-    @computed get maxWidth() {
+    @computed get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight() {
+    @computed get lineHeight(): number {
         return this.props.lineHeight ?? 1.1
     }
     @computed get fontSize(): FontSize {
         return this.props.fontSize ?? 1
     }
-    @computed get fontWeight() {
+    @computed get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @computed get text() {
+    @computed get text(): string {
         return this.props.text
     }
 
-    @computed get lines() {
+    @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize, fontWeight } = this
 
         const words = isEmpty(text)
@@ -101,7 +101,7 @@ export class TextWrap {
         return lines
     }
 
-    @computed get height() {
+    @computed get height(): number {
         if (this.lines.length === 0) return 0
 
         return (
@@ -110,7 +110,7 @@ export class TextWrap {
         )
     }
 
-    @computed get width() {
+    @computed get width(): number {
         return max(this.lines.map((l) => l.width)) ?? 0
     }
 
@@ -124,7 +124,7 @@ export class TextWrap {
         }
     }
 
-    renderHTML() {
+    renderHTML(): JSX.Element {
         const { props, lines } = this
 
         if (lines.length === 0) return null
@@ -163,7 +163,7 @@ export class TextWrap {
         )
     }
 
-    render(x: number, y: number, options?: any) {
+    render(x: number, y: number, options?: any): JSX.Element | null {
         //React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
