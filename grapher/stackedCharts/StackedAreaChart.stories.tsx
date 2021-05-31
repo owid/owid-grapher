@@ -26,7 +26,7 @@ const entitiesChart: ChartManager = {
     yColumnSlugs: [SampleColumnSlugs.GDP],
 }
 
-export const EntitiesAsSeriesRelative = () => (
+export const EntitiesAsSeriesRelative = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{ ...entitiesChart, isRelativeMode: true }}
@@ -34,7 +34,7 @@ export const EntitiesAsSeriesRelative = () => (
     </svg>
 )
 
-export const EntitiesAsSeries = () => (
+export const EntitiesAsSeries = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{ ...entitiesChart, isRelativeMode: false }}
@@ -42,7 +42,7 @@ export const EntitiesAsSeries = () => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRowsAndInterpolation = () => (
+export const EntitiesAsSeriesWithMissingRowsAndInterpolation = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{
@@ -53,7 +53,7 @@ export const EntitiesAsSeriesWithMissingRowsAndInterpolation = () => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRowsNoInterpolation = () => (
+export const EntitiesAsSeriesWithMissingRowsNoInterpolation = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             disableLinearInterpolation={true}
@@ -65,7 +65,7 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolation = () => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative = () => (
+export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{
@@ -77,7 +77,7 @@ export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative = () => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative = () => (
+export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart
             disableLinearInterpolation={true}
@@ -96,19 +96,19 @@ const columnsChart: ChartManager = {
     selection: colTable.sampleEntityName(1),
 }
 
-export const ColumnsAsSeries = () => (
+export const ColumnsAsSeries = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart manager={columnsChart} />
     </svg>
 )
 
-export const ColumnsAsSeriesRelative = () => (
+export const ColumnsAsSeriesRelative = (): JSX.Element => (
     <svg width={600} height={600}>
         <StackedAreaChart manager={{ ...columnsChart, isRelativeMode: true }} />
     </svg>
 )
 
-export const ColumnsAsSeriesWithMissingCells = () => {
+export const ColumnsAsSeriesWithMissingCells = (): JSX.Element => {
     const table = SynthesizeFruitTable().replaceRandomCells(200, [
         SampleColumnSlugs.Fruit,
     ])
@@ -124,7 +124,7 @@ export const ColumnsAsSeriesWithMissingCells = () => {
     )
 }
 
-export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative = () => {
+export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative = (): JSX.Element => {
     let table = SynthesizeFruitTable().dropRandomRows(30, seed)
     const firstCol = table.columnsAsArray[0]
     const junkFoodColumn = {

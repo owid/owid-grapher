@@ -41,6 +41,9 @@ import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils"
+import { HorizontalAxis } from "../axis/Axis"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ColorScheme } from "../color/ColorScheme"
 
 const labelToBarPadding = 5
 
@@ -77,7 +80,7 @@ export class StackedDiscreteBarChart
     implements ChartInterface, HorizontalColorLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
 
         table = table.filterByEntityNames(
@@ -104,26 +107,26 @@ export class StackedDiscreteBarChart
 
     @observable focusSeriesName?: SeriesName
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
     }
 
-    @computed private get manager() {
+    @computed private get manager(): StackedDiscreteBarChartManager {
         return this.props.manager
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
-    @computed private get baseFontSize() {
+    @computed private get baseFontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
@@ -135,13 +138,13 @@ export class StackedDiscreteBarChart
     }
 
     // Account for the width of the legend
-    @computed private get labelWidth() {
+    @computed private get labelWidth(): number {
         const labels = this.items.map((item) => item.label)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.labelStyle).width
     }
 
-    @computed private get x0() {
+    @computed private get x0(): number {
         return 0
     }
 
@@ -164,11 +167,11 @@ export class StackedDiscreteBarChart
         return [this.bounds.left + this.labelWidth, this.bounds.right]
     }
 
-    @computed private get yAxis() {
+    @computed private get yAxis(): AxisConfig {
         return this.manager.yAxis || new AxisConfig()
     }
 
-    @computed private get axis() {
+    @computed private get axis(): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
@@ -179,7 +182,7 @@ export class StackedDiscreteBarChart
         return axis
     }
 
-    @computed private get innerBounds() {
+    @computed private get innerBounds(): Bounds {
         return this.bounds
             .padLeft(this.labelWidth)
             .padBottom(this.axis.height)
@@ -187,7 +190,7 @@ export class StackedDiscreteBarChart
             .padTop(this.legend.height)
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
@@ -226,11 +229,11 @@ export class StackedDiscreteBarChart
         }
     }
 
-    @computed private get barHeight() {
+    @computed private get barHeight(): number {
         return (0.8 * this.innerBounds.height) / this.items.length
     }
 
-    @computed private get barSpacing() {
+    @computed private get barSpacing(): number {
         return this.innerBounds.height / this.items.length - this.barHeight
     }
 
@@ -271,11 +274,11 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @action.bound onLegendMouseOver(bin: CategoricalBin) {
+    @action.bound onLegendMouseOver(bin: CategoricalBin): void {
         this.focusSeriesName = bin.value
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.focusSeriesName = undefined
     }
 
@@ -287,7 +290,7 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -382,7 +385,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    private renderBar(bar: Bar, tooltipProps: TooltipProps) {
+    private renderBar(bar: Bar, tooltipProps: TooltipProps): JSX.Element {
         const { axis, formatColumn, focusSeriesName, barHeight } = this
         const { point, color, seriesName } = bar
 
@@ -448,7 +451,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    private static Tooltip(props: TooltipProps) {
+    private static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
 
         return (
@@ -585,7 +588,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         const column = this.yColumns[0]
 
         if (!column) return "No column to chart"
@@ -598,18 +601,18 @@ export class StackedDiscreteBarChart
             : ""
     }
 
-    @computed protected get yColumnSlugs() {
+    @computed protected get yColumnSlugs(): string[] {
         return (
             this.manager.yColumnSlugsInSelectionOrder ??
             autoDetectYColumnSlugs(this.manager)
         )
     }
 
-    @computed protected get yColumns() {
+    @computed protected get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
-    @computed private get colorScheme() {
+    @computed private get colorScheme(): ColorScheme {
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]

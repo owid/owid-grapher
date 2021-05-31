@@ -5,7 +5,7 @@ import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 // Todo: use a lib?
 export const stackSeries = <PositionType extends StackedPointPositionType>(
     seriesArr: readonly StackedSeries<PositionType>[]
-) => {
+): readonly StackedSeries<PositionType>[] => {
     seriesArr.forEach((series, seriesIndex) => {
         if (!seriesIndex) return // The first series does not need to be shifted
         series.points.forEach((point, pointIndex) => {

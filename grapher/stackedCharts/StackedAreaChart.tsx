@@ -12,7 +12,7 @@ import { computed, action, observable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, VerticalAxis } from "../axis/Axis"
 import {
     LineLabelSeries,
     LineLegend,
@@ -47,7 +47,7 @@ class Areas extends React.Component<AreasProps> {
 
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
-    ) {
+    ): void {
         const { dualAxis, seriesArr } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
@@ -69,12 +69,12 @@ class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    @action.bound private onCursorLeave() {
+    @action.bound private onCursorLeave(): void {
         this.hoverIndex = undefined
         this.props.onHover(this.hoverIndex)
     }
 
-    private seriesIsBlur(series: StackedSeries<Time>) {
+    private seriesIsBlur(series: StackedSeries<Time>): boolean {
         return (
             this.props.focusedSeriesNames.length > 0 &&
             !this.props.focusedSeriesNames.includes(series.seriesName)
@@ -148,7 +148,7 @@ class Areas extends React.Component<AreasProps> {
         })
     }
 
-    render() {
+    render(): JSX.Element {
         const { dualAxis, seriesArr } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
         const { hoverIndex } = this
@@ -217,11 +217,11 @@ export class StackedAreaChart
         super(props)
     }
 
-    @computed get verticalAxis() {
+    @computed get verticalAxis(): VerticalAxis {
         return this.dualAxis.verticalAxis
     }
 
-    @computed get midpoints() {
+    @computed get midpoints(): number[] {
         let prevY = 0
         return this.series.map((series) => {
             const lastValue = last(series.points)
@@ -246,55 +246,55 @@ export class StackedAreaChart
             .reverse()
     }
 
-    @computed get maxLegendWidth() {
+    @computed get maxLegendWidth(): number {
         return Math.min(150, this.bounds.width / 3)
     }
 
-    @computed get legendDimensions() {
+    @computed get legendDimensions(): LineLegend | undefined {
         if (this.manager.hideLegend) return undefined
         return new LineLegend({ manager: this })
     }
 
     @observable hoveredPointIndex?: number
-    @action.bound onHover(hoverIndex: number | undefined) {
+    @action.bound onHover(hoverIndex: number | undefined): void {
         this.hoveredPointIndex = hoverIndex
     }
 
     @observable hoverSeriesName?: SeriesName
-    @action.bound onLegendClick() {
+    @action.bound onLegendClick(): void {
         if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 
-    @computed protected get paddingForLegend() {
+    @computed protected get paddingForLegend(): number {
         const { legendDimensions } = this
         return legendDimensions ? legendDimensions.width : 20
     }
 
-    @action.bound onLegendMouseOver(seriesName: SeriesName) {
+    @action.bound onLegendMouseOver(seriesName: SeriesName): void {
         this.hoverSeriesName = seriesName
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.hoverSeriesName = undefined
     }
 
-    @computed get focusedSeriesNames() {
+    @computed get focusedSeriesNames(): string[] {
         return this.hoverSeriesName ? [this.hoverSeriesName] : []
     }
 
-    @computed get isFocusMode() {
+    @computed get isFocusMode(): boolean {
         return this.focusedSeriesNames.length > 0
     }
 
-    seriesIsBlur(series: StackedSeries<Time>) {
+    seriesIsBlur(series: StackedSeries<Time>): boolean {
         return (
             this.focusedSeriesNames.length > 0 &&
             !this.focusedSeriesNames.includes(series.seriesName)
         )
     }
 
-    @computed private get tooltip() {
+    @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoveredPointIndex === undefined) return undefined
 
         const { hoveredPointIndex, dualAxis, series } = this
@@ -410,7 +410,7 @@ export class StackedAreaChart
         )
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -454,7 +454,7 @@ export class StackedAreaChart
             : 0
     }
 
-    @computed get series() {
+    @computed get series(): readonly StackedSeries<number>[] {
         return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }
