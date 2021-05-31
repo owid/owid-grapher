@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 
 const seriesArr = [
     {
@@ -20,12 +20,12 @@ const seriesArr = [
 
 it("can add fake points", () => {
     expect(seriesArr[1].points[1]).toEqual(undefined)
-    const series = withZeroesAsInterpolatedPoints(seriesArr)
+    const series = withMissingValuesAsZeroes(seriesArr)
     expect(series[1].points[1].position).toEqual(2002)
 })
 
 it("can stack series", () => {
     expect(seriesArr[1].points[0].valueOffset).toEqual(0)
-    const series = stackSeries(withZeroesAsInterpolatedPoints(seriesArr))
+    const series = stackSeries(withMissingValuesAsZeroes(seriesArr))
     expect(series[1].points[0].valueOffset).toEqual(10)
 })

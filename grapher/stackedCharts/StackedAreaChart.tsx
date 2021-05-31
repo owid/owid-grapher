@@ -26,7 +26,7 @@ import {
     AbstactStackedChartProps,
 } from "../stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
-import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 import { makeClipPath } from "../chart/ChartUtils"
 import { Time } from "../../clientUtils/owidTypes"
 
@@ -455,6 +455,6 @@ export class StackedAreaChart
     }
 
     @computed get series() {
-        return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
+        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }

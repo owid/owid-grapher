@@ -21,7 +21,10 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { stackSeries } from "../stackedCharts/StackedUtils"
+import {
+    stackSeries,
+    withMissingValuesAsZeroes,
+} from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
 import { Color, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
@@ -471,7 +474,7 @@ export class StackedDiscreteBarChart
                             highlightedSeriesName !== undefined &&
                             !isHighlighted
                         const shouldShowTimeNotice =
-                            bar.point.value !== undefined &&
+                            !bar.point.fake &&
                             bar.point.time !== props.targetTime
                         hasTimeNotice ||= shouldShowTimeNotice
 
@@ -513,7 +516,7 @@ export class StackedDiscreteBarChart
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {bar.point.value === undefined
+                                    {bar.point.fake
                                         ? "No data"
                                         : props.formatColumn.formatValueShort(
                                               bar.point.value,
@@ -637,6 +640,6 @@ export class StackedDiscreteBarChart
     }
 
     @computed get series(): readonly StackedSeries<EntityName>[] {
-        return stackSeries(this.unstackedSeries)
+        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }
