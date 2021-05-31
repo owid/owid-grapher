@@ -17,27 +17,27 @@ export class Spreadsheet extends React.Component<{
 }> {
     private hotTableComponent = React.createRef<HotTable>()
 
-    @action.bound private updateFromHot() {
+    @action.bound private updateFromHot(): void {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
         if (!newVersion || !this.isChanged(newVersion)) return
 
         this.manager.table = new OwidTable(newVersion)
     }
 
-    private isChanged(newVersion: CoreMatrix) {
+    private isChanged(newVersion: CoreMatrix): boolean {
         return new OwidTable(newVersion).toDelimited() !== this._version
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         exposeInstanceOnWindow(this, "spreadsheet")
     }
 
-    @computed private get manager() {
+    @computed private get manager(): SpreadsheetManager {
         return this.props.manager
     }
 
     private _version: string = ""
-    render() {
+    render(): JSX.Element {
         const { table } = this.manager
         this._version = table.toDelimited()
         const data = table.toMatrix()
