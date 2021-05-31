@@ -9,7 +9,7 @@ import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { TimelineController } from "./TimelineController"
+import { TimelineController, TimelineManager } from "./TimelineController"
 import { timeFromTimebounds } from "../../clientUtils/TimeBounds"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
@@ -22,19 +22,19 @@ export class TimelineComponent extends React.Component<{
 
     @observable private dragTarget?: "start" | "end" | "both"
 
-    @computed private get isDragging() {
+    @computed private get isDragging(): boolean {
         return !!this.dragTarget
     }
 
-    @computed private get manager() {
+    @computed private get manager(): TimelineManager {
         return this.props.timelineController.manager
     }
 
-    @computed private get controller() {
+    @computed private get controller(): TimelineController {
         return this.props.timelineController
     }
 
-    private get sliderBounds() {
+    private get sliderBounds(): Bounds {
         return this.slider
             ? Bounds.fromRect(this.slider.getBoundingClientRect())
             : new Bounds(0, 0, 100, 100)
@@ -43,7 +43,7 @@ export class TimelineComponent extends React.Component<{
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
 
-    private getInputTimeFromMouse(event: MouseEvent) {
+    private getInputTimeFromMouse(event: MouseEvent): number {
         const { minTime, maxTime } = this.controller
         const mouseX = getRelativeMouse(this.slider, event).x
 
@@ -51,7 +51,7 @@ export class TimelineComponent extends React.Component<{
         return minTime + fracWidth * (maxTime - minTime)
     }
 
-    @action.bound private onDrag(inputTime: number) {
+    @action.bound private onDrag(inputTime: number): void {
         if (!this.manager.isPlaying) this.manager.userHasSetTimeline = true
         this.dragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
@@ -60,7 +60,7 @@ export class TimelineComponent extends React.Component<{
         this.showTooltips()
     }
 
-    @action.bound private showTooltips() {
+    @action.bound private showTooltips(): void {
         this.hideStartTooltip.cancel()
         this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
@@ -79,7 +79,7 @@ export class TimelineComponent extends React.Component<{
         inputTime: number,
         isStartMarker: boolean,
         isEndMarker: boolean
-    ) {
+    ): "both" | "start" | "end" {
         const { startHandleTimeBound, endHandleTimeBound } = this.manager
 
         if (
@@ -93,7 +93,7 @@ export class TimelineComponent extends React.Component<{
         return "both"
     }
 
-    @action.bound private onMouseDown(event: any) {
+    @action.bound private onMouseDown(event: any): void {
         const logic = this.controller
         const targetEl = select(event.target)
 
@@ -112,7 +112,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     private queuedDrag?: boolean
-    @action.bound private onMouseMove(event: MouseEvent | TouchEvent) {
+    @action.bound private onMouseMove(event: MouseEvent | TouchEvent): void {
         const { dragTarget } = this
         if (!dragTarget) return
         if (this.queuedDrag) return
@@ -122,7 +122,7 @@ export class TimelineComponent extends React.Component<{
         this.queuedDrag = false
     }
 
-    @action.bound private onMouseUp() {
+    @action.bound private onMouseUp(): void {
         this.dragTarget = undefined
 
         if (this.manager.isPlaying) return
@@ -137,7 +137,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     private mouseHoveringOverTimeline: boolean = false
-    @action.bound private onMouseOver() {
+    @action.bound private onMouseOver(): void {
         this.mouseHoveringOverTimeline = true
 
         this.hideStartTooltip.cancel()
@@ -147,7 +147,7 @@ export class TimelineComponent extends React.Component<{
         this.endTooltipVisible = true
     }
 
-    @action.bound private onMouseLeave() {
+    @action.bound private onMouseLeave(): void {
         if (!this.manager.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
@@ -162,17 +162,17 @@ export class TimelineComponent extends React.Component<{
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
-    @action.bound onPlayTouchEnd(evt: Event) {
+    @action.bound onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
         evt.stopPropagation()
         this.controller.togglePlay()
     }
 
-    @computed private get isPlayingOrDragging() {
+    @computed private get isPlayingOrDragging(): boolean {
         return this.manager.isPlaying || this.isDragging
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         const current = this.base.current
 
         if (current) {
@@ -193,7 +193,7 @@ export class TimelineComponent extends React.Component<{
         })
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         document.documentElement.removeEventListener("mouseup", this.onMouseUp)
         document.documentElement.removeEventListener(
             "mouseleave",
@@ -216,20 +216,20 @@ export class TimelineComponent extends React.Component<{
         } as EventListenerOptions)
     }
 
-    private formatTime(time: number) {
+    private formatTime(time: number): string {
         return this.manager.formatTimeFn
             ? this.manager.formatTimeFn(time)
             : time.toString()
     }
 
-    private timelineEdgeMarker(markerType: "start" | "end") {
+    private timelineEdgeMarker(markerType: "start" | "end"): JSX.Element {
         const { controller } = this
         const time =
             markerType === "start" ? controller.minTime : controller.maxTime
         return (
             <div
                 className="date clickable"
-                onClick={() =>
+                onClick={(): void =>
                     markerType === "start"
                         ? controller.resetStartToMin()
                         : controller.resetEndToMax()
@@ -244,17 +244,17 @@ export class TimelineComponent extends React.Component<{
     @observable private endTooltipVisible: boolean = false
     @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
 
-    @action.bound private togglePlay() {
+    @action.bound private togglePlay(): void {
         this.controller.togglePlay()
     }
 
-    convertToTime(time: number) {
+    convertToTime(time: number): number {
         if (time === -Infinity) return this.controller.minTime
         if (time === +Infinity) return this.controller.maxTime
         return time
     }
 
-    render() {
+    render(): JSX.Element {
         const { manager, controller } = this
         const {
             startTimeProgress,

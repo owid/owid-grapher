@@ -13,11 +13,11 @@ class TimelineManagerMock implements TimelineManager {
     set endHandleTimeBound(num: number) {
         this.updateEndTime(num)
     }
-    @computed get endHandleTimeBound() {
+    @computed get endHandleTimeBound(): number {
         return this._endTime
     }
 
-    @action.bound updateEndTime(num: number) {
+    @action.bound updateEndTime(num: number): void {
         this._endTime = num
     }
 
@@ -25,11 +25,11 @@ class TimelineManagerMock implements TimelineManager {
     set startHandleTimeBound(num: number) {
         this.updateStartTime(num)
     }
-    @computed get startHandleTimeBound() {
+    @computed get startHandleTimeBound(): number {
         return this._startTime
     }
 
-    @action.bound updateStartTime(num: number) {
+    @action.bound updateStartTime(num: number): void {
         this._startTime = num
     }
 
@@ -42,38 +42,38 @@ export default {
 }
 
 class SingleYearManager extends TimelineManagerMock {
-    @action.bound updateEndTime(num: number) {
+    @action.bound updateEndTime(num: number): void {
         // Simulate the Map class, which can only have 1 target time
         this._endTime = num
         this._startTime = num
     }
-    @action.bound updateStartTime(num: number) {
+    @action.bound updateStartTime(num: number): void {
         this._endTime = num
         this._startTime = num
     }
     @observable protected _endTime = 1950
 }
 
-export const Default = () => {
+export const Default = (): JSX.Element => {
     const manager = new TimelineManagerMock()
     manager.startHandleTimeBound = 1900
     const timelineController = new TimelineController(manager)
     return <TimelineComponent timelineController={timelineController} />
 }
 
-export const StartPartialRange = () => (
+export const StartPartialRange = (): JSX.Element => (
     <TimelineComponent
         timelineController={new TimelineController(new TimelineManagerMock())}
     />
 )
 
-export const OneYearAtATime = () => (
+export const OneYearAtATime = (): JSX.Element => (
     <TimelineComponent
         timelineController={new TimelineController(new SingleYearManager())}
     />
 )
 
-export const DisablePlayButton = () => {
+export const DisablePlayButton = (): JSX.Element => {
     const manager = new TimelineManagerMock()
     manager.disablePlay = true
     return (

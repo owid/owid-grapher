@@ -14,7 +14,8 @@ export interface TimelineManager {
     onPlay?: () => void
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
     manager: TimelineManager
@@ -23,55 +24,55 @@ export class TimelineController {
         this.manager = manager
     }
 
-    private get timesAsc() {
+    private get timesAsc(): number[] {
         // Note: assumes times is sorted in asc
         return this.manager.times
     }
 
-    private get startTime() {
+    private get startTime(): number {
         return findClosestTime(
             this.timesAsc,
             this.manager.startHandleTimeBound
         )!
     }
 
-    private get endTime() {
+    private get endTime(): number {
         return findClosestTime(this.timesAsc, this.manager.endHandleTimeBound)!
     }
 
-    get minTime() {
+    get minTime(): number {
         return this.timesAsc[0]
     }
 
-    get maxTime() {
+    get maxTime(): number {
         return last(this.timesAsc)!
     }
 
-    get startTimeProgress() {
+    get startTimeProgress(): number {
         return (this.startTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
-    get endTimeProgress() {
+    get endTimeProgress(): number {
         return (this.endTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
-    getNextTime(time: number) {
+    getNextTime(time: number): number {
         // Todo: speed up?
         return this.timesAsc[this.timesAsc.indexOf(time) + 1] ?? this.maxTime
     }
 
     // By default, play means extend the endTime to the right. Toggle this to play one time unit at a time.
     private rangeMode = true
-    toggleRangeMode() {
+    toggleRangeMode(): this {
         this.rangeMode = !this.rangeMode
         return this
     }
 
-    private isAtEnd() {
+    private isAtEnd(): boolean {
         return this.endTime === this.maxTime
     }
 
-    private resetToBeginning() {
+    private resetToBeginning(): void {
         const { manager } = this
         const beginning =
             manager.endHandleTimeBound !== manager.startHandleTimeBound
@@ -81,7 +82,7 @@ export class TimelineController {
         manager.startHandleTimeBound = beginning
     }
 
-    async play(numberOfTicks?: number) {
+    async play(numberOfTicks?: number): Promise<number> {
         const { manager } = this
         manager.isPlaying = true
 
@@ -106,22 +107,22 @@ export class TimelineController {
         return tickCount
     }
 
-    private stop() {
+    private stop(): void {
         this.manager.isPlaying = false
     }
 
-    private pause() {
+    private pause(): void {
         this.manager.isPlaying = false
     }
 
-    async togglePlay() {
+    async togglePlay(): Promise<void> {
         if (this.manager.isPlaying) this.pause()
         else await this.play()
     }
 
     private dragOffsets: [number, number] = [0, 0]
 
-    setDragOffsets(inputTime: number) {
+    setDragOffsets(inputTime: number): void {
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         this.dragOffsets = [
@@ -138,7 +139,7 @@ export class TimelineController {
         return Math.min(this.maxTime, Math.max(this.minTime, closestTime))
     }
 
-    private dragRangeToTime(time: Time) {
+    private dragRangeToTime(time: Time): void {
         const { minTime, maxTime } = this
         const closestTime = findClosestTime(this.timesAsc, time) ?? time
 
@@ -161,7 +162,10 @@ export class TimelineController {
         this.updateEndTime(endTime)
     }
 
-    dragHandleToTime(handle: "start" | "end" | "both", inputTime: number) {
+    dragHandleToTime(
+        handle: "start" | "end" | "both",
+        inputTime: number
+    ): "start" | "end" | "both" {
         const { manager } = this
 
         const time = this.getTimeBoundFromDrag(inputTime)
@@ -189,19 +193,19 @@ export class TimelineController {
         return constrainedHandle
     }
 
-    private updateStartTime(timeBound: TimeBound) {
+    private updateStartTime(timeBound: TimeBound): void {
         this.manager.startHandleTimeBound = timeBound
     }
 
-    private updateEndTime(timeBound: TimeBound) {
+    private updateEndTime(timeBound: TimeBound): void {
         this.manager.endHandleTimeBound = timeBound
     }
 
-    resetStartToMin() {
+    resetStartToMin(): void {
         this.updateStartTime(TimeBoundValue.negativeInfinity)
     }
 
-    resetEndToMax() {
+    resetEndToMax(): void {
         this.updateEndTime(TimeBoundValue.positiveInfinity)
     }
 }
