@@ -5,6 +5,7 @@ import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
 import { max, keyBy } from "../../clientUtils/Util"
+import { ScaleLinear } from "d3"
 
 enum BarState {
     highlighted = "highlighted",
@@ -34,7 +35,7 @@ export interface SparkBarsDatum {
 @observer
 export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
-        onHover: () => undefined,
+        onHover: (): undefined => undefined,
         className: "spark-bars",
     }
 
@@ -42,14 +43,14 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return max(this.bars.map((d) => (d ? this.props.y(d) ?? 0 : 0)))
     }
 
-    @computed get barHeightScale() {
+    @computed get barHeightScale(): ScaleLinear<number, number> {
         const maxY = this.maxY
         return scaleLinear()
             .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
             .range([0, 1])
     }
 
-    @bind barHeight(d: T | undefined) {
+    @bind barHeight(d: T | undefined): string {
         if (d !== undefined) {
             const value = this.props.y(d)
             if (value !== undefined) {
@@ -77,7 +78,7 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return result
     }
 
-    render() {
+    render(): JSX.Element {
         return (
             <div
                 className={this.props.className}

@@ -20,7 +20,7 @@ export const SparkBarTimeSeriesValue = ({
     className?: string
     displayDate?: string
     valueColor?: string
-}) => (
+}): JSX.Element => (
     <div className={classnames("time-series-value", className)}>
         {value !== undefined ? (
             <>
