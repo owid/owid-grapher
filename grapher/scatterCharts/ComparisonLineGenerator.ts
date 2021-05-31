@@ -8,12 +8,13 @@ export function generateComparisonLinePoints(
     yScaleDomain: [number, number],
     xScaleType: ScaleType,
     yScaleType: ScaleType
-) {
+): [number, number][] {
     const expr = parseEquation(lineFunction)?.simplify({
         e: Math.E,
         pi: Math.PI,
     })
-    const yFunc = (x: number) => evalExpression(expr, { x }, undefined)
+    const yFunc = (x: number): number | undefined =>
+        evalExpression(expr, { x }, undefined)
 
     // Construct control data by running the equation across sample points
     const numPoints = 500
@@ -40,7 +41,7 @@ function evalExpression<D>(
     expr: Expression | undefined,
     context: Record<string, number>,
     defaultOnError: D
-) {
+): number | D {
     if (expr === undefined) return defaultOnError
     try {
         return expr.evaluate(context) as number
@@ -49,7 +50,7 @@ function evalExpression<D>(
     }
 }
 
-function parseEquation(equation: string) {
+function parseEquation(equation: string): Expression | undefined {
     try {
         return Parser.parse(equation)
     } catch (e) {

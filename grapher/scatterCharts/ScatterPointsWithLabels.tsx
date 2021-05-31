@@ -28,6 +28,7 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterLabelFontFamily,
+    ScatterSeries,
 } from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
@@ -37,6 +38,8 @@ import {
     labelPriority,
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
+import { ColorScale } from "../color/ColorScale"
+import { ScaleLinear } from "d3"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -44,51 +47,51 @@ export class ScatterPointsWithLabels extends React.Component<
     ScatterPointsWithLabelsProps
 > {
     base: React.RefObject<SVGGElement> = React.createRef()
-    @computed private get seriesArray() {
+    @computed private get seriesArray(): ScatterSeries[] {
         return this.props.seriesArray
     }
 
-    @computed private get isConnected() {
+    @computed private get isConnected(): boolean {
         return this.seriesArray.some((g) => g.points.length > 1)
     }
 
-    @computed private get focusedSeriesNames() {
+    @computed private get focusedSeriesNames(): string[] {
         return intersection(
             this.props.focusedSeriesNames || [],
             this.seriesArray.map((g) => g.seriesName)
         )
     }
 
-    @computed private get hoveredSeriesNames() {
+    @computed private get hoveredSeriesNames(): string[] {
         return this.props.hoveredSeriesNames
     }
 
     // Layered mode occurs when any entity on the chart is hovered or focused
     // Then, a special "foreground" set of entities is rendered over the background
-    @computed private get isLayerMode() {
+    @computed private get isLayerMode(): boolean {
         return (
             this.focusedSeriesNames.length > 0 ||
             this.hoveredSeriesNames.length > 0
         )
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return this.props.dualAxis.innerBounds
     }
 
     // When focusing multiple entities, we hide some information to declutter
-    @computed private get isSubtleForeground() {
+    @computed private get isSubtleForeground(): boolean {
         return (
             this.focusedSeriesNames.length > 1 &&
             this.props.seriesArray.some((series) => series.points.length > 2)
         )
     }
 
-    @computed private get colorScale() {
+    @computed private get colorScale(): ColorScale | undefined {
         return this.props.colorScale
     }
 
-    @computed private get sizeScale() {
+    @computed private get sizeScale(): ScaleLinear<number, number> {
         const sizeScale = scaleLinear()
             .range([10, 1000])
             .domain(this.props.sizeDomain)
@@ -99,7 +102,7 @@ export class ScatterPointsWithLabels extends React.Component<
         return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
     }
 
-    @computed private get hideConnectedScatterLines() {
+    @computed private get hideConnectedScatterLines(): boolean {
         return this.props.hideConnectedScatterLines
     }
 
@@ -201,13 +204,15 @@ export class ScatterPointsWithLabels extends React.Component<
         return renderData
     }
 
-    private hideUnselectedLabels(labelsByPriority: ScatterLabel[]) {
+    private hideUnselectedLabels(labelsByPriority: ScatterLabel[]): void {
         labelsByPriority
             .filter((label) => !label.series.isFocus && !label.series.isHover)
             .forEach((label) => (label.isHidden = true))
     }
 
-    private hideCollidingLabelsByPriority(labelsByPriority: ScatterLabel[]) {
+    private hideCollidingLabelsByPriority(
+        labelsByPriority: ScatterLabel[]
+    ): void {
         for (let i = 0; i < labelsByPriority.length; i++) {
             const higherPriorityLabel = labelsByPriority[i]
             if (higherPriorityLabel.isHidden) continue
@@ -251,7 +256,7 @@ export class ScatterPointsWithLabels extends React.Component<
     private moveLabelsInsideChartBounds(
         labels: ScatterLabel[],
         bounds: Bounds
-    ) {
+    ): void {
         for (const label of labels) {
             if (label.bounds.left < bounds.left - 1)
                 label.bounds = label.bounds.extend({
@@ -272,13 +277,13 @@ export class ScatterPointsWithLabels extends React.Component<
     }
 
     mouseFrame?: number
-    @action.bound onMouseLeave() {
+    @action.bound onMouseLeave(): void {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
         if (this.props.onMouseLeave) this.props.onMouseLeave()
     }
 
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
         if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
 
         const nativeEvent = ev.nativeEvent
@@ -314,19 +319,19 @@ export class ScatterPointsWithLabels extends React.Component<
         })
     }
 
-    @action.bound onClick() {
+    @action.bound onClick(): void {
         if (this.props.onClick) this.props.onClick()
     }
 
-    @computed get backgroundSeries() {
+    @computed get backgroundSeries(): ScatterRenderSeries[] {
         return this.renderSeries.filter((series) => !series.isForeground)
     }
 
-    @computed get foregroundSeries() {
+    @computed get foregroundSeries(): ScatterRenderSeries[] {
         return this.renderSeries.filter((series) => !!series.isForeground)
     }
 
-    private renderBackgroundSeries() {
+    private renderBackgroundSeries(): JSX.Element[] {
         const {
             backgroundSeries,
             isLayerMode,
@@ -346,7 +351,7 @@ export class ScatterPointsWithLabels extends React.Component<
               ))
     }
 
-    private renderBackgroundLabels() {
+    private renderBackgroundLabels(): JSX.Element {
         const { isLayerMode } = this
         return (
             <g
@@ -377,11 +382,11 @@ export class ScatterPointsWithLabels extends React.Component<
         )
     }
 
-    @computed get renderUid() {
+    @computed get renderUid(): number {
         return guid()
     }
 
-    private renderForegroundSeries() {
+    private renderForegroundSeries(): JSX.Element[] {
         const { isSubtleForeground, hideConnectedScatterLines } = this
         return this.foregroundSeries.map((series) => {
             const lastValue = last(series.points) as ScatterRenderPoint
@@ -466,7 +471,7 @@ export class ScatterPointsWithLabels extends React.Component<
         })
     }
 
-    private renderForegroundLabels() {
+    private renderForegroundLabels(): JSX.Element[][] {
         return this.foregroundSeries.map((series) => {
             return series.allLabels
                 .filter((label) => !label.isHidden)
@@ -497,7 +502,7 @@ export class ScatterPointsWithLabels extends React.Component<
         unknown
     >
 
-    private runAnimation() {
+    private runAnimation(): void {
         const radiuses: string[] = []
         this.animSelection = select(this.base.current).selectAll("circle")
 
@@ -513,15 +518,15 @@ export class ScatterPointsWithLabels extends React.Component<
             .on("end", () => this.forceUpdate())
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.runAnimation()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    render() {
+    render(): JSX.Element {
         const { bounds, renderSeries, renderUid } = this
         const clipBounds = bounds.pad(-10)
 

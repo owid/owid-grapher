@@ -12,7 +12,7 @@ export const getElementWithHalo = (
     key: string,
     element: React.ReactElement,
     styles: React.CSSProperties = {}
-) => {
+): JSX.Element => {
     const halo = React.cloneElement(element, {
         style: { ...DefaultHaloStyle, ...styles },
     })

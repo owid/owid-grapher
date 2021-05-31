@@ -82,7 +82,7 @@ export class ComparisonLine extends React.Component<{
         }
     }
 
-    render() {
+    render(): JSX.Element {
         const { innerBounds } = this.props.dualAxis
         const { linePath, renderUid, placedLabel } = this
 

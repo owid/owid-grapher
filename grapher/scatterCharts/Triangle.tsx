@@ -14,7 +14,7 @@ type TriangleProps = Readonly<{
 
 @observer
 export class Triangle extends React.Component<TriangleProps> {
-    render() {
+    render(): JSX.Element {
         const { cx, cy, r } = this.props
         const x = cx - r,
             y = cy - r

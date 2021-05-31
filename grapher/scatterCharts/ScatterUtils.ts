@@ -8,7 +8,7 @@ import {
     ScatterLabelFontFamily as fontFamily,
 } from "./ScatterPlotChartConstants"
 
-export const labelPriority = (label: ScatterLabel) => {
+export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize
 
     if (label.series.isHover) priority += 10000

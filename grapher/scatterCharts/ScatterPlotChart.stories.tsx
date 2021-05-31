@@ -55,7 +55,7 @@ const oneYearWithComparisons = {
 
 const size = { width: DEFAULT_BOUNDS.width, height: DEFAULT_BOUNDS.height }
 
-export const OneYearWithSizeColumn = () => {
+export const OneYearWithSizeColumn = (): JSX.Element => {
     return (
         <svg {...size}>
             <ScatterPlotChart manager={oneYearWithSizeColumn} />
@@ -63,7 +63,7 @@ export const OneYearWithSizeColumn = () => {
     )
 }
 
-export const WithComparisonLinesAndSelection = () => {
+export const WithComparisonLinesAndSelection = (): JSX.Element => {
     const table = SynthesizeGDPTable({ entityCount: 200 }).filterByTargetTimes(
         [2000],
         0
@@ -90,7 +90,7 @@ export const WithComparisonLinesAndSelection = () => {
     )
 }
 
-export const LogScales = () => {
+export const LogScales = (): JSX.Element => {
     const yAxisConfig = {
         scaleType: ScaleType.log,
         min: 0,
@@ -127,7 +127,7 @@ export const LogScales = () => {
     )
 }
 
-export const LogScaleWithNonPositives = () => {
+export const LogScaleWithNonPositives = (): JSX.Element => {
     const manager: ScatterPlotManager = {
         table: SynthesizeFruitTableWithNonPositives(),
         selection: table.availableEntityNames,
@@ -149,13 +149,13 @@ export const LogScaleWithNonPositives = () => {
     )
 }
 
-export const MultipleYearsWithConnectedLines = () => (
+export const MultipleYearsWithConnectedLines = (): JSX.Element => (
     <svg {...size}>
         <ScatterPlotChart manager={basicSetup} />
     </svg>
 )
 
-export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
+export const MultipleYearsWithConnectedLinesAndBackgroundLines = (): JSX.Element => {
     const table = SynthesizeGDPTable({ entityCount: 20 })
     return (
         <svg {...size}>
@@ -171,7 +171,7 @@ export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
 }
 
 // TODO
-export const OneYearWithSizeAndColorColumn = () => {
+export const OneYearWithSizeAndColorColumn = (): JSX.Element => {
     return (
         <svg {...size}>
             <ScatterPlotChart
@@ -185,7 +185,7 @@ export const OneYearWithSizeAndColorColumn = () => {
 }
 
 // TODO
-export const AverageAnnualChange = () => {
+export const AverageAnnualChange = (): JSX.Element => {
     return (
         <svg {...size}>
             <ScatterPlotChart manager={oneYear} />
@@ -194,7 +194,7 @@ export const AverageAnnualChange = () => {
 }
 
 // TODO
-export const CustomColors = () => {
+export const CustomColors = (): JSX.Element => {
     return (
         <svg {...size}>
             <ScatterPlotChart manager={oneYear} />

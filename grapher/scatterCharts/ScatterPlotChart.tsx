@@ -1,4 +1,5 @@
 import * as React from "react"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import {
     intersection,
@@ -37,7 +38,7 @@ import {
     VerticalColorLegendManager,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
@@ -62,7 +63,13 @@ import {
     defaultIfErrorValue,
     isNotErrorValue,
 } from "../../coreTable/ErrorValues"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import {
+    ColorScaleConfig,
+    ColorScaleConfigDefaults,
+} from "../color/ColorScaleConfig"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { ColorScaleBin } from "../color/ColorScaleBin"
 
 @observer
 export class ScatterPlotChart
@@ -80,7 +87,7 @@ export class ScatterPlotChart
     // currently hovered legend color
     @observable private hoverColor?: Color
 
-    transformTable(table: OwidTable) {
+    transformTable(table: OwidTable): OwidTable {
         const {
             backgroundSeriesLimit,
             excludedEntities,
@@ -212,11 +219,11 @@ export class ScatterPlotChart
         return table
     }
 
-    @computed get inputTable() {
+    @computed get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed private get transformedTableFromGrapher() {
+    @computed private get transformedTableFromGrapher(): OwidTable {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
@@ -224,7 +231,7 @@ export class ScatterPlotChart
     }
 
     // TODO chunk this up into multiple computeds for better performance?
-    @computed get transformedTable() {
+    @computed get transformedTable(): OwidTable {
         let table = this.transformedTableFromGrapher
         if (
             this.manager.hideLinesOutsideTolerance &&
@@ -256,24 +263,25 @@ export class ScatterPlotChart
         return table
     }
 
-    @computed private get manager() {
+    @computed private get manager(): ScatterPlotManager {
         return this.props.manager
     }
 
-    @computed.struct private get bounds() {
+    @computed.struct private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get canAddCountry() {
+    @computed private get canAddCountry(): boolean {
         const { addCountryMode } = this.manager
-        return addCountryMode && addCountryMode !== EntitySelectionMode.Disabled
+        return (addCountryMode &&
+            addCountryMode !== EntitySelectionMode.Disabled) as boolean
     }
 
-    @computed private get selectionArray() {
+    @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @action.bound private onSelectEntity(entityName: SeriesName) {
+    @action.bound private onSelectEntity(entityName: SeriesName): void {
         if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
     }
 
@@ -297,20 +305,20 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get fontSize() {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @action.bound onLegendMouseOver(color: string) {
+    @action.bound onLegendMouseOver(color: string): void {
         this.hoverColor = color
     }
 
-    @action.bound onLegendMouseLeave() {
+    @action.bound onLegendMouseLeave(): void {
         this.hoverColor = undefined
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
-    @action.bound onLegendClick() {
+    @action.bound onLegendClick(): void {
         const { hoverColor, selectionArray } = this
         if (!this.canAddCountry || hoverColor === undefined) return
 
@@ -331,7 +339,7 @@ export class ScatterPlotChart
     }
 
     // Colors on the legend for which every matching series is focused
-    @computed get focusColors() {
+    @computed get focusColors(): string[] {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = this.series
@@ -345,7 +353,7 @@ export class ScatterPlotChart
     }
 
     // All currently hovered series keys, combining the legend and the main UI
-    @computed private get hoveredSeriesNames() {
+    @computed private get hoveredSeriesNames(): string[] {
         const { hoverColor, hoveredSeries } = this
 
         const hoveredSeriesNames =
@@ -362,27 +370,27 @@ export class ScatterPlotChart
         return hoveredSeriesNames
     }
 
-    @computed private get focusedEntityNames() {
+    @computed private get focusedEntityNames(): string[] {
         return this.selectedEntityNames
     }
 
-    @computed private get selectedEntityNames() {
+    @computed private get selectedEntityNames(): string[] {
         return this.selectionArray.selectedEntityNames
     }
 
-    @computed get displayStartTime() {
+    @computed get displayStartTime(): string {
         return this.transformedTable.timeColumnFormatFunction(
             this.transformedTable.minTime ?? 1900
         )
     }
 
-    @computed get displayEndTime() {
+    @computed get displayEndTime(): string {
         return this.transformedTable.timeColumnFormatFunction(
             this.transformedTable.maxTime ?? 2000
         )
     }
 
-    @computed private get arrowLegend() {
+    @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         if (
             this.displayStartTime === this.displayEndTime ||
             this.manager.isRelativeMode
@@ -392,19 +400,19 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound private onScatterMouseOver(series: ScatterSeries) {
+    @action.bound private onScatterMouseOver(series: ScatterSeries): void {
         this.hoveredSeries = series.seriesName
     }
 
-    @action.bound private onScatterMouseLeave() {
+    @action.bound private onScatterMouseLeave(): void {
         this.hoveredSeries = undefined
     }
 
-    @action.bound private onScatterClick() {
+    @action.bound private onScatterClick(): void {
         if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
     }
 
-    @computed private get tooltipSeries() {
+    @computed private get tooltipSeries(): ScatterSeries | undefined {
         const { hoveredSeries, focusedEntityNames } = this
         if (hoveredSeries !== undefined)
             return this.series.find((g) => g.seriesName === hoveredSeries)
@@ -419,19 +427,19 @@ export class ScatterPlotChart
         return new VerticalColorLegend({ manager: this })
     }
 
-    @computed get maxLegendWidth() {
+    @computed get maxLegendWidth(): number {
         return this.sidebarMaxWidth
     }
 
-    @computed private get sidebarMinWidth() {
+    @computed private get sidebarMinWidth(): number {
         return Math.max(this.bounds.width * 0.1, 60)
     }
 
-    @computed private get sidebarMaxWidth() {
+    @computed private get sidebarMaxWidth(): number {
         return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
     }
 
-    @computed.struct get sidebarWidth() {
+    @computed.struct get sidebarWidth(): number {
         const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
 
         return Math.max(
@@ -441,7 +449,7 @@ export class ScatterPlotChart
     }
 
     // todo: Refactor
-    @computed get dualAxis() {
+    @computed get dualAxis(): DualAxis {
         const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
@@ -450,17 +458,19 @@ export class ScatterPlotChart
         })
     }
 
-    @computed private get comparisonLines() {
+    @computed private get comparisonLines():
+        | ComparisonLineConfig[]
+        | undefined {
         return this.manager.comparisonLines
     }
 
-    @action.bound private onToggleEndpoints() {
+    @action.bound private onToggleEndpoints(): void {
         this.manager.compareEndPointsOnly =
             !this.compareEndPointsOnly || undefined
     }
 
     // Colors currently on the chart and not greyed out
-    @computed get activeColors() {
+    @computed get activeColors(): string[] {
         const { hoveredSeriesNames, focusedEntityNames } = this
         const activeKeys = hoveredSeriesNames.concat(focusedEntityNames)
 
@@ -477,11 +487,11 @@ export class ScatterPlotChart
         )
     }
 
-    @computed private get hideConnectedScatterLines() {
+    @computed private get hideConnectedScatterLines(): boolean {
         return !!this.manager.hideConnectedScatterLines
     }
 
-    @computed private get points() {
+    @computed private get points(): JSX.Element {
         const {
             dualAxis,
             focusedEntityNames,
@@ -511,29 +521,29 @@ export class ScatterPlotChart
         )
     }
 
-    @computed private get colorColumnSlug() {
+    @computed private get colorColumnSlug(): string | undefined {
         return this.manager.colorColumnSlug
     }
 
-    @computed private get colorColumn() {
+    @computed private get colorColumn(): CoreColumn {
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    @computed get legendItems() {
+    @computed get legendItems(): ColorScaleBin[] {
         return this.colorScale.legendBins.filter((bin) =>
             this.colorsInUse.includes(bin.color)
         )
     }
 
-    @computed get title() {
+    @computed get title(): string | undefined {
         return this.colorScale.legendDescription
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.failMessage)
             return (
                 <NoDataModal
@@ -603,24 +613,24 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get legendY() {
+    @computed get legendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendX() {
+    @computed get legendX(): number {
         return this.bounds.right - this.sidebarWidth
     }
 
     colorScale = new ColorScale(this)
 
-    @computed get colorScaleColumn() {
+    @computed get colorScaleColumn(): CoreColumn {
         // We need to use inputTable in order to get consistent coloring for a variable across
         // charts, e.g. each continent being assigned to the same color.
         // inputTable is unfiltered, so it contains every value that exists in the variable.
         return this.inputTable.get(this.colorColumnSlug)
     }
 
-    @computed get colorScaleConfig() {
+    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
             ColorScaleConfig.fromDSL(this.colorColumn.def) ??
             this.manager.colorScale
@@ -630,51 +640,51 @@ export class ScatterPlotChart
     defaultBaseColorScheme = ColorSchemeName.continents
     defaultNoDataColor = "#959595"
 
-    @computed get hasNoDataBin() {
+    @computed get hasNoDataBin(): boolean {
         if (this.colorColumn.isMissing) return false
         return this.colorColumn.valuesIncludingErrorValues.some(
             (value) => !isNotErrorValue(value)
         )
     }
 
-    @computed private get yAxisConfig() {
+    @computed private get yAxisConfig(): AxisConfig {
         return (
             this.manager.yAxis ?? new AxisConfig(this.manager.yAxisConfig, this)
         )
     }
 
-    @computed private get xAxisConfig() {
+    @computed private get xAxisConfig(): AxisConfig {
         return (
             this.manager.xAxis ?? new AxisConfig(this.manager.xAxisConfig, this)
         )
     }
 
-    @computed private get yColumnSlug() {
+    @computed private get yColumnSlug(): string {
         return autoDetectYColumnSlugs(this.manager)[0]
     }
 
-    @computed private get yColumn() {
+    @computed private get yColumn(): CoreColumn {
         return this.transformedTable.get(this.yColumnSlug)
     }
 
-    @computed private get xColumnSlug() {
+    @computed private get xColumnSlug(): string {
         const { xColumnSlug } = this.manager
         return xColumnSlug ?? this.manager.table.numericColumnSlugs[1]
     }
 
-    @computed private get xColumn() {
+    @computed private get xColumn(): CoreColumn {
         return this.transformedTable.get(this.xColumnSlug)
     }
 
-    @computed private get sizeColumnSlug() {
+    @computed private get sizeColumnSlug(): string | undefined {
         return this.manager.sizeColumnSlug
     }
 
-    @computed private get sizeColumn() {
+    @computed private get sizeColumn(): CoreColumn {
         return this.transformedTable.get(this.sizeColumnSlug)
     }
 
-    @computed get failMessage() {
+    @computed get failMessage(): string {
         if (this.yColumn.isMissing) return "Missing Y axis variable"
 
         if (this.yColumn.isMissing) return "Missing X axis variable"
@@ -698,13 +708,13 @@ export class ScatterPlotChart
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
-    @computed get xOverrideTime() {
+    @computed get xOverrideTime(): number | undefined {
         return this.manager.xOverrideTime
     }
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
-    @computed private get hideBackgroundEntities() {
+    @computed private get hideBackgroundEntities(): boolean {
         return this.manager.addCountryMode === EntitySelectionMode.Disabled
     }
 
@@ -731,7 +741,7 @@ export class ScatterPlotChart
         return new Set(seriesNames)
     }
 
-    @computed get compareEndPointsOnly() {
+    @computed get compareEndPointsOnly(): boolean {
         return !!this.manager.compareEndPointsOnly
     }
 
@@ -761,18 +771,18 @@ export class ScatterPlotChart
         )
     }
 
-    @computed private get xDomainDefault() {
+    @computed private get xDomainDefault(): [number, number] {
         return this.domainDefault("x")
     }
 
-    @computed private get selectedPoints() {
+    @computed private get selectedPoints(): SeriesPoint[] {
         const seriesNamesSet = this.getSeriesNamesToShow(true)
         return this.allPoints.filter(
             (point) => point.entityName && seriesNamesSet.has(point.entityName)
         )
     }
 
-    @computed private get pointsForAxisDomains() {
+    @computed private get pointsForAxisDomains(): SeriesPoint[] {
         if (
             !this.selectionArray.numSelectedEntities ||
             !this.manager.zoomToSelection
@@ -790,17 +800,17 @@ export class ScatterPlotChart
         return domainExtent(sizeValues, ScaleType.linear)
     }
 
-    @computed private get yScaleType() {
+    @computed private get yScaleType(): ScaleType {
         return this.manager.isRelativeMode
             ? ScaleType.linear
             : this.yAxisConfig.scaleType || ScaleType.linear
     }
 
-    @computed private get yDomainDefault() {
+    @computed private get yDomainDefault(): [number, number] {
         return this.domainDefault("y")
     }
 
-    @computed private get verticalAxisPart() {
+    @computed private get verticalAxisPart(): VerticalAxis {
         const { manager, yDomainDefault } = this
         const axisConfig = this.yAxisConfig
 
@@ -824,20 +834,20 @@ export class ScatterPlotChart
         return axis
     }
 
-    @computed private get xScaleType() {
+    @computed private get xScaleType(): ScaleType {
         return this.manager.isRelativeMode
             ? ScaleType.linear
             : this.xAxisConfig.scaleType ?? ScaleType.linear
     }
 
-    @computed private get xAxisLabelBase() {
+    @computed private get xAxisLabelBase(): string {
         const xDimName = this.xColumn?.displayName
         if (this.xOverrideTime !== undefined)
             return `${xDimName} in ${this.xOverrideTime}`
         return xDimName
     }
 
-    @computed private get horizontalAxisPart() {
+    @computed private get horizontalAxisPart(): HorizontalAxis {
         const { xDomainDefault, manager, xAxisLabelBase } = this
         const { xAxisConfig } = this
         const axis = xAxisConfig.toHorizontalAxis()
