@@ -124,7 +124,7 @@ export class TextWrap {
         }
     }
 
-    renderHTML(): JSX.Element {
+    renderHTML(): JSX.Element | null {
         const { props, lines } = this
 
         if (lines.length === 0) return null
