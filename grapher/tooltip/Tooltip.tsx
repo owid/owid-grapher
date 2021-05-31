@@ -64,47 +64,47 @@ export class TooltipView extends React.Component<{
     private base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable.struct private bounds?: Bounds
-    @action.bound private updateBounds() {
+    @action.bound private updateBounds(): void {
         if (this.base.current)
             this.bounds = Bounds.fromElement(this.base.current)
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.updateBounds()
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         this.updateBounds()
     }
 
-    render() {
+    render(): JSX.Element | null {
         return this.rendered
     }
 }
 
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
-    componentDidMount() {
+    componentDidMount(): void {
         this.connectTooltipToContainer()
     }
 
-    @action.bound private connectTooltipToContainer() {
+    @action.bound private connectTooltipToContainer(): void {
         this.props.tooltipManager.tooltip = this.props
     }
 
-    @action.bound private removeToolTipFromContainer() {
+    @action.bound private removeToolTipFromContainer(): void {
         this.props.tooltipManager.tooltip = undefined
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         this.connectTooltipToContainer()
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         this.removeToolTipFromContainer()
     }
 
-    render() {
+    render(): null {
         return null
     }
 }
