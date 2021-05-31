@@ -38,7 +38,7 @@ export function objectWithPersistablesToObject<T>(
 
 // Basically does an Object.assign, except if the target is a Persistable, will call updateFromObject on
 // that Persistable. It does not recurse. Will only update top level Persistables.
-export function updatePersistables(target: any, obj: any) {
+export function updatePersistables(target: any, obj: any): void {
     if (obj === undefined) return
     for (const key in target) {
         if (key in obj) {
