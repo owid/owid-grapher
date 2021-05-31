@@ -128,3 +128,14 @@ it("can handle an array of persistables", () => {
     })
     expect(game.relatedGames![0].players).toEqual(2)
 })
+
+it("can handle Infinity", () => {
+    const game = new GameBoyGame({
+        players: Infinity,
+    })
+    const persisted = deleteRuntimeAndUnchangedProps(
+        game,
+        new GameBoyGame({ players: -Infinity })
+    )
+    expect(persisted).toEqual({ players: Infinity })
+})
