@@ -14,7 +14,7 @@ interface TextProps extends React.SVGProps<SVGTextElement> {
 }
 
 export class Text extends React.Component<TextProps> {
-    render() {
+    render(): JSX.Element {
         const bounds = Bounds.forText(this.props.children, {
             fontSize: this.props.fontSize,
             fontFamily: this.props["fontFamily"],
