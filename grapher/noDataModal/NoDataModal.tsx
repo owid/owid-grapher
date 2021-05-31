@@ -19,15 +19,15 @@ export class NoDataModal extends React.Component<{
     message?: string
     manager: NoDataModalManager
 }> {
-    @action.bound private onDataSelect() {
+    @action.bound private onDataSelect(): void {
         this.props.manager.isSelectingData = true
     }
 
-    @computed private get bounds() {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    render() {
+    render(): JSX.Element {
         const { message, manager } = this.props
         const entityType = manager.entityType
         const { bounds } = this
