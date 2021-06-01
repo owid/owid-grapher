@@ -1,6 +1,7 @@
 import React from "react"
 import { Box } from "../../clientUtils/owidTypes"
 import { SeriesStrategy } from "../core/GrapherConstants"
+import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartManager } from "./ChartManager"
 
@@ -24,12 +25,20 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
     return ""
 }
 
+export const getSeriesKey = (series: LineChartSeries, suffix?: string) => {
+    return `${series.seriesName}-${series.color}-${
+        series.isProjection ? "projection" : ""
+    }${suffix ? "-" + suffix : ""}`
+}
+
 export const autoDetectSeriesStrategy = (
-    manager: ChartManager
+    manager: ChartManager,
+    hasNormalAndProjectedSeries?: boolean
 ): SeriesStrategy => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 
-    return autoDetectYColumnSlugs(manager).length > 1
+    const columnThreshold = hasNormalAndProjectedSeries ? 2 : 1
+    return autoDetectYColumnSlugs(manager).length > columnThreshold
         ? SeriesStrategy.column
         : SeriesStrategy.entity
 }
