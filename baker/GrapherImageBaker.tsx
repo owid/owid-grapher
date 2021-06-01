@@ -47,7 +47,7 @@ export async function getGraphersAndRedirectsBySlug() {
 
     for (const row of await redirectQuery) {
         const grapher = graphersById.get(row.chart_id)
-        if (grapher !== undefined) {
+        if (grapher) {
             graphersBySlug.set(row.slug, grapher)
         }
     }
@@ -56,7 +56,7 @@ export async function getGraphersAndRedirectsBySlug() {
 }
 
 export async function getPublishedGraphersBySlug(
-    includePrivate: boolean = true
+    includePrivate: boolean = false
 ) {
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
     const graphersById: Map<number, GrapherInterface> = new Map()
@@ -94,12 +94,12 @@ export async function bakeGrapherToSvg(
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilepath(
         slug,
-        queryStr,
         outDir,
         jsonConfig.version,
         width,
         height,
-        verbose
+        verbose,
+        queryStr
     )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
@@ -116,7 +116,7 @@ export async function bakeGrapherToSvg(
 
 export function initGrapherForSvgExport(
     jsonConfig: GrapherInterface,
-    queryStr: string
+    queryStr: string = ""
 ) {
     const grapher = new Grapher({
         ...jsonConfig,
@@ -129,10 +129,10 @@ export function initGrapherForSvgExport(
 
 export function buildSvgOutFilename(
     slug: string,
-    queryStr: string,
     version: number | undefined,
     width: number,
-    height: number
+    height: number,
+    queryStr: string = ""
 ) {
     const fileKey = grapherSlugToExportFileKey(slug, queryStr)
     const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
@@ -141,19 +141,19 @@ export function buildSvgOutFilename(
 
 export function buildSvgOutFilepath(
     slug: string,
-    queryStr: string,
     outDir: string,
     version: number | undefined,
     width: number,
     height: number,
-    verbose: boolean
+    verbose: boolean,
+    queryStr: string = ""
 ) {
     const outFilename = buildSvgOutFilename(
         slug,
-        queryStr,
         version,
         width,
-        height
+        height,
+        queryStr
     )
     const outPath = path.join(outDir, outFilename)
     if (verbose) console.log(outPath)

@@ -42,8 +42,8 @@ const resultError = <T, E>(error: E): Result<T, E> => ({
     error: error,
 })
 
-const configFilename: string = "config.json.gz"
-const dataFilename = "data.json.gz"
+const CONFIG_FILENAME: string = "config.json.gz"
+const DATA_FILENAME = "data.json.gz"
 export type SvgRecord = {
     chartId: number
     slug: string
@@ -66,7 +66,7 @@ export function logIfVerbose(
     if (verbose) console.log(message, param)
 }
 
-export const svgCsvHeader = `grapherId,slug,chartType,md5,svgFilename`
+export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 function findFirstDiffIndex(a: string, b: string): number {
     var i = 0
@@ -219,11 +219,11 @@ export async function saveGrapherSchemaAndData(
 ): Promise<void> {
     const dataDir = path.join(outDir, config.id?.toString() ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
-    const configPath = path.join(dataDir, configFilename)
+    const configPath = path.join(dataDir, CONFIG_FILENAME)
     const promise1 = writeToGzippedFile(config, configPath)
 
-    const dataPath = path.join(dataDir, dataFilename)
-    const grapher = initGrapherForSvgExport(config, "")
+    const dataPath = path.join(dataDir, DATA_FILENAME)
+    const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.dimensions.map((d) => d.variableId)
 
     const promise2 = getVariableData(variableIds).then((vardata) =>
@@ -240,11 +240,10 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
-    const grapher = initGrapherForSvgExport(config, "")
+    const grapher = initGrapherForSvgExport(config)
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
         config.slug!,
-        "",
         config.version,
         width,
         height
@@ -318,10 +317,10 @@ export async function loadGrapherConfigAndData(
     if (!fs.existsSync(inputDir))
         throw `Input directory does not exist ${inputDir}`
 
-    const configPath = path.join(inputDir, configFilename)
+    const configPath = path.join(inputDir, CONFIG_FILENAME)
     const config = (await readGzippedJsonFile(configPath)) as GrapherInterface
 
-    const dataPath = path.join(inputDir, dataFilename)
+    const dataPath = path.join(inputDir, DATA_FILENAME)
     const data = await readGzippedJsonFile(dataPath)
 
     return Promise.resolve([config, data])
@@ -373,7 +372,7 @@ export async function writeResultsCsvFile(
 ): Promise<void> {
     const resultsPath = path.join(outDir, resultsFilename)
     const csvFileStream = fs.createWriteStream(resultsPath)
-    csvFileStream.write(svgCsvHeader + "\n")
+    csvFileStream.write(SVG_CSV_HEADER + "\n")
     for (const row of svgRecords) {
         const line = `${row.chartId},${row.slug},${row.chartType},${row.md5},${row.svgFilename}`
         csvFileStream.write(line + "\n")
@@ -381,4 +380,53 @@ export async function writeResultsCsvFile(
     csvFileStream.end()
     await finished(csvFileStream)
     csvFileStream.close()
+}
+
+export async function verifySvgs(
+    rawGrapherIds: string,
+    inDir: any,
+    reverseDirectories: any,
+    numPartitions: any,
+    partition: any,
+    referenceDir: any,
+    verbose: any,
+    outDir: any
+): Promise<{ differences: number[]; directoriesToProcess: string[] }> {
+    const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
+    const directoriesToProcess = await utils.decideDirectoriesToVerify(
+        grapherIds,
+        inDir,
+        reverseDirectories,
+        numPartitions,
+        partition
+    )
+    const csvContentMap = await utils.getReferenceCsvContentMap(referenceDir)
+
+    const differences: number[] = []
+    for (const dir of directoriesToProcess) {
+        const [svg, svgRecord] = await utils.renderSvg(dir)
+
+        const referenceEntry = csvContentMap.get(svgRecord.chartId)
+        if (referenceEntry === undefined)
+            throw `Reference entry not found for ${svgRecord.chartId}`
+
+        const validationResult = await utils.verifySvg(
+            svg,
+            svgRecord,
+            referenceEntry,
+            referenceDir,
+            verbose
+        )
+
+        // verifySvg returns a Result type - if it is success we don't care any further
+        // but if there was an error then we write the svg and a message to stderr
+        switch (validationResult.kind) {
+            case "error":
+                utils.logDifferencesToConsole(svgRecord, validationResult)
+                const outputPath = path.join(outDir, svgRecord.svgFilename)
+                await fs.writeFile(outputPath, svg)
+                differences.push(svgRecord.chartId)
+        }
+    }
+    return { differences, directoriesToProcess }
 }

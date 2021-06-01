@@ -27,42 +27,22 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         throw `Reference directory does not exist ${inDir}`
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-    const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
-    const directoriesToProcess = await utils.decideDirectoriesToVerify(
-        grapherIds,
+    const {
+        differences,
+        directoriesToProcess,
+    }: {
+        differences: number[]
+        directoriesToProcess: string[]
+    } = await utils.verifySvgs(
+        rawGrapherIds,
         inDir,
         reverseDirectories,
         numPartitions,
-        partition
+        partition,
+        referenceDir,
+        verbose,
+        outDir
     )
-    const csvContentMap = await utils.getReferenceCsvContentMap(referenceDir)
-
-    const differences: number[] = []
-    for (const dir of directoriesToProcess) {
-        const [svg, svgRecord] = await utils.renderSvg(dir)
-
-        const referenceEntry = csvContentMap.get(svgRecord.chartId)
-        if (referenceEntry === undefined)
-            throw `Reference entry not found for ${svgRecord.chartId}`
-
-        const validationResult = await utils.verifySvg(
-            svg,
-            svgRecord,
-            referenceEntry,
-            referenceDir,
-            verbose
-        )
-
-        // verifySvg returns a Result type - if it is success we don't care any further
-        // but if there was an error then we write the svg and a message to stderr
-        switch (validationResult.kind) {
-            case "error":
-                utils.logDifferencesToConsole(svgRecord, validationResult)
-                const outputPath = path.join(outDir, svgRecord.svgFilename)
-                await fs.writeFile(outputPath, svg)
-                differences.push(svgRecord.chartId)
-        }
-    }
 
     if (differences.length === 0) {
         utils.logIfVerbose(
@@ -88,7 +68,7 @@ if (parsedArgs["h"]) {
     console.log(`verify-graphs.js - utility to check if grapher svg renderings have changed vs the reference export
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR)
+    verify-graphs.js (-i DIR) (-o DIR)
 
 Options:
     -i DIR         Input directory containing the data. [default: grapherData]

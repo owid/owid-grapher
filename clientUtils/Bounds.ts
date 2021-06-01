@@ -92,7 +92,7 @@ export class Bounds {
         const isBold = fontWeight >= 600
 
         let bounds = Bounds.empty()
-        if (str !== "") {
+        if (str) {
             // pixelWidth uses a precomputed character width table to quickly give a
             // rough estimate of string width based on characters in a string - it is probably not
             // worth caching further
