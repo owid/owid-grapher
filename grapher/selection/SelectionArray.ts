@@ -42,7 +42,6 @@ export class SelectionArray {
             (e) => e.entityName,
             (e) => e.entityId
         )
-        //return this.mapBy(OwidTableSlugs.entityName, OwidTableSlugs.entityId)
     }
 
     @computed get entityCodeToNameMap(): Map<string | undefined, string> {

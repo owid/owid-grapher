@@ -924,11 +924,11 @@ export const logMe = (
     return descriptor
 }
 
-export const splitArrayIntoGroupsOfN = (
-    arr: any[],
+export const splitArrayIntoGroupsOfN = <T>(
+    arr: T[],
     maxPerGroup: number
-): any[] => {
-    const result: any[] = []
+): T[][] => {
+    const result: T[][] = []
     for (let index = 0; index < arr.length; index += maxPerGroup)
         result.push(arr.slice(index, index + maxPerGroup))
     return result
