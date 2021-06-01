@@ -1,5 +1,5 @@
 #! /usr/bin/env jest
-import { Grapher } from "../core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     ChartTypeName,
     DimensionProperty,
@@ -30,6 +30,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { SelectionArray } from "../selection/SelectionArray"
+import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 const TestGrapherConfig = (): {
     table: OwidTable
@@ -1016,4 +1017,79 @@ it("handles tolerance when there are gaps in ScatterPlot data", () => {
     expect(
         grapher.transformedTable.filterByEntityNames(["usa"]).get("x").values
     ).toEqual([2])
+})
+
+describe("handles mixed time units (with legacy transform)", () => {
+    const uk = 1
+    const ireland = 2
+    const targetYear = 2001
+    const owidDataset: LegacyVariablesAndEntityKey = {
+        variables: {
+            "1": {
+                id: 1,
+                name:
+                    "Total confirmed deaths due to COVID-19 per million people",
+                display: {
+                    zeroDay: "2020-01-21",
+                    yearIsDay: true,
+                    tolerance: 1,
+                },
+                years: [100, 101],
+                entities: [uk, ireland],
+                values: [1, 1],
+            },
+            "2": {
+                id: 2,
+                name: "GDP per capita, PPP (constant 2011 international $)",
+                display: {
+                    tolerance: 1,
+                },
+                years: [2000, 2001],
+                entities: [uk, ireland],
+                values: [1, 1],
+            },
+        },
+        entityKey: {
+            [uk]: {
+                id: uk,
+                name: "United Kingdom",
+                code: "GBR",
+            },
+            [ireland]: {
+                id: ireland,
+                name: "Ireland",
+                code: "IRL",
+            },
+        },
+    }
+    const grapher = new Grapher({
+        owidDataset,
+        dimensions: [
+            {
+                property: DimensionProperty.y,
+                variableId: 1,
+            },
+            {
+                property: DimensionProperty.x,
+                targetYear: targetYear,
+                variableId: 2,
+            },
+        ],
+        type: ChartTypeName.ScatterPlot,
+        ySlugs: "1",
+        xSlug: `2-${targetYear}`,
+        minTime: 101,
+        maxTime: 101,
+    })
+
+    it("has the correct column tolerances", () => {
+        expect(grapher.transformedTable.get("1").tolerance).toEqual(1)
+        expect(
+            grapher.transformedTable.get(`2-${targetYear}`).tolerance
+        ).toEqual(1)
+    })
+
+    it("has all series", () => {
+        expect(grapher.chartInstance.series.length).toEqual(2)
+    })
 })
