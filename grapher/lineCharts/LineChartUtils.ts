@@ -12,11 +12,7 @@ export const columnToLineChartSeriesArray = (
     return entityNames.map((entityName) => {
         let seriesName
         if (seriesStrategy === SeriesStrategy.entity) {
-            if (col.isProjection && col.displayName) {
-                seriesName = `${entityName} - ${col.displayName}`
-            } else {
-                seriesName = entityName
-            }
+            seriesName = entityName
         } else {
             if (canSelectMultipleEntities) {
                 seriesName = `${entityName} - ${col.displayName}`
