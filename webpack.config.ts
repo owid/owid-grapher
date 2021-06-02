@@ -78,7 +78,7 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                 },
             ],
         },
-        devtool: "source-map",
+        devtool: isProduction ? undefined : "source-map",
         plugins: [
             // This plugin extracts css files required in the entry points
             // into a separate CSS bundle for download
