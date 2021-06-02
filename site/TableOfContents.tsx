@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { useTriggerWhenClickOutside } from "./hooks"
 import { wrapInDiv } from "../clientUtils/Util"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
@@ -164,6 +163,7 @@ export const TableOfContents = ({
                                     setActiveHeading("")
                                 }}
                                 href="#"
+                                data-track-note="toc-header"
                             >
                                 {pageTitle}
                             </a>
@@ -189,6 +189,7 @@ export const TableOfContents = ({
                                     <a
                                         onClick={toggle}
                                         href={`#${heading.slug}`}
+                                        data-track-note="toc-link"
                                     >
                                         {heading.text}
                                     </a>
