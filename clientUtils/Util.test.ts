@@ -22,6 +22,7 @@ import {
     splitArrayIntoGroupsOfN,
     getClosestTimePairs,
     differenceObj,
+    numberMagnitude,
 } from "./Util"
 import { SortOrder } from "./owidTypes"
 
@@ -309,6 +310,16 @@ describe(groupMap, () => {
         expect(group.get(1)).toEqual([1, 1, 1])
         expect(group.get("a")).toEqual(["a"])
     })
+})
+
+describe(numberMagnitude, () => {
+    it("0 has magnitude 0", () => expect(numberMagnitude(0)).toEqual(0))
+    it("1 has magnitude 1", () => expect(numberMagnitude(1)).toEqual(1))
+    it("1.1 has magnitude 1", () => expect(numberMagnitude(1.1)).toEqual(1))
+    it("-10 has magnitude 2", () => expect(numberMagnitude(-10)).toEqual(2))
+    it("11 has magnitude 2", () => expect(numberMagnitude(11)).toEqual(2))
+    it("0.02 has magnitude -1", () => expect(numberMagnitude(0.02)).toEqual(-1))
+    it("0.5 has magnitude 0", () => expect(numberMagnitude(0.5)).toEqual(0))
 })
 
 describe(roundSigFig, () => {

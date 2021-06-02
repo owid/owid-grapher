@@ -7,6 +7,7 @@ import {
     flatten,
     excludeUndefined,
     sortBy,
+    numberMagnitude,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -397,9 +398,9 @@ export class StackedDiscreteBarChart
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
         // is big enough already.
-        const dp = Math.ceil(-Math.log10(point.value) + 1)
+        const magnitude = numberMagnitude(point.value)
         const barLabel = formatColumn.formatValueShort(point.value, {
-            numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
+            numDecimalPlaces: Math.max(0, -magnitude + 2),
         })
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: 0.7 * this.baseFontSize,

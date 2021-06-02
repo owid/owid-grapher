@@ -225,10 +225,16 @@ export const formatYear = (year: number): string => {
         : year.toString()
 }
 
+export const numberMagnitude = (num: number): number => {
+    if (num === 0) return 0
+    const magnitude = Math.floor(Math.log10(Math.abs(num))) + 1
+    return Number.isFinite(magnitude) ? magnitude : 0
+}
+
 export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     if (num === 0) return 0
-    const magnitude = Math.floor(Math.log10(Math.abs(num)))
-    return round(num, -magnitude + sigfigs - 1)
+    const magnitude = numberMagnitude(num)
+    return round(num, -magnitude + sigfigs)
 }
 
 // todo: remove
