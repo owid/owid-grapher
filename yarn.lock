@@ -5032,13 +5032,12 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.8.0.tgz#f0e003d9ca9e7f59c7a508945d7b2ef9a04a542f"
   integrity sha512-ReZxvNHIOv88FlT7rxcXIIC0fPt4KZqZbOlivyWtXLt8ESx84zd3kMC6iK5jVeS2qt+g7ftS7ye4fi06X5rtRQ==
 
-axios@^0.19.0:
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
-  integrity sha512-1uvKqKQta3KBxIz14F2v06AEHZ/dIoeKfbTRkK1E5oqjDnuEerLmYTgJB5AiQZHJcljpg1TuRzdjDR06qNk0DQ==
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   dependencies:
-    follow-redirects "1.5.10"
-    is-buffer "^2.0.2"
+    follow-redirects "^1.10.0"
 
 babel-core@^7.0.0-bridge.0:
   version "7.0.0-bridge.0"
@@ -5649,12 +5648,12 @@ builtins@^1.0.3:
   resolved "https://registry.yarnpkg.com/builtins/-/builtins-1.0.3.tgz#cb94faeb61c8696451db36534e1422f94f0aee88"
   integrity sha1-y5T662HIaWRR2zZTThQi+U8K7og=
 
-bundlewatch@^0.2.7:
-  version "0.2.7"
-  resolved "https://registry.yarnpkg.com/bundlewatch/-/bundlewatch-0.2.7.tgz#978b63c0dafbbef0e3c4a4a26e471fcda6dd5791"
-  integrity sha512-tTf6TZHowf2kqHMv9nk7ORDdyU8d4OCF5qjkm8jeZfY9hsOdoyvDq3xtPSw+I8eQJJhkdUvcIMp4Cd3GkUAsrA==
+bundlewatch@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/bundlewatch/-/bundlewatch-0.3.2.tgz#b07c57347a790f436f8b59c12418618f5e938432"
+  integrity sha512-gqekMv+ph1vKjM2B6P7mk8HxNZ3ZLOU94Vo3eFqPgQ0COqDsYcrPwsmpczAwsPxOMY7ZpKCGUez7shbdttCDew==
   dependencies:
-    axios "^0.19.0"
+    axios "^0.21.1"
     bytes "^3.0.0"
     chalk "^4.0.0"
     ci-env "^1.14.0"
@@ -7473,13 +7472,6 @@ debug@4.1.1:
   integrity sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
   dependencies:
     ms "^2.1.1"
-
-debug@=3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
-  integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
-  dependencies:
-    ms "2.0.0"
 
 debug@^3.0.0, debug@^3.1.0, debug@^3.1.1, debug@^3.2.5, debug@^3.2.6:
   version "3.2.6"
@@ -9400,19 +9392,10 @@ folder-walker@^3.2.0:
   dependencies:
     from2 "^2.1.0"
 
-follow-redirects@1.5.10:
-  version "1.5.10"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.10.tgz#7b7a9f9aea2fdff36786a94ff643ed07f4ff5e2a"
-  integrity sha512-0V5l4Cizzvqt5D44aTXbFZz+FtyXV1vrDN6qrelxtfYQKW0KO0W2T/hkE8xvGa/540LkZlkaUjO4ailYTFtHVQ==
-  dependencies:
-    debug "=3.1.0"
-
-follow-redirects@^1.0.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.7.0.tgz#489ebc198dc0e7f64167bd23b03c4c19b5784c76"
-  integrity sha512-m/pZQy4Gj287eNy94nivy5wchN3Kp+Q5WgUPNy5lJSZ3sgkVKSYV/ZChMAQVIgx1SqfZ2zBZtPA2YlXIWxxJOQ==
-  dependencies:
-    debug "^3.2.6"
+follow-redirects@^1.0.0, follow-redirects@^1.10.0:
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.1.tgz#d9114ded0a1cfdd334e164e6662ad02bfd91ff43"
+  integrity sha512-HWqDgT7ZEkqRzBvc2s64vSZ/hfOceEol3ac/7tKwzuvEyWx3/4UegXh5oBOIotkGsObyk3xznnSRVADBgWSQVg==
 
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
@@ -11060,7 +11043,7 @@ is-buffer@^1.1.5, is-buffer@~1.1.1:
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
   integrity sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==
 
-is-buffer@^2.0.0, is-buffer@^2.0.2:
+is-buffer@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-2.0.4.tgz#3e572f23c8411a5cfd9557c849e3665e0b290623"
   integrity sha512-Kq1rokWXOPXWuaMAqZiJW4XxsmD9zGx9q4aePabbn3qCRGedtH7Cm+zV8WETitMfu1wdh+Rvd6w5egwSngUX2A==
