@@ -1,12 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import {
-    groupBy,
-    isString,
-    sortBy,
-    defaultTo,
-    first,
-} from "../clientUtils/Util"
+import { groupBy, isString, sortBy, first } from "../clientUtils/Util"
 import {
     computed,
     action,
@@ -62,8 +56,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get currentNamespace() {
-        return defaultTo(
-            this.chosenNamespace,
+        return (
+            this.chosenNamespace ??
             this.database.namespaces.find((n) => n.name === "owid")!
         )
     }

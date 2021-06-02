@@ -185,7 +185,7 @@ export function formatDay(
     dayAsYear: number,
     options?: { format?: string }
 ): string {
-    const format = defaultTo(options?.format, "MMM D, YYYY")
+    const format = options?.format ?? "MMM D, YYYY"
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
@@ -214,12 +214,6 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     const magnitude = numberMagnitude(num)
     return round(num, -magnitude + sigfigs)
 }
-
-// todo: remove
-export const defaultTo = <T, K>(
-    value: T | undefined | null,
-    defaultValue: K
-): T | K => value ?? defaultValue
 
 export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
 
