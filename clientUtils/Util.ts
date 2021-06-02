@@ -1,5 +1,6 @@
 // We're importing every item on its own to enable webpack tree shaking
 import capitalize from "lodash/capitalize"
+import chunk from "lodash/chunk"
 import clone from "lodash/clone"
 import cloneDeep from "lodash/cloneDeep"
 import compact from "lodash/compact"
@@ -49,6 +50,7 @@ import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
 export {
     capitalize,
+    chunk,
     clone,
     cloneDeep,
     compact,
@@ -897,16 +899,6 @@ export const logMe = (
         return originalMethod.apply(this, args)
     }
     return descriptor
-}
-
-export const splitArrayIntoGroupsOfN = <T>(
-    arr: T[],
-    maxPerGroup: number
-): T[][] => {
-    const result: T[][] = []
-    for (let index = 0; index < arr.length; index += maxPerGroup)
-        result.push(arr.slice(index, index + maxPerGroup))
-    return result
 }
 
 export function getClosestTimePairs(
