@@ -8,7 +8,7 @@ import {
     ExplorerChoiceOption,
     ExplorerChoice,
 } from "./ExplorerConstants"
-import { splitArrayIntoGroupsOfN } from "../clientUtils/Util"
+import { chunk } from "../clientUtils/Util"
 import { GridBoolean } from "../gridLang/GridLangConstants"
 import classNames from "classnames"
 
@@ -178,10 +178,7 @@ export class ExplorerControlPanel extends React.Component<{
         const { title, type } = choice
         const { options } = this
         if (type === ExplorerControlType.Radio && options.length > 4)
-            return splitArrayIntoGroupsOfN(
-                options,
-                3
-            ).map((optionsGroup, column) =>
+            return chunk(options, 3).map((optionsGroup, column) =>
                 this.renderColumn(`${title}${column}`, column > 0, optionsGroup)
             )
         return this.renderColumn(title, type === ExplorerControlType.Checkbox)

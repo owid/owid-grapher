@@ -1,20 +1,16 @@
 // We're importing every item on its own to enable webpack tree shaking
-import assign from "lodash/assign"
 import capitalize from "lodash/capitalize"
+import chunk from "lodash/chunk"
 import clone from "lodash/clone"
 import cloneDeep from "lodash/cloneDeep"
 import compact from "lodash/compact"
 import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
-import differenceBy from "lodash/differenceBy"
-import dropWhile from "lodash/dropWhile"
 import extend from "lodash/extend"
 import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
-import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
-import has from "lodash/has"
 import identity from "lodash/identity"
 import invert from "lodash/invert"
 import isEmpty from "lodash/isEmpty"
@@ -23,8 +19,6 @@ import isNumber from "lodash/isNumber"
 import isObject from "lodash/isObject"
 import isString from "lodash/isString"
 import keyBy from "lodash/keyBy"
-import map from "lodash/map"
-import mapKeys from "lodash/mapKeys"
 import max from "lodash/max"
 import maxBy from "lodash/maxBy"
 import memoize from "lodash/memoize"
@@ -42,14 +36,11 @@ import round from "lodash/round"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
 import sortBy from "lodash/sortBy"
-import sortedIndexBy from "lodash/sortedIndexBy"
-import sortedUniq from "lodash/sortedUniq"
 import startCase from "lodash/startCase"
 import sum from "lodash/sum"
 import sumBy from "lodash/sumBy"
 import takeWhile from "lodash/takeWhile"
 import throttle from "lodash/throttle"
-import toArray from "lodash/toArray"
 import toString from "lodash/toString"
 import union from "lodash/union"
 import uniq from "lodash/uniq"
@@ -57,24 +48,19 @@ import uniqBy from "lodash/uniqBy"
 import uniqWith from "lodash/uniqWith"
 import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
-import xor from "lodash/xor"
 export {
-    assign,
     capitalize,
+    chunk,
     clone,
     cloneDeep,
     compact,
     countBy,
     debounce,
     difference,
-    differenceBy,
-    dropWhile,
     extend,
     findIndex,
     flatten,
-    fromPairs,
     groupBy,
-    has,
     identity,
     invert,
     isEmpty,
@@ -82,8 +68,6 @@ export {
     isNumber,
     isString,
     keyBy,
-    map,
-    mapKeys,
     max,
     maxBy,
     memoize,
@@ -100,14 +84,11 @@ export {
     sample,
     sampleSize,
     sortBy,
-    sortedIndexBy,
-    sortedUniq,
     startCase,
     sum,
     sumBy,
     takeWhile,
     throttle,
-    toArray,
     toString,
     union,
     uniq,
@@ -115,7 +96,6 @@ export {
     uniqWith,
     upperFirst,
     without,
-    xor,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
@@ -207,7 +187,7 @@ export function formatDay(
     dayAsYear: number,
     options?: { format?: string }
 ): string {
-    const format = defaultTo(options?.format, "MMM D, YYYY")
+    const format = options?.format ?? "MMM D, YYYY"
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
@@ -236,12 +216,6 @@ export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     const magnitude = numberMagnitude(num)
     return round(num, -magnitude + sigfigs)
 }
-
-// todo: remove
-export const defaultTo = <T, K>(
-    value: T | undefined | null,
-    defaultValue: K
-): T | K => value ?? defaultValue
 
 export const first = <T>(arr: readonly T[]): T | undefined => arr[0]
 
@@ -480,9 +454,6 @@ export const urlToSlug = (url: string): string =>
             .filter((x) => x)
     ) as string
 
-export const sign = (num: number): 0 | 1 | -1 =>
-    num > 0 ? 1 : num < 0 ? -1 : 0
-
 // Removes all undefineds from an object.
 export const trimObject = <Obj>(
     obj: Obj,
@@ -556,7 +527,7 @@ export const sampleFrom = <T>(
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-const shuffleArray = (array: any[], seed = Date.now()): any[] => {
+const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     const rand = getRandomNumberGenerator(0, 100, seed)
     const clonedArr = array.slice()
     for (let index = clonedArr.length - 1; index > 0; index--) {
@@ -928,16 +899,6 @@ export const logMe = (
         return originalMethod.apply(this, args)
     }
     return descriptor
-}
-
-export const splitArrayIntoGroupsOfN = <T>(
-    arr: T[],
-    maxPerGroup: number
-): T[][] => {
-    const result: T[][] = []
-    for (let index = 0; index < arr.length; index += maxPerGroup)
-        result.push(arr.slice(index, index + maxPerGroup))
-    return result
 }
 
 export function getClosestTimePairs(
