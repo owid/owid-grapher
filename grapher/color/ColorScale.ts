@@ -8,7 +8,6 @@ import {
 import {
     isEmpty,
     reverse,
-    toArray,
     first,
     last,
     roundSigFig,
@@ -156,7 +155,7 @@ export class ColorScale {
 
         const { numBins, customNumericValues } = this
 
-        let values = toArray(customNumericValues)
+        let values = [...customNumericValues]
         while (values.length < numBins) values.push(0)
         while (values.length > numBins) values = values.slice(0, numBins)
         return values

@@ -1,5 +1,4 @@
 // We're importing every item on its own to enable webpack tree shaking
-import assign from "lodash/assign"
 import capitalize from "lodash/capitalize"
 import clone from "lodash/clone"
 import cloneDeep from "lodash/cloneDeep"
@@ -7,14 +6,10 @@ import compact from "lodash/compact"
 import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
-import differenceBy from "lodash/differenceBy"
-import dropWhile from "lodash/dropWhile"
 import extend from "lodash/extend"
 import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
-import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
-import has from "lodash/has"
 import identity from "lodash/identity"
 import invert from "lodash/invert"
 import isEmpty from "lodash/isEmpty"
@@ -23,8 +18,6 @@ import isNumber from "lodash/isNumber"
 import isObject from "lodash/isObject"
 import isString from "lodash/isString"
 import keyBy from "lodash/keyBy"
-import map from "lodash/map"
-import mapKeys from "lodash/mapKeys"
 import max from "lodash/max"
 import maxBy from "lodash/maxBy"
 import memoize from "lodash/memoize"
@@ -42,14 +35,11 @@ import round from "lodash/round"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
 import sortBy from "lodash/sortBy"
-import sortedIndexBy from "lodash/sortedIndexBy"
-import sortedUniq from "lodash/sortedUniq"
 import startCase from "lodash/startCase"
 import sum from "lodash/sum"
 import sumBy from "lodash/sumBy"
 import takeWhile from "lodash/takeWhile"
 import throttle from "lodash/throttle"
-import toArray from "lodash/toArray"
 import toString from "lodash/toString"
 import union from "lodash/union"
 import uniq from "lodash/uniq"
@@ -57,9 +47,7 @@ import uniqBy from "lodash/uniqBy"
 import uniqWith from "lodash/uniqWith"
 import upperFirst from "lodash/upperFirst"
 import without from "lodash/without"
-import xor from "lodash/xor"
 export {
-    assign,
     capitalize,
     clone,
     cloneDeep,
@@ -67,14 +55,10 @@ export {
     countBy,
     debounce,
     difference,
-    differenceBy,
-    dropWhile,
     extend,
     findIndex,
     flatten,
-    fromPairs,
     groupBy,
-    has,
     identity,
     invert,
     isEmpty,
@@ -82,8 +66,6 @@ export {
     isNumber,
     isString,
     keyBy,
-    map,
-    mapKeys,
     max,
     maxBy,
     memoize,
@@ -100,14 +82,11 @@ export {
     sample,
     sampleSize,
     sortBy,
-    sortedIndexBy,
-    sortedUniq,
     startCase,
     sum,
     sumBy,
     takeWhile,
     throttle,
-    toArray,
     toString,
     union,
     uniq,
@@ -115,7 +94,6 @@ export {
     uniqWith,
     upperFirst,
     without,
-    xor,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
