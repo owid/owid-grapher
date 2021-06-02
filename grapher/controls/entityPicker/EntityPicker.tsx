@@ -65,21 +65,18 @@ export class EntityPicker extends React.Component<{
     }
 
     @observable private searchInput?: string
-    @observable private searchInputRef: React.RefObject<
-        HTMLInputElement
-    > = React.createRef()
+    @observable
+    private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef()
 
     @observable private focusIndex?: number
-    @observable private focusRef: React.RefObject<
-        HTMLLabelElement
-    > = React.createRef()
+    @observable
+    private focusRef: React.RefObject<HTMLLabelElement> = React.createRef()
     @observable private scrollFocusedIntoViewOnUpdate = false
 
     @observable private blockOptionHover = false
 
-    @observable private scrollContainerRef: React.RefObject<
-        HTMLDivElement
-    > = React.createRef()
+    @observable
+    private scrollContainerRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable private isOpen = false
 

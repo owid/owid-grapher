@@ -16,9 +16,7 @@ export interface CovidTableHeaderCellProps {
     onSort?: (key: CovidSortKey) => void
 }
 
-export class CovidTableHeaderCell extends React.Component<
-    CovidTableHeaderCellProps
-> {
+export class CovidTableHeaderCell extends React.Component<CovidTableHeaderCellProps> {
     @bind onClick() {
         if (this.props.sortKey && this.props.onSort) {
             this.props.onSort(this.props.sortKey)

@@ -367,9 +367,7 @@ interface NumericSelectFieldProps {
     helpText?: string
 }
 
-export class NumericSelectField extends React.Component<
-    NumericSelectFieldProps
-> {
+export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
     render() {
         const props = {
             ...this.props,

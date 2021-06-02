@@ -43,9 +43,7 @@ import { ScaleLinear } from "d3"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
-export class ScatterPointsWithLabels extends React.Component<
-    ScatterPointsWithLabelsProps
-> {
+export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     @computed private get seriesArray(): ScatterSeries[] {
         return this.props.seriesArray

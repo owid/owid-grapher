@@ -438,14 +438,12 @@ export class Explorer
         return this.explorerProgram.downloadDataLink
     }
 
-    @observable private grapherContainerRef: React.RefObject<
-        HTMLDivElement
-    > = React.createRef()
+    @observable
+    private grapherContainerRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable.ref private grapherBounds = DEFAULT_BOUNDS
-    @observable.ref private grapherRef: React.RefObject<
-        Grapher
-    > = React.createRef()
+    @observable.ref
+    private grapherRef: React.RefObject<Grapher> = React.createRef()
 
     private renderControlBar() {
         return (

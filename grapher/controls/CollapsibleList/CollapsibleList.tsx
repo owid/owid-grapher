@@ -14,9 +14,7 @@ interface ListChild {
 /** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
 @observer
 export class CollapsibleList extends React.Component {
-    private outerContainerRef: React.RefObject<
-        HTMLDivElement
-    > = React.createRef()
+    private outerContainerRef: React.RefObject<HTMLDivElement> = React.createRef()
     private moreButtonRef: React.RefObject<HTMLLIElement> = React.createRef()
     private outerContainerWidth: number = 0
     private moreButtonWidth: number = 0

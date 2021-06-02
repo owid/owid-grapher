@@ -176,9 +176,7 @@ const VisionDeficiencyOption = (props: OptionProps<VisionDeficiencyEntity>) => (
 )
 
 @observer
-export class VisionDeficiencyDropdown extends React.Component<
-    VisionDeficiencyDropdownProps
-> {
+export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDropdownProps> {
     noDeficiencyOption = {
         label: "No deficiencies",
         value: "none",

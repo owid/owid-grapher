@@ -25,9 +25,7 @@ interface ColorSchemeDropdownProps {
 }
 
 @observer
-export class ColorSchemeDropdown extends React.Component<
-    ColorSchemeDropdownProps
-> {
+export class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProps> {
     static defaultProps = {
         additionalOptions: [],
         gradientColorCount: 6,

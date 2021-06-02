@@ -74,9 +74,7 @@ type MultiColorPolylineProps = Omit<
 }
 
 @observer
-export class MultiColorPolyline extends React.Component<
-    MultiColorPolylineProps
-> {
+export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
     @computed get segments(): Segment[] {
         return getSegmentsFromPoints(this.props.points)
     }
