@@ -21,17 +21,17 @@ import _ from "lodash"
 
 export const finished = util.promisify(stream.finished) // (A)
 
-interface ResultOk<T> {
+export interface ResultOk<T> {
     kind: "ok"
     value: T
 }
 
-interface ResultError<E> {
+export interface ResultError<E> {
     kind: "error"
     error: E
 }
 
-type Result<T, E> = ResultOk<T> | ResultError<E>
+export type Result<T, E> = ResultOk<T> | ResultError<E>
 
 const resultOk = <T, E>(value: T): Result<T, E> => ({
     kind: "ok",
@@ -52,7 +52,8 @@ export type SvgRecord = {
     svgFilename: string
 }
 
-interface SvgDifference {
+export interface SvgDifference {
+    chartId: number
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
@@ -103,6 +104,7 @@ export async function verifySvg(
     )
     logIfVerbose(verbose, `${newSvgRecord.chartId} had differences`)
     return resultError({
+        chartId: newSvgRecord.chartId,
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substr(
             firstDiffIndex - 20,
@@ -115,8 +117,8 @@ export async function decideDirectoriesToVerify(
     grapherIds: number[],
     inDir: string,
     reverseDirectories: boolean,
-    numPartitions: number,
-    partition: number
+    numPartitions: number = 1,
+    partition: number = 1
 ): Promise<string[]> {
     let directories: string[] = []
     if (grapherIds.length === 0) {
@@ -301,6 +303,10 @@ export async function loadReferenceSvg(
     referenceDir: string,
     referenceSvgRecord: SvgRecord
 ): Promise<string> {
+    if (!referenceDir) throw "RefereneDir was empty in loadReferenceSvg"
+    if (!referenceSvgRecord) throw "reference svg record was not defined"
+    if (!referenceSvgRecord.svgFilename)
+        throw "reference svg record.svgfilename was not defined"
     const referenceFilename = path.join(
         referenceDir,
         referenceSvgRecord.svgFilename
@@ -382,51 +388,60 @@ export async function writeResultsCsvFile(
     csvFileStream.close()
 }
 
-export async function verifySvgs(
+export interface RenderJobDescription {
+    dir: string
+    referenceEntry: SvgRecord
+    referenceDir: string
+    outDir: string
+    verbose: boolean
+}
+
+export async function renderAndVerifySvg({
+    dir,
+    referenceEntry,
+    referenceDir,
+    outDir,
+    verbose,
+}: RenderJobDescription): Promise<Result<null, SvgDifference>> {
+    if (!dir) throw "Dir was not defined"
+    if (!referenceEntry) throw "ReferenceEntry was not defined"
+    if (!referenceDir) throw "ReferenceDir was not defined"
+    if (!outDir) throw "outdir was not defined"
+    const [svg, svgRecord] = await renderSvg(dir)
+
+    const validationResult = await verifySvg(
+        svg,
+        svgRecord,
+        referenceEntry,
+        referenceDir,
+        verbose
+    )
+    // verifySvg returns a Result type - if it is success we don't care any further
+    // but if there was an error then we write the svg and a message to stderr
+    switch (validationResult.kind) {
+        case "error":
+            logDifferencesToConsole(svgRecord, validationResult)
+            const outputPath = path.join(outDir, svgRecord.svgFilename)
+            await fs.writeFile(outputPath, svg)
+    }
+    return Promise.resolve(validationResult)
+}
+
+export async function prepareVerifyRun(
     rawGrapherIds: string,
-    inDir: any,
-    reverseDirectories: any,
-    numPartitions: any,
-    partition: any,
-    referenceDir: any,
-    verbose: any,
-    outDir: any
-): Promise<{ differences: number[]; directoriesToProcess: string[] }> {
-    const grapherIds: number[] = utils.getGrapherIdListFromString(rawGrapherIds)
-    const directoriesToProcess = await utils.decideDirectoriesToVerify(
+    inDir: string,
+    reverseDirectories: boolean,
+    referenceDir: string
+): Promise<{
+    directoriesToProcess: string[]
+    csvContentMap: Map<number, SvgRecord>
+}> {
+    const grapherIds: number[] = getGrapherIdListFromString(rawGrapherIds)
+    const directoriesToProcess = await decideDirectoriesToVerify(
         grapherIds,
         inDir,
-        reverseDirectories,
-        numPartitions,
-        partition
+        reverseDirectories
     )
-    const csvContentMap = await utils.getReferenceCsvContentMap(referenceDir)
-
-    const differences: number[] = []
-    for (const dir of directoriesToProcess) {
-        const [svg, svgRecord] = await utils.renderSvg(dir)
-
-        const referenceEntry = csvContentMap.get(svgRecord.chartId)
-        if (referenceEntry === undefined)
-            throw `Reference entry not found for ${svgRecord.chartId}`
-
-        const validationResult = await utils.verifySvg(
-            svg,
-            svgRecord,
-            referenceEntry,
-            referenceDir,
-            verbose
-        )
-
-        // verifySvg returns a Result type - if it is success we don't care any further
-        // but if there was an error then we write the svg and a message to stderr
-        switch (validationResult.kind) {
-            case "error":
-                utils.logDifferencesToConsole(svgRecord, validationResult)
-                const outputPath = path.join(outDir, svgRecord.svgFilename)
-                await fs.writeFile(outputPath, svg)
-                differences.push(svgRecord.chartId)
-        }
-    }
-    return { differences, directoriesToProcess }
+    const csvContentMap = await getReferenceCsvContentMap(referenceDir)
+    return { directoriesToProcess, csvContentMap }
 }

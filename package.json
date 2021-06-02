@@ -153,6 +153,7 @@
         "moment": "^2.24.0",
         "moment-locales-webpack-plugin": "^1.2.0",
         "mousetrap": "^1.6.5",
+        "multiprocessing": "^1.2.0",
         "mysql": "^2.17.1",
         "netlify-cli": "^3.17.1",
         "node-fetch": "^2.6.1",

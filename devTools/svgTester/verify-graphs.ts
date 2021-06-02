@@ -5,7 +5,11 @@ import * as utils from "./utils"
 import * as fs from "fs-extra"
 
 import * as path from "path"
+
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
+const Pool = require("multiprocessing").Pool
+//import { Pool } from "multiprocessing"
+const pool = new Pool()
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     // perpare and check arguments
     const inDir = parsedArgs["i"] ?? "grapherData"
@@ -28,23 +32,35 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
     const {
-        differences,
         directoriesToProcess,
-    }: {
-        differences: number[]
-        directoriesToProcess: string[]
-    } = await utils.verifySvgs(
+        csvContentMap,
+    } = await utils.prepareVerifyRun(
         rawGrapherIds,
         inDir,
         reverseDirectories,
-        numPartitions,
-        partition,
-        referenceDir,
-        verbose,
-        outDir
+        referenceDir
     )
 
-    if (differences.length === 0) {
+    const verifyJobs = directoriesToProcess.map((dir) => ({
+        dir,
+        referenceEntry: csvContentMap.get(parseInt(dir)),
+        referenceDir,
+        outDir,
+        verbose,
+    }))
+
+    const validationResults: utils.Result<
+        null,
+        utils.SvgDifference
+    >[] = await pool.map(verifyJobs, `${__dirname}\\verify-graphs-runner`)
+
+    utils.logIfVerbose(verbose, "Verifications completed")
+
+    const errorResults = validationResults.filter(
+        (result) => result.kind === "error"
+    ) as utils.ResultError<utils.SvgDifference>[]
+
+    if (errorResults.length === 0) {
         utils.logIfVerbose(
             verbose,
             `There were no differences in all ${directoriesToProcess.length} graphs processed`
@@ -52,15 +68,16 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         process.exitCode = 0
     } else {
         console.warn(
-            `${
-                differences.length
-            } graphs had differences: ${differences.join()}`
+            `${errorResults.length} graphs had differences: ${errorResults
+                .map((err) => err.error.chartId)
+                .join()}`
         )
-        for (const id of differences) {
-            console.log("", id) // write to stdout one grapher id per file for easy piping to other processes
+        for (const result of errorResults) {
+            console.log("", result.error.chartId) // write to stdout one grapher id per file for easy piping to other processes
         }
-        process.exitCode = differences.length
+        process.exitCode = errorResults.length
     }
+    process.exit()
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
@@ -74,8 +91,6 @@ Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -r DIR         Input directory containing the results.csv file to check against [default: grapherSvgs]
     -o DIR         Output directory that will contain the svg files that were different [default: differentGrapherSvgs]
-    -n PARTITIONS  Number of partitions - if specified then only 1/PARTITIONS of directories will be processed [default: 1]
-    -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -l             Reverse the order (start from last). Useful to test different generation order.
     -v             Verbose mode

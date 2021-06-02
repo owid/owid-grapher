@@ -5359,7 +5359,7 @@ blob-util@^2.0.2:
   resolved "https://registry.yarnpkg.com/blob-util/-/blob-util-2.0.2.tgz#3b4e3c281111bb7f11128518006cdc60b403a1eb"
   integrity sha512-T7JQa+zsXXEa6/8ZhHcQEW1UFfVM49Ts65uBkFL6fz2QmrElqmbajIDJvuA0tEhRe5eIjpV9ZF+0RfZR9voJFQ==
 
-bluebird@^3.3.5, bluebird@^3.5.5, bluebird@^3.7.0, bluebird@^3.7.2:
+bluebird@^3.3.5, bluebird@^3.4.7, bluebird@^3.5.5, bluebird@^3.7.0, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -13596,6 +13596,13 @@ multiparty@^4.2.1:
     http-errors "~1.7.0"
     safe-buffer "5.1.2"
     uid-safe "2.1.5"
+
+multiprocessing@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/multiprocessing/-/multiprocessing-1.2.0.tgz#1bb2e0cd6b4e407e57aa594b9ea57ec9382628f1"
+  integrity sha512-qQzr+dKWw4o0NP4+990QDUvI+8Gr2fXWLT5AkJ9X9Ng2sgnxiY8Tqtu3V8gwD9z9g3IkHLH9EKtCns89aH7EJg==
+  dependencies:
+    bluebird "^3.4.7"
 
 mute-stream@0.0.7:
   version "0.0.7"
