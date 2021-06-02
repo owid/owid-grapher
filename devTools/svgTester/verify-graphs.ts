@@ -15,22 +15,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const inDir = parsedArgs["i"] ?? "grapherData"
     const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
     const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
-    const numPartitions = parsedArgs["n"] ?? 1
-    const partition = parsedArgs["p"] ?? 1
     const reverseDirectories = parsedArgs["l"] ?? false
     const verbose = parsedArgs["v"] ?? false
     // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
     const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
 
-    if (partition <= 0) throw "Partition must be >= 1"
-    if (partition > numPartitions) throw "Partition must be <= numPartitions"
-    if (numPartitions <= 0) throw "numPartitions must be >= 1"
-    if (numPartitions > 1000) throw "numPartitions must be <= 1000"
     if (!fs.existsSync(inDir)) throw `Input directory does not exist ${inDir}`
     if (!fs.existsSync(referenceDir))
         throw `Reference directory does not exist ${inDir}`
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
+    // Get the directories to process as a list and the content of the csv file with the md5 hashes etc as a map of grapher id -> SvgResult
     const {
         directoriesToProcess,
         csvContentMap,
@@ -49,6 +44,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         verbose,
     }))
 
+    // Parellize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
+    // so this call uses the intermediate verify-graphs-runner script. This call will then in parallel take the descriptions of the verifyJobs,
+    // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
+    // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
+    // or result values.
     const validationResults: utils.Result<
         null,
         utils.SvgDifference
@@ -77,6 +77,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
         process.exitCode = errorResults.length
     }
+    // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
+    // was not required before introducing the multiprocessing library.
     process.exit()
 }
 
