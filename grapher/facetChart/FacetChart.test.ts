@@ -12,7 +12,29 @@ it("can create a new FacetChart", () => {
         selection: table.availableEntityNames,
     }
     const chart = new FacetChart({ manager })
+
+    // default to country facets
     expect(chart.series.length).toEqual(2)
+
+    // switch to column facets
     manager.facetStrategy = FacetStrategy.column
     expect(chart.series.length).toEqual(3)
+})
+
+it("uses the transformed data for display in country mode", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        // simulate the transformation that is done by Grapher on the data
+        transformedTable: table.filterByTimeRange(2002, 2008),
+        facetStrategy: FacetStrategy.country,
+    }
+    const chart = new FacetChart({ manager })
+
+    // we should be using the transformed table
+    chart.series.forEach((s) => {
+        expect(s.manager.table!.minTime).toEqual(2002)
+        expect(s.manager.table!.maxTime).toEqual(2008)
+    })
 })
