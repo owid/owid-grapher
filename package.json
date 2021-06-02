@@ -206,9 +206,9 @@
         "xlsx": "^0.14.3"
     },
     "devDependencies": {
-        "@babel/core": "^7.13.10",
-        "@storybook/addon-essentials": "^6.1.21",
-        "@storybook/react": "^6.1.21",
+        "@babel/core": "^7.14.3",
+        "@storybook/addon-essentials": "^6.2.9",
+        "@storybook/react": "^6.2.9",
         "@types/jest": "^26.0.10",
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^4.18.0",
@@ -223,7 +223,7 @@
         "opener": "^1.5.1",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
-        "storybook": "^6.1.21",
+        "storybook": "^6.2.9",
         "tsc-watch": "^4.2.9",
         "xhr-mock": "^2.5.1"
     },
