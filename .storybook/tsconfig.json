@@ -4,5 +4,6 @@
         "outDir": "../itsJustJavascript/.storybook",
         "rootDir": ".",
         "allowJs": true
-    }
+    },
+    "exclude": ["./build"]
 }
