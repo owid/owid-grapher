@@ -8,8 +8,8 @@ import * as path from "path"
 
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
 const Pool = require("multiprocessing").Pool
-//import { Pool } from "multiprocessing"
 const pool = new Pool()
+
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     // perpare and check arguments
     const inDir = parsedArgs["i"] ?? "grapherData"
@@ -52,34 +52,21 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const validationResults: utils.Result<
         null,
         utils.SvgDifference
-    >[] = await pool.map(verifyJobs, `${__dirname}\\verify-graphs-runner`)
+    >[] = await pool.map(
+        verifyJobs,
+        path.join(__dirname, "verify-graphs-runner")
+    )
 
     utils.logIfVerbose(verbose, "Verifications completed")
 
-    const errorResults = validationResults.filter(
-        (result) => result.kind === "error"
-    ) as utils.ResultError<utils.SvgDifference>[]
-
-    if (errorResults.length === 0) {
-        utils.logIfVerbose(
-            verbose,
-            `There were no differences in all ${directoriesToProcess.length} graphs processed`
-        )
-        process.exitCode = 0
-    } else {
-        console.warn(
-            `${errorResults.length} graphs had differences: ${errorResults
-                .map((err) => err.error.chartId)
-                .join()}`
-        )
-        for (const result of errorResults) {
-            console.log("", result.error.chartId) // write to stdout one grapher id per file for easy piping to other processes
-        }
-        process.exitCode = errorResults.length
-    }
+    const exitCode = utils.displayVerifyResultsAndGetExitCode(
+        validationResults,
+        verbose,
+        directoriesToProcess
+    )
     // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
     // was not required before introducing the multiprocessing library.
-    process.exit()
+    process.exit(exitCode)
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))

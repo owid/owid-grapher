@@ -4,7 +4,6 @@ import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker"
 
 import { closeTypeOrmAndKnexConnections } from "../../db/db"
 
-//import { createWriteStream } from "fs"
 import * as fs from "fs-extra"
 
 import parseArgs from "minimist"

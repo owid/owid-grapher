@@ -6,7 +6,6 @@ import {
     buildSvgOutFilename,
 } from "../../baker/GrapherImageBaker"
 import { createGunzip, createGzip } from "zlib"
-//import { createWriteStream } from "fs"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
 import { LegacyVariablesAndEntityKey } from "../../grapher/core/LegacyVariableCode"
@@ -14,10 +13,14 @@ import { ChartTypeName } from "../../grapher/core/GrapherConstants"
 import md5 from "md5"
 
 import * as util from "util"
-//import pMap from "p-map"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
 import _ from "lodash"
+
+const CONFIG_FILENAME: string = "config.json.gz"
+const RESULTS_FILENAME = "results.csv"
+const DATA_FILENAME = "data.json.gz"
+export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 export const finished = util.promisify(stream.finished) // (A)
 
@@ -37,13 +40,12 @@ const resultOk = <T, E>(value: T): Result<T, E> => ({
     kind: "ok",
     value: value,
 })
+
 const resultError = <T, E>(error: E): Result<T, E> => ({
     kind: "error",
     error: error,
 })
 
-const CONFIG_FILENAME: string = "config.json.gz"
-const DATA_FILENAME = "data.json.gz"
 export type SvgRecord = {
     chartId: number
     slug: string
@@ -59,15 +61,11 @@ export interface SvgDifference {
     newSvgFragment: string
 }
 
-export function logIfVerbose(
-    verbose: boolean,
-    message: string,
-    param?: unknown
-) {
-    if (verbose) console.log(message, param)
+export function logIfVerbose(verbose: boolean, message: string, param?: any) {
+    if (verbose)
+        if (param) console.log(message, param)
+        else console.log(message)
 }
-
-export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 function findFirstDiffIndex(a: string, b: string): number {
     var i = 0
@@ -113,6 +111,7 @@ export async function verifySvg(
         newSvgFragment: preparedNewSvg.substr(firstDiffIndex - 20, 40),
     })
 }
+
 export async function decideDirectoriesToVerify(
     grapherIds: number[],
     inDir: string,
@@ -215,6 +214,7 @@ export async function writeToGzippedFile(
 
     return finished(writeStream)
 }
+
 export async function saveGrapherSchemaAndData(
     config: GrapherInterface,
     outDir: string
@@ -266,13 +266,14 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
 const replaceRegexes = [/-select-[0-9]+-input/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
-function prepareSvgForComparision(svg: string) {
+function prepareSvgForComparision(svg: string): string {
     let current = svg
     for (const replaceRegex of replaceRegexes) {
         current = svg.replace(replaceRegex, "")
     }
     return current
 }
+
 /** Remove all non-deterministic parts of the svg and then calculate an md5 hash */
 export function processSvgAndCalculateHash(svg: string): string {
     const processed = prepareSvgForComparision(svg)
@@ -343,12 +344,11 @@ Current  : ${validationResult.error.newSvgFragment}`
     )
 }
 
-const resultsFilename = "results.csv"
 export async function getReferenceCsvContentMap(
     referenceDir: string
 ): Promise<Map<number, SvgRecord>> {
     const results = await fs.readFile(
-        path.join(referenceDir, resultsFilename),
+        path.join(referenceDir, RESULTS_FILENAME),
         "utf-8"
     )
     const csvContentArray = results
@@ -373,10 +373,10 @@ export async function getReferenceCsvContentMap(
 }
 
 export async function writeResultsCsvFile(
-    outDir: any,
+    outDir: string,
     svgRecords: SvgRecord[]
 ): Promise<void> {
-    const resultsPath = path.join(outDir, resultsFilename)
+    const resultsPath = path.join(outDir, RESULTS_FILENAME)
     const csvFileStream = fs.createWriteStream(resultsPath)
     csvFileStream.write(SVG_CSV_HEADER + "\n")
     for (const row of svgRecords) {
@@ -444,4 +444,35 @@ export async function prepareVerifyRun(
     )
     const csvContentMap = await getReferenceCsvContentMap(referenceDir)
     return { directoriesToProcess, csvContentMap }
+}
+
+export function displayVerifyResultsAndGetExitCode(
+    validationResults: Result<null, SvgDifference>[],
+    verbose: boolean,
+    directoriesToProcess: string[]
+): number {
+    let returnCode: number
+
+    const errorResults = validationResults.filter(
+        (result) => result.kind === "error"
+    ) as ResultError<SvgDifference>[]
+
+    if (errorResults.length === 0) {
+        logIfVerbose(
+            verbose,
+            `There were no differences in all ${directoriesToProcess.length} graphs processed`
+        )
+        returnCode = 0
+    } else {
+        console.warn(
+            `${errorResults.length} graphs had differences: ${errorResults
+                .map((err) => err.error.chartId)
+                .join()}`
+        )
+        for (const result of errorResults) {
+            console.log("", result.error.chartId) // write to stdout one grapher id per file for easy piping to other processes
+        }
+        returnCode = errorResults.length
+    }
+    return returnCode
 }
