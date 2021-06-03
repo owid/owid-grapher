@@ -24,7 +24,9 @@ import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "../chart/ChartUtils"
-import { easeLinear, ScaleOrdinal, scaleOrdinal, select, Series } from "d3"
+import { ScaleOrdinal, scaleOrdinal } from "d3-scale"
+import { easeLinear } from "d3-ease"
+import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { SelectionArray } from "../selection/SelectionArray"

@@ -39,7 +39,7 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
-import { ScaleLinear } from "d3"
+import { ScaleLinear } from "d3-scale"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
