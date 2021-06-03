@@ -99,3 +99,16 @@ jobs:
               run: yarn testBundlewatch
               env:
                   BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
+    svgTester:
+        runs-on: ubuntu-latest
+        needs: testcheck
+
+        steps:
+            - name: Clone svg tester repo
+              uses: actions/checkout@v2
+              with:
+                  repository: "owid/owid-grapher-svgs"
+                  path: owid-grapher-svgs
+
+            - name: Run tests & checks
+              run: node ./itsJustJavascript/devTools/svgTester/export-graphs.js -i ./owid-grapher-svgs/configs -o ./owid-grapher-svgs/svgs
