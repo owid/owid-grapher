@@ -16,6 +16,7 @@
         { "path": "./settings" },
         { "path": "./adminSiteClient" },
         { "path": "./adminSiteServer" },
-        { "path": "./.storybook" }
+        { "path": "./.storybook" },
+        { "path": "./devTools/svgTester" }
     ]
 }

@@ -3,6 +3,7 @@ import { csvParse } from "d3-dsv"
 import md5 from "md5"
 import { BAKED_GRAPHER_URL } from "../../settings/clientSettings"
 import React from "react"
+import { closeTypeOrmAndKnexConnections } from "../../db/db"
 import {
     bakeGrapherToSvg,
     getPublishedGraphersBySlug,
@@ -79,7 +80,7 @@ export async function bakeAndSaveResultsFile(
         fs.appendFileSync(resultsPath, line + "\n")
         bakeOrder++
     }
-    // Todo: DB end
+    await closeTypeOrmAndKnexConnections()
 }
 
 const compareSets = (liveSvgs: BakedSvgInfo[], localSvgs: BakedSvgInfo[]) => {
@@ -119,7 +120,7 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
     const changed = notMissing.filter((file) => file.changed)
 
     const rows = changed.map((file) => (
-        <tr>
+        <tr key={file.devSvgPath ?? file.devInteractiveUrl}>
             <td>
                 <a href={file.liveSvgUrl}>
                     <img src={file.liveSvgUrl} />
@@ -141,7 +142,9 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
         notMissing.length - changed.length
     } unchanged. ${missing.length} files on live missing locally.`
 
-    const missingDivs = missing.map((el) => <div>${el.missing}</div>)
+    const missingDivs = missing.map((el) => (
+        <div key={el.devSvgPath ?? el.devInteractiveUrl}>${el.missing}</div>
+    ))
 
     return (
         <div>

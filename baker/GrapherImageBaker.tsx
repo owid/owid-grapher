@@ -38,7 +38,7 @@ export async function bakeGraphersToPngs(
     ])
 }
 
-async function getGraphersAndRedirectsBySlug() {
+export async function getGraphersAndRedirectsBySlug() {
     const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug()
 
     const redirectQuery = db.queryMysql(
@@ -46,19 +46,31 @@ async function getGraphersAndRedirectsBySlug() {
     )
 
     for (const row of await redirectQuery) {
-        graphersBySlug.set(row.slug, graphersById.get(row.chart_id))
+        const grapher = graphersById.get(row.chart_id)
+        if (grapher) {
+            graphersBySlug.set(row.slug, grapher)
+        }
     }
 
     return graphersBySlug
 }
 
-export async function getPublishedGraphersBySlug() {
+export async function getPublishedGraphersBySlug(
+    includePrivate: boolean = false
+) {
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
-    const graphersById = new Map()
+    const graphersById: Map<number, GrapherInterface> = new Map()
 
-    const query = db.queryMysql(
-        `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
-    )
+    // Select all graphers that are published and that do not have the tag Private
+    const sql = includePrivate
+        ? `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
+        : `SELECT charts.id as id, charts.config as config FROM charts
+LEFT JOIN chart_tags on chart_tags.chartId = charts.id
+LEFT JOIN tags on tags.id = chart_tags.tagid
+WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE
+AND tags.name != 'Private'`
+
+    const query = db.queryMysql(sql)
     for (const row of await query) {
         const grapher = JSON.parse(row.config)
 
@@ -78,22 +90,20 @@ export async function bakeGrapherToSvg(
     overwriteExisting = false,
     verbose = true
 ) {
-    // the type definition for url.query is wrong (bc we have query string parsing disabled),
-    // so we have to explicitly cast it
-    const grapher = new Grapher({
-        ...jsonConfig,
-        manuallyProvideData: true,
-        queryStr,
-    })
-    grapher.isExportingtoSvgOrPng = true
+    const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
     const { width, height } = grapher.idealBounds
-    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
-    const outPath = `${outDir}/${fileKey}_v${jsonConfig.version}_${width}x${height}.svg`
-    if (verbose) console.log(outPath)
+    const outPath = buildSvgOutFilepath(
+        slug,
+        outDir,
+        jsonConfig.version,
+        width,
+        height,
+        verbose,
+        queryStr
+    )
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
-
-    const variableIds = lodash.uniq(grapher.dimensions.map((d) => d.variableId))
+    const variableIds = grapher.dimensions.map((d) => d.variableId)
     const vardata = await getVariableData(variableIds)
     grapher.receiveLegacyData(vardata)
 
@@ -102,6 +112,52 @@ export async function bakeGrapherToSvg(
 
     fs.writeFile(outPath, svgCode)
     return svgCode
+}
+
+export function initGrapherForSvgExport(
+    jsonConfig: GrapherInterface,
+    queryStr: string = ""
+) {
+    const grapher = new Grapher({
+        ...jsonConfig,
+        manuallyProvideData: true,
+        queryStr,
+    })
+    grapher.isExportingtoSvgOrPng = true
+    return grapher
+}
+
+export function buildSvgOutFilename(
+    slug: string,
+    version: number | undefined,
+    width: number,
+    height: number,
+    queryStr: string = ""
+) {
+    const fileKey = grapherSlugToExportFileKey(slug, queryStr)
+    const outFilename = `${fileKey}_v${version}_${width}x${height}.svg`
+    return outFilename
+}
+
+export function buildSvgOutFilepath(
+    slug: string,
+    outDir: string,
+    version: number | undefined,
+    width: number,
+    height: number,
+    verbose: boolean,
+    queryStr: string = ""
+) {
+    const outFilename = buildSvgOutFilename(
+        slug,
+        version,
+        width,
+        height,
+        queryStr
+    )
+    const outPath = path.join(outDir, outFilename)
+    if (verbose) console.log(outPath)
+    return outPath
 }
 
 export async function bakeGraphersToSvgs(

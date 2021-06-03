@@ -7,8 +7,8 @@ import { Box } from "./owidTypes"
 // Since we want to be able to render charts headlessly and functionally, we
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
+
 export class Bounds {
-    static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
 
     static fromProps(props: Box): Bounds {
@@ -88,25 +88,23 @@ export class Bounds {
     ): Bounds {
         // Collapse contiguous spaces into one
         str = str.replace(/ +/g, " ")
-        const key = `${str}-${fontSize}`
-        let bounds = this.textBoundsCache[key]
-        if (bounds) {
-            if (bounds.x === x && bounds.y === y - bounds.height) return bounds
-            return bounds.extend({ x: x, y: y - bounds.height })
-        }
 
-        if (str === "") bounds = Bounds.empty()
-        else {
+        const isBold = fontWeight >= 600
+
+        let bounds = Bounds.empty()
+        if (str) {
+            // pixelWidth uses a precomputed character width table to quickly give a
+            // rough estimate of string width based on characters in a string - it is probably not
+            // worth caching further
             const width = pixelWidth(str, {
                 font: "arial",
                 size: fontSize,
-                bold: fontWeight >= 600,
+                bold: isBold,
             })
             const height = fontSize
             bounds = new Bounds(x, y - height, width, height)
         }
 
-        this.textBoundsCache[key] = bounds
         return bounds
     }
 

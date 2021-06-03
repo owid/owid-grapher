@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run SVGTester",
+            "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
+            "request": "launch",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "pwa-node",
+            "args": ["-g", "367"]
+        },
+        {
             "name": "Launch Admin Server",
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",

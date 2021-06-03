@@ -1,0 +1,13 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/svgTester",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../../grapher" },
+        { "path": "../../clientUtils" },
+        { "path": "../../baker" },
+        { "path": "../../settings" }
+    ]
+}
