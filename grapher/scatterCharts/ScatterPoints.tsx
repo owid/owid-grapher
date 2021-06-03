@@ -1,5 +1,5 @@
 import { PointVector } from "../../clientUtils/PointVector"
-import { first, last } from "lodash"
+import { first, last } from "../../clientUtils/Util"
 import { observer } from "mobx-react"
 import React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
