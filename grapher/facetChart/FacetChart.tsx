@@ -64,7 +64,7 @@ export class FacetChart
         const baseFontSize = getFontSize(count, manager.baseFontSize)
         const lineStrokeWidth = count > 16 ? 1 : undefined
 
-        const table = this.inputTable
+        const table = this.transformedTable
 
         return series.map((series, index) => {
             const bounds = boundsArr[index]
@@ -107,7 +107,7 @@ export class FacetChart
     }
 
     @computed private get countryFacets(): FacetSeries[] {
-        const table = this.inputTable.filterByEntityNames(
+        const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
         const yDomain = table.domainFor(this.yColumnSlugs)
@@ -136,7 +136,7 @@ export class FacetChart
                 seriesName,
                 color: facetBackgroundColor,
                 manager: {
-                    table: this.inputTable.filterByEntityNames([seriesName]),
+                    table: table.filterByEntityNames([seriesName]),
                     selection: [seriesName],
                     seriesStrategy: SeriesStrategy.column,
                     hideLegend,
