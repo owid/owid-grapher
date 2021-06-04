@@ -112,7 +112,7 @@ export class FacetChart
         )
         const yDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
-        const sameYAxis = true
+        const sameYAxis = false
         const yAxisConfig = sameYAxis
             ? {
                   max: yDomain[1],
@@ -132,15 +132,22 @@ export class FacetChart
         const hideLegend = this.manager.yColumnSlugs?.length === 1
 
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
+            const seriesTable = table.filterByEntityNames([seriesName])
+            const relativeYDomain = seriesTable.domainFor(this.yColumnSlugs)
+            const relativeYAxisConfig = {
+                max: relativeYDomain[1],
+                min: relativeYDomain[0],
+                scaleType,
+            }
             return {
                 seriesName,
                 color: facetBackgroundColor,
                 manager: {
-                    table: table.filterByEntityNames([seriesName]),
+                    table: seriesTable,
                     selection: [seriesName],
                     seriesStrategy: SeriesStrategy.column,
                     hideLegend,
-                    yAxisConfig,
+                    yAxisConfig: yAxisConfig || relativeYAxisConfig,
                     xAxisConfig,
                 },
             }
