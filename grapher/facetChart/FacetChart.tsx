@@ -59,6 +59,7 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
+            isFacetYAxisRelative,
         } = manager
 
         const baseFontSize = getFontSize(count, manager.baseFontSize)
@@ -91,6 +92,7 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
+                isFacetYAxisRelative,
                 ...series.manager,
             }
             return {
@@ -112,7 +114,7 @@ export class FacetChart
         )
         const yDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
-        const sameYAxis = false
+        const sameYAxis = !this.manager.isFacetYAxisRelative
         const yAxisConfig = sameYAxis
             ? {
                   max: yDomain[1],

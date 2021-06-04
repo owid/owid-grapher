@@ -49,6 +49,7 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
+    FacetYAxisMode,
 } from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -254,6 +255,7 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
+    @observable.ref facetYAxisMode: FacetYAxisMode = FacetYAxisMode.absolute
     @observable.ref entityType = "country"
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
@@ -1444,6 +1446,10 @@ export class Grapher
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
         return this.stackMode === StackMode.relative
+    }
+
+    @computed get isFacetYAxisRelative(): boolean {
+        return this.facetYAxisMode !== FacetYAxisMode.absolute
     }
 
     @computed get canToggleRelativeMode(): boolean {

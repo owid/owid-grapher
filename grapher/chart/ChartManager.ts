@@ -3,6 +3,7 @@ import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
+    FacetYAxisMode,
     SeriesColorMap,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -28,6 +29,7 @@ export interface ChartManager {
     startSelectingWhenLineClicked?: boolean // used by lineLabels
     isExportingtoSvgOrPng?: boolean
     isRelativeMode?: boolean
+    isFacetYAxisRelative?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
     tooltip?: TooltipProps

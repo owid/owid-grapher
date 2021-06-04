@@ -14,6 +14,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
+    FacetYAxisMode,
     GrapherTabOption,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
@@ -118,6 +119,42 @@ export class AbsRelToggle extends React.Component<{
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
                 &nbsp;{label}
+            </label>
+        )
+    }
+}
+
+export interface FacetYAxisToggleManager {
+    facetYAxisMode?: FacetYAxisMode
+}
+
+@observer
+export class FacetYAxisToggle extends React.Component<{
+    manager: FacetYAxisToggleManager
+}> {
+    @action.bound onToggle(): void {
+        this.props.manager.facetYAxisMode = this.isAbsoluteMode
+            ? FacetYAxisMode.relative
+            : FacetYAxisMode.absolute
+    }
+
+    @computed get isAbsoluteMode(): boolean {
+        return (
+            !this.props.manager.facetYAxisMode ||
+            this.props.manager.facetYAxisMode === FacetYAxisMode.absolute
+        )
+    }
+
+    render(): JSX.Element {
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.isAbsoluteMode}
+                    onChange={this.onToggle}
+                    data-track-note="chart-facet-ymode-toggle"
+                />{" "}
+                &nbsp;Uniform y-axis
             </label>
         )
     }

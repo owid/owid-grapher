@@ -28,6 +28,8 @@ import {
     SmallCountriesFilterManager,
     AbsRelToggleManager,
     HighlightToggleManager,
+    FacetYAxisToggle,
+    FacetYAxisToggleManager,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -45,7 +47,8 @@ export interface CaptionedChartManager
         HighlightToggleManager,
         AbsRelToggleManager,
         FooterManager,
-        HeaderManager {
+        HeaderManager,
+        FacetYAxisToggleManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -61,6 +64,7 @@ export interface CaptionedChartManager
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
     showAbsRelToggle?: boolean
+    showFacetYAxisToggle?: boolean
     showHighlightToggle?: boolean
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
@@ -239,6 +243,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
+
+        if (manager.showFacetYAxisToggle || true)
+            controls.push(
+                <FacetYAxisToggle key="FacetYAxisToggle" manager={manager} />
+            )
 
         if (manager.showHighlightToggle)
             controls.push(
