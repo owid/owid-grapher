@@ -604,8 +604,8 @@ export const getFullPost = async (
     path: postApi.slug, // kept for transitioning between legacy BPES (blog post as entry section) and future hierarchical paths
     title: decodeHTML(postApi.title.rendered),
     subtitle: postApi.meta.owid_subtitle_meta_field,
-    date: new Date(postApi.date),
-    modifiedDate: new Date(postApi.modified),
+    date: new Date(postApi.date_gmt),
+    modifiedDate: new Date(postApi.modified_gmt),
     authors: postApi.authors_name || [],
     content: excludeContent ? "" : postApi.content.rendered,
     excerpt: decodeHTML(postApi.excerpt.rendered),
