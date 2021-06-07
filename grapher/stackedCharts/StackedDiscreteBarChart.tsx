@@ -45,6 +45,7 @@ import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
+import { Flipper, Flipped } from "react-flip-toolkit"
 
 const labelToBarPadding = 5
 
@@ -325,63 +326,77 @@ export class StackedDiscreteBarChart
                     bounds={innerBounds}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
-                {this.items.map(({ label, bars }) => {
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    const tooltipProps = {
-                        label,
-                        bars,
-                        targetTime: this.manager.endTime,
-                        timeColumn: this.inputTable.timeColumn,
-                        formatColumn: this.formatColumn,
-                    }
+                <Flipper flipKey={this.items.map((i) => i.label)} element="g">
+                    {this.items.map(({ label, bars }) => {
+                        // Using transforms for positioning to enable better (subpixel) transitions
+                        // Width transitions don't work well on iOS Safari – they get interrupted and
+                        // it appears very slow. Also be careful with negative bar charts.
+                        const tooltipProps = {
+                            label,
+                            bars,
+                            targetTime: this.manager.endTime,
+                            timeColumn: this.inputTable.timeColumn,
+                            formatColumn: this.formatColumn,
+                        }
 
-                    const result = (
-                        <g
-                            key={label}
-                            className="bar"
-                            transform={`translate(0, ${yOffset})`}
-                        >
-                            <TippyIfInteractive
-                                lazy
-                                isInteractive={
-                                    !this.manager.isExportingtoSvgOrPng
-                                }
-                                hideOnClick={false}
-                                content={
-                                    <StackedDiscreteBarChart.Tooltip
-                                        {...tooltipProps}
-                                    />
-                                }
+                        // This custom spring is very gentle and doesn't wobble.
+                        const spring = { stiffness: 130, damping: 23 }
+
+                        const result = (
+                            <Flipped
+                                key={label}
+                                flipId={label}
+                                translate
+                                spring={spring}
                             >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        axis.place(this.x0) - labelToBarPadding
-                                    }, 0)`}
-                                    fill="#555"
-                                    dominantBaseline="middle"
-                                    textAnchor="end"
-                                    {...this.labelStyle}
+                                <g
+                                    key={label}
+                                    className="bar"
+                                    transform={`translate(0, ${yOffset})`}
                                 >
-                                    {label}
-                                </text>
-                            </TippyIfInteractive>
-                            {bars.map((bar) =>
-                                this.renderBar(bar, {
-                                    ...tooltipProps,
-                                    highlightedSeriesName: bar.seriesName,
-                                })
-                            )}
-                        </g>
-                    )
+                                    <TippyIfInteractive
+                                        lazy
+                                        isInteractive={
+                                            !this.manager.isExportingtoSvgOrPng
+                                        }
+                                        hideOnClick={false}
+                                        content={
+                                            <StackedDiscreteBarChart.Tooltip
+                                                {...tooltipProps}
+                                            />
+                                        }
+                                    >
+                                        <text
+                                            x={0}
+                                            y={0}
+                                            transform={`translate(${
+                                                axis.place(this.x0) -
+                                                labelToBarPadding
+                                            }, 0)`}
+                                            fill="#555"
+                                            dominantBaseline="middle"
+                                            textAnchor="end"
+                                            {...this.labelStyle}
+                                        >
+                                            {label}
+                                        </text>
+                                    </TippyIfInteractive>
+                                    {bars.map((bar) =>
+                                        this.renderBar(bar, {
+                                            ...tooltipProps,
+                                            highlightedSeriesName:
+                                                bar.seriesName,
+                                        })
+                                    )}
+                                </g>
+                            </Flipped>
+                        )
 
-                    yOffset += barHeight + barSpacing
+                        yOffset += barHeight + barSpacing
 
-                    return result
-                })}
+                        return result
+                    })}
+                </Flipper>
             </g>
         )
     }
