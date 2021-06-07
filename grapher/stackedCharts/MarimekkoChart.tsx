@@ -13,6 +13,7 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
 import {
+    DualAxisComponent,
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
 } from "../axis/AxisViews"
@@ -26,7 +27,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { Color, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { EntityName } from "../../coreTable/OwidTableConstants"
+import { EntityName, LegacyOwidRow } from "../../coreTable/OwidTableConstants"
 import {
     LegendAlign,
     HorizontalCategoricalColorLegend,
@@ -39,6 +40,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils"
 import { VerticalColorLegendManager } from "../verticalColorLegend/VerticalColorLegend"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 const labelToBarPadding = 5
 
@@ -54,7 +56,8 @@ interface Item {
 interface Bar {
     color: Color
     seriesName: string
-    point: StackedPoint<EntityName>
+    xPoint: StackedPoint<EntityName>
+    yPoint: StackedPoint<EntityName>
 }
 
 interface TooltipProps {
@@ -76,24 +79,24 @@ export class MarimekkoChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        if (!this.xColumnSlugs.length) return table
+        if (!this.yColumnSlugs.length) return table
 
         // table = table.filterByEntityNames(
         //     this.selectionArray.selectedEntityNames
         // )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.xColumnSlugs)
+        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        table = table.dropRowsWithErrorValuesForAllColumns(this.xColumnSlugs)
+        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
-        this.xColumnSlugs.forEach((slug) => {
+        this.yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
 
         if (this.manager.isRelativeMode) {
             table = table.toPercentageFromEachColumnForEachEntityAndTime(
-                this.xColumnSlugs
+                this.yColumnSlugs
             )
         }
 
@@ -162,8 +165,22 @@ export class MarimekkoChart
         ]
     }
 
+    // Now we can work out the main x axis scale
+    @computed private get xDomainDefault(): [number, number] {
+        const maxValues = this.xSeries.points.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [
+            Math.min(this.x0, min(maxValues) as number),
+            Math.max(this.x0, max(maxValues) as number),
+        ]
+    }
+
     @computed private get yRange(): [number, number] {
-        return [this.bounds.top, this.bounds.bottom - this.labelWidth]
+        return [
+            this.bounds.top - this.legend.height,
+            this.bounds.bottom - this.labelWidth,
+        ]
     }
 
     @computed private get xRange(): [number, number] {
@@ -178,23 +195,41 @@ export class MarimekkoChart
         return this.manager.xAxis || new AxisConfig()
     }
 
-    @computed private get axis() {
-        // TODO: set up DualAxis here
-        const axis = this.yAxisPart.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(this.xDomainDefault)
+    @computed private get verticalAxisPart(): VerticalAxis {
+        const axis = this.yAxisPart.toVerticalAxis()
+        axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
+        axis.range = this.yRange
+        axis.label = ""
+        return axis
+    }
+
+    @computed private get horizontalAxisPart(): HorizontalAxis {
+        const axis = this.xAxisPart.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings(this.xDomainDefault)
+
+        axis.formatColumn = this.xColumn // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""
         return axis
     }
 
+    @computed private get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.bounds.padBottom(this.legendPaddingTop),
+            verticalAxis: this.verticalAxisPart,
+            horizontalAxis: this.horizontalAxisPart,
+        })
+    }
+
     @computed private get innerBounds() {
-        return this.bounds
-            .padLeft(this.labelWidth)
-            .padBottom(this.axis.height)
-            .padTop(this.legendPaddingTop)
-            .padTop(this.legend.height)
+        // return this.bounds
+        //     .padLeft(this.labelWidth)
+        //     .padBottom(this.dualAxis.height)
+        //     .padTop(this.legendPaddingTop)
+        //     .padTop(this.legend.height)
+        return this.dualAxis.innerBounds
     }
 
     @computed private get selectionArray() {
@@ -202,46 +237,52 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
-        const entityNames = this.selectionArray.selectedEntityNames
-        const items = entityNames
-            .map((entityName) => ({
-                label: entityName,
-                bars: excludeUndefined(
-                    this.series.map((series) => {
-                        const point = series.points.find(
-                            (point) => point.position === entityName
-                        )
-                        if (!point) return undefined
-                        return {
-                            point,
-                            color: series.color,
-                            seriesName: series.seriesName,
-                        }
-                    })
-                ),
-            }))
-            .filter((item) => item.bars.length)
+        const getYDomainTotal = (item: Item | undefined) =>
+            item?.bars.reduce<number>(
+                (accumulator, element) => accumulator + element.yPoint.value,
+                0
+            ) ?? 0
+        const entityNames = new Set(
+            this.xSeries.points.map((point) => point.position)
+        )
+        const items: Item[] = Array.from(entityNames)
+            .map((entityName) => {
+                const xPoint = this.xSeries.points.find(
+                    (point) => point.position === entityName
+                )
+                if (!xPoint) return undefined
+                return {
+                    label: entityName,
+                    bars: excludeUndefined(
+                        this.series.map((series): Bar | undefined => {
+                            const point = series.points.find(
+                                (point) => point.position === entityName
+                            )
+                            if (!point) return undefined
+                            return {
+                                xPoint,
+                                yPoint: point,
+                                color: series.color,
+                                seriesName: series.seriesName,
+                            }
+                        })
+                    ),
+                }
+            })
+            .filter((item) => item?.bars.length) as Item[]
 
-        if (this.manager.isRelativeMode) {
-            // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
-            // relative mode. Once we have an option to sort by a specific metric, that'll help.
-            // Until then, we're sorting by label to prevent any jumping.
-            return sortBy(items, (item) => item.label)
-        } else {
-            return sortBy(items, (item) => {
-                const lastPoint = last(item.bars)?.point
-                if (!lastPoint) return 0
-                return lastPoint.valueOffset + lastPoint.value
-            }).reverse()
-        }
-    }
-
-    @computed private get barHeight() {
-        return (0.8 * this.innerBounds.height) / this.items.length
-    }
-
-    @computed private get barSpacing() {
-        return this.innerBounds.height / this.items.length - this.barHeight
+        // if (this.manager.isRelativeMode) {
+        //     // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
+        //     // relative mode. Once we have an option to sort by a specific metric, that'll help.
+        //     // Until then, we're sorting by label to prevent any jumping.
+        //     return sortBy(items, (item) => item.label)
+        // } else {
+        return sortBy(items, (item) => {
+            const lastPoint = last(item.bars)?.yPoint
+            if (!lastPoint) return 0
+            return lastPoint.valueOffset + lastPoint.value
+        }).reverse()
+        // }
     }
 
     // legend props
@@ -307,9 +348,7 @@ export class MarimekkoChart
                 />
             )
 
-        const { bounds, axis, innerBounds, barHeight, barSpacing } = this
-
-        let yOffset = innerBounds.top + barHeight / 2
+        const { bounds, dualAxis, innerBounds } = this
 
         return (
             <g ref={this.base} className="MarimekkoChart">
@@ -321,17 +360,9 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisComponent
-                    bounds={bounds}
-                    axis={axis}
-                    axisPosition={innerBounds.bottom}
-                />
-                <HorizontalAxisGridLines
-                    horizontalAxis={axis}
-                    bounds={innerBounds}
-                />
+                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
-                {this.items.map(({ label, bars }) => {
+                {this.items.map(({ label, bars }, i) => {
                     // Using transforms for positioning to enable better (subpixel) transitions
                     // Width transitions don't work well on iOS Safari – they get interrupted and
                     // it appears very slow. Also be careful with negative bar charts.
@@ -343,11 +374,13 @@ export class MarimekkoChart
                         formatColumn: this.formatColumn,
                     }
 
+                    //const xOffset = 100 * i // TODO: get this from x series variable STACKED SERIES!
+
                     const result = (
                         <g
                             key={label}
                             className="bar"
-                            transform={`translate(0, ${yOffset})`}
+                            //transform={`translate(${xOffset}, 0)`}
                         >
                             <TippyIfInteractive
                                 lazy
@@ -362,8 +395,10 @@ export class MarimekkoChart
                                 <text
                                     x={0}
                                     y={0}
+                                    // TODO: rotate labels
                                     transform={`translate(${
-                                        axis.place(this.x0) - labelToBarPadding
+                                        dualAxis.horizontalAxis.place(this.x0) -
+                                        labelToBarPadding
                                     }, 0)`}
                                     fill="#555"
                                     dominantBaseline="middle"
@@ -382,8 +417,6 @@ export class MarimekkoChart
                         </g>
                     )
 
-                    yOffset += barHeight + barSpacing
-
                     return result
                 })}
             </g>
@@ -391,19 +424,25 @@ export class MarimekkoChart
     }
 
     private renderBar(bar: Bar, tooltipProps: TooltipProps) {
-        const { axis, formatColumn, focusSeriesName, barHeight } = this
-        const { point, color, seriesName } = bar
+        const { dualAxis, formatColumn, focusSeriesName } = this
+        const { xPoint, yPoint, color, seriesName } = bar
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== seriesName
-        const barX = axis.place(this.x0 + point.valueOffset)
-        const barWidth = axis.place(point.value) - axis.place(this.x0)
+        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
+        const barHeight =
+            dualAxis.verticalAxis.place(this.y0) -
+            dualAxis.verticalAxis.place(yPoint.value)
+        const barX = dualAxis.horizontalAxis.place(this.x0 + xPoint.valueOffset)
+        const barWidth =
+            dualAxis.horizontalAxis.place(xPoint.value) -
+            dualAxis.horizontalAxis.place(this.x0)
 
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
         // is big enough already.
-        const dp = Math.ceil(-Math.log10(point.value) + 1)
-        const barLabel = formatColumn.formatValueShort(point.value, {
+        const dp = Math.ceil(-Math.log10(yPoint.value) + 1)
+        const barLabel = formatColumn.formatValueShort(yPoint.value, {
             numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
         })
         const labelBounds = Bounds.forText(barLabel, {
@@ -427,7 +466,7 @@ export class MarimekkoChart
                     <rect
                         x={0}
                         y={0}
-                        transform={`translate(${barX}, ${-barHeight / 2})`}
+                        transform={`translate(${barX}, ${barY - barHeight})`}
                         width={barWidth}
                         height={barHeight}
                         fill={color}
@@ -457,139 +496,140 @@ export class MarimekkoChart
     }
 
     private static Tooltip(props: TooltipProps) {
-        let hasTimeNotice = false
+        const hasTimeNotice = false
 
         return (
-            <table
-                style={{
-                    lineHeight: "1em",
-                    whiteSpace: "normal",
-                    borderSpacing: "0.5em",
-                }}
-            >
-                <tbody>
-                    <tr>
-                        <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{props.label}</strong>
-                        </td>
-                    </tr>
-                    {props.bars.map((bar) => {
-                        const { highlightedSeriesName } = props
-                        const squareColor = bar.color
-                        const isHighlighted =
-                            bar.seriesName === highlightedSeriesName
-                        const isFaint =
-                            highlightedSeriesName !== undefined &&
-                            !isHighlighted
-                        const shouldShowTimeNotice =
-                            bar.point.value !== undefined &&
-                            bar.point.time !== props.targetTime
-                        hasTimeNotice ||= shouldShowTimeNotice
+            <div>Todo</div>
+            // <table
+            //     style={{
+            //         lineHeight: "1em",
+            //         whiteSpace: "normal",
+            //         borderSpacing: "0.5em",
+            //     }}
+            // >
+            //     <tbody>
+            //         <tr>
+            //             <td colSpan={4} style={{ color: "#111" }}>
+            //                 <strong>{props.label}</strong>
+            //             </td>
+            //         </tr>
+            //         {props.bars.map((bar) => {
+            //             const { highlightedSeriesName } = props
+            //             const squareColor = bar.color
+            //             const isHighlighted =
+            //                 bar.seriesName === highlightedSeriesName
+            //             const isFaint =
+            //                 highlightedSeriesName !== undefined &&
+            //                 !isHighlighted
+            //             const shouldShowTimeNotice =
+            //                 bar.point.value !== undefined &&
+            //                 bar.point.time !== props.targetTime
+            //             hasTimeNotice ||= shouldShowTimeNotice
 
-                        return (
-                            <tr
-                                key={`${bar.seriesName}`}
-                                style={{
-                                    color: isHighlighted
-                                        ? "#000"
-                                        : isFaint
-                                        ? "#707070"
-                                        : "#444",
-                                    fontWeight: isHighlighted
-                                        ? "bold"
-                                        : undefined,
-                                }}
-                            >
-                                <td>
-                                    <div
-                                        style={{
-                                            width: "10px",
-                                            height: "10px",
-                                            backgroundColor: squareColor,
-                                            display: "inline-block",
-                                        }}
-                                    />
-                                </td>
-                                <td
-                                    style={{
-                                        paddingRight: "0.8em",
-                                        fontSize: "0.9em",
-                                    }}
-                                >
-                                    {bar.seriesName}
-                                </td>
-                                <td
-                                    style={{
-                                        textAlign: "right",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    {bar.point.value === undefined
-                                        ? "No data"
-                                        : props.formatColumn.formatValueShort(
-                                              bar.point.value,
-                                              {
-                                                  noTrailingZeroes: false,
-                                              }
-                                          )}
-                                </td>
-                                {shouldShowTimeNotice && (
-                                    <td
-                                        style={{
-                                            fontWeight: "normal",
-                                            color: "#707070",
-                                            fontSize: "0.8em",
-                                            whiteSpace: "nowrap",
-                                            paddingLeft: "8px",
-                                        }}
-                                    >
-                                        <span className="icon">
-                                            <FontAwesomeIcon
-                                                icon={faInfoCircle}
-                                                style={{
-                                                    marginRight: "0.25em",
-                                                }}
-                                            />{" "}
-                                        </span>
-                                        {props.timeColumn.formatValue(
-                                            bar.point.time
-                                        )}
-                                    </td>
-                                )}
-                            </tr>
-                        )
-                    })}
-                    {hasTimeNotice && (
-                        <tr>
-                            <td
-                                colSpan={4}
-                                style={{
-                                    color: "#707070",
-                                    fontSize: "0.8em",
-                                    paddingTop: "10px",
-                                }}
-                            >
-                                <div style={{ display: "flex" }}>
-                                    <span
-                                        className="icon"
-                                        style={{ marginRight: "0.5em" }}
-                                    >
-                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
-                                    </span>
-                                    <span>
-                                        No data available for{" "}
-                                        {props.timeColumn.formatValue(
-                                            props.targetTime
-                                        )}
-                                        . Showing closest available data point
-                                        instead.
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            //             return (
+            //                 <tr
+            //                     key={`${bar.seriesName}`}
+            //                     style={{
+            //                         color: isHighlighted
+            //                             ? "#000"
+            //                             : isFaint
+            //                             ? "#707070"
+            //                             : "#444",
+            //                         fontWeight: isHighlighted
+            //                             ? "bold"
+            //                             : undefined,
+            //                     }}
+            //                 >
+            //                     <td>
+            //                         <div
+            //                             style={{
+            //                                 width: "10px",
+            //                                 height: "10px",
+            //                                 backgroundColor: squareColor,
+            //                                 display: "inline-block",
+            //                             }}
+            //                         />
+            //                     </td>
+            //                     <td
+            //                         style={{
+            //                             paddingRight: "0.8em",
+            //                             fontSize: "0.9em",
+            //                         }}
+            //                     >
+            //                         {bar.seriesName}
+            //                     </td>
+            //                     <td
+            //                         style={{
+            //                             textAlign: "right",
+            //                             whiteSpace: "nowrap",
+            //                         }}
+            //                     >
+            //                         {bar.point.value === undefined
+            //                             ? "No data"
+            //                             : props.formatColumn.formatValueShort(
+            //                                   bar.point.value,
+            //                                   {
+            //                                       noTrailingZeroes: false,
+            //                                   }
+            //                               )}
+            //                     </td>
+            //                     {shouldShowTimeNotice && (
+            //                         <td
+            //                             style={{
+            //                                 fontWeight: "normal",
+            //                                 color: "#707070",
+            //                                 fontSize: "0.8em",
+            //                                 whiteSpace: "nowrap",
+            //                                 paddingLeft: "8px",
+            //                             }}
+            //                         >
+            //                             <span className="icon">
+            //                                 <FontAwesomeIcon
+            //                                     icon={faInfoCircle}
+            //                                     style={{
+            //                                         marginRight: "0.25em",
+            //                                     }}
+            //                                 />{" "}
+            //                             </span>
+            //                             {props.timeColumn.formatValue(
+            //                                 bar.point.time
+            //                             )}
+            //                         </td>
+            //                     )}
+            //                 </tr>
+            //             )
+            //         })}
+            //         {hasTimeNotice && (
+            //             <tr>
+            //                 <td
+            //                     colSpan={4}
+            //                     style={{
+            //                         color: "#707070",
+            //                         fontSize: "0.8em",
+            //                         paddingTop: "10px",
+            //                     }}
+            //                 >
+            //                     <div style={{ display: "flex" }}>
+            //                         <span
+            //                             className="icon"
+            //                             style={{ marginRight: "0.5em" }}
+            //                         >
+            //                             <FontAwesomeIcon icon={faInfoCircle} />{" "}
+            //                         </span>
+            //                         <span>
+            //                             No data available for{" "}
+            //                             {props.timeColumn.formatValue(
+            //                                 props.targetTime
+            //                             )}
+            //                             . Showing closest available data point
+            //                             instead.
+            //                         </span>
+            //                     </div>
+            //                 </td>
+            //             </tr>
+            //         )}
+            //     </tbody>
+            // </table>
         )
     }
 
@@ -602,19 +642,29 @@ export class MarimekkoChart
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.xColumnSlugs.join(", ")}`
+            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
             : ""
     }
 
-    @computed protected get xColumnSlugs() {
+    @computed protected get yColumnSlugs() {
         return (
             this.manager.yColumnSlugsInSelectionOrder ??
             autoDetectYColumnSlugs(this.manager)
         )
     }
 
+    @computed protected get xColumnSlug() {
+        return this.manager.xColumnSlug
+    }
+
+    @computed protected get xColumn() {
+        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (!columnSlugs.length) console.warn("No x column slug!")
+        return this.transformedTable.getColumns(columnSlugs)[0]
+    }
+
     @computed protected get yColumns() {
-        return this.transformedTable.getColumns(this.xColumnSlugs)
+        return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
     @computed private get colorScheme() {
@@ -649,5 +699,28 @@ export class MarimekkoChart
 
     @computed get series(): readonly StackedSeries<EntityName>[] {
         return stackSeries(this.unstackedSeries)
+    }
+
+    @computed get xSeries(): StackedSeries<EntityName> {
+        const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
+            let offset = 0
+            const points: StackedPoint<EntityName>[] = []
+            for (const row of rows) {
+                points.push({
+                    time: row.time,
+                    position: row.entityName,
+                    value: row.value,
+                    valueOffset: offset,
+                })
+                offset += row.value
+            }
+            return points
+        }
+        const column = this.xColumn
+        return {
+            seriesName: column.displayName,
+            color: column.def.color || "#555", // TODO: default color?
+            points: createStackedXPoints(column.owidRows),
+        }
     }
 }
