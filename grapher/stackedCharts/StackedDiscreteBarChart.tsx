@@ -46,6 +46,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { Flipper, Flipped } from "react-flip-toolkit"
+import { prefersReducedMotion } from "../../clientUtils/BrowserUtil"
 
 const labelToBarPadding = 5
 
@@ -304,6 +305,8 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
+        const shouldAnimate = !prefersReducedMotion()
+
         let yOffset = innerBounds.top + barHeight / 2
 
         return (
@@ -348,6 +351,7 @@ export class StackedDiscreteBarChart
                                 flipId={label}
                                 translate
                                 spring={spring}
+                                shouldFlip={() => shouldAnimate}
                             >
                                 <g
                                     key={label}
