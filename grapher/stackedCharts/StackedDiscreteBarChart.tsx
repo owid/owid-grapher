@@ -339,8 +339,8 @@ export class StackedDiscreteBarChart
                             formatColumn: this.formatColumn,
                         }
 
-                        // This custom spring is very gentle and doesn't wobble.
-                        const spring = { stiffness: 130, damping: 23 }
+                        // This custom spring is quite gentle and doesn't wobble.
+                        const spring = { stiffness: 160, damping: 26 }
 
                         const result = (
                             <Flipped
