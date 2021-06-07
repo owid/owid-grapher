@@ -5,7 +5,7 @@ import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
 import { max, keyBy } from "../../clientUtils/Util"
-import { ScaleLinear } from "d3"
+import { ScaleLinear } from "d3-scale"
 
 enum BarState {
     highlighted = "highlighted",

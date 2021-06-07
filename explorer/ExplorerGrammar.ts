@@ -12,7 +12,6 @@ import {
     EnumCellDef,
     StringDeclarationDef,
 } from "../gridLang/GridLangConstants"
-import { OwidDatasets } from "./OwidDatasets"
 import { GrapherGrammar } from "./GrapherGrammar"
 import { ColumnGrammar } from "./ColumnGrammar"
 
@@ -27,12 +26,8 @@ export const ExplorerGrammar: Grammar = {
     table: {
         ...UrlCellDef,
         keyword: "table",
-        terminalOptions: OwidDatasets.map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
         valuePlaceholder: "",
+        regex: new RegExp(`(${UrlCellDef.regex?.source ?? ""}|^[\\w -()]+$)`), // URL or OWID dataset name
         description: "A link to a CSV or TSV or the name of an OWID dataset.",
         positionalCellDefs: [
             {

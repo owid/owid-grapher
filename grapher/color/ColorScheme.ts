@@ -1,5 +1,6 @@
 import { Color } from "../../coreTable/CoreTableConstants"
-import { rgb, interpolate } from "d3"
+import { rgb } from "d3-color"
+import { interpolate } from "d3-interpolate"
 import { ChartSeries } from "../chart/ChartInterface"
 import { SeriesColorMap, SeriesName } from "../core/GrapherConstants"
 import { lastOfNonEmptyArray, clone } from "../../clientUtils/Util"
