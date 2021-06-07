@@ -7,6 +7,8 @@ import {
     flatten,
     excludeUndefined,
     sortBy,
+    sum,
+    sumBy,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -19,7 +21,7 @@ import {
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "./StackedUtils"
@@ -53,10 +55,20 @@ interface Item {
     bars: Bar[]
 }
 
+interface SimplePoint {
+    value: number
+    entity: string
+    time: number
+}
+
+export interface SimpleChartSeries extends ChartSeries {
+    points: SimplePoint[]
+}
+
 interface Bar {
     color: Color
     seriesName: string
-    xPoint: StackedPoint<EntityName>
+    xPoint: SimplePoint
     yPoint: StackedPoint<EntityName>
 }
 
@@ -167,13 +179,8 @@ export class MarimekkoChart
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const maxValues = this.xSeries.points.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [
-            Math.min(this.x0, min(maxValues) as number),
-            Math.max(this.x0, max(maxValues) as number),
-        ]
+        const sum = sumBy(this.xSeries.points, (point) => point.value)
+        return [0, sum]
     }
 
     @computed private get yRange(): [number, number] {
@@ -237,18 +244,13 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
-        const getYDomainTotal = (item: Item | undefined) =>
-            item?.bars.reduce<number>(
-                (accumulator, element) => accumulator + element.yPoint.value,
-                0
-            ) ?? 0
         const entityNames = new Set(
-            this.xSeries.points.map((point) => point.position)
+            this.xSeries.points.map((point) => point.entity)
         )
         const items: Item[] = Array.from(entityNames)
             .map((entityName) => {
                 const xPoint = this.xSeries.points.find(
-                    (point) => point.position === entityName
+                    (point) => point.entity === entityName
                 )
                 if (!xPoint) return undefined
                 return {
@@ -362,65 +364,70 @@ export class MarimekkoChart
                 />
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
-                {this.items.map(({ label, bars }, i) => {
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    const tooltipProps = {
-                        label,
-                        bars,
-                        targetTime: this.manager.endTime,
-                        timeColumn: this.inputTable.timeColumn,
-                        formatColumn: this.formatColumn,
-                    }
-
-                    //const xOffset = 100 * i // TODO: get this from x series variable STACKED SERIES!
-
-                    const result = (
-                        <g
-                            key={label}
-                            className="bar"
-                            //transform={`translate(${xOffset}, 0)`}
-                        >
-                            <TippyIfInteractive
-                                lazy
-                                isInteractive={
-                                    !this.manager.isExportingtoSvgOrPng
-                                }
-                                hideOnClick={false}
-                                content={
-                                    <MarimekkoChart.Tooltip {...tooltipProps} />
-                                }
-                            >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    // TODO: rotate labels
-                                    transform={`translate(${
-                                        dualAxis.horizontalAxis.place(this.x0) -
-                                        labelToBarPadding
-                                    }, 0)`}
-                                    fill="#555"
-                                    dominantBaseline="middle"
-                                    textAnchor="end"
-                                    {...this.labelStyle}
-                                >
-                                    {label}
-                                </text>
-                            </TippyIfInteractive>
-                            {bars.map((bar) =>
-                                this.renderBar(bar, {
-                                    ...tooltipProps,
-                                    highlightedSeriesName: bar.seriesName,
-                                })
-                            )}
-                        </g>
-                    )
-
-                    return result
-                })}
+                {this.renderBars()}
             </g>
         )
+    }
+
+    private renderBars() {
+        let currentX = 0
+        const results: JSX.Element[] = []
+        const { dualAxis } = this
+        for (const { label, bars } of this.items) {
+            // Using transforms for positioning to enable better (subpixel) transitions
+            // Width transitions don't work well on iOS Safari – they get interrupted and
+            // it appears very slow. Also be careful with negative bar charts.
+            const tooltipProps = {
+                label,
+                bars,
+                targetTime: this.manager.endTime,
+                timeColumn: this.inputTable.timeColumn,
+                formatColumn: this.formatColumn,
+            }
+            const xOffset =
+                dualAxis.horizontalAxis.place(currentX) -
+                dualAxis.horizontalAxis.place(this.x0)
+
+            const result = (
+                <g
+                    key={label}
+                    className="bar"
+                    transform={`translate(${xOffset}, 0)`}
+                >
+                    {/* <TippyIfInteractive
+                        lazy
+                        isInteractive={!this.manager.isExportingtoSvgOrPng}
+                        hideOnClick={false}
+                        content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+                    >
+                        <text
+                            x={0}
+                            y={0}
+                            // TODO: rotate labels
+                            transform={`translate(${
+                                dualAxis.horizontalAxis.place(this.x0) -
+                                labelToBarPadding
+                            }, 0)`}
+                            fill="#000"
+                            dominantBaseline="middle"
+                            textAnchor="end"
+                            {...this.labelStyle}
+                        >
+                            {label}
+                        </text>
+                    </TippyIfInteractive> */}
+                    {bars.map((bar) =>
+                        this.renderBar(bar, {
+                            ...tooltipProps,
+                            highlightedSeriesName: bar.seriesName,
+                        })
+                    )}
+                </g>
+            )
+            results.push(result)
+            currentX += bars[0].xPoint.value
+        }
+        return results
     }
 
     private renderBar(bar: Bar, tooltipProps: TooltipProps) {
@@ -433,7 +440,7 @@ export class MarimekkoChart
         const barHeight =
             dualAxis.verticalAxis.place(this.y0) -
             dualAxis.verticalAxis.place(yPoint.value)
-        const barX = dualAxis.horizontalAxis.place(this.x0 + xPoint.valueOffset)
+        const barX = dualAxis.horizontalAxis.place(0)
         const barWidth =
             dualAxis.horizontalAxis.place(xPoint.value) -
             dualAxis.horizontalAxis.place(this.x0)
@@ -496,140 +503,139 @@ export class MarimekkoChart
     }
 
     private static Tooltip(props: TooltipProps) {
-        const hasTimeNotice = false
+        let hasTimeNotice = false
 
         return (
-            <div>Todo</div>
-            // <table
-            //     style={{
-            //         lineHeight: "1em",
-            //         whiteSpace: "normal",
-            //         borderSpacing: "0.5em",
-            //     }}
-            // >
-            //     <tbody>
-            //         <tr>
-            //             <td colSpan={4} style={{ color: "#111" }}>
-            //                 <strong>{props.label}</strong>
-            //             </td>
-            //         </tr>
-            //         {props.bars.map((bar) => {
-            //             const { highlightedSeriesName } = props
-            //             const squareColor = bar.color
-            //             const isHighlighted =
-            //                 bar.seriesName === highlightedSeriesName
-            //             const isFaint =
-            //                 highlightedSeriesName !== undefined &&
-            //                 !isHighlighted
-            //             const shouldShowTimeNotice =
-            //                 bar.point.value !== undefined &&
-            //                 bar.point.time !== props.targetTime
-            //             hasTimeNotice ||= shouldShowTimeNotice
+            <table
+                style={{
+                    lineHeight: "1em",
+                    whiteSpace: "normal",
+                    borderSpacing: "0.5em",
+                }}
+            >
+                <tbody>
+                    <tr>
+                        <td colSpan={4} style={{ color: "#111" }}>
+                            <strong>{props.label}</strong>
+                        </td>
+                    </tr>
+                    {props.bars.map((bar) => {
+                        const { highlightedSeriesName } = props
+                        const squareColor = bar.color
+                        const isHighlighted =
+                            bar.seriesName === highlightedSeriesName
+                        const isFaint =
+                            highlightedSeriesName !== undefined &&
+                            !isHighlighted
+                        const shouldShowTimeNotice =
+                            bar.yPoint.value !== undefined &&
+                            bar.yPoint.time !== props.targetTime
+                        hasTimeNotice ||= shouldShowTimeNotice
 
-            //             return (
-            //                 <tr
-            //                     key={`${bar.seriesName}`}
-            //                     style={{
-            //                         color: isHighlighted
-            //                             ? "#000"
-            //                             : isFaint
-            //                             ? "#707070"
-            //                             : "#444",
-            //                         fontWeight: isHighlighted
-            //                             ? "bold"
-            //                             : undefined,
-            //                     }}
-            //                 >
-            //                     <td>
-            //                         <div
-            //                             style={{
-            //                                 width: "10px",
-            //                                 height: "10px",
-            //                                 backgroundColor: squareColor,
-            //                                 display: "inline-block",
-            //                             }}
-            //                         />
-            //                     </td>
-            //                     <td
-            //                         style={{
-            //                             paddingRight: "0.8em",
-            //                             fontSize: "0.9em",
-            //                         }}
-            //                     >
-            //                         {bar.seriesName}
-            //                     </td>
-            //                     <td
-            //                         style={{
-            //                             textAlign: "right",
-            //                             whiteSpace: "nowrap",
-            //                         }}
-            //                     >
-            //                         {bar.point.value === undefined
-            //                             ? "No data"
-            //                             : props.formatColumn.formatValueShort(
-            //                                   bar.point.value,
-            //                                   {
-            //                                       noTrailingZeroes: false,
-            //                                   }
-            //                               )}
-            //                     </td>
-            //                     {shouldShowTimeNotice && (
-            //                         <td
-            //                             style={{
-            //                                 fontWeight: "normal",
-            //                                 color: "#707070",
-            //                                 fontSize: "0.8em",
-            //                                 whiteSpace: "nowrap",
-            //                                 paddingLeft: "8px",
-            //                             }}
-            //                         >
-            //                             <span className="icon">
-            //                                 <FontAwesomeIcon
-            //                                     icon={faInfoCircle}
-            //                                     style={{
-            //                                         marginRight: "0.25em",
-            //                                     }}
-            //                                 />{" "}
-            //                             </span>
-            //                             {props.timeColumn.formatValue(
-            //                                 bar.point.time
-            //                             )}
-            //                         </td>
-            //                     )}
-            //                 </tr>
-            //             )
-            //         })}
-            //         {hasTimeNotice && (
-            //             <tr>
-            //                 <td
-            //                     colSpan={4}
-            //                     style={{
-            //                         color: "#707070",
-            //                         fontSize: "0.8em",
-            //                         paddingTop: "10px",
-            //                     }}
-            //                 >
-            //                     <div style={{ display: "flex" }}>
-            //                         <span
-            //                             className="icon"
-            //                             style={{ marginRight: "0.5em" }}
-            //                         >
-            //                             <FontAwesomeIcon icon={faInfoCircle} />{" "}
-            //                         </span>
-            //                         <span>
-            //                             No data available for{" "}
-            //                             {props.timeColumn.formatValue(
-            //                                 props.targetTime
-            //                             )}
-            //                             . Showing closest available data point
-            //                             instead.
-            //                         </span>
-            //                     </div>
-            //                 </td>
-            //             </tr>
-            //         )}
-            //     </tbody>
-            // </table>
+                        return (
+                            <tr
+                                key={`${bar.seriesName}`}
+                                style={{
+                                    color: isHighlighted
+                                        ? "#000"
+                                        : isFaint
+                                        ? "#707070"
+                                        : "#444",
+                                    fontWeight: isHighlighted
+                                        ? "bold"
+                                        : undefined,
+                                }}
+                            >
+                                <td>
+                                    <div
+                                        style={{
+                                            width: "10px",
+                                            height: "10px",
+                                            backgroundColor: squareColor,
+                                            display: "inline-block",
+                                        }}
+                                    />
+                                </td>
+                                <td
+                                    style={{
+                                        paddingRight: "0.8em",
+                                        fontSize: "0.9em",
+                                    }}
+                                >
+                                    {bar.seriesName}
+                                </td>
+                                <td
+                                    style={{
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {bar.yPoint.value === undefined
+                                        ? "No data"
+                                        : props.formatColumn.formatValueShort(
+                                              bar.yPoint.value,
+                                              {
+                                                  noTrailingZeroes: false,
+                                              }
+                                          )}
+                                </td>
+                                {shouldShowTimeNotice && (
+                                    <td
+                                        style={{
+                                            fontWeight: "normal",
+                                            color: "#707070",
+                                            fontSize: "0.8em",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "8px",
+                                        }}
+                                    >
+                                        <span className="icon">
+                                            <FontAwesomeIcon
+                                                icon={faInfoCircle}
+                                                style={{
+                                                    marginRight: "0.25em",
+                                                }}
+                                            />{" "}
+                                        </span>
+                                        {props.timeColumn.formatValue(
+                                            bar.xPoint.time
+                                        )}
+                                    </td>
+                                )}
+                            </tr>
+                        )
+                    })}
+                    {hasTimeNotice && (
+                        <tr>
+                            <td
+                                colSpan={4}
+                                style={{
+                                    color: "#707070",
+                                    fontSize: "0.8em",
+                                    paddingTop: "10px",
+                                }}
+                            >
+                                <div style={{ display: "flex" }}>
+                                    <span
+                                        className="icon"
+                                        style={{ marginRight: "0.5em" }}
+                                    >
+                                        <FontAwesomeIcon icon={faInfoCircle} />{" "}
+                                    </span>
+                                    <span>
+                                        No data available for{" "}
+                                        {props.timeColumn.formatValue(
+                                            props.targetTime
+                                        )}
+                                        . Showing closest available data point
+                                        instead.
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
         )
     }
 
@@ -701,18 +707,15 @@ export class MarimekkoChart
         return stackSeries(this.unstackedSeries)
     }
 
-    @computed get xSeries(): StackedSeries<EntityName> {
+    @computed get xSeries(): SimpleChartSeries {
         const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
-            let offset = 0
-            const points: StackedPoint<EntityName>[] = []
+            const points: SimplePoint[] = []
             for (const row of rows) {
                 points.push({
                     time: row.time,
-                    position: row.entityName,
                     value: row.value,
-                    valueOffset: offset,
+                    entity: row.entityName,
                 })
-                offset += row.value
             }
             return points
         }
