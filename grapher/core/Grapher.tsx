@@ -49,7 +49,7 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
-    FacetYAxisMode,
+    FacetScaleMode,
 } from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -255,7 +255,6 @@ export class Grapher
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
-    @observable.ref facetYAxisMode: FacetYAxisMode = FacetYAxisMode.absolute
     @observable.ref entityType = "country"
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
@@ -547,6 +546,14 @@ export class Grapher
         return this.isOnMapTab
             ? new MapChart({ manager: this })
             : this.chartInstanceExceptMap
+    }
+
+    get facetYAxisMode(): FacetScaleMode {
+        return this.yAxis.facetScaleMode || FacetScaleMode.absolute
+    }
+
+    set facetYAxisMode(mode: FacetScaleMode) {
+        this.yAxis.facetScaleMode = mode
     }
 
     // When Map becomes a first-class chart instance, we should drop this
@@ -1449,8 +1456,8 @@ export class Grapher
         return this.stackMode === StackMode.relative
     }
 
-    @computed get isFacetYAxisRelative(): boolean {
-        return this.facetYAxisMode !== FacetYAxisMode.absolute
+    @computed get isFacetYAxisAbsolute(): boolean {
+        return this.facetYAxisMode === FacetScaleMode.absolute
     }
 
     @computed get canToggleRelativeMode(): boolean {

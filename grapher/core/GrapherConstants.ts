@@ -42,7 +42,7 @@ export enum FacetStrategy {
     column = "column", // One chart for each Y column
 }
 
-export enum FacetYAxisMode {
+export enum FacetScaleMode {
     relative = "relative", // all facets have their own y range
     absolute = "absolute", // all facets share the same y range
 }

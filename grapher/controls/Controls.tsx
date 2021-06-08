@@ -14,7 +14,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
-    FacetYAxisMode,
+    FacetScaleMode,
     GrapherTabOption,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
@@ -125,7 +125,7 @@ export class AbsRelToggle extends React.Component<{
 }
 
 export interface FacetYAxisToggleManager {
-    facetYAxisMode?: FacetYAxisMode
+    facetYAxisMode?: FacetScaleMode
 }
 
 @observer
@@ -134,14 +134,13 @@ export class FacetYAxisToggle extends React.Component<{
 }> {
     @action.bound onToggle(): void {
         this.props.manager.facetYAxisMode = this.isAbsoluteMode
-            ? FacetYAxisMode.relative
-            : FacetYAxisMode.absolute
+            ? FacetScaleMode.relative
+            : FacetScaleMode.absolute
     }
 
     @computed get isAbsoluteMode(): boolean {
-        return (
-            !this.props.manager.facetYAxisMode ||
-            this.props.manager.facetYAxisMode === FacetYAxisMode.absolute
+        return [FacetScaleMode.absolute, undefined].includes(
+            this.props.manager.facetYAxisMode
         )
     }
 
