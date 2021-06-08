@@ -370,9 +370,9 @@ export class MarimekkoChart
     }
 
     private renderBars() {
-        let currentX = 0
         const results: JSX.Element[] = []
-        const { dualAxis } = this
+        const { dualAxis, x0 } = this
+        let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         for (const { label, bars } of this.items) {
             // Using transforms for positioning to enable better (subpixel) transitions
             // Width transitions don't work well on iOS Safari – they get interrupted and
@@ -384,15 +384,12 @@ export class MarimekkoChart
                 timeColumn: this.inputTable.timeColumn,
                 formatColumn: this.formatColumn,
             }
-            const xOffset =
-                dualAxis.horizontalAxis.place(currentX) -
-                dualAxis.horizontalAxis.place(this.x0)
 
             const result = (
                 <g
                     key={label}
                     className="bar"
-                    transform={`translate(${xOffset}, 0)`}
+                    transform={`translate(${currentX}, 0)`}
                 >
                     {/* <TippyIfInteractive
                         lazy
@@ -425,13 +422,21 @@ export class MarimekkoChart
                 </g>
             )
             results.push(result)
-            currentX += bars[0].xPoint.value
+            currentX += Math.round(
+                dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
+                    dualAxis.horizontalAxis.place(x0)
+            )
         }
         return results
     }
 
+    // TODO: remove
+    private get roundX(): boolean {
+        return true
+    }
+
     private renderBar(bar: Bar, tooltipProps: TooltipProps) {
-        const { dualAxis, formatColumn, focusSeriesName } = this
+        const { dualAxis, formatColumn, focusSeriesName, roundX } = this
         const { xPoint, yPoint, color, seriesName } = bar
 
         const isFaint =
@@ -440,7 +445,7 @@ export class MarimekkoChart
         const barHeight =
             dualAxis.verticalAxis.place(this.y0) -
             dualAxis.verticalAxis.place(yPoint.value)
-        const barX = dualAxis.horizontalAxis.place(0)
+        const barX = 0
         const barWidth =
             dualAxis.horizontalAxis.place(xPoint.value) -
             dualAxis.horizontalAxis.place(this.x0)
@@ -461,6 +466,8 @@ export class MarimekkoChart
             labelBounds.height < 0.85 * barHeight
         const labelColor = isDarkColor(color) ? "#fff" : "#000"
 
+        const barWidthRounded = roundX ? Math.round(barWidth) : barWidth
+
         return (
             <TippyIfInteractive
                 lazy
@@ -473,10 +480,12 @@ export class MarimekkoChart
                     <rect
                         x={0}
                         y={0}
+                        shapeRendering="crispEdges"
                         transform={`translate(${barX}, ${barY - barHeight})`}
-                        width={barWidth}
+                        width={barWidthRounded}
                         height={barHeight}
                         fill={color}
+                        //stroke="#fff"
                         opacity={isFaint ? 0.1 : 0.85}
                         style={{
                             transition: "height 200ms ease",
