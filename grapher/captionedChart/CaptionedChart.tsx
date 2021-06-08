@@ -138,6 +138,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             .padBottom(OUTSIDE_PADDING)
     }
 
+    @computed get isFaceted(): boolean {
+        return !this.isMapTab && !!this.manager.facetStrategy
+    }
+
     renderChart(): JSX.Element {
         const { manager } = this
         const bounds = this.boundsForChart
@@ -151,7 +155,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
-        if (!this.isMapTab && manager.facetStrategy)
+        if (this.isFaceted)
             return (
                 <FacetChart
                     bounds={bounds}
@@ -244,7 +248,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
 
-        if (manager.showFacetYAxisToggle || true)
+        if (this.isFaceted && manager.showFacetYAxisToggle)
             controls.push(
                 <FacetYAxisToggle key="FacetYAxisToggle" manager={manager} />
             )

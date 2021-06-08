@@ -278,6 +278,7 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
+    @observable.ref showFacetYAxisToggle: boolean = true
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
