@@ -100,6 +100,17 @@ export interface DataValueConfiguration {
     template: string
 }
 
+export interface DataValueResult {
+    value: string
+    year?: string
+    unit?: string
+    entityName?: string
+}
+
+export interface DataValueProps extends DataValueResult {
+    template: string
+}
+
 export interface GitCommit {
     author_email: string
     author_name: string

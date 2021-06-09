@@ -3,7 +3,10 @@ import { Writable } from "stream"
 import * as db from "../db"
 import { LegacyVariableDisplayConfigInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 import { arrToCsvRow } from "../../clientUtils/Util"
-import { DataValueQueryArgs } from "../../clientUtils/owidTypes"
+import {
+    DataValueQueryArgs,
+    DataValueResult,
+} from "../../clientUtils/owidTypes"
 
 export namespace Variable {
     export interface Row {
@@ -187,7 +190,7 @@ export const getDataValue = async ({
     variableId,
     entityId,
     year,
-}: DataValueQueryArgs) => {
+}: DataValueQueryArgs): Promise<DataValueResult | undefined> => {
     if (!variableId || !entityId) return
 
     const queryStart = `
@@ -202,13 +205,13 @@ export const getDataValue = async ({
     let row
 
     if (year) {
-        row = await db.queryMysql(
+        row = await db.mysqlFirst(
             `${queryStart}
             AND data_values.year = ?`,
             [...queryStartVariables, year]
         )
     } else {
-        row = await db.queryMysql(
+        row = await db.mysqlFirst(
             `${queryStart}
             ORDER BY data_values.year DESC
             LIMIT 1`,
@@ -216,5 +219,5 @@ export const getDataValue = async ({
         )
     }
 
-    return row.length ? row[0] : {}
+    return row.length ? row[0] : undefined
 }

@@ -12,6 +12,7 @@ import * as path from "path"
 import { renderBlocks } from "../site/blocks"
 import { RelatedCharts } from "../site/blocks/RelatedCharts"
 import {
+    DataValueProps,
     FormattedPost,
     FormattingOptions,
     FullPost,
@@ -43,7 +44,6 @@ import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExp
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { getDataValue } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
-import { DataValueProps } from "../site/DataValue"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -157,9 +157,8 @@ export const formatWordpressPost = async (
         dataValueConfigurationString,
         dataValueConfiguration,
     ] of dataValuesConfigurationsMap) {
-        const { value, year, unit, entityName } = await getDataValue(
-            dataValueConfiguration.queryArgs
-        )
+        const { value, year, unit, entityName } =
+            (await getDataValue(dataValueConfiguration.queryArgs)) || {}
         const template = dataValueConfiguration.template
 
         if (!value)

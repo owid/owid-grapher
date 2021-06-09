@@ -1,14 +1,7 @@
 import React from "react"
+import { DataValueProps } from "../clientUtils/owidTypes"
 
 export const DATA_VALUE = "DataValue"
-
-export interface DataValueProps {
-    value: string
-    year?: string
-    unit?: string
-    entityName?: string
-    template: string
-}
 
 export const processTemplate = (props: DataValueProps) => {
     return props.template
