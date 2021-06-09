@@ -219,5 +219,5 @@ export const getDataValue = async ({
         )
     }
 
-    return row.length ? row[0] : undefined
+    return row
 }
