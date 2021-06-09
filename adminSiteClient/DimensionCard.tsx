@@ -199,16 +199,12 @@ export class DimensionCard extends React.Component<{
                             onBlur={this.updateTables}
                         />
                         {this.tableDisplaySettings}
-                        {(grapher.isScatter ||
-                            grapher.isDiscreteBar ||
-                            grapher.isLineChart) && (
-                            <BindAutoFloat
-                                field="tolerance"
-                                store={dimension.display}
-                                auto={column.tolerance}
-                                onBlur={this.updateTables}
-                            />
-                        )}
+                        <BindAutoFloat
+                            field="tolerance"
+                            store={dimension.display}
+                            auto={column.tolerance}
+                            onBlur={this.updateTables}
+                        />
                         {grapher.isLineChart && (
                             <Toggle
                                 label="Is projection"
