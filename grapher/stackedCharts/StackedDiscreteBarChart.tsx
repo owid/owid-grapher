@@ -402,8 +402,9 @@ export class StackedDiscreteBarChart
         const barLabel = formatColumn.formatValueShort(point.value, {
             numDecimalPlaces: Math.max(0, -magnitude + 2),
         })
+        const labelFontSize = 0.7 * this.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
-            fontSize: 0.7 * this.baseFontSize,
+            fontSize: labelFontSize,
         })
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
@@ -440,7 +441,7 @@ export class StackedDiscreteBarChart
                             height={barHeight}
                             fill={labelColor}
                             opacity={isFaint ? 0 : 1}
-                            fontSize="0.7em"
+                            fontSize={labelFontSize}
                             textAnchor="middle"
                             dominantBaseline="middle"
                         >

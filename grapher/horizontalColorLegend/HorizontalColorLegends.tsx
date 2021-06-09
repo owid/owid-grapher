@@ -421,8 +421,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         key={index}
                         x={this.legendX + label.bounds.x}
                         y={bottomY + label.bounds.y}
+                        // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                        // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                        // do with some rough positioning.
+                        dy=".75em"
                         fontSize={label.fontSize}
-                        dominantBaseline="hanging"
                     >
                         {label.text}
                     </text>
@@ -559,8 +562,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                         this.categoryLegendY +
                                         mark.label.bounds.y
                                     }
+                                    // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                                    // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                                    // do with some rough positioning.
+                                    dy=".75em"
                                     fontSize={mark.label.fontSize}
-                                    dominantBaseline="hanging"
                                 >
                                     {mark.label.text}
                                 </text>
