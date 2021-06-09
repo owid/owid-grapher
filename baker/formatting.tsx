@@ -59,7 +59,7 @@ export const extractDataValuesConfiguration = async (
     html: string
 ): Promise<Map<string, DataValueConfiguration>> => {
     const dataValueSeparator = /\s*\|\s*/
-    const dataValuesConfigurations = new Map()
+    const dataValuesConfigurations = new Map<string, DataValueConfiguration>()
 
     const dataValueMatches = html.matchAll(dataValueRegex)
     for (const match of dataValueMatches) {
