@@ -415,10 +415,14 @@ export class MarimekkoChart
                         </text>
                     </TippyIfInteractive> */}
                     {bars.map((bar) =>
-                        this.renderBar(bar, {
-                            ...tooltipProps,
-                            highlightedSeriesName: bar.seriesName,
-                        })
+                        this.renderBar(
+                            bar,
+                            {
+                                ...tooltipProps,
+                                highlightedSeriesName: bar.seriesName,
+                            },
+                            isEven
+                        )
                     )}
                 </g>
             )
@@ -437,7 +441,7 @@ export class MarimekkoChart
         return true
     }
 
-    private renderBar(bar: Bar, tooltipProps: TooltipProps) {
+    private renderBar(bar: Bar, tooltipProps: TooltipProps, isEven: boolean) {
         const {
             dualAxis,
             formatColumn,
@@ -494,9 +498,9 @@ export class MarimekkoChart
                         height={barHeight}
                         fill={color}
                         //stroke="#4979d0"
-                        opacity={isFaint ? 0.1 : 0.85}
+                        opacity={isFaint ? 0.1 : isEven ? 0.85 : 0.82}
                         style={{
-                            transition: "height 200ms ease",
+                            transition: "translate 200ms ease",
                         }}
                     />
                     {showLabelInsideBar && (
