@@ -320,7 +320,7 @@ class CSV {
         }
 
         // Check for duplicates
-        const uniqCheck: any = {}
+        const uniqCheck: Record<string, number> = {}
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i]
             const entity = row[0],
@@ -402,7 +402,7 @@ class ValidationView extends React.Component<{
 
         return (
             <section className="ValidationView">
-                {validation.results.map((v: any, index: number) => (
+                {validation.results.map((v, index: number) => (
                     <div key={index} className={`alert alert-${v.class}`}>
                         {v.message}
                     </div>
@@ -427,27 +427,29 @@ class CSVSelector extends React.Component<{
 
         const reader = new FileReader()
         reader.onload = (e) => {
-            const csv = (e as any).target.result
-            parse(
-                csv,
-                {
-                    relax_column_count: true,
-                    skip_empty_lines: true,
-                    rtrim: true,
-                },
-                (_, rows) => {
-                    // TODO error handling
-                    //console.log("Error?", err)
-                    if (rows[0][0].toLowerCase() === "year")
-                        rows = CSV.transformSingleLayout(rows, file.name)
-                    this.csv = new CSV({
-                        filename: file.name,
-                        rows,
-                        existingEntities,
-                    } as any)
-                    this.props.onCSV(this.csv as any)
-                }
-            )
+            const csv = e?.target?.result
+            if (csv && typeof csv === "string")
+                parse(
+                    csv,
+                    {
+                        relax_column_count: true,
+                        skip_empty_lines: true,
+                        rtrim: true,
+                    },
+                    (_, rows) => {
+                        // TODO error handling
+                        //console.log("Error?", err)
+                        if (rows[0][0].toLowerCase() === "year")
+                            rows = CSV.transformSingleLayout(rows, file.name)
+                        this.csv = new CSV({
+                            filename: file.name,
+                            rows,
+                            existingEntities,
+                        } as any)
+                        this.props.onCSV(this.csv as any)
+                    }
+                )
+            else console.error("CSV was falsy")
         }
         reader.readAsText(file)
     }
@@ -539,8 +541,7 @@ class Importer extends React.Component<ImportPageData> {
                 )[0]
                 if (match) {
                     Object.keys(match).forEach((key) => {
-                        if (key === "id")
-                            variable.overwriteId = (match as any)[key]
+                        if (key === "id") variable.overwriteId = match[key]
                         else (variable as any)[key] = (match as any)[key]
                     })
                 }

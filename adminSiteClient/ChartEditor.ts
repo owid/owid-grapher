@@ -153,9 +153,9 @@ export class ChartEditor {
         )
     }
 
-    async saveGrapher({
-        onError,
-    }: { onError?: () => void } = {}): Promise<void> {
+    async saveGrapher({ onError }: { onError?: () => void } = {}): Promise<
+        void
+    > {
         const { grapher, isNewGrapher } = this
         const currentGrapherObject = {
             ...this.grapher.object,

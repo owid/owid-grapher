@@ -56,7 +56,7 @@ function showChartType(chart: ChartListItem) {
 @observer
 class ChartRow extends React.Component<{
     chart: ChartListItem
-    searchHighlight?: (text: string) => any
+    searchHighlight?: (text: string) => string | JSX.Element
     availableTags: Tag[]
     onDelete: (chart: ChartListItem) => void
     onStar: (chart: ChartListItem) => void
@@ -162,7 +162,7 @@ class ChartRow extends React.Component<{
 @observer
 export class ChartList extends React.Component<{
     charts: ChartListItem[]
-    searchHighlight?: (text: string) => any
+    searchHighlight?: (text: string) => string | JSX.Element
     onDelete?: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext

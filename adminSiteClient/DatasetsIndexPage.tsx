@@ -53,7 +53,7 @@ export class DatasetsIndexPage extends React.Component {
                 limit: 50,
                 key: "term",
             })
-            return lodash.uniq(results.map((result: any) => result.obj.dataset))
+            return lodash.uniq(results.map((result) => result.obj.dataset))
         } else {
             return this.datasets.slice(0, maxVisibleRows)
         }

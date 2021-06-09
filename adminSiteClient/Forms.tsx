@@ -367,7 +367,9 @@ interface NumericSelectFieldProps {
     helpText?: string
 }
 
-export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
+export class NumericSelectField extends React.Component<
+    NumericSelectFieldProps
+> {
     render() {
         const props = {
             ...this.props,
@@ -399,7 +401,7 @@ export class Toggle extends React.Component<ToggleProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ["title", "disabled"]) as any
+        const passthroughProps = pick(props, ["label", "disabled"])
 
         return (
             <div className="form-check">

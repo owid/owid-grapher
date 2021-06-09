@@ -17,7 +17,7 @@ import {
 export class AdminLayout extends React.Component<{
     noSidebar?: boolean
     title?: string
-    children: any
+    children: React.ReactNode
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType

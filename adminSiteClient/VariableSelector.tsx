@@ -109,7 +109,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                 key: "searchKey",
             })
         return results && results.length
-            ? results.map((result: any) => result.obj)
+            ? results.map((result) => result.obj)
             : this.availableVariables
     }
 
