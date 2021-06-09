@@ -290,7 +290,7 @@ export class MarimekkoChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.baseFontSize
+        return 0
     }
 
     @computed get legendX(): number {
@@ -298,7 +298,7 @@ export class MarimekkoChart
     }
 
     @computed get categoryLegendY(): number {
-        return this.bounds.top
+        return 0
     }
 
     @computed get legendWidth(): number {
@@ -373,6 +373,7 @@ export class MarimekkoChart
         const results: JSX.Element[] = []
         const { dualAxis, x0 } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
+        let isEven = true
         for (const { label, bars } of this.items) {
             // Using transforms for positioning to enable better (subpixel) transitions
             // Width transitions don't work well on iOS Safari – they get interrupted and
@@ -426,6 +427,7 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
                     dualAxis.horizontalAxis.place(x0)
             )
+            isEven = !isEven
         }
         return results
     }
@@ -436,7 +438,13 @@ export class MarimekkoChart
     }
 
     private renderBar(bar: Bar, tooltipProps: TooltipProps) {
-        const { dualAxis, formatColumn, focusSeriesName, roundX } = this
+        const {
+            dualAxis,
+            formatColumn,
+            focusSeriesName,
+            roundX,
+            fontSize,
+        } = this
         const { xPoint, yPoint, color, seriesName } = bar
 
         const isFaint =
@@ -454,19 +462,19 @@ export class MarimekkoChart
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
         // is big enough already.
         const dp = Math.ceil(-Math.log10(yPoint.value) + 1)
-        const barLabel = formatColumn.formatValueShort(yPoint.value, {
-            numDecimalPlaces: isFinite(dp) && dp >= 0 ? dp : 0,
-        })
+        const barLabel = tooltipProps.label
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: 0.7 * this.baseFontSize,
         })
         // Check that we have enough space to show the bar label
         const showLabelInsideBar =
-            labelBounds.width < 0.85 * barWidth &&
-            labelBounds.height < 0.85 * barHeight
+            labelBounds.height < 0.85 * barWidth &&
+            labelBounds.width < 0.85 * barHeight
         const labelColor = isDarkColor(color) ? "#fff" : "#000"
 
         const barWidthRounded = roundX ? Math.round(barWidth) : barWidth
+        const labelX = barX + barWidth / 2
+        const labelY = barY - labelBounds.width / 2 - fontSize
 
         return (
             <TippyIfInteractive
@@ -485,7 +493,7 @@ export class MarimekkoChart
                         width={barWidthRounded}
                         height={barHeight}
                         fill={color}
-                        //stroke="#fff"
+                        //stroke="#4979d0"
                         opacity={isFaint ? 0.1 : 0.85}
                         style={{
                             transition: "height 200ms ease",
@@ -493,11 +501,12 @@ export class MarimekkoChart
                     />
                     {showLabelInsideBar && (
                         <text
-                            x={barX + barWidth / 2}
+                            x={0}
                             y={0}
                             width={barWidth}
                             height={barHeight}
                             fill={labelColor}
+                            transform={`rotate(-90, ${labelX}, ${labelY}) translate(${labelX}, ${labelY})`}
                             opacity={isFaint ? 0 : 1}
                             fontSize="0.7em"
                             textAnchor="middle"
