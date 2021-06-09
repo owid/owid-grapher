@@ -54,7 +54,7 @@ export const AnnotatingDataValue = ({
     )
 }
 
-export function runAnnotatingDataValue(
+export function hydrateAnnotatingDataValue(
     grapherInstance: Grapher,
     figure: Element
 ) {

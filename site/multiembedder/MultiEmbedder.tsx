@@ -27,7 +27,7 @@ import {
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
 import { action } from "mobx"
 import { Annotation } from "../../clientUtils/owidTypes"
-import { runAnnotatingDataValue } from "../AnnotatingDataValue"
+import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,
@@ -55,7 +55,6 @@ class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
     selection: SelectionArray = new SelectionArray()
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
-    grapherInstances: Map<Element, Grapher> = new Map()
 
     constructor() {
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
@@ -178,7 +177,7 @@ class MultiEmbedder {
                 figure
             )
             if (!grapherInstance) return
-            runAnnotatingDataValue(grapherInstance, figure)
+            hydrateAnnotatingDataValue(grapherInstance, figure)
         }
     }
 
