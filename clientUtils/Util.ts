@@ -109,8 +109,6 @@ import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { string } from "prop-types"
 
-export type VNode = any
-
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
 }
