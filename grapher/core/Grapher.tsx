@@ -162,6 +162,7 @@ import {
 } from "../../settings/clientSettings"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
+import { Annotation } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 
@@ -295,6 +296,7 @@ export class Grapher
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    @observable.ref annotation?: Annotation = undefined
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
@@ -359,7 +361,7 @@ export class Grapher
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
 
-        if (getGrapherInstance) getGrapherInstance(this)
+        if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
 
         this.checkVisibility = throttle(this.checkVisibility, 400)
     }
@@ -1464,13 +1466,17 @@ export class Grapher
     static renderGrapherIntoContainer(
         config: GrapherProgrammaticInterface,
         containerNode: Element
-    ): void {
+    ): Grapher | null {
+        const grapherInstanceRef = React.createRef<Grapher>()
         const setBoundsFromContainerAndRender = (): void => {
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            ReactDOM.render(<Grapher {...props} />, containerNode)
+            ReactDOM.render(
+                <Grapher ref={grapherInstanceRef} {...props} />,
+                containerNode
+            )
         }
 
         setBoundsFromContainerAndRender()
@@ -1478,6 +1484,7 @@ export class Grapher
             "resize",
             throttle(setBoundsFromContainerAndRender, 400)
         )
+        return grapherInstanceRef.current
     }
 
     static renderSingleGrapherOnGrapherPage(
@@ -1908,6 +1915,22 @@ export class Grapher
                 )}
             </div>
         )
+    }
+
+    @action.bound
+    resetAnnotation(): void {
+        this.renderAnnotation(undefined)
+    }
+
+    @action.bound
+    renderAnnotation(annotation: Annotation | undefined): void {
+        this.setAuthoredVersion(this.props)
+        this.reset()
+        this.updateFromObject({ ...this.props })
+        this.populateFromQueryParams(
+            legacyToCurrentGrapherQueryParams(this.props.queryStr ?? "")
+        )
+        this.annotation = annotation
     }
 
     render(): JSX.Element | undefined {

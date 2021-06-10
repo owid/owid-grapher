@@ -1,0 +1,8 @@
+.annotating-data-value {
+    .interactive {
+        @include expandable-block-button;
+    }
+    svg {
+        margin-left: 0.5rem;
+    }
+}

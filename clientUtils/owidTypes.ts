@@ -82,7 +82,33 @@ export interface FormattingOptions {
     subnavCurrentId?: string
     raw?: boolean
     hideDonateFooter?: boolean
+    footnotes?: boolean
+}
+
+export interface KeyValueProps {
     [key: string]: string | boolean | undefined
+}
+
+export interface DataValueQueryArgs {
+    variableId?: number
+    entityId?: number
+    year?: number
+}
+
+export interface DataValueConfiguration {
+    queryArgs: DataValueQueryArgs
+    template: string
+}
+
+export interface DataValueResult {
+    value: string
+    year?: string
+    unit?: string
+    entityName?: string
+}
+
+export interface DataValueProps extends DataValueResult {
+    template: string
 }
 
 export interface GitCommit {
@@ -216,4 +242,9 @@ export interface DeployChange {
 export interface Deploy {
     status: DeployStatus
     changes: DeployChange[]
+}
+
+export interface Annotation {
+    entityName?: string
+    year?: number
 }

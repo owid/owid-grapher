@@ -277,9 +277,14 @@ export class LineChart
         return table
     }
 
-    @observable hoverX?: number
+    // todo: rename mouseHoverX -> hoverX and hoverX -> activeX
+    @observable mouseHoverX?: number = undefined
     @action.bound onHover(hoverX: number | undefined): void {
-        this.hoverX = hoverX
+        this.mouseHoverX = hoverX
+    }
+
+    @computed get hoverX() {
+        return this.mouseHoverX ?? this.props.manager.annotation?.year
     }
 
     @computed private get manager(): LineChartManager {
@@ -453,7 +458,11 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
+        const entityName =
+            this.props.manager.annotation?.entityName ??
+            this.hoveredSeriesName ??
+            undefined
+        return entityName ? [entityName] : []
     }
 
     @computed get isFocusMode(): boolean {

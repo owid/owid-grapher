@@ -3,6 +3,10 @@ import { Writable } from "stream"
 import * as db from "../db"
 import { LegacyVariableDisplayConfigInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 import { arrToCsvRow } from "../../clientUtils/Util"
+import {
+    DataValueQueryArgs,
+    DataValueResult,
+} from "../../clientUtils/owidTypes"
 
 export namespace Variable {
     export interface Row {
@@ -181,4 +185,40 @@ export async function writeVariableCSV(
         }
         row[variableColumnIndex[datum.variableId]] = datum.value
     }
+}
+
+export const getDataValue = async ({
+    variableId,
+    entityId,
+    year,
+}: DataValueQueryArgs): Promise<DataValueResult | undefined> => {
+    if (!variableId || !entityId) return
+
+    const queryStart = `
+        SELECT value, year, variables.unit as unit, entities.name as entityName FROM data_values
+        JOIN entities on entities.id = data_values.entityId
+        JOIN variables on variables.id = data_values.variableId
+        WHERE entities.id = ?
+        AND variables.id= ?`
+
+    const queryStartVariables = [entityId, variableId]
+
+    let row
+
+    if (year) {
+        row = await db.mysqlFirst(
+            `${queryStart}
+            AND data_values.year = ?`,
+            [...queryStartVariables, year]
+        )
+    } else {
+        row = await db.mysqlFirst(
+            `${queryStart}
+            ORDER BY data_values.year DESC
+            LIMIT 1`,
+            queryStartVariables
+        )
+    }
+
+    return row
 }
