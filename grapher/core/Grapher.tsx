@@ -20,7 +20,6 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
     isVisible,
-    VNode,
     throttle,
     next,
     sampleFrom,
@@ -1593,7 +1592,7 @@ export class Grapher
             : bounds.padBottom(this.footerControlsHeight)
     }
 
-    @observable.ref private popups: VNode[] = []
+    @observable.ref private popups: JSX.Element[] = []
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -1613,11 +1612,11 @@ export class Grapher
     }
 
     // todo: clean up this popup stuff
-    addPopup(vnode: VNode): void {
+    addPopup(vnode: JSX.Element): void {
         this.popups = this.popups.concat([vnode])
     }
 
-    removePopup(vnodeType: any): void {
+    removePopup(vnodeType: JSX.Element): void {
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
