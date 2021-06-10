@@ -8,7 +8,6 @@ import {
     sortBy,
     max,
     flatten,
-    SVGElement,
     getRelativeMouse,
     domainExtent,
     minBy,
@@ -514,7 +513,7 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
 
 @observer
 class Slope extends React.Component<SlopeProps> {
-    line: SVGElement
+    line: SVGElement | null = null
 
     @computed get isInBackground() {
         const { isLayerMode, isHovered, isFocused } = this.props
@@ -635,7 +634,6 @@ class Slope extends React.Component<SlopeProps> {
 @observer
 class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
-    svg: SVGElement
 
     @computed private get data() {
         return this.props.seriesArr
@@ -960,37 +958,47 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @action.bound onMouseMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
     ) {
-        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
-
-        this.mouseFrame = requestAnimationFrame(() => {
-            if (this.props.bounds.contains(mouse)) {
-                const distToSlope = new Map<SlopeProps, number>()
-                for (const s of this.slopeData) {
-                    const dist =
-                        Math.abs(
-                            (s.y2 - s.y1) * mouse.x -
-                                (s.x2 - s.x1) * mouse.y +
-                                s.x2 * s.y1 -
-                                s.y2 * s.x1
-                        ) / Math.sqrt((s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2)
-                    distToSlope.set(s, dist)
-                }
-
-                const closestSlope = minBy(this.slopeData, (s) =>
-                    distToSlope.get(s)
+        if (this.base.current) {
+            if (this.base.current) {
+                const mouse = getRelativeMouse(
+                    this.base.current,
+                    ev.nativeEvent
                 )
 
-                if (
-                    closestSlope &&
-                    (distToSlope.get(closestSlope) as number) < 20 &&
-                    this.props.onMouseOver
-                ) {
-                    this.props.onMouseOver(closestSlope)
-                } else {
-                    this.props.onMouseLeave()
-                }
+                this.mouseFrame = requestAnimationFrame(() => {
+                    if (this.props.bounds.contains(mouse)) {
+                        const distToSlope = new Map<SlopeProps, number>()
+                        for (const s of this.slopeData) {
+                            const dist =
+                                Math.abs(
+                                    (s.y2 - s.y1) * mouse.x -
+                                        (s.x2 - s.x1) * mouse.y +
+                                        s.x2 * s.y1 -
+                                        s.y2 * s.x1
+                                ) /
+                                Math.sqrt(
+                                    (s.y2 - s.y1) ** 2 + (s.x2 - s.x1) ** 2
+                                )
+                            distToSlope.set(s, dist)
+                        }
+
+                        const closestSlope = minBy(this.slopeData, (s) =>
+                            distToSlope.get(s)
+                        )
+
+                        if (
+                            closestSlope &&
+                            (distToSlope.get(closestSlope) as number) < 20 &&
+                            this.props.onMouseOver
+                        ) {
+                            this.props.onMouseOver(closestSlope)
+                        } else {
+                            this.props.onMouseLeave()
+                        }
+                    }
+                })
             }
-        })
+        }
     }
 
     @action.bound onClick() {

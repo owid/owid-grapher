@@ -43,8 +43,9 @@ export class TimelineComponent extends React.Component<{
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
 
-    private getInputTimeFromMouse(event: MouseEvent): number {
+    private getInputTimeFromMouse(event: MouseEvent): number | undefined {
         const { minTime, maxTime } = this.controller
+        if (!this.slider) return
         const mouseX = getRelativeMouse(this.slider, event).x
 
         const fracWidth = mouseX / this.sliderBounds.width
@@ -99,6 +100,8 @@ export class TimelineComponent extends React.Component<{
 
         const inputTime = this.getInputTimeFromMouse(event)
 
+        if (!inputTime) return
+
         this.dragTarget = this.getDragTarget(
             inputTime,
             targetEl.classed("startMarker"),
@@ -118,7 +121,7 @@ export class TimelineComponent extends React.Component<{
         if (this.queuedDrag) return
 
         this.queuedDrag = true
-        this.onDrag(this.getInputTimeFromMouse(event as any))
+        this.onDrag(this.getInputTimeFromMouse(event as any)!)
         this.queuedDrag = false
     }
 

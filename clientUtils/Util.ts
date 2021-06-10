@@ -107,8 +107,8 @@ import linkifyHtml from "linkifyjs/html"
 import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
+import { string } from "prop-types"
 
-export type SVGElement = any
 export type VNode = any
 
 export type NoUndefinedValues<T> = {
@@ -125,10 +125,10 @@ export const d3Format = formatLocale({
     grouping: [3],
     minus: "-",
     currency: ["$", ""],
-} as any).format
+}).format
 
 export const getRelativeMouse = (
-    node: SVGElement,
+    node: Element,
     event: TouchEvent | { clientX: number; clientY: number }
 ): PointVector => {
     const isTouchEvent = !!(event as TouchEvent).targetTouches
@@ -137,15 +137,16 @@ export const getRelativeMouse = (
         : (event as MouseEvent)
 
     const { clientX, clientY } = eventOwner
-    const svg = node.ownerSVGElement || node
 
-    if (svg.createSVGPoint) {
-        const svgPoint = svg.createSVGPoint()
-        svgPoint.x = clientX
-        svgPoint.y = clientY
-        const point = svgPoint.matrixTransform(node.getScreenCTM().inverse())
-        return new PointVector(point.x, point.y)
-    }
+    // TODO: this does not typecheck anymore now that SVGElement is not redifined as any?
+    // const svg = node.ownerSVGElement || node
+    // if (svg.createSVGPoint) {
+    //     const svgPoint = svg.createSVGPoint()
+    //     svgPoint.x = clientX
+    //     svgPoint.y = clientY
+    //     const point = svgPoint.matrixTransform(node.getScreenCTM().inverse())
+    //     return new PointVector(point.x, point.y)
+    // }
 
     const rect = node.getBoundingClientRect()
     return new PointVector(
@@ -234,14 +235,15 @@ export const lastOfNonEmptyArray = <T>(arr: T[]): T => {
     return last(arr) as T
 }
 
-interface ObjectLiteral {
-    [key: string]: any
-}
-export const mapToObjectLiteral = (map: Map<string, any>): ObjectLiteral =>
-    Array.from(map).reduce((objLit, [key, value]) => {
-        objLit[key.toString()] = value
+export const mapToObjectLiteral = <K>(
+    map: Map<string, K>
+): Record<string, K> => {
+    const init: Record<string, K> = {}
+    return Array.from(map).reduce((objLit, [key, value]) => {
+        objLit[key] = value
         return objLit
-    }, {} as ObjectLiteral)
+    }, init)
+}
 
 export function next<T>(set: T[], current: T): T {
     let nextIndex = set.indexOf(current) + 1
@@ -440,9 +442,11 @@ export interface Json {
 }
 
 // Escape a function for storage in a csv cell
-export const csvEscape = (value: any): any => {
+export const csvEscape = (value: unknown): string => {
     const valueStr = toString(value)
-    return valueStr.includes(",") ? `"${value.replace(/\"/g, '""')}"` : value
+    return valueStr.includes(",")
+        ? `"${valueStr.replace(/\"/g, '""')}"`
+        : valueStr
 }
 
 export const arrToCsvRow = (arr: string[]): string =>
@@ -778,7 +782,7 @@ export function keyMap<Key, Value>(
 
 export const linkify = (str: string): string => linkifyHtml(str)
 
-export const oneOf = <T>(value: any, options: T[], defaultOption: T): T => {
+export const oneOf = <T>(value: unknown, options: T[], defaultOption: T): T => {
     for (const option of options) {
         if (value === option) return option
     }
@@ -814,7 +818,7 @@ export function sortByUndefinedLast<T>(
     array: T[],
     accessor: (t: T) => string | number | undefined,
     order: SortOrder = SortOrder.asc
-): any {
+): T[] {
     const sorted = sortBy(array, (value) => {
         const mapped = accessor(value)
         if (mapped === undefined) {
@@ -876,8 +880,8 @@ export const mapBy = <T, K, V>(
 
 // Adapted from lodash baseFindIndex which is ~2x as fast as the wrapped findIndex
 export const findIndexFast = (
-    array: any[],
-    predicate: (value: any, index: number) => boolean,
+    array: unknown[],
+    predicate: (value: unknown, index: number) => boolean,
     fromIndex = 0,
     toIndex = array.length
 ): number => {
@@ -1002,8 +1006,8 @@ export const isInIFrame = (): boolean => {
 }
 
 export const differenceObj = <
-    A extends Record<string, any>,
-    B extends Record<string, any>
+    A extends Record<string, unknown>,
+    B extends Record<string, unknown>
 >(
     obj: A,
     defaultObj: B
