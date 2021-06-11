@@ -46,7 +46,7 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { Flipper, Flipped } from "react-flip-toolkit"
-import { prefersReducedMotion } from "../../clientUtils/BrowserUtil"
+import { isSafari, prefersReducedMotion } from "../../clientUtils/BrowserUtil"
 
 const labelToBarPadding = 5
 
@@ -305,7 +305,9 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
-        const shouldAnimate = !prefersReducedMotion()
+        // Animation don't work correctly on Safari at the moment - see https://github.com/aholachek/react-flip-toolkit/issues/159
+        // a stopgap, they are currently disabled on Safari until we find a better solution
+        const shouldAnimate = !prefersReducedMotion() && !isSafari
 
         let yOffset = innerBounds.top + barHeight / 2
 
