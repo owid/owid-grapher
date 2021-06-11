@@ -658,6 +658,68 @@ apiRouter.get(
     }
 )
 
+apiRouter.get(
+    "/suggested-chart-revisions/:suggestedChartRevisionId",
+    async (req: Request, res: Response) => {
+        const suggestedChartRevisionId = expectInt(
+            req.params.suggestedChartRevisionId
+        )
+
+        const suggestedChartRevision = await db.mysqlFirst(
+            `
+            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt, 
+                scr.suggestedReason, scr.decisionReason, scr.status, 
+                scr.suggestedConfig, scr.originalConfig, 
+                createdByUser.id as createdById,
+                updatedByUser.id as updatedById,
+                createdByUser.fullName as createdByFullName,
+                updatedByUser.fullName as updatedByFullName,
+                c.config as existingConfig, c.updatedAt as chartUpdatedAt, 
+                c.createdAt as chartCreatedAt
+            FROM suggested_chart_revisions as scr
+            LEFT JOIN charts c on c.id = scr.chartId
+            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
+            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
+            WHERE scr.id = ?
+        `,
+            [suggestedChartRevisionId]
+        )
+
+        if (!suggestedChartRevision) {
+            throw new JsonError(
+                `No suggested chart revision by id '${suggestedChartRevisionId}'`,
+                404
+            )
+        }
+
+        suggestedChartRevision.suggestedConfig = JSON.parse(
+            suggestedChartRevision.suggestedConfig
+        )
+        suggestedChartRevision.originalConfig = JSON.parse(
+            suggestedChartRevision.originalConfig
+        )
+        suggestedChartRevision.existingConfig = JSON.parse(
+            suggestedChartRevision.existingConfig
+        )
+        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+            suggestedChartRevision
+        )
+        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+            suggestedChartRevision
+        )
+        suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
+            suggestedChartRevision
+        )
+        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+            suggestedChartRevision
+        )
+
+        return {
+            suggestedChartRevision: suggestedChartRevision,
+        }
+    }
+)
+
 apiRouter.post(
     "/suggested-chart-revisions/:suggestedChartRevisionId/update",
     async (req: Request, res: Response) => {
@@ -670,12 +732,12 @@ apiRouter.post(
         }
 
         await db.transaction(async (t) => {
-        const suggestedChartRevision = await db.mysqlFirst(
+            const suggestedChartRevision = await db.mysqlFirst(
                 `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
                 [suggestedChartRevisionId]
-        )
-        if (!suggestedChartRevision) {
-            throw new JsonError(
+            )
+            if (!suggestedChartRevision) {
+                throw new JsonError(
                     `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
                     404
                 )
@@ -713,9 +775,9 @@ apiRouter.post(
                 throw new JsonError(
                     `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
                         `updated with status="${status}".`,
-                404
-            )
-        }
+                    404
+                )
+            }
 
             await t.execute(
                 `
