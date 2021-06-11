@@ -101,10 +101,10 @@ export interface DataValueConfiguration {
 }
 
 export interface DataValueResult {
-    value: string
-    year?: string
+    value: number
+    year: number
     unit?: string
-    entityName?: string
+    entityName: string
 }
 
 export interface DataValueProps extends DataValueResult {

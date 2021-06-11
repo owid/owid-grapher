@@ -220,5 +220,10 @@ export const getDataValue = async ({
         )
     }
 
-    return row
+    return {
+        value: Number(row.value),
+        year: Number(row.year),
+        unit: row.unit,
+        entityName: row.entityName,
+    }
 }
