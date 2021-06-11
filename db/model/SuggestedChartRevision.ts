@@ -1,33 +1,30 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    BaseEntity,
-    ManyToOne,
-} from "typeorm"
-import { User } from "./User"
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
-enum SuggestedChartRevisionStatus {
-    pending,
-    approved,
-    rejected,
+export enum SuggestedChartRevisionStatus {
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected",
+    flagged = "flagged",
 }
 
 @Entity("suggested_chart_revisions")
 export class SuggestedChartRevision extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() chartId!: number
-    @Column({ type: "json" }) config: any
-    @Column() userId!: number
-    @Column({ default: "pending" }) status!: SuggestedChartRevisionStatus
-    @Column({ default: "" }) createdReason!: string
-    @Column({ default: "" }) decisionReason!: string
+    @Column({ type: "json" }) suggestedConfig: any
+    @Column({ type: "json" }) originalConfig: any
+    @Column() createdBy!: number
+    @Column() updatedBy!: number
 
+    @Column({ type: "enum", default: SuggestedChartRevisionStatus.pending })
+    status!: SuggestedChartRevisionStatus
+
+    @Column({ default: "" }) suggestedReason!: string
+    @Column({ default: "" }) decisionReason!: string
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
 
-    @ManyToOne(() => User, (user) => user.suggestedChartRevisions)
-    user!: User
+    existingConfig?: any
 
     suggestedConfig: any
     existingConfig: any

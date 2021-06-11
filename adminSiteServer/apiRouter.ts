@@ -551,18 +551,22 @@ apiRouter.get(
             ? req.query.status
             : null
 
-        const suggestedRevisions = await db.queryMysql(
+        const suggestedChartRevisions = await db.queryMysql(
             `
-            SELECT cr.id, cr.chartId, cr.userId, cr.updatedAt, cr.createdAt, 
-                cr.createdReason, cr.decisionReason, cr.status, 
-                cr.config as suggestedConfig, u.fullName as user,
+            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt, 
+                scr.suggestedReason, scr.decisionReason, scr.status, 
+                scr.suggestedConfig, scr.originalConfig, 
+                createdByUser.id as createdById,
+                updatedByUser.id as updatedById,
+                createdByUser.fullName as createdByFullName,
+                updatedByUser.fullName as updatedByFullName,
                 c.config as existingConfig, c.updatedAt as chartUpdatedAt, 
                 c.createdAt as chartCreatedAt
-            FROM suggested_chart_revisions as cr
-            LEFT JOIN charts c on c.id = cr.chartId
-            LEFT JOIN users u on u.id = cr.userId
-            ${status ? "WHERE cr.status = ?" : ""}
-            ORDER BY cr.updatedAt DESC
+            FROM suggested_chart_revisions as scr
+            LEFT JOIN charts c on c.id = scr.chartId
+            LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
+            LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
+            ${status ? "WHERE scr.status = ?" : ""}
             LIMIT ? OFFSET ?
         `,
             status ? [status, limit, offset] : [limit, offset]
@@ -580,18 +584,20 @@ apiRouter.get(
         )[0].count
         numTotalRows = numTotalRows ? parseInt(numTotalRows) : numTotalRows
 
-        // await Chart.assignTagsForCharts(suggestedRevisions)
-
-        suggestedRevisions.map((suggestedRevision: SuggestedChartRevision) => {
-            suggestedRevision.suggestedConfig = JSON.parse(
-                suggestedRevision.suggestedConfig
-            )
-            suggestedRevision.existingConfig = JSON.parse(
-                suggestedRevision.existingConfig
-            )
+        suggestedChartRevisions.map(
+            (suggestedChartRevision: SuggestedChartRevision) => {
+                suggestedChartRevision.suggestedConfig = JSON.parse(
+                    suggestedChartRevision.suggestedConfig
+                )
+                suggestedChartRevision.existingConfig = JSON.parse(
+                    suggestedChartRevision.existingConfig
+                )
+                suggestedChartRevision.originalConfig = JSON.parse(
+                    suggestedChartRevision.originalConfig
+                )
         })
         return {
-            suggestedRevisions: suggestedRevisions,
+            suggestedChartRevisions: suggestedChartRevisions,
             numTotalRows: numTotalRows,
         }
     }
@@ -606,29 +612,60 @@ apiRouter.post(
             decisionReason: string
         }
 
+        await db.transaction(async (t) => {
         const suggestedChartRevision = await db.mysqlFirst(
-            `SELECT id, chartId, config FROM suggested_chart_revisions WHERE id=?`,
-            [id]
+                `SELECT id, chartId, suggestedConfig, originalConfig, status FROM suggested_chart_revisions WHERE id=?`,
+                [suggestedChartRevisionId]
         )
         if (!suggestedChartRevision) {
             throw new JsonError(
-                `No suggested chart revision by id '${id}'`,
+                    `No suggested chart revision found for id '${suggestedChartRevisionId}'`,
+                    404
+                )
+            }
+
+            suggestedChartRevision.suggestedConfig = JSON.parse(
+                suggestedChartRevision.suggestedConfig
+            )
+            suggestedChartRevision.originalConfig = JSON.parse(
+                suggestedChartRevision.originalConfig
+            )
+            suggestedChartRevision.existingConfig = await expectChartById(
+                suggestedChartRevision.chartId
+            )
                 404
             )
         }
 
-        await db.transaction(async (t) => {
             await t.execute(
-                `UPDATE suggested_chart_revisions SET status=?, decisionReason=?, updatedAt=? WHERE id = ?`,
-                [status, decisionReason, new Date(), id]
+                `
+                UPDATE suggested_chart_revisions 
+                SET status=?, decisionReason=?, updatedAt=?, updatedBy=? 
+                WHERE id = ?
+                `,
+                [
+                    status,
+                    decisionReason,
+                    new Date(),
+                    res.locals.user.id,
+                    suggestedChartRevisionId,
+                ]
             )
             if (status === "approved") {
-                const newConfig = JSON.parse(suggestedChartRevision.config)
-                // const existingConfig = JSON.parse(chart.config)
-                const existingConfig = await expectChartById(
-                    suggestedChartRevision.chartId
+                await saveGrapher(
+                    res.locals.user,
+                    suggestedChartRevision.suggestedConfig,
+                    suggestedChartRevision.existingConfig
                 )
-                await saveGrapher(res.locals.user, newConfig, existingConfig)
+            } else if (
+                status === "rejected" &&
+                suggestedChartRevision.status === "approved"
+            ) {
+                await saveGrapher(
+                    res.locals.user,
+                    suggestedChartRevision.originalConfig,
+                    suggestedChartRevision.existingConfig
+                )
             }
         })
 

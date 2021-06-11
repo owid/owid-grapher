@@ -6,16 +6,22 @@ export class CreateSuggestedChartRevisionsTable1618193628982
         await queryRunner.query(
             `CREATE TABLE \`suggested_chart_revisions\` (
                 \`id\` bigint NOT NULL AUTO_INCREMENT, 
-                \`chartId\` int, 
-                \`userId\` int, 
-                \`config\` json, 
-                \`status\` varchar(8), 
-                \`createdReason\` varchar(512), 
+                \`chartId\` int NOT NULL, 
+                \`createdBy\` int NOT NULL, 
+                \`updatedBy\` int, 
+                \`originalConfig\` json NOT NULL, 
+                \`suggestedConfig\` json NOT NULL, 
+                \`status\` varchar(8) NOT NULL, 
+                \`suggestedReason\` varchar(512), 
                 \`decisionReason\` varchar(512), 
-                \`createdAt\` datetime, 
-                \`updatedAt\` datetime, 
-                CHECK (\`status\` IN ('approved', 'rejected', 'pending')), 
-                PRIMARY KEY (\`id\`) 
+                \`createdAt\` datetime NOT NULL, 
+                \`updatedAt\` datetime NOT NULL, 
+                \`originalVersion\` int GENERATED ALWAYS AS (\`originalConfig\`->>'$.version') NOT NULL,
+                \`suggestedVersion\` int GENERATED ALWAYS AS (\`suggestedConfig\`->>'$.version') NOT NULL,
+                CHECK (\`status\` IN ('approved', 'rejected', 'pending', 'flagged')), 
+                PRIMARY KEY (\`id\`),
+                CONSTRAINT FOREIGN KEY (\`chartId\`) REFERENCES \`charts\` (\`id\`),
+                UNIQUE KEY (\`chartId\`, \`originalVersion\`, \`suggestedVersion\`, \`suggestedReason\`)
             ) 
             ENGINE=InnoDB 
             `

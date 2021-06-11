@@ -33,9 +33,6 @@ export class User extends BaseEntity {
     @OneToMany(() => ChartRevision, (rev) => rev.user)
     editedCharts!: ChartRevision[]
 
-    @OneToMany(() => SuggestedChartRevision, (rev) => rev.user)
-    suggestedChartRevisions!: SuggestedChartRevision[]
-
     @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
     createdDatasets!: Dataset[]
 
