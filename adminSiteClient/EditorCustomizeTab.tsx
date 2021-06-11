@@ -22,7 +22,7 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
-import { FacetScaleMode } from "../grapher/core/GrapherConstants"
+import { FacetAxisRange } from "../grapher/core/GrapherConstants"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -314,19 +314,13 @@ export class EditorCustomizeTab extends React.Component<{
                                     <Toggle
                                         label={`Facets have uniform y-axis`}
                                         value={
-                                            // default is absolute
-                                            [
-                                                FacetScaleMode.absolute,
-                                                undefined,
-                                            ].includes(
-                                                yAxisConfig.facetScaleMode
-                                            )
+                                            yAxisConfig.facetAxisRange ===
+                                            FacetAxisRange.shared
                                         }
                                         onValue={(value) => {
-                                            // remap absolute back to undefined
-                                            yAxisConfig.facetScaleMode = value
-                                                ? undefined
-                                                : FacetScaleMode.relative
+                                            yAxisConfig.facetAxisRange = value
+                                                ? FacetAxisRange.shared
+                                                : FacetAxisRange.independent
                                         }}
                                     />
                                 </FieldsRow>

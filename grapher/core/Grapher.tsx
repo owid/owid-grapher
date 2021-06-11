@@ -49,7 +49,7 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
-    FacetScaleMode,
+    FacetAxisRange,
 } from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -277,7 +277,7 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
-    @observable.ref showFacetYAxisToggle: boolean = true
+    @observable.ref showFacetYRangeToggle: boolean = true
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -546,14 +546,6 @@ export class Grapher
         return this.isOnMapTab
             ? new MapChart({ manager: this })
             : this.chartInstanceExceptMap
-    }
-
-    get facetYAxisMode(): FacetScaleMode {
-        return this.yAxis.facetScaleMode || FacetScaleMode.absolute
-    }
-
-    set facetYAxisMode(mode: FacetScaleMode) {
-        this.yAxis.facetScaleMode = mode
     }
 
     // When Map becomes a first-class chart instance, we should drop this
@@ -1456,8 +1448,16 @@ export class Grapher
         return this.stackMode === StackMode.relative
     }
 
-    @computed get isFacetYAxisAbsolute(): boolean {
-        return this.facetYAxisMode === FacetScaleMode.absolute
+    @computed get isFacetYAxisShared(): boolean {
+        return this.facetYScale === FacetAxisRange.shared
+    }
+
+    get facetYScale(): FacetAxisRange {
+        return this.yAxis.facetAxisRange
+    }
+
+    set facetYScale(mode: FacetAxisRange) {
+        this.yAxis.facetAxisRange = mode
     }
 
     @computed get canToggleRelativeMode(): boolean {

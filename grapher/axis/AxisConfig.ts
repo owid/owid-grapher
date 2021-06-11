@@ -1,6 +1,6 @@
 import {
     BASE_FONT_SIZE,
-    FacetScaleMode,
+    FacetAxisRange,
     ScaleType,
 } from "../core/GrapherConstants"
 import { extend, trimObject } from "../../clientUtils/Util"
@@ -24,7 +24,7 @@ class AxisConfigDefaults {
     @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
-    @observable.ref facetScaleMode?: FacetScaleMode = undefined
+    @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
 }
 
 export class AxisConfig
@@ -56,7 +56,7 @@ export class AxisConfig
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
-            facetScaleMode: this.facetScaleMode,
+            facetAxisRange: this.facetAxisRange,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

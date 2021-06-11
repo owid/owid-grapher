@@ -14,7 +14,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
-    FacetScaleMode,
+    FacetAxisRange,
     GrapherTabOption,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
@@ -23,6 +23,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { AxisConfig } from "../axis/AxisConfig"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -124,23 +125,23 @@ export class AbsRelToggle extends React.Component<{
     }
 }
 
-export interface FacetYAxisToggleManager {
-    facetYAxisMode?: FacetScaleMode
+export interface FacetYRangeToggleManager {
+    yAxis?: AxisConfig
 }
 
 @observer
-export class FacetYAxisToggle extends React.Component<{
-    manager: FacetYAxisToggleManager
+export class FacetYRangeToggle extends React.Component<{
+    manager: FacetYRangeToggleManager
 }> {
     @action.bound onToggle(): void {
-        this.props.manager.facetYAxisMode = this.isAbsoluteMode
-            ? FacetScaleMode.relative
-            : FacetScaleMode.absolute
+        this.props.manager.yAxis!.facetAxisRange = this.isYRangeShared
+            ? FacetAxisRange.independent
+            : FacetAxisRange.shared
     }
 
-    @computed get isAbsoluteMode(): boolean {
-        return [FacetScaleMode.absolute, undefined].includes(
-            this.props.manager.facetYAxisMode
+    @computed get isYRangeShared(): boolean {
+        return (
+            this.props.manager.yAxis!.facetAxisRange === FacetAxisRange.shared
         )
     }
 
@@ -149,9 +150,9 @@ export class FacetYAxisToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={this.isAbsoluteMode}
+                    checked={this.isYRangeShared}
                     onChange={this.onToggle}
-                    data-track-note="chart-facet-ymode-toggle"
+                    data-track-note="chart-facet-yrange-toggle"
                 />{" "}
                 &nbsp;Uniform y-axis
             </label>

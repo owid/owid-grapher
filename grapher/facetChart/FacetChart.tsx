@@ -59,7 +59,7 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
-            isFacetYAxisAbsolute,
+            isFacetYAxisShared,
         } = manager
 
         const baseFontSize = getFontSize(count, manager.baseFontSize)
@@ -92,7 +92,7 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
-                isFacetYAxisAbsolute,
+                isFacetYAxisShared,
                 ...series.manager,
             }
             return {
@@ -128,7 +128,7 @@ export class FacetChart
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
             const seriesYDomain = seriesTable.domainFor(this.yColumnSlugs)
-            const yAxisConfig = this.manager.isFacetYAxisAbsolute
+            const yAxisConfig = this.manager.isFacetYAxisShared
                 ? {
                       max: sharedYDomain[1],
                       min: sharedYDomain[0],
