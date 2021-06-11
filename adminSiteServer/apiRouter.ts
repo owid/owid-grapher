@@ -543,13 +543,53 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
 apiRouter.get(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
+        const isValidSortBy = (sortBy: string) => {
+            return (
+                [
+                    "updatedAt",
+                    "createdAt",
+                    "suggestedReason",
+                    "id",
+                    "chartId",
+                    "status",
+                    "variableId",
+                    "chartUpdatedAt",
+                    "chartCreatedAt",
+                ].indexOf(sortBy) !== -1
+            )
+        }
+        const isValidSortDirection = (sortDirection: string) => {
+            return (
+                sortDirection !== undefined &&
+                sortDirection !== null &&
+                ["ASC", "DESC"].indexOf(sortDirection.toUpperCase()) !== -1
+            )
+        }
         const limit =
             req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
         const offset =
             req.query.offset !== undefined ? expectInt(req.query.offset) : 0
+        const sortBy = isValidSortBy(req.query.sortBy)
+            ? req.query.sortBy
+            : "updatedAt"
+        const sortDirection = isValidSortDirection(req.query.sortDirection)
+            ? req.query.sortDirection.toUpperCase()
+            : "DESC"
         const status = SuggestedChartRevision.isValidStatus(req.query.status)
             ? req.query.status
             : null
+
+        let orderBy
+        if (sortBy === "variableId") {
+            orderBy =
+                "CAST(scr.suggestedConfig->>'$.dimensions[0].variableId' as SIGNED)"
+        } else if (sortBy === "chartUpdatedAt") {
+            orderBy = "c.updatedAt"
+        } else if (sortBy === "chartCreatedAt") {
+            orderBy = "c.createdAt"
+        } else {
+            orderBy = `scr.${sortBy}`
+        }
 
         const suggestedChartRevisions = await db.queryMysql(
             `
@@ -567,6 +607,7 @@ apiRouter.get(
             LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
             LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
             ${status ? "WHERE scr.status = ?" : ""}
+            ORDER BY ${orderBy} ${sortDirection}
             LIMIT ? OFFSET ?
         `,
             status ? [status, limit, offset] : [limit, offset]
