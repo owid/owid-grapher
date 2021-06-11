@@ -636,7 +636,21 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-        })
+                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+                    suggestedChartRevision
+                )
+            }
+        )
+
         return {
             suggestedChartRevisions: suggestedChartRevisions,
             numTotalRows: numTotalRows,
@@ -645,9 +659,11 @@ apiRouter.get(
 )
 
 apiRouter.post(
-    "/suggested-chart-revisions/:id/update",
+    "/suggested-chart-revisions/:suggestedChartRevisionId/update",
     async (req: Request, res: Response) => {
-        const id = expectInt(req.params.id)
+        const suggestedChartRevisionId = expectInt(
+            req.params.suggestedChartRevisionId
+        )
         const { status, decisionReason } = req.body as {
             status: string
             decisionReason: string
@@ -674,6 +690,29 @@ apiRouter.post(
             suggestedChartRevision.existingConfig = await expectChartById(
                 suggestedChartRevision.chartId
             )
+
+            const canApprove = SuggestedChartRevision.checkCanApprove(
+                suggestedChartRevision
+            )
+            const canReject = SuggestedChartRevision.checkCanReject(
+                suggestedChartRevision
+            )
+            const canFlag = SuggestedChartRevision.checkCanFlag(
+                suggestedChartRevision
+            )
+            const canPending = SuggestedChartRevision.checkCanPending(
+                suggestedChartRevision
+            )
+
+            const canUpdate =
+                (status === "approved" && canApprove) ||
+                (status === "rejected" && canReject) ||
+                (status === "pending" && canPending) ||
+                (status === "flagged" && canFlag)
+            if (!canUpdate) {
+                throw new JsonError(
+                    `Suggest chart revision ${suggestedChartRevisionId} cannot be ` +
+                        `updated with status="${status}".`,
                 404
             )
         }
