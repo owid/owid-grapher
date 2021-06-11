@@ -3,7 +3,6 @@ import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
-    FacetScaleMode,
     SeriesColorMap,
     SeriesStrategy,
 } from "../core/GrapherConstants"

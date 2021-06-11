@@ -112,16 +112,8 @@ export class FacetChart
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
-        const yDomain = table.domainFor(this.yColumnSlugs)
+        const sharedYDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
-        const sameYAxis = this.manager.isFacetYAxisAbsolute
-        const yAxisConfig = sameYAxis
-            ? {
-                  max: yDomain[1],
-                  min: yDomain[0],
-                  scaleType,
-              }
-            : undefined
         const sameXAxis = true
         const xAxisConfig = sameXAxis
             ? {
@@ -135,12 +127,18 @@ export class FacetChart
 
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
-            const relativeYDomain = seriesTable.domainFor(this.yColumnSlugs)
-            const relativeYAxisConfig = {
-                max: relativeYDomain[1],
-                min: relativeYDomain[0],
-                scaleType,
-            }
+            const seriesYDomain = seriesTable.domainFor(this.yColumnSlugs)
+            const yAxisConfig = this.manager.isFacetYAxisAbsolute
+                ? {
+                      max: sharedYDomain[1],
+                      min: sharedYDomain[0],
+                      scaleType,
+                  }
+                : {
+                      max: seriesYDomain[1],
+                      min: seriesYDomain[0],
+                      scaleType,
+                  }
             return {
                 seriesName,
                 color: facetBackgroundColor,
@@ -149,7 +147,7 @@ export class FacetChart
                     selection: [seriesName],
                     seriesStrategy: SeriesStrategy.column,
                     hideLegend,
-                    yAxisConfig: yAxisConfig || relativeYAxisConfig,
+                    yAxisConfig,
                     xAxisConfig,
                 },
             }
