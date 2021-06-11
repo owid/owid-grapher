@@ -875,11 +875,11 @@ main:not(.ChartEditorPage) {
     flex-direction: column;
     flex-grow: 1;
 
-    section {
+    .collapsible {
+        background-color: #f9f9f9;
         padding: 1.2em;
         border-radius: 0.4em;
-        margin-bottom: 1.2em;
-        background-color: #f9f9f9;
+        margin: 0.4em 0;
     }
 
     .readme {
@@ -892,16 +892,16 @@ main:not(.ChartEditorPage) {
         li {
             padding-bottom: 5px;
         }
-
-        .settings {
+    }
+    .settings {
+        .flex-row {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
         }
+    }
 
-        .settings > * {
-            padding-bottom: 5px;
-        }
+    .settings > * {
+        margin-bottom: 10px;
     }
 
     .btn-group .btn {
@@ -913,7 +913,6 @@ main:not(.ChartEditorPage) {
     }
 
     .meta {
-        padding: 1em;
         list-style-type: none;
     }
 
@@ -934,10 +933,14 @@ main:not(.ChartEditorPage) {
                 flex-wrap: wrap;
                 align-items: center;
                 justify-content: flex-start;
-                padding-bottom: 10px;
+                margin-bottom: 5px;
 
                 h5 {
                     margin-bottom: 0;
+                    margin-right: 5px;
+                }
+
+                span {
                     margin-right: 10px;
                 }
             }
@@ -951,23 +954,20 @@ main:not(.ChartEditorPage) {
                 border-radius: 0.4em;
 
                 pre {
-                    white-space: pre-wrap; /* Since CSS 2.1 */
-                    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-                    white-space: -pre-wrap; /* Opera 4-6 */
-                    white-space: -o-pre-wrap; /* Opera 7 */
-                    word-wrap: break-word; /* Internet Explorer 5.5+ */
+                    white-space: pre-wrap;
                 }
             }
         }
     }
 
     .controls {
-        margin: 0 auto;
+        margin: 1em auto 0 auto;
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
         justify-content: center;
         align-items: center;
+        min-width: 400px;
 
         .btn {
             margin-left: 5px;
@@ -997,8 +997,11 @@ main:not(.ChartEditorPage) {
 
         .form-group {
             padding: 10px;
-            // margin: 0 auto;
             align-self: stretch;
+
+            textarea {
+                height: 75px;
+            }
         }
     }
 
@@ -1014,5 +1017,17 @@ main:not(.ChartEditorPage) {
             margin-top: 0;
             margin-bottom: 0.5em;
         }
+    }
+}
+
+.SuggestedChartRevisionListPage {
+    .settings {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .settings > div {
+        margin-right: 10px;
     }
 }

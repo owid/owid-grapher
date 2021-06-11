@@ -289,13 +289,25 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
-                                path="/suggested-chart-revisions/approve"
+                                path="/suggested-chart-revisions"
+                                component={SuggestedChartRevisionListPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions/review"
                                 component={SuggestedChartRevisionApproverPage}
                             />
                             <Route
                                 exact
-                                path="/suggested-chart-revisions"
-                                component={SuggestedChartRevisionListPage}
+                                path="/suggested-chart-revisions/review/:suggestedChartRevisionId"
+                                render={({ match }) => (
+                                    <SuggestedChartRevisionApproverPage
+                                        suggestedChartRevisionId={parseInt(
+                                            match.params
+                                                .suggestedChartRevisionId
+                                        )}
+                                    />
+                                )}
                             />
                             <Route
                                 exact

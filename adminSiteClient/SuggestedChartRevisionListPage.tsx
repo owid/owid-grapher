@@ -7,15 +7,20 @@ import { Link } from "react-router-dom"
 import { TextField } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { uniq } from "../clientUtils/Util"
+import Select from "react-select"
+import { getStylesForTargetHeight } from "../clientUtils/react-select"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import {
-    SuggestedRevisionList,
-    SuggestedRevisionListItem,
+    SuggestedChartRevisionList,
+    SuggestedChartRevisionListItem,
 } from "./SuggestedChartRevisionList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 interface Searchable {
-    suggestedRevision: SuggestedRevisionListItem
+    suggestedChartRevision: SuggestedChartRevisionListItem
     term?: Fuzzysort.Prepared
 }
 
@@ -26,20 +31,23 @@ export class SuggestedChartRevisionListPage extends React.Component {
 
     @observable searchInput?: string
     @observable maxVisibleCharts = 50
-    @observable suggestedRevisions: SuggestedRevisionListItem[] = []
+    @observable suggestedChartRevisions: SuggestedChartRevisionListItem[] = []
     @observable numTotalRows?: number
+
+    @observable sortBy: string = "updatedAt"
+    @observable sortDirection: string = "DESC"
 
     @computed get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
-        for (const suggestedRevision of this.suggestedRevisions) {
-            const existingConfig = suggestedRevision.existingConfig
+        for (const suggestedChartRevision of this.suggestedChartRevisions) {
+            const originalConfig = suggestedChartRevision.originalConfig
             searchIndex.push({
-                suggestedRevision: suggestedRevision,
+                suggestedChartRevision: suggestedChartRevision,
                 term: fuzzysort.prepare(`
-                    ${suggestedRevision.status || ""} 
-                    ${existingConfig.title} 
-                    ${existingConfig.variantName || ""} 
-                    ${existingConfig.internalNotes || ""} 
+                    ${suggestedChartRevision.status || ""} 
+                    ${originalConfig.title} 
+                    ${originalConfig.variantName || ""} 
+                    ${originalConfig.internalNotes || ""} 
                 `),
             })
         }
@@ -47,7 +55,8 @@ export class SuggestedChartRevisionListPage extends React.Component {
         return searchIndex
     }
 
-    @computed get suggestedRevisionsToShow(): SuggestedRevisionListItem[] {
+    @computed
+    get suggestedChartRevisionsToShow(): SuggestedChartRevisionListItem[] {
         const { searchInput, searchIndex, maxVisibleCharts } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
@@ -55,17 +64,20 @@ export class SuggestedChartRevisionListPage extends React.Component {
                 key: "term",
             })
             return uniq(
-                results.map((result: any) => result.obj.suggestedRevision)
+                results.map((result: any) => result.obj.suggestedChartRevision)
             )
         } else {
-            return this.suggestedRevisions.slice(0, maxVisibleCharts)
+            return this.suggestedChartRevisions.slice(0, maxVisibleCharts)
         }
     }
 
     @action.bound async getData() {
         const { admin } = this.context
-        const json = await admin.getJSON("/api/suggested-chart-revisions")
-        this.suggestedRevisions = json.suggestedRevisions
+        const json = await admin.getJSON("/api/suggested-chart-revisions", {
+            sortBy: this.sortBy,
+            sortDirection: this.sortDirection,
+        })
+        this.suggestedChartRevisions = json.suggestedChartRevisions
         this.numTotalRows = json.numTotalRows
     }
 
@@ -77,12 +89,26 @@ export class SuggestedChartRevisionListPage extends React.Component {
         this.maxVisibleCharts += 50
     }
 
+    @action.bound onSortByChange(selected: any) {
+        this.sortBy = selected.value
+        this.getData()
+    }
+
+    @action.bound onSortDirectionChange(value: string) {
+        this.sortDirection = value
+        this.getData()
+    }
+
     componentDidMount() {
         this.getData()
     }
 
     render() {
-        const { suggestedRevisionsToShow, searchInput, numTotalRows } = this
+        const {
+            suggestedChartRevisionsToShow,
+            searchInput,
+            numTotalRows,
+        } = this
 
         const highlight = (text: string) => {
             if (this.searchInput) {
@@ -99,12 +125,12 @@ export class SuggestedChartRevisionListPage extends React.Component {
                     <div className="topRow">
                         <div>
                             <span>
-                                Showing {suggestedRevisionsToShow.length} of{" "}
-                                {numTotalRows} suggested revisions
+                                Showing {suggestedChartRevisionsToShow.length}{" "}
+                                of {numTotalRows} suggested revisions
                             </span>
                             <Link
-                                className="btn btn-primary"
-                                to="/suggested-chart-revisions/approve"
+                                className="btn btn-outline-primary"
+                                to="/suggested-chart-revisions/review"
                                 style={{ marginLeft: "10px" }}
                             >
                                 Go to approval tool
@@ -117,8 +143,110 @@ export class SuggestedChartRevisionListPage extends React.Component {
                             autofocus
                         />
                     </div>
-                    <SuggestedRevisionList
-                        suggestedRevisions={suggestedRevisionsToShow}
+                    <div className="settings">
+                        <div style={{ width: 250 }}>
+                            Sort by:{" "}
+                            <Select
+                                options={[
+                                    {
+                                        value: "id",
+                                        label: "Suggestion ID",
+                                    },
+                                    {
+                                        value: "updatedAt",
+                                        label: "Date suggestion last updated",
+                                    },
+                                    {
+                                        value: "createdAt",
+                                        label: "Date suggestion created",
+                                    },
+                                    {
+                                        value: "status",
+                                        label: "Suggestion status",
+                                    },
+                                    {
+                                        value: "suggestedReason",
+                                        label: "Reason suggested",
+                                    },
+                                    {
+                                        value: "chartUpdatedAt",
+                                        label: "Date chart last updated",
+                                    },
+                                    {
+                                        value: "chartCreatedAt",
+                                        label: "Date chart created",
+                                    },
+                                    {
+                                        value: "chartId",
+                                        label: "Chart ID",
+                                    },
+                                    {
+                                        value: "variableId",
+                                        label: "Variable ID",
+                                    },
+                                ]}
+                                onChange={this.onSortByChange}
+                                defaultValue={{
+                                    value: "updatedAt",
+                                    label: "Date suggestion last updated",
+                                }}
+                                menuPlacement="top"
+                                styles={getStylesForTargetHeight(30)}
+                            />
+                        </div>
+                        <div>
+                            Sort order:
+                            <br />
+                            <div
+                                className="btn-group"
+                                data-toggle="buttons"
+                                style={{ whiteSpace: "nowrap" }}
+                            >
+                                <label
+                                    className={
+                                        "btn btn-light" +
+                                        (this.sortDirection === "ASC"
+                                            ? " active"
+                                            : "")
+                                    }
+                                    title="Sort ascending"
+                                >
+                                    <input
+                                        type="radio"
+                                        onChange={() =>
+                                            this.onSortDirectionChange("ASC")
+                                        }
+                                        name="sortDirection"
+                                        id="asc"
+                                        checked={this.sortDirection === "ASC"}
+                                    />{" "}
+                                    <FontAwesomeIcon icon={faSortAlphaDown} />
+                                </label>
+                                <label
+                                    className={
+                                        "btn btn-light" +
+                                        (this.sortDirection === "DESC"
+                                            ? " active"
+                                            : "")
+                                    }
+                                    title="Sort descending"
+                                >
+                                    <input
+                                        onChange={() =>
+                                            this.onSortDirectionChange("DESC")
+                                        }
+                                        type="radio"
+                                        name="sortDirection"
+                                        id="desc"
+                                        checked={this.sortDirection === "DESC"}
+                                    />{" "}
+                                    <FontAwesomeIcon icon={faSortAlphaUpAlt} />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <SuggestedChartRevisionList
+                        suggestedChartRevisions={suggestedChartRevisionsToShow}
                         searchHighlight={highlight}
                     />
                     {!searchInput && (

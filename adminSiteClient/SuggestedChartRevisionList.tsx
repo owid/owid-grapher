@@ -6,146 +6,118 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { ChartListItem } from "./ChartList"
+import { Link } from "./Link"
+import { SuggestedChartRevisionStatus } from "../db/model/SuggestedChartRevision"
 
-export interface SuggestedRevisionListItem {
+export interface SuggestedChartRevisionListItem {
     id: number
     chartId: number
-    userId: number
-    user: string
-    status: string
+    createdByFullName: string
+    updatedByFullName: string
+    status: SuggestedChartRevisionStatus
     decisionReason: string
-    createdReason: string
+    suggestedReason: string
     createdAt: Date
     updatedAt: Date
-    existingConfig: ChartListItem
-    suggestedConfig: ChartListItem
+    originalConfig: ChartListItem
 }
 
 @observer
-class SuggestedRevisionRow extends React.Component<{
-    suggestedRevision: SuggestedRevisionListItem
+class SuggestedChartRevisionRow extends React.Component<{
+    suggestedChartRevision: SuggestedChartRevisionListItem
     searchHighlight?: (text: string) => any
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    // @computed get suggestedConfigSvg() {
-    //     const svg = new Grapher(this.props.suggestedRevision.suggestedConfig).staticSVG
-    //     return svg
-    // }
-
     render() {
-        const { suggestedRevision, searchHighlight } = this.props
+        const { suggestedChartRevision, searchHighlight } = this.props
 
         const highlight = searchHighlight || lodash.identity
-        // const suggestedConfig = new Grapher(suggestedRevision.suggestedConfig)
 
         return (
             <tr>
-                <td style={{ minWidth: "140px", width: "12.5%" }}>
-                    {suggestedRevision.existingConfig.isPublished && (
-                        <a
-                            href={`${BAKED_GRAPHER_URL}/${suggestedRevision.existingConfig.slug}`}
-                        >
-                            <img
-                                src={`${BAKED_GRAPHER_URL}/exports/${suggestedRevision.existingConfig.slug}.svg`}
-                                className="chartPreview"
-                            />
-                        </a>
-                    )}
+                <td style={{ minWidth: "80px" }}>
+                    <Link
+                        to={`/suggested-chart-revisions/review/${suggestedChartRevision.id}`}
+                    >
+                        {suggestedChartRevision.id}
+                    </Link>
                 </td>
-                {/* <td style={{ minWidth: "140px", width: "12.5%" }}>
-                    {suggestedRevision.existingConfig.isPublished && this.suggestedConfigSvg && (
-                        <a href={""}>
-                            <img
-                                src={`data:image/svg+xml;utf8,${encodeURIComponent(this.suggestedConfigSvg)}`}
-                                className="chartPreview"
-                            />
-                        </a>
-                    )}
-                </td> */}
-                <td style={{ minWidth: "100px" }}>
-                    {suggestedRevision.existingConfig.id}
+                <td style={{ minWidth: "80px" }}>
+                    <Link
+                        to={`/charts/${suggestedChartRevision.originalConfig.id}/edit`}
+                    >
+                        {suggestedChartRevision.originalConfig.id}
+                    </Link>
                 </td>
                 <td style={{ minWidth: "120px" }}>
-                    {suggestedRevision.existingConfig.isPublished ? (
+                    {suggestedChartRevision.originalConfig.isPublished ? (
                         <a
-                            href={`${BAKED_GRAPHER_URL}/${suggestedRevision.existingConfig.slug}`}
+                            href={`${BAKED_GRAPHER_URL}/${suggestedChartRevision.originalConfig.slug}`}
                         >
                             {highlight(
-                                suggestedRevision.existingConfig.title ?? ""
+                                suggestedChartRevision.originalConfig.title ??
+                                    ""
                             )}
                         </a>
                     ) : (
                         <span>
                             <span style={{ color: "red" }}>Draft: </span>{" "}
                             {highlight(
-                                suggestedRevision.existingConfig.title ?? ""
+                                suggestedChartRevision.originalConfig.title ??
+                                    ""
                             )}
                         </span>
                     )}{" "}
-                    {suggestedRevision.existingConfig.variantName ? (
+                    {suggestedChartRevision.originalConfig.variantName ? (
                         <span style={{ color: "#aaa" }}>
                             (
                             {highlight(
-                                suggestedRevision.existingConfig.variantName
+                                suggestedChartRevision.originalConfig
+                                    .variantName
                             )}
                             )
                         </span>
                     ) : undefined}
-                    {suggestedRevision.existingConfig.internalNotes && (
+                    {suggestedChartRevision.originalConfig.internalNotes && (
                         <div className="internalNotes">
                             {highlight(
-                                suggestedRevision.existingConfig.internalNotes
+                                suggestedChartRevision.originalConfig
+                                    .internalNotes
                             )}
                         </div>
                     )}
                 </td>
                 <td>
-                    {suggestedRevision.createdReason
-                        ? suggestedRevision.createdReason
+                    {suggestedChartRevision.suggestedReason
+                        ? suggestedChartRevision.suggestedReason
                         : ""}
                 </td>
                 <td>
-                    {format(suggestedRevision.createdAt)} by{" "}
-                    {suggestedRevision.user}
+                    {format(suggestedChartRevision.createdAt)} by{" "}
+                    {suggestedChartRevision.createdByFullName}
                 </td>
                 <td style={{ minWidth: "120px" }}>
-                    {suggestedRevision.status === "pending" && (
-                        <FontAwesomeIcon
-                            icon={faQuestionCircle}
-                            style={{ color: "#9E9E9E" }}
-                        />
+                    <SuggestedChartRevisionStatusIcon
+                        status={suggestedChartRevision.status}
+                    />{" "}
+                    {highlight(
+                        ((suggestedChartRevision.status as unknown) as string).toUpperCase()
                     )}
-                    {suggestedRevision.status === "approved" && (
-                        <FontAwesomeIcon
-                            icon={faCheckCircle}
-                            style={{ color: "#2196F3" }}
-                        />
-                    )}
-                    {suggestedRevision.status === "rejected" && (
-                        <FontAwesomeIcon
-                            icon={faTimesCircle}
-                            style={{ color: "#f44336" }}
-                        />
-                    )}{" "}
-                    {suggestedRevision.status === "pending" &&
-                        suggestedRevision.status.toUpperCase()}
-                    {(suggestedRevision.status === "approved" ||
-                        suggestedRevision.status === "rejected") &&
-                        `
-                        ${highlight(suggestedRevision.status.toUpperCase())} - 
-                        ${format(suggestedRevision.updatedAt)} 
-                        by ${suggestedRevision.user}
-                    `}
+                    {suggestedChartRevision.updatedByFullName &&
+                        ` ${format(suggestedChartRevision.updatedAt)} by ${
+                            suggestedChartRevision.updatedByFullName
+                        }`}
                 </td>
                 <td>
-                    {suggestedRevision.decisionReason
-                        ? suggestedRevision.decisionReason
+                    {suggestedChartRevision.decisionReason
+                        ? suggestedChartRevision.decisionReason
                         : ""}
                 </td>
             </tr>
@@ -154,38 +126,64 @@ class SuggestedRevisionRow extends React.Component<{
 }
 
 @observer
-export class SuggestedRevisionList extends React.Component<{
-    suggestedRevisions: SuggestedRevisionListItem[]
+export class SuggestedChartRevisionList extends React.Component<{
+    suggestedChartRevisions: SuggestedChartRevisionListItem[]
     searchHighlight?: (text: string) => any
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
     render() {
-        const { suggestedRevisions, searchHighlight } = this.props
+        const { suggestedChartRevisions, searchHighlight } = this.props
         return (
             <table className="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Published chart</th>
+                        <th>Suggested revision Id</th>
                         <th>Chart Id</th>
                         <th>Title</th>
-                        <th>Created reason</th>
+                        <th>Reason suggested</th>
                         <th>Revision suggested by</th>
                         <th>Status</th>
                         <th>Decision reason</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {suggestedRevisions.map((suggestedRevision) => (
-                        <SuggestedRevisionRow
-                            suggestedRevision={suggestedRevision}
-                            key={suggestedRevision.id}
+                    {suggestedChartRevisions.map((suggestedChartRevision) => (
+                        <SuggestedChartRevisionRow
+                            suggestedChartRevision={suggestedChartRevision}
+                            key={suggestedChartRevision.id}
                             searchHighlight={searchHighlight}
                         />
                     ))}
                 </tbody>
             </table>
         )
+    }
+}
+
+@observer
+export class SuggestedChartRevisionStatusIcon extends React.Component<{
+    status: SuggestedChartRevisionStatus
+    setColor?: boolean
+}> {
+    static defaultProps = {
+        setColor: true,
+    }
+    render() {
+        const { status, setColor } = this.props
+        let color = "#9E9E9E"
+        let icon = faQuestionCircle
+        if (status === SuggestedChartRevisionStatus.approved) {
+            color = "#0275d8"
+            icon = faCheckCircle
+        } else if (status === SuggestedChartRevisionStatus.rejected) {
+            color = "#d9534f"
+            icon = faTimesCircle
+        } else if (status === SuggestedChartRevisionStatus.flagged) {
+            color = "#f0ad4e"
+            icon = faExclamationCircle
+        }
+        return <FontAwesomeIcon icon={icon} style={setColor ? { color } : {}} />
     }
 }
