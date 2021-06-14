@@ -19,9 +19,14 @@ export const runDataTokens = () => {
         const token = dataToken.getAttribute("data-token")
         if (!token) return
 
+        const componentProps = JSON.parse(dataToken.innerHTML)
+
         const Component = dictionary[token]
         if (!Component) return
 
-        ReactDOM.render(<Component />, dataToken.parentElement)
+        ReactDOM.render(
+            <Component {...componentProps} />,
+            dataToken.parentElement
+        )
     })
 }

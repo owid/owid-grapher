@@ -33,6 +33,7 @@ import {
     extractDataValuesConfiguration,
     formatLinks,
     getHtmlContentWithStyles,
+    parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
 import { TeX } from "mathjax-full/js/input/tex"
@@ -192,11 +193,21 @@ export const formatWordpressPost = async (
         )
     })
 
-    const dataTokenRegex = /{{([a-zA-Z]+)}}/gm
+    // Needs to be happen after DataValue replacements, as the DataToken regex
+    // would otherwise capture DataValue tags
+    const dataTokenRegex = /{{\s*([a-zA-Z]+)\s*(.+?)\s*}}/g
 
-    html = html.replace(dataTokenRegex, (_, token) => {
-        return ReactDOMServer.renderToString(<DataToken token={token} />)
-    })
+    html = html.replace(
+        dataTokenRegex,
+        (_, token, dataTokenConfigurationString) => {
+            return ReactDOMServer.renderToString(
+                <DataToken
+                    token={token}
+                    {...parseKeyValueArgs(dataTokenConfigurationString)}
+                />
+            )
+        }
+    )
 
     // Insert [table id=foo] tablepress tables
     const tables = await getTables()
