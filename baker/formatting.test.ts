@@ -3,6 +3,7 @@
 import {
     extractDataValuesConfiguration,
     parseFormattingOptions,
+    parseKeyValueArgs,
 } from "./formatting"
 
 it("parses formatting options", () => {
@@ -13,6 +14,15 @@ it("parses formatting options", () => {
         isTrue: true,
         isAlsoTrue: true,
         isFalse: false,
+    })
+})
+
+it("parses LastUpdated options", () => {
+    const lastUpdatedOptions =
+        "timestampUrl:https://covid.ourworldindata.org/data/internal/timestamp/owid-covid-data-last-updated-timestamp-root.txt"
+    expect(parseKeyValueArgs(lastUpdatedOptions)).toStrictEqual({
+        timestampUrl:
+            "https://covid.ourworldindata.org/data/internal/timestamp/owid-covid-data-last-updated-timestamp-root.txt",
     })
 })
 
