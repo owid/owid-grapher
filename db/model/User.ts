@@ -8,7 +8,6 @@ import {
 import { Chart } from "./Chart"
 import { Dataset } from "./Dataset"
 import { ChartRevision } from "./ChartRevision"
-import { SuggestedChartRevision } from "./SuggestedChartRevision"
 import { BCryptHasher } from "../hashers"
 
 @Entity("users")
