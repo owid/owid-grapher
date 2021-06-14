@@ -93,8 +93,9 @@ export const parseKeyValueArgs = (text: string): KeyValueProps => {
     text.split(/\s+/)
         // filter out empty strings
         .filter((s) => s && s.length > 0)
-        // populate options object
         .forEach((option: string) => {
+            // using regex instead of split(":") to handle ":" in value
+            // e.g. {{LastUpdated timestampUrl:https://...}}
             const optionRegex = /([^:]+):?(.*)/
             const [, name, value] = option.match(optionRegex) as [
                 any,
