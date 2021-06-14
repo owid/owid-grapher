@@ -281,6 +281,7 @@ export class Explorer
             tableSlug,
             yScaleToggle,
             yAxisMin,
+            facetYRange,
         } = grapherConfigFromExplorer
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
@@ -300,6 +301,9 @@ export class Explorer
         grapher.reset()
         grapher.yAxis.canChangeScaleType = yScaleToggle
         grapher.yAxis.min = yAxisMin
+        if (facetYRange) {
+            grapher.yAxis.facetAxisRange = facetYRange
+        }
         grapher.updateFromObject(config)
 
         if (!hasGrapherId) {
