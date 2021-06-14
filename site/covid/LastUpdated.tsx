@@ -3,7 +3,7 @@ import dayjs, { Dayjs } from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 dayjs.extend(relativeTime)
 
-export const CovidLastUpdated = () => {
+export const LastUpdated = () => {
     const [date, setDate] = useState<null | Dayjs>(null)
 
     useEffect(() => {

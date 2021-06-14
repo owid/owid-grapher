@@ -192,7 +192,7 @@ export const formatWordpressPost = async (
         )
     })
 
-    const dataTokenRegex = /{{([A-Z_]+)}}/gm
+    const dataTokenRegex = /{{([a-zA-Z]+)}}/gm
 
     html = html.replace(dataTokenRegex, (_, token) => {
         return ReactDOMServer.renderToString(<DataToken token={token} />)
