@@ -24,15 +24,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
     }
 
-    const directoriesToProcess = utils.sortAndPartitionDirectories(
-        directories,
-        false,
-        inDir,
-        numPartitions,
-        partition
-    )
     const svgRecords: utils.SvgRecord[] = []
-    for (const dir of directoriesToProcess) {
+    for (const dir of directories) {
         const svgRecord = await utils.renderSvgAndSave(dir, outDir)
         svgRecords.push(svgRecord)
     }

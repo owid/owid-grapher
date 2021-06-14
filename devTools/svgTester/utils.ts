@@ -24,26 +24,39 @@ export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 export const finished = util.promisify(stream.finished) // (A)
 
-export interface ResultOk<T> {
+export interface VerifyResultOk {
     kind: "ok"
-    value: T
 }
 
-export interface ResultError<E> {
+export interface VerifyResultDifference {
+    kind: "difference"
+    difference: SvgDifference
+}
+
+export interface VerifyResultError {
     kind: "error"
-    error: E
+    graphId: number
+    error: Error
 }
 
-export type Result<T, E> = ResultOk<T> | ResultError<E>
+export type VerifyResult =
+    | VerifyResultOk
+    | VerifyResultDifference
+    | VerifyResultError
 
-const resultOk = <T, E>(value: T): Result<T, E> => ({
+const resultOk = (): VerifyResult => ({
     kind: "ok",
-    value: value,
 })
 
-const resultError = <T, E>(error: E): Result<T, E> => ({
+const resultError = (id: number, error: Error): VerifyResult => ({
     kind: "error",
+    graphId: id,
     error: error,
+})
+
+const resultDifference = (difference: SvgDifference): VerifyResult => ({
+    kind: "difference",
+    difference: difference,
 })
 
 export type SvgRecord = {
@@ -59,6 +72,11 @@ export interface SvgDifference {
     startIndex: number
     referenceSvgFragment: string
     newSvgFragment: string
+}
+
+export interface JobDirectory {
+    chartId: number
+    pathToProcess: string
 }
 
 export function logIfVerbose(verbose: boolean, message: string, param?: any) {
@@ -82,12 +100,12 @@ export async function verifySvg(
     referenceSvgRecord: SvgRecord,
     referenceSvgsPath: string,
     verbose: boolean
-): Promise<Result<null, SvgDifference>> {
+): Promise<VerifyResult> {
     logIfVerbose(verbose, `verifying ${newSvgRecord.chartId}`)
 
     if (newSvgRecord.md5 === referenceSvgRecord.md5) {
         // if the md5 hash is unchanged then there is no difference
-        return resultOk(null)
+        return resultOk()
     }
 
     const referenceSvg = await loadReferenceSvg(
@@ -101,7 +119,7 @@ export async function verifySvg(
         preparedReferenceSvg
     )
     logIfVerbose(verbose, `${newSvgRecord.chartId} had differences`)
-    return resultError({
+    return resultDifference({
         chartId: newSvgRecord.chartId,
         startIndex: firstDiffIndex,
         referenceSvgFragment: preparedReferenceSvg.substr(
@@ -118,23 +136,29 @@ export async function decideDirectoriesToVerify(
     reverseDirectories: boolean,
     numPartitions: number = 1,
     partition: number = 1
-): Promise<string[]> {
-    let directories: string[] = []
+): Promise<JobDirectory[]> {
+    let directories: JobDirectory[] = []
     if (grapherIds.length === 0) {
         // If no grapher ids were given scan all directories in the inDir folder
         const dir = await fs.opendir(inDir)
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                directories.push(entry.name)
+                directories.push({
+                    chartId: parseInt(entry.name),
+                    pathToProcess: path.join(inDir, entry.name),
+                })
             }
         }
     } else {
         // if grapher ids were given check which ones exist in inDir and filter to those
         // -> if by doing so we drop some, warn the user
-        directories = grapherIds.map((id) => id.toString())
+        directories = grapherIds.map((id) => ({
+            chartId: id,
+            pathToProcess: path.join(inDir, id.toString()),
+        }))
         const allDirsCount = directories.length
         directories = directories.filter((item) =>
-            fs.existsSync(path.join(inDir, item))
+            fs.existsSync(item.pathToProcess)
         )
         if (directories.length < allDirsCount) {
             console.warn(
@@ -143,37 +167,7 @@ export async function decideDirectoriesToVerify(
         }
     }
 
-    // Sort directories numerically (this assumes every dir == a grapher id and those are numeric)
-    const directoriesToProcess = sortAndPartitionDirectories(
-        directories,
-        reverseDirectories,
-        inDir,
-        numPartitions,
-        partition
-    )
-    return directoriesToProcess
-}
-
-export function sortAndPartitionDirectories(
-    directories: string[],
-    reverseDirectories: boolean,
-    inDir: string,
-    numPartitions: number,
-    partition: number
-): string[] {
-    directories.sort((a, b) => parseInt(a) - parseInt(b))
-    if (reverseDirectories) {
-        directories.reverse()
-    }
-    const paths = directories.map((name) => path.join(inDir, name))
-    const directoriesToProcess = []
-    // Pick ever numPartition-tht element, using partition as the offset
-    for (let i = 0; i < paths.length; i++) {
-        if (i % numPartitions === partition - 1) {
-            directoriesToProcess.push(paths[i])
-        }
-    }
-    return directoriesToProcess
+    return directories
 }
 
 /** Turn a list of comma separated numbers and ranges into an array of numbers */
@@ -335,12 +329,12 @@ export async function loadGrapherConfigAndData(
 
 export function logDifferencesToConsole(
     svgRecord: SvgRecord,
-    validationResult: ResultError<SvgDifference>
+    validationResult: VerifyResultDifference
 ): void {
     console.warn(
-        `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.error.startIndex}.
-Reference: ${validationResult.error.referenceSvgFragment}
-Current  : ${validationResult.error.newSvgFragment}`
+        `Svg was different for ${svgRecord.chartId}. The difference starts at character ${validationResult.difference.startIndex}.
+Reference: ${validationResult.difference.referenceSvgFragment}
+Current  : ${validationResult.difference.newSvgFragment}`
     )
 }
 
@@ -389,7 +383,7 @@ export async function writeResultsCsvFile(
 }
 
 export interface RenderJobDescription {
-    dir: string
+    dir: JobDirectory
     referenceEntry: SvgRecord
     referenceDir: string
     outDir: string
@@ -402,77 +396,95 @@ export async function renderAndVerifySvg({
     referenceDir,
     outDir,
     verbose,
-}: RenderJobDescription): Promise<Result<null, SvgDifference>> {
-    if (!dir) throw "Dir was not defined"
-    if (!referenceEntry) throw "ReferenceEntry was not defined"
-    if (!referenceDir) throw "ReferenceDir was not defined"
-    if (!outDir) throw "outdir was not defined"
-    const [svg, svgRecord] = await renderSvg(dir)
+}: RenderJobDescription): Promise<VerifyResult> {
+    try {
+        if (!dir) throw "Dir was not defined"
+        if (!referenceEntry) throw "ReferenceEntry was not defined"
+        if (!referenceDir) throw "ReferenceDir was not defined"
+        if (!outDir) throw "outdir was not defined"
 
-    const validationResult = await verifySvg(
-        svg,
-        svgRecord,
-        referenceEntry,
-        referenceDir,
-        verbose
-    )
-    // verifySvg returns a Result type - if it is success we don't care any further
-    // but if there was an error then we write the svg and a message to stderr
-    switch (validationResult.kind) {
-        case "error":
-            logDifferencesToConsole(svgRecord, validationResult)
-            const outputPath = path.join(outDir, svgRecord.svgFilename)
-            await fs.writeFile(outputPath, svg)
+        const [svg, svgRecord] = await renderSvg(dir.pathToProcess)
+
+        const validationResult = await verifySvg(
+            svg,
+            svgRecord,
+            referenceEntry,
+            referenceDir,
+            verbose
+        )
+        // verifySvg returns a Result type - if it is success we don't care any further
+        // but if there was an error then we write the svg and a message to stderr
+        switch (validationResult.kind) {
+            case "difference":
+                logDifferencesToConsole(svgRecord, validationResult)
+                const outputPath = path.join(outDir, svgRecord.svgFilename)
+                await fs.writeFile(outputPath, svg)
+        }
+        return Promise.resolve(validationResult)
+    } catch (err) {
+        return Promise.resolve(resultError(referenceEntry.chartId, err))
     }
-    return Promise.resolve(validationResult)
 }
-
 export async function prepareVerifyRun(
     rawGrapherIds: string,
     inDir: string,
     reverseDirectories: boolean,
     referenceDir: string
-): Promise<{
-    directoriesToProcess: string[]
-    csvContentMap: Map<number, SvgRecord>
-}> {
+): Promise<JobDirectory[]> {
     const grapherIds: number[] = getGrapherIdListFromString(rawGrapherIds)
     const directoriesToProcess = await decideDirectoriesToVerify(
         grapherIds,
         inDir,
         reverseDirectories
     )
-    const csvContentMap = await getReferenceCsvContentMap(referenceDir)
-    return { directoriesToProcess, csvContentMap }
+    return directoriesToProcess
 }
 
 export function displayVerifyResultsAndGetExitCode(
-    validationResults: Result<null, SvgDifference>[],
+    validationResults: VerifyResult[],
     verbose: boolean,
-    directoriesToProcess: string[]
+    directoriesToProcess: JobDirectory[]
 ): number {
     let returnCode: number
 
     const errorResults = validationResults.filter(
         (result) => result.kind === "error"
-    ) as ResultError<SvgDifference>[]
+    ) as VerifyResultError[]
 
-    if (errorResults.length === 0) {
+    const differenceResults = validationResults.filter(
+        (result) => result.kind === "difference"
+    ) as VerifyResultDifference[]
+
+    if (errorResults.length === 0 && differenceResults.length === 0) {
         logIfVerbose(
             verbose,
             `There were no differences in all ${directoriesToProcess.length} graphs processed`
         )
         returnCode = 0
     } else {
-        console.warn(
-            `${errorResults.length} graphs had differences: ${errorResults
-                .map((err) => err.error.chartId)
-                .join()}`
-        )
-        for (const result of errorResults) {
-            console.log("", result.error.chartId) // write to stdout one grapher id per file for easy piping to other processes
+        if (errorResults.length) {
+            console.warn(
+                `${errorResults.length} graphs threw errors: ${errorResults
+                    .map((err) => err.graphId)
+                    .join()}`
+            )
+            for (const result of errorResults) {
+                console.log(result.graphId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
+            }
         }
-        returnCode = errorResults.length
+        if (differenceResults.length) {
+            console.warn(
+                `${
+                    differenceResults.length
+                } graphs had differences: ${differenceResults
+                    .map((err) => err.difference.chartId)
+                    .join()}`
+            )
+            for (const result of differenceResults) {
+                console.log("", result.difference.chartId) // write to stdout one grapher id per file for easy piping to other processes
+            }
+        }
+        returnCode = errorResults.length + differenceResults.length
     }
     return returnCode
 }
