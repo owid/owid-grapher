@@ -111,4 +111,9 @@ jobs:
                   path: owid-grapher-svgs
 
             - name: Run tests & checks
-              run: node ./itsJustJavascript/devTools/svgTester/export-graphs.js -i ./owid-grapher-svgs/configs -o ./owid-grapher-svgs/svgs
+              run: node ./itsJustJavascript/devTools/svgTester/verify-graphs.js -i ./owid-grapher-svgs/configs -o ./owid-grapher-svgs/svg -r ./owid-grapher-svgs/svg
+
+            - uses: stefanzweifel/git-auto-commit-action@v4
+              with:
+                  branch: test-autocommit
+                  repository: ./owid-grapher-svgs/
