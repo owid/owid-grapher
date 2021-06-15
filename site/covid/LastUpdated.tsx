@@ -14,12 +14,15 @@ export const LastUpdated = ({ timestampUrl }: LastUpdatedTokenProps) => {
             if (!timestampUrl) return
             const response = await fetch(timestampUrl)
             if (!response.ok) return
-            const timestamp = await response.text()
-            setDate(
+            const timestampRaw = await response.text()
+            const timestamp = timestampRaw.trim()
+            const parsedDate =
                 timestamp.length < 20
                     ? dayjs(`${timestamp}Z`)
                     : dayjs(timestamp)
-            )
+
+            if (!parsedDate.isValid()) return
+            setDate(parsedDate)
         }
         fetchTimeStamp()
     }, [])
