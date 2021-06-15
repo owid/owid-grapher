@@ -4,6 +4,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
+    FacetAxisRange,
     FacetStrategy,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -59,7 +60,6 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
-            isFacetYAxisShared,
         } = manager
 
         const baseFontSize = getFontSize(count, manager.baseFontSize)
@@ -92,7 +92,6 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
-                isFacetYAxisShared,
                 ...series.manager,
             }
             return {
@@ -128,17 +127,18 @@ export class FacetChart
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
             const seriesYDomain = seriesTable.domainFor(this.yColumnSlugs)
-            const yAxisConfig = this.manager.isFacetYAxisShared
-                ? {
-                      max: sharedYDomain[1],
-                      min: sharedYDomain[0],
-                      scaleType,
-                  }
-                : {
-                      max: seriesYDomain[1],
-                      min: seriesYDomain[0],
-                      scaleType,
-                  }
+            const yAxisConfig =
+                this.manager.yAxis!.facetAxisRange == FacetAxisRange.shared
+                    ? {
+                          max: sharedYDomain[1],
+                          min: sharedYDomain[0],
+                          scaleType,
+                      }
+                    : {
+                          max: seriesYDomain[1],
+                          min: seriesYDomain[0],
+                          scaleType,
+                      }
             return {
                 seriesName,
                 color: facetBackgroundColor,

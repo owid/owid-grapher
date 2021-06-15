@@ -28,7 +28,6 @@ export interface ChartManager {
     startSelectingWhenLineClicked?: boolean // used by lineLabels
     isExportingtoSvgOrPng?: boolean
     isRelativeMode?: boolean
-    isFacetYAxisShared?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
     tooltip?: TooltipProps

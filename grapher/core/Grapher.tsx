@@ -1448,18 +1448,6 @@ export class Grapher
         return this.stackMode === StackMode.relative
     }
 
-    @computed get isFacetYAxisShared(): boolean {
-        return this.facetYScale === FacetAxisRange.shared
-    }
-
-    get facetYScale(): FacetAxisRange {
-        return this.yAxis.facetAxisRange
-    }
-
-    set facetYScale(mode: FacetAxisRange) {
-        this.yAxis.facetAxisRange = mode
-    }
-
     @computed get canToggleRelativeMode(): boolean {
         if (this.isLineChart)
             return (
