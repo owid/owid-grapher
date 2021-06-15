@@ -8,6 +8,7 @@ import {
 import { Bounds } from "../../clientUtils/Bounds"
 import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants"
 import { Meta } from "@storybook/react"
+import { AxisConfig } from "../axis/AxisConfig"
 
 // See https://storybook.js.org/docs/react/essentials/controls for Control Types
 const CSF: Meta = {
@@ -28,6 +29,7 @@ export const OneMetricOneCountryPerChart = (): JSX.Element => {
         selection: table.availableEntityNames,
         yColumnSlug: SampleColumnSlugs.GDP,
         xColumnSlug: SampleColumnSlugs.Population,
+        yAxis: new AxisConfig(),
     }
 
     return (
@@ -53,6 +55,7 @@ export const MultipleMetricsOneCountryPerChart = (): JSX.Element => {
                 manager={{
                     selection: table.availableEntityNames,
                     table,
+                    yAxis: new AxisConfig(),
                 }}
             />
         </svg>
