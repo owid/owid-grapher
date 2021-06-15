@@ -143,6 +143,9 @@ jobs:
             - name: Register Problem Matcher
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
 
+            - name: Run tests & checks
+              run: yarn buildTsc
+
             - name: Clone svg tester repo
               uses: actions/checkout@v2
               with:
