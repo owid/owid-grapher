@@ -129,6 +129,13 @@ abstract class AbstractAxis {
         return isMobile() ? 8 : 10
     }
 
+    @computed get totalLinearTicks(): number {
+        // Chose 1.5 here by trying a bunch of different faceted charts and figuring out what
+        // a reasonable lower bound is.
+        // -@danielgavrilov, 2021-06-15s
+        return Math.ceil(Math.min(6, this.rangeSize / (this.fontSize * 1.5)))
+    }
+
     getTickValues(): Tickmark[] {
         const { scaleType, d3_scale, maxLogLines } = this
 
@@ -201,7 +208,7 @@ abstract class AbstractAxis {
         } else {
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            ticks = d3_scale.ticks(6).map((tickValue) => ({
+            ticks = d3_scale.ticks(this.totalLinearTicks).map((tickValue) => ({
                 value: tickValue,
                 priority: 2,
             }))
