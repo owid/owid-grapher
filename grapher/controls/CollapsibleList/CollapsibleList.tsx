@@ -79,6 +79,12 @@ export class CollapsibleList extends React.Component {
         this.updateNumItemsVisible()
     }
 
+    componentDidUpdate(): void {
+        // react to children being added or removed, for example
+        this.calculateItemWidths()
+        this.updateItemVisibility()
+    }
+
     componentDidMount(): void {
         window.addEventListener("resize", this.onResize)
 
