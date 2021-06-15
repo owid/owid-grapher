@@ -28,6 +28,8 @@ import {
     SmallCountriesFilterManager,
     AbsRelToggleManager,
     HighlightToggleManager,
+    FacetYRangeToggle,
+    FacetYRangeToggleManager,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -45,7 +47,8 @@ export interface CaptionedChartManager
         HighlightToggleManager,
         AbsRelToggleManager,
         FooterManager,
-        HeaderManager {
+        HeaderManager,
+        FacetYRangeToggleManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -61,6 +64,7 @@ export interface CaptionedChartManager
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
     showAbsRelToggle?: boolean
+    showFacetYRangeToggle?: boolean
     showHighlightToggle?: boolean
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
@@ -134,6 +138,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             .padBottom(OUTSIDE_PADDING)
     }
 
+    @computed get isFaceted(): boolean {
+        return !this.isMapTab && !!this.manager.facetStrategy
+    }
+
     renderChart(): JSX.Element {
         const { manager } = this
         const bounds = this.boundsForChart
@@ -147,7 +155,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
 
         // Todo: make FacetChart a chart type name?
-        if (!this.isMapTab && manager.facetStrategy)
+        if (this.isFaceted)
             return (
                 <FacetChart
                     bounds={bounds}
@@ -239,6 +247,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
+
+        if (this.isFaceted && manager.showFacetYRangeToggle)
+            controls.push(
+                <FacetYRangeToggle key="FacetYRangeToggle" manager={manager} />
+            )
 
         if (manager.showHighlightToggle)
             controls.push(

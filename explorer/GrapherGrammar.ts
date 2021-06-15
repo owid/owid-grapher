@@ -10,6 +10,7 @@ import {
 } from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
+    FacetAxisRange,
     FacetStrategy,
     GrapherTabOption,
 } from "../grapher/core/GrapherConstants"
@@ -129,6 +130,17 @@ export const GrapherGrammar: Grammar = {
         ...NumericCellDef,
         keyword: "yAxisMin",
         description: "Set the minimum value for the yAxis",
+    },
+    facetYRange: {
+        ...EnumCellDef,
+        keyword: "facetYRange",
+        description:
+            "Whether facets axes default to shared or independent range",
+        terminalOptions: Object.keys(FacetAxisRange).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
     baseColorScheme: {
         ...EnumCellDef,

@@ -22,6 +22,7 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
+import { FacetAxisRange } from "../grapher/core/GrapherConstants"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -307,6 +308,20 @@ export class EditorCustomizeTab extends React.Component<{
                                             (yAxisConfig.canChangeScaleType =
                                                 value || undefined)
                                         }
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <Toggle
+                                        label={`Facets have uniform y-axis`}
+                                        value={
+                                            yAxisConfig.facetAxisRange ===
+                                            FacetAxisRange.shared
+                                        }
+                                        onValue={(value) => {
+                                            yAxisConfig.facetAxisRange = value
+                                                ? FacetAxisRange.shared
+                                                : FacetAxisRange.independent
+                                        }}
                                     />
                                 </FieldsRow>
                             </React.Fragment>

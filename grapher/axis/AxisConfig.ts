@@ -1,4 +1,8 @@
-import { BASE_FONT_SIZE, ScaleType } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    FacetAxisRange,
+    ScaleType,
+} from "../core/GrapherConstants"
 import { extend, trimObject } from "../../clientUtils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
@@ -20,6 +24,7 @@ class AxisConfigDefaults {
     @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
+    @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
 }
 
 export class AxisConfig
@@ -51,6 +56,7 @@ export class AxisConfig
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
+            facetAxisRange: this.facetAxisRange,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

@@ -4,12 +4,14 @@ import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
 import { ChartManager } from "../chart/ChartManager"
 import { FacetStrategy } from "../core/GrapherConstants"
+import { AxisConfig } from "../axis/AxisConfig"
 
 it("can create a new FacetChart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     const manager: ChartManager = {
         table,
         selection: table.availableEntityNames,
+        yAxis: new AxisConfig(),
     }
     const chart = new FacetChart({ manager })
 
@@ -29,6 +31,7 @@ it("uses the transformed data for display in country mode", () => {
         // simulate the transformation that is done by Grapher on the data
         transformedTable: table.filterByTimeRange(2002, 2008),
         facetStrategy: FacetStrategy.country,
+        yAxis: new AxisConfig(),
     }
     const chart = new FacetChart({ manager })
 

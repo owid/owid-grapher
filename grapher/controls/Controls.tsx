@@ -14,6 +14,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
+    FacetAxisRange,
     GrapherTabOption,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
@@ -22,6 +23,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
+import { AxisConfig } from "../axis/AxisConfig"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -118,6 +120,41 @@ export class AbsRelToggle extends React.Component<{
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
                 &nbsp;{label}
+            </label>
+        )
+    }
+}
+
+export interface FacetYRangeToggleManager {
+    yAxis?: AxisConfig
+}
+
+@observer
+export class FacetYRangeToggle extends React.Component<{
+    manager: FacetYRangeToggleManager
+}> {
+    @action.bound onToggle(): void {
+        this.props.manager.yAxis!.facetAxisRange = this.isYRangeShared
+            ? FacetAxisRange.independent
+            : FacetAxisRange.shared
+    }
+
+    @computed get isYRangeShared(): boolean {
+        return (
+            this.props.manager.yAxis!.facetAxisRange === FacetAxisRange.shared
+        )
+    }
+
+    render(): JSX.Element {
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.isYRangeShared}
+                    onChange={this.onToggle}
+                    data-track-note="chart-facet-yrange-toggle"
+                />{" "}
+                &nbsp;Uniform y-axis
             </label>
         )
     }

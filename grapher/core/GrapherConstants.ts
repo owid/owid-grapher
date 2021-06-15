@@ -42,6 +42,11 @@ export enum FacetStrategy {
     column = "column", // One chart for each Y column
 }
 
+export enum FacetAxisRange {
+    independent = "independent", // all facets have their own y range
+    shared = "shared", // all facets share the same y range
+}
+
 export enum SeriesStrategy {
     column = "column", // One line per column
     entity = "entity", // One line per entity

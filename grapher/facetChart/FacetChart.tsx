@@ -4,6 +4,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
+    FacetAxisRange,
     FacetStrategy,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -110,16 +111,8 @@ export class FacetChart
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
-        const yDomain = table.domainFor(this.yColumnSlugs)
+        const sharedYDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
-        const sameYAxis = true
-        const yAxisConfig = sameYAxis
-            ? {
-                  max: yDomain[1],
-                  min: yDomain[0],
-                  scaleType,
-              }
-            : undefined
         const sameXAxis = true
         const xAxisConfig = sameXAxis
             ? {
@@ -132,11 +125,25 @@ export class FacetChart
         const hideLegend = this.manager.yColumnSlugs?.length === 1
 
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
+            const seriesTable = table.filterByEntityNames([seriesName])
+            const seriesYDomain = seriesTable.domainFor(this.yColumnSlugs)
+            const yAxisConfig =
+                this.manager.yAxis!.facetAxisRange == FacetAxisRange.shared
+                    ? {
+                          max: sharedYDomain[1],
+                          min: sharedYDomain[0],
+                          scaleType,
+                      }
+                    : {
+                          max: seriesYDomain[1],
+                          min: seriesYDomain[0],
+                          scaleType,
+                      }
             return {
                 seriesName,
                 color: facetBackgroundColor,
                 manager: {
-                    table: table.filterByEntityNames([seriesName]),
+                    table: seriesTable,
                     selection: [seriesName],
                     seriesStrategy: SeriesStrategy.column,
                     hideLegend,
