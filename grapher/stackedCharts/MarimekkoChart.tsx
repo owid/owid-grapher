@@ -179,8 +179,20 @@ export class MarimekkoChart
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
+        // This is annoying: we round up the width of each country to one pixel if it is below that
+        // this means that we have to adjust the domain so that this does not let us overshoot the x
+        // axis range. For this we have to figure out how many countries would be less than a pixel
+        // wide and increase the domain by this difference
+
         const sum = sumBy(this.xSeries.points, (point) => point.value)
-        return [0, sum]
+        const widthInPixels = this.xRange[1] - this.xRange[0]
+        const onePixelDomainValueEquivalent = sum / widthInPixels
+        const numPointsLessThanOnePixel = this.xSeries.points.filter(
+            (point) => point.value < onePixelDomainValueEquivalent
+        ).length
+        const correctedDomainSum =
+            sum + numPointsLessThanOnePixel * onePixelDomainValueEquivalent
+        return [0, correctedDomainSum]
     }
 
     @computed private get yRange(): [number, number] {
@@ -386,6 +398,10 @@ export class MarimekkoChart
                 formatColumn: this.formatColumn,
             }
 
+            const exactWidth =
+                dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
+                dualAxis.horizontalAxis.place(x0)
+            const barWidth = exactWidth > 1 ? Math.round(exactWidth) : 1
             const result = (
                 <g
                     key={label}
@@ -421,16 +437,14 @@ export class MarimekkoChart
                                 ...tooltipProps,
                                 highlightedSeriesName: bar.seriesName,
                             },
-                            isEven
+                            isEven,
+                            barWidth
                         )
                     )}
                 </g>
             )
             results.push(result)
-            currentX += Math.round(
-                dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
-                    dualAxis.horizontalAxis.place(x0)
-            )
+            currentX += barWidth
             isEven = !isEven
         }
         return results
@@ -441,7 +455,12 @@ export class MarimekkoChart
         return true
     }
 
-    private renderBar(bar: Bar, tooltipProps: TooltipProps, isEven: boolean) {
+    private renderBar(
+        bar: Bar,
+        tooltipProps: TooltipProps,
+        isEven: boolean,
+        barWidth: number
+    ) {
         const {
             dualAxis,
             formatColumn,
@@ -458,9 +477,6 @@ export class MarimekkoChart
             dualAxis.verticalAxis.place(this.y0) -
             dualAxis.verticalAxis.place(yPoint.value)
         const barX = 0
-        const barWidth =
-            dualAxis.horizontalAxis.place(xPoint.value) -
-            dualAxis.horizontalAxis.place(this.x0)
 
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
@@ -476,7 +492,6 @@ export class MarimekkoChart
             labelBounds.width < 0.85 * barHeight
         const labelColor = isDarkColor(color) ? "#fff" : "#000"
 
-        const barWidthRounded = roundX ? Math.round(barWidth) : barWidth
         const labelX = barX + barWidth / 2
         const labelY = barY - labelBounds.width / 2 - fontSize
 
@@ -494,7 +509,7 @@ export class MarimekkoChart
                         y={0}
                         shapeRendering="crispEdges"
                         transform={`translate(${barX}, ${barY - barHeight})`}
-                        width={barWidthRounded}
+                        width={barWidth}
                         height={barHeight}
                         fill={color}
                         //stroke="#4979d0"
