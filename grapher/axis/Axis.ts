@@ -1,13 +1,6 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed } from "mobx"
-import {
-    rollingMap,
-    min,
-    isMobile,
-    uniq,
-    sortBy,
-    maxBy,
-} from "../../clientUtils/Util"
+import { rollingMap, min, uniq, sortBy, maxBy } from "../../clientUtils/Util"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
@@ -123,21 +116,17 @@ abstract class AbstractAxis {
         return Math.min(this.range[1], this.range[0])
     }
 
-    // When this is a log axis, only show so many grid lines because otherwise the chart would get
-    // too overwhelming. Different for mobile because screens are usually smaller.
-    @computed private get maxLogLines(): number {
-        return isMobile() ? 8 : 10
-    }
-
-    @computed get totalLinearTicks(): number {
+    /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
+    @computed get totalTicks(): number {
         // Chose 1.5 here by trying a bunch of different faceted charts and figuring out what
-        // a reasonable lower bound is.
-        // -@danielgavrilov, 2021-06-15s
-        return Math.ceil(Math.min(6, this.rangeSize / (this.fontSize * 1.5)))
+        // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
+        // NOTE: This setting is used between both log & linear axes, check both when tweaking.
+        // -@danielgavrilov, 2021-06-15
+        return Math.ceil(Math.min(10, this.rangeSize / (this.fontSize * 1.5)))
     }
 
     getTickValues(): Tickmark[] {
-        const { scaleType, d3_scale, maxLogLines } = this
+        const { scaleType, d3_scale, totalTicks } = this
 
         let ticks: Tickmark[]
         if (scaleType === ScaleType.log) {
@@ -159,16 +148,16 @@ abstract class AbstractAxis {
             // * priority 3 (lowest) to all other ("in-between") values (e.g. 70, 300)
             //
             // We then decide depending on the number of tick candidates what to do:
-            // * if we have less than `maxLogLines`, just show all
-            // * if we have betwenn `maxLogLines` and `2 * maxLogLines`, show all "in-between" lines
+            // * if we have less than `totalTicks`, just show all
+            // * if we have betwenn `totalTicks` and `2 * totalTicks`, show all "in-between" lines
             //   as faint grid lines without labels to give the chart that log paper look.
             //   We also show all priority 1 and 2 lines with labels, because there aren't too many
             //   of them.
             // * otherwise, remove priority 3 and, if necessary, priority 2 labels until we're below
-            //   `maxLogLines` labels overall
+            //   `totalTicks` labels overall
             //
             // -@MarcelGerber, 2020-08-07
-            const tickCandidates = d3_scale.ticks(maxLogLines)
+            const tickCandidates = d3_scale.ticks(totalTicks)
             ticks = tickCandidates.map((value) => {
                 // 10^x
                 if (Math.fround(Math.log10(value)) % 1 === 0)
@@ -182,8 +171,8 @@ abstract class AbstractAxis {
                 return { value, priority: 3 }
             })
 
-            if (ticks.length > maxLogLines) {
-                if (ticks.length <= 2 * maxLogLines) {
+            if (ticks.length > totalTicks) {
+                if (ticks.length <= 2 * totalTicks) {
                     // Convert all "in-between" lines to faint grid lines without labels
                     ticks = ticks.map((tick) => {
                         if (tick.priority === 3)
@@ -198,7 +187,7 @@ abstract class AbstractAxis {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
                     for (let priority = 3; priority > 1; priority--) {
-                        if (ticks.length > maxLogLines)
+                        if (ticks.length > totalTicks)
                             ticks = ticks.filter(
                                 (tick) => tick.priority < priority
                             )
@@ -208,10 +197,13 @@ abstract class AbstractAxis {
         } else {
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            ticks = d3_scale.ticks(this.totalLinearTicks).map((tickValue) => ({
-                value: tickValue,
-                priority: 2,
-            }))
+            // Show a maximum of 6 ticks to match previous behaviour
+            ticks = d3_scale
+                .ticks(Math.min(6, this.totalTicks))
+                .map((tickValue) => ({
+                    value: tickValue,
+                    priority: 2,
+                }))
         }
 
         if (this.hideFractionalTicks)
