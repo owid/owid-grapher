@@ -311,7 +311,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    split(pieces: number, padding: SplitBoundsPadding = {}): Bounds[] {
+    grid(pieces: number, padding: SplitBoundsPadding = {}): Bounds[] {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.

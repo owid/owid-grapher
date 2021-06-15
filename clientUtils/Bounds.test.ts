@@ -9,7 +9,7 @@ it("can report the center", () => {
 
 it("can split a bounds into correct number of pieces", () => {
     const bounds = new Bounds(0, 0, 100, 100)
-    const quads = bounds.split(4)
+    const quads = bounds.grid(4)
     expect(quads.length).toEqual(4)
     const second = quads[1]
     const third = quads[2]
@@ -23,7 +23,7 @@ it("can split a bounds into correct number of pieces", () => {
 
 it("can split with padding between charts", () => {
     const bounds = new Bounds(0, 0, 100, 100)
-    const quads = bounds.split(4, { rowPadding: 20, columnPadding: 20 })
+    const quads = bounds.grid(4, { rowPadding: 20, columnPadding: 20 })
     expect(quads.length).toEqual(4)
     const second = quads[1]
     const third = quads[2]

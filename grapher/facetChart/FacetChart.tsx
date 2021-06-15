@@ -65,9 +65,8 @@ export class FacetChart
         const { manager, series } = this
         const count = series.length
 
-        const boundsArr = this.bounds.split(count, getChartPadding(count))
-
         // Copy properties from manager to facets
+        const boundsArr = this.bounds.grid(count, getChartPadding(count))
         const {
             yColumnSlug,
             xColumnSlug,
