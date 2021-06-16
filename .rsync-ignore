@@ -17,3 +17,6 @@ tmp
 clientSettings.json
 serverSettings.json
 coverage
+/grapherData
+/grapherSvgs
+/localBake

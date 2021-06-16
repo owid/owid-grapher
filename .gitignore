@@ -25,3 +25,5 @@ public/covidChartAndVariableMeta.json
 clientSettings.json
 serverSettings.json
 localBake/
+/grapherData
+/grapherSvgs
