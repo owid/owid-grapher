@@ -118,11 +118,8 @@ class Lines extends React.Component<LinesProps> {
     @computed private get hasMarkers(): boolean {
         if (this.props.hidePoints) return false
         return (
-            sum(
-                this.props.placedSeries.map(
-                    (series) => series.placedPoints.length
-                )
-            ) < 500
+            sum(this.focusedLines.map((series) => series.placedPoints.length)) <
+            500
         )
     }
 
@@ -131,35 +128,45 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private renderFocusGroups(): JSX.Element[] {
-        return this.focusedLines.map((series, index) => (
-            <g key={index}>
-                <path
-                    stroke={series.color}
-                    strokeLinecap="round"
-                    d={pointsToPath(
-                        series.placedPoints.map((value) => [
-                            value.x,
-                            value.y,
-                        ]) as [number, number][]
+        return this.focusedLines.map((series, index) => {
+            // If the series only contains one point, then we will always want to show a marker/circle
+            // because we can't draw a line.
+            const showMarkers =
+                (this.hasMarkers || series.placedPoints.length === 1) &&
+                !series.isProjection
+
+            return (
+                <g key={index}>
+                    <path
+                        stroke={series.color}
+                        strokeLinecap="round"
+                        d={pointsToPath(
+                            series.placedPoints.map((value) => [
+                                value.x,
+                                value.y,
+                            ]) as [number, number][]
+                        )}
+                        fill="none"
+                        strokeWidth={this.strokeWidth}
+                        strokeDasharray={
+                            series.isProjection ? "1,4" : undefined
+                        }
+                    />
+                    {showMarkers && (
+                        <g fill={series.color}>
+                            {series.placedPoints.map((value, index) => (
+                                <circle
+                                    key={index}
+                                    cx={value.x}
+                                    cy={value.y}
+                                    r={2}
+                                />
+                            ))}
+                        </g>
                     )}
-                    fill="none"
-                    strokeWidth={this.strokeWidth}
-                    strokeDasharray={series.isProjection ? "1,4" : undefined}
-                />
-                {this.hasMarkers && !series.isProjection && (
-                    <g fill={series.color}>
-                        {series.placedPoints.map((value, index) => (
-                            <circle
-                                key={index}
-                                cx={value.x}
-                                cy={value.y}
-                                r={2}
-                            />
-                        ))}
-                    </g>
-                )}
-            </g>
-        ))
+                </g>
+            )
+        })
     }
 
     private renderBackgroundGroups(): JSX.Element[] {
