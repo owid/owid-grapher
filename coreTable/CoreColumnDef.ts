@@ -1,5 +1,6 @@
 import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
-import { ColumnSlug, CoreValueType, Color } from "./CoreTableConstants"
+import { ColumnSlug } from "../clientUtils/owidTypes"
+import { CoreValueType, Color } from "./CoreTableConstants"
 
 export enum ColumnTypeNames {
     Numeric = "Numeric",

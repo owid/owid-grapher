@@ -4,7 +4,7 @@
 
 import { ChartDimension } from "./ChartDimension"
 import { BlankOwidTable } from "../../coreTable/OwidTable"
-import { DimensionProperty } from "../core/GrapherConstants"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 it("can serialize for saving", () => {
     expect(

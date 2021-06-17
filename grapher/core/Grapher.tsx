@@ -39,7 +39,6 @@ import {
     GrapherTabOption,
     ScaleType,
     StackMode,
-    DimensionProperty,
     EntitySelectionMode,
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
@@ -51,10 +50,7 @@ import {
     SeriesColorMap,
     FacetAxisRange,
 } from "../core/GrapherConstants"
-import {
-    LegacyChartDimensionInterface,
-    LegacyVariablesAndEntityKey,
-} from "./LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -100,11 +96,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "../persistable/Persistable"
-import {
-    ColumnSlug,
-    ColumnSlugs,
-    Time,
-} from "../../coreTable/CoreTableConstants"
+import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -163,9 +155,14 @@ import {
 } from "../../settings/clientSettings"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { Url } from "../../clientUtils/urls/Url"
-import { Annotation } from "../../clientUtils/owidTypes"
+import {
+    Annotation,
+    ColumnSlug,
+    DimensionProperty,
+} from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
+import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 
 declare const window: any
 

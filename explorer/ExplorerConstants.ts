@@ -1,5 +1,5 @@
-import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import { ColumnSlug, SortOrder } from "../coreTable/CoreTableConstants"
+import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes"
+import { SortOrder } from "../coreTable/CoreTableConstants"
 import { GrapherQueryParams } from "../grapher/core/GrapherInterface"
 
 export enum ExplorerControlType {

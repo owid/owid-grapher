@@ -1,5 +1,4 @@
 import {
-    ColumnSlug,
     CoreRow,
     Integer,
     PrimitiveType,
@@ -8,6 +7,7 @@ import {
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import { OwidSource } from "./OwidSource"
+import { ColumnSlug } from "../clientUtils/owidTypes"
 
 export enum OwidTableSlugs {
     entityName = "entityName",

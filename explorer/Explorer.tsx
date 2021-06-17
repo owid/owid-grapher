@@ -11,7 +11,7 @@ import {
 } from "../explorer/ExplorerControls"
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { SerializedGridProgram } from "../clientUtils/owidTypes"
+import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes"
 import {
     Grapher,
     GrapherManager,
@@ -43,11 +43,7 @@ import {
 } from "./ExplorerConstants"
 import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
-import {
-    ColumnSlug,
-    SortOrder,
-    TableSlug,
-} from "../coreTable/CoreTableConstants"
+import { SortOrder, TableSlug } from "../coreTable/CoreTableConstants"
 import { isNotErrorValue } from "../coreTable/ErrorValues"
 import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

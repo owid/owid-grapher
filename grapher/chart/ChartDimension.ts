@@ -3,20 +3,21 @@
 
 import { observable, computed } from "mobx"
 import { trimObject } from "../../clientUtils/Util"
-import { DimensionProperty } from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
+import { LegacyVariableDisplayConfig } from "../core/LegacyVariableCode"
 import {
-    LegacyChartDimensionInterface,
-    LegacyVariableDisplayConfig,
-} from "../core/LegacyVariableCode"
-import { LegacyVariableId } from "../../clientUtils/owidTypes"
-import { ColumnSlug, Time } from "../../coreTable/CoreTableConstants"
+    ColumnSlug,
+    DimensionProperty,
+    LegacyVariableId,
+} from "../../clientUtils/owidTypes"
+import { Time } from "../../coreTable/CoreTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "../persistable/Persistable"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data

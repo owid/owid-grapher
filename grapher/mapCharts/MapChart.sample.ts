@@ -1,5 +1,6 @@
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 import { GrapherProgrammaticInterface } from "../core/Grapher"
-import { GrapherTabOption, DimensionProperty } from "../core/GrapherConstants"
+import { GrapherTabOption } from "../core/GrapherConstants"
 
 export const legacyMapGrapher: GrapherProgrammaticInterface = {
     hasMapTab: true,

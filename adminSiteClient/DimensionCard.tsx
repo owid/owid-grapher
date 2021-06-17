@@ -16,9 +16,9 @@ import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { DimensionProperty } from "../grapher/core/GrapherConstants"
 import { OwidTable } from "../coreTable/OwidTable"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
+import { DimensionProperty } from "../clientUtils/owidTypes"
 
 @observer
 export class DimensionCard extends React.Component<{

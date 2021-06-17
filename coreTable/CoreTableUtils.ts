@@ -12,7 +12,6 @@ import {
 import {
     CoreColumnStore,
     CoreRow,
-    ColumnSlug,
     CoreMatrix,
     Time,
     CoreValueType,
@@ -25,6 +24,7 @@ import {
     OwidEntityNameColumnDef,
     OwidTableSlugs,
 } from "./OwidTableConstants"
+import { ColumnSlug } from "../clientUtils/owidTypes"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore
