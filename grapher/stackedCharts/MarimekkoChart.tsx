@@ -7,8 +7,8 @@ import {
     flatten,
     excludeUndefined,
     sortBy,
-    sum,
     sumBy,
+    sum,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -92,6 +92,7 @@ export class MarimekkoChart
 
     transformTable(table: OwidTable) {
         if (!this.yColumnSlugs.length) return table
+        if (!this.xColumnSlug) return table
 
         // table = table.filterByEntityNames(
         //     this.selectionArray.selectedEntityNames
@@ -100,15 +101,17 @@ export class MarimekkoChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
         this.yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
 
+        table = table.interpolateColumnWithTolerance(this.xColumnSlug)
+        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
+        table = table.dropRowsWithErrorValuesForAnyColumn([this.xColumnSlug])
+
         if (this.manager.isRelativeMode) {
-            table = table.toPercentageFromEachColumnForEachEntityAndTime(
-                this.yColumnSlugs
+            table = table.toPercentageFromEachEntityForEachTime(
+                this.xColumnSlug
             )
         }
 
@@ -177,22 +180,52 @@ export class MarimekkoChart
         ]
     }
 
+    @computed private get xDomainCorrectionFactor(): number {
+        // Rounding up every country so that it is at least one pixel wide
+        // on the X axis has a pretty annoying side effect: since there are
+        // quite a few very small countries that get rounded up, the normal
+        // placing on the X axis ends up overshooting the naive domain max value
+        // by quite a bit.
+        // Correcting for this naively is a simple job of calculating the domain
+        // amount of one pixel, counting the countries below that and adjusting by
+        // a simple factor. BUT this would now make the normal placement on the x
+        // axis map the value we calculated above of "one pixel worth of domain amount"
+        // to *slightly less* than one pixel, screwing up the rounding to pixel borders
+        // that is required to avoid SVG hairline artifacts.
+        // Instead what we do below is sort all x axis values ascending and then
+        // continously adjusting the one pixel domain value. This way we make sure
+        // that in the final placement everything fits. In other words, what we are
+        // doing is that we count all entities that would be less than one pixel WHILE
+        // updating this threshold to take into account that the "normal" range gets
+        // smaller by one pixel whenever we enlarge one small country to one pixel.
+
+        const points = this.xSeries.points
+            .map((point) => point.value)
+            .sort((a, b) => a - b)
+        const total = sum(points)
+        const widthInPixels = this.xRange[1] - this.xRange[0]
+        let onePixelDomainValueEquivalent = total / widthInPixels
+        let numCountriesBelowOnePixel = 0
+        let sumToRemoveFromTotal = 0
+        for (let i = 0; i < points.length; i++) {
+            if (points[i] >= onePixelDomainValueEquivalent) break
+            numCountriesBelowOnePixel++
+            sumToRemoveFromTotal += points[i]
+            onePixelDomainValueEquivalent =
+                total / (widthInPixels - numCountriesBelowOnePixel)
+        }
+        return (
+            (total -
+                numCountriesBelowOnePixel * onePixelDomainValueEquivalent) /
+            (total - sumToRemoveFromTotal)
+        )
+    }
+
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        // This is annoying: we round up the width of each country to one pixel if it is below that
-        // this means that we have to adjust the domain so that this does not let us overshoot the x
-        // axis range. For this we have to figure out how many countries would be less than a pixel
-        // wide and increase the domain by this difference
-
         const sum = sumBy(this.xSeries.points, (point) => point.value)
-        const widthInPixels = this.xRange[1] - this.xRange[0]
-        const onePixelDomainValueEquivalent = sum / widthInPixels
-        const numPointsLessThanOnePixel = this.xSeries.points.filter(
-            (point) => point.value < onePixelDomainValueEquivalent
-        ).length
-        const correctedDomainSum =
-            sum + numPointsLessThanOnePixel * onePixelDomainValueEquivalent
-        return [0, correctedDomainSum]
+
+        return [0, sum]
     }
 
     @computed private get yRange(): [number, number] {
@@ -226,7 +259,8 @@ export class MarimekkoChart
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const axis = this.xAxisPart.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(this.xDomainDefault)
+        if (this.manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.formatColumn = this.xColumn // todo: does this work for columns as series?
         axis.range = this.xRange
@@ -383,7 +417,7 @@ export class MarimekkoChart
 
     private renderBars() {
         const results: JSX.Element[] = []
-        const { dualAxis, x0 } = this
+        const { dualAxis, x0, xDomainCorrectionFactor } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         let isEven = true
         for (const { label, bars } of this.items) {
@@ -401,7 +435,8 @@ export class MarimekkoChart
             const exactWidth =
                 dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
                 dualAxis.horizontalAxis.place(x0)
-            const barWidth = exactWidth > 1 ? Math.round(exactWidth) : 1
+            const correctedWidth = exactWidth * xDomainCorrectionFactor
+            const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
             const result = (
                 <g
                     key={label}

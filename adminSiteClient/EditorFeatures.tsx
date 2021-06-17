@@ -76,7 +76,8 @@ export class EditorFeatures {
             this.grapher.isStackedArea ||
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
-            this.grapher.isScatter
+            this.grapher.isScatter ||
+            this.grapher.isMarimekko
         )
     }
 
