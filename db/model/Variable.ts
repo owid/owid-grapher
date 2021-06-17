@@ -1,11 +1,15 @@
 import * as lodash from "lodash"
 import { Writable } from "stream"
 import * as db from "../db"
-import { LegacyVariableDisplayConfigInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import {
+    LegacyChartDimensionInterface,
+    LegacyVariableDisplayConfigInterface,
+} from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 import { arrToCsvRow } from "../../clientUtils/Util"
 import {
     DataValueQueryArgs,
     DataValueResult,
+    LegacyVariableId,
 } from "../../clientUtils/owidTypes"
 
 export namespace Variable {
@@ -226,4 +230,31 @@ export const getDataValue = async ({
         unit: row.unit,
         entityName: row.entityName,
     }
+}
+
+export const getLegacyChartDimensionConfigForVariable = async (
+    variableId: LegacyVariableId,
+    chartId: number
+): Promise<LegacyChartDimensionInterface | undefined> => {
+    const row = await db.mysqlFirst(
+        `SELECT config->"$.dimensions" as dimensions from charts WHERE id=?`,
+        [chartId]
+    )
+    if (!row.dimensions) return
+    const dimensions = JSON.parse(row.dimensions)
+    return dimensions.find(
+        (dimension: LegacyChartDimensionInterface) =>
+            dimension.variableId === variableId
+    )
+}
+
+export const getLegacyVariableDisplayConfig = async (
+    variableId: LegacyVariableId
+): Promise<LegacyVariableDisplayConfigInterface | undefined> => {
+    const row = await db.mysqlFirst(
+        `SELECT display from variables WHERE id=?`,
+        [variableId]
+    )
+    if (!row.display) return
+    return JSON.parse(row.display)
 }

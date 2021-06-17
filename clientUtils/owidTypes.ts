@@ -92,6 +92,7 @@ export interface KeyValueProps {
 export interface DataValueQueryArgs {
     variableId?: number
     entityId?: number
+    chartId?: number
     year?: number
 }
 
@@ -108,6 +109,7 @@ export interface DataValueResult {
 }
 
 export interface DataValueProps extends DataValueResult {
+    formattedValue?: string
     template: string
 }
 
