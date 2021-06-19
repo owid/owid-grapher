@@ -162,4 +162,4 @@ jobs:
             #       repository: ./owid-grapher-svgs/
 
             - name: Fail if we had any compare-result output to stdout
-              run: "[[ ! -f compare-result || -s compare-result ]]"
+              run: "[[ ! -f compare-result && -s compare-result ]]"
