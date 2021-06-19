@@ -1054,7 +1054,8 @@ export class Grapher
         const size = new DimensionSlot(this, DimensionProperty.size)
 
         if (this.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.isTimeScatter || this.isMarimekko) return [yAxis, xAxis]
+        else if (this.isMarimekko) return [yAxis, xAxis, color]
+        else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
     }

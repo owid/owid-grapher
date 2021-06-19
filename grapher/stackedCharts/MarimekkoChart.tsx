@@ -43,6 +43,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils"
 import { VerticalColorLegendManager } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { countries } from "../../clientUtils/countries"
 
 const labelToBarPadding = 5
 
@@ -59,6 +60,7 @@ interface SimplePoint {
     value: number
     entity: string
     time: number
+    color: Color
 }
 
 export interface SimpleChartSeries extends ChartSeries {
@@ -115,7 +117,24 @@ export class MarimekkoChart
             )
         }
 
+        if (this.colorColumnSlug) {
+            const tolerance =
+                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+            table = table.interpolateColumnWithTolerance(
+                this.colorColumnSlug,
+                tolerance
+            )
+            if (this.manager.matchingEntitiesOnly) {
+                table = table.dropRowsWithErrorValuesForColumn(
+                    this.colorColumnSlug
+                )
+            }
+        }
         return table
+    }
+
+    @computed get entityNameSlug() {
+        return "entityName"
     }
 
     @observable focusSeriesName?: SeriesName
@@ -293,6 +312,7 @@ export class MarimekkoChart
         const entityNames = new Set(
             this.xSeries.points.map((point) => point.entity)
         )
+
         const items: Item[] = Array.from(entityNames)
             .map((entityName) => {
                 const xPoint = this.xSeries.points.find(
@@ -310,7 +330,7 @@ export class MarimekkoChart
                             return {
                                 xPoint,
                                 yPoint: point,
-                                color: series.color,
+                                color: xPoint.color, //series.color,
                                 seriesName: series.seriesName,
                             }
                         })
@@ -753,6 +773,21 @@ export class MarimekkoChart
         )
     }
 
+    @computed private get colorColumnSlug() {
+        return this.manager.colorColumnSlug
+    }
+
+    @computed private get colorColumn() {
+        return this.transformedTable.get(this.colorColumnSlug)
+    }
+
+    @computed get colorScaleColumn() {
+        // We need to use inputTable in order to get consistent coloring for a variable across
+        // charts, e.g. each continent being assigned to the same color.
+        // inputTable is unfiltered, so it contains every value that exists in the variable.
+        return this.inputTable.get(this.colorColumnSlug)
+    }
+
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
         return (
             this.yColumns
@@ -780,6 +815,10 @@ export class MarimekkoChart
     }
 
     @computed get xSeries(): SimpleChartSeries {
+        // TODO: make entity colors (continents work)
+        // const keyColor = this.transformedTable.getColorForEntityName(
+        //     entityName
+        // )
         const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
             const points: SimplePoint[] = []
             for (const row of rows) {
@@ -787,6 +826,10 @@ export class MarimekkoChart
                     time: row.time,
                     value: row.value,
                     entity: row.entityName,
+                    color:
+                        this.transformedTable.getColorForEntityName(
+                            row.entityName
+                        ) || "#555",
                 })
             }
             return points
