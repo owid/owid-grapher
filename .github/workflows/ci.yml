@@ -151,15 +151,16 @@ jobs:
               with:
                   repository: "owid/owid-grapher-svgs"
                   path: owid-grapher-svgs
+                  token: ${{ secrets.GITHUBPAT }}
 
             - name: Run tests & checks
               run: node itsJustJavascript/devTools/svgTester/verify-graphs.js -i owid-grapher-svgs/configs -o owid-grapher-svgs/svg -r owid-grapher-svgs/svg -g 16-100 > compare-result || true
 
-            # - uses: stefanzweifel/git-auto-commit-action@v4
-            #   with:
-            #       #branch: test-autocommit
+            - uses: stefanzweifel/git-auto-commit-action@v4
+              with:
+                  #branch: test-autocommit
 
-            #       repository: ./owid-grapher-svgs/
+                  repository: ./owid-grapher-svgs/
 
             - name: Fail if we had any compare-result output to stdout
               run: "[[ ! -f compare-result && -s compare-result ]]"
