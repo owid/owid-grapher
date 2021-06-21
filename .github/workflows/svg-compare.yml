@@ -94,6 +94,9 @@ jobs:
                   repository: ./owid-grapher-svgs/
                   branch: ${{ steps.extract_branch.outputs.branch }}
 
-            # We still want this action to fail if the verify script created a non-0 byte compare-result file
-            - name: Fail if we had any compare-result output to stdout
-              run: "[[ ! -f compare-result && -s compare-result ]]"
+            - name: Fail with error message if we had differences
+              if: ${{ steps.run-verify-graphs.outcome == 'failure' }}
+              uses: actions/github-script@v3
+              with:
+                  script: |
+                      core.setFailed('SVGs were different from reference! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ steps.extract_branch.outputs.branch }}')
