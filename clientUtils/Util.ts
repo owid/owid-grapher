@@ -124,8 +124,17 @@ export const d3Format = formatLocale({
     currency: ["$", ""],
 }).format
 
+const getRootSVG = (
+    element: Element | SVGElement | SVGSVGElement
+): SVGSVGElement | undefined => {
+    if ("createSVGPoint" in element) return element
+    if ("ownerSVGElement" in element)
+        return element.ownerSVGElement || undefined
+    return undefined
+}
+
 export const getRelativeMouse = (
-    node: Element,
+    node: Element | SVGElement | SVGSVGElement,
     event: TouchEvent | { clientX: number; clientY: number }
 ): PointVector => {
     const isTouchEvent = !!(event as TouchEvent).targetTouches
@@ -135,15 +144,14 @@ export const getRelativeMouse = (
 
     const { clientX, clientY } = eventOwner
 
-    // TODO: this does not typecheck anymore now that SVGElement is not redifined as any?
-    // const svg = node.ownerSVGElement || node
-    // if (svg.createSVGPoint) {
-    //     const svgPoint = svg.createSVGPoint()
-    //     svgPoint.x = clientX
-    //     svgPoint.y = clientY
-    //     const point = svgPoint.matrixTransform(node.getScreenCTM().inverse())
-    //     return new PointVector(point.x, point.y)
-    // }
+    const svg = getRootSVG(node)
+    if (svg) {
+        const svgPoint = svg.createSVGPoint()
+        svgPoint.x = clientX
+        svgPoint.y = clientY
+        const point = svgPoint.matrixTransform(svg.getScreenCTM()?.inverse())
+        return new PointVector(point.x, point.y)
+    }
 
     const rect = node.getBoundingClientRect()
     return new PointVector(
