@@ -107,7 +107,6 @@ import linkifyHtml from "linkifyjs/html"
 import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
-import { string } from "prop-types"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
