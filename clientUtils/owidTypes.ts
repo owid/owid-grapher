@@ -164,12 +164,6 @@ export enum WP_PostType {
     Page = "page",
 }
 
-export enum PageType {
-    Entry = "ENTRY",
-    SubEntry = "SUBENTRY",
-    Standard = "STANDARD",
-}
-
 export interface EntryNode {
     slug: string
     title: string

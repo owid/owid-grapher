@@ -127,7 +127,7 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakePost(post: FullPost) {
-        const pageType = await wpdb.getPageType(post)
+        const isCitable = await wpdb.isPostCitable(post)
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(
             post,
@@ -136,7 +136,7 @@ export class SiteBaker {
         )
         const html = renderToHtmlPage(
             <LongFormPage
-                pageType={pageType}
+                isCitable={isCitable}
                 post={formatted}
                 formattingOptions={formattingOptions}
                 baseUrl={this.baseUrl}

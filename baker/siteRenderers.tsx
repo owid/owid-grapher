@@ -27,13 +27,13 @@ import {
 import { VariableCountryPage } from "../site/VariableCountryPage"
 import { FeedbackPage } from "../site/FeedbackPage"
 import { getCountry, Country } from "../clientUtils/countries"
-import { memoize } from "../clientUtils/Util"
+import { memoize, urlToSlug } from "../clientUtils/Util"
 import { CountryProfileSpec } from "../site/countryProfileProjects"
 import {
     FormattedPost,
     FormattingOptions,
+    FullPost,
     JsonError,
-    PageType,
     PostRow,
 } from "../clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
@@ -42,11 +42,12 @@ import {
     getEntriesByCategory,
     getFullPost,
     getLatestPostRevision,
-    getPageType,
     getPostBySlug,
     getPosts,
+    isPostCitable,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
+import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
@@ -108,7 +109,6 @@ export const renderMenuJson = async () => {
 
 const renderPage = async (postApi: any) => {
     const post = await getFullPost(postApi)
-    const pageType = await getPageType(post)
 
     const $ = cheerio.load(post.content)
 
@@ -124,12 +124,42 @@ const renderPage = async (postApi: any) => {
 
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
+
+    const isCitable = await isPostCitable(post)
+
+    let landing: FullPost | undefined
+    let isParentLandingCitable: boolean = false
+    let overrides: PageOverrides = {}
+
+    if (!isCitable && formattingOptions.subnavId) {
+        const landingSlug = urlToSlug(
+            getTopSubnavigationParentItem(formattingOptions.subnavId).href
+        )
+        if (landingSlug !== post.slug) {
+            const landingPostApi = await getPostBySlug(landingSlug)
+            landing = await getFullPost(landingPostApi)
+            isParentLandingCitable = await isPostCitable(landing)
+
+            if (isParentLandingCitable) {
+                overrides = {
+                    citationTitle: landing.title,
+                    citationSlug: landing.slug,
+                    citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
+                    citationAuthors: landing.authors,
+                    publicationDate: landing.date,
+                }
+            }
+        }
+    }
+
+    // Applying landing page overrides to citable pages (excludes "About" pages) that aren't landing pages.
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
     return renderToHtmlPage(
         <LongFormPage
-            pageType={pageType}
+            isCitable={isCitable || isParentLandingCitable}
             post={formatted}
+            overrides={overrides}
             formattingOptions={formattingOptions}
             baseUrl={BAKED_BASE_URL}
         />
@@ -370,7 +400,7 @@ export const renderCountryProfile = async (
     }
     return renderToHtmlPage(
         <LongFormPage
-            pageType={PageType.SubEntry}
+            isCitable={true}
             post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}

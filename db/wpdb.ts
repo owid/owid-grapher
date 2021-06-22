@@ -22,7 +22,6 @@ import { registerExitHandler } from "./cleanup"
 import {
     RelatedChart,
     CategoryWithEntries,
-    PageType,
     EntryNode,
     FullPost,
     WP_PostType,
@@ -387,9 +386,9 @@ export const getEntriesByCategory = async (): Promise<
     return cachedEntries
 }
 
-export const getPageType = async (post: FullPost): Promise<PageType> => {
+export const isPostCitable = async (post: FullPost): Promise<boolean> => {
     const entries = await getEntriesByCategory()
-    const isEntry = entries.some((category) => {
+    return entries.some((category) => {
         return (
             category.entries.some((entry) => entry.slug === post.slug) ||
             category.subcategories.some((subcategory: CategoryWithEntries) => {
@@ -399,9 +398,6 @@ export const getPageType = async (post: FullPost): Promise<PageType> => {
             })
         )
     })
-
-    // TODO Add subEntry detection
-    return isEntry ? PageType.Entry : PageType.Standard
 }
 
 export const getPermalinks = async (): Promise<{
