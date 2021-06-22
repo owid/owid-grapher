@@ -254,57 +254,57 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     ],
 }
 
-export class SiteSubnavigation extends React.Component<{
+export const SiteSubnavigation = ({
+    subnavId,
+    subnavCurrentId,
+}: {
     subnavId: SubNavId
     subnavCurrentId?: string
-}> {
-    render() {
-        const { subnavId, subnavCurrentId } = this.props
-        const subnavLinks = subnavs[subnavId]
-        return subnavLinks ? (
-            <div className="offset-subnavigation">
-                <div className="site-subnavigation">
-                    <div className="site-subnavigation-scroll">
-                        <ul className="site-subnavigation-links">
-                            {subnavLinks.map(
-                                ({ href, label, id, highlight }, idx) => {
-                                    const classes: string[] = []
-                                    const dataTrackNote = [
-                                        subnavId,
-                                        "subnav",
-                                        id,
-                                    ].join("-")
-                                    if (id === subnavCurrentId)
-                                        classes.push("current")
-                                    if (highlight) classes.push("highlight")
-                                    return (
-                                        <li
-                                            className={
-                                                (classes.length &&
-                                                    classes.join(" ")) ||
-                                                ""
-                                            }
-                                            key={href}
+}) => {
+    const subnavLinks = subnavs[subnavId]
+    return subnavLinks ? (
+        <div className="offset-subnavigation">
+            <div className="site-subnavigation">
+                <div className="site-subnavigation-scroll">
+                    <ul className="site-subnavigation-links">
+                        {subnavLinks.map(
+                            ({ href, label, id, highlight }, idx) => {
+                                const classes: string[] = []
+                                const dataTrackNote = [
+                                    subnavId,
+                                    "subnav",
+                                    id,
+                                ].join("-")
+                                if (id === subnavCurrentId)
+                                    classes.push("current")
+                                if (highlight) classes.push("highlight")
+                                return (
+                                    <li
+                                        className={
+                                            (classes.length &&
+                                                classes.join(" ")) ||
+                                            ""
+                                        }
+                                        key={href}
+                                    >
+                                        <a
+                                            href={href}
+                                            data-track-note={dataTrackNote}
                                         >
-                                            <a
-                                                href={href}
-                                                data-track-note={dataTrackNote}
-                                            >
-                                                {label}
-                                                {idx === 0 && (
-                                                    <FontAwesomeIcon
-                                                        icon={faChevronLeft}
-                                                    />
-                                                )}
-                                            </a>
-                                        </li>
-                                    )
-                                }
-                            )}
-                        </ul>
-                    </div>
+                                            {label}
+                                            {idx === 0 && (
+                                                <FontAwesomeIcon
+                                                    icon={faChevronLeft}
+                                                />
+                                            )}
+                                        </a>
+                                    </li>
+                                )
+                            }
+                        )}
+                    </ul>
                 </div>
             </div>
-        ) : null
-    }
+        </div>
+    ) : null
 }
