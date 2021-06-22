@@ -255,12 +255,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
 
-        controls.push(
-            <FacetStrategyDropdown
-                key="FacetStrategyDropdown"
-                manager={manager}
-            />
-        )
+        if (manager.showFacets) {
+            controls.push(
+                <FacetStrategyDropdown
+                    key="FacetStrategyDropdown"
+                    manager={manager}
+                />
+            )
+        }
 
         if (this.isFaceted && manager.showFacetYRangeToggle)
             controls.push(

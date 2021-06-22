@@ -301,6 +301,9 @@ export class Grapher
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined
 
+    @observable showFacets?: boolean = false
+    @observable lastFacet: FacetStrategy = FacetStrategy.together
+
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
 
@@ -1732,7 +1735,7 @@ export class Grapher
             },
             {
                 combo: "f",
-                fn: (): void => this.toggleFacetStrategy(),
+                fn: (): void => this.toggleFacetVisibility(),
                 title: `Toggle Faceting`,
                 category: "Chart",
             },
@@ -1804,7 +1807,19 @@ export class Grapher
         this.facet = next(this.availableFacetStrategies, this.facet)
     }
 
-    @observable facet?: FacetStrategy
+    @action.bound private toggleFacetVisibility(): void {
+        this.showFacets = !this.showFacets
+    }
+
+    @computed get facet(): FacetStrategy {
+        if (this.showFacets) {
+            return this.lastFacet
+        }
+        return FacetStrategy.together
+    }
+    set facet(strategy: FacetStrategy) {
+        this.lastFacet = strategy
+    }
 
     @computed private get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
@@ -2115,7 +2130,7 @@ export class Grapher
         this.colorSlug = grapher.colorSlug
         this.sizeSlug = grapher.sizeSlug
         this.hasMapTab = grapher.hasMapTab
-        this.facet = undefined
+        this.facet = FacetStrategy.together
         this.hasChartTab = grapher.hasChartTab
         this.map = grapher.map
         this.yAxis.scaleType = grapher.yAxis.scaleType

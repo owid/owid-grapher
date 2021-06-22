@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     getQueryParams,
@@ -241,6 +241,7 @@ export class FilterSmallCountriesToggle extends React.Component<{
 export interface FacetStrategyDropdownManager {
     availableFacetStrategies?: FacetStrategy[]
     facet?: FacetStrategy
+    showFacets?: boolean
 }
 
 const FACET_DROPDOWN_CLASS = "FacetStrategyDropdown"
@@ -276,10 +277,10 @@ export class FacetStrategyDropdown extends React.Component<{
             <Select
                 className={FACET_DROPDOWN_CLASS}
                 classNamePrefix={FACET_DROPDOWN_CLASS}
-                options={this.options}
-                value={this.options.find(
-                    (option) => option.value === this.facet
+                defaultValue={this.options.find(
+                    (o) => o.value === FacetStrategy.together
                 )}
+                options={this.options}
                 onChange={this.onChange}
                 styles={styles}
             />
