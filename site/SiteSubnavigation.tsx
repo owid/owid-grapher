@@ -156,7 +156,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     forests: [
         {
             label: "Forests",
-            href: "/forests",
+            href: "/forests-and-deforestation",
             id: "forests",
         },
         {
