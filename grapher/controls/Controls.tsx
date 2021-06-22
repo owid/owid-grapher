@@ -6,6 +6,7 @@ import {
     getWindowQueryParams,
     QueryParams,
 } from "../../clientUtils/urls/UrlUtils"
+import Select, { ValueType } from "react-select"
 import { TimelineComponent } from "../timeline/TimelineComponent"
 import { formatValue } from "../../clientUtils/formatValue"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -15,6 +16,7 @@ import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
     FacetAxisRange,
+    FacetStrategy,
     GrapherTabOption,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
@@ -24,6 +26,10 @@ import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
+import {
+    asArray,
+    getStylesForTargetHeight,
+} from "../../clientUtils/react-select"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -230,6 +236,61 @@ export class FilterSmallCountriesToggle extends React.Component<{
             </label>
         )
     }
+}
+
+export interface FacetStrategyDropdownManager {
+    availableFacetStrategies?: FacetStrategy[]
+    facet?: FacetStrategy
+}
+
+const FACET_DROPDOWN_CLASS = "FacetStrategyDropdown"
+
+export class FacetStrategyDropdown extends React.Component<{
+    manager: FacetStrategyDropdownManager
+}> {
+    @computed get options(): { label: string; value: string }[] {
+        const strategies = this.props.manager.availableFacetStrategies || [
+            FacetStrategy.together,
+            FacetStrategy.country,
+            FacetStrategy.column,
+        ]
+        return strategies.map((value) => {
+            const label = facetStrategyLabels[value]
+            return { label, value }
+        })
+    }
+
+    @computed get facet(): FacetStrategy {
+        return this.props.manager.facet || FacetStrategy.together
+    }
+
+    @action.bound onChange(
+        selected: ValueType<{ label: string; value: string }>
+    ): void {
+        this.props.manager.facet = asArray(selected)[0].value as FacetStrategy
+    }
+
+    render(): JSX.Element {
+        const styles = getStylesForTargetHeight(24)
+        return (
+            <Select
+                className={FACET_DROPDOWN_CLASS}
+                classNamePrefix={FACET_DROPDOWN_CLASS}
+                options={this.options}
+                value={this.options.find(
+                    (option) => option.value === this.facet
+                )}
+                onChange={this.onChange}
+                styles={styles}
+            />
+        )
+    }
+}
+
+const facetStrategyLabels = {
+    [FacetStrategy.together]: "All together",
+    [FacetStrategy.country]: "Split by country",
+    [FacetStrategy.column]: "Split by metric",
 }
 
 export interface FooterControlsManager extends ShareMenuManager {

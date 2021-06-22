@@ -38,6 +38,7 @@ export enum StackMode {
 export const BASE_FONT_SIZE = 16
 
 export enum FacetStrategy {
+    together = "together", // No facets
     country = "country", // One chart for each country
     column = "column", // One chart for each Y column
 }

@@ -11,6 +11,7 @@ import {
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
+    FacetStrategy,
     GrapherTabOption,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
@@ -30,6 +31,8 @@ import {
     HighlightToggleManager,
     FacetYRangeToggle,
     FacetYRangeToggleManager,
+    FacetStrategyDropdown,
+    FacetStrategyDropdownManager,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -48,7 +51,8 @@ export interface CaptionedChartManager
         AbsRelToggleManager,
         FooterManager,
         HeaderManager,
-        FacetYRangeToggleManager {
+        FacetYRangeToggleManager,
+        FacetStrategyDropdownManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
@@ -139,7 +143,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed get isFaceted(): boolean {
-        return !this.isMapTab && !!this.manager.facetStrategy
+        const hasStrategy =
+            !!this.manager.facetStrategy &&
+            this.manager.facetStrategy !== FacetStrategy.together
+        return !this.isMapTab && hasStrategy
     }
 
     renderChart(): JSX.Element {
@@ -247,6 +254,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
+
+        controls.push(
+            <FacetStrategyDropdown
+                key="FacetStrategyDropdown"
+                manager={manager}
+            />
+        )
 
         if (this.isFaceted && manager.showFacetYRangeToggle)
             controls.push(

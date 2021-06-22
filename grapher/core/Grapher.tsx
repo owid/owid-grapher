@@ -49,7 +49,6 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
-    FacetAxisRange,
 } from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -111,6 +110,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     AbsRelToggleManager,
+    FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
     HighlightToggleManager,
@@ -234,6 +234,7 @@ export class Grapher
         FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
+        FacetStrategyDropdownManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
@@ -1830,11 +1831,8 @@ export class Grapher
         return []
     }
 
-    @computed private get availableFacetStrategies(): (
-        | FacetStrategy
-        | undefined
-    )[] {
-        const strategies: (FacetStrategy | undefined)[] = [undefined]
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = [FacetStrategy.together]
 
         if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
 
@@ -1845,11 +1843,11 @@ export class Grapher
     }
 
     private disableAutoFaceting = true // turned off for now
-    @computed get facetStrategy(): FacetStrategy | undefined {
+    @computed get facetStrategy(): FacetStrategy {
         if (this.facet && this.availableFacetStrategies.includes(this.facet))
             return this.facet
 
-        if (this.disableAutoFaceting) return undefined
+        if (this.disableAutoFaceting) return FacetStrategy.together
 
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
@@ -1866,7 +1864,7 @@ export class Grapher
         )
             return FacetStrategy.column
 
-        return undefined
+        return FacetStrategy.together
     }
 
     @action.bound randomSelection(num: number): void {
