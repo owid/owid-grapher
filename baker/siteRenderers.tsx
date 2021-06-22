@@ -94,12 +94,12 @@ export const renderCovidPage = () =>
 
 export const renderPageBySlug = async (slug: string) => {
     const post = await getPostBySlug(slug)
-    return renderPage(post)
+    return renderPost(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
     const postApi = await getLatestPostRevision(postId)
-    return renderPage(postApi)
+    return renderPost(postApi)
 }
 
 export const renderMenuJson = async () => {
@@ -141,18 +141,26 @@ export const getCitationStatusAndPageOverrides = async (
     }
 }
 
-const renderPage = async (post: FullPost) => {
-    const $ = cheerio.load(post.content)
+export const renderPost = async (
+    post: FullPost,
+    baseUrl: string = BAKED_BASE_URL,
+    grapherExports?: GrapherExports
+) => {
+    let exportsByUrl = grapherExports
 
-    const grapherUrls = $("iframe")
-        .toArray()
-        .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
-        .map((el) => el.attribs["src"].trim())
+    if (!grapherExports) {
+        const $ = cheerio.load(post.content)
 
-    // This can be slow if uncached!
-    await bakeGrapherUrls(grapherUrls)
+        const grapherUrls = $("iframe")
+            .toArray()
+            .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
+            .map((el) => el.attribs["src"].trim())
 
-    const exportsByUrl = await getGrapherExportsByUrl()
+        // This can be slow if uncached!
+        await bakeGrapherUrls(grapherUrls)
+
+        exportsByUrl = await getGrapherExportsByUrl()
+    }
 
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
@@ -170,7 +178,7 @@ const renderPage = async (post: FullPost) => {
             post={formatted}
             overrides={pageOverrides}
             formattingOptions={formattingOptions}
-            baseUrl={BAKED_BASE_URL}
+            baseUrl={baseUrl}
         />
     )
 }

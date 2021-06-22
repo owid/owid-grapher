@@ -12,11 +12,8 @@ import {
     BASE_DIR,
     WORDPRESS_DIR,
 } from "../settings/serverSettings"
-import { extractFormattingOptions } from "./formatting"
-import { LongFormPage } from "../site/LongFormPage"
 
 import {
-    renderToHtmlPage,
     renderFrontPage,
     renderSubscribePage,
     renderBlogByPageNum,
@@ -30,7 +27,7 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
-    getCitationStatusAndPageOverrides,
+    renderPost,
 } from "../baker/siteRenderers"
 import {
     bakeGrapherUrls,
@@ -38,7 +35,6 @@ import {
     GrapherExports,
 } from "../baker/GrapherBakingUtils"
 import { makeSitemap } from "../baker/sitemap"
-import * as React from "react"
 import { Post } from "../db/model/Post"
 import { bakeCountries } from "../baker/countryProfiles"
 import { countries } from "../clientUtils/countries"
@@ -50,7 +46,6 @@ import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "../site/webpackUtils"
-import { formatPost } from "./formatWordpressPost"
 import { FullPost } from "../clientUtils/owidTypes"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 
@@ -128,25 +123,7 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakePost(post: FullPost) {
-        const formattingOptions = extractFormattingOptions(post.content)
-        const formatted = await formatPost(
-            post,
-            formattingOptions,
-            this.grapherExports
-        )
-        const {
-            citationStatus,
-            pageOverrides,
-        } = await getCitationStatusAndPageOverrides(post, formattingOptions)
-        const html = renderToHtmlPage(
-            <LongFormPage
-                withCitation={citationStatus}
-                overrides={pageOverrides}
-                post={formatted}
-                formattingOptions={formattingOptions}
-                baseUrl={this.baseUrl}
-            />
-        )
+        const html = await renderPost(post, this.baseUrl, this.grapherExports)
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
