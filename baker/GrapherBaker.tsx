@@ -26,7 +26,7 @@ import ProgressBar = require("progress")
 import * as db from "../db/db"
 import * as glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes"
-import { isPathRedirectedToExplorer } from "../explorerAdmin/ExplorerRedirects"
+import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")

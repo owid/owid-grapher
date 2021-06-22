@@ -22,7 +22,7 @@ The [Wordpress admin](wordpress/) is used by authors to write the content publis
 
 The [baker](baker/) is the tool that is used to build the static [Our World in Data](https://ourworldindata.org) website by merging the content authored in the headless Wordpress admin with the graphers.
 
-[Explorers](explorer/) are a relatively new addition that visually show some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdmin/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
+[Explorers](explorer/) are a relatively new addition that visually show some chrome for data selection and one grapher at a time. Under the hood this uses the Grapher and manages configuration and data fetching based on the selection of variables to show. There is an [admin](explorerAdminServer/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers).
 
 ## Initial development setup
 

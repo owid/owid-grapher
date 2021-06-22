@@ -7,7 +7,7 @@
     "references": [
         { "path": "../grapher" },
         { "path": "../explorer" },
-        { "path": "../explorerAdmin" },
+        { "path": "../explorerAdminClient" },
         { "path": "../clientUtils" },
         { "path": "../settings" }
     ]
