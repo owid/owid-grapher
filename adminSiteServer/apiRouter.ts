@@ -544,25 +544,23 @@ apiRouter.get(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
         const isValidSortBy = (sortBy: string) => {
-            return (
-                [
-                    "updatedAt",
-                    "createdAt",
-                    "suggestedReason",
-                    "id",
-                    "chartId",
-                    "status",
-                    "variableId",
-                    "chartUpdatedAt",
-                    "chartCreatedAt",
-                ].indexOf(sortBy) !== -1
-            )
+            return [
+                "updatedAt",
+                "createdAt",
+                "suggestedReason",
+                "id",
+                "chartId",
+                "status",
+                "variableId",
+                "chartUpdatedAt",
+                "chartCreatedAt",
+            ].includes(sortBy)
         }
         const isValidSortDirection = (sortDirection: string) => {
             return (
                 sortDirection !== undefined &&
                 sortDirection !== null &&
-                ["ASC", "DESC"].indexOf(sortDirection.toUpperCase()) !== -1
+                ["ASC", "DESC"].includes(sortDirection.toUpperCase())
             )
         }
         const limit =

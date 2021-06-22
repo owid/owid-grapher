@@ -54,7 +54,7 @@ export class SuggestedChartRevision extends BaseEntity {
                 SuggestedChartRevisionStatus.rejected,
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1 &&
+            ].includes(status) &&
             originalVersionExists &&
             existingVersionExists &&
             originalVersion === existingVersion
@@ -83,7 +83,7 @@ export class SuggestedChartRevision extends BaseEntity {
             [
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1
+            ].includes(status)
         ) {
             return true
         }
@@ -111,7 +111,7 @@ export class SuggestedChartRevision extends BaseEntity {
             [
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1
+            ].includes(status)
         ) {
             return true
         }
