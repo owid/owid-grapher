@@ -93,8 +93,8 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderPageBySlug = async (slug: string) => {
-    const postApi = await getPostBySlug(slug)
-    return renderPage(postApi)
+    const post = await getPostBySlug(slug)
+    return renderPage(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
@@ -113,7 +113,6 @@ export const getCitationStatusAndPageOverrides = async (
 ): Promise<{ citationStatus: boolean; pageOverrides: PageOverrides }> => {
     const isCitable = await isPostCitable(post)
 
-    let landing: FullPost | undefined
     let isParentLandingCitable: boolean = false
     let pageOverrides: PageOverrides = {}
 
@@ -122,8 +121,7 @@ export const getCitationStatusAndPageOverrides = async (
             getTopSubnavigationParentItem(formattingOptions.subnavId).href
         )
         if (landingSlug !== post.slug) {
-            const landingPostApi = await getPostBySlug(landingSlug)
-            landing = await getFullPost(landingPostApi)
+            const landing = await getPostBySlug(landingSlug)
             isParentLandingCitable = await isPostCitable(landing)
 
             if (isParentLandingCitable) {
@@ -143,9 +141,7 @@ export const getCitationStatusAndPageOverrides = async (
     }
 }
 
-const renderPage = async (postApi: any) => {
-    const post = await getFullPost(postApi)
-
+const renderPage = async (post: FullPost) => {
     const $ = cheerio.load(post.content)
 
     const grapherUrls = $("iframe")
@@ -354,12 +350,8 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePostApi = await getPostBySlug(
+        const genericCountryProfilePost = await getPostBySlug(
             profileSpec.genericProfileSlug
-        )
-
-        const genericCountryProfilePost = await getFullPost(
-            genericCountryProfilePostApi
         )
 
         const profileFormattingOptions = extractFormattingOptions(
@@ -378,12 +370,7 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        const landingPagePostApi = await getPostBySlug(
-            profileSpec.landingPageSlug
-        )
-        const landingPost = getFullPost(landingPagePostApi)
-
-        return landingPost
+        return getPostBySlug(profileSpec.landingPageSlug)
     }
 )
 

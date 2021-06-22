@@ -484,7 +484,7 @@ export const getPostType = async (search: number | string): Promise<string> => {
     })
 }
 
-export const getPostBySlug = async (slug: string): Promise<any[]> => {
+export const getPostBySlug = async (slug: string): Promise<FullPost> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
@@ -497,7 +497,7 @@ export const getPostBySlug = async (slug: string): Promise<any[]> => {
                 searchParams: [["slug", slug]],
             }
         )
-        return postArr[0]
+        return getFullPost(postArr[0])
     } catch (err) {
         throw new JsonError(`No page found by slug ${slug}`, 404)
     }
