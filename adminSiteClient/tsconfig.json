@@ -9,6 +9,7 @@
         { "path": "../explorer" },
         { "path": "../explorerAdminClient" },
         { "path": "../clientUtils" },
-        { "path": "../settings" }
+        { "path": "../settings" },
+        { "path": "../site" }
     ]
 }
