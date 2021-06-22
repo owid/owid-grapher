@@ -12,7 +12,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import { ChartListItem } from "./ChartList"
 import { Link } from "./Link"
-import { SuggestedChartRevisionStatus } from "../db/model/SuggestedChartRevision"
+import { SuggestedChartRevisionStatus } from "./SuggestedChartRevision"
 
 export interface SuggestedChartRevisionListItem {
     id: number

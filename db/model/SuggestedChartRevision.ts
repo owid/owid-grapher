@@ -1,11 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
-export enum SuggestedChartRevisionStatus {
-    pending = "pending",
-    approved = "approved",
-    rejected = "rejected",
-    flagged = "flagged",
-}
+import { SuggestedChartRevisionStatus } from "../../adminSiteClient/SuggestedChartRevision"
 
 @Entity("suggested_chart_revisions")
 export class SuggestedChartRevision extends BaseEntity {
