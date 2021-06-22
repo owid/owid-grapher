@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, runInAction } from "mobx"
 import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
 import { format } from "timeago.js"
@@ -146,8 +146,11 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 sortBy: this.sortBy,
                 sortDirection: this.sortDirection,
             })
-            this.numTotalRows = json.numTotalRows
-            this.suggestedChartRevision = json.suggestedChartRevisions[0]
+            runInAction(() => {
+                this.numTotalRows = json.numTotalRows as number
+                this.suggestedChartRevision = json
+                    .suggestedChartRevisions[0] as SuggestedChartRevisionSerialized
+            })
         } else {
             const json = await admin.getJSON(
                 `/api/suggested-chart-revisions/${suggestedChartRevisionId}`
