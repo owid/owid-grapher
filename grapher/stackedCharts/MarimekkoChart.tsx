@@ -44,6 +44,9 @@ import { isDarkColor } from "../color/ColorUtils"
 import { VerticalColorLegendManager } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { countries } from "../../clientUtils/countries"
+import { ColorScaleManager } from "../color/ColorScale"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { ColorSchemeName } from "../color/ColorConstants"
 
 const labelToBarPadding = 5
 
@@ -89,7 +92,7 @@ export class MarimekkoChart
         bounds?: Bounds
         manager: MarimekkoChartManager
     }>
-    implements ChartInterface, HorizontalColorLegendManager {
+    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
@@ -780,6 +783,16 @@ export class MarimekkoChart
     @computed private get colorColumn() {
         return this.transformedTable.get(this.colorColumnSlug)
     }
+
+    @computed get colorScaleConfig() {
+        return (
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
+        )
+    }
+
+    defaultBaseColorScheme = ColorSchemeName.continents
+    defaultNoDataColor = "#959595"
 
     @computed get colorScaleColumn() {
         // We need to use inputTable in order to get consistent coloring for a variable across
