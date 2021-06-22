@@ -30,6 +30,7 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
+    getCitationStatusAndPageOverrides,
 } from "../baker/siteRenderers"
 import {
     bakeGrapherUrls,
@@ -127,16 +128,20 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakePost(post: FullPost) {
-        const isCitable = await wpdb.isPostCitable(post)
         const formattingOptions = extractFormattingOptions(post.content)
         const formatted = await formatPost(
             post,
             formattingOptions,
             this.grapherExports
         )
+        const {
+            citationStatus,
+            pageOverrides,
+        } = await getCitationStatusAndPageOverrides(post, formattingOptions)
         const html = renderToHtmlPage(
             <LongFormPage
-                isCitable={isCitable}
+                withCitation={citationStatus}
+                overrides={pageOverrides}
                 post={formatted}
                 formattingOptions={formattingOptions}
                 baseUrl={this.baseUrl}

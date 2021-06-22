@@ -30,13 +30,13 @@ export interface PageOverrides {
 }
 
 export const LongFormPage = (props: {
-    isCitable: boolean
+    withCitation: boolean
     post: FormattedPost
     overrides?: PageOverrides
     formattingOptions: FormattingOptions
     baseUrl: string
 }) => {
-    const { isCitable, post, overrides, formattingOptions, baseUrl } = props
+    const { withCitation, post, overrides, formattingOptions, baseUrl } = props
 
     const isPost = post.type === "post"
 
@@ -54,7 +54,10 @@ export const LongFormPage = (props: {
         overrides?.publicationDate ?? post.date
     ).getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(citationAuthors, isCitable)
+    const citationAuthorsFormatted = formatAuthors(
+        citationAuthors,
+        withCitation
+    )
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -67,7 +70,7 @@ export const LongFormPage = (props: {
                 isSubheading: false,
             })
         }
-        if (isCitable) {
+        if (withCitation) {
             tocHeadings.push(
                 {
                     text: "Licence",
@@ -105,7 +108,7 @@ export const LongFormPage = (props: {
                 imageUrl={post.imageUrl}
                 baseUrl={baseUrl}
             >
-                {isCitable && (
+                {withCitation && (
                     <CitationMeta
                         title={citationTitle}
                         authors={citationAuthors}
@@ -159,7 +162,7 @@ export const LongFormPage = (props: {
                                             <a href="/team">
                                                 {`by ${formatAuthors(
                                                     post.authors,
-                                                    isCitable
+                                                    withCitation
                                                 )}`}
                                             </a>
                                         )}
@@ -175,7 +178,9 @@ export const LongFormPage = (props: {
                                     />
                                 )}
 
-                                {(isPost || isCitable || post.lastUpdated) && (
+                                {(isPost ||
+                                    withCitation ||
+                                    post.lastUpdated) && (
                                     <div className="tools">
                                         {post.lastUpdated && (
                                             <div className="last-updated">
@@ -190,7 +195,7 @@ export const LongFormPage = (props: {
                                                 />
                                             </div>
                                         )}
-                                        {(isPost || isCitable) && (
+                                        {(isPost || withCitation) && (
                                             <a href="#licence">
                                                 <FontAwesomeIcon
                                                     icon={faCreativeCommons}
@@ -198,7 +203,7 @@ export const LongFormPage = (props: {
                                                 Reuse our work freely
                                             </a>
                                         )}
-                                        {isCitable && (
+                                        {withCitation && (
                                             <a href="#citation">
                                                 <FontAwesomeIcon
                                                     icon={faBook}
@@ -267,7 +272,7 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
-                                                {(isPost || isCitable) && (
+                                                {(isPost || withCitation) && (
                                                     <>
                                                         <h3 id="licence">
                                                             Reuse our work
@@ -328,7 +333,7 @@ export const LongFormPage = (props: {
                                                         </p>
                                                     </>
                                                 )}
-                                                {isCitable && (
+                                                {withCitation && (
                                                     <>
                                                         <h3 id="citation">
                                                             Citation

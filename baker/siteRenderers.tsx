@@ -107,6 +107,42 @@ export const renderMenuJson = async () => {
     return JSON.stringify({ categories: categories })
 }
 
+export const getCitationStatusAndPageOverrides = async (
+    post: FullPost,
+    formattingOptions: FormattingOptions
+): Promise<{ citationStatus: boolean; pageOverrides: PageOverrides }> => {
+    const isCitable = await isPostCitable(post)
+
+    let landing: FullPost | undefined
+    let isParentLandingCitable: boolean = false
+    let pageOverrides: PageOverrides = {}
+
+    if (!isCitable && formattingOptions.subnavId) {
+        const landingSlug = urlToSlug(
+            getTopSubnavigationParentItem(formattingOptions.subnavId).href
+        )
+        if (landingSlug !== post.slug) {
+            const landingPostApi = await getPostBySlug(landingSlug)
+            landing = await getFullPost(landingPostApi)
+            isParentLandingCitable = await isPostCitable(landing)
+
+            if (isParentLandingCitable) {
+                pageOverrides = {
+                    citationTitle: landing.title,
+                    citationSlug: landing.slug,
+                    citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
+                    citationAuthors: landing.authors,
+                    publicationDate: landing.date,
+                }
+            }
+        }
+    }
+    return {
+        citationStatus: isCitable || isParentLandingCitable,
+        pageOverrides,
+    }
+}
+
 const renderPage = async (postApi: any) => {
     const post = await getFullPost(postApi)
 
@@ -125,41 +161,18 @@ const renderPage = async (postApi: any) => {
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
 
-    const isCitable = await isPostCitable(post)
-
-    let landing: FullPost | undefined
-    let isParentLandingCitable: boolean = false
-    let overrides: PageOverrides = {}
-
-    if (!isCitable && formattingOptions.subnavId) {
-        const landingSlug = urlToSlug(
-            getTopSubnavigationParentItem(formattingOptions.subnavId).href
-        )
-        if (landingSlug !== post.slug) {
-            const landingPostApi = await getPostBySlug(landingSlug)
-            landing = await getFullPost(landingPostApi)
-            isParentLandingCitable = await isPostCitable(landing)
-
-            if (isParentLandingCitable) {
-                overrides = {
-                    citationTitle: landing.title,
-                    citationSlug: landing.slug,
-                    citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
-                    citationAuthors: landing.authors,
-                    publicationDate: landing.date,
-                }
-            }
-        }
-    }
-
-    // Applying landing page overrides to citable pages (excludes "About" pages) that aren't landing pages.
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
+
+    const {
+        citationStatus,
+        pageOverrides,
+    } = await getCitationStatusAndPageOverrides(post, formattingOptions)
 
     return renderToHtmlPage(
         <LongFormPage
-            isCitable={isCitable || isParentLandingCitable}
+            withCitation={citationStatus}
             post={formatted}
-            overrides={overrides}
+            overrides={pageOverrides}
             formattingOptions={formattingOptions}
             baseUrl={BAKED_BASE_URL}
         />
@@ -400,7 +413,7 @@ export const renderCountryProfile = async (
     }
     return renderToHtmlPage(
         <LongFormPage
-            isCitable={true}
+            withCitation={true}
             post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}
