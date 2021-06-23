@@ -44,7 +44,7 @@ import { isDarkColor } from "../color/ColorUtils"
 import { VerticalColorLegendManager } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { countries } from "../../clientUtils/countries"
-import { ColorScaleManager } from "../color/ColorScale"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ColorSchemeName } from "../color/ColorConstants"
 
@@ -784,6 +784,7 @@ export class MarimekkoChart
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
+    colorScale = new ColorScale(this)
     @computed get colorScaleConfig() {
         return (
             ColorScaleConfig.fromDSL(this.colorColumn.def) ??
@@ -835,22 +836,31 @@ export class MarimekkoChart
         const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
             const points: SimplePoint[] = []
             for (const row of rows) {
-                points.push({
-                    time: row.time,
-                    value: row.value,
-                    entity: row.entityName,
-                    color:
-                        this.transformedTable.getColorForEntityName(
-                            row.entityName
-                        ) || "#555",
-                })
+                const colorDomainValue = this.colorColumn.owidRows.find(
+                    (colorrow) => colorrow.entityName === row.entityName
+                )
+
+                const color = colorDomainValue
+                    ? this.colorScale.getColor(colorDomainValue.value)
+                    : undefined
+
+                if (color) {
+                    // drop entities that have not been assigned a color for now
+                    // TODO: this will be an issue for non-country entities
+                    points.push({
+                        time: row.time,
+                        value: row.value,
+                        entity: row.entityName,
+                        color: color,
+                    })
+                }
             }
             return points
         }
         const column = this.xColumn
         return {
             seriesName: column.displayName,
-            color: column.def.color || "#555", // TODO: default color?
+            color: column.def.color || "#55a", // TODO: default color?
             points: createStackedXPoints(column.owidRows),
         }
     }
