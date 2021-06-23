@@ -36,7 +36,7 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { CoreColumn, MissingColumn } from "../../coreTable/CoreTableColumns"
 import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
@@ -47,6 +47,7 @@ import { countries } from "../../clientUtils/countries"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ColorSchemeName } from "../color/ColorConstants"
+import { chunk } from "lodash"
 
 const labelToBarPadding = 5
 
@@ -63,7 +64,7 @@ interface SimplePoint {
     value: number
     entity: string
     time: number
-    color: Color
+    color?: Color
 }
 
 export interface SimpleChartSeries extends ChartSeries {
@@ -84,6 +85,12 @@ interface TooltipProps {
     targetTime?: Time
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+}
+
+interface LabelCandidate {
+    item: Item
+    bounds: Bounds
+    picked: boolean
 }
 
 @observer
@@ -292,7 +299,9 @@ export class MarimekkoChart
 
     @computed private get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.bounds.padBottom(this.legendPaddingTop),
+            bounds: this.bounds.padBottom(
+                this.legendPaddingTop + this.labelHeight
+            ),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
@@ -333,7 +342,7 @@ export class MarimekkoChart
                             return {
                                 xPoint,
                                 yPoint: point,
-                                color: xPoint.color, //series.color,
+                                color: xPoint.color ?? series.color,
                                 seriesName: series.seriesName,
                             }
                         })
@@ -420,6 +429,10 @@ export class MarimekkoChart
             )
 
         const { bounds, dualAxis, innerBounds } = this
+        const labelStartX = Math.round(dualAxis.horizontalAxis.place(this.x0))
+        const labelStartY =
+            Math.round(dualAxis.verticalAxis.place(this.y0)) +
+            dualAxis.horizontalAxis.height
 
         return (
             <g ref={this.base} className="MarimekkoChart">
@@ -434,6 +447,9 @@ export class MarimekkoChart
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
+                <g transform={`translate(${labelStartX}, ${labelStartY})`}>
+                    {this.labels}
+                </g>
             </g>
         )
     }
@@ -488,6 +504,7 @@ export class MarimekkoChart
                             {label}
                         </text>
                     </TippyIfInteractive> */}
+
                     {bars.map((bar) =>
                         this.renderBar(
                             bar,
@@ -511,6 +528,85 @@ export class MarimekkoChart
     // TODO: remove
     private get roundX(): boolean {
         return true
+    }
+
+    @computed private get pickedLabelCandidates(): LabelCandidate[] {
+        const { items, xRange } = this
+        if (!items.length) return []
+        // Measure the labels (before any rotation, just normal horizontal labels)
+        const labelCandidates: LabelCandidate[] = items.map((item) => ({
+            item: item,
+            bounds: Bounds.forText(item.label, {
+                fontSize: 0.7 * this.baseFontSize,
+            }),
+            picked: false,
+        }))
+        const labelHeight = labelCandidates[0].bounds.height
+        // Always pick the first and last element
+        labelCandidates[0].picked = true
+        labelCandidates[labelCandidates.length - 1].picked = true
+        const availablePixels = xRange[1] - xRange[0]
+
+        const numLabelsToAdd = Math.floor(
+            availablePixels / (labelHeight + this.paddingInPixels)
+        )
+        const maxPerGroup = chunk(
+            labelCandidates,
+            Math.ceil(labelCandidates.length / numLabelsToAdd)
+        ).map((candidatesGroup) =>
+            maxBy(
+                candidatesGroup,
+                (candidate) => candidate.item.bars[0].xPoint.value
+            )
+        )
+        for (const max of maxPerGroup) {
+            if (max) max.picked = true
+        }
+        const picked = labelCandidates.filter((candidate) => candidate.picked)
+
+        return picked
+    }
+
+    private paddingInPixels = 5
+
+    @computed private get labelHeight(): number {
+        const widths = this.pickedLabelCandidates.map(
+            (candidate) => candidate.bounds.width
+        )
+        return Math.max(...widths)
+    }
+
+    @computed private get labels(): JSX.Element[] {
+        const labels: JSX.Element[] = this.pickedLabelCandidates.map(
+            (candidate, i) => {
+                const labelX = candidate.bounds.width
+                const labelY = candidate.bounds.height / 2
+                const labelXOffset =
+                    0 + (candidate.bounds.height + this.paddingInPixels) * i
+                return (
+                    <g
+                        key={`label-${i}`}
+                        transform={`translate(${labelXOffset}, ${labelY})`}
+                    >
+                        <text
+                            x={-labelX}
+                            y={0}
+                            width={candidate.bounds.width}
+                            height={candidate.bounds.height}
+                            fill="#000"
+                            transform={`rotate(-45, 0, 0)`}
+                            opacity={1}
+                            fontSize="0.7em"
+                            textAnchor="right"
+                            dominantBaseline="middle"
+                        >
+                            {candidate.item.label}
+                        </text>
+                    </g>
+                )
+            }
+        )
+        return labels
     }
 
     private renderBar(
@@ -576,7 +672,8 @@ export class MarimekkoChart
                             transition: "translate 200ms ease",
                         }}
                     />
-                    {showLabelInsideBar && (
+
+                    {/* {showLabelInsideBar && (
                         <text
                             x={0}
                             y={0}
@@ -591,7 +688,7 @@ export class MarimekkoChart
                         >
                             {barLabel}
                         </text>
-                    )}
+                    )} */}
                 </g>
             </TippyIfInteractive>
         )
@@ -833,18 +930,21 @@ export class MarimekkoChart
         // const keyColor = this.transformedTable.getColorForEntityName(
         //     entityName
         // )
+        const hasColorColumn = !this.colorColumn.isMissing
         const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
             const points: SimplePoint[] = []
             for (const row of rows) {
-                const colorDomainValue = this.colorColumn.owidRows.find(
-                    (colorrow) => colorrow.entityName === row.entityName
-                )
+                const colorDomainValue = hasColorColumn
+                    ? this.colorColumn.owidRows.find(
+                          (colorrow) => colorrow.entityName === row.entityName
+                      )
+                    : undefined
 
                 const color = colorDomainValue
                     ? this.colorScale.getColor(colorDomainValue.value)
                     : undefined
 
-                if (color) {
+                if (!hasColorColumn || color) {
                     // drop entities that have not been assigned a color for now
                     // TODO: this will be an issue for non-country entities
                     points.push({
