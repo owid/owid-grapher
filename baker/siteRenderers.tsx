@@ -27,7 +27,7 @@ import {
 import { VariableCountryPage } from "../site/VariableCountryPage"
 import { FeedbackPage } from "../site/FeedbackPage"
 import { getCountry, Country } from "../clientUtils/countries"
-import { memoize, urlToSlug } from "../clientUtils/Util"
+import { memoize } from "../clientUtils/Util"
 import { CountryProfileSpec } from "../site/countryProfileProjects"
 import {
     FormattedPost,
@@ -47,8 +47,7 @@ import {
     isPostCitable,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
-import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
-
+import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -107,40 +106,6 @@ export const renderMenuJson = async () => {
     return JSON.stringify({ categories: categories })
 }
 
-export const getCitationStatusAndPageOverrides = async (
-    post: FullPost,
-    formattingOptions: FormattingOptions
-): Promise<{ citationStatus: boolean; pageOverrides: PageOverrides }> => {
-    const isCitable = await isPostCitable(post)
-
-    let isParentLandingCitable: boolean = false
-    let pageOverrides: PageOverrides = {}
-
-    if (!isCitable && formattingOptions.subnavId) {
-        const landingSlug = urlToSlug(
-            getTopSubnavigationParentItem(formattingOptions.subnavId).href
-        )
-        if (landingSlug !== post.slug) {
-            const landing = await getPostBySlug(landingSlug)
-            isParentLandingCitable = await isPostCitable(landing)
-
-            if (isParentLandingCitable) {
-                pageOverrides = {
-                    citationTitle: landing.title,
-                    citationSlug: landing.slug,
-                    citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
-                    citationAuthors: landing.authors,
-                    publicationDate: landing.date,
-                }
-            }
-        }
-    }
-    return {
-        citationStatus: isCitable || isParentLandingCitable,
-        pageOverrides,
-    }
-}
-
 export const renderPost = async (
     post: FullPost,
     baseUrl: string = BAKED_BASE_URL,
@@ -167,10 +132,9 @@ export const renderPost = async (
 
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
 
-    const {
-        citationStatus,
-        pageOverrides,
-    } = await getCitationStatusAndPageOverrides(post, formattingOptions)
+    const pageOverrides = await getPageOverrides(post, formattingOptions)
+    const citationStatus =
+        (await isPostCitable(post)) || isPageOverridesCitable(pageOverrides)
 
     return renderToHtmlPage(
         <LongFormPage
