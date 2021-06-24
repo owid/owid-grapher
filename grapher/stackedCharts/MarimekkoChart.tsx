@@ -86,6 +86,7 @@ interface TooltipProps {
     targetTime?: Time
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+    xAxisColumn: CoreColumn
 }
 
 interface LabelCandidate {
@@ -484,6 +485,7 @@ export class MarimekkoChart
                 targetTime: this.manager.endTime,
                 timeColumn: this.inputTable.timeColumn,
                 formatColumn: this.formatColumn,
+                xAxisColumn: this.xColumn,
             }
 
             const exactWidth =
@@ -737,6 +739,16 @@ export class MarimekkoChart
                         <td colSpan={4} style={{ color: "#111" }}>
                             <strong>{props.label}</strong>
                         </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>{props.xAxisColumn.displayName}</td>
+                        <td>
+                            {props.xAxisColumn.formatValueShort(
+                                props.bars[0].xPoint.value
+                            )}
+                        </td>
+                        <td></td>
                     </tr>
                     {props.bars.map((bar) => {
                         const { highlightedSeriesName } = props
