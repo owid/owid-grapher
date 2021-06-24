@@ -256,8 +256,8 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
 
 export const getTopSubnavigationParentItem = (
     subnavId: SubNavId
-): SubnavItem => {
-    return subnavs[subnavId][0]
+): SubnavItem | undefined => {
+    return subnavs[subnavId]?.[0]
 }
 
 export const SiteSubnavigation = ({

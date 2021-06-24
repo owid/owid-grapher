@@ -23,9 +23,12 @@ export const getParentLanding = async (
 ) => {
     if (!formattingOptions.subnavId) return
 
-    const landingSlug = urlToSlug(
-        getTopSubnavigationParentItem(formattingOptions.subnavId).href
-    )
+    const landingItemHref = getTopSubnavigationParentItem(
+        formattingOptions.subnavId
+    )?.href
+    if (!landingItemHref) return
+
+    const landingSlug = urlToSlug(landingItemHref)
     if (landingSlug === post.slug) return
 
     // Using no-throw version to prevent throwing and stopping baking mid-way.
