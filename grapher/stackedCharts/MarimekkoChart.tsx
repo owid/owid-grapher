@@ -474,6 +474,7 @@ export class MarimekkoChart
         const results: JSX.Element[] = []
         const { dualAxis, x0, xDomainCorrectionFactor } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
+        const selectionSet = this.selectionArray.selectedSet
         let isEven = true
         for (const { label, bars } of this.items) {
             // Using transforms for positioning to enable better (subpixel) transitions
@@ -533,7 +534,8 @@ export class MarimekkoChart
                             },
                             isEven,
                             barWidth,
-                            label === this.hoveredEntityName
+                            label === this.hoveredEntityName,
+                            selectionSet.has(label)
                         )
                     )}
                 </g>
@@ -638,7 +640,8 @@ export class MarimekkoChart
         tooltipProps: TooltipProps,
         isEven: boolean,
         barWidth: number,
-        isHovered: boolean
+        isHovered: boolean,
+        isSelected: boolean
     ) {
         const {
             dualAxis,
@@ -650,7 +653,9 @@ export class MarimekkoChart
         const { xPoint, yPoint, seriesName } = bar
 
         const barColor = isHovered
-            ? color(bar.color)?.brighter(1).toString() ?? bar.color
+            ? color(bar.color)?.brighter(0.9).toString() ?? bar.color
+            : isSelected
+            ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
             : bar.color
 
         const isFaint =
