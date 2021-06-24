@@ -55,22 +55,9 @@ jobs:
               id: extract_branch
 
             # Checkout the owid-grapher-svgs repo into a subfolder. Use a Personal Access Token for checkout so the
-            # action will have permission to push later on if required. First try to checkout a branch with the same name
-            # as the one we are on - if that fails we try master next
-            - name: Clone svg tester repo
-              id: checkout-svgs-same-branch
-              uses: actions/checkout@v2
-              continue-on-error: true
-              with:
-                  repository: "owid/owid-grapher-svgs"
-                  path: owid-grapher-svgs
-                  token: ${{ secrets.GITHUBPAT }}
-                  ref: ${{ steps.extract_branch.outputs.branch }}
-
-            # If the previous checkout failed we try it without specifying a branch
+            # action will have permission to push later on if required.
             - name: Clone svg tester repo
               uses: actions/checkout@v2
-              if: ${{ steps.checkout-svgs-same-branch.outcome == 'failure' }}
               with:
                   repository: "owid/owid-grapher-svgs"
                   path: owid-grapher-svgs
@@ -79,7 +66,7 @@ jobs:
             # Switch to or create a branch on that repo that matches the branch name we are on in the owid-grapher repo
             - name: create owid-grapher-svgs local branch
               working-directory: owid-grapher-svgs
-              run: git checkout ${{ steps.extract_branch.outputs.branch }} || (git branch ${{ steps.extract_branch.outputs.branch }} && git checkout ${{ steps.extract_branch.outputs.branch }})
+              run: git branch ${{ steps.extract_branch.outputs.branch }} && git checkout ${{ steps.extract_branch.outputs.branch }}
 
             # Run the verify tool overwriting any svgs. Stdout is piped to compare-result which will be a 0 byte file if everything works or contain failed grapher ids otherwise
             - name: Run tests & checks
@@ -93,6 +80,7 @@ jobs:
               with:
                   repository: ./owid-grapher-svgs/
                   branch: ${{ steps.extract_branch.outputs.branch }}
+                  push_options: "--force"
 
             - name: Fail with error message if we had differences
               if: ${{ steps.run-verify-graphs.outcome == 'failure' }}
