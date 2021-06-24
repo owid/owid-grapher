@@ -257,7 +257,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     return Promise.resolve([svg, svgRecord])
 }
 
-const replaceRegexes = [/-select-[0-9]+-input/g]
+const replaceRegexes = [/id="react-select-[0-9]+-input"/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
 function prepareSvgForComparision(svg: string): string {
@@ -280,7 +280,8 @@ export async function renderSvgAndSave(
 ): Promise<SvgRecord> {
     const [svg, svgRecord] = await renderSvg(dir)
     const outPath = path.join(outDir, svgRecord.svgFilename)
-    await fs.writeFile(outPath, svg)
+    const cleanedSvg = prepareSvgForComparision(svg)
+    await fs.writeFile(outPath, cleanedSvg)
     return Promise.resolve(svgRecord)
 }
 
@@ -418,7 +419,8 @@ export async function renderAndVerifySvg({
             case "difference":
                 logDifferencesToConsole(svgRecord, validationResult)
                 const outputPath = path.join(outDir, svgRecord.svgFilename)
-                await fs.writeFile(outputPath, svg)
+                const cleanedSvg = prepareSvgForComparision(svg)
+                await fs.writeFile(outputPath, cleanedSvg)
         }
         return Promise.resolve(validationResult)
     } catch (err) {
