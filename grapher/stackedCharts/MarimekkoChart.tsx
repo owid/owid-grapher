@@ -657,6 +657,7 @@ export class MarimekkoChart
             : isSelected
             ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
             : bar.color
+        const strokeColor = isHovered ? "#000" : isSelected ? "#000" : "#666"
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== seriesName
@@ -695,12 +696,13 @@ export class MarimekkoChart
                     <rect
                         x={0}
                         y={0}
-                        shapeRendering="crispEdges"
+                        //shapeRendering="crispEdges"
                         transform={`translate(${barX}, ${barY - barHeight})`}
                         width={barWidth}
                         height={barHeight}
                         fill={barColor}
-                        //stroke="#4979d0"
+                        stroke={strokeColor}
+                        strokeWidth="0.3px"
                         opacity={isFaint ? 0.1 : isEven ? 0.85 : 0.82}
                         style={{
                             transition: "translate 200ms ease",
