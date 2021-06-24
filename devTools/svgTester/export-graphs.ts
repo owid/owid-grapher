@@ -3,6 +3,7 @@
 import parseArgs from "minimist"
 import * as utils from "./utils"
 import * as fs from "fs-extra"
+const { join } = require("path")
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const inDir = parsedArgs["i"] ?? "grapherData"
@@ -26,7 +27,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
     const svgRecords: utils.SvgRecord[] = []
     for (const dir of directories) {
-        const svgRecord = await utils.renderSvgAndSave(dir, outDir)
+        console.log(dir)
+        const svgRecord = await utils.renderSvgAndSave(join(inDir, dir), outDir)
         svgRecords.push(svgRecord)
     }
 
