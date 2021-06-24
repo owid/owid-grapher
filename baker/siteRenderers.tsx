@@ -402,7 +402,7 @@ export const renderCountryProfile = async (
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
-        publicationDate: landing.date,
+        citationPublicationDate: landing.date,
         canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
         excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`,
     }
