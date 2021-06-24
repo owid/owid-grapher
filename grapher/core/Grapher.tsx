@@ -1849,10 +1849,13 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
-
-        if (this.selection.numSelectedEntities > 1)
+        // It only ever makes sense to facet on metric or on entity. In cases like StackedDiscreteBar
+        // that could offer both, faceting by entity is strictly worse than the original together view.
+        if (this.hasMultipleYColumns) {
+            strategies.push(FacetStrategy.column)
+        } else if (this.selection.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.entity)
+        }
 
         return strategies
     }
