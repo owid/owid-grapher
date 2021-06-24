@@ -112,7 +112,7 @@ export const LongFormPage = (props: {
                     <CitationMeta
                         title={citationTitle}
                         authors={citationAuthors}
-                        date={post.date}
+                        date={citationPublicationDate}
                         canonicalUrl={citationCanonicalUrl}
                     />
                 )}
