@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     getQueryParams,
@@ -251,8 +251,8 @@ export class FacetStrategyDropdown extends React.Component<{
 }> {
     @computed get options(): { label: string; value: string }[] {
         const strategies = this.props.manager.availableFacetStrategies || [
-            FacetStrategy.together,
-            FacetStrategy.country,
+            FacetStrategy.none,
+            FacetStrategy.entity,
             FacetStrategy.column,
         ]
         return strategies.map((value) => {
@@ -262,7 +262,7 @@ export class FacetStrategyDropdown extends React.Component<{
     }
 
     @computed get facet(): FacetStrategy {
-        return this.props.manager.facet || FacetStrategy.together
+        return this.props.manager.facet || FacetStrategy.none
     }
 
     @action.bound onChange(
@@ -278,7 +278,7 @@ export class FacetStrategyDropdown extends React.Component<{
                 className={FACET_DROPDOWN_CLASS}
                 classNamePrefix={FACET_DROPDOWN_CLASS}
                 defaultValue={this.options.find(
-                    (o) => o.value === FacetStrategy.together
+                    (o) => o.value === FacetStrategy.none
                 )}
                 options={this.options}
                 onChange={this.onChange}
@@ -289,8 +289,8 @@ export class FacetStrategyDropdown extends React.Component<{
 }
 
 const facetStrategyLabels = {
-    [FacetStrategy.together]: "All together",
-    [FacetStrategy.country]: "Split by country",
+    [FacetStrategy.none]: "All together",
+    [FacetStrategy.entity]: "Split by country",
     [FacetStrategy.column]: "Split by metric",
 }
 

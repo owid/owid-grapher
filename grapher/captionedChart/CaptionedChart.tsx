@@ -145,7 +145,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed get isFaceted(): boolean {
         const hasStrategy =
             !!this.manager.facetStrategy &&
-            this.manager.facetStrategy !== FacetStrategy.together
+            this.manager.facetStrategy !== FacetStrategy.none
         return !this.isMapTab && hasStrategy
     }
 

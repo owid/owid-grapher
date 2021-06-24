@@ -302,7 +302,7 @@ export class Grapher
     @observable.ref annotation?: Annotation = undefined
 
     @observable showFacets?: boolean = false
-    @observable lastFacet: FacetStrategy = FacetStrategy.together
+    @observable lastFacet: FacetStrategy = FacetStrategy.none
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
@@ -1815,7 +1815,7 @@ export class Grapher
         if (this.showFacets) {
             return this.lastFacet
         }
-        return FacetStrategy.together
+        return FacetStrategy.none
     }
     set facet(strategy: FacetStrategy) {
         this.lastFacet = strategy
@@ -1847,12 +1847,12 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.together]
+        const strategies: FacetStrategy[] = [FacetStrategy.none]
 
         if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
 
         if (this.selection.numSelectedEntities > 1)
-            strategies.push(FacetStrategy.country)
+            strategies.push(FacetStrategy.entity)
 
         return strategies
     }
@@ -1862,14 +1862,14 @@ export class Grapher
         if (this.facet && this.availableFacetStrategies.includes(this.facet))
             return this.facet
 
-        if (this.disableAutoFaceting) return FacetStrategy.together
+        if (this.disableAutoFaceting) return FacetStrategy.none
 
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.numSelectedEntities > 1
         )
-            return FacetStrategy.country
+            return FacetStrategy.entity
 
         // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
         if (
@@ -1879,7 +1879,7 @@ export class Grapher
         )
             return FacetStrategy.column
 
-        return FacetStrategy.together
+        return FacetStrategy.none
     }
 
     @action.bound randomSelection(num: number): void {
@@ -2130,7 +2130,7 @@ export class Grapher
         this.colorSlug = grapher.colorSlug
         this.sizeSlug = grapher.sizeSlug
         this.hasMapTab = grapher.hasMapTab
-        this.facet = FacetStrategy.together
+        this.facet = FacetStrategy.none
         this.hasChartTab = grapher.hasChartTab
         this.map = grapher.map
         this.yAxis.scaleType = grapher.yAxis.scaleType

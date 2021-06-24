@@ -116,7 +116,7 @@ export const NoMap = (): JSX.Element => {
 export const Faceting = (): JSX.Element => {
     const model = {
         type: ChartTypeName.StackedArea,
-        facet: FacetStrategy.country,
+        facet: FacetStrategy.entity,
         ...basics,
     }
     return <Grapher {...model} />
