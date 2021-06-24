@@ -48,6 +48,7 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { chunk } from "lodash"
+import { color } from "d3-color"
 
 const labelToBarPadding = 5
 
@@ -142,6 +143,8 @@ export class MarimekkoChart
         }
         return table
     }
+
+    @observable private hoveredEntityName?: string
 
     @computed get entityNameSlug() {
         return "entityName"
@@ -418,6 +421,18 @@ export class MarimekkoChart
         return this.yColumns[0]
     }
 
+    @action.bound private onEntityMouseOver(entityName: string) {
+        this.hoveredEntityName = entityName
+    }
+
+    @action.bound private onEntityMouseLeave() {
+        this.hoveredEntityName = undefined
+    }
+
+    // @action.bound private onEntityClick() {
+    //     if (this.hoveredEntityName) this.onSelectEntity(this.hoveredEntityName)
+    // }
+
     render() {
         if (this.failMessage)
             return (
@@ -481,6 +496,8 @@ export class MarimekkoChart
                     key={label}
                     className="bar"
                     transform={`translate(${currentX}, 0)`}
+                    onMouseOver={() => this.onEntityMouseOver(label)}
+                    onMouseLeave={() => this.onEntityMouseLeave()}
                 >
                     {/* <TippyIfInteractive
                         lazy
@@ -513,7 +530,8 @@ export class MarimekkoChart
                                 highlightedSeriesName: bar.seriesName,
                             },
                             isEven,
-                            barWidth
+                            barWidth,
+                            label === this.hoveredEntityName
                         )
                     )}
                 </g>
@@ -599,6 +617,10 @@ export class MarimekkoChart
                             fontSize="0.7em"
                             textAnchor="right"
                             dominantBaseline="middle"
+                            onMouseOver={() =>
+                                this.onEntityMouseOver(candidate.item.label)
+                            }
+                            onMouseLeave={() => this.onEntityMouseLeave()}
                         >
                             {candidate.item.label}
                         </text>
@@ -613,7 +635,8 @@ export class MarimekkoChart
         bar: Bar,
         tooltipProps: TooltipProps,
         isEven: boolean,
-        barWidth: number
+        barWidth: number,
+        isHovered: boolean
     ) {
         const {
             dualAxis,
@@ -622,7 +645,11 @@ export class MarimekkoChart
             roundX,
             fontSize,
         } = this
-        const { xPoint, yPoint, color, seriesName } = bar
+        const { xPoint, yPoint, seriesName } = bar
+
+        const barColor = isHovered
+            ? color(bar.color)?.brighter(1).toString() ?? bar.color
+            : bar.color
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== seriesName
@@ -644,7 +671,7 @@ export class MarimekkoChart
         const showLabelInsideBar =
             labelBounds.height < 0.85 * barWidth &&
             labelBounds.width < 0.85 * barHeight
-        const labelColor = isDarkColor(color) ? "#fff" : "#000"
+        const labelColor = isDarkColor(barColor) ? "#fff" : "#000"
 
         const labelX = barX + barWidth / 2
         const labelY = barY - labelBounds.width / 2 - fontSize
@@ -665,7 +692,7 @@ export class MarimekkoChart
                         transform={`translate(${barX}, ${barY - barHeight})`}
                         width={barWidth}
                         height={barHeight}
-                        fill={color}
+                        fill={barColor}
                         //stroke="#4979d0"
                         opacity={isFaint ? 0.1 : isEven ? 0.85 : 0.82}
                         style={{
