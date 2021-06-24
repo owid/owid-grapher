@@ -278,7 +278,6 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
-    @observable.ref showFacetYRangeToggle: boolean = true
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -1809,6 +1808,11 @@ export class Grapher
 
     @action.bound private toggleFacetVisibility(): void {
         this.showFacets = !this.showFacets
+    }
+
+    @computed get showFacetYRangeToggle(): boolean {
+        // don't offer to make the y range relative if the range is discrete
+        return this.facet !== FacetStrategy.none && !this.isStackedDiscreteBar
     }
 
     @computed get facet(): FacetStrategy {
