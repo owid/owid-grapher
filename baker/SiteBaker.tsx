@@ -163,7 +163,6 @@ export class SiteBaker {
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
                     !path.startsWith("country") &&
-                    !path.startsWith("subscribe") &&
                     !path.startsWith("blog") &&
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
