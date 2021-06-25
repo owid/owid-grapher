@@ -18,7 +18,6 @@ import { LongFormPage } from "../site/LongFormPage"
 import {
     renderToHtmlPage,
     renderFrontPage,
-    renderSubscribePage,
     renderBlogByPageNum,
     renderChartsPage,
     renderMenuJson,
@@ -213,10 +212,6 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
             await renderFrontPage()
-        )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/subscribe.html`,
-            await renderSubscribePage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/donate.html`,

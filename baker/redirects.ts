@@ -40,6 +40,7 @@ export const getRedirects = async () => {
         "/grapher/view/* /grapher/:splat 301",
 
         "/slides/* https://slides.ourworldindata.org/:splat 301",
+        "/subscribe /#subscribe 301",
     ]
 
     getCountryDetectionRedirects().forEach((redirect) =>
