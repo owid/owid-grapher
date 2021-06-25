@@ -30,7 +30,7 @@ it("uses the transformed data for display in country mode", () => {
         selection: table.availableEntityNames,
         // simulate the transformation that is done by Grapher on the data
         transformedTable: table.filterByTimeRange(2002, 2008),
-        facetStrategy: FacetStrategy.country,
+        facetStrategy: FacetStrategy.entity,
         yAxis: new AxisConfig(),
     }
     const chart = new FacetChart({ manager })

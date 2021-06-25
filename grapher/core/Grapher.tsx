@@ -49,7 +49,6 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
-    FacetAxisRange,
 } from "../core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -111,6 +110,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     AbsRelToggleManager,
+    FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
     HighlightToggleManager,
@@ -234,6 +234,7 @@ export class Grapher
         FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
+        FacetStrategyDropdownManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
@@ -250,7 +251,7 @@ export class Grapher
     @observable.ref timelineMaxTime?: Time = undefined
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode = StackMode.absolute
+    @observable.ref lastStackMode = StackMode.absolute
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -277,7 +278,6 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
-    @observable.ref showFacetYRangeToggle: boolean = true
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -299,6 +299,9 @@ export class Grapher
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined
+
+    @observable showFacets?: boolean = false
+    @observable lastFacet: FacetStrategy = FacetStrategy.none
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
@@ -1455,7 +1458,22 @@ export class Grapher
                 !this.areHandlesOnSameTime &&
                 this.yScaleType !== ScaleType.log
             )
+
+        if (this.facet === FacetStrategy.column) return false
+
         return !this.hideRelativeToggle
+    }
+
+    get stackMode(): StackMode {
+        // There's no point using relative stacking once you're split by metric,
+        // since every single bar is 100%
+        if (this.facet === FacetStrategy.column) return StackMode.absolute
+
+        return this.lastStackMode
+    }
+
+    set stackMode(mode: StackMode) {
+        this.lastStackMode = mode
     }
 
     // Filter data to what can be display on the map (across all times)
@@ -1731,7 +1749,7 @@ export class Grapher
             },
             {
                 combo: "f",
-                fn: (): void => this.toggleFacetStrategy(),
+                fn: (): void => this.toggleFacetVisibility(),
                 title: `Toggle Faceting`,
                 category: "Chart",
             },
@@ -1803,7 +1821,24 @@ export class Grapher
         this.facet = next(this.availableFacetStrategies, this.facet)
     }
 
-    @observable facet?: FacetStrategy
+    @action.bound private toggleFacetVisibility(): void {
+        this.showFacets = !this.showFacets
+    }
+
+    @computed get showFacetYRangeToggle(): boolean {
+        // don't offer to make the y range relative if the range is discrete
+        return this.facet !== FacetStrategy.none && !this.isStackedDiscreteBar
+    }
+
+    @computed get facet(): FacetStrategy {
+        if (this.showFacets) {
+            return this.lastFacet
+        }
+        return FacetStrategy.none
+    }
+    set facet(strategy: FacetStrategy) {
+        this.lastFacet = strategy
+    }
 
     @computed private get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
@@ -1830,33 +1865,33 @@ export class Grapher
         return []
     }
 
-    @computed private get availableFacetStrategies(): (
-        | FacetStrategy
-        | undefined
-    )[] {
-        const strategies: (FacetStrategy | undefined)[] = [undefined]
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        if (this.hasMultipleYColumns) strategies.push(FacetStrategy.column)
-
-        if (this.selection.numSelectedEntities > 1)
-            strategies.push(FacetStrategy.country)
+        // It only ever makes sense to facet on metric or on entity. In cases like StackedDiscreteBar
+        // that could offer both, faceting by entity is strictly worse than the original together view.
+        if (this.hasMultipleYColumns) {
+            strategies.push(FacetStrategy.column)
+        } else if (this.selection.numSelectedEntities > 1) {
+            strategies.push(FacetStrategy.entity)
+        }
 
         return strategies
     }
 
     private disableAutoFaceting = true // turned off for now
-    @computed get facetStrategy(): FacetStrategy | undefined {
+    @computed get facetStrategy(): FacetStrategy {
         if (this.facet && this.availableFacetStrategies.includes(this.facet))
             return this.facet
 
-        if (this.disableAutoFaceting) return undefined
+        if (this.disableAutoFaceting) return FacetStrategy.none
 
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.selection.numSelectedEntities > 1
         )
-            return FacetStrategy.country
+            return FacetStrategy.entity
 
         // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
         if (
@@ -1866,7 +1901,7 @@ export class Grapher
         )
             return FacetStrategy.column
 
-        return undefined
+        return FacetStrategy.none
     }
 
     @action.bound randomSelection(num: number): void {
@@ -2117,7 +2152,7 @@ export class Grapher
         this.colorSlug = grapher.colorSlug
         this.sizeSlug = grapher.sizeSlug
         this.hasMapTab = grapher.hasMapTab
-        this.facet = undefined
+        this.facet = FacetStrategy.none
         this.hasChartTab = grapher.hasChartTab
         this.map = grapher.map
         this.yAxis.scaleType = grapher.yAxis.scaleType

@@ -13,6 +13,13 @@ $zindex-ControlsFooter: 2;
     color: $controls-color;
 }
 
+.FacetStrategyDropdown {
+    width: 160px;
+    font-family: "Lato";
+    font-size: 10px;
+    font-weight: bold;
+}
+
 @keyframes bounceIn {
     from,
     20%,
