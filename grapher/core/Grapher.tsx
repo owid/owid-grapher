@@ -251,7 +251,7 @@ export class Grapher
     @observable.ref timelineMaxTime?: Time = undefined
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode = StackMode.absolute
+    @observable.ref lastStackMode = StackMode.absolute
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -1458,7 +1458,22 @@ export class Grapher
                 !this.areHandlesOnSameTime &&
                 this.yScaleType !== ScaleType.log
             )
+
+        if (this.facet === FacetStrategy.column) return false
+
         return !this.hideRelativeToggle
+    }
+
+    get stackMode(): StackMode {
+        // There's no point using relative stacking once you're split by metric,
+        // since every single bar is 100%
+        if (this.facet === FacetStrategy.column) return StackMode.absolute
+
+        return this.lastStackMode
+    }
+
+    set stackMode(mode: StackMode) {
+        this.lastStackMode = mode
     }
 
     // Filter data to what can be display on the map (across all times)
