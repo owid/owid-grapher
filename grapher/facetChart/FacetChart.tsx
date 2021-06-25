@@ -24,6 +24,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { AxisConfig } from "../axis/AxisConfig"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -67,7 +68,7 @@ export class FacetChart
 
         const table = this.transformedTable
 
-        return series.map((series, index) => {
+        return series.map((series: FacetSeries, index: number) => {
             const bounds = boundsArr[index]
             const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
             const hideYAxis = false // column > 0 // todo: figure out design issues here
@@ -121,6 +122,7 @@ export class FacetChart
                   scaleType,
               }
             : undefined
+        const yAxisMin = this.manager.yAxis!.min
 
         const hideLegend = this.manager.yColumnSlugs?.length === 1
 
@@ -131,12 +133,12 @@ export class FacetChart
                 this.manager.yAxis!.facetAxisRange == FacetAxisRange.shared
                     ? {
                           max: sharedYDomain[1],
-                          min: sharedYDomain[0],
+                          min: yAxisMin ?? sharedYDomain[0],
                           scaleType,
                       }
                     : {
                           max: seriesYDomain[1],
-                          min: seriesYDomain[0],
+                          min: yAxisMin ?? seriesYDomain[0],
                           scaleType,
                       }
             return {

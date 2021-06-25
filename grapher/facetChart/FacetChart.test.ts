@@ -41,3 +41,23 @@ it("uses the transformed data for display in country mode", () => {
         expect(s.manager.table!.maxTime).toEqual(2008)
     })
 })
+
+it("uses a shared y min if one is available", () => {
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        // simulate the transformation that is done by Grapher on the data
+        transformedTable: table.filterByTimeRange(2002, 2008),
+        facetStrategy: FacetStrategy.entity,
+        yAxis: new AxisConfig(),
+    }
+    manager.yAxis!.min = -100
+
+    const chart = new FacetChart({ manager })
+
+    // we should be using the transformed table
+    chart.series.forEach((s) => {
+        expect(s.manager.yAxisConfig!.min).toBe(-100)
+    })
+})
