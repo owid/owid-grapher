@@ -157,7 +157,10 @@ export class FacetChart
     }
 
     @computed private get columnFacets(): FacetSeries[] {
-        return this.yColumns.map((col) => {
+        const yAxis = new AxisConfig()
+        yAxis.min = this.manager.yAxis!.min
+
+        return this.yColumns.map((col: CoreColumn) => {
             return {
                 seriesName: col.displayName,
                 color: facetBackgroundColor,
@@ -166,6 +169,7 @@ export class FacetChart
                     yColumnSlug: col.slug,
                     yColumnSlugs: [col.slug], // In a column facet strategy, only have 1 yColumn per chart.
                     seriesStrategy: SeriesStrategy.entity,
+                    yAxis,
                 },
             }
         })
