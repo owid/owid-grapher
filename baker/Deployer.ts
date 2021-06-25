@@ -200,8 +200,6 @@ yarn testPrettierAll`
             rsyncTargetDirTmp,
             finalTargetDir,
             rsyncTargetDir,
-            owidUserHomeTmpDir,
-            owidUserHomeDir,
             oldRepoBackupDir,
             finalDataDir,
         } = this.pathsOnTarget
