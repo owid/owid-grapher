@@ -6,7 +6,6 @@ import { CovidPage } from "../site/CovidPage"
 import { SearchPage } from "../site/SearchPage"
 import { NotFoundPage } from "../site/NotFoundPage"
 import { DonatePage } from "../site/DonatePage"
-import { SubscribePage } from "../site/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
@@ -166,9 +165,6 @@ export const renderDonatePage = () =>
             recaptchaKey={RECAPTCHA_SITE_KEY}
         />
     )
-
-export const renderSubscribePage = () =>
-    renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 
 export const renderBlogByPageNum = async (pageNum: number) => {
     const allPosts = await getBlogIndex()

@@ -212,7 +212,7 @@ export const FrontPage = (props: {
                     </div>
                 </section>
 
-                <section className="homepage-subscribe">
+                <section className="homepage-subscribe" id="subscribe">
                     <div className="wrapper">
                         <div className="owid-row">
                             <div className="owid-col owid-col--lg-2 flex-row owid-padding-bottom--sm-3">
