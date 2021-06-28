@@ -919,7 +919,7 @@ export class MarimekkoChart
 
         if (!column) return "No column to chart"
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        //if (!this.selectionArray.hasSelection) return `No data selected`
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
