@@ -14,11 +14,7 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
-import {
-    DualAxisComponent,
-    HorizontalAxisComponent,
-    HorizontalAxisGridLines,
-} from "../axis/AxisViews"
+import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
@@ -35,27 +31,17 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import {
-    CategoricalBin,
-    ColorScaleBin,
-    NumericBin,
-} from "../color/ColorScaleBin"
-import { CoreColumn, MissingColumn } from "../../coreTable/CoreTableColumns"
+import { CategoricalBin } from "../color/ColorScaleBin"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils"
-import { VerticalColorLegendManager } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { countries } from "../../clientUtils/countries"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { chunk } from "lodash"
 import { color } from "d3-color"
-import { SynthesizeFruitTableWithStringValues } from "../../coreTable/OwidTableSynthesizers"
-
-const labelToBarPadding = 5
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
@@ -70,7 +56,7 @@ interface SimplePoint {
     value: number
     entity: string
     time: number
-    color?: Color
+    color?: Color // color based on assignment from the optional color column, e.g. continents for countries
 }
 
 export interface SimpleChartSeries extends ChartSeries {
@@ -78,7 +64,7 @@ export interface SimpleChartSeries extends ChartSeries {
 }
 
 interface Bar {
-    color: Color
+    color: Color // color from the variable
     seriesName: string
     xPoint: SimplePoint
     yPoint: StackedPoint<EntityName>
@@ -113,10 +99,6 @@ export class MarimekkoChart
     transformTable(table: OwidTable) {
         if (!this.yColumnSlugs.length) return table
         if (!this.xColumnSlug) return table
-
-        // table = table.filterByEntityNames(
-        //     this.selectionArray.selectedEntityNames
-        // )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
@@ -232,7 +214,7 @@ export class MarimekkoChart
         // to *slightly less* than one pixel, screwing up the rounding to pixel borders
         // that is required to avoid SVG hairline artifacts.
         // Instead what we do below is sort all x axis values ascending and then
-        // continously adjusting the one pixel domain value. This way we make sure
+        // continously adjusting the one pixel domain threshold value. This way we make sure
         // that in the final placement everything fits. In other words, what we are
         // doing is that we count all entities that would be less than one pixel WHILE
         // updating this threshold to take into account that the "normal" range gets
@@ -290,7 +272,7 @@ export class MarimekkoChart
         const axis = this.yAxisPart.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
-        axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
+        axis.formatColumn = this.yColumns[0]
         axis.range = this.yRange
         axis.label = ""
         return axis
@@ -301,7 +283,7 @@ export class MarimekkoChart
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
         else axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.formatColumn = this.xColumn // todo: does this work for columns as series?
+        axis.formatColumn = this.xColumn
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -367,18 +349,11 @@ export class MarimekkoChart
             })
             .filter((item) => item?.bars.length) as Item[]
 
-        // if (this.manager.isRelativeMode) {
-        //     // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
-        //     // relative mode. Once we have an option to sort by a specific metric, that'll help.
-        //     // Until then, we're sorting by label to prevent any jumping.
-        //     return sortBy(items, (item) => item.label)
-        // } else {
         return sortBy(items, (item) => {
             const lastPoint = last(item.bars)?.yPoint
             if (!lastPoint) return 0
             return lastPoint.valueOffset + lastPoint.value
         }).reverse()
-        // }
     }
 
     // legend props
@@ -458,11 +433,7 @@ export class MarimekkoChart
                 />
             )
 
-        const { bounds, dualAxis, innerBounds } = this
-        const labelStartX = Math.round(dualAxis.horizontalAxis.place(this.x0))
-        const labelStartY =
-            Math.round(dualAxis.verticalAxis.place(this.y0)) +
-            dualAxis.horizontalAxis.height
+        const { bounds, dualAxis } = this
 
         return (
             <g ref={this.base} className="MarimekkoChart">
@@ -477,9 +448,6 @@ export class MarimekkoChart
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
-                {/* <g transform={`translate(${labelStartX}, ${labelStartY})`}>
-                    {this.labels}
-                </g> */}
             </g>
         )
     }
@@ -492,11 +460,7 @@ export class MarimekkoChart
         let isEven = true
 
         for (const { label, bars } of this.items) {
-            // TODO: new label machanism - still has to be nudged down to the place of the X axis
             const optionalLabel = this.labels.get(label)
-            // Using transforms for positioning to enable better (subpixel) transitions
-            // Width transitions don't work well on iOS Safari – they get interrupted and
-            // it appears very slow. Also be careful with negative bar charts.
             const tooltipProps = {
                 label,
                 bars,
@@ -523,28 +487,6 @@ export class MarimekkoChart
                     onMouseOver={() => this.onEntityMouseOver(label)}
                     onMouseLeave={() => this.onEntityMouseLeave()}
                 >
-                    {/* <TippyIfInteractive
-                        lazy
-                        isInteractive={!this.manager.isExportingtoSvgOrPng}
-                        hideOnClick={false}
-                        content={<MarimekkoChart.Tooltip {...tooltipProps} />}
-                    >
-                        <text
-                            x={0}
-                            y={0}
-                            // TODO: rotate labels
-                            transform={`translate(${
-                                dualAxis.horizontalAxis.place(this.x0) -
-                                labelToBarPadding
-                            }, 0)`}
-                            fill="#000"
-                            dominantBaseline="middle"
-                            textAnchor="end"
-                            {...this.labelStyle}
-                        >
-                            {label}
-                        </text>
-                    </TippyIfInteractive> */}
                     {bars.map((bar) =>
                         this.renderBar(
                             bar,
@@ -572,11 +514,6 @@ export class MarimekkoChart
             isEven = !isEven
         }
         return results
-    }
-
-    // TODO: remove
-    private get roundX(): boolean {
-        return true
     }
 
     private static labelCanidateFromItem(
@@ -678,15 +615,8 @@ export class MarimekkoChart
         const labelMap: Map<EntityName, JSX.Element> = new Map()
         for (const candidate of this.pickedLabelCandidates) {
             const labelX = candidate.bounds.width
-            const labelY = candidate.bounds.height / 2
-            // const labelXOffset =
-            //     this.dualAxis.horizontalAxis.place(candidate.item.bars[0].xPoint.value)
             labelMap.set(
                 candidate.item.label,
-                // <g
-                //     key={`label-${i}`}
-                //     //transform={`translate(${labelXOffset}, ${labelY})`}
-                // >
                 <text
                     key={`${candidate.item.label}-label`}
                     x={-labelX}
@@ -707,7 +637,6 @@ export class MarimekkoChart
                 >
                     {candidate.item.label}
                 </text>
-                //</g>
             )
         }
 
@@ -722,14 +651,8 @@ export class MarimekkoChart
         isHovered: boolean,
         isSelected: boolean
     ) {
-        const {
-            dualAxis,
-            formatColumn,
-            focusSeriesName,
-            roundX,
-            fontSize,
-        } = this
-        const { xPoint, yPoint, seriesName } = bar
+        const { dualAxis, focusSeriesName, fontSize } = this
+        const { yPoint, seriesName } = bar
 
         const barColor = isHovered
             ? color(bar.color)?.brighter(0.9).toString() ?? bar.color
@@ -746,22 +669,10 @@ export class MarimekkoChart
             dualAxis.verticalAxis.place(yPoint.value)
         const barX = 0
 
-        // Compute how many decimal places we should show.
-        // Basically, this makes us show 2 significant digits, or no decimal places if the number
-        // is big enough already.
-        const dp = Math.ceil(-Math.log10(yPoint.value) + 1)
         const barLabel = tooltipProps.label
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: 0.7 * this.baseFontSize,
         })
-        // Check that we have enough space to show the bar label
-        const showLabelInsideBar =
-            labelBounds.height < 0.85 * barWidth &&
-            labelBounds.width < 0.85 * barHeight
-        const labelColor = isDarkColor(barColor) ? "#fff" : "#000"
-
-        const labelX = barX + barWidth / 2
-        const labelY = barY - labelBounds.width / 2 - fontSize
 
         return (
             <TippyIfInteractive
@@ -775,7 +686,6 @@ export class MarimekkoChart
                     <rect
                         x={0}
                         y={0}
-                        //shapeRendering="crispEdges"
                         transform={`translate(${barX}, ${barY - barHeight})`}
                         width={barWidth}
                         height={barHeight}
@@ -787,23 +697,6 @@ export class MarimekkoChart
                             transition: "translate 200ms ease",
                         }}
                     />
-
-                    {/* {showLabelInsideBar && (
-                        <text
-                            x={0}
-                            y={0}
-                            width={barWidth}
-                            height={barHeight}
-                            fill={labelColor}
-                            transform={`rotate(-90, ${labelX}, ${labelY}) translate(${labelX}, ${labelY})`}
-                            opacity={isFaint ? 0 : 1}
-                            fontSize="0.7em"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                        >
-                            {barLabel}
-                        </text>
-                    )} */}
                 </g>
             </TippyIfInteractive>
         )
@@ -961,9 +854,6 @@ export class MarimekkoChart
 
         if (!column) return "No column to chart"
 
-        //if (!this.selectionArray.hasSelection) return `No data selected`
-
-        // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
             ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
             : ""
@@ -1051,10 +941,6 @@ export class MarimekkoChart
     }
 
     @computed get xSeries(): SimpleChartSeries {
-        // TODO: make entity colors (continents work)
-        // const keyColor = this.transformedTable.getColorForEntityName(
-        //     entityName
-        // )
         const hasColorColumn = !this.colorColumn.isMissing
         const createStackedXPoints = (rows: LegacyOwidRow<any>[]) => {
             const points: SimplePoint[] = []
