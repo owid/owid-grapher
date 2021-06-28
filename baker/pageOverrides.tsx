@@ -17,7 +17,7 @@ export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     }
 }
 
-export const getParentLanding = async (
+export const getLandingOnlyIfParent = async (
     post: FullPost,
     formattingOptions: FormattingOptions
 ) => {
@@ -50,7 +50,7 @@ export const getPageOverrides = async (
     post: FullPost,
     formattingOptions: FormattingOptions
 ): Promise<PageOverrides | undefined> => {
-    const landing = await getParentLanding(post, formattingOptions)
+    const landing = await getLandingOnlyIfParent(post, formattingOptions)
     if (!landing) return
 
     const isParentLandingCitable = await isPostCitable(landing)

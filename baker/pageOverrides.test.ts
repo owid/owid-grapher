@@ -33,7 +33,7 @@ it("gets parent landing", async () => {
     )
 
     await expect(
-        pageOverrides.getParentLanding(
+        pageOverrides.getLandingOnlyIfParent(
             mockCreatePost("forest-area"),
             formattingOptions
         )
@@ -46,7 +46,7 @@ it("does not get parent landing (subnavId invalid)", async () => {
     )
 
     await expect(
-        pageOverrides.getParentLanding(
+        pageOverrides.getLandingOnlyIfParent(
             mockCreatePost("forest-area"),
             formattingOptions
         )
@@ -59,7 +59,7 @@ it("does not get parent landing (post is already a landing)", async () => {
     )
 
     await expect(
-        pageOverrides.getParentLanding(
+        pageOverrides.getLandingOnlyIfParent(
             mockCreatePost(forestLandingSlug),
             formattingOptions
         )
@@ -76,7 +76,7 @@ it("does not get parent landing and logs (landing post not found)", async () => 
     )
 
     await expect(
-        pageOverrides.getParentLanding(
+        pageOverrides.getLandingOnlyIfParent(
             mockCreatePost("forest-area"),
             formattingOptions
         )
