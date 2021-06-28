@@ -122,8 +122,8 @@ export const NewsletterSubscriptionForm = ({
                         <label htmlFor={idBiweekly}>
                             <div className="label-title">Biweekly digest</div>
                             <div className="label-text">
-                                Receive an overview of our recent work every two
-                                weeks.
+                                Receive an overview of our recent work and
+                                highlights of our other work every two weeks.
                             </div>
                         </label>
                     </div>
