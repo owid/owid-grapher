@@ -302,7 +302,7 @@ export class ColorScale {
         ] as ColorScaleBin[]
     }
 
-    @computed private get categoricalLegendBins(): CategoricalBin[] {
+    @computed get categoricalLegendBins(): CategoricalBin[] {
         const {
             bucketMaximums,
             baseColors,

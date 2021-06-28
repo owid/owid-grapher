@@ -35,7 +35,11 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import {
+    CategoricalBin,
+    ColorScaleBin,
+    NumericBin,
+} from "../color/ColorScaleBin"
 import { CoreColumn, MissingColumn } from "../../coreTable/CoreTableColumns"
 import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -49,6 +53,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { chunk } from "lodash"
 import { color } from "d3-color"
+import { SynthesizeFruitTableWithStringValues } from "../../coreTable/OwidTableSynthesizers"
 
 const labelToBarPadding = 5
 
@@ -403,14 +408,16 @@ export class MarimekkoChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.series.map((series, index) => {
-            return new CategoricalBin({
-                index,
-                value: series.seriesName,
-                label: series.seriesName,
-                color: series.color,
+        if (this.colorColumnSlug) return this.colorScale.categoricalLegendBins
+        else
+            return this.series.map((series, index) => {
+                return new CategoricalBin({
+                    index,
+                    value: series.seriesName,
+                    label: series.seriesName,
+                    color: series.color,
+                })
             })
-        })
     }
 
     @action.bound onLegendMouseOver(bin: CategoricalBin) {
