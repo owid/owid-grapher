@@ -2384,7 +2384,7 @@ export class Grapher
             return true
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.facetStrategy
+            this.facetStrategy !== FacetStrategy.none
         )
             return true
 
@@ -2403,6 +2403,7 @@ export class Grapher
     @computed get canChangeEntity(): boolean {
         return (
             !this.isScatter &&
+            !this.canSelectMultipleEntities &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.numSelectableEntityNames > 1
         )
