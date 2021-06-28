@@ -69,7 +69,7 @@ export const NewsletterSubscriptionForm = ({
     }`
     const idBiweekly = `mce-group[85302]-85302-1${context ? "-" + context : ""}`
 
-    const [frequencies, setFrequencies] = useState([IMMEDIATE])
+    const [frequencies, setFrequencies] = useState([IMMEDIATE, BIWEEKLY])
     const isSubmittable = frequencies.length !== 0
 
     const updateFrequencies = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,8 +122,8 @@ export const NewsletterSubscriptionForm = ({
                         <label htmlFor={idBiweekly}>
                             <div className="label-title">Biweekly digest</div>
                             <div className="label-text">
-                                Receive an overview of our recent work every two
-                                weeks.
+                                Receive an overview of our recent work and
+                                highlights of our other work every two weeks.
                             </div>
                         </label>
                     </div>
