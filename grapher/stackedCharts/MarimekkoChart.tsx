@@ -303,25 +303,31 @@ export class MarimekkoChart
 
     @computed private get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.bounds.padBottom(
-                this.legendPaddingTop + this.labelHeight
-            ),
+            bounds: this.bounds
+                .padBottom(this.legendPaddingTop + this.labelHeight)
+                .padTop(this.legend.height),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
     }
 
     @computed private get innerBounds() {
-        // return this.bounds
-        //     .padLeft(this.labelWidth)
-        //     .padBottom(this.dualAxis.height)
-        //     .padTop(this.legendPaddingTop)
-        //     .padTop(this.legend.height)
-        return this.dualAxis.innerBounds
+        return this.bounds
+            .padLeft(this.dualAxis.verticalAxis.width)
+            .padBottom(this.dualAxis.horizontalAxis.height)
+            .padTop(this.legendPaddingTop)
+            .padTop(this.legend.height)
+        //return this.dualAxis.innerBounds
     }
 
     @computed private get selectionArray() {
         return makeSelectionArray(this.manager)
+    }
+
+    @computed private get selectedItems(): Item[] {
+        const selectedSet = this.selectionArray.selectedSet
+        if (selectedSet.size === 0) return []
+        return this.items.filter((item) => selectedSet.has(item.label))
     }
 
     @computed private get items(): Item[] {
@@ -463,9 +469,9 @@ export class MarimekkoChart
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
-                <g transform={`translate(${labelStartX}, ${labelStartY})`}>
+                {/* <g transform={`translate(${labelStartX}, ${labelStartY})`}>
                     {this.labels}
-                </g>
+                </g> */}
             </g>
         )
     }
@@ -476,7 +482,10 @@ export class MarimekkoChart
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         const selectionSet = this.selectionArray.selectedSet
         let isEven = true
+
         for (const { label, bars } of this.items) {
+            // TODO: new label machanism - still has to be nudged down to the place of the X axis
+            const optionalLabel = this.labels.get(label)
             // Using transforms for positioning to enable better (subpixel) transitions
             // Width transitions don't work well on iOS Safari – they get interrupted and
             // it appears very slow. Also be careful with negative bar charts.
@@ -494,6 +503,10 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(x0)
             const correctedWidth = exactWidth * xDomainCorrectionFactor
             const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
+            const labelsYPosition =
+                dualAxis.verticalAxis.place(0) +
+                dualAxis.horizontalAxis.height +
+                this.baseFontSize
             const result = (
                 <g
                     key={label}
@@ -524,7 +537,6 @@ export class MarimekkoChart
                             {label}
                         </text>
                     </TippyIfInteractive> */}
-
                     {bars.map((bar) =>
                         this.renderBar(
                             bar,
@@ -538,6 +550,13 @@ export class MarimekkoChart
                             selectionSet.has(label)
                         )
                     )}
+                    <g
+                        transform={`translate(${
+                            barWidth / 2
+                        }, ${labelsYPosition})`}
+                    >
+                        {optionalLabel}
+                    </g>
                 </g>
             )
             results.push(result)
@@ -552,41 +571,57 @@ export class MarimekkoChart
         return true
     }
 
-    @computed private get pickedLabelCandidates(): LabelCandidate[] {
-        const { items, xRange } = this
-        if (!items.length) return []
-        // Measure the labels (before any rotation, just normal horizontal labels)
-        const labelCandidates: LabelCandidate[] = items.map((item) => ({
+    private static labelCanidateFromItem(item: Item, baseFontSize: number) {
+        return {
             item: item,
             bounds: Bounds.forText(item.label, {
-                fontSize: 0.7 * this.baseFontSize,
+                fontSize: 0.7 * baseFontSize,
             }),
             picked: false,
-        }))
-        const labelHeight = labelCandidates[0].bounds.height
-        // Always pick the first and last element
-        labelCandidates[0].picked = true
-        labelCandidates[labelCandidates.length - 1].picked = true
-        const availablePixels = xRange[1] - xRange[0]
-
-        const numLabelsToAdd = Math.floor(
-            availablePixels / (labelHeight + this.paddingInPixels)
-        )
-        const maxPerGroup = chunk(
-            labelCandidates,
-            Math.ceil(labelCandidates.length / numLabelsToAdd)
-        ).map((candidatesGroup) =>
-            maxBy(
-                candidatesGroup,
-                (candidate) => candidate.item.bars[0].xPoint.value
-            )
-        )
-        for (const max of maxPerGroup) {
-            if (max) max.picked = true
         }
-        const picked = labelCandidates.filter((candidate) => candidate.picked)
+    }
 
-        return picked
+    @computed private get pickedLabelCandidates(): LabelCandidate[] {
+        const { items, selectedItems, xRange } = this
+        if (!items.length) return []
+        // Measure the labels (before any rotation, just normal horizontal labels)
+
+        if (selectedItems.length > 0) {
+            return selectedItems.map((item) =>
+                MarimekkoChart.labelCanidateFromItem(item, this.baseFontSize)
+            )
+        } else {
+            const labelCandidates: LabelCandidate[] = items.map((item) =>
+                MarimekkoChart.labelCanidateFromItem(item, this.baseFontSize)
+            )
+
+            const labelHeight = labelCandidates[0].bounds.height
+            // Always pick the first and last element
+            labelCandidates[0].picked = true
+            labelCandidates[labelCandidates.length - 1].picked = true
+            const availablePixels = xRange[1] - xRange[0]
+
+            const numLabelsToAdd = Math.floor(
+                availablePixels / (labelHeight + this.paddingInPixels)
+            )
+            const maxPerGroup = chunk(
+                labelCandidates,
+                Math.ceil(labelCandidates.length / numLabelsToAdd) * 2
+            ).map((candidatesGroup) =>
+                maxBy(
+                    candidatesGroup,
+                    (candidate) => candidate.item.bars[0].xPoint.value
+                )
+            )
+            for (const max of maxPerGroup) {
+                if (max) max.picked = true
+            }
+            const picked = labelCandidates.filter(
+                (candidate) => candidate.picked
+            )
+
+            return picked
+        }
     }
 
     private paddingInPixels = 5
@@ -598,41 +633,43 @@ export class MarimekkoChart
         return Math.max(...widths)
     }
 
-    @computed private get labels(): JSX.Element[] {
-        const labels: JSX.Element[] = this.pickedLabelCandidates.map(
-            (candidate, i) => {
-                const labelX = candidate.bounds.width
-                const labelY = candidate.bounds.height / 2
-                const labelXOffset =
-                    0 + (candidate.bounds.height + this.paddingInPixels) * i
-                return (
-                    <g
-                        key={`label-${i}`}
-                        transform={`translate(${labelXOffset}, ${labelY})`}
-                    >
-                        <text
-                            x={-labelX}
-                            y={0}
-                            width={candidate.bounds.width}
-                            height={candidate.bounds.height}
-                            fill="#000"
-                            transform={`rotate(-45, 0, 0)`}
-                            opacity={1}
-                            fontSize="0.7em"
-                            textAnchor="right"
-                            dominantBaseline="middle"
-                            onMouseOver={() =>
-                                this.onEntityMouseOver(candidate.item.label)
-                            }
-                            onMouseLeave={() => this.onEntityMouseLeave()}
-                        >
-                            {candidate.item.label}
-                        </text>
-                    </g>
-                )
-            }
-        )
-        return labels
+    @computed private get labels(): Map<EntityName, JSX.Element> {
+        const labelMap: Map<EntityName, JSX.Element> = new Map()
+        for (const candidate of this.pickedLabelCandidates) {
+            const labelX = candidate.bounds.width
+            const labelY = candidate.bounds.height / 2
+            // const labelXOffset =
+            //     this.dualAxis.horizontalAxis.place(candidate.item.bars[0].xPoint.value)
+            labelMap.set(
+                candidate.item.label,
+                // <g
+                //     key={`label-${i}`}
+                //     //transform={`translate(${labelXOffset}, ${labelY})`}
+                // >
+                <text
+                    key={`${candidate.item.label}-label`}
+                    x={-labelX}
+                    y={0}
+                    width={candidate.bounds.width}
+                    height={candidate.bounds.height}
+                    fill="#000"
+                    transform={`rotate(-45, 0, 0)`}
+                    opacity={1}
+                    fontSize="0.7em"
+                    textAnchor="right"
+                    dominantBaseline="middle"
+                    onMouseOver={() =>
+                        this.onEntityMouseOver(candidate.item.label)
+                    }
+                    onMouseLeave={() => this.onEntityMouseLeave()}
+                >
+                    {candidate.item.label}
+                </text>
+                //</g>
+            )
+        }
+
+        return labelMap
     }
 
     private renderBar(
