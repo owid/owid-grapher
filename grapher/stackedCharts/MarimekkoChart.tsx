@@ -782,7 +782,7 @@ export class MarimekkoChart
                         fill={barColor}
                         stroke={strokeColor}
                         strokeWidth="0.3px"
-                        opacity={isFaint ? 0.1 : isEven ? 0.85 : 0.82}
+                        opacity={isFaint ? 0.1 : 0.85}
                         style={{
                             transition: "translate 200ms ease",
                         }}
