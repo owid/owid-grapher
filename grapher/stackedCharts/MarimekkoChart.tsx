@@ -92,7 +92,8 @@ interface TooltipProps {
 interface LabelCandidate {
     item: Item
     bounds: Bounds
-    picked: boolean
+    isPicked: boolean
+    isSelected: boolean
 }
 
 @observer
@@ -571,57 +572,90 @@ export class MarimekkoChart
         return true
     }
 
-    private static labelCanidateFromItem(item: Item, baseFontSize: number) {
+    private static labelCanidateFromItem(
+        item: Item,
+        baseFontSize: number,
+        isSelected: boolean
+    ): LabelCandidate {
         return {
             item: item,
             bounds: Bounds.forText(item.label, {
                 fontSize: 0.7 * baseFontSize,
             }),
-            picked: false,
+            isPicked: isSelected,
+            isSelected,
         }
+    }
+    private static splitIntoEqualDomainSizeChunks(
+        candidates: LabelCandidate[],
+        numChunks: number
+    ): LabelCandidate[][] {
+        const chunks: LabelCandidate[][] = []
+        let currentChunk: LabelCandidate[] = []
+        let domainSizeOfChunk = 0
+        const domainSizeThreshold = Math.ceil(
+            sumBy(
+                candidates,
+                (candidate) => candidate.item.bars[0].xPoint.value
+            ) / numChunks
+        )
+        for (const candidate of candidates) {
+            while (domainSizeOfChunk > domainSizeThreshold) {
+                chunks.push(currentChunk)
+                currentChunk = []
+                domainSizeOfChunk -= domainSizeThreshold
+            }
+            domainSizeOfChunk += candidate.item.bars[0].xPoint.value
+            currentChunk.push(candidate)
+        }
+        chunks.push(currentChunk)
+
+        return chunks.filter((chunk) => chunk.length > 0)
     }
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
         const { items, selectedItems, xRange } = this
         if (!items.length) return []
         // Measure the labels (before any rotation, just normal horizontal labels)
+        const selectedItemsSet = new Set(selectedItems)
 
-        if (selectedItems.length > 0) {
-            return selectedItems.map((item) =>
-                MarimekkoChart.labelCanidateFromItem(item, this.baseFontSize)
+        const labelCandidates: LabelCandidate[] = items.map((item) =>
+            MarimekkoChart.labelCanidateFromItem(
+                item,
+                this.baseFontSize,
+                selectedItemsSet.has(item)
             )
-        } else {
-            const labelCandidates: LabelCandidate[] = items.map((item) =>
-                MarimekkoChart.labelCanidateFromItem(item, this.baseFontSize)
-            )
+        )
 
-            const labelHeight = labelCandidates[0].bounds.height
-            // Always pick the first and last element
-            labelCandidates[0].picked = true
-            labelCandidates[labelCandidates.length - 1].picked = true
-            const availablePixels = xRange[1] - xRange[0]
+        const labelHeight = labelCandidates[0].bounds.height
+        // Always pick the first and last element
+        labelCandidates[0].isPicked = true
+        labelCandidates[labelCandidates.length - 1].isPicked = true
+        const availablePixels = xRange[1] - xRange[0]
 
-            const numLabelsToAdd = Math.floor(
-                availablePixels / (labelHeight + this.paddingInPixels)
-            )
-            const maxPerGroup = chunk(
-                labelCandidates,
-                Math.ceil(labelCandidates.length / numLabelsToAdd) * 2
-            ).map((candidatesGroup) =>
-                maxBy(
-                    candidatesGroup,
+        const numLabelsToAdd = Math.floor(
+            (availablePixels / (labelHeight + this.paddingInPixels)) * 0.7
+        )
+        const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
+            labelCandidates,
+            numLabelsToAdd
+        )
+        const picks = chunks.flatMap((chunk) => {
+            const picked = chunk.filter((candidate) => candidate.isPicked)
+            if (picked.length > 0) return picked
+            else {
+                return maxBy(
+                    chunk,
                     (candidate) => candidate.item.bars[0].xPoint.value
                 )
-            )
-            for (const max of maxPerGroup) {
-                if (max) max.picked = true
             }
-            const picked = labelCandidates.filter(
-                (candidate) => candidate.picked
-            )
-
-            return picked
+        })
+        for (const max of picks) {
+            if (max) max.isPicked = true
         }
+        const picked = labelCandidates.filter((candidate) => candidate.isPicked)
+
+        return picked
     }
 
     private paddingInPixels = 5
@@ -652,6 +686,7 @@ export class MarimekkoChart
                     y={0}
                     width={candidate.bounds.width}
                     height={candidate.bounds.height}
+                    fontWeight={candidate.isSelected ? 700 : 300}
                     fill="#000"
                     transform={`rotate(-45, 0, 0)`}
                     opacity={1}
