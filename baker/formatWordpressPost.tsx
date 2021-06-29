@@ -170,7 +170,7 @@ export const formatWordpressPost = async (
 
         if (!value || !year || !entityName)
             throw new JsonError(
-                `Missing data value for query ${dataValueConfigurationString}`
+                `Missing data for query ${dataValueConfigurationString}. Please check the tag for any missing or wrong argument.`
             )
         if (!template)
             throw new JsonError(
