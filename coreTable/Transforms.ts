@@ -1,10 +1,5 @@
 import { flatten } from "../clientUtils/Util"
-import {
-    ColumnSlug,
-    CoreColumnStore,
-    Time,
-    CoreValueType,
-} from "./CoreTableConstants"
+import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants"
 import { CoreColumnDef } from "./CoreColumnDef"
 import {
     ErrorValue,
@@ -14,6 +9,7 @@ import {
     ValueTooLow,
     DivideByZeroError,
 } from "./ErrorValues"
+import { ColumnSlug } from "../clientUtils/owidTypes"
 
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
 // in the spots where we are missing values (added to make computing rolling windows easier).

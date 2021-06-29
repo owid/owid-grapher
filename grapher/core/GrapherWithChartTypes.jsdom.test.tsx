@@ -1,5 +1,6 @@
 #! /usr/bin/env jest
 
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
@@ -7,7 +8,7 @@ import {
 import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import { MapChart } from "../mapCharts/MapChart"
 import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
-import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
+import { ChartTypeName } from "./GrapherConstants"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {

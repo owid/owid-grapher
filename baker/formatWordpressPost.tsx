@@ -31,6 +31,7 @@ import {
     dataValueRegex,
     DEEP_LINK_CLASS,
     extractDataValuesConfiguration,
+    formatDataValue,
     formatLinks,
     getHtmlContentWithStyles,
     parseKeyValueArgs,
@@ -43,7 +44,11 @@ import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
 import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
 import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
-import { getDataValue } from "../db/model/Variable"
+import {
+    getDataValue,
+    getLegacyChartDimensionConfigForVariable,
+    getLegacyVariableDisplayConfig,
+} from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 
 const initMathJax = () => {
@@ -158,9 +163,10 @@ export const formatWordpressPost = async (
         dataValueConfigurationString,
         dataValueConfiguration,
     ] of dataValuesConfigurationsMap) {
+        const { queryArgs, template } = dataValueConfiguration
+        const { variableId, chartId } = queryArgs
         const { value, year, unit, entityName } =
-            (await getDataValue(dataValueConfiguration.queryArgs)) || {}
-        const template = dataValueConfiguration.template
+            (await getDataValue(queryArgs)) || {}
 
         if (!value || !year || !entityName)
             throw new JsonError(
@@ -171,8 +177,26 @@ export const formatWordpressPost = async (
                 `Missing template for query ${dataValueConfigurationString}`
             )
 
+        let formattedValue
+        if (variableId && chartId) {
+            const legacyVariableDisplayConfig = await getLegacyVariableDisplayConfig(
+                variableId
+            )
+            const legacyChartDimension = await getLegacyChartDimensionConfigForVariable(
+                variableId,
+                chartId
+            )
+            formattedValue = formatDataValue(
+                value,
+                variableId,
+                legacyVariableDisplayConfig,
+                legacyChartDimension
+            )
+        }
+
         dataValues.set(dataValueConfigurationString, {
             value,
+            formattedValue,
             template,
             year,
             unit,

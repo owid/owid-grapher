@@ -2,14 +2,22 @@ import * as cheerio from "cheerio"
 import {
     DataValueConfiguration,
     DataValueQueryArgs,
+    DimensionProperty,
     FormattedPost,
     FormattingOptions,
     KeyValueProps,
+    LegacyVariableId,
 } from "../clientUtils/owidTypes"
 import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { DATA_VALUE } from "../site/DataValue"
+import { LegacyVariablesAndEntityKey } from "../grapher/core/LegacyVariableCode"
+import {
+    LegacyChartDimensionInterface,
+    LegacyVariableDisplayConfigInterface,
+} from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
@@ -109,6 +117,44 @@ export const parseKeyValueArgs = (text: string): KeyValueProps => {
             options[name] = parsedValue
         })
     return options
+}
+
+export const formatDataValue = (
+    value: number,
+    variableId: LegacyVariableId,
+    legacyVariableDisplayConfig: LegacyVariableDisplayConfigInterface = {},
+    legacyChartDimension: LegacyChartDimensionInterface | undefined
+) => {
+    if (!legacyChartDimension) return
+    const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+        entityKey: {},
+        variables: {
+            [variableId]: {
+                id: variableId,
+                display: legacyVariableDisplayConfig,
+                values: [value],
+            },
+        },
+    }
+
+    const legacyGrapherConfig = {
+        dimensions: [
+            {
+                ...legacyChartDimension,
+            },
+        ],
+    }
+
+    const { table, dimensions } = legacyToOwidTableAndDimensions(
+        legacyVariableConfig,
+        legacyGrapherConfig
+    )
+
+    const formattedValueWithUnit = table
+        .get(dimensions[0].slug)
+        .formatValueLong(table.rows[0][variableId])
+
+    return formattedValueWithUnit
 }
 
 export const formatCountryProfile = (

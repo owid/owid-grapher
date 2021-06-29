@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { ChartTypeName, DimensionProperty } from "../core/GrapherConstants"
+import { ChartTypeName } from "../core/GrapherConstants"
 import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues"
@@ -10,6 +10,7 @@ import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
 } from "../../coreTable/OwidTableConstants"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 describe(legacyToOwidTableAndDimensions, () => {
     const legacyVariableConfig: LegacyVariablesAndEntityKey = {

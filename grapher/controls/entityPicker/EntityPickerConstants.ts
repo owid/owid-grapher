@@ -1,5 +1,6 @@
+import { ColumnSlug } from "../../../clientUtils/owidTypes"
 import { CoreColumnDef } from "../../../coreTable/CoreColumnDef"
-import { ColumnSlug, SortOrder } from "../../../coreTable/CoreTableConstants"
+import { SortOrder } from "../../../coreTable/CoreTableConstants"
 import { OwidTable } from "../../../coreTable/OwidTable"
 import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { SelectionArray } from "../../selection/SelectionArray"

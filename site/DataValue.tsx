@@ -5,7 +5,7 @@ export const DATA_VALUE = "DataValue"
 
 export const processTemplate = (props: DataValueProps) => {
     return props.template
-        .replace("%value", props.value.toString())
+        .replace("%value", props.formattedValue || props.value.toString())
         .replace("%year", props.year.toString() || "")
         .replace("%unit", props.unit || "")
         .replace("%entity", props.entityName || "")

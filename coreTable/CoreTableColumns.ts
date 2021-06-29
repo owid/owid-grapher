@@ -17,7 +17,6 @@ import { isPresent } from "../clientUtils/isPresent"
 import { CoreTable } from "./CoreTable"
 import {
     CoreRow,
-    ColumnSlug,
     Time,
     PrimitiveType,
     JsTypes,
@@ -32,6 +31,7 @@ import moment from "moment"
 import { OwidSource } from "./OwidSource"
 import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
 import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { ColumnSlug } from "../clientUtils/owidTypes"
 
 interface ColumnSummary {
     numErrorValues: number

@@ -12,7 +12,6 @@ import {
 import {
     EntitySelectionMode,
     ChartTypeName,
-    DimensionProperty,
     WorldEntityName,
 } from "../grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -20,8 +19,11 @@ import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
-import { LegacyVariableId } from "../clientUtils/owidTypes"
-import { ColumnSlug } from "../coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    DimensionProperty,
+    LegacyVariableId,
+} from "../clientUtils/owidTypes"
 import { ChartDimension } from "../grapher/chart/ChartDimension"
 
 @observer

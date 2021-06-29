@@ -91,14 +91,6 @@ export enum ScatterPointLabelStrategy {
     y = "y",
 }
 
-export enum DimensionProperty {
-    y = "y",
-    x = "x",
-    size = "size",
-    color = "color",
-    table = "table",
-}
-
 // todo: remove
 export interface EntitySelection {
     entityId: number

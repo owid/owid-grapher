@@ -7,22 +7,11 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "../persistable/Persistable"
-import { ColumnSlug, Time } from "../../coreTable/CoreTableConstants"
-import { DimensionProperty } from "../core/GrapherConstants"
 import { OwidSource } from "../../coreTable/OwidSource"
 import {
     LegacyVariableDataTableConfigInteface,
     LegacyVariableDisplayConfigInterface,
 } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
-import { LegacyVariableId } from "../../clientUtils/owidTypes"
-
-export interface LegacyChartDimensionInterface {
-    property: DimensionProperty
-    targetYear?: Time
-    display?: LegacyVariableDisplayConfigInterface
-    variableId: LegacyVariableId
-    slug?: ColumnSlug
-}
 
 class LegacyVariableDisplayConfigDefaults {
     @observable name?: string = undefined

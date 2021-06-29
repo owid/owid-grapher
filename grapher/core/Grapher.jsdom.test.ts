@@ -2,7 +2,6 @@
 import { Grapher } from "../core/Grapher"
 import {
     ChartTypeName,
-    DimensionProperty,
     EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
@@ -30,6 +29,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { SelectionArray } from "../selection/SelectionArray"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 const TestGrapherConfig = (): {
     table: OwidTable

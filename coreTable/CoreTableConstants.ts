@@ -1,7 +1,6 @@
 import { ErrorValue } from "./ErrorValues"
 
 export type TableSlug = string // a url friendly name for a table
-export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
 export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs
 
 export type Integer = number

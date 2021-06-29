@@ -5,7 +5,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../../coreTable/OwidTableSynthesizers"
-import { ColumnSlug, SortOrder } from "../../../coreTable/CoreTableConstants"
+import { SortOrder } from "../../../coreTable/CoreTableConstants"
 import {
     EntityName,
     OwidTableSlugs,
@@ -13,6 +13,7 @@ import {
 import { EntityPickerManager } from "./EntityPickerConstants"
 import { computed, observable } from "mobx"
 import { SelectionArray } from "../../selection/SelectionArray"
+import { ColumnSlug } from "../../../clientUtils/owidTypes"
 
 class PickerHolder extends React.Component {
     render(): JSX.Element {

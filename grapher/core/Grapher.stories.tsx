@@ -6,7 +6,6 @@ import {
 } from "../../coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
-    DimensionProperty,
     FacetStrategy,
     GrapherTabOption,
 } from "./GrapherConstants"
@@ -14,6 +13,7 @@ import { BlankOwidTable } from "../../coreTable/OwidTable"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 export default {
     title: "Grapher",

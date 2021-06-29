@@ -92,6 +92,7 @@ export interface KeyValueProps {
 export interface DataValueQueryArgs {
     variableId?: number
     entityId?: number
+    chartId?: number
     year?: number
 }
 
@@ -108,6 +109,7 @@ export interface DataValueResult {
 }
 
 export interface DataValueProps extends DataValueResult {
+    formattedValue?: string
     template: string
 }
 
@@ -248,3 +250,14 @@ export interface Annotation {
     entityName?: string
     year?: number
 }
+
+export enum DimensionProperty {
+    y = "y",
+    x = "x",
+    size = "size",
+    color = "color",
+    table = "table",
+}
+
+// see CoreTableConstants.ts
+export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces

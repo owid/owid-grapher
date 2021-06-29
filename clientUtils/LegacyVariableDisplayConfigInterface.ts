@@ -1,5 +1,12 @@
 // DEPRECATED. DO NOT USE.
 
+import {
+    ColumnSlug,
+    DimensionProperty,
+    LegacyVariableId,
+    Time,
+} from "./owidTypes"
+
 export interface LegacyVariableDisplayConfigInterface {
     name?: string
     unit?: string
@@ -20,4 +27,12 @@ export interface LegacyVariableDisplayConfigInterface {
 export interface LegacyVariableDataTableConfigInteface {
     hideAbsoluteChange?: boolean
     hideRelativeChange?: boolean
+}
+
+export interface LegacyChartDimensionInterface {
+    property: DimensionProperty
+    targetYear?: Time
+    display?: LegacyVariableDisplayConfigInterface
+    variableId: LegacyVariableId
+    slug?: ColumnSlug
 }

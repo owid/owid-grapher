@@ -2,9 +2,9 @@
 
 import { Grapher } from "../core/Grapher"
 import { computed } from "mobx"
-import { DimensionProperty } from "../core/GrapherConstants"
 import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util"
 import { ChartDimension } from "./ChartDimension"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 export class DimensionSlot {
     private grapher: Grapher

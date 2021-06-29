@@ -6,10 +6,10 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
-import { DimensionProperty } from "../core/GrapherConstants"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
+import { DimensionProperty } from "../../clientUtils/owidTypes"
 configure({ adapter: new Adapter() })
 
 const TestGrapherConfig = (): GrapherProgrammaticInterface => {

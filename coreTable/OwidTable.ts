@@ -21,7 +21,6 @@ import {
 } from "../clientUtils/Util"
 import { isPresent } from "../clientUtils/isPresent"
 import {
-    ColumnSlug,
     Integer,
     Time,
     TransformType,
@@ -54,6 +53,7 @@ import {
     InterpolationProvider,
 } from "./CoreTableUtils"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
+import { ColumnSlug } from "../clientUtils/owidTypes"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
