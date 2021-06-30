@@ -254,7 +254,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     ],
     water: [
         {
-            label: "Clean water and sanitation",
+            label: "Clean Water and Sanitation",
             href: "/clean-water-sanitation",
             id: "wash",
         },
