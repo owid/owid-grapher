@@ -252,6 +252,33 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "protected-areas-and-conservation",
         },
     ],
+        water: [
+        {
+            label: "Clean water and sanitation",
+            href: "clean-water-sanitation",
+            id: "wash",
+        },
+        {
+            label: "Data explorer",
+            href: "/explorers/water-and-sanitation",
+            id: "wash-data-explorer",
+        },
+        {
+            label: "Drinking water",
+            href: "/water-access",
+            id: "drinking-water",
+        },
+        {
+            label: "Sanitation",
+            href: "/sanitation",
+            id: "sanitation",
+        },
+        {
+            label: "Handwashing",
+            href: "/hygiene",
+            id: "hygiene",
+        },
+    ],
 }
 
 export class SiteSubnavigation extends React.Component<{
