@@ -584,14 +584,14 @@ export const getBlockContent = async (
 
     const query = `
     query getBlock($id: ID!) {
-        wp_block(id: $id, idType: DATABASE_ID) {
+        wpBlock(id: $id, idType: DATABASE_ID) {
           content
         }
       }
     `
     const post = await graphqlQuery(query, { id })
 
-    return post.data?.wp_block?.content ?? undefined
+    return post.data?.wpBlock?.content ?? undefined
 }
 
 export const getFullPost = async (
