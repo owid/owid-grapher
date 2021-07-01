@@ -5,7 +5,6 @@ env_file:
 config:
     webroot: web
     via: nginx
-    xdebug: true
     # Remove next line once the Lando Wordpress recipe upgrades Composer >= 2.0.12
     # Fixed support for new GitHub OAuth token format (#9757)
     # see https://getcomposer.org/changelog/2.0.12
@@ -19,6 +18,9 @@ excludes:
     - web/app/plugins/owid/node_modules
 services:
     appserver:
+        xdebug: true
+        config:
+            php: .lando/config/php.ini
         build_as_root:
             - ln -sf /user/.ssh/config /var/www/.ssh/config
     node:
