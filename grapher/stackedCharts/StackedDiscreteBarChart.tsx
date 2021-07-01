@@ -8,6 +8,7 @@ import {
     excludeUndefined,
     sortBy,
     numberMagnitude,
+    sum,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -476,6 +477,16 @@ export class StackedDiscreteBarChart
 
     private static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
+        const { highlightedSeriesName } = props
+        const showTotal = !props.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
+
+        const timeNoticeStyle = {
+            fontWeight: "normal",
+            color: "#707070",
+            fontSize: "0.8em",
+            whiteSpace: "nowrap",
+            paddingLeft: "8px",
+        } as React.CSSProperties
 
         return (
             <table
@@ -492,7 +503,6 @@ export class StackedDiscreteBarChart
                         </td>
                     </tr>
                     {props.bars.map((bar) => {
-                        const { highlightedSeriesName } = props
                         const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
@@ -552,15 +562,7 @@ export class StackedDiscreteBarChart
                                           )}
                                 </td>
                                 {shouldShowTimeNotice && (
-                                    <td
-                                        style={{
-                                            fontWeight: "normal",
-                                            color: "#707070",
-                                            fontSize: "0.8em",
-                                            whiteSpace: "nowrap",
-                                            paddingLeft: "8px",
-                                        }}
-                                    >
+                                    <td style={timeNoticeStyle}>
                                         <span className="icon">
                                             <FontAwesomeIcon
                                                 icon={faInfoCircle}
@@ -577,13 +579,58 @@ export class StackedDiscreteBarChart
                             </tr>
                         )
                     })}
+                    {/* Total */}
+                    {showTotal && (
+                        <tr
+                            style={{
+                                color: "#000",
+                                fontWeight: highlightedSeriesName
+                                    ? undefined
+                                    : "bold",
+                            }}
+                        >
+                            <td />
+                            <td
+                                style={{
+                                    paddingRight: "0.8em",
+                                    fontSize: "0.9em",
+                                }}
+                            >
+                                Total
+                            </td>
+                            <td
+                                style={{
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {props.formatColumn.formatValueShort(
+                                    sum(
+                                        props.bars.map((bar) => bar.point.value)
+                                    ),
+                                    {
+                                        noTrailingZeroes: false,
+                                    }
+                                )}
+                            </td>
+                            {/* If we're showing a time notice for some year already, then also show it for the total */}
+                            {hasTimeNotice && (
+                                <td style={timeNoticeStyle}>
+                                    <span className="icon">
+                                        <FontAwesomeIcon icon={faInfoCircle} />
+                                    </span>
+                                </td>
+                            )}
+                        </tr>
+                    )}
                     {hasTimeNotice && (
                         <tr>
                             <td
                                 colSpan={4}
                                 style={{
-                                    color: "#707070",
-                                    fontSize: "0.8em",
+                                    ...timeNoticeStyle,
+                                    paddingLeft: undefined,
+                                    whiteSpace: undefined,
                                     paddingTop: "10px",
                                 }}
                             >
