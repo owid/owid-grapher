@@ -39,8 +39,9 @@ export class CollapsibleList extends React.Component {
     }
 
     private calculateItemWidths(): void {
+        this.itemsWidths = []
         this.outerContainerRef.current
-            ?.querySelectorAll(".list-item.visible")
+            ?.querySelectorAll(".list-item.visible, .list-item.hidden")
             .forEach((item): number => this.itemsWidths.push(item.clientWidth))
     }
 
@@ -130,6 +131,14 @@ export class CollapsibleList extends React.Component {
                             )}
                         />
                     </li>
+                    {/* Invisibly render dropdown items such that we can measure their clientWidth, too */}
+                    {this.dropdownItems.map(
+                        (item): JSX.Element => (
+                            <li key={item.index} className="list-item hidden">
+                                {item.child}
+                            </li>
+                        )
+                    )}
                 </ul>
             </div>
         )

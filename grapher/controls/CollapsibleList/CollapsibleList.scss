@@ -4,11 +4,12 @@
     ul {
         list-style: none;
         > .list-item {
-            &.visible,
-            &.moreButton {
-                display: inline-block;
+            display: inline-block;
 
-                padding-left: 15px;
+            padding-left: 15px;
+
+            &.hidden {
+                visibility: hidden;
             }
         }
     }
