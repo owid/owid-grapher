@@ -125,7 +125,7 @@ export const d3Format = formatLocale({
 }).format
 
 const getRootSVG = (
-    element: Element | SVGElement | SVGSVGElement
+    element: Element | SVGGraphicsElement | SVGSVGElement
 ): SVGSVGElement | undefined => {
     if ("createSVGPoint" in element) return element
     if ("ownerSVGElement" in element)
@@ -134,7 +134,7 @@ const getRootSVG = (
 }
 
 export const getRelativeMouse = (
-    node: Element | SVGElement | SVGSVGElement,
+    node: Element | SVGGraphicsElement | SVGSVGElement,
     event: TouchEvent | { clientX: number; clientY: number }
 ): PointVector => {
     const isTouchEvent = !!(event as TouchEvent).targetTouches
@@ -145,11 +145,11 @@ export const getRelativeMouse = (
     const { clientX, clientY } = eventOwner
 
     const svg = getRootSVG(node)
-    if (svg) {
+    if (svg && "getScreenCTM" in node) {
         const svgPoint = svg.createSVGPoint()
         svgPoint.x = clientX
         svgPoint.y = clientY
-        const point = svgPoint.matrixTransform(svg.getScreenCTM()?.inverse())
+        const point = svgPoint.matrixTransform(node.getScreenCTM()?.inverse())
         return new PointVector(point.x, point.y)
     }
 
