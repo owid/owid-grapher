@@ -93,7 +93,7 @@ class CSV {
     ) {
         this.filename = filename
         if (err) {
-            this.parseError = err?.message
+            this.parseError = err.message
             this.rows = []
         } else {
             this.parseError = undefined
