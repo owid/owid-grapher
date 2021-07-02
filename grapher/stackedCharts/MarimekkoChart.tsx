@@ -515,6 +515,66 @@ export class MarimekkoChart
         }
         return results
     }
+    private paddingInPixels = 5
+
+    private renderBar(
+        bar: Bar,
+        tooltipProps: TooltipProps,
+        isEven: boolean,
+        barWidth: number,
+        isHovered: boolean,
+        isSelected: boolean
+    ) {
+        const { dualAxis, focusSeriesName, fontSize } = this
+        const { yPoint, seriesName } = bar
+
+        const barColor = isHovered
+            ? color(bar.color)?.brighter(0.9).toString() ?? bar.color
+            : isSelected
+            ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
+            : bar.color
+        const strokeColor = isHovered ? "#000" : isSelected ? "#000" : "#666"
+
+        const isFaint =
+            focusSeriesName !== undefined && focusSeriesName !== seriesName
+        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
+        const barHeight =
+            dualAxis.verticalAxis.place(this.y0) -
+            dualAxis.verticalAxis.place(yPoint.value)
+        const barX = 0
+
+        const barLabel = tooltipProps.label
+        const labelBounds = Bounds.forText(barLabel, {
+            fontSize: 0.7 * this.baseFontSize,
+        })
+
+        return (
+            <TippyIfInteractive
+                lazy
+                isInteractive={!this.manager.isExportingtoSvgOrPng}
+                key={seriesName}
+                hideOnClick={false}
+                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+            >
+                <g>
+                    <rect
+                        x={0}
+                        y={0}
+                        transform={`translate(${barX}, ${barY - barHeight})`}
+                        width={barWidth}
+                        height={barHeight}
+                        fill={barColor}
+                        stroke={strokeColor}
+                        strokeWidth="0.3px"
+                        opacity={isFaint ? 0.1 : 0.85}
+                        style={{
+                            transition: "translate 200ms ease",
+                        }}
+                    />
+                </g>
+            </TippyIfInteractive>
+        )
+    }
 
     private static labelCanidateFromItem(
         item: Item,
@@ -602,8 +662,6 @@ export class MarimekkoChart
         return picked
     }
 
-    private paddingInPixels = 5
-
     @computed private get labelHeight(): number {
         const widths = this.pickedLabelCandidates.map(
             (candidate) => candidate.bounds.width
@@ -641,65 +699,6 @@ export class MarimekkoChart
         }
 
         return labelMap
-    }
-
-    private renderBar(
-        bar: Bar,
-        tooltipProps: TooltipProps,
-        isEven: boolean,
-        barWidth: number,
-        isHovered: boolean,
-        isSelected: boolean
-    ) {
-        const { dualAxis, focusSeriesName, fontSize } = this
-        const { yPoint, seriesName } = bar
-
-        const barColor = isHovered
-            ? color(bar.color)?.brighter(0.9).toString() ?? bar.color
-            : isSelected
-            ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
-            : bar.color
-        const strokeColor = isHovered ? "#000" : isSelected ? "#000" : "#666"
-
-        const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== seriesName
-        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
-        const barHeight =
-            dualAxis.verticalAxis.place(this.y0) -
-            dualAxis.verticalAxis.place(yPoint.value)
-        const barX = 0
-
-        const barLabel = tooltipProps.label
-        const labelBounds = Bounds.forText(barLabel, {
-            fontSize: 0.7 * this.baseFontSize,
-        })
-
-        return (
-            <TippyIfInteractive
-                lazy
-                isInteractive={!this.manager.isExportingtoSvgOrPng}
-                key={seriesName}
-                hideOnClick={false}
-                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
-            >
-                <g>
-                    <rect
-                        x={0}
-                        y={0}
-                        transform={`translate(${barX}, ${barY - barHeight})`}
-                        width={barWidth}
-                        height={barHeight}
-                        fill={barColor}
-                        stroke={strokeColor}
-                        strokeWidth="0.3px"
-                        opacity={isFaint ? 0.1 : 0.85}
-                        style={{
-                            transition: "translate 200ms ease",
-                        }}
-                    />
-                </g>
-            </TippyIfInteractive>
-        )
     }
 
     private static Tooltip(props: TooltipProps) {
