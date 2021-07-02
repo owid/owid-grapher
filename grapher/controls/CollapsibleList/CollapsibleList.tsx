@@ -66,9 +66,7 @@ export class CollapsibleList extends React.Component {
     }
 
     private get dropdownItems(): ListChild[] {
-        return this.numItemsVisible
-            ? this.children.slice(this.numItemsVisible)
-            : []
+        return this.children.slice(this.numItemsVisible)
     }
 
     @action private onResize = throttle((): void => {
