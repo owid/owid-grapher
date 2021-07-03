@@ -208,11 +208,15 @@ export async function writeToGzippedFile(
 
     return finished(writeStream)
 }
-
-export async function saveGrapherSchemaAndData(
-    config: GrapherInterface,
+export interface SaveGrapherSchemaAndDataJob {
+    config: GrapherInterface
     outDir: string
+}
+export async function saveGrapherSchemaAndData(
+    jobDescription: SaveGrapherSchemaAndDataJob
 ): Promise<void> {
+    const config = jobDescription.config
+    const outDir = jobDescription.outDir
     const dataDir = path.join(outDir, config.id?.toString() ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
     const configPath = path.join(dataDir, CONFIG_FILENAME)
@@ -273,11 +277,15 @@ export function processSvgAndCalculateHash(svg: string): string {
     const processed = prepareSvgForComparision(svg)
     return md5(processed)
 }
-
-export async function renderSvgAndSave(
-    dir: string,
+export interface RenderSvgAndSaveJobDescription {
+    dir: string
     outDir: string
+}
+export async function renderSvgAndSave(
+    jobDescription: RenderSvgAndSaveJobDescription
 ): Promise<SvgRecord> {
+    const dir = jobDescription.dir
+    const outDir = jobDescription.outDir
     const [svg, svgRecord] = await renderSvg(dir)
     const outPath = path.join(outDir, svgRecord.svgFilename)
     const cleanedSvg = prepareSvgForComparision(svg)
