@@ -789,29 +789,29 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         if (this.hoverEnterFeature) return
 
         const { featuresInProjection } = this
-        const mouse = getRelativeMouse(
-            this.base.current!.querySelector(".subunits"),
-            ev
-        )
+        const subunits = this.base.current?.querySelector(".subunits")
+        if (subunits) {
+            const mouse = getRelativeMouse(subunits, ev)
 
-        const featuresWithDistance = featuresInProjection.map((feature) => {
-            return {
-                feature,
-                distance: PointVector.distance(feature.center, mouse),
+            const featuresWithDistance = featuresInProjection.map((feature) => {
+                return {
+                    feature,
+                    distance: PointVector.distance(feature.center, mouse),
+                }
+            })
+
+            const feature = minBy(featuresWithDistance, (d) => d.distance)
+
+            if (feature && feature.distance < 20) {
+                if (feature.feature !== this.hoverNearbyFeature) {
+                    this.hoverNearbyFeature = feature.feature
+                    this.props.onHover(feature.feature.geo, ev)
+                }
+            } else {
+                this.hoverNearbyFeature = undefined
+                this.props.onHoverStop()
             }
-        })
-
-        const feature = minBy(featuresWithDistance, (d) => d.distance)
-
-        if (feature && feature.distance < 20) {
-            if (feature.feature !== this.hoverNearbyFeature) {
-                this.hoverNearbyFeature = feature.feature
-                this.props.onHover(feature.feature.geo, ev)
-            }
-        } else {
-            this.hoverNearbyFeature = undefined
-            this.props.onHoverStop()
-        }
+        } else console.error("subunits was falsy")
     }
 
     @action.bound private onMouseEnter(

@@ -29,7 +29,7 @@ class CSV {
     @observable filename?: string
     @observable rows: string[][]
     @observable countryEntriesMap: Map<string, CountryEntry>
-    @observable mapCountriesInputToOutput: { [key: string]: string | undefined }
+    @observable mapCountriesInputToOutput: Record<string, string>
     @observable autoMatchedCount: number = 0
     @observable parseError?: string
     @observable findSimilarCountries: boolean = true
@@ -88,7 +88,7 @@ class CSV {
     @action.bound onFileUpload(
         filename: string,
         rows: string[][],
-        err: any,
+        err: { message: string } | undefined,
         similarityMatch: boolean
     ) {
         this.filename = filename
@@ -104,7 +104,7 @@ class CSV {
     }
 
     @action.bound onFormatChange(
-        countryMap: any,
+        countryMap: Record<string, string>,
         findSimilarCountries: boolean
     ) {
         this.mapCountriesInputToOutput = countryMap
@@ -157,7 +157,7 @@ class CSV {
                     approximatedMatches = fuzz
                         .get(country)
                         .map(
-                            (fuzzyMatch: any[]) =>
+                            (fuzzyMatch: [number, string]) =>
                                 mapCountriesInputToOutput[fuzzyMatch[1]] ||
                                 fuzzyMatch[1]
                         )
@@ -355,23 +355,25 @@ export class CountryStandardizerPage extends React.Component {
 
         const reader = new FileReader()
         reader.onload = (e) => {
-            const csv = (e as any).target.result
-            parse(
-                csv,
-                {
-                    relax_column_count: true,
-                    skip_empty_lines: true,
-                    rtrim: true,
-                },
-                (err, rows) => {
-                    this.csv.onFileUpload(
-                        file.name,
-                        rows,
-                        err,
-                        this.shouldSaveSelection
-                    )
-                }
-            )
+            const csv = e?.target?.result
+            if (csv && typeof csv === "string")
+                parse(
+                    csv,
+                    {
+                        relax_column_count: true,
+                        skip_empty_lines: true,
+                        rtrim: true,
+                    },
+                    (err, rows) => {
+                        this.csv.onFileUpload(
+                            file.name,
+                            rows,
+                            err,
+                            this.shouldSaveSelection
+                        )
+                    }
+                )
+            else console.error("Csv was not read correctly")
         }
         reader.readAsText(file)
     }
@@ -400,12 +402,14 @@ export class CountryStandardizerPage extends React.Component {
 
         runInAction(() => {
             const countryMap: { [key: string]: string } = {}
-            results.countries.forEach((countryFormat: any) => {
-                if (countryFormat.input === null) return
-                countryMap[countryFormat.input.toLowerCase()] = toString(
-                    countryFormat.output
-                )
-            })
+            results.countries.forEach(
+                (countryFormat: { input: string; output: unknown }) => {
+                    if (countryFormat.input === null) return
+                    countryMap[countryFormat.input.toLowerCase()] = toString(
+                        countryFormat.output
+                    )
+                }
+            )
 
             this.csv.onFormatChange(countryMap, this.shouldSaveSelection)
         })
@@ -529,7 +533,7 @@ export class CountryStandardizerPage extends React.Component {
     @action.bound onSave() {
         const { csv } = this
 
-        const countries: any = {}
+        const countries: Record<string, string> = {}
         let needToSave: boolean = false
 
         csv.countryEntriesMap.forEach((entry) => {

@@ -179,8 +179,11 @@ export class Footer extends React.Component<{
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(":hover")) {
             const div = this.base.current as HTMLDivElement
-            const mouse = getRelativeMouse(div.closest(".GrapherComponent"), e)
-            this.tooltipTarget = { x: mouse.x, y: mouse.y }
+            const grapher = div.closest(".GrapherComponent")
+            if (grapher) {
+                const mouse = getRelativeMouse(grapher, e)
+                this.tooltipTarget = { x: mouse.x, y: mouse.y }
+            } else console.error("Grapher was falsy")
         } else this.tooltipTarget = undefined
     }
 

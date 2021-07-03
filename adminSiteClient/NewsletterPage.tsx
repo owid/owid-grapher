@@ -33,7 +33,7 @@ interface Searchable {
 @observer
 class PostRow extends React.Component<{
     post: PostIndexMeta
-    highlight: (text: string) => any
+    highlight: (text: string) => string | JSX.Element
     availableTags: Tag[]
 }> {
     static contextType = AdminAppContext
@@ -101,7 +101,7 @@ export class NewsletterPage extends React.Component {
                 limit: 50,
                 key: "term",
             })
-            return lodash.uniq(results.map((result: any) => result.obj.post))
+            return lodash.uniq(results.map((result) => result.obj.post))
         } else {
             return this.posts.slice(0, maxVisibleRows)
         }

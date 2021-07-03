@@ -10,7 +10,7 @@ export { Tag }
 export class TagBadge extends React.Component<{
     tag: Tag
     onRemove?: () => void
-    searchHighlight?: (text: string) => any
+    searchHighlight?: (text: string) => string | JSX.Element
 }> {
     render() {
         const { tag, searchHighlight, onRemove } = this.props

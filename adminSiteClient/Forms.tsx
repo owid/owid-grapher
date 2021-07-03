@@ -399,7 +399,7 @@ export class Toggle extends React.Component<ToggleProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ["title", "disabled"]) as any
+        const passthroughProps = pick(props, ["label", "disabled"])
 
         return (
             <div className="form-check">

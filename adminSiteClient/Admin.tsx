@@ -15,14 +15,16 @@ interface ClientSettings {
     GITHUB_USERNAME: string
 }
 
+interface ErrorMessage {
+    title: string
+    content: string
+    isFatal?: boolean
+}
+
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable errorMessage?: {
-        title: string
-        content: string
-        isFatal?: boolean
-    }
+    @observable errorMessage?: ErrorMessage
     basePath: string
     username: string
     isSuperuser: boolean
@@ -71,7 +73,7 @@ export class Admin {
         data: string | File,
         method: HTTPMethod
     ): Promise<Response> {
-        const headers: any = {}
+        const headers: HeadersInit = {}
         const isFile = data instanceof File
         if (!isFile) {
             headers["Content-Type"] = "application/json"
@@ -137,7 +139,7 @@ export class Admin {
         return json
     }
 
-    @action.bound private setErrorMessage(message: any): void {
+    @action.bound private setErrorMessage(message: ErrorMessage): void {
         this.errorMessage = message
     }
 

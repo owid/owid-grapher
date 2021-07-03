@@ -51,7 +51,7 @@ export class ChartIndexPage extends React.Component {
                 limit: 50,
                 key: "term",
             })
-            return uniq(results.map((result: any) => result.obj.chart))
+            return uniq(results.map((result) => result.obj.chart))
         } else {
             return this.charts.slice(0, maxVisibleCharts)
         }
@@ -95,7 +95,7 @@ export class ChartIndexPage extends React.Component {
                     <ChartList
                         charts={chartsToShow}
                         searchHighlight={highlight}
-                        onDelete={action((c: any) =>
+                        onDelete={action((c: ChartListItem) =>
                             this.charts.splice(this.charts.indexOf(c), 1)
                         )}
                     />

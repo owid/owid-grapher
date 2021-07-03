@@ -287,32 +287,35 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         const nativeEvent = ev.nativeEvent
 
         this.mouseFrame = requestAnimationFrame(() => {
-            const mouse = getRelativeMouse(this.base.current, nativeEvent)
+            if (this.base.current) {
+                const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
-            const closestSeries = minBy(this.renderSeries, (series) => {
-                if (series.points.length > 1)
+                const closestSeries = minBy(this.renderSeries, (series) => {
+                    if (series.points.length > 1)
+                        return min(
+                            series.points.slice(0, -1).map((d, i) => {
+                                return PointVector.distanceFromPointToLineSq(
+                                    mouse,
+                                    d.position,
+                                    series.points[i + 1].position
+                                )
+                            })
+                        )
+
                     return min(
-                        series.points.slice(0, -1).map((d, i) => {
-                            return PointVector.distanceFromPointToLineSq(
-                                mouse,
-                                d.position,
-                                series.points[i + 1].position
-                            )
-                        })
+                        series.points.map((v) =>
+                            PointVector.distanceSq(v.position, mouse)
+                        )
                     )
+                })
 
-                return min(
-                    series.points.map((v) =>
-                        PointVector.distanceSq(v.position, mouse)
+                if (closestSeries && this.props.onMouseOver) {
+                    const series = this.seriesArray.find(
+                        (series) =>
+                            series.seriesName === closestSeries.seriesName
                     )
-                )
-            })
-
-            if (closestSeries && this.props.onMouseOver) {
-                const series = this.seriesArray.find(
-                    (series) => series.seriesName === closestSeries.seriesName
-                )
-                if (series) this.props.onMouseOver(series)
+                    if (series) this.props.onMouseOver(series)
+                }
             }
         })
     }

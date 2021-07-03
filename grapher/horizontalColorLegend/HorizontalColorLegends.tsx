@@ -313,34 +313,36 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     @action.bound onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { manager, base, positionedBins } = this
         const { numericFocusBracket } = manager
-        const mouse = getRelativeMouse(base.current, ev)
+        if (base.current) {
+            const mouse = getRelativeMouse(base.current, ev)
 
-        // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
-        // specific SVG elements, in order to allow continuous transition between bins as the user
-        // moves their cursor across (even if their cursor is in the empty area above the
-        // legend, where the labels are).
-        // We could achieve the same by rendering invisible rectangles over the areas and attaching
-        // event handlers to those.
+            // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
+            // specific SVG elements, in order to allow continuous transition between bins as the user
+            // moves their cursor across (even if their cursor is in the empty area above the
+            // legend, where the labels are).
+            // We could achieve the same by rendering invisible rectangles over the areas and attaching
+            // event handlers to those.
 
-        // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
-        if (!this.bounds.contains(mouse)) {
-            if (numericFocusBracket && manager.onLegendMouseLeave)
-                return manager.onLegendMouseLeave()
-            return
+            // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
+            if (!this.bounds.contains(mouse)) {
+                if (numericFocusBracket && manager.onLegendMouseLeave)
+                    return manager.onLegendMouseLeave()
+                return
+            }
+
+            // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
+            let newFocusBracket = null
+            positionedBins.forEach((bin) => {
+                if (
+                    mouse.x >= this.legendX + bin.x &&
+                    mouse.x <= this.legendX + bin.x + bin.width
+                )
+                    newFocusBracket = bin.bin
+            })
+
+            if (newFocusBracket && manager.onLegendMouseOver)
+                manager.onLegendMouseOver(newFocusBracket)
         }
-
-        // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-        let newFocusBracket = null
-        positionedBins.forEach((bin) => {
-            if (
-                mouse.x >= this.legendX + bin.x &&
-                mouse.x <= this.legendX + bin.x + bin.width
-            )
-                newFocusBracket = bin.bin
-        })
-
-        if (newFocusBracket && manager.onLegendMouseOver)
-            manager.onLegendMouseOver(newFocusBracket)
     }
 
     componentDidMount(): void {

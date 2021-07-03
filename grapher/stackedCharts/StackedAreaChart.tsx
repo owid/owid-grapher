@@ -50,23 +50,27 @@ class Areas extends React.Component<AreasProps> {
     ): void {
         const { dualAxis, seriesArr } = this.props
 
-        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
+        if (this.base.current) {
+            const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
-        if (dualAxis.innerBounds.contains(mouse)) {
-            const closestPoint = minBy(seriesArr[0].points, (d) =>
-                Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
-            )
-            if (closestPoint) {
-                const index = seriesArr[0].points.indexOf(closestPoint)
-                this.hoverIndex = index
+            if (dualAxis.innerBounds.contains(mouse)) {
+                const closestPoint = minBy(seriesArr[0].points, (d) =>
+                    Math.abs(
+                        dualAxis.horizontalAxis.place(d.position) - mouse.x
+                    )
+                )
+                if (closestPoint) {
+                    const index = seriesArr[0].points.indexOf(closestPoint)
+                    this.hoverIndex = index
+                } else {
+                    this.hoverIndex = undefined
+                }
             } else {
                 this.hoverIndex = undefined
             }
-        } else {
-            this.hoverIndex = undefined
-        }
 
-        this.props.onHover(this.hoverIndex)
+            this.props.onHover(this.hoverIndex)
+        }
     }
 
     @action.bound private onCursorLeave(): void {

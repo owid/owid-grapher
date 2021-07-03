@@ -16,7 +16,7 @@ export interface VariableListItem {
 @observer
 class VariableRow extends React.Component<{
     variable: VariableListItem
-    searchHighlight?: (text: string) => any
+    searchHighlight?: (text: string) => string | JSX.Element
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -54,7 +54,7 @@ class VariableRow extends React.Component<{
 @observer
 export class VariableList extends React.Component<{
     variables: VariableListItem[]
-    searchHighlight?: (text: string) => any
+    searchHighlight?: (text: string) => string | JSX.Element
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType

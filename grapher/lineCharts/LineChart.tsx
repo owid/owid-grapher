@@ -72,6 +72,8 @@ class Lines extends React.Component<LinesProps> {
         const { dualAxis } = this.props
         const { horizontalAxis } = dualAxis
 
+        if (!this.base.current) return
+
         const mouse = getRelativeMouse(this.base.current, ev)
 
         let hoverX
