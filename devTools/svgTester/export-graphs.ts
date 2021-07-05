@@ -13,12 +13,6 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const inDir = parsedArgs["i"] ?? "grapherData"
         const outDir = parsedArgs["o"] ?? "grapherSvgs"
         const numPartitions = parsedArgs["n"] ?? 1
-        const partition = parsedArgs["p"] ?? 1
-        if (partition <= 0) throw "Partition must be >= 1"
-        if (partition > numPartitions)
-            throw "Partition must be <= numPartitions"
-        if (numPartitions <= 0) throw "numPartitions must be >= 1"
-        if (numPartitions > 1000) throw "numPartitions must be <= 1000"
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
@@ -35,10 +29,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             (dir) => ({ dir: join(inDir, dir), outDir })
         )
 
-        // Parellize the CPU heavy rendering using the multiprocessing library. This library stringifies the invocation to other processes
-        // so this call uses the intermediate dump-data-runner script. This call will then in parallel take the descriptions of the SaveGrapherSchemaAndDataJob,
-        // and dump the grapher config and data json file in parallel. The entire parallel operation returns a promise containing an array
-        // or result values which in this case is void so is ignored
+        // Parallelize the CPU heavy rendering using the multiprocessing library. This library stringifies the invocation to other processes
+        // so this call uses the intermediate export-graphs-runner script. This call will then in parallel take the descriptions of the RenderSvgAndSaveJobDescription,
+        // and render the svgs in parallel. It will then save the resulting svg and return an SvgRecord which contains the md5 hash of the entire svg.
+        // The entire parallel operation returns a promise containing an array of SvgRecrod result values. This is then written out as a csv file so that the verify
+        // script can read it and quickly check md5 hashes for verification
         const svgRecords: utils.SvgRecord[] = await pool.map(
             jobDescriptions,
             path.join(__dirname, "export-graphs-runner.js")
@@ -66,8 +61,6 @@ Usage:
 Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
-    -n PARTITIONS  Number of partitions - if specified then only 1/PARTITIONS of directories will be processed [default: 1]
-    -p PARTITION   Partition to process [ 1 - PARTITIONS ]. Specifies the partition to process in this run. [default: 1]
     `)
 } else {
     main(parsedArgs)

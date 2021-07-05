@@ -132,10 +132,7 @@ export async function verifySvg(
 
 export async function decideDirectoriesToVerify(
     grapherIds: number[],
-    inDir: string,
-    reverseDirectories: boolean,
-    numPartitions: number = 1,
-    partition: number = 1
+    inDir: string
 ): Promise<JobDirectory[]> {
     let directories: JobDirectory[] = []
     if (grapherIds.length === 0) {
@@ -448,15 +445,12 @@ export async function renderAndVerifySvg({
 }
 export async function prepareVerifyRun(
     rawGrapherIds: string,
-    inDir: string,
-    reverseDirectories: boolean,
-    referenceDir: string
+    inDir: string
 ): Promise<JobDirectory[]> {
     const grapherIds: number[] = getGrapherIdListFromString(rawGrapherIds)
     const directoriesToProcess = await decideDirectoriesToVerify(
         grapherIds,
-        inDir,
-        reverseDirectories
+        inDir
     )
     return directoriesToProcess
 }

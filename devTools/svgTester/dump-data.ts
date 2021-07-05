@@ -28,7 +28,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         // process exit (this seems to be what is done in db.ts) but apparently there is an issue somewhere. The code below would probably
         // speed up exporting by a factor of ~2 on most systems but it's not super important to make this work
 
-        // Parellize the individual exports using the multiprocessing library. This library stringifies the invocation to other processes
+        // Parallelize the individual exports using the multiprocessing library. This library stringifies the invocation to other processes
         // so this call uses the intermediate dump-data-runner script. This call will then in parallel take the descriptions of the SaveGrapherSchemaAndDataJob,
         // and dump the grapher config and data json file in parallel. The entire parallel operation returns a promise containing an array
         // or result values which in this case is void so is ignored

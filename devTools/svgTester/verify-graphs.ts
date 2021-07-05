@@ -16,7 +16,6 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const inDir = parsedArgs["i"] ?? "grapherData"
         const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
         const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
-        const reverseDirectories = parsedArgs["l"] ?? false
         const verbose = parsedArgs["v"] ?? false
         // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
         const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
@@ -30,9 +29,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         // Get the directories to process as a list and the content of the csv file with the md5 hashes etc as a map of grapher id -> SvgResult
         const directoriesToProcess = await utils.prepareVerifyRun(
             rawGrapherIds,
-            inDir,
-            reverseDirectories,
-            referenceDir
+            inDir
         )
         const csvContentMap = await utils.getReferenceCsvContentMap(
             referenceDir
@@ -46,11 +43,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             verbose,
         }))
 
-        // Parellize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
+        // Parallelize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
         // so this call uses the intermediate verify-graphs-runner script. This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
-        // or result values.
+        // of result values.
         const validationResults: utils.VerifyResult[] = await pool.map(
             verifyJobs,
             path.join(__dirname, "verify-graphs-runner")
@@ -90,7 +87,6 @@ Options:
     -r DIR         Input directory containing the results.csv file to check against [default: grapherSvgs]
     -o DIR         Output directory that will contain the svg files that were different [default: differentGrapherSvgs]
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
-    -l             Reverse the order (start from last). Useful to test different generation order.
     -v             Verbose mode
     `)
 } else {
