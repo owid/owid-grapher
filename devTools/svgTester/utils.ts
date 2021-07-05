@@ -210,7 +210,7 @@ export async function writeToGzippedFile(
 }
 
 export async function writeToFile(data: unknown, filename: string) {
-    const json = JSON.stringify(data)
+    const json = JSON.stringify(data, null, 2)
     await fs.writeFile(filename, json)
 }
 
