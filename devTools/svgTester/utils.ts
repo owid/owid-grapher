@@ -17,9 +17,9 @@ import { GrapherInterface } from "../../grapher/core/GrapherInterface"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
 import _ from "lodash"
 
-const CONFIG_FILENAME: string = "config.json.gz"
+const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
-const DATA_FILENAME = "data.json.gz"
+const DATA_FILENAME = "data.json"
 export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 export const finished = util.promisify(stream.finished) // (A)
@@ -208,6 +208,12 @@ export async function writeToGzippedFile(
 
     return finished(writeStream)
 }
+
+export async function writeToFile(data: unknown, filename: string) {
+    const json = JSON.stringify(data)
+    await fs.writeFile(filename, json)
+}
+
 export interface SaveGrapherSchemaAndDataJob {
     config: GrapherInterface
     outDir: string
@@ -220,14 +226,14 @@ export async function saveGrapherSchemaAndData(
     const dataDir = path.join(outDir, config.id?.toString() ?? "")
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir)
     const configPath = path.join(dataDir, CONFIG_FILENAME)
-    const promise1 = writeToGzippedFile(config, configPath)
+    const promise1 = writeToFile(config, configPath)
 
     const dataPath = path.join(dataDir, DATA_FILENAME)
     const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.dimensions.map((d) => d.variableId)
 
     const promise2 = getVariableData(variableIds).then((vardata) =>
-        writeToGzippedFile(vardata, dataPath)
+        writeToFile(vardata, dataPath)
     )
 
     await Promise.allSettled([promise1, promise2])
@@ -303,6 +309,11 @@ export async function readGzippedJsonFile(filename: string): Promise<unknown> {
     return JSON.parse(content)
 }
 
+export async function readJsonFile(filename: string): Promise<unknown> {
+    const content = await fs.readJson(filename)
+    return content
+}
+
 export async function loadReferenceSvg(
     referenceDir: string,
     referenceSvgRecord: SvgRecord
@@ -328,10 +339,10 @@ export async function loadGrapherConfigAndData(
         throw `Input directory does not exist ${inputDir}`
 
     const configPath = path.join(inputDir, CONFIG_FILENAME)
-    const config = (await readGzippedJsonFile(configPath)) as GrapherInterface
+    const config = (await readJsonFile(configPath)) as GrapherInterface
 
     const dataPath = path.join(inputDir, DATA_FILENAME)
-    const data = await readGzippedJsonFile(dataPath)
+    const data = await readJsonFile(dataPath)
 
     return Promise.resolve([config, data])
 }
