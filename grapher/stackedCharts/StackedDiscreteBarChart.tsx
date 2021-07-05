@@ -66,13 +66,22 @@ interface Bar {
     point: StackedPoint<EntityName>
 }
 
-interface TooltipProps {
+interface TooltipProps extends StackedBarChartContext {
     label: string
     bars: Bar[]
-    highlightedSeriesName?: string
-    targetTime?: Time
+    highlightedSeriesName: string | null
+}
+
+interface StackedBarChartContext {
+    axis: HorizontalAxis
+    targetTime?: number
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+    focusSeriesName?: string
+    barHeight: number
+    x0: number
+    baseFontSize: number
+    isInteractive: boolean
 }
 
 @observer
@@ -306,6 +315,18 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
+        const chartContext: StackedBarChartContext = {
+            axis,
+            targetTime: this.manager.endTime,
+            timeColumn: this.inputTable.timeColumn,
+            formatColumn: this.formatColumn,
+            barHeight: this.barHeight,
+            focusSeriesName: this.focusSeriesName,
+            x0: this.x0,
+            baseFontSize: this.baseFontSize,
+            isInteractive: !this.manager.isExportingtoSvgOrPng,
+        }
+
         const yOffset = innerBounds.top + barHeight / 2
 
         return (
@@ -347,11 +368,9 @@ export class StackedDiscreteBarChart
                             {nodes.map(({ data, state }) => {
                                 const { label, bars } = data as Item
                                 const tooltipProps = {
+                                    ...chartContext,
                                     label,
                                     bars,
-                                    targetTime: this.manager.endTime,
-                                    timeColumn: this.inputTable.timeColumn,
-                                    formatColumn: this.formatColumn,
                                 }
 
                                 return (
@@ -370,6 +389,7 @@ export class StackedDiscreteBarChart
                                             content={
                                                 <StackedDiscreteBarChart.Tooltip
                                                     {...tooltipProps}
+                                                    highlightedSeriesName={null}
                                                 />
                                             }
                                         >
@@ -388,13 +408,18 @@ export class StackedDiscreteBarChart
                                                 {label}
                                             </text>
                                         </TippyIfInteractive>
-                                        {bars.map((bar) =>
-                                            this.renderBar(bar, {
-                                                ...tooltipProps,
-                                                highlightedSeriesName:
-                                                    bar.seriesName,
-                                            })
-                                        )}
+                                        {bars.map((bar) => (
+                                            <StackedDiscreteBarChart.Bar
+                                                key={bar.seriesName}
+                                                bar={bar}
+                                                chartContext={chartContext}
+                                                tooltipProps={{
+                                                    ...tooltipProps,
+                                                    highlightedSeriesName:
+                                                        bar.seriesName,
+                                                }}
+                                            />
+                                        ))}
                                     </g>
                                 )
                             })}
@@ -405,23 +430,28 @@ export class StackedDiscreteBarChart
         )
     }
 
-    private renderBar(bar: Bar, tooltipProps: TooltipProps): JSX.Element {
-        const { axis, formatColumn, focusSeriesName, barHeight } = this
-        const { point, color, seriesName } = bar
+    private static Bar(props: {
+        bar: Bar
+        chartContext: StackedBarChartContext
+        tooltipProps: TooltipProps
+    }): JSX.Element {
+        const { bar, chartContext, tooltipProps } = props
+        const { axis, formatColumn, focusSeriesName, barHeight } = chartContext
 
         const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== seriesName
-        const barX = axis.place(this.x0 + point.valueOffset)
-        const barWidth = axis.place(point.value) - axis.place(this.x0)
+            focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
+        const barX = axis.place(chartContext.x0 + bar.point.valueOffset)
+        const barWidth =
+            axis.place(bar.point.value) - axis.place(chartContext.x0)
 
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
         // is big enough already.
-        const magnitude = numberMagnitude(point.value)
-        const barLabel = formatColumn.formatValueShort(point.value, {
+        const magnitude = numberMagnitude(bar.point.value)
+        const barLabel = formatColumn.formatValueShort(bar.point.value, {
             numDecimalPlaces: Math.max(0, -magnitude + 2),
         })
-        const labelFontSize = 0.7 * this.baseFontSize
+        const labelFontSize = 0.7 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
@@ -429,13 +459,13 @@ export class StackedDiscreteBarChart
         const showLabelInsideBar =
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
-        const labelColor = isDarkColor(color) ? "#fff" : "#000"
+        const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
         return (
             <TippyIfInteractive
                 lazy
-                isInteractive={!this.manager.isExportingtoSvgOrPng}
-                key={seriesName}
+                isInteractive={chartContext.isInteractive}
+                key={bar.seriesName}
                 hideOnClick={false}
                 content={<StackedDiscreteBarChart.Tooltip {...tooltipProps} />}
             >
@@ -446,7 +476,7 @@ export class StackedDiscreteBarChart
                         transform={`translate(${barX}, ${-barHeight / 2})`}
                         width={barWidth}
                         height={barHeight}
-                        fill={color}
+                        fill={bar.color}
                         opacity={isFaint ? 0.1 : 0.85}
                         style={{
                             transition: "height 200ms ease",
@@ -504,8 +534,7 @@ export class StackedDiscreteBarChart
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
                         const isFaint =
-                            highlightedSeriesName !== undefined &&
-                            !isHighlighted
+                            highlightedSeriesName !== null && !isHighlighted
                         const shouldShowTimeNotice =
                             !bar.point.fake &&
                             bar.point.time !== props.targetTime
