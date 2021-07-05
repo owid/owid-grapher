@@ -46,8 +46,6 @@ import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
-import { Flipper, Flipped } from "react-flip-toolkit"
-import { isSafari, prefersReducedMotion } from "../../clientUtils/BrowserUtil"
 
 const labelToBarPadding = 5
 
@@ -306,10 +304,6 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
-        // Animation don't work correctly on Safari at the moment - see https://github.com/aholachek/react-flip-toolkit/issues/159
-        // a stopgap, they are currently disabled on Safari until we find a better solution
-        const shouldAnimate = !prefersReducedMotion() && !isSafari
-
         let yOffset = innerBounds.top + barHeight / 2
 
         return (
@@ -332,78 +326,63 @@ export class StackedDiscreteBarChart
                     bounds={innerBounds}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
-                <Flipper flipKey={this.items.map((i) => i.label)} element="g">
-                    {this.items.map(({ label, bars }) => {
-                        // Using transforms for positioning to enable better (subpixel) transitions
-                        // Width transitions don't work well on iOS Safari – they get interrupted and
-                        // it appears very slow. Also be careful with negative bar charts.
-                        const tooltipProps = {
-                            label,
-                            bars,
-                            targetTime: this.manager.endTime,
-                            timeColumn: this.inputTable.timeColumn,
-                            formatColumn: this.formatColumn,
-                        }
+                {this.items.map(({ label, bars }) => {
+                    // Using transforms for positioning to enable better (subpixel) transitions
+                    // Width transitions don't work well on iOS Safari – they get interrupted and
+                    // it appears very slow. Also be careful with negative bar charts.
+                    const tooltipProps = {
+                        label,
+                        bars,
+                        targetTime: this.manager.endTime,
+                        timeColumn: this.inputTable.timeColumn,
+                        formatColumn: this.formatColumn,
+                    }
 
-                        // This custom spring is quite gentle and doesn't wobble.
-                        const spring = { stiffness: 160, damping: 26 }
-
-                        const result = (
-                            <Flipped
-                                key={label}
-                                flipId={label}
-                                translate
-                                spring={spring}
-                                shouldFlip={() => shouldAnimate}
+                    const result = (
+                        <g
+                            key={label}
+                            className="bar"
+                            transform={`translate(0, ${yOffset})`}
+                        >
+                            <TippyIfInteractive
+                                lazy
+                                isInteractive={
+                                    !this.manager.isExportingtoSvgOrPng
+                                }
+                                hideOnClick={false}
+                                content={
+                                    <StackedDiscreteBarChart.Tooltip
+                                        {...tooltipProps}
+                                    />
+                                }
                             >
-                                <g
-                                    key={label}
-                                    className="bar"
-                                    transform={`translate(0, ${yOffset})`}
+                                <text
+                                    x={0}
+                                    y={0}
+                                    transform={`translate(${
+                                        axis.place(this.x0) - labelToBarPadding
+                                    }, 0)`}
+                                    fill="#555"
+                                    dominantBaseline="middle"
+                                    textAnchor="end"
+                                    {...this.labelStyle}
                                 >
-                                    <TippyIfInteractive
-                                        lazy
-                                        isInteractive={
-                                            !this.manager.isExportingtoSvgOrPng
-                                        }
-                                        hideOnClick={false}
-                                        content={
-                                            <StackedDiscreteBarChart.Tooltip
-                                                {...tooltipProps}
-                                            />
-                                        }
-                                    >
-                                        <text
-                                            x={0}
-                                            y={0}
-                                            transform={`translate(${
-                                                axis.place(this.x0) -
-                                                labelToBarPadding
-                                            }, 0)`}
-                                            fill="#555"
-                                            dominantBaseline="middle"
-                                            textAnchor="end"
-                                            {...this.labelStyle}
-                                        >
-                                            {label}
-                                        </text>
-                                    </TippyIfInteractive>
-                                    {bars.map((bar) =>
-                                        this.renderBar(bar, {
-                                            ...tooltipProps,
-                                            highlightedSeriesName:
-                                                bar.seriesName,
-                                        })
-                                    )}
-                                </g>
-                            </Flipped>
-                        )
+                                    {label}
+                                </text>
+                            </TippyIfInteractive>
+                            {bars.map((bar) =>
+                                this.renderBar(bar, {
+                                    ...tooltipProps,
+                                    highlightedSeriesName: bar.seriesName,
+                                })
+                            )}
+                        </g>
+                    )
 
-                        yOffset += barHeight + barSpacing
+                    yOffset += barHeight + barSpacing
 
-                        return result
-                    })}
-                </Flipper>
+                    return result
+                })}
             </g>
         )
     }
