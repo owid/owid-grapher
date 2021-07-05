@@ -46,6 +46,8 @@ import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
+import { NodeGroup } from "react-move"
+import { easeQuadOut } from "d3-ease"
 
 const labelToBarPadding = 5
 
@@ -304,7 +306,7 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
-        let yOffset = innerBounds.top + barHeight / 2
+        const yOffset = innerBounds.top + barHeight / 2
 
         return (
             <g ref={this.base} className="StackedDiscreteBarChart">
@@ -326,63 +328,79 @@ export class StackedDiscreteBarChart
                     bounds={innerBounds}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
-                {this.items.map(({ label, bars }) => {
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    const tooltipProps = {
-                        label,
-                        bars,
-                        targetTime: this.manager.endTime,
-                        timeColumn: this.inputTable.timeColumn,
-                        formatColumn: this.formatColumn,
-                    }
+                <NodeGroup
+                    data={this.items.map((d) => ({
+                        bounds: this.innerBounds,
+                        ...d,
+                    }))}
+                    keyAccessor={(d: Item) => d.label}
+                    start={(d: Item, i: number) => ({
+                        translateY: yOffset + (barHeight + barSpacing) * i,
+                    })}
+                    update={(d: Item, i: number) => ({
+                        translateY: [yOffset + (barHeight + barSpacing) * i],
+                        timing: { duration: 300, ease: easeQuadOut },
+                    })}
+                >
+                    {(nodes) => (
+                        <g>
+                            {nodes.map(({ data, state }) => {
+                                const { label, bars } = data as Item
+                                const tooltipProps = {
+                                    label,
+                                    bars,
+                                    targetTime: this.manager.endTime,
+                                    timeColumn: this.inputTable.timeColumn,
+                                    formatColumn: this.formatColumn,
+                                }
 
-                    const result = (
-                        <g
-                            key={label}
-                            className="bar"
-                            transform={`translate(0, ${yOffset})`}
-                        >
-                            <TippyIfInteractive
-                                lazy
-                                isInteractive={
-                                    !this.manager.isExportingtoSvgOrPng
-                                }
-                                hideOnClick={false}
-                                content={
-                                    <StackedDiscreteBarChart.Tooltip
-                                        {...tooltipProps}
-                                    />
-                                }
-                            >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        axis.place(this.x0) - labelToBarPadding
-                                    }, 0)`}
-                                    fill="#555"
-                                    dominantBaseline="middle"
-                                    textAnchor="end"
-                                    {...this.labelStyle}
-                                >
-                                    {label}
-                                </text>
-                            </TippyIfInteractive>
-                            {bars.map((bar) =>
-                                this.renderBar(bar, {
-                                    ...tooltipProps,
-                                    highlightedSeriesName: bar.seriesName,
-                                })
-                            )}
+                                return (
+                                    <g
+                                        key={label}
+                                        className="bar"
+                                        transform={`translate(0, ${state.translateY})`}
+                                    >
+                                        <TippyIfInteractive
+                                            lazy
+                                            isInteractive={
+                                                !this.manager
+                                                    .isExportingtoSvgOrPng
+                                            }
+                                            hideOnClick={false}
+                                            content={
+                                                <StackedDiscreteBarChart.Tooltip
+                                                    {...tooltipProps}
+                                                />
+                                            }
+                                        >
+                                            <text
+                                                x={0}
+                                                y={0}
+                                                transform={`translate(${
+                                                    axis.place(this.x0) -
+                                                    labelToBarPadding
+                                                }, 0)`}
+                                                fill="#555"
+                                                dominantBaseline="middle"
+                                                textAnchor="end"
+                                                {...this.labelStyle}
+                                            >
+                                                {label}
+                                            </text>
+                                        </TippyIfInteractive>
+                                        {bars.map((bar) =>
+                                            this.renderBar(bar, {
+                                                ...tooltipProps,
+                                                highlightedSeriesName:
+                                                    bar.seriesName,
+                                            })
+                                        )}
+                                    </g>
+                                )
+                            })}
                         </g>
-                    )
-
-                    yOffset += barHeight + barSpacing
-
-                    return result
-                })}
+                    )}
+                </NodeGroup>
             </g>
         )
     }
