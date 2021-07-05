@@ -60,6 +60,10 @@ interface Item {
     bars: Bar[]
 }
 
+interface PlacedItem extends Item {
+    yPosition: number
+}
+
 interface Bar {
     color: Color
     seriesName: string
@@ -328,6 +332,15 @@ export class StackedDiscreteBarChart
         }
 
         const yOffset = innerBounds.top + barHeight / 2
+        const placedItems = this.items.map((d, i) => ({
+            yPosition: yOffset + (barHeight + barSpacing) * i,
+            ...d,
+        }))
+
+        const handlePositionUpdate = (d: PlacedItem) => ({
+            translateY: [d.yPosition],
+            timing: { duration: 350, ease: easeQuadOut },
+        })
 
         return (
             <g ref={this.base} className="StackedDiscreteBarChart">
@@ -350,23 +363,15 @@ export class StackedDiscreteBarChart
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 <NodeGroup
-                    data={this.items.map((d) => ({
-                        bounds: this.innerBounds,
-                        ...d,
-                    }))}
-                    keyAccessor={(d: Item) => d.label}
-                    start={(d: Item, i: number) => ({
-                        translateY: yOffset + (barHeight + barSpacing) * i,
-                    })}
-                    update={(d: Item, i: number) => ({
-                        translateY: [yOffset + (barHeight + barSpacing) * i],
-                        timing: { duration: 300, ease: easeQuadOut },
-                    })}
+                    data={placedItems}
+                    keyAccessor={(d: PlacedItem) => d.label}
+                    start={handlePositionUpdate}
+                    update={handlePositionUpdate}
                 >
                     {(nodes) => (
                         <g>
                             {nodes.map(({ data, state }) => {
-                                const { label, bars } = data as Item
+                                const { label, bars } = data as PlacedItem
                                 const tooltipProps = {
                                     ...chartContext,
                                     label,
