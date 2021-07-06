@@ -64,7 +64,10 @@ jobs:
                   token: ${{ secrets.GITHUBPAT }}
 
             # Switch to or create a branch on that repo that matches the branch name we are on in the owid-grapher repo
+            # but only do this if we are not on master in owid-graphers (in this case we want to commit and push on master
+            # in owid-grapher-svgs as well)
             - name: create owid-grapher-svgs local branch
+              if: ${{ steps.extract_branch.outputs.branch != 'master'}}
               working-directory: owid-grapher-svgs
               run: git branch ${{ steps.extract_branch.outputs.branch }} && git checkout ${{ steps.extract_branch.outputs.branch }}
 
