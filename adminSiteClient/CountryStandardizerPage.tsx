@@ -154,16 +154,15 @@ class CSV {
 
             if (outputCountry === undefined) {
                 if (findSimilarCountries) {
-                    approximatedMatches = fuzz
-                        .get(country)
+                    const fuzzMatches = fuzz.get(country) ?? []
+                    approximatedMatches = fuzzMatches
                         .map(
                             (fuzzyMatch: [number, string]) =>
                                 mapCountriesInputToOutput[fuzzyMatch[1]] ||
                                 fuzzyMatch[1]
                         )
-                    approximatedMatches = approximatedMatches.filter(
-                        (key) => key !== undefined
-                    )
+                        .filter((key) => key !== undefined)
+                    approximatedMatches = uniq(approximatedMatches)
                 }
             } else {
                 autoMatched += 1
