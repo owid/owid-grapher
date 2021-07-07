@@ -89,7 +89,8 @@ function findFirstDiffIndex(a: string, b: string): number {
     var i = 0
     while (i < a.length && i < b.length && a[i] === b[i]) i++
     if (a.length === b.length && a.length === i) {
-        console.warn("No difference found!")
+        console.warn("No difference found even though hash was different!")
+        i = -1
     }
     return i
 }
@@ -118,6 +119,13 @@ export async function verifySvg(
         preparedNewSvg,
         preparedReferenceSvg
     )
+    // Sometimes the md5 hash comparision above indicated a difference
+    // but the character by character comparision gives -1 (no differences)
+    // Weird - maybe an artifact of a change in how the ids are stripped
+    // accross version?
+    if (firstDiffIndex === -1) {
+        return resultOk()
+    }
     logIfVerbose(verbose, `${newSvgRecord.chartId} had differences`)
     return resultDifference({
         chartId: newSvgRecord.chartId,
