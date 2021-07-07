@@ -46,6 +46,8 @@ import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
+import { NodeGroup } from "react-move"
+import { easeQuadOut } from "d3-ease"
 
 const labelToBarPadding = 5
 
@@ -58,19 +60,32 @@ interface Item {
     bars: Bar[]
 }
 
+interface PlacedItem extends Item {
+    yPosition: number
+}
+
 interface Bar {
     color: Color
     seriesName: string
     point: StackedPoint<EntityName>
 }
 
-interface TooltipProps {
+interface TooltipProps extends StackedBarChartContext {
     label: string
     bars: Bar[]
-    highlightedSeriesName?: string
-    targetTime?: Time
+    highlightedSeriesName: string | undefined
+}
+
+interface StackedBarChartContext {
+    axis: HorizontalAxis
+    targetTime?: number
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+    focusSeriesName?: string
+    barHeight: number
+    x0: number
+    baseFontSize: number
+    isInteractive: boolean
 }
 
 @observer
@@ -304,7 +319,28 @@ export class StackedDiscreteBarChart
 
         const { bounds, axis, innerBounds, barHeight, barSpacing } = this
 
-        let yOffset = innerBounds.top + barHeight / 2
+        const chartContext: StackedBarChartContext = {
+            axis,
+            targetTime: this.manager.endTime,
+            timeColumn: this.inputTable.timeColumn,
+            formatColumn: this.formatColumn,
+            barHeight: this.barHeight,
+            focusSeriesName: this.focusSeriesName,
+            x0: this.x0,
+            baseFontSize: this.baseFontSize,
+            isInteractive: !this.manager.isExportingtoSvgOrPng,
+        }
+
+        const yOffset = innerBounds.top + barHeight / 2
+        const placedItems = this.items.map((d, i) => ({
+            yPosition: yOffset + (barHeight + barSpacing) * i,
+            ...d,
+        }))
+
+        const handlePositionUpdate = (d: PlacedItem) => ({
+            translateY: [d.yPosition],
+            timing: { duration: 350, ease: easeQuadOut },
+        })
 
         return (
             <g ref={this.base} className="StackedDiscreteBarChart">
@@ -326,84 +362,103 @@ export class StackedDiscreteBarChart
                     bounds={innerBounds}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
-                {this.items.map(({ label, bars }) => {
-                    // Using transforms for positioning to enable better (subpixel) transitions
-                    // Width transitions don't work well on iOS Safari – they get interrupted and
-                    // it appears very slow. Also be careful with negative bar charts.
-                    const tooltipProps = {
-                        label,
-                        bars,
-                        targetTime: this.manager.endTime,
-                        timeColumn: this.inputTable.timeColumn,
-                        formatColumn: this.formatColumn,
-                    }
+                <NodeGroup
+                    data={placedItems}
+                    keyAccessor={(d: PlacedItem) => d.label}
+                    start={handlePositionUpdate}
+                    update={handlePositionUpdate}
+                >
+                    {(nodes) => (
+                        <g>
+                            {nodes.map(({ data, state }) => {
+                                const { label, bars } = data as PlacedItem
+                                const tooltipProps = {
+                                    ...chartContext,
+                                    label,
+                                    bars,
+                                }
 
-                    const result = (
-                        <g
-                            key={label}
-                            className="bar"
-                            transform={`translate(0, ${yOffset})`}
-                        >
-                            <TippyIfInteractive
-                                lazy
-                                isInteractive={
-                                    !this.manager.isExportingtoSvgOrPng
-                                }
-                                hideOnClick={false}
-                                content={
-                                    <StackedDiscreteBarChart.Tooltip
-                                        {...tooltipProps}
-                                    />
-                                }
-                            >
-                                <text
-                                    x={0}
-                                    y={0}
-                                    transform={`translate(${
-                                        axis.place(this.x0) - labelToBarPadding
-                                    }, 0)`}
-                                    fill="#555"
-                                    dominantBaseline="middle"
-                                    textAnchor="end"
-                                    {...this.labelStyle}
-                                >
-                                    {label}
-                                </text>
-                            </TippyIfInteractive>
-                            {bars.map((bar) =>
-                                this.renderBar(bar, {
-                                    ...tooltipProps,
-                                    highlightedSeriesName: bar.seriesName,
-                                })
-                            )}
+                                return (
+                                    <g
+                                        key={label}
+                                        className="bar"
+                                        transform={`translate(0, ${state.translateY})`}
+                                    >
+                                        <TippyIfInteractive
+                                            lazy
+                                            isInteractive={
+                                                !this.manager
+                                                    .isExportingtoSvgOrPng
+                                            }
+                                            hideOnClick={false}
+                                            content={
+                                                <StackedDiscreteBarChart.Tooltip
+                                                    {...tooltipProps}
+                                                    highlightedSeriesName={
+                                                        undefined
+                                                    }
+                                                />
+                                            }
+                                        >
+                                            <text
+                                                x={0}
+                                                y={0}
+                                                transform={`translate(${
+                                                    axis.place(this.x0) -
+                                                    labelToBarPadding
+                                                }, 0)`}
+                                                fill="#555"
+                                                dominantBaseline="middle"
+                                                textAnchor="end"
+                                                {...this.labelStyle}
+                                            >
+                                                {label}
+                                            </text>
+                                        </TippyIfInteractive>
+                                        {bars.map((bar) => (
+                                            <StackedDiscreteBarChart.Bar
+                                                key={bar.seriesName}
+                                                bar={bar}
+                                                chartContext={chartContext}
+                                                tooltipProps={{
+                                                    ...tooltipProps,
+                                                    highlightedSeriesName:
+                                                        bar.seriesName,
+                                                }}
+                                            />
+                                        ))}
+                                    </g>
+                                )
+                            })}
                         </g>
-                    )
-
-                    yOffset += barHeight + barSpacing
-
-                    return result
-                })}
+                    )}
+                </NodeGroup>
             </g>
         )
     }
 
-    private renderBar(bar: Bar, tooltipProps: TooltipProps): JSX.Element {
-        const { axis, formatColumn, focusSeriesName, barHeight } = this
-        const { point, color, seriesName } = bar
+    private static Bar(props: {
+        bar: Bar
+        chartContext: StackedBarChartContext
+        tooltipProps: TooltipProps
+    }): JSX.Element {
+        const { bar, chartContext, tooltipProps } = props
+        const { axis, formatColumn, focusSeriesName, barHeight } = chartContext
 
         const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== seriesName
-        const barX = axis.place(this.x0 + point.valueOffset)
-        const barWidth = axis.place(point.value) - axis.place(this.x0)
+            focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
+        const barX = axis.place(chartContext.x0 + bar.point.valueOffset)
+        const barWidth =
+            axis.place(bar.point.value) - axis.place(chartContext.x0)
 
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
         // is big enough already.
-        const magnitude = numberMagnitude(point.value)
-        const barLabel = formatColumn.formatValueShort(point.value, {
+        const magnitude = numberMagnitude(bar.point.value)
+        const barLabel = formatColumn.formatValueShort(bar.point.value, {
             numDecimalPlaces: Math.max(0, -magnitude + 2),
         })
-        const labelFontSize = 0.7 * this.baseFontSize
+        const labelFontSize = 0.7 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
         })
@@ -411,13 +466,13 @@ export class StackedDiscreteBarChart
         const showLabelInsideBar =
             labelBounds.width < 0.85 * barWidth &&
             labelBounds.height < 0.85 * barHeight
-        const labelColor = isDarkColor(color) ? "#fff" : "#000"
+        const labelColor = isDarkColor(bar.color) ? "#fff" : "#000"
 
         return (
             <TippyIfInteractive
                 lazy
-                isInteractive={!this.manager.isExportingtoSvgOrPng}
-                key={seriesName}
+                isInteractive={chartContext.isInteractive}
+                key={bar.seriesName}
                 hideOnClick={false}
                 content={<StackedDiscreteBarChart.Tooltip {...tooltipProps} />}
             >
@@ -428,7 +483,7 @@ export class StackedDiscreteBarChart
                         transform={`translate(${barX}, ${-barHeight / 2})`}
                         width={barWidth}
                         height={barHeight}
-                        fill={color}
+                        fill={bar.color}
                         opacity={isFaint ? 0.1 : 0.85}
                         style={{
                             transition: "height 200ms ease",
@@ -486,8 +541,7 @@ export class StackedDiscreteBarChart
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
                         const isFaint =
-                            highlightedSeriesName !== undefined &&
-                            !isHighlighted
+                            highlightedSeriesName !== null && !isHighlighted
                         const shouldShowTimeNotice =
                             !bar.point.fake &&
                             bar.point.time !== props.targetTime
