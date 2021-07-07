@@ -84,9 +84,13 @@ jobs:
                   repository: ./owid-grapher-svgs/
                   branch: ${{ steps.extract_branch.outputs.branch }}
                   push_options: "--force"
+                  commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
 
+            # We make the action fail if there were any differences and if we are on a branch other than master. On master
+            # we do not want to fail because the differences on master are intended to be authorative and thus there is no
+            # reason to mark this action as failed.
             - name: Fail with error message if we had differences
-              if: ${{ steps.run-verify-graphs.outcome == 'failure' }}
+              if: ${{ steps.run-verify-graphs.outcome == 'failure' && steps.extract_branch.outputs.branch != 'master' }}
               uses: actions/github-script@v3
               with:
                   script: |
