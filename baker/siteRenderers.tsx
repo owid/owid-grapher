@@ -31,8 +31,8 @@ import { CountryProfileSpec } from "../site/countryProfileProjects"
 import {
     FormattedPost,
     FormattingOptions,
+    FullPost,
     JsonError,
-    PageType,
     PostRow,
 } from "../clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
@@ -41,12 +41,12 @@ import {
     getEntriesByCategory,
     getFullPost,
     getLatestPostRevision,
-    getPageType,
     getPostBySlug,
     getPosts,
+    isPostCitable,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
-
+import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -91,13 +91,13 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderPageBySlug = async (slug: string) => {
-    const postApi = await getPostBySlug(slug)
-    return renderPage(postApi)
+    const post = await getPostBySlug(slug)
+    return renderPost(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
     const postApi = await getLatestPostRevision(postId)
-    return renderPage(postApi)
+    return renderPost(postApi)
 }
 
 export const renderMenuJson = async () => {
@@ -105,32 +105,43 @@ export const renderMenuJson = async () => {
     return JSON.stringify({ categories: categories })
 }
 
-const renderPage = async (postApi: any) => {
-    const post = await getFullPost(postApi)
-    const pageType = await getPageType(post)
+export const renderPost = async (
+    post: FullPost,
+    baseUrl: string = BAKED_BASE_URL,
+    grapherExports?: GrapherExports
+) => {
+    let exportsByUrl = grapherExports
 
-    const $ = cheerio.load(post.content)
+    if (!grapherExports) {
+        const $ = cheerio.load(post.content)
 
-    const grapherUrls = $("iframe")
-        .toArray()
-        .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
-        .map((el) => el.attribs["src"].trim())
+        const grapherUrls = $("iframe")
+            .toArray()
+            .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
+            .map((el) => el.attribs["src"].trim())
 
-    // This can be slow if uncached!
-    await bakeGrapherUrls(grapherUrls)
+        // This can be slow if uncached!
+        await bakeGrapherUrls(grapherUrls)
 
-    const exportsByUrl = await getGrapherExportsByUrl()
+        exportsByUrl = await getGrapherExportsByUrl()
+    }
 
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
+
     const formatted = await formatPost(post, formattingOptions, exportsByUrl)
+
+    const pageOverrides = await getPageOverrides(post, formattingOptions)
+    const citationStatus =
+        (await isPostCitable(post)) || isPageOverridesCitable(pageOverrides)
 
     return renderToHtmlPage(
         <LongFormPage
-            pageType={pageType}
+            withCitation={citationStatus}
             post={formatted}
+            overrides={pageOverrides}
             formattingOptions={formattingOptions}
-            baseUrl={BAKED_BASE_URL}
+            baseUrl={baseUrl}
         />
     )
 }
@@ -307,12 +318,8 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePostApi = await getPostBySlug(
+        const genericCountryProfilePost = await getPostBySlug(
             profileSpec.genericProfileSlug
-        )
-
-        const genericCountryProfilePost = await getFullPost(
-            genericCountryProfilePostApi
         )
 
         const profileFormattingOptions = extractFormattingOptions(
@@ -331,12 +338,7 @@ const getCountryProfilePost = memoize(
 // todo: we used to flush cache of this thing.
 const getCountryProfileLandingPost = memoize(
     async (profileSpec: CountryProfileSpec) => {
-        const landingPagePostApi = await getPostBySlug(
-            profileSpec.landingPageSlug
-        )
-        const landingPost = getFullPost(landingPagePostApi)
-
-        return landingPost
+        return getPostBySlug(profileSpec.landingPageSlug)
     }
 )
 
@@ -360,13 +362,13 @@ export const renderCountryProfile = async (
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
-        publicationDate: landing.date,
+        citationPublicationDate: landing.date,
         canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
         excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`,
     }
     return renderToHtmlPage(
         <LongFormPage
-            pageType={PageType.SubEntry}
+            withCitation={true}
             post={formattedCountryProfile}
             overrides={overrides}
             formattingOptions={formattingOptions}

@@ -22,7 +22,6 @@ import { registerExitHandler } from "./cleanup"
 import {
     RelatedChart,
     CategoryWithEntries,
-    PageType,
     EntryNode,
     FullPost,
     WP_PostType,
@@ -387,9 +386,9 @@ export const getEntriesByCategory = async (): Promise<
     return cachedEntries
 }
 
-export const getPageType = async (post: FullPost): Promise<PageType> => {
+export const isPostCitable = async (post: FullPost): Promise<boolean> => {
     const entries = await getEntriesByCategory()
-    const isEntry = entries.some((category) => {
+    return entries.some((category) => {
         return (
             category.entries.some((entry) => entry.slug === post.slug) ||
             category.subcategories.some((subcategory: CategoryWithEntries) => {
@@ -399,9 +398,6 @@ export const getPageType = async (post: FullPost): Promise<PageType> => {
             })
         )
     })
-
-    // TODO Add subEntry detection
-    return isEntry ? PageType.Entry : PageType.Standard
 }
 
 export const getPermalinks = async (): Promise<{
@@ -488,7 +484,7 @@ export const getPostType = async (search: number | string): Promise<string> => {
     })
 }
 
-export const getPostBySlug = async (slug: string): Promise<any[]> => {
+export const getPostBySlug = async (slug: string): Promise<FullPost> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
@@ -501,7 +497,7 @@ export const getPostBySlug = async (slug: string): Promise<any[]> => {
                 searchParams: [["slug", slug]],
             }
         )
-        return postArr[0]
+        return getFullPost(postArr[0])
     } catch (err) {
         throw new JsonError(`No page found by slug ${slug}`, 404)
     }

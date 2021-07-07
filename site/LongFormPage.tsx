@@ -14,7 +14,6 @@ import { TableOfContents } from "../site/TableOfContents"
 import {
     FormattedPost,
     FormattingOptions,
-    PageType,
     TocHeading,
 } from "../clientUtils/owidTypes"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
@@ -25,23 +24,21 @@ export interface PageOverrides {
     citationSlug?: string
     citationCanonicalUrl?: string
     citationAuthors?: string[]
-    publicationDate?: Date
+    citationPublicationDate?: Date
     canonicalUrl?: string
     excerpt?: string
 }
 
 export const LongFormPage = (props: {
-    pageType: PageType
+    withCitation: boolean
     post: FormattedPost
     overrides?: PageOverrides
     formattingOptions: FormattingOptions
     baseUrl: string
 }) => {
-    const { pageType, post, overrides, formattingOptions, baseUrl } = props
+    const { withCitation, post, overrides, formattingOptions, baseUrl } = props
 
     const isPost = post.type === "post"
-    const isEntry = pageType === PageType.Entry
-    const isSubEntry = pageType === PageType.SubEntry
 
     const pageTitle = overrides?.pageTitle ?? post.title
     const pageTitleSEO = `${pageTitle}${
@@ -53,13 +50,13 @@ export const LongFormPage = (props: {
     const citationTitle = overrides?.citationTitle ?? pageTitle
     const citationSlug = overrides?.citationSlug ?? post.slug
     const citationCanonicalUrl = overrides?.citationCanonicalUrl ?? canonicalUrl
-    const citationPublishedYear = (
-        overrides?.publicationDate ?? post.date
-    ).getFullYear()
+    const citationPublicationDate =
+        overrides?.citationPublicationDate ?? post.date
+    const citationPublishedYear = citationPublicationDate.getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
     const citationAuthorsFormatted = formatAuthors(
         citationAuthors,
-        isEntry || isSubEntry
+        withCitation
     )
 
     let hasSidebar = false
@@ -73,7 +70,7 @@ export const LongFormPage = (props: {
                 isSubheading: false,
             })
         }
-        if (isEntry || isSubEntry) {
+        if (withCitation) {
             tocHeadings.push(
                 {
                     text: "Licence",
@@ -111,11 +108,11 @@ export const LongFormPage = (props: {
                 imageUrl={post.imageUrl}
                 baseUrl={baseUrl}
             >
-                {(isEntry || isSubEntry) && (
+                {withCitation && (
                     <CitationMeta
                         title={citationTitle}
                         authors={citationAuthors}
-                        date={post.date}
+                        date={citationPublicationDate}
                         canonicalUrl={citationCanonicalUrl}
                     />
                 )}
@@ -165,7 +162,7 @@ export const LongFormPage = (props: {
                                             <a href="/team">
                                                 {`by ${formatAuthors(
                                                     post.authors,
-                                                    isEntry || isSubEntry
+                                                    withCitation
                                                 )}`}
                                             </a>
                                         )}
@@ -182,8 +179,7 @@ export const LongFormPage = (props: {
                                 )}
 
                                 {(isPost ||
-                                    isEntry ||
-                                    isSubEntry ||
+                                    withCitation ||
                                     post.lastUpdated) && (
                                     <div className="tools">
                                         {post.lastUpdated && (
@@ -199,7 +195,7 @@ export const LongFormPage = (props: {
                                                 />
                                             </div>
                                         )}
-                                        {(isPost || isEntry || isSubEntry) && (
+                                        {(isPost || withCitation) && (
                                             <a href="#licence">
                                                 <FontAwesomeIcon
                                                     icon={faCreativeCommons}
@@ -207,7 +203,7 @@ export const LongFormPage = (props: {
                                                 Reuse our work freely
                                             </a>
                                         )}
-                                        {(isEntry || isSubEntry) && (
+                                        {withCitation && (
                                             <a href="#citation">
                                                 <FontAwesomeIcon
                                                     icon={faBook}
@@ -276,9 +272,7 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
-                                                {(isPost ||
-                                                    isEntry ||
-                                                    isSubEntry) && (
+                                                {(isPost || withCitation) && (
                                                     <>
                                                         <h3 id="licence">
                                                             Reuse our work
@@ -339,7 +333,7 @@ export const LongFormPage = (props: {
                                                         </p>
                                                     </>
                                                 )}
-                                                {(isEntry || isSubEntry) && (
+                                                {withCitation && (
                                                     <>
                                                         <h3 id="citation">
                                                             Citation

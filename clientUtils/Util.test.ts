@@ -22,6 +22,7 @@ import {
     getClosestTimePairs,
     differenceObj,
     numberMagnitude,
+    urlToSlug,
 } from "./Util"
 import { SortOrder } from "./owidTypes"
 
@@ -463,5 +464,17 @@ describe(differenceObj, () => {
         expect(
             differenceObj({ a: 1, b: 2, c: 3 }, { a: 1, b: 3, d: 4 })
         ).toEqual({ b: 2, c: 3 })
+    })
+})
+
+describe(urlToSlug, () => {
+    const slug = "covid-vaccinations"
+    it("gets slug from full url", () => {
+        expect(urlToSlug(`https://ourworldindata.org/${slug}#anchor`)).toEqual(
+            `${slug}`
+        )
+    })
+    it("gets slug from multi-level path", () => {
+        expect(urlToSlug(`/coronavirus/${slug}`)).toEqual(`${slug}`)
     })
 })
