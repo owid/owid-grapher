@@ -73,7 +73,7 @@ interface Bar {
 interface TooltipProps extends StackedBarChartContext {
     label: string
     bars: Bar[]
-    highlightedSeriesName: string | null
+    highlightedSeriesName: string | undefined
 }
 
 interface StackedBarChartContext {
@@ -394,7 +394,9 @@ export class StackedDiscreteBarChart
                                             content={
                                                 <StackedDiscreteBarChart.Tooltip
                                                     {...tooltipProps}
-                                                    highlightedSeriesName={null}
+                                                    highlightedSeriesName={
+                                                        undefined
+                                                    }
                                                 />
                                             }
                                         >
