@@ -517,20 +517,20 @@ export const getLatestPostRevision = async (id: number): Promise<any> => {
         )
     )[0]
 
-    return {
-        // Since WP does not store metadata for revisions, some elements of a
-        // previewed page will not reflect the latest edits:
-        // - published date (will show the correct one - that is the one in the
-        //   sidebar - for unpublished posts though. For published posts, the
-        //   current published date is displayed, regardless of what is shown
-        //   and could have been modified in the sidebar.)
-        // - glossary highlights
-        // - authors
-        // ...
+    // Since WP does not store metadata for revisions, some elements of a
+    // previewed page will not reflect the latest edits:
+    // - published date (will show the correct one - that is the one in the
+    //   sidebar - for unpublished posts though. For published posts, the
+    //   current published date is displayed, regardless of what is shown
+    //   and could have been modified in the sidebar.)
+    // - glossary highlights
+    // - authors
+    // ...
+    return getFullPost({
         ...postApi,
         content: revision.content,
         title: revision.title,
-    }
+    })
 }
 
 export const getRelatedCharts = async (
