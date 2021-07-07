@@ -34,7 +34,7 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
-                                to="/test/embeds?type=ChoroplethMap"
+                                to="/test/embeds?type=WorldMap"
                             >
                                 Choropleth Map
                             </Link>
