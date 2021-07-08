@@ -4,10 +4,10 @@ _Note for external contributors: this is meant for internal use only at this sta
 
 ## Stack
 
--   [Bedrock](https://roots.io/bedrock/): Wordpress stack
--   [Lando](https://lando.dev/): local development environment + DevOps
--   Custom theme
--   Custom plugin
+- [Bedrock](https://roots.io/bedrock/): Wordpress stack
+- [Lando](https://lando.dev/): local development environment + DevOps
+- Custom theme
+- Custom plugin
 
 ## Requirements
 
@@ -17,8 +17,8 @@ See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 ## Custom plugin
 
--   Extra REST API fields
--   Custom Gutenberg blocks
+- Extra REST API fields
+- Custom Gutenberg blocks
 
 ## Overview
 
@@ -36,21 +36,21 @@ _Note: the following commands need to run in the current folder, not the root of
 
 1. Configure (no updates necessary at this point)
 
-    ```sh
-    $ cp .env.example .env
-    ```
+   ```sh
+   $ cp .env.example .env
+   ```
 
 2. Start & build
 
-    ```sh
-    $ lando start && lando build
-    ```
+   ```sh
+   $ lando start && lando build
+   ```
 
 3. Populate databases and retrieve Wordpress uploads
 
-    ```sh
-    $ lando refresh -c -u
-    ```
+   ```sh
+   $ lando refresh -c -u
+   ```
 
 ## File sharing
 
@@ -82,26 +82,27 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 
 #### Override
 
--   /config
--   /web/app/mu-plugins
--   /web/index.php
--   /web/wp-config.php
--   /phpcs.xml
--   /wp-cli.yml
+- /config/environments
+- /web/app/mu-plugins
+- /web/index.php
+- /web/wp-config.php
+- /phpcs.xml
+- /wp-cli.yml
 
 #### Ignore
 
--   /CHANGELOG.md
--   /README.md
--   /web/app/plugins (should be empty)
--   /web/app/themes (should be empty)
--   /web/app/uploads (should be empty)
--   /composer.lock
+- /CHANGELOG.md
+- /README.md
+- /web/app/plugins (should be empty)
+- /web/app/themes (should be empty)
+- /web/app/uploads (should be empty)
+- /composer.lock
 
 #### Selectively update
 
--   /composer.json (keep versions pinned)
--   /LICENSE.md (change unlikely)
+- /composer.json (keep versions pinned)
+- /config/application.php
+- /LICENSE.md (change unlikely)
 
 ### Wordpress, Wordpress plugins
 
