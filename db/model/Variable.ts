@@ -224,6 +224,8 @@ export const getDataValue = async ({
         )
     }
 
+    if (!row) return
+
     return {
         value: Number(row.value),
         year: Number(row.year),
