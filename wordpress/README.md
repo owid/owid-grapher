@@ -82,7 +82,7 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 
 #### Override
 
--   /config
+-   /config/environments
 -   /web/app/mu-plugins
 -   /web/index.php
 -   /web/wp-config.php
@@ -101,6 +101,7 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 #### Selectively update
 
 -   /composer.json (keep versions pinned)
+-   /config/application.php
 -   /LICENSE.md (change unlikely)
 
 ### Wordpress, Wordpress plugins
