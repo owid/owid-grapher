@@ -50,10 +50,10 @@ If you are a member of the Our World In Data team and want to get a full setup i
     source $(brew --prefix nvm)/nvm.sh
     ```
 
-4. Install Node 12.13.1+:
+4. Install Node 12.20+:
 
     ```sh
-    nvm install 12.13.1
+    nvm install 12
     ```
 
 5. Install MySQL 5.7:
@@ -88,7 +88,7 @@ If you are a member of the Our World In Data team and want to get a full setup i
 
 ### Other platforms
 
-You will need: [MySQL 5.7](https://www.mysql.com/), [Node 12.13.1+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
+You will need: [MySQL 5.7](https://www.mysql.com/), [Node 12.20+](https://nodejs.org/en/) and [Yarn](https://yarnpkg.com/en/). Running `yarn` in the repo root will grab the remaining dependencies.
 
 ## Database setup
 

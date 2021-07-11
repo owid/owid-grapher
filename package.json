@@ -2,7 +2,7 @@
     "private": true,
     "version": "3.0.0",
     "engines": {
-        "node": ">=12.13.1"
+        "node": ">=12.20"
     },
     "scripts": {
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
