@@ -50,7 +50,6 @@
         "@types/amplitude-js": "^5.8.0",
         "@types/bcrypt": "^5.0.0",
         "@types/body-parser": "^1.17.0",
-        "@types/bootstrap": "^4.3.0",
         "@types/cheerio": "^0.22.11",
         "@types/chunk-text": "^1.0.0",
         "@types/colorbrewer": "^1.0.29",
