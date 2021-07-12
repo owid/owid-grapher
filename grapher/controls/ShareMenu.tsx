@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
+import { faPython } from "@fortawesome/free-brands-svg-icons/faPython"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
@@ -122,6 +123,11 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
+    @computed get jupyterHref(): string {
+        const href = `https://mybinder.org/v2/gh/owid/owid-jupyter-demo/HEAD?filepath=${this.manager.slug}.ipynb`
+        return href
+    }
+
     render(): JSX.Element {
         const { twitterHref, facebookHref, isDisabled, manager } = this
         const { editUrl } = manager
@@ -159,6 +165,16 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     onClick={this.onEmbed}
                 >
                     <FontAwesomeIcon icon={faCode} /> Embed
+                </a>
+                <a
+                    className="btn"
+                    target="_blank"
+                    title="Explore this visualisation in a Jupyter notebook"
+                    data-track-note="chart-share-jupyter"
+                    href={this.jupyterHref}
+                    rel="noopener"
+                >
+                    <FontAwesomeIcon icon={faPython} /> Explore in Jupyter
                 </a>
                 {"share" in navigator && (
                     <a
