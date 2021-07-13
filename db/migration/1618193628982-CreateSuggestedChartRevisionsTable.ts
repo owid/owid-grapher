@@ -22,6 +22,8 @@ export class CreateSuggestedChartRevisionsTable1618193628982
                 CHECK (\`status\` IN ('approved', 'rejected', 'pending', 'flagged')), 
                 PRIMARY KEY (\`id\`),
                 CONSTRAINT FOREIGN KEY (\`chartId\`) REFERENCES \`charts\` (\`id\`),
+                CONSTRAINT FOREIGN KEY (\`createdBy\`) REFERENCES \`users\` (\`id\`),
+                CONSTRAINT FOREIGN KEY (\`updatedBy\`) REFERENCES \`users\` (\`id\`),
                 UNIQUE KEY (\`chartId\`, \`originalVersion\`, \`suggestedVersion\`, \`isPendingOrFlagged\`)
             ) 
             ENGINE=InnoDB 
