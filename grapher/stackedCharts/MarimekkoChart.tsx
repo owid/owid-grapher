@@ -13,7 +13,11 @@ import {
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    EntitySelectionMode,
+    SeriesName,
+} from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -401,7 +405,6 @@ export class MarimekkoChart
     }
 
     @action.bound onLegendMouseOver(bin: CategoricalBin): void {
-        console.log(`focused series name is ${bin.value}`)
         this.focusSeriesName = bin.value
     }
 
@@ -425,9 +428,18 @@ export class MarimekkoChart
         this.hoveredEntityName = undefined
     }
 
-    // @action.bound private onEntityClick() {
-    //     if (this.hoveredEntityName) this.onSelectEntity(this.hoveredEntityName)
-    // }
+    @action.bound private onEntityClick(entityName: string): void {
+        this.onSelectEntity(entityName)
+    }
+
+    @action.bound private onSelectEntity(entityName: string): void {
+        if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
+    }
+    @computed private get canAddCountry(): boolean {
+        const { addCountryMode } = this.manager
+        return (addCountryMode &&
+            addCountryMode !== EntitySelectionMode.Disabled) as boolean
+    }
 
     render(): JSX.Element {
         if (this.failMessage)
@@ -512,6 +524,7 @@ export class MarimekkoChart
                     transform={`translate(${currentX}, 0)`}
                     onMouseOver={(): void => this.onEntityMouseOver(label)}
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
+                    onClick={(): void => this.onEntityClick(label)}
                 >
                     {bars.map((bar) => {
                         const isFaint =
@@ -712,6 +725,9 @@ export class MarimekkoChart
                         this.onEntityMouseOver(candidate.item.label)
                     }
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
+                    onClick={(): void =>
+                        this.onEntityClick(candidate.item.label)
+                    }
                 >
                     {candidate.item.label}
                 </text>
