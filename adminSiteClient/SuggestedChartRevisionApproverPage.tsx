@@ -357,7 +357,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     ) : (
                         <div style={{ paddingBottom: 20 }}>
                             0 pending chart revisions found. All suggested chart
-                            revisions have already been approved or rejected.
+                            revisions have already been approved, flagged, or
+                            rejected. If you wish to see all suggested chart
+                            revisions, either uncheck the{" "}
+                            <i>Show "pending" revisions only</i> box in the
+                            Settings tab or{" "}
+                            <Link to="/suggested-chart-revisions">
+                                click here
+                            </Link>{" "}
+                            to view a complete list of suggested chart
+                            revisions.
                         </div>
                     )}
                 </main>
