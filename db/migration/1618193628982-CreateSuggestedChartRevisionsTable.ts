@@ -18,10 +18,11 @@ export class CreateSuggestedChartRevisionsTable1618193628982
                 \`updatedAt\` datetime NOT NULL, 
                 \`originalVersion\` int GENERATED ALWAYS AS (\`originalConfig\`->>'$.version') NOT NULL,
                 \`suggestedVersion\` int GENERATED ALWAYS AS (\`suggestedConfig\`->>'$.version') NOT NULL,
+                \`isPendingOrFlagged\` boolean GENERATED ALWAYS AS ( IF(\`status\` IN ('pending', 'flagged'), TRUE, NULL) ),
                 CHECK (\`status\` IN ('approved', 'rejected', 'pending', 'flagged')), 
                 PRIMARY KEY (\`id\`),
                 CONSTRAINT FOREIGN KEY (\`chartId\`) REFERENCES \`charts\` (\`id\`),
-                UNIQUE KEY (\`chartId\`, \`originalVersion\`, \`suggestedVersion\`, \`suggestedReason\`)
+                UNIQUE KEY (\`chartId\`, \`originalVersion\`, \`suggestedVersion\`, \`isPendingOrFlagged\`)
             ) 
             ENGINE=InnoDB 
             `
