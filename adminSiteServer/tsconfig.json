@@ -8,7 +8,7 @@
         { "path": "../site" },
         { "path": "../db" },
         { "path": "../explorer" },
-        { "path": "../explorerAdmin" },
+        { "path": "../explorerAdminServer" },
         { "path": "../gitCms" },
         { "path": "../adminSiteClient" },
         { "path": "../grapher" },

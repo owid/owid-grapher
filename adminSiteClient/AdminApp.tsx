@@ -22,6 +22,8 @@ import { NotFoundPage } from "./NotFoundPage"
 import { PostEditorPage } from "./PostEditorPage"
 import { NewsletterPage } from "./NewsletterPage"
 import { DeployStatusPage } from "./DeployStatusPage"
+import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage"
+import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage"
 import {
     BrowserRouter as Router,
     Route,
@@ -31,8 +33,8 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { ExplorerCreatePage } from "../explorerAdmin/ExplorerCreatePage"
-import { ExplorersIndexPage } from "../explorerAdmin/ExplorersListPage"
+import { ExplorerCreatePage } from "../explorerAdminClient/ExplorerCreatePage"
+import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { AdminLayout } from "./AdminLayout"
 
@@ -128,6 +130,17 @@ export class AdminApp extends React.Component<{
                                     <ChartEditorPage
                                         grapherId={parseInt(
                                             match.params.chartId
+                                        )}
+                                    />
+                                )}
+                            />
+                            <Route
+                                exact
+                                path="/charts/:chartId/edit/:config"
+                                render={({ match }) => (
+                                    <ChartEditorPage
+                                        grapherConfig={JSON.parse(
+                                            Base64.decode(match.params.config)
                                         )}
                                     />
                                 )}
@@ -273,6 +286,28 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/newsletter"
                                 component={NewsletterPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions"
+                                component={SuggestedChartRevisionListPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions/review"
+                                component={SuggestedChartRevisionApproverPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions/review/:suggestedChartRevisionId"
+                                render={({ match }) => (
+                                    <SuggestedChartRevisionApproverPage
+                                        suggestedChartRevisionId={parseInt(
+                                            match.params
+                                                .suggestedChartRevisionId
+                                        )}
+                                    />
+                                )}
                             />
                             <Route
                                 exact

@@ -572,7 +572,8 @@ main:not(.ChartEditorPage) {
 }
 
 .ChartIndexPage,
-.UsersIndexPage {
+.UsersIndexPage,
+.SuggestedChartRevisionListPage {
     .topRow {
         display: flex;
         align-items: center;
@@ -866,5 +867,167 @@ main:not(.ChartEditorPage) {
     .cell-time {
         font-weight: 400;
         color: #777;
+    }
+}
+
+.SuggestedChartRevisionApproverPage {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    .collapsible {
+        background-color: #f9f9f9;
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin: 0.4em 0;
+    }
+
+    .readme {
+        ul,
+        ol {
+            margin-left: 1.2em;
+            padding-top: 5px;
+        }
+
+        li {
+            padding-bottom: 5px;
+        }
+    }
+    .settings {
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+        }
+    }
+
+    .settings > * {
+        margin-bottom: 10px;
+    }
+
+    .btn-group .btn {
+        width: 50px;
+    }
+
+    .form-group > label {
+        margin-bottom: 0;
+    }
+
+    .meta {
+        list-style-type: none;
+    }
+
+    .charts-view {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+
+        .chart-view {
+            padding: 1em;
+
+            .header {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: flex-start;
+                margin-bottom: 5px;
+
+                h5 {
+                    margin-bottom: 0;
+                    margin-right: 5px;
+                }
+
+                span {
+                    margin-right: 10px;
+                }
+            }
+
+            .json-view {
+                // width: 100%;
+                // height: 100%;
+                background-color: #eeeeee;
+                overflow-y: auto;
+                border: 1px solid rgba(0, 0, 0, 0.2);
+                border-radius: 0.4em;
+
+                pre {
+                    white-space: pre-wrap;
+                }
+            }
+        }
+    }
+
+    .controls {
+        margin: 1em auto 0 auto;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        min-width: 400px;
+
+        .btn {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .row-input {
+            padding-bottom: 10px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+
+            .form-group {
+                width: 80px;
+                padding-top: 0px;
+                padding-bottom: 0px;
+                padding-left: 10px;
+                padding-right: 10px;
+                margin: 0px;
+                input {
+                    text-align: center;
+                }
+            }
+        }
+
+        .form-group {
+            padding: 10px;
+            align-self: stretch;
+
+            textarea {
+                height: 75px;
+            }
+        }
+    }
+
+    .warning {
+        padding: 10px;
+        margin: 10px auto;
+        text-align: center;
+        max-width: 720px;
+    }
+
+    .references {
+        .list-group {
+            margin-top: 0;
+            margin-bottom: 0.5em;
+        }
+    }
+}
+
+.SuggestedChartRevisionListPage {
+    .settings {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .settings > div {
+        margin-right: 10px;
     }
 }

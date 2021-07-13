@@ -106,7 +106,7 @@ export class TextField extends React.Component<TextFieldProps> {
     }
 }
 
-class TextAreaField extends React.Component<TextFieldProps> {
+export class TextAreaField extends React.Component<TextFieldProps> {
     @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue(value)

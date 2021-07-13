@@ -2,7 +2,7 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "../explorer/urlMigrations/ExplorerUrlMigrations"
-import { getExplorerRedirectForPath } from "../explorerAdmin/ExplorerRedirects"
+import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects"
 import { Url } from "../clientUtils/urls/Url"
 
 export const replaceIframesWithExplorerRedirectsInWordPressPost = (
