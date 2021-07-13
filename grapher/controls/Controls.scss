@@ -13,11 +13,118 @@ $zindex-ControlsFooter: 2;
     color: $controls-color;
 }
 
+// FACET STRATEGY SELECTOR
+
+// the fake dropdown menu
 .FacetStrategyDropdown {
     width: 160px;
     font-family: "Lato";
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
+    border: 1px solid #afb7c1;
+    border-radius: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+// the chevron
+.FacetStrategyDropdown div {
+    float: right;
+}
+
+// the pop-up list of options
+.FacetStrategyFloat {
+    display: flex;
+}
+
+// one of those options
+.FacetStrategyOption {
+    padding: 4px;
+
+    position: static;
+    width: 96px;
+    height: 68px;
+    left: 4px;
+    top: 4px;
+
+    background: #ffffff;
+    margin: 0px 0px;
+}
+
+.FacetStrategyLabel {
+    position: static;
+    left: 4.17%;
+    right: 44.79%;
+    top: 5.88%;
+    bottom: 64.71%;
+
+    font-family: Lato;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 20px;
+
+    margin: 2px 0px;
+}
+
+.selected .FacetStrategyLabel {
+    color: #0073e6;
+}
+.FacetStrategyLabel {
+    color: #7d899c;
+}
+
+.FacetStrategyPreview-none-child {
+    position: absolute;
+    left: 0%;
+    right: 0%;
+    top: 0%;
+    bottom: 0%;
+
+    border-radius: 1px;
+}
+
+.FacetStrategyPreview-parent {
+    position: relative;
+    width: 100%;
+    height: 36px;
+}
+
+.FacetStrategyPreview-split-child {
+    float: left;
+    width: 28px;
+    height: 17px;
+    border-radius: 1px;
+}
+
+// set appropriate margins for our manual 3x2 grid
+.FacetStrategyPreview-split-child:nth-of-type(1),
+.FacetStrategyPreview-split-child:nth-of-type(2),
+.FacetStrategyPreview-split-child:nth-of-type(3) {
+    margin-bottom: 2px;
+}
+
+.FacetStrategyPreview-split-child:nth-of-type(1),
+.FacetStrategyPreview-split-child:nth-of-type(2),
+.FacetStrategyPreview-split-child:nth-of-type(4),
+.FacetStrategyPreview-split-child:nth-of-type(5) {
+    margin-right: 2px;
+}
+
+.selected .FacetStrategyPreview-none-child {
+    background: #d9eafb;
+}
+
+.FacetStrategyPreview-none-child {
+    background: #dde1e7;
+}
+
+.selected .FacetStrategyPreview-split-child {
+    background: #d9eafb;
+}
+
+.FacetStrategyPreview-split-child {
+    background: #dde1e7;
 }
 
 @keyframes bounceIn {
