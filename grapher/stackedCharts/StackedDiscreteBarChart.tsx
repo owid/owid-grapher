@@ -195,13 +195,13 @@ export class StackedDiscreteBarChart
         return [this.bounds.left + this.labelWidth, this.bounds.right]
     }
 
-    @computed private get yAxis(): AxisConfig {
+    @computed private get yAxisConfig(): AxisConfig {
         return this.manager.yAxis || new AxisConfig()
     }
 
     @computed private get axis(): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.yAxis.toHorizontalAxis()
+        const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
