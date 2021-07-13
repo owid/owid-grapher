@@ -9,6 +9,7 @@ import {
     sortBy,
     sumBy,
     sum,
+    minBy,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -50,6 +51,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
+import { CoreRow } from "../../coreTable/CoreTableConstants"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
@@ -89,8 +91,12 @@ interface TooltipProps {
     xAxisColumn: CoreColumn
 }
 
+interface EntityWithSize {
+    label: string
+    xValue: number
+}
 interface LabelCandidate {
-    item: Item
+    item: EntityWithSize
     bounds: Bounds
     isPicked: boolean
     isSelected: boolean
@@ -328,11 +334,9 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
-        const entityNames = new Set(
-            this.xSeries.points.map((point) => point.entity)
-        )
+        const entityNames = this.xColumn.uniqEntityNames
 
-        const items: Item[] = Array.from(entityNames)
+        const items: Item[] = entityNames
             .map((entityName) => {
                 const xPoint = this.xSeries.points.find(
                     (point) => point.entity === entityName
@@ -617,7 +621,7 @@ export class MarimekkoChart
     }
 
     private static labelCanidateFromItem(
-        item: Item,
+        item: EntityWithSize,
         baseFontSize: number,
         isSelected: boolean
     ): LabelCandidate {
@@ -638,10 +642,7 @@ export class MarimekkoChart
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
         const domainSizeThreshold = Math.ceil(
-            sumBy(
-                candidates,
-                (candidate) => candidate.item.bars[0].xPoint.value
-            ) / numChunks
+            sumBy(candidates, (candidate) => candidate.item.xValue) / numChunks
         )
         for (const candidate of candidates) {
             while (domainSizeOfChunk > domainSizeThreshold) {
@@ -649,7 +650,7 @@ export class MarimekkoChart
                 currentChunk = []
                 domainSizeOfChunk -= domainSizeThreshold
             }
-            domainSizeOfChunk += candidate.item.bars[0].xPoint.value
+            domainSizeOfChunk += candidate.item.xValue
             currentChunk.push(candidate)
         }
         chunks.push(currentChunk)
@@ -658,16 +659,26 @@ export class MarimekkoChart
     }
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
-        const { items, selectedItems, xRange } = this
-        if (!items.length) return []
+        const { xColumnFullTimeRange, selectedItems, xRange } = this
+        const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
+        const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
+        for (const [entity, rows] of xRowsByEntity.entries()) {
+            const row = minBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
+            if (row) lastYearOfEachEntity.set(entity, row)
+        }
+        if (!lastYearOfEachEntity.size) return []
         // Measure the labels (before any rotation, just normal horizontal labels)
-        const selectedItemsSet = new Set(selectedItems)
+        const selectedItemsSet = new Set(
+            selectedItems.map((item) => item.label)
+        )
 
-        const labelCandidates: LabelCandidate[] = items.map((item) =>
+        const labelCandidates: LabelCandidate[] = [
+            ...lastYearOfEachEntity.entries(),
+        ].map(([entity, row]) =>
             MarimekkoChart.labelCanidateFromItem(
-                item,
+                { label: entity, xValue: row.value },
                 this.baseFontSize,
-                selectedItemsSet.has(item)
+                selectedItemsSet.has(entity)
             )
         )
 
@@ -688,10 +699,7 @@ export class MarimekkoChart
             const picked = chunk.filter((candidate) => candidate.isPicked)
             if (picked.length > 0) return picked
             else {
-                return maxBy(
-                    chunk,
-                    (candidate) => candidate.item.bars[0].xPoint.value
-                )
+                return maxBy(chunk, (candidate) => candidate.item.xValue)
             }
         })
         for (const max of picks) {
@@ -916,6 +924,12 @@ export class MarimekkoChart
         const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
         if (!columnSlugs.length) console.warn("No x column slug!")
         return this.transformedTable.getColumns(columnSlugs)[0]
+    }
+
+    @computed protected get xColumnFullTimeRange(): CoreColumn {
+        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (!columnSlugs.length) console.warn("No x column slug!")
+        return this.inputTable.getColumns(columnSlugs)[0]
     }
 
     @computed protected get yColumns(): CoreColumn[] {
