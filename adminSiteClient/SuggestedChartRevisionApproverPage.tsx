@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, runInAction } from "mobx"
 import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
 import { format } from "timeago.js"
@@ -15,7 +15,6 @@ import { PostReference } from "./ChartEditor"
 import { AdminLayout } from "./AdminLayout"
 import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { SuggestedChartRevisionStatus } from "../db/model/SuggestedChartRevision"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
 import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
@@ -32,12 +31,16 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies"
+import {
+    SuggestedChartRevisionSerialized,
+    SuggestedChartRevisionStatus,
+} from "./SuggestedChartRevision"
 
 @observer
 export class SuggestedChartRevisionApproverPage extends React.Component<{
     suggestedChartRevisionId?: number
 }> {
-    @observable.ref suggestedChartRevision?: any
+    @observable.ref suggestedChartRevision?: SuggestedChartRevisionSerialized
     @observable.ref originalGrapherElement?: JSX.Element
     @observable.ref suggestedGrapherElement?: JSX.Element
     @observable.ref existingGrapherElement?: JSX.Element
@@ -105,20 +108,24 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @computed get approveButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
-            !this.suggestedChartRevision.canApprove
+            (this.suggestedChartRevision &&
+                !this.suggestedChartRevision.canApprove)
         )
     }
 
     @computed get rejectButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
-            !this.suggestedChartRevision.canReject
+            (this.suggestedChartRevision &&
+                !this.suggestedChartRevision.canReject)
         )
     }
 
     @computed get flagButtonIsDisabled() {
         return (
-            this.updateButtonsIsDisabled || !this.suggestedChartRevision.canFlag
+            this.updateButtonsIsDisabled ||
+            (this.suggestedChartRevision &&
+                !this.suggestedChartRevision.canFlag)
         )
     }
 
@@ -147,16 +154,19 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 sortBy: this.sortBy,
                 sortOrder: this.sortOrder,
             })
-            this.numTotalRows = json.numTotalRows
-            this.suggestedChartRevision = json.suggestedChartRevisions[0]
+            runInAction(() => {
+                this.numTotalRows = json.numTotalRows as number
+                this.suggestedChartRevision = json
+                    .suggestedChartRevisions[0] as SuggestedChartRevisionSerialized
+            })
         } else {
             const json = await admin.getJSON(
                 `/api/suggested-chart-revisions/${suggestedChartRevisionId}`
             )
             this.suggestedChartRevision = json.suggestedChartRevision
         }
-        this.decisionReasonInput = this.suggestedChartRevision.decisionReason
-            ? this.suggestedChartRevision.decisionReason
+        this.decisionReasonInput = this.suggestedChartRevision
+            ? this.suggestedChartRevision.decisionReason ?? ""
             : ""
         this.rerenderGraphers()
     }
@@ -206,6 +216,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         decisionReason: string | undefined
     ) {
         this._isGraphersSet = false
+        if (!this.suggestedChartRevision) return
         const { admin } = this.context
         const data = { status, decisionReason }
         await admin.requestJSON(
@@ -400,12 +411,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         })}
                         style={{ marginLeft: "20px" }}
                     >
-                        <SuggestedChartRevisionStatusIcon status={status} />{" "}
-                        {this.suggestedChartRevision ? (
-                            <i>
-                                {status.charAt(0).toUpperCase() +
-                                    status.slice(1)}
-                            </i>
+                        {status ? (
+                            <>
+                                <SuggestedChartRevisionStatusIcon
+                                    status={status}
+                                />{" "}
+                                <i>
+                                    {status.charAt(0).toUpperCase() +
+                                        status.slice(1)}
+                                </i>
+                            </>
                         ) : (
                             ""
                         )}
@@ -1005,6 +1020,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
+                            this.suggestedChartRevision &&
                             this.renderGrapher(
                                 this.suggestedChartRevision.originalConfig
                             )}
@@ -1047,6 +1063,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 </React.Fragment>
                             )}
                             {this._isGraphersSet &&
+                                this.suggestedChartRevision &&
                                 this.renderGrapher(
                                     this.suggestedChartRevision.existingConfig
                                 )}
@@ -1097,6 +1114,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             </React.Fragment>
                         )}
                         {this._isGraphersSet &&
+                            this.suggestedChartRevision &&
                             this.renderGrapher(
                                 this.suggestedChartRevision.suggestedConfig
                             )}
@@ -1138,7 +1156,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
                         <li>
                             <b>Suggested revision last updated:</b>{" "}
-                            {this.suggestedChartRevision
+                            {this.suggestedChartRevision &&
+                            this.suggestedChartRevision.updatedAt
                                 ? `${format(
                                       this.suggestedChartRevision.updatedAt
                                   )} by ${

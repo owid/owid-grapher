@@ -1,0 +1,15 @@
+{
+    "extends": "../devTools/tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../itsJustJavascript/explorerAdminServer",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../clientUtils" },
+        { "path": "../explorer" },
+        { "path": "../grapher" },
+        { "path": "../coreTable" },
+        { "path": "../site" },
+        { "path": "../db" }
+    ]
+}

@@ -1,11 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
-export enum SuggestedChartRevisionStatus {
-    pending = "pending",
-    approved = "approved",
-    rejected = "rejected",
-    flagged = "flagged",
-}
+import { SuggestedChartRevisionStatus } from "../../adminSiteClient/SuggestedChartRevision"
 
 @Entity("suggested_chart_revisions")
 export class SuggestedChartRevision extends BaseEntity {
@@ -54,7 +49,7 @@ export class SuggestedChartRevision extends BaseEntity {
                 SuggestedChartRevisionStatus.rejected,
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1 &&
+            ].includes(status) &&
             originalVersionExists &&
             existingVersionExists &&
             originalVersion === existingVersion
@@ -83,7 +78,7 @@ export class SuggestedChartRevision extends BaseEntity {
             [
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1
+            ].includes(status)
         ) {
             return true
         }
@@ -111,7 +106,7 @@ export class SuggestedChartRevision extends BaseEntity {
             [
                 SuggestedChartRevisionStatus.flagged,
                 SuggestedChartRevisionStatus.pending,
-            ].indexOf(status) !== -1
+            ].includes(status)
         ) {
             return true
         }

@@ -33,8 +33,8 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { ExplorerCreatePage } from "../explorerAdmin/ExplorerCreatePage"
-import { ExplorersIndexPage } from "../explorerAdmin/ExplorersListPage"
+import { ExplorerCreatePage } from "../explorerAdminClient/ExplorerCreatePage"
+import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { AdminLayout } from "./AdminLayout"
 

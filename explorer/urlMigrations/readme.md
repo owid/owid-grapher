@@ -20,7 +20,7 @@ There's a mix of cases where we need to migrate URLs:
 
 In order:
 
-1. **Apply Explorer redirects** `(Url, baseQueryStr) → Url` ([`ExplorerRedirects.ts`](../../explorerAdmin/ExplorerRedirects.ts))
+1. **Apply Explorer redirects** `(Url, baseQueryStr) → Url` ([`ExplorerRedirects.ts`](../../explorerAdminServer/ExplorerRedirects.ts))
 
     This is done **server-side** for Grapher → Explorer redirects and LegacyCovidExplorer → GridCovidExplorer.
 

@@ -546,25 +546,23 @@ apiRouter.get(
     "/suggested-chart-revisions",
     async (req: Request, res: Response) => {
         const isValidSortBy = (sortBy: string) => {
-            return (
-                [
-                    "updatedAt",
-                    "createdAt",
-                    "suggestedReason",
-                    "id",
-                    "chartId",
-                    "status",
-                    "variableId",
-                    "chartUpdatedAt",
-                    "chartCreatedAt",
-                ].indexOf(sortBy) !== -1
-            )
+            return [
+                "updatedAt",
+                "createdAt",
+                "suggestedReason",
+                "id",
+                "chartId",
+                "status",
+                "variableId",
+                "chartUpdatedAt",
+                "chartCreatedAt",
+            ].includes(sortBy)
         }
         const isValidSortOrder = (sortOrder: string) => {
             return (
                 sortOrder !== undefined &&
                 sortOrder !== null &&
-                ["ASC", "DESC"].indexOf(sortOrder.toUpperCase()) !== -1
+                ["ASC", "DESC"].includes(sortOrder.toUpperCase())
             )
         }
         const limit =
@@ -595,14 +593,14 @@ apiRouter.get(
 
         const suggestedChartRevisions = await db.queryMysql(
             `
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt, 
-                scr.suggestedReason, scr.decisionReason, scr.status, 
-                scr.suggestedConfig, scr.originalConfig, 
+            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
+                scr.suggestedReason, scr.decisionReason, scr.status,
+                scr.suggestedConfig, scr.originalConfig,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
                 updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt, 
+                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
                 c.createdAt as chartCreatedAt
             FROM suggested_chart_revisions as scr
             LEFT JOIN charts c on c.id = scr.chartId
@@ -618,8 +616,8 @@ apiRouter.get(
         let numTotalRows = (
             await db.queryMysql(
                 `
-                SELECT COUNT(*) as count 
-                FROM suggested_chart_revisions 
+                SELECT COUNT(*) as count
+                FROM suggested_chart_revisions
                 ${status ? "WHERE status = ?" : ""}
             `,
                 status ? [status] : []
@@ -669,14 +667,14 @@ apiRouter.get(
 
         const suggestedChartRevision = await db.mysqlFirst(
             `
-            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt, 
-                scr.suggestedReason, scr.decisionReason, scr.status, 
-                scr.suggestedConfig, scr.originalConfig, 
+            SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
+                scr.suggestedReason, scr.decisionReason, scr.status,
+                scr.suggestedConfig, scr.originalConfig,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
                 updatedByUser.fullName as updatedByFullName,
-                c.config as existingConfig, c.updatedAt as chartUpdatedAt, 
+                c.config as existingConfig, c.updatedAt as chartUpdatedAt,
                 c.createdAt as chartCreatedAt
             FROM suggested_chart_revisions as scr
             LEFT JOIN charts c on c.id = scr.chartId
@@ -783,8 +781,8 @@ apiRouter.post(
 
             await t.execute(
                 `
-                UPDATE suggested_chart_revisions 
-                SET status=?, decisionReason=?, updatedAt=?, updatedBy=? 
+                UPDATE suggested_chart_revisions
+                SET status=?, decisionReason=?, updatedAt=?, updatedBy=?
                 WHERE id = ?
                 `,
                 [
