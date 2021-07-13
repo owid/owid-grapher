@@ -156,142 +156,140 @@ const expectChartById = async (chartId: any): Promise<GrapherInterface> => {
 }
 
 const saveGrapher = async (
+    transactionContext: db.TransactionContext,
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface
-) =>
-    db.transaction(async (t) => {
-        // Slugs need some special logic to ensure public urls remain consistent whenever possible
-        async function isSlugUsedInRedirect() {
-            const rows = await t.query(
-                `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
-                [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+) => {
+    // Slugs need some special logic to ensure public urls remain consistent whenever possible
+    async function isSlugUsedInRedirect() {
+        const rows = await transactionContext.query(
+            `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
+            [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+        )
+        return rows.length > 0
+    }
+
+    async function isSlugUsedInOtherGrapher() {
+        const rows = await transactionContext.query(
+            `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
+            [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+        )
+        return rows.length > 0
+    }
+
+    // When a chart is published, check for conflicts
+    if (newConfig.isPublished) {
+        if (!isValidSlug(newConfig.slug))
+            throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
+        else if (await isSlugUsedInRedirect())
+            throw new JsonError(
+                `This chart slug was previously used by another chart: ${newConfig.slug}`
             )
-            return rows.length > 0
-        }
-
-        async function isSlugUsedInOtherGrapher() {
-            const rows = await t.query(
-                `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
-                [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+        else if (await isSlugUsedInOtherGrapher())
+            throw new JsonError(
+                `This chart slug is in use by another published chart: ${newConfig.slug}`
             )
-            return rows.length > 0
-        }
-
-        // When a chart is published, check for conflicts
-        if (newConfig.isPublished) {
-            if (!isValidSlug(newConfig.slug))
-                throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
-            else if (await isSlugUsedInRedirect())
-                throw new JsonError(
-                    `This chart slug was previously used by another chart: ${newConfig.slug}`
-                )
-            else if (await isSlugUsedInOtherGrapher())
-                throw new JsonError(
-                    `This chart slug is in use by another published chart: ${newConfig.slug}`
-                )
-            else if (
-                existingConfig &&
-                existingConfig.isPublished &&
-                existingConfig.slug !== newConfig.slug
-            ) {
-                // Changing slug of an existing chart, delete any old redirect and create new one
-                await t.execute(
-                    `DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`,
-                    [existingConfig.id, existingConfig.slug]
-                )
-                await t.execute(
-                    `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
-                    [existingConfig.id, existingConfig.slug]
-                )
-            }
-        }
-
-        if (existingConfig)
-            // Bump chart version, very important for cachebusting
-            newConfig.version = existingConfig.version! + 1
-        else if (newConfig.version)
-            // If a chart is republished, we want to keep incrementing the old version number,
-            // otherwise it can lead to clients receiving cached versions of the old data.
-            newConfig.version += 1
-        else newConfig.version = 1
-
-        // Execute the actual database update or creation
-        const now = new Date()
-        let chartId = existingConfig && existingConfig.id
-        const newJsonConfig = JSON.stringify(newConfig)
-        // todo: drop "isExplorable"
-        if (existingConfig)
-            await t.query(
-                `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
-                [newJsonConfig, now, now, user.id, false, chartId]
-            )
-        else {
-            const result = await t.execute(
-                `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
-                [[newJsonConfig, now, now, now, user.id, false, false]]
-            )
-            chartId = result.insertId
-        }
-
-        // Record this change in version history
-        const log = new ChartRevision()
-        log.chartId = chartId as number
-        log.userId = user.id
-        log.config = newConfig
-        // TODO: the orm needs to support this but it does not :(
-        log.createdAt = new Date()
-        log.updatedAt = new Date()
-        await t.manager.save(log)
-
-        // Remove any old dimensions and store the new ones
-        // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
-        await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
-            chartId,
-        ])
-        for (let i = 0; i < newConfig.dimensions!.length; i++) {
-            const dim = newConfig.dimensions![i]
-            await t.execute(
-                `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
-                [[chartId, dim.variableId, dim.property, i]]
-            )
-        }
-
-        // So we can generate country profiles including this chart data
-        if (newConfig.isPublished)
-            await denormalizeLatestCountryData(
-                newConfig.dimensions!.map((d) => d.variableId)
-            )
-
-        if (
-            newConfig.isPublished &&
-            (!existingConfig || !existingConfig.isPublished)
-        ) {
-            // Newly published, set publication info
-            await t.execute(
-                `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
-                [now, user.id, chartId]
-            )
-            await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
-        } else if (
-            !newConfig.isPublished &&
+        else if (
             existingConfig &&
-            existingConfig.isPublished
+            existingConfig.isPublished &&
+            existingConfig.slug !== newConfig.slug
         ) {
-            // Unpublishing chart, delete any existing redirects to it
-            await t.execute(
-                `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
-                [existingConfig.id]
+            // Changing slug of an existing chart, delete any old redirect and create new one
+            await transactionContext.execute(
+                `DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`,
+                [existingConfig.id, existingConfig.slug]
             )
-            await triggerStaticBuild(
-                user,
-                `Unpublishing chart ${newConfig.slug}`
+            await transactionContext.execute(
+                `INSERT INTO chart_slug_redirects (chart_id, slug) VALUES (?, ?)`,
+                [existingConfig.id, existingConfig.slug]
             )
-        } else if (newConfig.isPublished)
-            await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+        }
+    }
 
-        return chartId
-    })
+    if (existingConfig)
+        // Bump chart version, very important for cachebusting
+        newConfig.version = existingConfig.version! + 1
+    else if (newConfig.version)
+        // If a chart is republished, we want to keep incrementing the old version number,
+        // otherwise it can lead to clients receiving cached versions of the old data.
+        newConfig.version += 1
+    else newConfig.version = 1
+
+    // Execute the actual database update or creation
+    const now = new Date()
+    let chartId = existingConfig && existingConfig.id
+    const newJsonConfig = JSON.stringify(newConfig)
+    // todo: drop "isExplorable"
+    if (existingConfig)
+        await transactionContext.query(
+            `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
+            [newJsonConfig, now, now, user.id, false, chartId]
+        )
+    else {
+        const result = await transactionContext.execute(
+            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
+            [[newJsonConfig, now, now, now, user.id, false, false]]
+        )
+        chartId = result.insertId
+    }
+
+    // Record this change in version history
+    const log = new ChartRevision()
+    log.chartId = chartId as number
+    log.userId = user.id
+    log.config = newConfig
+    // TODO: the orm needs to support this but it does not :(
+    log.createdAt = new Date()
+    log.updatedAt = new Date()
+    await transactionContext.manager.save(log)
+
+    // Remove any old dimensions and store the new ones
+    // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
+    await transactionContext.execute(
+        `DELETE FROM chart_dimensions WHERE chartId=?`,
+        [chartId]
+    )
+    for (let i = 0; i < newConfig.dimensions!.length; i++) {
+        const dim = newConfig.dimensions![i]
+        await transactionContext.execute(
+            `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
+            [[chartId, dim.variableId, dim.property, i]]
+        )
+    }
+
+    // So we can generate country profiles including this chart data
+    if (newConfig.isPublished)
+        await denormalizeLatestCountryData(
+            newConfig.dimensions!.map((d) => d.variableId)
+        )
+
+    if (
+        newConfig.isPublished &&
+        (!existingConfig || !existingConfig.isPublished)
+    ) {
+        // Newly published, set publication info
+        await transactionContext.execute(
+            `UPDATE charts SET publishedAt=?, publishedByUserId=? WHERE id = ? `,
+            [now, user.id, chartId]
+        )
+        await triggerStaticBuild(user, `Publishing chart ${newConfig.slug}`)
+    } else if (
+        !newConfig.isPublished &&
+        existingConfig &&
+        existingConfig.isPublished
+    ) {
+        // Unpublishing chart, delete any existing redirects to it
+        await transactionContext.execute(
+            `DELETE FROM chart_slug_redirects WHERE chart_id = ?`,
+            [existingConfig.id]
+        )
+        await triggerStaticBuild(user, `Unpublishing chart ${newConfig.slug}`)
+    } else if (newConfig.isPublished)
+        await triggerStaticBuild(user, `Updating chart ${newConfig.slug}`)
+
+    return chartId
+}
 
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     const limit =
@@ -494,7 +492,9 @@ apiRouter.post("/charts/:chartId/star", async (req: Request, res: Response) => {
 })
 
 apiRouter.post("/charts", async (req: Request, res: Response) => {
-    const chartId = await saveGrapher(res.locals.user, req.body)
+    const chartId = await db.transaction(async (t) => {
+        return saveGrapher(t, res.locals.user, req.body)
+    })
     return { success: true, chartId: chartId }
 })
 
@@ -512,7 +512,9 @@ apiRouter.post(
 apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
     const existingConfig = await expectChartById(req.params.chartId)
 
-    await saveGrapher(res.locals.user, req.body, existingConfig)
+    await db.transaction(async (t) => {
+        await saveGrapher(t, res.locals.user, req.body, existingConfig)
+    })
 
     const logs = await getLogsByChartId(existingConfig.id as number)
     return { success: true, chartId: existingConfig.id, newLog: logs[0] }
@@ -800,6 +802,7 @@ apiRouter.post(
             // above).
             if (status === "approved" && canApprove) {
                 await saveGrapher(
+                    t,
                     res.locals.user,
                     suggestedChartRevision.suggestedConfig,
                     suggestedChartRevision.existingConfig
@@ -810,6 +813,7 @@ apiRouter.post(
                 suggestedChartRevision.status === "approved"
             ) {
                 await saveGrapher(
+                    t,
                     res.locals.user,
                     suggestedChartRevision.originalConfig,
                     suggestedChartRevision.existingConfig
