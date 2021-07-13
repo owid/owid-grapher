@@ -297,6 +297,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         // this.refresh()
     }
 
+    @action.bound onToggleShowReadme() {
+        this.showReadme = !this.showReadme
+    }
+
+    @action.bound onToggleShowSettings() {
+        this.showSettings = !this.showSettings
+    }
+
     componentDidMount() {
         this.refresh().then(() => {
             this.admin.loadingIndicatorSetting = "off"
@@ -408,7 +416,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <button
                         className="btn btn-outline-dark"
                         type="button"
-                        onClick={() => (this.showReadme = !this.showReadme)}
+                        onClick={this.onToggleShowReadme}
                         aria-expanded={this.showReadme}
                         title="Show/hide README"
                         style={{ marginLeft: "10px" }}
@@ -710,7 +718,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         className="btn btn-outline-dark"
                         type="button"
                         aria-expanded={this.showSettings}
-                        onClick={() => (this.showSettings = !this.showSettings)}
+                        onClick={this.onToggleShowSettings}
                         title="Show/hide settings"
                         style={{ marginLeft: "10px" }}
                     >
