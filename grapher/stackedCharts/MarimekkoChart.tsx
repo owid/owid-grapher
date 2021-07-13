@@ -471,7 +471,8 @@ export class MarimekkoChart
     }
 
     private renderBars(): JSX.Element[] {
-        const results: JSX.Element[] = []
+        const normalElements: JSX.Element[] = []
+        const highlightedElements: JSX.Element[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
         const { dualAxis, x0, xDomainCorrectionFactor, focusSeriesName } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         const selectionSet = this.selectionArray.selectedSet
@@ -517,6 +518,8 @@ export class MarimekkoChart
                         </TippyIfInteractive>
                     </g>
                 ) : undefined
+            const isSelected = selectionSet.has(label)
+            const isHovered = label === this.hoveredEntityName
             const result = (
                 <g
                     key={label}
@@ -539,8 +542,8 @@ export class MarimekkoChart
                             },
                             isEven,
                             barWidth,
-                            label === this.hoveredEntityName,
-                            selectionSet.has(label),
+                            isHovered,
+                            isSelected,
                             isFaint
                         )
                     })}
@@ -548,11 +551,12 @@ export class MarimekkoChart
                     {optionalLabelWithTooltip(label)}
                 </g>
             )
-            results.push(result)
+            if (isSelected || isHovered) highlightedElements.push(result)
+            else normalElements.push(result)
             currentX += barWidth
             isEven = !isEven
         }
-        return results
+        return normalElements.concat(highlightedElements)
     }
     private paddingInPixels = 5
 
@@ -573,7 +577,8 @@ export class MarimekkoChart
             : isSelected
             ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
             : bar.color
-        const strokeColor = isHovered ? "#000" : isSelected ? "#000" : "#666"
+        const strokeColor = isHovered || isSelected ? "#555" : "#666"
+        const strokeWidth = isHovered || isSelected ? "1px" : "0.3px"
 
         const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
         const barHeight =
@@ -598,8 +603,10 @@ export class MarimekkoChart
                         height={barHeight}
                         fill={barColor}
                         stroke={strokeColor}
-                        strokeWidth="0.3px"
-                        opacity={isFaint ? 0.1 : 0.85}
+                        strokeWidth={strokeWidth}
+                        opacity={
+                            isFaint ? 0.1 : isSelected || isHovered ? 0.85 : 0.6
+                        }
                         style={{
                             transition: "translate 200ms ease",
                         }}
