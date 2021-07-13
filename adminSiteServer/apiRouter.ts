@@ -793,7 +793,12 @@ apiRouter.post(
                     suggestedChartRevisionId,
                 ]
             )
-            if (status === "approved") {
+            // note: the calls to saveGrapher() below will never overwrite a config
+            // that has been changed since the suggestedConfig was created, because
+            // if the config has been changed since the suggestedConfig was created
+            // then canUpdate will be false (so an error would have been raised
+            // above).
+            if (status === "approved" && canApprove) {
                 await saveGrapher(
                     res.locals.user,
                     suggestedChartRevision.suggestedConfig,
@@ -801,6 +806,7 @@ apiRouter.post(
                 )
             } else if (
                 status === "rejected" &&
+                canReject &&
                 suggestedChartRevision.status === "approved"
             ) {
                 await saveGrapher(
