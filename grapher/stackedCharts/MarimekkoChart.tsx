@@ -60,7 +60,8 @@ interface SimplePoint {
     value: number
     entity: string
     time: number
-    color?: Color // color based on assignment from the optional color column, e.g. continents for countries
+    colorDomainValue: string | undefined
+    color: Color | undefined // color based on assignment from the optional color column, e.g. continents for countries
 }
 
 export interface SimpleChartSeries extends ChartSeries {
@@ -400,6 +401,7 @@ export class MarimekkoChart
     }
 
     @action.bound onLegendMouseOver(bin: CategoricalBin): void {
+        console.log(`focused series name is ${bin.value}`)
         this.focusSeriesName = bin.value
     }
 
@@ -458,13 +460,12 @@ export class MarimekkoChart
 
     private renderBars(): JSX.Element[] {
         const results: JSX.Element[] = []
-        const { dualAxis, x0, xDomainCorrectionFactor } = this
+        const { dualAxis, x0, xDomainCorrectionFactor, focusSeriesName } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         const selectionSet = this.selectionArray.selectedSet
         let isEven = true
 
         for (const { label, bars } of this.items) {
-            const optionalLabel = this.labels.get(label)
             const tooltipProps = {
                 label,
                 bars,
@@ -473,6 +474,7 @@ export class MarimekkoChart
                 formatColumn: this.formatColumn,
                 xAxisColumn: this.xColumn,
             }
+            const optionalLabel = this.labels.get(label)
 
             const exactWidth =
                 dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
@@ -483,6 +485,26 @@ export class MarimekkoChart
                 dualAxis.verticalAxis.place(0) +
                 dualAxis.horizontalAxis.height +
                 this.baseFontSize
+            const optionalLabelWithTooltip = (seriesName: string) =>
+                optionalLabel ? (
+                    <g
+                        transform={`translate(${
+                            barWidth / 2
+                        }, ${labelsYPosition})`}
+                    >
+                        <TippyIfInteractive
+                            lazy
+                            isInteractive={!this.manager.isExportingtoSvgOrPng}
+                            key={seriesName}
+                            hideOnClick={false}
+                            content={
+                                <MarimekkoChart.Tooltip {...tooltipProps} />
+                            }
+                        >
+                            {optionalLabel}
+                        </TippyIfInteractive>
+                    </g>
+                ) : undefined
             const result = (
                 <g
                     key={label}
@@ -491,8 +513,12 @@ export class MarimekkoChart
                     onMouseOver={(): void => this.onEntityMouseOver(label)}
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
                 >
-                    {bars.map((bar) =>
-                        this.renderBar(
+                    {bars.map((bar) => {
+                        const isFaint =
+                            this.focusSeriesName !== undefined &&
+                            bar.xPoint.colorDomainValue !== this.focusSeriesName
+
+                        return this.renderBar(
                             bar,
                             {
                                 ...tooltipProps,
@@ -501,16 +527,12 @@ export class MarimekkoChart
                             isEven,
                             barWidth,
                             label === this.hoveredEntityName,
-                            selectionSet.has(label)
+                            selectionSet.has(label),
+                            isFaint
                         )
-                    )}
-                    <g
-                        transform={`translate(${
-                            barWidth / 2
-                        }, ${labelsYPosition})`}
-                    >
-                        {optionalLabel}
-                    </g>
+                    })}
+
+                    {optionalLabelWithTooltip(label)}
                 </g>
             )
             results.push(result)
@@ -527,7 +549,8 @@ export class MarimekkoChart
         isEven: boolean,
         barWidth: number,
         isHovered: boolean,
-        isSelected: boolean
+        isSelected: boolean,
+        isFaint: boolean
     ): JSX.Element {
         const { dualAxis, focusSeriesName } = this
         const { yPoint, seriesName } = bar
@@ -539,8 +562,6 @@ export class MarimekkoChart
             : bar.color
         const strokeColor = isHovered ? "#000" : isSelected ? "#000" : "#666"
 
-        const isFaint =
-            focusSeriesName !== undefined && focusSeriesName !== seriesName
         const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
         const barHeight =
             dualAxis.verticalAxis.place(this.y0) -
@@ -944,12 +965,13 @@ export class MarimekkoChart
             rows: LegacyOwidRow<any>[]
         ): SimplePoint[] => {
             const points: SimplePoint[] = []
+            const colorRowsByEntity = hasColorColumn
+                ? this.colorColumn.owidRowsByEntityName
+                : undefined
             for (const row of rows) {
-                const colorDomainValue = hasColorColumn
-                    ? this.colorColumn.owidRows.find(
-                          (colorrow) => colorrow.entityName === row.entityName
-                      )
-                    : undefined
+                const colorDomainValue = colorRowsByEntity?.get(
+                    row.entityName
+                )?.[0]
 
                 const color = colorDomainValue
                     ? this.colorScale.getColor(colorDomainValue.value)
@@ -963,6 +985,7 @@ export class MarimekkoChart
                         value: row.value,
                         entity: row.entityName,
                         color: color,
+                        colorDomainValue: colorDomainValue?.value,
                     })
                 }
             }
