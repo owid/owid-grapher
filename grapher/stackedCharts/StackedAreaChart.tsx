@@ -221,10 +221,6 @@ export class StackedAreaChart
         super(props)
     }
 
-    @computed get verticalAxis(): VerticalAxis {
-        return this.dualAxis.verticalAxis
-    }
-
     @computed get midpoints(): number[] {
         let prevY = 0
         return this.series.map((series) => {

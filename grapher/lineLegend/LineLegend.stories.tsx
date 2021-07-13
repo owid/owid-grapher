@@ -51,7 +51,7 @@ const manager: LineLegendManager = {
     ],
     legendX: 200,
     focusedSeriesNames: [],
-    verticalAxis: dualAxis.verticalAxis,
+    yAxis: dualAxis.verticalAxis,
 }
 
 export const TestCollisionDetection = (): JSX.Element => {

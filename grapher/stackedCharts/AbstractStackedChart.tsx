@@ -161,6 +161,14 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         })
     }
 
+    @computed get yAxis(): VerticalAxis {
+        return this.dualAxis.verticalAxis
+    }
+
+    @computed get xAxis(): HorizontalAxis {
+        return this.dualAxis.horizontalAxis
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)

@@ -2,6 +2,7 @@ import { Color } from "../../coreTable/CoreTableConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { SeriesName } from "../core/GrapherConstants"
 import { ColorScale } from "../color/ColorScale"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 // The idea of this interface is to try and start reusing more code across our Chart classes and make it easier
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
 // this interface.
@@ -25,4 +26,7 @@ export interface ChartInterface {
     // Todo: should all charts additionally have a placedSeries: ChartPlacedSeries[] getter?
 
     transformTable: ChartTableTransformer
+
+    yAxis?: HorizontalAxis | VerticalAxis
+    xAxis?: HorizontalAxis | VerticalAxis
 }
