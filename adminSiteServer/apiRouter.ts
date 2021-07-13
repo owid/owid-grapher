@@ -558,11 +558,11 @@ apiRouter.get(
                 ].indexOf(sortBy) !== -1
             )
         }
-        const isValidSortDirection = (sortDirection: string) => {
+        const isValidSortOrder = (sortOrder: string) => {
             return (
-                sortDirection !== undefined &&
-                sortDirection !== null &&
-                ["ASC", "DESC"].indexOf(sortDirection.toUpperCase()) !== -1
+                sortOrder !== undefined &&
+                sortOrder !== null &&
+                ["ASC", "DESC"].indexOf(sortOrder.toUpperCase()) !== -1
             )
         }
         const limit =
@@ -572,8 +572,8 @@ apiRouter.get(
         const sortBy = isValidSortBy(req.query.sortBy)
             ? req.query.sortBy
             : "updatedAt"
-        const sortDirection = isValidSortDirection(req.query.sortDirection)
-            ? req.query.sortDirection.toUpperCase()
+        const sortOrder = isValidSortOrder(req.query.sortOrder)
+            ? req.query.sortOrder.toUpperCase()
             : "DESC"
         const status = SuggestedChartRevision.isValidStatus(req.query.status)
             ? req.query.status
@@ -607,7 +607,7 @@ apiRouter.get(
             LEFT JOIN users createdByUser on createdByUser.id = scr.createdBy
             LEFT JOIN users updatedByUser on updatedByUser.id = scr.updatedBy
             ${status ? "WHERE scr.status = ?" : ""}
-            ORDER BY ${orderBy} ${sortDirection}
+            ORDER BY ${orderBy} ${sortOrder}
             LIMIT ? OFFSET ?
         `,
             status ? [status, limit, offset] : [limit, offset]

@@ -8,6 +8,7 @@ import Select from "react-select"
 import classNames from "classnames"
 import { Bounds } from "../clientUtils/Bounds"
 import { getStylesForTargetHeight } from "../clientUtils/react-select"
+import { SortOrder } from "../clientUtils/owidTypes"
 import { Grapher } from "../grapher/core/Grapher"
 import { TextAreaField, NumberField, RadioGroup, Toggle } from "./Forms"
 import { PostReference } from "./ChartEditor"
@@ -54,7 +55,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @observable previewMode: string = "desktop"
     @observable desktopPreviewSize: string = "normal"
     @observable sortBy: string = "updatedAt"
-    @observable sortDirection: string = "DESC"
+    @observable sortOrder: SortOrder = SortOrder.desc
     @observable previewSvgOrJson: string = "svg"
     @observable simulateVisionDeficiency?: VisionDeficiency
 
@@ -144,7 +145,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         ? SuggestedChartRevisionStatus.pending
                         : null,
                 sortBy: this.sortBy,
-                sortDirection: this.sortDirection,
+                sortOrder: this.sortOrder,
             })
             this.numTotalRows = json.numTotalRows
             this.suggestedChartRevision = json.suggestedChartRevisions[0]
@@ -281,8 +282,8 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.refresh()
     }
 
-    @action.bound onSortDirectionChange(value: string) {
-        this.sortDirection = value
+    @action.bound onSortOrderChange(value: SortOrder) {
+        this.sortOrder = value
         this.refresh()
     }
 
@@ -865,7 +866,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     <label
                                         className={
                                             "btn btn-light" +
-                                            (this.sortDirection === "ASC"
+                                            (this.sortOrder === SortOrder.asc
                                                 ? " active"
                                                 : "")
                                         }
@@ -874,14 +875,14 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         <input
                                             type="radio"
                                             onChange={() =>
-                                                this.onSortDirectionChange(
-                                                    "ASC"
+                                                this.onSortOrderChange(
+                                                    SortOrder.asc
                                                 )
                                             }
-                                            name="sortDirection"
+                                            name="sortOrder"
                                             id="asc"
                                             checked={
-                                                this.sortDirection === "ASC"
+                                                this.sortOrder === SortOrder.asc
                                             }
                                         />{" "}
                                         <FontAwesomeIcon
@@ -891,7 +892,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     <label
                                         className={
                                             "btn btn-light" +
-                                            (this.sortDirection === "DESC"
+                                            (this.sortOrder === SortOrder.desc
                                                 ? " active"
                                                 : "")
                                         }
@@ -899,15 +900,16 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                     >
                                         <input
                                             onChange={() =>
-                                                this.onSortDirectionChange(
-                                                    "DESC"
+                                                this.onSortOrderChange(
+                                                    SortOrder.desc
                                                 )
                                             }
                                             type="radio"
-                                            name="sortDirection"
+                                            name="sortOrder"
                                             id="desc"
                                             checked={
-                                                this.sortDirection === "DESC"
+                                                this.sortOrder ===
+                                                SortOrder.desc
                                             }
                                         />{" "}
                                         <FontAwesomeIcon

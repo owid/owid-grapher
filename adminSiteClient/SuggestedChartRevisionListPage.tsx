@@ -7,6 +7,7 @@ import { Link } from "react-router-dom"
 import { TextField } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { uniq } from "../clientUtils/Util"
+import { SortOrder } from "../clientUtils/owidTypes"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "../clientUtils/react-select"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
@@ -35,7 +36,7 @@ export class SuggestedChartRevisionListPage extends React.Component {
     @observable numTotalRows?: number
 
     @observable sortBy: string = "updatedAt"
-    @observable sortDirection: string = "DESC"
+    @observable sortOrder: SortOrder = SortOrder.desc
 
     @computed get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
@@ -75,7 +76,7 @@ export class SuggestedChartRevisionListPage extends React.Component {
         const { admin } = this.context
         const json = await admin.getJSON("/api/suggested-chart-revisions", {
             sortBy: this.sortBy,
-            sortDirection: this.sortDirection,
+            sortOrder: this.sortOrder,
         })
         this.suggestedChartRevisions = json.suggestedChartRevisions
         this.numTotalRows = json.numTotalRows
@@ -94,8 +95,8 @@ export class SuggestedChartRevisionListPage extends React.Component {
         this.getData()
     }
 
-    @action.bound onSortDirectionChange(value: string) {
-        this.sortDirection = value
+    @action.bound onSortOrderChange(value: SortOrder) {
+        this.sortOrder = value
         this.getData()
     }
 
@@ -205,7 +206,7 @@ export class SuggestedChartRevisionListPage extends React.Component {
                                 <label
                                     className={
                                         "btn btn-light" +
-                                        (this.sortDirection === "ASC"
+                                        (this.sortOrder === SortOrder.asc
                                             ? " active"
                                             : "")
                                     }
@@ -214,18 +215,22 @@ export class SuggestedChartRevisionListPage extends React.Component {
                                     <input
                                         type="radio"
                                         onChange={() =>
-                                            this.onSortDirectionChange("ASC")
+                                            this.onSortOrderChange(
+                                                SortOrder.asc
+                                            )
                                         }
-                                        name="sortDirection"
+                                        name="sortOrder"
                                         id="asc"
-                                        checked={this.sortDirection === "ASC"}
+                                        checked={
+                                            this.sortOrder === SortOrder.asc
+                                        }
                                     />{" "}
                                     <FontAwesomeIcon icon={faSortAlphaDown} />
                                 </label>
                                 <label
                                     className={
                                         "btn btn-light" +
-                                        (this.sortDirection === "DESC"
+                                        (this.sortOrder === SortOrder.desc
                                             ? " active"
                                             : "")
                                     }
@@ -233,12 +238,16 @@ export class SuggestedChartRevisionListPage extends React.Component {
                                 >
                                     <input
                                         onChange={() =>
-                                            this.onSortDirectionChange("DESC")
+                                            this.onSortOrderChange(
+                                                SortOrder.desc
+                                            )
                                         }
                                         type="radio"
-                                        name="sortDirection"
+                                        name="sortOrder"
                                         id="desc"
-                                        checked={this.sortDirection === "DESC"}
+                                        checked={
+                                            this.sortOrder === SortOrder.desc
+                                        }
                                     />{" "}
                                     <FontAwesomeIcon icon={faSortAlphaUpAlt} />
                                 </label>
