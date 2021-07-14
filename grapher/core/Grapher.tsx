@@ -162,6 +162,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { SortConfig } from "../sort/SortState"
 
 declare const window: any
 
@@ -298,6 +299,8 @@ export class Grapher
 
     @observable showFacets?: boolean = false
     @observable lastFacet: FacetStrategy = FacetStrategy.none
+
+    @observable sortConfig?: SortConfig
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.

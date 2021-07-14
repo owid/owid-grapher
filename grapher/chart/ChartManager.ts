@@ -14,6 +14,7 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Annotation, ColumnSlug } from "../../clientUtils/owidTypes"
+import { SortConfig } from "../sort/SortState"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -68,6 +69,8 @@ export interface ChartManager {
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 
     seriesStrategy?: SeriesStrategy
+
+    sortConfig?: SortConfig
 
     annotation?: Annotation
     resetAnnotation?: () => void
