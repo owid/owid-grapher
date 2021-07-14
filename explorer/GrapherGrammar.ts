@@ -7,6 +7,7 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
+    JSONObjectCellDef,
 } from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
@@ -157,5 +158,23 @@ export const GrapherGrammar: Grammar = {
         ...StringCellDef,
         keyword: "note",
         description: "Chart footnote",
+    },
+    sortConfig: {
+        ...JSONObjectCellDef,
+        keyword: "sortConfig",
+        description: `JSON Object to specify how entities should be sorted.
+Examples:
+{"sortOrder": "asc", "sortBy": "entityName"}
+{"sortOrder": "desc", "sortBy": "dimension", "sortColumnSlug": "coal_per_capita"}`,
+        parse: (json: string) => {
+            if (json !== "") {
+                try {
+                    return JSON.parse(json)
+                } catch (e) {
+                    console.warn("Couldn't parse JSON sortConfig", e)
+                }
+            }
+            return undefined
+        },
     },
 } as const

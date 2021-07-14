@@ -171,5 +171,13 @@ export const SlugsDeclarationCellDef: CellDef = {
     requirementsDescription: `Can only contain the characters a-zA-Z0-9-_ `,
 }
 
+export const JSONObjectCellDef: CellDef = {
+    keyword: "",
+    cssClass: "JSONObjectCellDef",
+    description: "JSON object",
+    regex: /^\{.*\}$/, // very basic validation that expression starts with { and ends with }
+    requirementsDescription: "Must contain a valid JSON object",
+}
+
 export type MatrixLine = string[]
 export type MatrixProgram = MatrixLine[]
