@@ -83,4 +83,8 @@ export class EditorFeatures {
     @computed get comparisonLine() {
         return this.grapher.isLineChart || this.grapher.isScatter
     }
+
+    @computed get canSpecifySortOrder() {
+        return this.grapher.isStackedDiscreteBar
+    }
 }
