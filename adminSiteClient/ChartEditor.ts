@@ -130,6 +130,7 @@ export class ChartEditor {
         if (this.grapher.hasMapTab) tabs.push("map")
         if (this.grapher.isScatter || this.grapher.isTimeScatter)
             tabs.push("scatter")
+        if (this.grapher.isMarimekko) tabs.push("marimekko")
         tabs.push("revisions")
         tabs.push("refs")
         return tabs

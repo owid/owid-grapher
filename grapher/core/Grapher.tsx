@@ -166,6 +166,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChart"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 
@@ -236,6 +237,7 @@ export class Grapher
         FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
+        MarimekkoChartManager,
         FacetStrategyDropdownManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart

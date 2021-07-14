@@ -43,6 +43,7 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies"
+import { EditorMarimekkoTab } from "./EditorMarimekkoTab"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -287,6 +288,9 @@ export class ChartEditorPage
                         )}
                         {editor.tab === "scatter" && (
                             <EditorScatterTab grapher={grapher} />
+                        )}
+                        {editor.tab === "marimekko" && (
+                            <EditorMarimekkoTab grapher={grapher} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab editor={editor} />

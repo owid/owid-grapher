@@ -30,7 +30,12 @@ import { ChartManager } from "../chart/ChartManager"
 import { Color, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { EntityName, LegacyOwidRow } from "../../coreTable/OwidTableConstants"
+import {
+    EntityId,
+    EntityName,
+    LegacyOwidRow,
+    OwidTableSlugs,
+} from "../../coreTable/OwidTableConstants"
 import {
     LegendAlign,
     HorizontalCategoricalColorLegend,
@@ -55,6 +60,8 @@ import { CoreRow } from "../../coreTable/CoreTableConstants"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
+    excludedEntities?: EntityId[]
+    matchingEntitiesOnly?: boolean
 }
 
 interface Item {
@@ -114,6 +121,18 @@ export class MarimekkoChart
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
         if (!this.xColumnSlug) return table
+        const { excludedEntities } = this.manager
+
+        if (excludedEntities) {
+            const excludedEntityIdsSet = new Set(excludedEntities)
+            table = table.columnFilter(
+                OwidTableSlugs.entityId,
+                (entityId) => !excludedEntityIdsSet.has(entityId as number),
+                `Excluded entity ids specified by author: ${excludedEntities.join(
+                    ", "
+                )}`
+            )
+        }
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
@@ -998,6 +1017,7 @@ export class MarimekkoChart
 
     @computed get xSeries(): SimpleChartSeries {
         const hasColorColumn = !this.colorColumn.isMissing
+        const { matchingEntitiesOnly } = this.manager
         const createStackedXPoints = (
             rows: LegacyOwidRow<any>[]
         ): SimplePoint[] => {
@@ -1014,7 +1034,7 @@ export class MarimekkoChart
                     ? this.colorScale.getColor(colorDomainValue.value)
                     : undefined
 
-                if (!hasColorColumn || color) {
+                if (!hasColorColumn || color || !matchingEntitiesOnly) {
                     // drop entities that have not been assigned a color for now
                     // TODO: this will be an issue for non-country entities
                     points.push({
