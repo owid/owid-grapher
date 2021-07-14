@@ -107,19 +107,25 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @computed get sortOptions(): SortOrderDropdownOption[] {
-        const dimensionSortOptions = this.grapher.yColumns.map(
-            (column): SortOrderDropdownOption => ({
-                label: column.displayName,
-                display: {
-                    name: column.name,
-                    displayName: column.displayName,
-                },
-                value: {
-                    sortBy: SortBy.dimension,
-                    sortColumnSlug: column.slug,
-                } as SortConfig,
-            })
-        )
+        const { features } = this.props.editor
+
+        let dimensionSortOptions: SortOrderDropdownOption[] = []
+        if (features.canSortByDimension) {
+            dimensionSortOptions = this.grapher.yColumns.map(
+                (column): SortOrderDropdownOption => ({
+                    label: column.displayName,
+                    display: {
+                        name: column.name,
+                        displayName: column.displayName,
+                    },
+                    value: {
+                        sortBy: SortBy.dimension,
+                        sortColumnSlug: column.slug,
+                    } as SortConfig,
+                })
+            )
+        }
+
         return [
             { label: "Entity name", value: { sortBy: SortBy.entityName } },
             { label: "Total value", value: { sortBy: SortBy.total } },
@@ -146,6 +152,10 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
     render() {
         return (
             <Section name="Sort Order">
+                <small className="form-text text-muted">
+                    For line charts the sort order is only applied when it's
+                    collapsed to a bar chart.
+                </small>
                 <div className="form-group">
                     Sort by
                     <Select
@@ -170,6 +180,7 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
                                 opt.label
                             )
                         }
+                        menuPlacement="auto"
                     />
                 </div>
                 <div className="form-group">

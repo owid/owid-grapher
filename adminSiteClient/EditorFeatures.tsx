@@ -85,6 +85,14 @@ export class EditorFeatures {
     }
 
     @computed get canSpecifySortOrder() {
+        return (
+            this.grapher.isStackedDiscreteBar ||
+            this.grapher.isLineChart ||
+            this.grapher.isDiscreteBar
+        )
+    }
+
+    @computed get canSortByDimension() {
         return this.grapher.isStackedDiscreteBar
     }
 }
