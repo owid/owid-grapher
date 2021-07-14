@@ -14,5 +14,6 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
 export interface StackedSeries<PositionType extends StackedPointPositionType>
     extends ChartSeries {
     points: StackedPoint<PositionType>[]
+    columnSlug: string
     isProjection?: boolean
 }

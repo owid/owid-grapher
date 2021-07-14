@@ -28,7 +28,7 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color, Time } from "../../clientUtils/owidTypes"
+import { Color, SortOrder, Time } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
@@ -48,6 +48,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
+import { SortBy, SortConfig } from "../sort/SortState"
 
 const labelToBarPadding = 5
 
@@ -67,6 +68,7 @@ interface PlacedItem extends Item {
 interface Bar {
     color: Color
     seriesName: string
+    columnSlug: string
     point: StackedPoint<EntityName>
 }
 
@@ -120,6 +122,15 @@ export class StackedDiscreteBarChart
         }
 
         return table
+    }
+
+    @computed get sortConfig(): SortConfig {
+        if (this.manager.sortConfig) return this.manager.sortConfig
+
+        return {
+            sortBy: SortBy.total,
+            sortOrder: SortOrder.desc,
+        }
     }
 
     @observable focusSeriesName?: SeriesName
@@ -211,7 +222,7 @@ export class StackedDiscreteBarChart
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get items(): Item[] {
+    @computed private get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
             .map((entityName) => ({
@@ -224,6 +235,7 @@ export class StackedDiscreteBarChart
                         if (!point) return undefined
                         return {
                             point,
+                            columnSlug: series.columnSlug,
                             color: series.color,
                             seriesName: series.seriesName,
                         }
@@ -232,18 +244,45 @@ export class StackedDiscreteBarChart
             }))
             .filter((item) => item.bars.length)
 
-        if (this.manager.isRelativeMode) {
-            // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
-            // relative mode. Once we have an option to sort by a specific metric, that'll help.
-            // Until then, we're sorting by label to prevent any jumping.
-            return sortBy(items, (item) => item.label)
-        } else {
-            return sortBy(items, (item) => {
-                const lastPoint = last(item.bars)?.point
-                if (!lastPoint) return 0
-                return lastPoint.valueOffset + lastPoint.value
-            }).reverse()
+        return items
+    }
+
+    @computed get sortedItems(): readonly Item[] {
+        let sortState = { ...this.sortConfig }
+
+        if (this.manager.isRelativeMode && sortState.sortBy === SortBy.total) {
+            // In relative mode, where the values for every entity sum up to 100%, sorting by total
+            // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
+            // we sort by entity name instead.
+            sortState = {
+                ...sortState,
+                sortBy: SortBy.entityName,
+                sortOrder: SortOrder.asc,
+            }
         }
+
+        let sortByFunc: (item: Item) => number | string
+        switch (sortState.sortBy) {
+            case SortBy.entityName:
+                sortByFunc = (item: Item): string => item.label
+                break
+            case SortBy.dimension:
+                const sortColumnSlug = sortState.sortColumnSlug
+                sortByFunc = (item: Item): number =>
+                    item.bars.find((b) => b.columnSlug === sortColumnSlug)
+                        ?.point.value ?? 0
+                break
+            case SortBy.total:
+                sortByFunc = (item: Item): number => {
+                    const lastPoint = last(item.bars)?.point
+                    if (!lastPoint) return 0
+                    return lastPoint.valueOffset + lastPoint.value
+                }
+        }
+        const sortedItems = sortBy(this.items, sortByFunc)
+        if (sortState.sortOrder === SortOrder.desc) sortedItems.reverse()
+
+        return sortedItems
     }
 
     @computed private get barHeight(): number {
@@ -332,7 +371,7 @@ export class StackedDiscreteBarChart
         }
 
         const yOffset = innerBounds.top + barHeight / 2
-        const placedItems = this.items.map((d, i) => ({
+        const placedItems = this.sortedItems.map((d, i) => ({
             yPosition: yOffset + (barHeight + barSpacing) * i,
             ...d,
         }))
@@ -729,6 +768,7 @@ export class StackedDiscreteBarChart
                 .map((col, i) => {
                     return {
                         seriesName: col.displayName,
+                        columnSlug: col.slug,
                         color:
                             col.def.color ??
                             this.colorScheme.getColors(this.yColumns.length)[i],

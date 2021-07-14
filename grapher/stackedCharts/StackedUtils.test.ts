@@ -5,6 +5,7 @@ import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 const seriesArr = [
     {
         seriesName: "Canada",
+        columnSlug: "var",
         color: "red",
         points: [
             { position: 2000, time: 2000, value: 10, valueOffset: 0 },
@@ -13,6 +14,7 @@ const seriesArr = [
     },
     {
         seriesName: "USA",
+        columnSlug: "var",
         color: "red",
         points: [{ position: 2000, time: 2000, value: 2, valueOffset: 0 }],
     },
