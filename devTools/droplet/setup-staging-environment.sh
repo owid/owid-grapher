@@ -77,7 +77,7 @@ sudo certbot --nginx -d NEW_NAME.owid.cloud
 rm -rf ~/NEW_NAME-data/bakedSite/.netlify
 # Create new Netlify site
 cd ~/NEW_NAME-data/bakedSite/
-netlify deploy
+netlify deploy --dir=.
 # Use NEW_NAME-owid as site name
 # Leave publish to .
 # Time: >10min?
