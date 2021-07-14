@@ -33,8 +33,10 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
+import Bugsnag from "@bugsnag/js"
+import BugsnagPluginReact from "@bugsnag/plugin-react"
 
-declare var window: any
+declare let window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.CoreTable = CoreTable
@@ -66,6 +68,11 @@ window.runSiteFooterScripts = () => {
         renderProminentLink()
     }
 }
+
+Bugsnag.start({
+    apiKey: "0c88069ddc728aedd91001c376c0fe3c",
+    plugins: [new BugsnagPluginReact()],
+})
 
 const analytics = new SiteAnalytics(ENV)
 analytics.logPageLoad()
