@@ -517,7 +517,7 @@ export class DiscreteBarChart
 
         return colorScheme?.getUniqValueColorMap(
             uniq(sortedRawSeries.map((series) => series.row.value)),
-            manager.invertColorScheme
+            !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
     }
 
