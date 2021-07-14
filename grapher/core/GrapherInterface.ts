@@ -20,8 +20,7 @@ import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
-import { ColumnSlug } from "../../clientUtils/owidTypes"
-import { SortConfig } from "../sort/SortState"
+import { ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

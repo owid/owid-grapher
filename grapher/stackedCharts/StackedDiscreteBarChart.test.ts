@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { SortOrder } from "../../clientUtils/owidTypes"
+import { SortOrder, SortBy } from "../../clientUtils/owidTypes"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
@@ -9,7 +9,6 @@ import {
 } from "../../coreTable/OwidTableSynthesizers"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
-import { SortBy } from "../sort/SortState"
 import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 
 it("can create a chart", () => {

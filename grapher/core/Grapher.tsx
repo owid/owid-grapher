@@ -158,11 +158,11 @@ import {
     Annotation,
     ColumnSlug,
     DimensionProperty,
+    SortConfig,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
-import { SortConfig } from "../sort/SortState"
 
 declare const window: any
 

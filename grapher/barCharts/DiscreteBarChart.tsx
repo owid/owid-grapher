@@ -37,9 +37,12 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ColorScheme } from "../color/ColorScheme"
-import { Time } from "../../clientUtils/owidTypes"
-import { SortBy, SortConfig } from "../sort/SortState"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
+import {
+    Time,
+    SortOrder,
+    SortBy,
+    SortConfig,
+} from "../../clientUtils/owidTypes"
 import { LegacyOwidRow } from "../../coreTable/OwidTableConstants"
 
 const labelToTextPadding = 10

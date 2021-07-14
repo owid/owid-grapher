@@ -24,9 +24,8 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
 import { FacetAxisRange } from "../grapher/core/GrapherConstants"
-import { SortBy, SortConfig } from "../grapher/sort/SortState"
 import Select, { ValueType } from "react-select"
-import { SortOrder } from "../clientUtils/owidTypes"
+import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
 import { asArray } from "../clientUtils/react-select"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {

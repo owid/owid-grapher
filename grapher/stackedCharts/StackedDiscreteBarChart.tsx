@@ -28,7 +28,13 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color, SortOrder, Time } from "../../clientUtils/owidTypes"
+import {
+    Color,
+    SortOrder,
+    Time,
+    SortBy,
+    SortConfig,
+} from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
@@ -48,7 +54,6 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
-import { SortBy, SortConfig } from "../sort/SortState"
 
 const labelToBarPadding = 5
 
