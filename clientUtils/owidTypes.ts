@@ -17,7 +17,7 @@ export enum SortOrder {
 
 export enum SortBy {
     entityName = "entityName",
-    dimension = "dimension",
+    column = "column",
     total = "total",
 }
 
@@ -31,8 +31,8 @@ interface SortByEntityNameConfig {
     sortOrder: SortOrder
 }
 
-export interface SortByDimensionConfig {
-    sortBy: SortBy.dimension
+export interface SortByColumnConfig {
+    sortBy: SortBy.column
     sortOrder: SortOrder
     sortColumnSlug: string
 }
@@ -40,7 +40,7 @@ export interface SortByDimensionConfig {
 export type SortConfig =
     | SortByTotalConfig
     | SortByEntityNameConfig
-    | SortByDimensionConfig
+    | SortByColumnConfig
 
 export type Year = Integer
 export type Color = string

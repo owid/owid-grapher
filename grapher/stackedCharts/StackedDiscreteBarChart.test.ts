@@ -228,7 +228,7 @@ describe("sorting", () => {
             manager: {
                 ...baseManager,
                 sortConfig: {
-                    sortBy: SortBy.dimension,
+                    sortBy: SortBy.column,
                     sortColumnSlug: "coal",
                     sortOrder: SortOrder.desc,
                 },

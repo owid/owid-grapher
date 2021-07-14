@@ -109,7 +109,7 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
         const { features } = this.props.editor
 
         let dimensionSortOptions: SortOrderDropdownOption[] = []
-        if (features.canSortByDimension) {
+        if (features.canSortByColumn) {
             dimensionSortOptions = this.grapher.yColumns.map(
                 (column): SortOrderDropdownOption => ({
                     label: column.displayName,
@@ -118,7 +118,7 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
                         displayName: column.displayName,
                     },
                     value: {
-                        sortBy: SortBy.dimension,
+                        sortBy: SortBy.column,
                         sortColumnSlug: column.slug,
                     } as SortConfig,
                 })

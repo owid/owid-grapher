@@ -92,7 +92,7 @@ export class EditorFeatures {
         )
     }
 
-    @computed get canSortByDimension() {
+    @computed get canSortByColumn() {
         return this.grapher.isStackedDiscreteBar
     }
 }

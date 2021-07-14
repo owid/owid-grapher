@@ -271,7 +271,7 @@ export class StackedDiscreteBarChart
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.label
                 break
-            case SortBy.dimension:
+            case SortBy.column:
                 const sortColumnSlug = sortState.sortColumnSlug
                 sortByFunc = (item: Item): number =>
                     item.bars.find((b) => b.columnSlug === sortColumnSlug)

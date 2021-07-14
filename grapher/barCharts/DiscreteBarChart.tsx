@@ -489,7 +489,7 @@ export class DiscreteBarChart
                 sortByFunc = (item: DiscreteBarItem) => item.seriesName
                 break
             case SortBy.total:
-            case SortBy.dimension: // we only have one dimension, so total and dimension are the same
+            case SortBy.column: // we only have one yColumn, so total and column are the same
                 sortByFunc = (item: DiscreteBarItem) => item.row.value
                 break
         }
