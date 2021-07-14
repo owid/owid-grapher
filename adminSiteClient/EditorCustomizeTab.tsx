@@ -88,6 +88,7 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
 interface SortOrderDropdownOption {
     label: string
     value: Omit<SortConfig, "sortOrder">
+    display?: { name: string; displayName: string }
 }
 
 @observer
@@ -108,7 +109,11 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
     @computed get sortOptions(): SortOrderDropdownOption[] {
         const dimensionSortOptions = this.grapher.yColumns.map(
             (column): SortOrderDropdownOption => ({
-                label: column.name,
+                label: column.displayName,
+                display: {
+                    name: column.name,
+                    displayName: column.displayName,
+                },
                 value: {
                     sortBy: SortBy.dimension,
                     sortColumnSlug: column.slug,
@@ -152,6 +157,19 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
                                 omit(this.sortConfig, "sortOrder")
                             )
                         )}
+                        formatOptionLabel={(opt, { context }) =>
+                            opt.display && context === "menu" ? (
+                                <span>
+                                    {opt.display.displayName}
+                                    <br />
+                                    <small style={{ opacity: 0.8 }}>
+                                        {opt.display.name}
+                                    </small>
+                                </span>
+                            ) : (
+                                opt.label
+                            )
+                        }
                     />
                 </div>
                 <div className="form-group">
