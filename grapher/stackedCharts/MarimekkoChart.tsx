@@ -380,7 +380,7 @@ export class MarimekkoChart
                     label: entityName,
                     xPoint: xPoint,
                     entityColor: color
-                        ? { colorDomainValue, color }
+                        ? { colorDomainValue: colorDomainValue?.value, color }
                         : undefined,
                     bars: excludeUndefined(
                         this.series.map((series): Bar | undefined => {
@@ -572,9 +572,8 @@ export class MarimekkoChart
                 >
                     {bars.map((bar) => {
                         const isFaint =
-                            this.focusSeriesName !== undefined &&
-                            entityColor?.colorDomainValue !==
-                                this.focusSeriesName
+                            focusSeriesName !== undefined &&
+                            entityColor?.colorDomainValue !== focusSeriesName
 
                         return this.renderBar(
                             bar,
