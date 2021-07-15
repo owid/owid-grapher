@@ -94,9 +94,7 @@ interface Bar {
 }
 
 interface TooltipProps {
-    label: string
-    bars: Bar[]
-    xPoint: SimplePoint
+    item: Item
     highlightedSeriesName?: string
     targetTime?: Time
     timeColumn: CoreColumn
@@ -521,15 +519,14 @@ export class MarimekkoChart
         const selectionSet = this.selectionArray.selectedSet
         let isEven = true
 
-        for (const { label, bars, xPoint, entityColor } of this.items) {
+        for (const item of this.items) {
+            const { label, bars, xPoint, entityColor } = item
             const tooltipProps = {
-                label,
-                bars,
+                item,
                 targetTime: this.manager.endTime,
                 timeColumn: this.inputTable.timeColumn,
                 formatColumn: this.formatColumn,
                 xAxisColumn: this.xColumn,
-                xPoint,
             }
             const optionalLabel = this.labels.get(label)
 
@@ -797,6 +794,30 @@ export class MarimekkoChart
 
     private static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
+        const isSingleVariable = props.item.bars.length === 1
+        const header = isSingleVariable ? (
+            <tr>
+                <td>
+                    <div
+                        style={{
+                            width: "10px",
+                            height: "10px",
+                            backgroundColor: props.item.entityColor?.color,
+                            display: "inline-block",
+                        }}
+                    />
+                </td>
+                <td colSpan={3} style={{ color: "#111" }}>
+                    <strong>{props.item.label}</strong>
+                </td>
+            </tr>
+        ) : (
+            <tr>
+                <td colSpan={4} style={{ color: "#111" }}>
+                    <strong>{props.item.label}</strong>
+                </td>
+            </tr>
+        )
 
         return (
             <table
@@ -807,13 +828,8 @@ export class MarimekkoChart
                 }}
             >
                 <tbody>
-                    <tr>
-                        <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{props.label}</strong>
-                        </td>
-                    </tr>
-
-                    {props.bars.map((bar) => {
+                    {header}
+                    {props.item.bars.map((bar) => {
                         const { highlightedSeriesName } = props
                         const squareColor = bar.color
                         const isHighlighted =
@@ -825,6 +841,16 @@ export class MarimekkoChart
                             bar.yPoint.value !== undefined &&
                             bar.yPoint.time !== props.targetTime
                         hasTimeNotice ||= shouldShowTimeNotice
+                        const colorSquare = isSingleVariable ? null : (
+                            <div
+                                style={{
+                                    width: "10px",
+                                    height: "10px",
+                                    backgroundColor: squareColor,
+                                    display: "inline-block",
+                                }}
+                            />
+                        )
 
                         return (
                             <tr
@@ -835,21 +861,9 @@ export class MarimekkoChart
                                         : isFaint
                                         ? "#707070"
                                         : "#444",
-                                    fontWeight: isHighlighted
-                                        ? "bold"
-                                        : undefined,
                                 }}
                             >
-                                <td>
-                                    <div
-                                        style={{
-                                            width: "10px",
-                                            height: "10px",
-                                            backgroundColor: squareColor,
-                                            display: "inline-block",
-                                        }}
-                                    />
-                                </td>
+                                <td>{colorSquare}</td>
                                 <td
                                     style={{
                                         paddingRight: "0.8em",
@@ -892,7 +906,7 @@ export class MarimekkoChart
                                             />{" "}
                                         </span>
                                         {props.timeColumn.formatValue(
-                                            props.xPoint.time
+                                            props.item.xPoint.time
                                         )}
                                     </td>
                                 )}
@@ -909,7 +923,7 @@ export class MarimekkoChart
                             }}
                         >
                             {props.xAxisColumn.formatValueShort(
-                                props.xPoint.value
+                                props.item.xPoint.value
                             )}
                         </td>
                         <td></td>
