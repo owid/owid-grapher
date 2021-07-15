@@ -64,33 +64,39 @@ export interface MarimekkoChartManager extends ChartManager {
     matchingEntitiesOnly?: boolean
 }
 
+interface EntityColorData {
+    color: Color
+    colorDomainValue: string
+}
+
 interface Item {
     label: string
+    entityColor: EntityColorData | undefined
     bars: Bar[]
+    xPoint: SimplePoint
 }
 
 interface SimplePoint {
     value: number
     entity: string
     time: number
-    colorDomainValue: string | undefined
-    color: Color | undefined // color based on assignment from the optional color column, e.g. continents for countries
 }
 
-export interface SimpleChartSeries extends ChartSeries {
+export interface SimpleChartSeries {
+    seriesName: string
     points: SimplePoint[]
 }
 
 interface Bar {
     color: Color // color from the variable
     seriesName: string
-    xPoint: SimplePoint
     yPoint: StackedPoint<EntityName>
 }
 
 interface TooltipProps {
     label: string
     bars: Bar[]
+    xPoint: SimplePoint
     highlightedSeriesName?: string
     targetTime?: Time
     timeColumn: CoreColumn
@@ -353,6 +359,7 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
+        const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
 
         const items: Item[] = entityNames
@@ -361,8 +368,22 @@ export class MarimekkoChart
                     (point) => point.entity === entityName
                 )
                 if (!xPoint) return undefined
+
+                const colorRowsByEntity = hasColorColumn
+                    ? this.colorColumn.owidRowsByEntityName
+                    : undefined
+                const colorDomainValue = colorRowsByEntity?.get(entityName)?.[0]
+
+                const color = colorDomainValue
+                    ? this.colorScale.getColor(colorDomainValue.value)
+                    : undefined
+
                 return {
                     label: entityName,
+                    xPoint: xPoint,
+                    entityColor: color
+                        ? { colorDomainValue, color }
+                        : undefined,
                     bars: excludeUndefined(
                         this.series.map((series): Bar | undefined => {
                             const point = series.points.find(
@@ -370,9 +391,8 @@ export class MarimekkoChart
                             )
                             if (!point) return undefined
                             return {
-                                xPoint,
                                 yPoint: point,
-                                color: xPoint.color ?? series.color,
+                                color: series.color,
                                 seriesName: series.seriesName,
                             }
                         })
@@ -501,7 +521,7 @@ export class MarimekkoChart
         const selectionSet = this.selectionArray.selectedSet
         let isEven = true
 
-        for (const { label, bars } of this.items) {
+        for (const { label, bars, xPoint, entityColor } of this.items) {
             const tooltipProps = {
                 label,
                 bars,
@@ -509,11 +529,12 @@ export class MarimekkoChart
                 timeColumn: this.inputTable.timeColumn,
                 formatColumn: this.formatColumn,
                 xAxisColumn: this.xColumn,
+                xPoint,
             }
             const optionalLabel = this.labels.get(label)
 
             const exactWidth =
-                dualAxis.horizontalAxis.place(bars[0].xPoint.value) -
+                dualAxis.horizontalAxis.place(xPoint.value) -
                 dualAxis.horizontalAxis.place(x0)
             const correctedWidth = exactWidth * xDomainCorrectionFactor
             const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
@@ -555,7 +576,8 @@ export class MarimekkoChart
                     {bars.map((bar) => {
                         const isFaint =
                             this.focusSeriesName !== undefined &&
-                            bar.xPoint.colorDomainValue !== this.focusSeriesName
+                            entityColor?.colorDomainValue !==
+                                this.focusSeriesName
 
                         return this.renderBar(
                             bar,
@@ -563,11 +585,11 @@ export class MarimekkoChart
                                 ...tooltipProps,
                                 highlightedSeriesName: bar.seriesName,
                             },
-                            isEven,
                             barWidth,
                             isHovered,
                             isSelected,
-                            isFaint
+                            isFaint,
+                            entityColor?.color
                         )
                     })}
 
@@ -586,20 +608,22 @@ export class MarimekkoChart
     private renderBar(
         bar: Bar,
         tooltipProps: TooltipProps,
-        isEven: boolean,
         barWidth: number,
         isHovered: boolean,
         isSelected: boolean,
-        isFaint: boolean
+        isFaint: boolean,
+        entityColor: string | undefined
     ): JSX.Element {
-        const { dualAxis, focusSeriesName } = this
+        const { dualAxis } = this
         const { yPoint, seriesName } = bar
 
+        const barBaseColor = entityColor ?? bar.color
+
         const barColor = isHovered
-            ? color(bar.color)?.brighter(0.9).toString() ?? bar.color
+            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
             : isSelected
-            ? color(bar.color)?.brighter(0.6).toString() ?? bar.color
-            : bar.color
+            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+            : barBaseColor
         const strokeColor = isHovered || isSelected ? "#555" : "#666"
         const strokeWidth = isHovered || isSelected ? "1px" : "0.3px"
 
@@ -788,16 +812,7 @@ export class MarimekkoChart
                             <strong>{props.label}</strong>
                         </td>
                     </tr>
-                    <tr>
-                        <td></td>
-                        <td>{props.xAxisColumn.displayName}</td>
-                        <td>
-                            {props.xAxisColumn.formatValueShort(
-                                props.bars[0].xPoint.value
-                            )}
-                        </td>
-                        <td></td>
-                    </tr>
+
                     {props.bars.map((bar) => {
                         const { highlightedSeriesName } = props
                         const squareColor = bar.color
@@ -877,13 +892,28 @@ export class MarimekkoChart
                                             />{" "}
                                         </span>
                                         {props.timeColumn.formatValue(
-                                            bar.xPoint.time
+                                            props.xPoint.time
                                         )}
                                     </td>
                                 )}
                             </tr>
                         )
                     })}
+                    <tr>
+                        <td></td>
+                        <td>{props.xAxisColumn.displayName}</td>
+                        <td
+                            style={{
+                                textAlign: "right",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {props.xAxisColumn.formatValueShort(
+                                props.xPoint.value
+                            )}
+                        </td>
+                        <td></td>
+                    </tr>
                     {hasTimeNotice && (
                         <tr>
                             <td
@@ -1016,42 +1046,22 @@ export class MarimekkoChart
     }
 
     @computed get xSeries(): SimpleChartSeries {
-        const hasColorColumn = !this.colorColumn.isMissing
-        const { matchingEntitiesOnly } = this.manager
         const createStackedXPoints = (
             rows: LegacyOwidRow<any>[]
         ): SimplePoint[] => {
             const points: SimplePoint[] = []
-            const colorRowsByEntity = hasColorColumn
-                ? this.colorColumn.owidRowsByEntityName
-                : undefined
             for (const row of rows) {
-                const colorDomainValue = colorRowsByEntity?.get(
-                    row.entityName
-                )?.[0]
-
-                const color = colorDomainValue
-                    ? this.colorScale.getColor(colorDomainValue.value)
-                    : undefined
-
-                if (!hasColorColumn || color || !matchingEntitiesOnly) {
-                    // drop entities that have not been assigned a color for now
-                    // TODO: this will be an issue for non-country entities
-                    points.push({
-                        time: row.time,
-                        value: row.value,
-                        entity: row.entityName,
-                        color: color,
-                        colorDomainValue: colorDomainValue?.value,
-                    })
-                }
+                points.push({
+                    time: row.time,
+                    value: row.value,
+                    entity: row.entityName,
+                })
             }
             return points
         }
         const column = this.xColumn
         return {
             seriesName: column.displayName,
-            color: column.def.color || "#55a", // TODO: default color?
             points: createStackedXPoints(column.owidRows),
         }
     }
