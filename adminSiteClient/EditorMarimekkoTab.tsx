@@ -48,6 +48,10 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
             grapher.excludedEntities.push(entityId)
     }
 
+    @action.bound onXOverrideYear(value: number | undefined) {
+        this.props.grapher.xOverrideTime = value
+    }
+
     @action.bound onUnexcludeEntity(entity: string) {
         const { grapher } = this.props
         if (!grapher.excludedEntities) return
@@ -65,6 +69,13 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         return (
             <div className="EditorScatterTab">
                 <Section name="Filtering">
+                    <NumberField
+                        label="Override X axis target year"
+                        value={grapher.xOverrideTime}
+                        onValue={debounce(this.onXOverrideYear, 300)}
+                        allowNegative
+                    />
+
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
                         value={!!grapher.matchingEntitiesOnly}

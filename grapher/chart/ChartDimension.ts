@@ -29,7 +29,7 @@ class ChartDimensionDefaults implements LegacyChartDimensionInterface {
 
     @observable display = new LegacyVariableDisplayConfig() // todo: make persistable
 
-    // XXX move this somewhere else, it's only used for scatter x override
+    // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
     @observable targetYear?: Time = undefined
 }
 
