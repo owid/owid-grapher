@@ -19,7 +19,6 @@ import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
-    IntermediatePlacedFacetSeries,
 } from "./FacetChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
@@ -62,7 +61,7 @@ export class FacetChart
      *
      * @danielgavrilov, 2021-07-13
      */
-    @computed get intermediatePlacedSeries(): IntermediatePlacedFacetSeries[] {
+    @computed get intermediatePlacedSeries(): PlacedFacetSeries[] {
         const { manager, series } = this
         const count = series.length
 
@@ -93,8 +92,6 @@ export class FacetChart
                 series.chartTypeName ??
                 this.props.chartTypeName ??
                 ChartTypeName.LineChart
-            const ChartClass =
-                ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
             const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
             const hideYAxis = false // column > 0 // todo: figure out design issues here
             const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
@@ -124,12 +121,20 @@ export class FacetChart
                 manager,
                 seriesName: series.seriesName,
                 color: series.color,
-                chartInstance: new ChartClass({ manager }),
             }
         })
     }
 
     @computed get placedSeries(): PlacedFacetSeries[] {
+        // Create intermediate chart views to determine some of the properties
+        const chartInstances = this.intermediatePlacedSeries.map(
+            ({ manager, chartTypeName }) => {
+                const ChartClass =
+                    ChartComponentClassMap.get(chartTypeName) ??
+                    DefaultChartClass
+                return new ChartClass({ manager })
+            }
+        )
         // Uniform X axis
         const uniformXAxis = true
         let xAxisConfig: AxisConfigInterface = {}
@@ -137,8 +142,8 @@ export class FacetChart
             const [min, max] = extent(
                 excludeUndefined(
                     flatten(
-                        this.intermediatePlacedSeries.map(
-                            (series) => series.chartInstance.xAxis?.domain
+                        chartInstances.map(
+                            (chartInstance) => chartInstance.xAxis?.domain
                         )
                     )
                 )
@@ -153,8 +158,8 @@ export class FacetChart
             const [min, max] = extent(
                 excludeUndefined(
                     flatten(
-                        this.intermediatePlacedSeries.map(
-                            (series) => series.chartInstance.yAxis?.domain
+                        chartInstances.map(
+                            (chartInstance) => chartInstance.yAxis?.domain
                         )
                     )
                 )
@@ -175,8 +180,6 @@ export class FacetChart
                     ...yAxisConfig,
                 },
             },
-            // delete property
-            chartInstance: undefined,
         }))
     }
 

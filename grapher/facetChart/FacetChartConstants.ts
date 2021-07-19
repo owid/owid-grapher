@@ -19,7 +19,3 @@ export interface PlacedFacetSeries extends FacetSeries {
     chartTypeName: ChartTypeName
     bounds: Bounds
 }
-
-export interface IntermediatePlacedFacetSeries extends PlacedFacetSeries {
-    chartInstance: ChartInterface
-}
