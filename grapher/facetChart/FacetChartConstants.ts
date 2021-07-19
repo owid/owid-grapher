@@ -1,4 +1,4 @@
-import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
+import { ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartTypeName } from "../core/GrapherConstants"
 import { Bounds } from "../../clientUtils/Bounds"
