@@ -172,8 +172,6 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
-        if (this.manager.hideXAxis) axisConfig.hideAxis = true
-
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
@@ -192,7 +190,6 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         )
         const axisConfig =
             this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
-        if (this.manager.hideYAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]

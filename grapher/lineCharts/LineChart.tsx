@@ -736,7 +736,6 @@ export class LineChart
         const { manager } = this
         const axisConfig =
             manager.xAxis ?? new AxisConfig(manager.xAxisConfig, this)
-        if (manager.hideXAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
@@ -754,9 +753,7 @@ export class LineChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const { manager } = this
         const axisConfig = this.yAxisConfig
-        if (manager.hideYAxis) axisConfig.hideAxis = true
         const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()

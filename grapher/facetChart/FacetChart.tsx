@@ -110,15 +110,11 @@ export class FacetChart
                 series.chartTypeName ??
                 this.props.chartTypeName ??
                 ChartTypeName.LineChart
-            const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
-            const hideYAxis = false // column > 0 // todo: figure out design issues here
             const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
             const hidePoints = true
 
             const manager: ChartManager = {
                 table,
-                hideXAxis,
-                hideYAxis,
                 baseFontSize,
                 lineStrokeWidth,
                 hideLegend,

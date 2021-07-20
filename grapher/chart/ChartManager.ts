@@ -62,9 +62,6 @@ export interface ChartManager {
     hidePoints?: boolean // for line options
     lineStrokeWidth?: number
 
-    hideXAxis?: boolean
-    hideYAxis?: boolean
-
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 
     sortConfig?: SortConfig
