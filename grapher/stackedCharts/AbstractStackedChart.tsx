@@ -17,7 +17,11 @@ import {
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
+import {
+    StackedPoint,
+    StackedPointPositionType,
+    StackedSeries,
+} from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -229,7 +233,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
             : this.columnsAsSeries
     }
 
-    @computed protected get allStackedPoints() {
+    @computed protected get allStackedPoints(): StackedPoint<PositionType>[] {
         return flatten(this.series.map((series) => series.points))
     }
 
