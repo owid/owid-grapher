@@ -34,7 +34,7 @@ import {
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { AxisConfig } from "../axis/AxisConfig"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     LinesProps,
@@ -242,7 +242,7 @@ export class LineChart
         bounds?: Bounds
         manager: LineChartManager
     }>
-    implements ChartInterface, LineLegendManager {
+    implements ChartInterface, LineLegendManager, FontSizeManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {
@@ -732,11 +732,14 @@ export class LineChart
         })
     }
 
-    @computed private get horizontalAxisPart(): HorizontalAxis {
+    @computed private get xAxisConfig(): AxisConfig {
         const { manager } = this
-        const axisConfig =
-            manager.xAxis ?? new AxisConfig(manager.xAxisConfig, this)
-        const axis = axisConfig.toHorizontalAxis()
+        const config = manager.xAxis?.toObject() ?? manager.xAxisConfig
+        return new AxisConfig(config, this)
+    }
+
+    @computed private get horizontalAxisPart(): HorizontalAxis {
+        const axis = this.xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
@@ -749,7 +752,14 @@ export class LineChart
 
     @computed private get yAxisConfig(): AxisConfig {
         const { manager } = this
-        return manager.yAxis ?? new AxisConfig(manager.yAxisConfig, this)
+        const config = manager.yAxis?.toObject() ?? manager.yAxisConfig
+        return new AxisConfig(
+            {
+                ...config,
+                nice: true,
+            },
+            this
+        )
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
