@@ -84,7 +84,7 @@ export class FacetChart
 
         // Copy properties from manager to facets
         const baseFontSize = this.facetFontSize
-        const lineStrokeWidth = count > 16 ? 1 : undefined
+        const lineStrokeWidth = count > 16 ? 1.5 : undefined
         const gridBoundsArr = this.bounds.grid(
             count,
             getChartPadding(count, baseFontSize)
