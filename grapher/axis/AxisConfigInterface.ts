@@ -8,6 +8,7 @@ export interface AxisConfigInterface {
     max?: number
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
+    hideAxis?: boolean
 
     /**
      * Minimum pixels to take up.

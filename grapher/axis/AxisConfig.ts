@@ -25,6 +25,7 @@ class AxisConfigDefaults {
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
     @observable.ref minSize?: number = undefined
+    @observable.ref hideAxis?: boolean = undefined
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
 }
 
@@ -58,6 +59,7 @@ export class AxisConfig
             removePointsOutsideDomain: this.removePointsOutsideDomain,
             facetAxisRange: this.facetAxisRange,
             minSize: this.minSize,
+            hideAxis: this.hideAxis,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
