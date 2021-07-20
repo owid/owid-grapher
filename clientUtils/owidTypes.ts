@@ -285,3 +285,9 @@ export enum HorizontalAlign {
     center = "center",
     right = "right",
 }
+
+export enum VerticalAlign {
+    top = "top",
+    middle = "middle",
+    bottom = "bottom",
+}

@@ -6,7 +6,12 @@ import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ValueRange } from "../../coreTable/CoreTableConstants"
-import { Position, ScaleType } from "../../clientUtils/owidTypes"
+import {
+    HorizontalAlign,
+    Position,
+    ScaleType,
+    VerticalAlign,
+} from "../../clientUtils/owidTypes"
 import { TickFormattingOptions } from "../../clientUtils/formatValue"
 
 interface Tickmark {
@@ -14,13 +19,35 @@ interface Tickmark {
     priority: number
     faint?: boolean
     gridLineOnly?: boolean
-    isFirstOrLastTick?: boolean
 }
 
-interface TickPlacement {
-    tick: number
-    bounds: Bounds
+interface TickLabelPlacement {
+    value: number
+    formattedValue: string
+    x: number
+    y: number
+    width: number
+    height: number
+    xAlign?: HorizontalAlign
+    yAlign?: VerticalAlign
     isHidden: boolean
+}
+
+const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
+    const { x, y, width, height, xAlign, yAlign } = label
+    const xShift =
+        xAlign === HorizontalAlign.center
+            ? -width / 2
+            : xAlign === HorizontalAlign.right
+            ? -width
+            : 0
+    const yShift =
+        yAlign === VerticalAlign.middle
+            ? -height / 2
+            : yAlign === VerticalAlign.bottom
+            ? -height
+            : 0
+    return new Bounds(x + xShift, y + yShift, width, height)
 }
 
 abstract class AbstractAxis {
@@ -282,20 +309,34 @@ abstract class AbstractAxis {
         return bounds.intersects(bounds2)
     }
 
-    @computed get ticks(): number[] {
-        const { tickPlacements } = this
-        for (let i = 0; i < tickPlacements.length; i++) {
-            for (let j = i + 1; j < tickPlacements.length; j++) {
-                const t1 = tickPlacements[i],
-                    t2 = tickPlacements[j]
+    @computed get tickLabels(): TickLabelPlacement[] {
+        // Get ticks with coordinates, sorted by priority
+        const tickLabels = sortBy(
+            this.baseTicks,
+            (tick) => tick.priority
+        ).map((tick) => this.placeTickLabel(tick.value))
+        // Hide overlapping ticks
+        for (let i = 0; i < tickLabels.length; i++) {
+            for (let j = i + 1; j < tickLabels.length; j++) {
+                const t1 = tickLabels[i],
+                    t2 = tickLabels[j]
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
-                if (this.doIntersect(t1.bounds, t2.bounds)) t2.isHidden = true
+                if (
+                    this.doIntersect(
+                        boundsFromLabelPlacement(t1),
+                        boundsFromLabelPlacement(t2)
+                    )
+                )
+                    t2.isHidden = true
             }
         }
+        return tickLabels.filter((t) => !t.isHidden)
+    }
 
-        return sortBy(
-            tickPlacements.filter((t) => !t.isHidden).map((t) => t.tick)
-        )
+    @computed get ticks(): number[] {
+        // We derive tick values based on the labels to avoid showing ticks without labels (labels
+        // get hidden when they overlap)
+        return this.tickLabels.map((label) => label.value)
     }
 
     formatTick(
@@ -312,25 +353,6 @@ abstract class AbstractAxis {
         )
     }
 
-    // calculates coordinates for ticks, sorted by priority
-    @computed private get tickPlacements(): TickPlacement[] {
-        return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
-            const bounds = Bounds.forText(
-                this.formatTick(tick.value, {
-                    isFirstOrLastTick: tick.isFirstOrLastTick,
-                }),
-                {
-                    fontSize: this.tickFontSize,
-                }
-            )
-            return {
-                tick: tick.value,
-                bounds: bounds.extend(this.placeTick(tick.value, bounds)),
-                isHidden: false,
-            }
-        })
-    }
-
     @computed get labelFontSize(): number {
         return 0.7 * this.fontSize
     }
@@ -342,10 +364,7 @@ abstract class AbstractAxis {
     abstract get size(): number
     abstract get labelWidth(): number
 
-    protected abstract placeTick(
-        tickValue: number,
-        bounds: Bounds
-    ): { x: number; y: number }
+    abstract placeTickLabel(value: number): TickLabelPlacement
 
     @computed get labelTextWrap(): TextWrap | undefined {
         const text = this.label
@@ -408,7 +427,6 @@ export class HorizontalAxis extends AbstractAxis {
                 {
                     value: domain[0],
                     priority: startEndPrio,
-                    isFirstOrLastTick: true,
                 },
                 ...ticks,
             ]
@@ -418,20 +436,37 @@ export class HorizontalAxis extends AbstractAxis {
                 {
                     value: domain[1],
                     priority: startEndPrio,
-                    isFirstOrLastTick: true,
                 },
             ]
         return uniq(ticks)
     }
 
-    protected placeTick(
-        tickValue: number,
-        bounds: Bounds
-    ): { x: number; y: number } {
-        const { labelOffset } = this
+    placeTickLabel(value: number): TickLabelPlacement {
+        const formattedValue = this.formatTick(value)
+        const { width, height } = Bounds.forText(formattedValue, {
+            fontSize: this.tickFontSize,
+        })
+        let x = this.place(value)
+        let xAlign = HorizontalAlign.center
+        const left = x - width / 2
+        const right = x + width / 2
+        if (left < this.rangeMin) {
+            x = this.rangeMin
+            xAlign = HorizontalAlign.left
+        }
+        if (right > this.rangeMax) {
+            x = this.rangeMax
+            xAlign = HorizontalAlign.right
+        }
         return {
-            x: this.place(tickValue) - bounds.width / 2,
-            y: bounds.bottom - labelOffset,
+            value,
+            formattedValue,
+            x,
+            y: 0,
+            width,
+            height,
+            xAlign,
+            isHidden: false,
         }
     }
 
@@ -481,12 +516,22 @@ export class VerticalAxis extends AbstractAxis {
         return this.width
     }
 
-    protected placeTick(tickValue: number): { y: number; x: number } {
+    placeTickLabel(value: number): TickLabelPlacement {
+        const formattedValue = this.formatTick(value)
+        const { width, height } = Bounds.forText(formattedValue, {
+            fontSize: this.tickFontSize,
+        })
+        const y = this.place(value)
         return {
-            y: this.place(tickValue),
-            // x placement doesn't really matter here, so we're using
-            // 1 for simplicity
-            x: 1,
+            value,
+            formattedValue,
+            x: 0,
+            y,
+            width,
+            height,
+            xAlign: HorizontalAlign.right,
+            yAlign: VerticalAlign.middle,
+            isHidden: false,
         }
     }
 }

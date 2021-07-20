@@ -64,18 +64,6 @@ export class Bounds {
         )
     }
 
-    static getRightShiftForMiddleAlignedTextIfNeeded(
-        label: string,
-        fontSize: number,
-        xPosition: number
-    ): number {
-        const bounds = Bounds.forText(label, {
-            fontSize,
-        })
-        const overflow = xPosition - Math.ceil(bounds.width / 2)
-        return overflow < 0 ? Math.abs(overflow) : 0
-    }
-
     static empty(): Bounds {
         return new Bounds(0, 0, 0, 0)
     }

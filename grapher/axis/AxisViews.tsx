@@ -5,11 +5,28 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
+import { HorizontalAlign, VerticalAlign } from "../../clientUtils/owidTypes"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
     const spaceLength = Math.round((dashLength * 2) / 3)
     return `${dashLength},${spaceLength}`
+}
+
+const textAnchorFromAlign = (
+    align: HorizontalAlign
+): "start" | "middle" | "end" => {
+    if (align === HorizontalAlign.center) return "middle"
+    if (align === HorizontalAlign.right) return "end"
+    return "start"
+}
+
+const dominantBaselineFromAlign = (
+    align: VerticalAlign
+): "auto" | "middle" | "hanging" => {
+    if (align === VerticalAlign.middle) return "middle"
+    if (align === VerticalAlign.bottom) return "hanging"
+    return "auto"
 }
 
 @observer
@@ -161,7 +178,7 @@ export class VerticalAxisComponent extends React.Component<{
 }> {
     render(): JSX.Element {
         const { bounds, verticalAxis } = this.props
-        const { ticks, labelTextWrap } = verticalAxis
+        const { tickLabels, labelTextWrap } = verticalAxis
         const textColor = "#666"
 
         return (
@@ -172,23 +189,30 @@ export class VerticalAxisComponent extends React.Component<{
                         bounds.left,
                         { transform: "rotate(-90)" }
                     )}
-                {ticks.map((tick, i) => (
-                    <text
-                        key={i}
-                        x={(
-                            bounds.left +
-                            verticalAxis.width -
-                            verticalAxis.labelPadding
-                        ).toFixed(2)}
-                        y={verticalAxis.place(tick)}
-                        fill={textColor}
-                        dominantBaseline="middle"
-                        textAnchor="end"
-                        fontSize={verticalAxis.tickFontSize}
-                    >
-                        {verticalAxis.formatTick(tick)}
-                    </text>
-                ))}
+                {tickLabels.map((label, i) => {
+                    const { y, xAlign, yAlign, formattedValue } = label
+                    return (
+                        <text
+                            key={i}
+                            x={(
+                                bounds.left +
+                                verticalAxis.width -
+                                verticalAxis.labelPadding
+                            ).toFixed(2)}
+                            y={y}
+                            fill={textColor}
+                            dominantBaseline={dominantBaselineFromAlign(
+                                yAlign ?? VerticalAlign.middle
+                            )}
+                            textAnchor={textAnchorFromAlign(
+                                xAlign ?? HorizontalAlign.right
+                            )}
+                            fontSize={verticalAxis.tickFontSize}
+                        >
+                            {formattedValue}
+                        </text>
+                    )
+                })}
             </g>
         )
     }
@@ -216,7 +240,7 @@ export class HorizontalAxisComponent extends React.Component<{
 
     render(): JSX.Element {
         const { bounds, axis, axisPosition, showTickMarks } = this.props
-        const { ticks, labelTextWrap: label, labelOffset } = axis
+        const { ticks, tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
 
         const tickMarks = showTickMarks ? (
@@ -237,34 +261,26 @@ export class HorizontalAxisComponent extends React.Component<{
                         bounds.bottom - label.height
                     )}
                 {tickMarks}
-                {ticks.map((tick, i) => {
-                    const label = axis.formatTick(tick, {
-                        isFirstOrLastTick: i === 0 || i === ticks.length - 1,
-                    })
-                    const rawXPosition = axis.place(tick)
-                    // Ensure the first label does not exceed the chart viewing area
-                    const xPosition =
-                        i === 0
-                            ? Bounds.getRightShiftForMiddleAlignedTextIfNeeded(
-                                  label,
-                                  axis.tickFontSize,
-                                  rawXPosition
-                              ) + rawXPosition
-                            : rawXPosition
-                    const element = (
+                {tickLabels.map((label, i) => {
+                    const { x, xAlign, formattedValue } = label
+                    return (
                         <text
                             key={i}
-                            x={xPosition}
+                            // We use placeTickLabel() instead of using tick.x directly because the
+                            // range may have shifted e.g. to create space for the Y axis.
+                            // We use placeTickLabel() instead of place() because it sets an X
+                            // coordinate that may be different from the X coordinate of the tick mark.
+                            x={x}
                             y={bounds.bottom - labelOffset}
                             fill={textColor}
-                            textAnchor="middle"
+                            textAnchor={textAnchorFromAlign(
+                                xAlign ?? HorizontalAlign.center
+                            )}
                             fontSize={axis.tickFontSize}
                         >
-                            {label}
+                            {formattedValue}
                         </text>
                     )
-
-                    return element
                 })}
             </g>
         )
@@ -278,7 +294,7 @@ export class AxisTickMarks extends React.Component<{
 }> {
     render(): JSX.Element[] {
         const { tickMarkTopPosition, tickMarkXPositions, color } = this.props
-        const tickSize = 4
+        const tickSize = 5
         const tickBottom = tickMarkTopPosition + tickSize
         return tickMarkXPositions.map((tickMarkPosition, index) => {
             return (
