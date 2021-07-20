@@ -29,6 +29,10 @@ const dominantBaselineFromAlign = (
     return "auto"
 }
 
+const TICK_COLOR = "#ddd"
+const FAINT_TICK_COLOR = "#eee"
+const DOMAIN_TICK_COLOR = "#999"
+
 @observer
 export class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
@@ -43,10 +47,10 @@ export class VerticalAxisGridLines extends React.Component<{
             <g className={classNames("AxisGridLines", "horizontalLines")}>
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
-                        ? "#eee"
+                        ? FAINT_TICK_COLOR
                         : t.value === 0
-                        ? "#ccc"
-                        : "#d3d3d3"
+                        ? DOMAIN_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line
@@ -90,10 +94,10 @@ export class HorizontalAxisGridLines extends React.Component<{
             <g className={classNames("AxisGridLines", "verticalLines")}>
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
-                        ? "#eee"
+                        ? FAINT_TICK_COLOR
                         : t.value === 0
-                        ? "#ccc"
-                        : "#d3d3d3"
+                        ? DOMAIN_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line
@@ -249,7 +253,7 @@ export class HorizontalAxisComponent extends React.Component<{
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
                 )}
-                color="#ccc"
+                color={DOMAIN_TICK_COLOR}
             />
         ) : undefined
 
