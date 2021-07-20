@@ -334,7 +334,9 @@ export class FacetChart
     }
 
     @computed protected get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(this.facetFontSize)
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(
+            this.facetFontSize + 10
+        )
     }
 
     @computed protected get manager(): ChartManager {
