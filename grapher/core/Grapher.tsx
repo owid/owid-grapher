@@ -402,8 +402,8 @@ export class Grapher
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
         // todo: remove dimensions concept
-        if (this.legacyConfigAsAuthored?.dimensions)
-            obj.dimensions = this.legacyConfigAsAuthored.dimensions
+        // if (this.legacyConfigAsAuthored?.dimensions)
+        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
 
         return obj
     }
