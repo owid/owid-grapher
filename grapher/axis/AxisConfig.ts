@@ -25,7 +25,7 @@ class AxisConfigDefaults {
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
     @observable.ref minSize?: number = undefined
-    @observable.ref hideAxis?: boolean = undefined
+    @observable.ref hideAxis: boolean = false
     @observable.ref labelPadding: number = 5
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
 }
@@ -43,7 +43,6 @@ export class AxisConfig
     }
 
     private fontSizeManager?: FontSizeManager
-    @observable hideAxis = false
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
