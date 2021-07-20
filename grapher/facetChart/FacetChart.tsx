@@ -62,6 +62,10 @@ export class FacetChart
         )
     }
 
+    @computed private get facetFontSize(): number {
+        return getFontSize(this.series.length, this.manager.baseFontSize)
+    }
+
     /**
      * Holds the intermediate render properties for chart views, as well as the intermediate chart
      * views themselves.
@@ -74,12 +78,17 @@ export class FacetChart
      *
      * @danielgavrilov, 2021-07-13
      */
-    @computed get intermediatePlacedSeries(): PlacedFacetSeries[] {
+    @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
         const { manager, series } = this
         const count = series.length
 
         // Copy properties from manager to facets
-        const gridBoundsArr = this.bounds.grid(count, getChartPadding(count))
+        const baseFontSize = this.facetFontSize
+        const lineStrokeWidth = count > 16 ? 1 : undefined
+        const gridBoundsArr = this.bounds.grid(
+            count,
+            getChartPadding(count, baseFontSize)
+        )
         const {
             yColumnSlug,
             xColumnSlug,
@@ -92,9 +101,6 @@ export class FacetChart
             this.manager.xAxisConfig ?? this.manager.xAxis?.toObject()
         const yAxisConfig =
             this.manager.yAxisConfig ?? this.manager.yAxis?.toObject()
-
-        const baseFontSize = getFontSize(count, manager.baseFontSize)
-        const lineStrokeWidth = count > 16 ? 1 : undefined
 
         const table = this.transformedTable
 
@@ -137,7 +143,7 @@ export class FacetChart
         })
     }
 
-    @computed get placedSeries(): PlacedFacetSeries[] {
+    @computed private get placedSeries(): PlacedFacetSeries[] {
         // Create intermediate chart views to determine some of the properties
         const chartInstances = this.intermediatePlacedSeries.map(
             ({ manager, chartTypeName }) => {
@@ -182,10 +188,11 @@ export class FacetChart
             )
             xAxisConfig.min = min
             xAxisConfig.max = max
-            // xAxisConfig.labelPadding = 10
+            // xAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestXAxis) {
-                const { position, size } = chartInstanceWithLargestXAxis.xAxis!
-                sharedAxisPadding[position] = size
+                const axis = chartInstanceWithLargestXAxis.xAxis!.clone()
+                axis.updateDomainPreservingUserSettings([min, max]).size
+                sharedAxisPadding[axis.position] = axis.size
             }
         }
 
@@ -204,16 +211,20 @@ export class FacetChart
             )
             yAxisConfig.min = min
             yAxisConfig.max = max
-            yAxisConfig.labelPadding = 10
+            yAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestYAxis) {
-                const { position, size } = chartInstanceWithLargestYAxis.yAxis!
-                sharedAxisPadding[position] = size
+                const axis = chartInstanceWithLargestYAxis.yAxis!.clone()
+                axis.updateDomainPreservingUserSettings([min, max]).size
+                sharedAxisPadding[axis.position] = axis.size
             }
         }
         // Allocate space for axes
         const bounds = this.bounds.pad(moveBottomToTop(sharedAxisPadding))
         const count = this.intermediatePlacedSeries.length
-        const gridBoundsArr = bounds.grid(count, getChartPadding(count))
+        const gridBoundsArr = bounds.grid(
+            count,
+            getChartPadding(count, this.facetFontSize)
+        )
         // Overwrite properties (without mutating original)
         return this.intermediatePlacedSeries.map((series, i) => {
             const { bounds, edges } = gridBoundsArr[i]
@@ -323,7 +334,7 @@ export class FacetChart
     }
 
     @computed protected get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(10)
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(this.facetFontSize)
     }
 
     @computed protected get manager(): ChartManager {
@@ -334,27 +345,21 @@ export class FacetChart
         return ""
     }
 
-    @computed private get subtitleFontSize(): number {
-        const { placedSeries, manager } = this
-        return getFontSize(placedSeries.length, manager.baseFontSize)
-    }
-
     render(): JSX.Element[] {
-        const { subtitleFontSize } = this
+        const { facetFontSize } = this
         return this.placedSeries.map((smallChart, index: number) => {
             const ChartClass =
                 ChartComponentClassMap.get(smallChart.chartTypeName) ??
                 DefaultChartClass
             const { bounds, seriesName } = smallChart
-            const shiftTop =
-                smallChart.chartTypeName === ChartTypeName.LineChart ? 6 : 10
+            const shiftTop = facetFontSize * 0.9
             return (
                 <React.Fragment key={index}>
                     <text
                         x={bounds.x}
                         y={bounds.top - shiftTop}
                         fill={"#1d3d63"}
-                        fontSize={subtitleFontSize}
+                        fontSize={facetFontSize}
                         style={{ fontWeight: 700 }}
                     >
                         {seriesName}

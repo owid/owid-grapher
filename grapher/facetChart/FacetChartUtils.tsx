@@ -7,27 +7,20 @@ export const getFontSize = (
     minSize = 8
 ): number => {
     if (count <= 2) return Math.max(minSize, baseFontSize * (16 / 16))
-    if (count <= 4) return Math.max(minSize, baseFontSize * (14 / 16))
-    if (count <= 9) return Math.max(minSize, baseFontSize * (12 / 16))
-    if (count <= 16) return Math.max(minSize, baseFontSize * (10 / 16))
-    if (count <= 25) return Math.max(minSize, baseFontSize * (8 / 16))
+    if (count <= 4) return Math.max(minSize, baseFontSize * (14.5 / 16))
+    if (count <= 9) return Math.max(minSize, baseFontSize * (13 / 16))
+    if (count <= 16) return Math.max(minSize, baseFontSize * (12 / 16))
+    if (count <= 25) return Math.max(minSize, baseFontSize * (11 / 16))
     return minSize
 }
 
 export const getChartPadding = (
-    count: number
+    count: number,
+    baseFontSize: number
 ): { rowPadding: number; columnPadding: number; outerPadding: number } => {
-    if (count > 9) {
-        return {
-            rowPadding: 30,
-            columnPadding: 10,
-            outerPadding: 0,
-        }
-    }
-
     return {
-        rowPadding: 50,
-        columnPadding: 40,
+        rowPadding: Math.round(baseFontSize * 3.5),
+        columnPadding: Math.round(baseFontSize),
         outerPadding: 0,
     }
 }
