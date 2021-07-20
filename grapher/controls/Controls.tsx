@@ -239,24 +239,46 @@ export interface FacetStrategyDropdownManager {
     showFacets?: boolean
 }
 
-const FACET_DROPDOWN_CLASS = "FacetStrategyDropdown"
-
+// A drop-down button that, when clicked, shows a hovering visual display
+// indicating the faceting options.
 export class FacetStrategyDropdown extends React.Component<{
     manager: FacetStrategyDropdownManager
 }> {
-    @computed get options(): JSX.Element {
+    render(): JSX.Element {
+        return (
+            <Tippy
+                content={this.content}
+                interactive={true}
+                trigger={"click"}
+                placement={"bottom"}
+            >
+                <div className="FacetStrategyDropdown">
+                    {facetStrategyLabels[this.facetStrategy]}
+                    <div>
+                        <FontAwesomeIcon icon={faChevronDown} />
+                    </div>
+                </div>
+            </Tippy>
+        )
+    }
+
+    // A hovering visual display giving options to be selected from
+    @computed get content(): JSX.Element {
         const strategies = this.props.manager.availableFacetStrategies || [
             FacetStrategy.none,
             FacetStrategy.entity,
             FacetStrategy.column,
         ]
         const parts = strategies.map((value: FacetStrategy) => {
+            // There are only ever two strategies, none + (country OR entity).
             const label = facetStrategyLabels[value]
             const selected = value == this.facetStrategy ? " selected" : ""
             const children =
                 value === FacetStrategy.none ? (
+                    // a single solid block
                     <div className="FacetStrategyPreview-none-child"></div>
                 ) : (
+                    // a 3x2 grid of squares
                     <>
                         <div className="FacetStrategyPreview-split-child"></div>
                         <div className="FacetStrategyPreview-split-child"></div>
@@ -289,24 +311,6 @@ export class FacetStrategyDropdown extends React.Component<{
 
     @computed get facetStrategy(): FacetStrategy {
         return this.props.manager.facetStrategy || FacetStrategy.none
-    }
-
-    render(): JSX.Element {
-        return (
-            <Tippy
-                content={this.options}
-                interactive={true}
-                trigger={"click"}
-                placement={"bottom"}
-            >
-                <div className={FACET_DROPDOWN_CLASS}>
-                    {facetStrategyLabels[this.facetStrategy]}
-                    <div>
-                        <FontAwesomeIcon icon={faChevronDown} />
-                    </div>
-                </div>
-            </Tippy>
-        )
     }
 }
 
