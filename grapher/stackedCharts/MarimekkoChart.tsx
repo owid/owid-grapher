@@ -68,14 +68,7 @@ interface EntityColorData {
     color: Color
     colorDomainValue: string
 }
-
-interface Item {
-    label: string
-    entityColor: EntityColorData | undefined
-    bars: Bar[]
-    xPoint: SimplePoint
-}
-
+// Points used on the X axis
 interface SimplePoint {
     value: number
     entity: string
@@ -93,6 +86,12 @@ interface Bar {
     yPoint: StackedPoint<EntityName>
 }
 
+interface Item {
+    label: string
+    entityColor: EntityColorData | undefined
+    bars: Bar[] // contains the y values for every y variable
+    xPoint: SimplePoint // contains the single x value
+}
 interface TooltipProps {
     item: Item
     highlightedSeriesName?: string
@@ -122,10 +121,14 @@ export class MarimekkoChart
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
+    defaultBaseColorScheme = ColorSchemeName.continents
+    defaultNoDataColor = "#959595"
+
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
         if (!this.xColumnSlug) return table
         const { excludedEntities } = this.manager
+        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
         if (excludedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
@@ -141,31 +144,29 @@ export class MarimekkoChart
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
-        this.yColumnSlugs.forEach((slug) => {
+        yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
 
-        table = table.interpolateColumnWithTolerance(this.xColumnSlug)
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-        table = table.dropRowsWithErrorValuesForAnyColumn([this.xColumnSlug])
+        table = table.interpolateColumnWithTolerance(xColumnSlug)
+        table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
+        table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
 
-        if (this.manager.isRelativeMode) {
+        if (manager.isRelativeMode) {
             table = table.toPercentageFromEachEntityForEachTime(
                 this.xColumnSlug
             )
         }
 
-        if (this.colorColumnSlug) {
+        if (colorColumnSlug) {
             const tolerance =
-                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+                table.get(colorColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
+                colorColumnSlug,
                 tolerance
             )
             if (this.manager.matchingEntitiesOnly) {
-                table = table.dropRowsWithErrorValuesForColumn(
-                    this.colorColumnSlug
-                )
+                table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
             }
         }
         return table
@@ -202,7 +203,10 @@ export class MarimekkoChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get labelStyle() {
+    @computed private get labelStyle(): {
+        fontSize: number
+        fontWeight: number
+    } {
         return {
             fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
@@ -228,7 +232,6 @@ export class MarimekkoChart
         return flatten(this.series.map((series) => series.points))
     }
 
-    // Now we can work out the main x axis scale
     @computed private get yDomainDefault(): [number, number] {
         const maxValues = this.allPoints.map(
             (point) => point.value + point.valueOffset
@@ -280,7 +283,6 @@ export class MarimekkoChart
         )
     }
 
-    // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
         const sum = sumBy(this.xSeries.points, (point) => point.value)
 
@@ -337,43 +339,36 @@ export class MarimekkoChart
         })
     }
 
-    @computed private get innerBounds(): Bounds {
-        return this.bounds
-            .padLeft(this.dualAxis.verticalAxis.width)
-            .padBottom(this.dualAxis.horizontalAxis.height)
-            .padTop(this.legendPaddingTop)
-            .padTop(this.legend.height)
-        //return this.dualAxis.innerBounds
-    }
-
     @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
     @computed private get selectedItems(): Item[] {
         const selectedSet = this.selectionArray.selectedSet
+        const { items } = this
         if (selectedSet.size === 0) return []
-        return this.items.filter((item) => selectedSet.has(item.label))
+        return items.filter((item) => selectedSet.has(item.label))
     }
 
     @computed private get items(): Item[] {
         const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
+        const { xSeries, colorColumn, colorScale, series } = this
 
         const items: Item[] = entityNames
             .map((entityName) => {
-                const xPoint = this.xSeries.points.find(
+                const xPoint = xSeries.points.find(
                     (point) => point.entity === entityName
                 )
                 if (!xPoint) return undefined
 
                 const colorRowsByEntity = hasColorColumn
-                    ? this.colorColumn.owidRowsByEntityName
+                    ? colorColumn.owidRowsByEntityName
                     : undefined
                 const colorDomainValue = colorRowsByEntity?.get(entityName)?.[0]
 
                 const color = colorDomainValue
-                    ? this.colorScale.getColor(colorDomainValue.value)
+                    ? colorScale.getColor(colorDomainValue.value)
                     : undefined
 
                 return {
@@ -383,7 +378,7 @@ export class MarimekkoChart
                         ? { colorDomainValue: colorDomainValue?.value, color }
                         : undefined,
                     bars: excludeUndefined(
-                        this.series.map((series): Bar | undefined => {
+                        series.map((series): Bar | undefined => {
                             const point = series.points.find(
                                 (point) => point.position === entityName
                             )
@@ -433,9 +428,10 @@ export class MarimekkoChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        if (this.colorColumnSlug) return this.colorScale.categoricalLegendBins
+        const { colorColumnSlug, colorScale, series } = this
+        if (colorColumnSlug) return colorScale.categoricalLegendBins
         else
-            return this.series.map((series, index) => {
+            return series.map((series, index) => {
                 return new CategoricalBin({
                     index,
                     value: series.seriesName,
@@ -514,21 +510,32 @@ export class MarimekkoChart
     private renderBars(): JSX.Element[] {
         const normalElements: JSX.Element[] = []
         const highlightedElements: JSX.Element[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
-        const { dualAxis, x0, xDomainCorrectionFactor, focusSeriesName } = this
+        const {
+            dualAxis,
+            x0,
+            xDomainCorrectionFactor,
+            focusSeriesName,
+            labels,
+            manager,
+        } = this
         let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         const selectionSet = this.selectionArray.selectedSet
         let isEven = true
+        const targetTime = this.manager.endTime
+        const timeColumn = this.inputTable.timeColumn
+        const formatColumn = this.formatColumn
+        const xAxisColumn = this.xColumn
 
         for (const item of this.items) {
             const { label, bars, xPoint, entityColor } = item
             const tooltipProps = {
                 item,
-                targetTime: this.manager.endTime,
-                timeColumn: this.inputTable.timeColumn,
-                formatColumn: this.formatColumn,
-                xAxisColumn: this.xColumn,
+                targetTime,
+                timeColumn,
+                formatColumn,
+                xAxisColumn,
             }
-            const optionalLabel = this.labels.get(label)
+            const optionalLabel = labels.get(label)
 
             const exactWidth =
                 dualAxis.horizontalAxis.place(xPoint.value) -
@@ -548,7 +555,7 @@ export class MarimekkoChart
                     >
                         <TippyIfInteractive
                             lazy
-                            isInteractive={!this.manager.isExportingtoSvgOrPng}
+                            isInteractive={!manager.isExportingtoSvgOrPng}
                             key={seriesName}
                             hideOnClick={false}
                             content={
@@ -610,7 +617,7 @@ export class MarimekkoChart
         isFaint: boolean,
         entityColor: string | undefined
     ): JSX.Element {
-        const { dualAxis } = this
+        const { dualAxis, manager } = this
         const { yPoint, seriesName } = bar
 
         const barBaseColor = entityColor ?? bar.color
@@ -632,7 +639,7 @@ export class MarimekkoChart
         return (
             <TippyIfInteractive
                 lazy
-                isInteractive={!this.manager.isExportingtoSvgOrPng}
+                isInteractive={!manager.isExportingtoSvgOrPng}
                 key={seriesName}
                 hideOnClick={false}
                 content={<MarimekkoChart.Tooltip {...tooltipProps} />}
@@ -701,6 +708,7 @@ export class MarimekkoChart
         const { xColumnFullTimeRange, selectedItems, xRange } = this
         const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
         const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
+
         for (const [entity, rows] of xRowsByEntity.entries()) {
             const row = minBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
             if (row) lastYearOfEachEntity.set(entity, row)
@@ -963,11 +971,13 @@ export class MarimekkoChart
 
     @computed get failMessage(): string {
         const column = this.yColumns[0]
+        const { yColumns, yColumnSlugs, xColumn } = this
 
-        if (!column) return "No column to chart"
+        if (!column) return "No Y column to chart"
+        if (!xColumn) return "No X column to chart"
 
-        return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+        return yColumns.every((col) => col.isEmpty)
+            ? `No matching data in columns ${yColumnSlugs.join(", ")}`
             : ""
     }
 
@@ -1022,9 +1032,6 @@ export class MarimekkoChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = "#959595"
-
     @computed get colorScaleColumn(): CoreColumn {
         // We need to use inputTable in order to get consistent coloring for a variable across
         // charts, e.g. each continent being assigned to the same color.
@@ -1033,14 +1040,15 @@ export class MarimekkoChart
     }
 
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
+        const { colorScheme, yColumns } = this
         return (
-            this.yColumns
+            yColumns
                 .map((col, i) => {
                     return {
                         seriesName: col.displayName,
                         color:
                             col.def.color ??
-                            this.colorScheme.getColors(this.yColumns.length)[i],
+                            colorScheme.getColors(yColumns.length)[i],
                         points: col.owidRows.map((row) => ({
                             time: row.time,
                             position: row.entityName,
