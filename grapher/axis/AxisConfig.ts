@@ -24,13 +24,13 @@ class AxisConfigDefaults {
     @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
+    @observable.ref minSize?: number = undefined
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
 }
 
 export class AxisConfig
     extends AxisConfigDefaults
     implements AxisConfigInterface, Persistable, ScaleSelectorManager {
-    // todo: test/refactor
     constructor(
         props?: AxisConfigInterface,
         fontSizeManager?: FontSizeManager
@@ -57,6 +57,7 @@ export class AxisConfig
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
             facetAxisRange: this.facetAxisRange,
+            minSize: this.minSize,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

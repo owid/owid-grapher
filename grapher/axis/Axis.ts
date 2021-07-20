@@ -380,12 +380,13 @@ export class HorizontalAxis extends AbstractAxis {
         const { labelOffset } = this
         const firstFormattedTick = this.getFormattedTicks()[0]
         const fontSize = this.tickFontSize
+        const height =
             Bounds.forText(firstFormattedTick, {
                 fontSize,
             }).height +
             labelOffset +
             5
-        )
+        return Math.max(height, this.config.minSize ?? 0)
     }
 
     @computed get size(): number {
@@ -461,9 +462,11 @@ export class VerticalAxis extends AbstractAxis {
             this.getFormattedTicks(),
             (tick) => tick.length
         )
+        const width =
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
             labelOffset +
             5
+        return Math.max(width, this.config.minSize ?? 0)
     }
 
     @computed get height(): number {

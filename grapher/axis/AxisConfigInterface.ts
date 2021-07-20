@@ -8,4 +8,10 @@ export interface AxisConfigInterface {
     max?: number
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
+
+    /**
+     * Minimum pixels to take up.
+     * Dictates the minimum height for a HorizontalAxis, minimum width for a VerticalAxis.
+     */
+    minSize?: number
 }
