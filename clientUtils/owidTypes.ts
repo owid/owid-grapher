@@ -279,3 +279,9 @@ export enum Position {
 export type PositionMap<Value> = {
     [key in Position]?: Value
 }
+
+export enum HorizontalAlign {
+    left = "left",
+    center = "center",
+    right = "right",
+}

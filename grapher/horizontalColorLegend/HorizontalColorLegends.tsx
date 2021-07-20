@@ -17,7 +17,7 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { Color } from "../../clientUtils/owidTypes"
+import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
 
 interface PositionedBin {
     x: number
@@ -55,16 +55,10 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-export enum LegendAlign {
-    left = "left",
-    center = "center",
-    right = "right",
-}
-
 export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
-    legendAlign?: LegendAlign
+    legendAlign?: HorizontalAlign
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
@@ -110,7 +104,7 @@ class HorizontalColorLegend extends React.Component<{
 
     @computed get legendAlign() {
         // Assume center alignment if none specified, for backwards-compatibility
-        return this.manager.legendAlign ?? LegendAlign.center
+        return this.manager.legendAlign ?? HorizontalAlign.center
     }
 
     @computed get fontSize(): number {
@@ -506,10 +500,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
         // Center each line
         lines.forEach((line) => {
+            // TODO abstract this
             const xShift =
-                align === LegendAlign.center
+                align === HorizontalAlign.center
                     ? (this.width - line.totalWidth) / 2
-                    : align === LegendAlign.right
+                    : align === HorizontalAlign.right
                     ? this.width - line.totalWidth
                     : 0
             line.marks.forEach((mark) => {
