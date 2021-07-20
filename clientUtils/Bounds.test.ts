@@ -15,22 +15,22 @@ it("can split a bounds into correct number of pieces", () => {
     const third = quads[2]
     const fourth = quads[3]
 
-    expect(second.x).toEqual(50)
-    expect(third.y).toEqual(50)
-    expect(third.x).toEqual(0)
-    expect(fourth.height).toEqual(50)
+    expect(second.bounds.x).toEqual(50)
+    expect(third.bounds.y).toEqual(50)
+    expect(third.bounds.x).toEqual(0)
+    expect(fourth.bounds.height).toEqual(50)
 })
 
 it("can split with padding between charts", () => {
-    const bounds = new Bounds(0, 0, 100, 100)
+    const bounds = new Bounds(10, 10, 100, 100)
     const quads = bounds.grid(4, { rowPadding: 20, columnPadding: 20 })
     expect(quads.length).toEqual(4)
     const second = quads[1]
     const third = quads[2]
     const fourth = quads[3]
 
-    expect(second.x).toEqual(60)
-    expect(third.y).toEqual(60)
-    expect(third.x).toEqual(0)
-    expect(fourth.height).toEqual(40)
+    expect(second.bounds.x).toEqual(70)
+    expect(third.bounds.y).toEqual(70)
+    expect(third.bounds.x).toEqual(10)
+    expect(fourth.bounds.height).toEqual(40)
 })

@@ -19,15 +19,15 @@ export const getChartPadding = (
 ): { rowPadding: number; columnPadding: number; outerPadding: number } => {
     if (count > 9) {
         return {
-            rowPadding: 20,
-            columnPadding: 20,
-            outerPadding: 20,
+            rowPadding: 30,
+            columnPadding: 10,
+            outerPadding: 0,
         }
     }
 
     return {
-        rowPadding: 40,
+        rowPadding: 50,
         columnPadding: 40,
-        outerPadding: 20,
+        outerPadding: 0,
     }
 }

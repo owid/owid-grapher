@@ -25,10 +25,23 @@ import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { extent } from "d3-array"
-import { excludeUndefined, flatten } from "../../clientUtils/Util"
+import { excludeUndefined, flatten, maxBy } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+import { Position, PositionMap } from "../../clientUtils/owidTypes"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
+
+const moveBottomToTop = (posMap: PositionMap<number>): PositionMap<number> => {
+    if (posMap.bottom) {
+        const { top, right, bottom, left } = posMap
+        return {
+            top: (top ?? 0) + bottom,
+            right,
+            left,
+        }
+    }
+    return posMap
+}
 
 @observer
 export class FacetChart
@@ -66,7 +79,7 @@ export class FacetChart
         const count = series.length
 
         // Copy properties from manager to facets
-        const boundsArr = this.bounds.grid(count, getChartPadding(count))
+        const gridBoundsArr = this.bounds.grid(count, getChartPadding(count))
         const {
             yColumnSlug,
             xColumnSlug,
@@ -86,7 +99,7 @@ export class FacetChart
         const table = this.transformedTable
 
         return series.map((series, index) => {
-            const bounds = boundsArr[index]
+            const { bounds } = gridBoundsArr[index]
             const chartTypeName =
                 series.chartTypeName ??
                 this.props.chartTypeName ??
@@ -134,10 +147,30 @@ export class FacetChart
                 return new ChartClass({ manager })
             }
         )
+        const sharedAxisPadding: PositionMap<number> = {}
+        const xAxisConfig: AxisConfigInterface = {}
+        const yAxisConfig: AxisConfigInterface = {}
+        // set the axis minSize
+        const chartInstanceWithLargestXAxis = maxBy(
+            chartInstances,
+            (chartInstance) => chartInstance.xAxis?.size
+        )
+        if (chartInstanceWithLargestXAxis) {
+            const { size } = chartInstanceWithLargestXAxis.xAxis!
+            xAxisConfig.minSize = size
+        }
+        const chartInstanceWithLargestYAxis = maxBy(
+            chartInstances,
+            (chartInstance) => chartInstance.yAxis?.size
+        )
+        if (chartInstanceWithLargestYAxis) {
+            const { size } = chartInstanceWithLargestYAxis.yAxis!
+            yAxisConfig.minSize = size
+        }
         // Uniform X axis
         const uniformXAxis = true
-        let xAxisConfig: AxisConfigInterface = {}
         if (uniformXAxis) {
+            // set the domain
             const [min, max] = extent(
                 excludeUndefined(
                     flatten(
@@ -147,12 +180,17 @@ export class FacetChart
                     )
                 )
             )
-            xAxisConfig = { min, max }
+            xAxisConfig.min = min
+            xAxisConfig.max = max
+            if (chartInstanceWithLargestXAxis) {
+                const { position, size } = chartInstanceWithLargestXAxis.xAxis!
+                sharedAxisPadding[position] = size
+            }
         }
+
         // Uniform Y axis
         const uniformYAxis =
             this.manager.yAxis?.facetAxisRange === FacetAxisRange.shared
-        let yAxisConfig: AxisConfigInterface = {}
         if (uniformYAxis) {
             const [min, max] = extent(
                 excludeUndefined(
@@ -163,23 +201,65 @@ export class FacetChart
                     )
                 )
             )
-            yAxisConfig = { min, max }
+            yAxisConfig.min = min
+            yAxisConfig.max = max
+            if (chartInstanceWithLargestYAxis) {
+                const { position, size } = chartInstanceWithLargestYAxis.yAxis!
+                sharedAxisPadding[position] = size
+            }
         }
+        // Allocate space for axes
+        const bounds = this.bounds.pad(moveBottomToTop(sharedAxisPadding))
+        const count = this.intermediatePlacedSeries.length
+        const gridBoundsArr = bounds.grid(count, getChartPadding(count))
         // Overwrite properties (without mutating original)
-        return this.intermediatePlacedSeries.map((series) => ({
-            ...series,
-            manager: {
-                ...series.manager,
-                xAxisConfig: {
-                    ...series.manager.xAxisConfig,
-                    ...xAxisConfig,
+        return this.intermediatePlacedSeries.map((series, i) => {
+            const { bounds, edges } = gridBoundsArr[i]
+            const { xAxis, yAxis } = chartInstances[i]
+            const expand: PositionMap<number> = {}
+            for (const edge of edges) {
+                if (edge === Position.top) {
+                    expand[Position.top] =
+                        (sharedAxisPadding[Position.top] ?? 0) +
+                        (sharedAxisPadding[Position.bottom] ?? 0)
+                } else if (edge === Position.bottom) {
+                    // do nothing
+                } else if (edge in sharedAxisPadding) {
+                    expand[edge] = sharedAxisPadding[edge]
+                }
+            }
+            return {
+                ...series,
+                bounds: bounds.expand(expand),
+                manager: {
+                    ...series.manager,
+                    xAxisConfig: {
+                        ...series.manager.xAxisConfig,
+                        ...xAxisConfig,
+                        hideAxis:
+                            xAxis &&
+                            xAxis.position in sharedAxisPadding &&
+                            !edges.has(
+                                xAxis.position === Position.bottom
+                                    ? Position.top
+                                    : xAxis.position
+                            ),
+                    },
+                    yAxisConfig: {
+                        ...series.manager.yAxisConfig,
+                        ...yAxisConfig,
+                        hideAxis:
+                            yAxis &&
+                            yAxis.position in sharedAxisPadding &&
+                            !edges.has(
+                                yAxis.position === Position.bottom
+                                    ? Position.top
+                                    : yAxis.position
+                            ),
+                    },
                 },
-                yAxisConfig: {
-                    ...series.manager.yAxisConfig,
-                    ...yAxisConfig,
-                },
-            },
-        }))
+            }
+        })
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -241,7 +321,7 @@ export class FacetChart
     }
 
     @computed protected get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(10)
     }
 
     @computed protected get manager(): ChartManager {

@@ -1,7 +1,7 @@
 import { isNumber, makeGrid, mapValues, range } from "./Util"
 import { PointVector } from "./PointVector"
 import pixelWidth from "string-pixel-width"
-import { Box, PositionMap } from "./owidTypes"
+import { Box, Position, PositionMap } from "./owidTypes"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -9,6 +9,13 @@ import { Box, PositionMap } from "./owidTypes"
 // calculate using geometry and first principles
 
 type PadObject = PositionMap<number>
+
+export interface GridBounds {
+    col: number
+    row: number
+    edges: Set<Position>
+    bounds: Bounds
+}
 
 export class Bounds {
     static ctx: CanvasRenderingContext2D
@@ -326,7 +333,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    grid(pieces: number, padding: SplitBoundsPadding = {}): Bounds[] {
+    grid(pieces: number, padding: SplitBoundsPadding = {}): GridBounds[] {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -342,17 +349,26 @@ export class Bounds {
             this.height - rowPadding * (rows - 1) - outerPadding * 2
         const boxWidth = Math.floor(contentWidth / columns)
         const boxHeight = Math.floor(contentHeight / rows)
-        return range(0, pieces).map(
-            (index: number) =>
-                new Bounds(
-                    outerPadding +
-                        (index % columns) * (boxWidth + columnPadding),
-                    outerPadding +
-                        Math.floor(index / columns) * (boxHeight + rowPadding),
+        return range(0, pieces).map((index: number) => {
+            const col = index % columns
+            const row = Math.floor(index / columns)
+            const edges = new Set<Position>()
+            if (col === 0) edges.add(Position.left)
+            if (col === columns - 1) edges.add(Position.right)
+            if (row === 0) edges.add(Position.top)
+            if (row === rows - 1) edges.add(Position.bottom)
+            return {
+                row,
+                col,
+                edges,
+                bounds: new Bounds(
+                    this.x + outerPadding + col * (boxWidth + columnPadding),
+                    this.y + outerPadding + row * (boxHeight + rowPadding),
                     boxWidth,
                     boxHeight
-                )
-        )
+                ),
+            }
+        })
     }
 
     yRange(): [number, number] {
