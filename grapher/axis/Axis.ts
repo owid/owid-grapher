@@ -152,11 +152,11 @@ abstract class AbstractAxis {
 
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
     @computed private get totalTicksTarget(): number {
-        // Chose 1.5 here by trying a bunch of different faceted charts and figuring out what
+        // Chose 1.65 here by trying a bunch of different faceted charts and figuring out what
         // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
-        return Math.ceil(Math.min(10, this.rangeSize / (this.fontSize * 1.5)))
+        return Math.ceil(Math.min(10, this.rangeSize / (this.fontSize * 1.65)))
     }
 
     getTickValues(): Tickmark[] {
