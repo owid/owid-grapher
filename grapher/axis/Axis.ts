@@ -76,6 +76,10 @@ abstract class AbstractAxis {
         return this.config.labelPadding
     }
 
+    @computed get nice(): boolean {
+        return this.config.nice
+    }
+
     // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
@@ -135,7 +139,8 @@ abstract class AbstractAxis {
         | ScaleLogarithmic<number, number> {
         const d3Scale =
             this.scaleType === ScaleType.log ? scaleLog : scaleLinear
-        return d3Scale().domain(this.domain).range(this.range)
+        const scale = d3Scale().domain(this.domain).range(this.range)
+        return this.nice ? scale.nice(this.totalTicksTarget) : scale
     }
 
     @computed get rangeSize(): number {

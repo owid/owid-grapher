@@ -28,6 +28,7 @@ class AxisConfigDefaults {
     @observable.ref hideAxis: boolean = false
     @observable.ref labelPadding: number = 5
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
+    @observable.ref nice: boolean = false
 }
 
 export class AxisConfig
@@ -61,6 +62,7 @@ export class AxisConfig
             minSize: this.minSize,
             hideAxis: this.hideAxis,
             labelPadding: this.labelPadding,
+            nice: this.nice,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

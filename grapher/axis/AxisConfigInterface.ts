@@ -22,4 +22,10 @@ export interface AxisConfigInterface {
      * - an axis label and an axis tick
      */
     labelPadding?: number
+
+    /**
+     * Extend scale to start & end on "nicer" round values.
+     * See: https://github.com/d3/d3-scale#continuous_nice
+     */
+    nice?: boolean
 }
