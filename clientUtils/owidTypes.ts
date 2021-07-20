@@ -268,3 +268,14 @@ export enum DimensionProperty {
 
 // see CoreTableConstants.ts
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
+
+export enum Position {
+    top = "top",
+    right = "right",
+    bottom = "bottom",
+    left = "left",
+}
+
+export type PositionMap<Value> = {
+    [key in Position]?: Value
+}

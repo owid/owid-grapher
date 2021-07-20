@@ -1,12 +1,14 @@
-import { makeGrid, range } from "./Util"
+import { isNumber, makeGrid, mapValues, range } from "./Util"
 import { PointVector } from "./PointVector"
 import pixelWidth from "string-pixel-width"
-import { Box } from "./owidTypes"
+import { Box, PositionMap } from "./owidTypes"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
 // can't rely on the DOM to do these calculations for us, and instead must
 // calculate using geometry and first principles
+
+type PadObject = PositionMap<number>
 
 export class Bounds {
     static ctx: CanvasRenderingContext2D
@@ -210,13 +212,19 @@ export class Bounds {
         return this.padTop(this.height - amount)
     }
 
-    pad(amount: number): Bounds {
-        return new Bounds(
-            this.x + amount,
-            this.y + amount,
-            this.width - amount * 2,
-            this.height - amount * 2
-        )
+    pad(amount: number | PadObject): Bounds {
+        if (isNumber(amount)) {
+            return new Bounds(
+                this.x + amount,
+                this.y + amount,
+                this.width - amount * 2,
+                this.height - amount * 2
+            )
+        }
+        return this.padTop(amount.top ?? 0)
+            .padRight(amount.right ?? 0)
+            .padBottom(amount.bottom ?? 0)
+            .padLeft(amount.left ?? 0)
     }
 
     extend(props: {
