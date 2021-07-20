@@ -6,6 +6,12 @@ import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
 
+const dasharrayFromFontSize = (fontSize: number): string => {
+    const dashLength = Math.round((fontSize / 16) * 3)
+    const spaceLength = Math.round((dashLength * 2) / 3)
+    return `${dashLength},${spaceLength}`
+}
+
 @observer
 export class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
@@ -33,7 +39,13 @@ export class VerticalAxisGridLines extends React.Component<{
                             x2={bounds.right.toFixed(2)}
                             y2={axis.place(t.value)}
                             stroke={color}
-                            strokeDasharray={t.value !== 0 ? "3,2" : undefined}
+                            strokeDasharray={
+                                t.value !== 0
+                                    ? dasharrayFromFontSize(
+                                          verticalAxis.tickFontSize
+                                      )
+                                    : undefined
+                            }
                         />
                     )
                 })}
@@ -74,7 +86,13 @@ export class HorizontalAxisGridLines extends React.Component<{
                             x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
-                            strokeDasharray={t.value !== 0 ? "3,2" : undefined}
+                            strokeDasharray={
+                                t.value !== 0
+                                    ? dasharrayFromFontSize(
+                                          horizontalAxis.tickFontSize
+                                      )
+                                    : undefined
+                            }
                         />
                     )
                 })}
