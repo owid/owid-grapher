@@ -6,7 +6,7 @@ import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ValueRange } from "../../coreTable/CoreTableConstants"
-import { ScaleType } from "../../clientUtils/owidTypes"
+import { Position, ScaleType } from "../../clientUtils/owidTypes"
 import { TickFormattingOptions } from "../../clientUtils/formatValue"
 
 interface Tickmark {
@@ -25,6 +25,7 @@ interface TickPlacement {
 
 abstract class AbstractAxis {
     config: AxisConfig
+
     @observable.ref domain: ValueRange
     @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
@@ -37,6 +38,8 @@ abstract class AbstractAxis {
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
     }
+
+    abstract get position(): Position
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis
@@ -332,6 +335,7 @@ abstract class AbstractAxis {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
+    abstract get size(): number
     abstract get labelWidth(): number
 
     protected abstract placeTick(
@@ -354,9 +358,12 @@ abstract class AbstractAxis {
 const labelPadding = 5
 
 export class HorizontalAxis extends AbstractAxis {
-    // todo: test/refactor
     clone(): HorizontalAxis {
         return new HorizontalAxis(this.config)._update(this)
+    }
+
+    @computed get position(): Position {
+        return Position.bottom
     }
 
     @computed get labelOffset(): number {
@@ -373,14 +380,16 @@ export class HorizontalAxis extends AbstractAxis {
         const { labelOffset } = this
         const firstFormattedTick = this.getFormattedTicks()[0]
         const fontSize = this.tickFontSize
-
-        return (
             Bounds.forText(firstFormattedTick, {
                 fontSize,
             }).height +
             labelOffset +
             5
         )
+    }
+
+    @computed get size(): number {
+        return this.height
     }
 
     @computed protected get baseTicks(): Tickmark[] {
@@ -430,13 +439,16 @@ export class HorizontalAxis extends AbstractAxis {
 }
 
 export class VerticalAxis extends AbstractAxis {
-    @computed get labelWidth(): number {
-        return this.height
-    }
-
-    // todo: test/refactor
     clone(): VerticalAxis {
         return new VerticalAxis(this.config)._update(this)
+    }
+
+    @computed get position(): Position {
+        return Position.left
+    }
+
+    @computed get labelWidth(): number {
+        return this.height
     }
 
     @computed get labelOffset(): number {
@@ -449,15 +461,17 @@ export class VerticalAxis extends AbstractAxis {
             this.getFormattedTicks(),
             (tick) => tick.length
         )
-        return (
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
             labelOffset +
             5
-        )
     }
 
     @computed get height(): number {
         return this.rangeSize
+    }
+
+    @computed get size(): number {
+        return this.width
     }
 
     protected placeTick(tickValue: number): { y: number; x: number } {
