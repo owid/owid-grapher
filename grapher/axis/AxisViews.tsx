@@ -175,7 +175,11 @@ export class VerticalAxisComponent extends React.Component<{
                 {ticks.map((tick, i) => (
                     <text
                         key={i}
-                        x={(bounds.left + verticalAxis.width - 5).toFixed(2)}
+                        x={(
+                            bounds.left +
+                            verticalAxis.width -
+                            verticalAxis.labelPadding
+                        ).toFixed(2)}
                         y={verticalAxis.place(tick)}
                         fill={textColor}
                         dominantBaseline="middle"

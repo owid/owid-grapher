@@ -45,6 +45,10 @@ abstract class AbstractAxis {
         return this.config.hideAxis
     }
 
+    @computed get labelPadding(): number {
+        return this.config.labelPadding
+    }
+
     // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
@@ -355,8 +359,6 @@ abstract class AbstractAxis {
     }
 }
 
-const labelPadding = 5
-
 export class HorizontalAxis extends AbstractAxis {
     clone(): HorizontalAxis {
         return new HorizontalAxis(this.config)._update(this)
@@ -368,7 +370,7 @@ export class HorizontalAxis extends AbstractAxis {
 
     @computed get labelOffset(): number {
         return this.labelTextWrap
-            ? this.labelTextWrap.height + labelPadding * 2
+            ? this.labelTextWrap.height + this.labelPadding * 2
             : 0
     }
 
@@ -377,7 +379,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     @computed get height(): number {
-        const { labelOffset } = this
+        const { labelOffset, labelPadding } = this
         const firstFormattedTick = this.getFormattedTicks()[0]
         const fontSize = this.tickFontSize
         const height =
@@ -385,7 +387,7 @@ export class HorizontalAxis extends AbstractAxis {
                 fontSize,
             }).height +
             labelOffset +
-            5
+            labelPadding
         return Math.max(height, this.config.minSize ?? 0)
     }
 
@@ -453,11 +455,13 @@ export class VerticalAxis extends AbstractAxis {
     }
 
     @computed get labelOffset(): number {
-        return this.labelTextWrap ? this.labelTextWrap.height + 10 : 0
+        return this.labelTextWrap
+            ? this.labelTextWrap.height + this.labelPadding * 2
+            : 0
     }
 
     @computed get width(): number {
-        const { labelOffset } = this
+        const { labelOffset, labelPadding } = this
         const longestTick = maxBy(
             this.getFormattedTicks(),
             (tick) => tick.length
@@ -465,7 +469,7 @@ export class VerticalAxis extends AbstractAxis {
         const width =
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
             labelOffset +
-            5
+            labelPadding
         return Math.max(width, this.config.minSize ?? 0)
     }
 

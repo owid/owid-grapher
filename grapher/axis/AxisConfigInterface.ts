@@ -15,4 +15,11 @@ export interface AxisConfigInterface {
      * Dictates the minimum height for a HorizontalAxis, minimum width for a VerticalAxis.
      */
     minSize?: number
+
+    /**
+     * The padding between:
+     * - an axis tick and an axis gridline
+     * - an axis label and an axis tick
+     */
+    labelPadding?: number
 }
