@@ -182,6 +182,7 @@ export class FacetChart
             )
             xAxisConfig.min = min
             xAxisConfig.max = max
+            xAxisConfig.labelPadding = 10
             if (chartInstanceWithLargestXAxis) {
                 const { position, size } = chartInstanceWithLargestXAxis.xAxis!
                 sharedAxisPadding[position] = size
@@ -203,6 +204,7 @@ export class FacetChart
             )
             yAxisConfig.min = min
             yAxisConfig.max = max
+            yAxisConfig.labelPadding = 10
             if (chartInstanceWithLargestYAxis) {
                 const { position, size } = chartInstanceWithLargestYAxis.yAxis!
                 sharedAxisPadding[position] = size
