@@ -227,6 +227,13 @@ export class Bounds {
             .padLeft(amount.left ?? 0)
     }
 
+    expand(amount: number | PadObject): Bounds {
+        if (isNumber(amount)) return this.pad(-amount)
+        return this.pad(
+            mapValues(amount, (v) => (v !== undefined ? -v : undefined))
+        )
+    }
+
     extend(props: {
         x?: number
         y?: number
