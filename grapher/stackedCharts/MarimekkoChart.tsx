@@ -22,7 +22,7 @@ import {
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
+import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "./StackedUtils"
