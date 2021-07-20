@@ -240,14 +240,14 @@ export class HorizontalAxisComponent extends React.Component<{
 
     render(): JSX.Element {
         const { bounds, axis, axisPosition, showTickMarks } = this.props
-        const { ticks, tickLabels, labelTextWrap: label, labelOffset } = axis
+        const { tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
 
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
                 tickMarkTopPosition={axisPosition}
-                tickMarkXPositions={ticks.map((tick): number =>
-                    axis.place(tick)
+                tickMarkXPositions={tickLabels.map((label): number =>
+                    axis.place(label.value)
                 )}
                 color="#ccc"
             />

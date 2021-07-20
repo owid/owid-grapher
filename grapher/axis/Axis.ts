@@ -151,7 +151,7 @@ abstract class AbstractAxis {
     }
 
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
-    @computed get totalTicks(): number {
+    @computed private get totalTicksTarget(): number {
         // Chose 1.5 here by trying a bunch of different faceted charts and figuring out what
         // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
@@ -160,7 +160,7 @@ abstract class AbstractAxis {
     }
 
     getTickValues(): Tickmark[] {
-        const { scaleType, d3_scale, totalTicks } = this
+        const { scaleType, d3_scale, totalTicksTarget } = this
 
         let ticks: Tickmark[]
         if (scaleType === ScaleType.log) {
@@ -191,7 +191,7 @@ abstract class AbstractAxis {
             //   `totalTicks` labels overall
             //
             // -@MarcelGerber, 2020-08-07
-            const tickCandidates = d3_scale.ticks(totalTicks)
+            const tickCandidates = d3_scale.ticks(totalTicksTarget)
             ticks = tickCandidates.map((value) => {
                 // 10^x
                 if (Math.fround(Math.log10(value)) % 1 === 0)
@@ -205,8 +205,8 @@ abstract class AbstractAxis {
                 return { value, priority: 3 }
             })
 
-            if (ticks.length > totalTicks) {
-                if (ticks.length <= 2 * totalTicks) {
+            if (ticks.length > totalTicksTarget) {
+                if (ticks.length <= 2 * totalTicksTarget) {
                     // Convert all "in-between" lines to faint grid lines without labels
                     ticks = ticks.map((tick) => {
                         if (tick.priority === 3)
@@ -221,7 +221,7 @@ abstract class AbstractAxis {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
                     for (let priority = 3; priority > 1; priority--) {
-                        if (ticks.length > totalTicks)
+                        if (ticks.length > totalTicksTarget)
                             ticks = ticks.filter(
                                 (tick) => tick.priority < priority
                             )
@@ -233,7 +233,7 @@ abstract class AbstractAxis {
             // to be priority 1
             // Show a maximum of 6 ticks to match previous behaviour
             ticks = d3_scale
-                .ticks(Math.min(6, this.totalTicks))
+                .ticks(Math.min(6, this.totalTicksTarget))
                 .map((tickValue) => ({
                     value: tickValue,
                     priority: 2,
@@ -309,6 +309,10 @@ abstract class AbstractAxis {
         return bounds.intersects(bounds2)
     }
 
+    @computed protected get baseTicks(): Tickmark[] {
+        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
+    }
+
     @computed get tickLabels(): TickLabelPlacement[] {
         // Get ticks with coordinates, sorted by priority
         const tickLabels = sortBy(
@@ -333,12 +337,6 @@ abstract class AbstractAxis {
         return tickLabels.filter((t) => !t.isHidden)
     }
 
-    @computed get ticks(): number[] {
-        // We derive tick values based on the labels to avoid showing ticks without labels (labels
-        // get hidden when they overlap)
-        return this.tickLabels.map((label) => label.value)
-    }
-
     formatTick(
         tick: number,
         formattingOptionsOverride?: TickFormattingOptions
@@ -355,10 +353,6 @@ abstract class AbstractAxis {
 
     @computed get labelFontSize(): number {
         return 0.7 * this.fontSize
-    }
-
-    @computed protected get baseTicks(): Tickmark[] {
-        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
     abstract get size(): number
