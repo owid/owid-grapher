@@ -175,11 +175,12 @@ describe("sorting", () => {
     10,20,2000,France
     35,2,2000,Spain
     11,8,2000,Germany`
-    const table = new OwidTable(csv, [
+    const columnDef = [
         { slug: "coal", type: ColumnTypeNames.Numeric },
         { slug: "gas", type: ColumnTypeNames.Numeric },
         { slug: "year", type: ColumnTypeNames.Year },
-    ])
+    ]
+    const table = new OwidTable(csv, columnDef)
 
     const baseManager: ChartManager = {
         table,
@@ -247,6 +248,36 @@ describe("sorting", () => {
         expect(chart.sortedItems.map((item) => item.label)).toEqual([
             "Spain",
             "Germany",
+            "France",
+        ])
+    })
+
+    it("can sort by column that's missing values", () => {
+        const csv = `coal,gas,year,entityName
+    ,20,2000,France
+    ,2,2000,Spain
+    9,8,2000,Germany
+    11,,2000,Belgium`
+        const table = new OwidTable(csv, columnDef)
+
+        const chart = new StackedDiscreteBarChart({
+            manager: {
+                ...baseManager,
+                table,
+                selection: table.availableEntityNames,
+                sortConfig: {
+                    sortBy: SortBy.column,
+                    sortColumnSlug: "coal",
+                    sortOrder: SortOrder.desc,
+                },
+            },
+        })
+
+        // Expected behavior: Belgium and Germany are sorted first because they have values.
+        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+            "Belgium",
+            "Germany",
+            "Spain",
             "France",
         ])
     })
