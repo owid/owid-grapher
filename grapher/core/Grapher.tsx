@@ -1831,7 +1831,7 @@ export class Grapher
         this.lastFacet = strategy
     }
 
-    @computed get _sortConfig(): SortConfig {
+    @computed get _sortConfig(): Readonly<SortConfig> {
         return {
             sortBy: this.sortBy ?? SortBy.total,
             sortOrder: this.sortOrder ?? SortOrder.desc,
@@ -1840,7 +1840,7 @@ export class Grapher
     }
 
     @computed get sortConfig(): SortConfig {
-        const sortConfig = this._sortConfig
+        const sortConfig = { ...this._sortConfig }
         // In relative mode, where the values for every entity sum up to 100%, sorting by total
         // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
         // we sort by entity name instead.
