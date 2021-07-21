@@ -15,7 +15,7 @@ import {
     Button,
     RadioGroup,
 } from "./Forms"
-import { debounce, isEqual, omit } from "../clientUtils/Util"
+import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -93,12 +93,11 @@ interface SortOrderDropdownOption {
 @observer
 class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
     @computed get sortConfig(): SortConfig {
-        return (
-            this.grapher.sortConfig ?? {
-                sortOrder: SortOrder.desc,
-                sortBy: SortBy.total,
-            }
-        )
+        return {
+            sortBy: this.grapher.sortBy ?? SortBy.total,
+            sortOrder: this.grapher.sortOrder ?? SortOrder.desc,
+            sortColumnSlug: this.grapher.sortColumnSlug,
+        }
     }
 
     @computed get grapher() {
@@ -134,18 +133,12 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onSortByChange(selected: ValueType<SortOrderDropdownOption>) {
         const value = asArray(selected)[0].value
-        this.grapher.sortConfig = {
-            ...this.sortConfig,
-            sortColumnSlug: undefined, // set `sortColumnSlug` to undefined unless it is specified in `value`
-            ...value,
-        } as SortConfig
+        this.grapher.sortBy = value.sortBy
+        this.grapher.sortColumnSlug = value.sortColumnSlug
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
-        this.grapher.sortConfig = {
-            ...this.sortConfig,
-            sortOrder: sortOrder as SortOrder,
-        }
+        this.grapher.sortOrder = sortOrder as SortOrder
     }
 
     render() {
@@ -163,7 +156,7 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
                         value={this.sortOptions.find((opt) =>
                             isEqual(
                                 opt.value,
-                                omit(this.sortConfig, "sortOrder")
+                                trimObject(omit(this.sortConfig, "sortOrder"))
                             )
                         )}
                         formatOptionLabel={(opt, { context }) =>

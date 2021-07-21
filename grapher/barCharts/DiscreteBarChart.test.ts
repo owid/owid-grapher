@@ -161,7 +161,8 @@ describe("sorting", () => {
         const chart = new DiscreteBarChart({
             manager: {
                 ...manager,
-                sortConfig: { sortBy: SortBy.total, sortOrder: SortOrder.asc },
+                sortBy: SortBy.total,
+                sortOrder: SortOrder.asc,
             },
         })
         expect(chart.series.map((item) => item.seriesName)).toEqual([
@@ -175,10 +176,8 @@ describe("sorting", () => {
         const chart = new DiscreteBarChart({
             manager: {
                 ...manager,
-                sortConfig: {
-                    sortBy: SortBy.entityName,
-                    sortOrder: SortOrder.desc,
-                },
+                sortBy: SortBy.entityName,
+                sortOrder: SortOrder.desc,
             },
         })
         expect(chart.series.map((item) => item.seriesName)).toEqual([

@@ -158,7 +158,8 @@ import {
     Annotation,
     ColumnSlug,
     DimensionProperty,
-    SortConfig,
+    SortBy,
+    SortOrder,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -300,7 +301,9 @@ export class Grapher
     @observable showFacets?: boolean = false
     @observable lastFacet: FacetStrategy = FacetStrategy.none
 
-    @observable sortConfig?: SortConfig
+    @observable sortBy?: SortBy
+    @observable sortOrder?: SortOrder
+    @observable sortColumnSlug?: string
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.

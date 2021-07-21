@@ -469,11 +469,10 @@ export class DiscreteBarChart
     }
 
     @computed get sortConfig(): SortConfig {
-        if (this.manager.sortConfig) return this.manager.sortConfig
-
         return {
-            sortBy: SortBy.total,
-            sortOrder: SortOrder.desc,
+            sortBy: this.manager.sortBy ?? SortBy.total,
+            sortOrder: this.manager.sortOrder ?? SortOrder.desc,
+            sortColumnSlug: this.manager.sortColumnSlug,
         }
     }
 
@@ -488,6 +487,7 @@ export class DiscreteBarChart
             case SortBy.entityName:
                 sortByFunc = (item: DiscreteBarItem) => item.seriesName
                 break
+            default:
             case SortBy.total:
             case SortBy.column: // we only have one yColumn, so total and column are the same
                 sortByFunc = (item: DiscreteBarItem) => item.row.value

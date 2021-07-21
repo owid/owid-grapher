@@ -130,11 +130,10 @@ export class StackedDiscreteBarChart
     }
 
     @computed get sortConfig(): SortConfig {
-        if (this.manager.sortConfig) return this.manager.sortConfig
-
         return {
-            sortBy: SortBy.total,
-            sortOrder: SortOrder.desc,
+            sortBy: this.manager.sortBy ?? SortBy.total,
+            sortOrder: this.manager.sortOrder ?? SortOrder.desc,
+            sortColumnSlug: this.manager.sortColumnSlug,
         }
     }
 
@@ -277,6 +276,7 @@ export class StackedDiscreteBarChart
                     item.bars.find((b) => b.columnSlug === sortColumnSlug)
                         ?.point.value ?? 0
                 break
+            default:
             case SortBy.total:
                 sortByFunc = (item: Item): number => {
                     const lastPoint = last(item.bars)?.point

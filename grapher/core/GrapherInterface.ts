@@ -25,7 +25,7 @@ import { ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
-export interface GrapherInterface {
+export interface GrapherInterface extends SortConfig {
     type?: ChartTypeName
     id?: number
     version?: number
@@ -75,7 +75,6 @@ export interface GrapherInterface {
     selectedEntityColors?: { [entityName: string]: string }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
-    sortConfig?: SortConfig
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -164,7 +163,9 @@ export const grapherKeysToSerialize = [
     "selectedEntityNames",
     "selectedEntityColors",
     "selectedEntityIds",
-    "sortConfig",
+    "sortBy",
+    "sortOrder",
+    "sortColumnSlug",
     "excludedEntities",
     "comparisonLines",
     "relatedQuestions",
