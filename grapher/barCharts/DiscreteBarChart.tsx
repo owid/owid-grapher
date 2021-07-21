@@ -37,10 +37,22 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ColorScheme } from "../color/ColorScheme"
-import { Time } from "../../clientUtils/owidTypes"
+import {
+    Time,
+    SortOrder,
+    SortBy,
+    SortConfig,
+} from "../../clientUtils/owidTypes"
+import { LegacyOwidRow } from "../../coreTable/OwidTableConstants"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
+
+interface DiscreteBarItem {
+    seriesName: string
+    row: LegacyOwidRow<any>
+    color?: string
+}
 
 @observer
 export class DiscreteBarChart
@@ -430,7 +442,7 @@ export class DiscreteBarChart
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
-    @computed private get columnsAsSeries() {
+    @computed private get columnsAsSeries(): DiscreteBarItem[] {
         return excludeUndefined(
             this.yColumns.map((col) => {
                 const row = first(col.owidRows)
@@ -445,7 +457,7 @@ export class DiscreteBarChart
         )
     }
 
-    @computed private get entitiesAsSeries() {
+    @computed private get entitiesAsSeries(): DiscreteBarItem[] {
         const { transformedTable } = this
         return this.yColumns[0].owidRows.map((row) => {
             return {
@@ -456,12 +468,31 @@ export class DiscreteBarChart
         })
     }
 
-    @computed private get sortedRawSeries() {
+    @computed get sortConfig(): SortConfig {
+        return this.manager.sortConfig ?? {}
+    }
+
+    @computed private get sortedRawSeries(): DiscreteBarItem[] {
         const raw =
             this.seriesStrategy === SeriesStrategy.entity
                 ? this.entitiesAsSeries
                 : this.columnsAsSeries
-        return sortBy(raw, (series) => series.row.value)
+
+        let sortByFunc: (item: DiscreteBarItem) => number | string
+        switch (this.sortConfig.sortBy) {
+            case SortBy.entityName:
+                sortByFunc = (item: DiscreteBarItem) => item.seriesName
+                break
+            default:
+            case SortBy.total:
+            case SortBy.column: // we only have one yColumn, so total and column are the same
+                sortByFunc = (item: DiscreteBarItem) => item.row.value
+                break
+        }
+        const sortedSeries = sortBy(raw, sortByFunc)
+        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedSeries.reverse()
+        return sortedSeries
     }
 
     @computed private get colorScheme(): ColorScheme | undefined {
@@ -483,28 +514,25 @@ export class DiscreteBarChart
 
         return colorScheme?.getUniqValueColorMap(
             uniq(sortedRawSeries.map((series) => series.row.value)),
-            manager.invertColorScheme
+            !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
     }
 
     @computed get series(): DiscreteBarSeries[] {
         const { manager, colorScheme } = this
 
-        const series = this.sortedRawSeries
-            .slice() // we need to clone/slice here so `.reverse()` doesn't modify `this.sortedRawSeries` in-place
-            .reverse()
-            .map((rawSeries) => {
-                const { row, seriesName, color } = rawSeries
-                const series: DiscreteBarSeries = {
-                    ...row,
-                    seriesName,
-                    color:
-                        color ??
-                        this.valuesToColorsMap?.get(row.value) ??
-                        DEFAULT_BAR_COLOR,
-                }
-                return series
-            })
+        const series = this.sortedRawSeries.map((rawSeries) => {
+            const { row, seriesName, color } = rawSeries
+            const series: DiscreteBarSeries = {
+                ...row,
+                seriesName,
+                color:
+                    color ??
+                    this.valuesToColorsMap?.get(row.value) ??
+                    DEFAULT_BAR_COLOR,
+            }
+            return series
+        })
 
         if (manager.isLineChart) {
             // For LineChart-based bar charts, we want to assign colors from the color scheme.

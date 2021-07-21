@@ -158,6 +158,9 @@ import {
     Annotation,
     ColumnSlug,
     DimensionProperty,
+    SortBy,
+    SortConfig,
+    SortOrder,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -298,6 +301,10 @@ export class Grapher
 
     @observable showFacets?: boolean = false
     @observable lastFacet: FacetStrategy = FacetStrategy.none
+
+    @observable sortBy?: SortBy
+    @observable sortOrder?: SortOrder
+    @observable sortColumnSlug?: string
 
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
@@ -1822,6 +1829,26 @@ export class Grapher
     }
     set facet(strategy: FacetStrategy) {
         this.lastFacet = strategy
+    }
+
+    @computed get _sortConfig(): SortConfig {
+        return {
+            sortBy: this.sortBy ?? SortBy.total,
+            sortOrder: this.sortOrder ?? SortOrder.asc,
+            sortColumnSlug: this.sortColumnSlug,
+        }
+    }
+
+    @computed get sortConfig(): SortConfig {
+        const sortConfig = this._sortConfig
+        // In relative mode, where the values for every entity sum up to 100%, sorting by total
+        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
+        // we sort by entity name instead.
+        if (this.isRelativeMode && sortConfig.sortBy === SortBy.total) {
+            sortConfig.sortBy = SortBy.entityName
+            sortConfig.sortOrder = SortOrder.asc
+        }
+        return sortConfig
     }
 
     @computed private get hasMultipleYColumns(): boolean {

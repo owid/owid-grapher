@@ -13,8 +13,9 @@ import {
     BindString,
     TextField,
     Button,
+    RadioGroup,
 } from "./Forms"
-import { debounce } from "../clientUtils/Util"
+import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -23,6 +24,9 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
 import { FacetAxisRange } from "../grapher/core/GrapherConstants"
+import Select, { ValueType } from "react-select"
+import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
+import { asArray } from "../clientUtils/react-select"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -76,6 +80,109 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
                     />
                 </FieldsRow>
             </React.Fragment>
+        )
+    }
+}
+
+interface SortOrderDropdownOption {
+    label: string
+    value: Omit<SortConfig, "sortOrder">
+    display?: { name: string; displayName: string }
+}
+
+@observer
+class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
+    @computed get sortConfig(): SortConfig {
+        return this.grapher._sortConfig
+    }
+
+    @computed get grapher() {
+        return this.props.editor.grapher
+    }
+
+    @computed get sortOptions(): SortOrderDropdownOption[] {
+        const { features } = this.props.editor
+
+        let dimensionSortOptions: SortOrderDropdownOption[] = []
+        if (features.canSortByColumn) {
+            dimensionSortOptions = this.grapher.yColumns.map(
+                (column): SortOrderDropdownOption => ({
+                    label: column.displayName,
+                    display: {
+                        name: column.name,
+                        displayName: column.displayName,
+                    },
+                    value: {
+                        sortBy: SortBy.column,
+                        sortColumnSlug: column.slug,
+                    } as SortConfig,
+                })
+            )
+        }
+
+        return [
+            { label: "Entity name", value: { sortBy: SortBy.entityName } },
+            { label: "Total value", value: { sortBy: SortBy.total } },
+            ...dimensionSortOptions,
+        ]
+    }
+
+    @action.bound onSortByChange(selected: ValueType<SortOrderDropdownOption>) {
+        const value = asArray(selected)[0].value
+        this.grapher.sortBy = value.sortBy
+        this.grapher.sortColumnSlug = value.sortColumnSlug
+    }
+
+    @action.bound onSortOrderChange(sortOrder: string) {
+        this.grapher.sortOrder = sortOrder as SortOrder
+    }
+
+    render() {
+        return (
+            <Section name="Sort Order">
+                <small className="form-text text-muted">
+                    For line charts the sort order is only applied when it's
+                    collapsed to a bar chart.
+                </small>
+                <div className="form-group">
+                    Sort by
+                    <Select
+                        options={this.sortOptions}
+                        onChange={this.onSortByChange}
+                        value={this.sortOptions.find((opt) =>
+                            isEqual(
+                                opt.value,
+                                trimObject(omit(this.sortConfig, "sortOrder"))
+                            )
+                        )}
+                        formatOptionLabel={(opt, { context }) =>
+                            opt.display && context === "menu" ? (
+                                <span>
+                                    {opt.display.displayName}
+                                    <br />
+                                    <small style={{ opacity: 0.8 }}>
+                                        {opt.display.name}
+                                    </small>
+                                </span>
+                            ) : (
+                                opt.label
+                            )
+                        }
+                        menuPlacement="auto"
+                    />
+                </div>
+                <div className="form-group">
+                    Sort order
+                    <RadioGroup
+                        options={[
+                            { label: "Descending", value: SortOrder.desc },
+                            { label: "Ascending", value: SortOrder.asc },
+                        ]}
+                        value={this.sortConfig.sortOrder}
+                        onChange={this.onSortOrderChange}
+                    />
+                </div>
+            </Section>
         )
     }
 }
@@ -402,6 +509,9 @@ export class EditorCustomizeTab extends React.Component<{
                 <Section name="Color scheme">
                     <ColorSchemeSelector grapher={grapher} />
                 </Section>
+                {features.canSpecifySortOrder && (
+                    <SortOrderSection editor={this.props.editor} />
+                )}
                 {grapher.activeColorScaleExceptMap && (
                     <EditorColorScaleSection
                         scale={grapher.activeColorScaleExceptMap}

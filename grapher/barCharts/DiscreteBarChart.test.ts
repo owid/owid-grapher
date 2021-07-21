@@ -15,7 +15,8 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { SeriesStrategy } from "../core/GrapherConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { OwidTable } from "../../coreTable/OwidTable"
-import { isNumber } from "../../clientUtils/Util"
+import { isNumber, sortBy } from "../../clientUtils/Util"
+import { SortBy, SortOrder } from "../../clientUtils/owidTypes"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -131,4 +132,62 @@ it("filters non-numeric values", () => {
     const chart = new DiscreteBarChart({ manager })
     expect(chart.series.length).toEqual(1)
     expect(chart.series.every((series) => isNumber(series.value))).toBeTruthy()
+})
+
+describe("sorting", () => {
+    const csv = `gdp,year,entityName
+102,2019,United States
+101,2019,Sweden
+98,2019,Zambia`
+
+    const table = new OwidTable(csv)
+    const manager = {
+        table,
+        seriesStrategy: SeriesStrategy.entity,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["gdp"],
+    }
+
+    it("defaults to sorting by value descending", () => {
+        const chart = new DiscreteBarChart({ manager })
+        expect(chart.series.map((item) => item.seriesName)).toEqual([
+            "United States",
+            "Sweden",
+            "Zambia",
+        ])
+    })
+
+    it("can sort by value ascending", () => {
+        const chart = new DiscreteBarChart({
+            manager: {
+                ...manager,
+                sortConfig: {
+                    sortBy: SortBy.total,
+                    sortOrder: SortOrder.asc,
+                },
+            },
+        })
+        expect(chart.series.map((item) => item.seriesName)).toEqual([
+            "Zambia",
+            "Sweden",
+            "United States",
+        ])
+    })
+
+    it("can sort by entity name descending", () => {
+        const chart = new DiscreteBarChart({
+            manager: {
+                ...manager,
+                sortConfig: {
+                    sortBy: SortBy.entityName,
+                    sortOrder: SortOrder.desc,
+                },
+            },
+        })
+        expect(chart.series.map((item) => item.seriesName)).toEqual([
+            "Zambia",
+            "United States",
+            "Sweden",
+        ])
+    })
 })

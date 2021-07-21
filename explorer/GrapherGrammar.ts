@@ -7,6 +7,7 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
+    JSONObjectCellDef,
 } from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
@@ -15,6 +16,7 @@ import {
     GrapherTabOption,
 } from "../grapher/core/GrapherConstants"
 import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { SortBy, SortOrder } from "../clientUtils/owidTypes"
 
 export const GrapherGrammar: Grammar = {
     title: {
@@ -157,5 +159,31 @@ export const GrapherGrammar: Grammar = {
         ...StringCellDef,
         keyword: "note",
         description: "Chart footnote",
+    },
+    sortBy: {
+        ...EnumCellDef,
+        keyword: "sortBy",
+        description: "Specify what to sort the entities by",
+        terminalOptions: Object.keys(SortBy).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+    },
+    sortOrder: {
+        ...EnumCellDef,
+        keyword: "sortOrder",
+        description: "Whether to sort entities ascending or descending",
+        terminalOptions: Object.keys(SortOrder).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+    },
+    sortColumnSlug: {
+        ...EnumCellDef,
+        keyword: "sortColumnSlug",
+        description:
+            "This setting is only respected when `sortBy` is set to `column`",
     },
 } as const

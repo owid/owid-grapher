@@ -28,7 +28,13 @@ import {
     withMissingValuesAsZeroes,
 } from "../stackedCharts/StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color, Time } from "../../clientUtils/owidTypes"
+import {
+    Color,
+    SortOrder,
+    Time,
+    SortBy,
+    SortConfig,
+} from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
@@ -67,6 +73,7 @@ interface PlacedItem extends Item {
 interface Bar {
     color: Color
     seriesName: string
+    columnSlug: string
     point: StackedPoint<EntityName>
 }
 
@@ -120,6 +127,10 @@ export class StackedDiscreteBarChart
         }
 
         return table
+    }
+
+    @computed get sortConfig(): SortConfig {
+        return this.manager.sortConfig ?? {}
     }
 
     @observable focusSeriesName?: SeriesName
@@ -211,7 +222,7 @@ export class StackedDiscreteBarChart
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get items(): Item[] {
+    @computed private get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
             .map((entityName) => ({
@@ -224,6 +235,7 @@ export class StackedDiscreteBarChart
                         if (!point) return undefined
                         return {
                             point,
+                            columnSlug: series.columnSlug,
                             color: series.color,
                             seriesName: series.seriesName,
                         }
@@ -232,18 +244,34 @@ export class StackedDiscreteBarChart
             }))
             .filter((item) => item.bars.length)
 
-        if (this.manager.isRelativeMode) {
-            // TODO: This is more of a stopgap to prevent the chart from being super jumpy in
-            // relative mode. Once we have an option to sort by a specific metric, that'll help.
-            // Until then, we're sorting by label to prevent any jumping.
-            return sortBy(items, (item) => item.label)
-        } else {
-            return sortBy(items, (item) => {
-                const lastPoint = last(item.bars)?.point
-                if (!lastPoint) return 0
-                return lastPoint.valueOffset + lastPoint.value
-            }).reverse()
+        return items
+    }
+
+    @computed get sortedItems(): readonly Item[] {
+        let sortByFunc: (item: Item) => number | string
+        switch (this.sortConfig.sortBy) {
+            case SortBy.entityName:
+                sortByFunc = (item: Item): string => item.label
+                break
+            case SortBy.column:
+                const sortColumnSlug = this.sortConfig.sortColumnSlug
+                sortByFunc = (item: Item): number =>
+                    item.bars.find((b) => b.columnSlug === sortColumnSlug)
+                        ?.point.value ?? 0
+                break
+            default:
+            case SortBy.total:
+                sortByFunc = (item: Item): number => {
+                    const lastPoint = last(item.bars)?.point
+                    if (!lastPoint) return 0
+                    return lastPoint.valueOffset + lastPoint.value
+                }
         }
+        const sortedItems = sortBy(this.items, sortByFunc)
+        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedItems.reverse()
+
+        return sortedItems
     }
 
     @computed private get barHeight(): number {
@@ -332,7 +360,7 @@ export class StackedDiscreteBarChart
         }
 
         const yOffset = innerBounds.top + barHeight / 2
-        const placedItems = this.items.map((d, i) => ({
+        const placedItems = this.sortedItems.map((d, i) => ({
             yPosition: yOffset + (barHeight + barSpacing) * i,
             ...d,
         }))
@@ -729,6 +757,7 @@ export class StackedDiscreteBarChart
                 .map((col, i) => {
                     return {
                         seriesName: col.displayName,
+                        columnSlug: col.slug,
                         color:
                             col.def.color ??
                             this.colorScheme.getColors(this.yColumns.length)[i],

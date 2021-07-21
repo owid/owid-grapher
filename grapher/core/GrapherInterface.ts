@@ -20,12 +20,12 @@ import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
-import { ColumnSlug } from "../../clientUtils/owidTypes"
+import { ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
-export interface GrapherInterface {
+export interface GrapherInterface extends SortConfig {
     type?: ChartTypeName
     id?: number
     version?: number
@@ -163,6 +163,9 @@ export const grapherKeysToSerialize = [
     "selectedEntityNames",
     "selectedEntityColors",
     "selectedEntityIds",
+    "sortBy",
+    "sortOrder",
+    "sortColumnSlug",
     "excludedEntities",
     "comparisonLines",
     "relatedQuestions",
