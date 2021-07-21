@@ -173,10 +173,12 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return this.dualAxis.horizontalAxis
     }
 
+    @computed private get xAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.xAxisConfig, this)
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axisConfig =
-            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
-        const axis = axisConfig.toHorizontalAxis()
+        const axis = this.xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
@@ -186,15 +188,17 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return axis
     }
 
+    @computed private get yAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.yAxisConfig, this)
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         // const lastSeries = this.series[this.series.length - 1]
         // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
-        const axisConfig =
-            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
-        const axis = axisConfig.toVerticalAxis()
+        const axis = this.yAxisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
         else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)

@@ -23,7 +23,7 @@ import {
     HorizontalAxisGridLines,
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig } from "../axis/AxisConfig"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -60,7 +60,7 @@ export class DiscreteBarChart
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>
-    implements ChartInterface {
+    implements ChartInterface, FontSizeManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {
@@ -112,7 +112,7 @@ export class DiscreteBarChart
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
-    @computed private get baseFontSize(): number {
+    @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
@@ -121,7 +121,7 @@ export class DiscreteBarChart
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: 0.75 * this.fontSize,
             fontWeight: 700,
         }
     }
@@ -131,7 +131,7 @@ export class DiscreteBarChart
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.baseFontSize,
+            fontSize: 0.75 * this.fontSize,
             fontWeight: 400,
         }
     }
@@ -202,7 +202,7 @@ export class DiscreteBarChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return this.manager.yAxis || new AxisConfig()
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed get yAxis(): HorizontalAxis {

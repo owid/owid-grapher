@@ -733,9 +733,7 @@ export class LineChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        const { manager } = this
-        const config = manager.xAxis?.toObject() ?? manager.xAxisConfig
-        return new AxisConfig(config, this)
+        return new AxisConfig(this.manager.xAxisConfig, this)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -751,12 +749,10 @@ export class LineChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        const { manager } = this
-        const config = manager.yAxis?.toObject() ?? manager.yAxisConfig
         return new AxisConfig(
             {
-                ...config,
                 nice: true,
+                ...this.manager.yAxisConfig,
             },
             this
         )

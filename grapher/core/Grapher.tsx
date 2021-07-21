@@ -165,6 +165,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 
 declare const window: any
@@ -500,6 +501,14 @@ export class Grapher
 
     @computed private get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
+    }
+
+    @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.yAxis.toObject()
+    }
+
+    @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.xAxis.toObject()
     }
 
     @computed get tableForSelection(): OwidTable {

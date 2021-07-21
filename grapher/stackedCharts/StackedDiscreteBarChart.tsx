@@ -196,7 +196,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return this.manager.yAxis || new AxisConfig()
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed get yAxis(): HorizontalAxis {

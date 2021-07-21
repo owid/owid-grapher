@@ -656,15 +656,11 @@ export class ScatterPlotChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return (
-            this.manager.yAxis ?? new AxisConfig(this.manager.yAxisConfig, this)
-        )
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return (
-            this.manager.xAxis ?? new AxisConfig(this.manager.xAxisConfig, this)
-        )
+        return new AxisConfig(this.manager.xAxisConfig, this)
     }
 
     @computed private get yColumnSlug(): string {

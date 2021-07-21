@@ -28,6 +28,7 @@ import { extent } from "d3-array"
 import { excludeUndefined, flatten, maxBy } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import { Position, PositionMap } from "../../clientUtils/owidTypes"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -46,7 +47,7 @@ const moveBottomToTop = (posMap: PositionMap<number>): PositionMap<number> => {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface {
+    implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable): OwidTable {
         return table
     }
@@ -62,8 +63,12 @@ export class FacetChart
         )
     }
 
-    @computed private get facetFontSize(): number {
+    @computed get fontSize(): number {
         return getFontSize(this.series.length, this.manager.baseFontSize)
+    }
+
+    @computed private get yAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     /**
@@ -83,7 +88,7 @@ export class FacetChart
         const count = series.length
 
         // Copy properties from manager to facets
-        const baseFontSize = this.facetFontSize
+        const baseFontSize = this.fontSize
         const lineStrokeWidth = count > 16 ? 1.5 : undefined
         const gridBoundsArr = this.bounds.grid(
             count,
@@ -97,10 +102,8 @@ export class FacetChart
             sizeColumnSlug,
             isRelativeMode,
         } = manager
-        const xAxisConfig =
-            this.manager.xAxisConfig ?? this.manager.xAxis?.toObject()
-        const yAxisConfig =
-            this.manager.yAxisConfig ?? this.manager.yAxis?.toObject()
+        const xAxisConfig = this.manager.xAxisConfig
+        const yAxisConfig = this.manager.yAxisConfig
 
         const table = this.transformedTable
 
@@ -194,7 +197,7 @@ export class FacetChart
 
         // Uniform Y axis
         const uniformYAxis =
-            this.manager.yAxis?.facetAxisRange === FacetAxisRange.shared
+            this.yAxisConfig.facetAxisRange === FacetAxisRange.shared
         if (uniformYAxis) {
             const [min, max] = extent(
                 excludeUndefined(
@@ -219,7 +222,7 @@ export class FacetChart
         const count = this.intermediatePlacedSeries.length
         const gridBoundsArr = bounds.grid(
             count,
-            getChartPadding(count, this.facetFontSize)
+            getChartPadding(count, this.fontSize)
         )
         // Overwrite properties (without mutating original)
         return this.intermediatePlacedSeries.map((series, i) => {
@@ -330,9 +333,7 @@ export class FacetChart
     }
 
     @computed protected get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(
-            this.facetFontSize + 10
-        )
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(this.fontSize + 10)
     }
 
     @computed protected get manager(): ChartManager {
@@ -344,20 +345,20 @@ export class FacetChart
     }
 
     render(): JSX.Element[] {
-        const { facetFontSize } = this
+        const { fontSize } = this
         return this.placedSeries.map((smallChart, index: number) => {
             const ChartClass =
                 ChartComponentClassMap.get(smallChart.chartTypeName) ??
                 DefaultChartClass
             const { bounds, seriesName } = smallChart
-            const shiftTop = facetFontSize * 0.9
+            const shiftTop = fontSize * 0.9
             return (
                 <React.Fragment key={index}>
                     <text
                         x={bounds.x}
                         y={bounds.top - shiftTop}
                         fill={"#1d3d63"}
-                        fontSize={facetFontSize}
+                        fontSize={fontSize}
                         style={{ fontWeight: 700 }}
                     >
                         {seriesName}

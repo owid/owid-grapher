@@ -42,6 +42,7 @@ import { HeaderManager } from "../header/HeaderManager"
 import { exposeInstanceOnWindow } from "../../clientUtils/Util"
 import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "../../coreTable/OwidTableConstants"
+import { AxisConfig } from "../axis/AxisConfig"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -58,6 +59,8 @@ export interface CaptionedChartManager
     fontSize?: number
     tab?: GrapherTabOption
     type?: ChartTypeName
+    yAxis?: AxisConfig
+    xAxis?: AxisConfig
     typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
     whatAreWeWaitingFor?: string
