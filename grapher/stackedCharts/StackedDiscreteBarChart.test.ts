@@ -187,6 +187,15 @@ describe("sorting", () => {
         yColumnSlugs: ["coal", "gas"],
     }
 
+    it("defaults to sorting by total value descending", () => {
+        const chart = new StackedDiscreteBarChart({ manager: baseManager })
+        expect(chart.sortedItems.map((item) => item.label)).toEqual([
+            "Spain",
+            "France",
+            "Germany",
+        ])
+    })
+
     it("can sort by entity name", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {
@@ -239,25 +248,6 @@ describe("sorting", () => {
             "Spain",
             "Germany",
             "France",
-        ])
-    })
-
-    it("falls back to sorting by entity name in relative mode when sort mode is set to total", () => {
-        const chart = new StackedDiscreteBarChart({
-            manager: {
-                ...baseManager,
-                sortConfig: {
-                    sortBy: SortBy.total,
-                    sortOrder: SortOrder.desc,
-                },
-                isRelativeMode: true,
-            },
-        })
-
-        expect(chart.sortedItems.map((item) => item.label)).toEqual([
-            "France",
-            "Germany",
-            "Spain",
         ])
     })
 })

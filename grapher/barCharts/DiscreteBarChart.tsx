@@ -490,7 +490,8 @@ export class DiscreteBarChart
                 break
         }
         const sortedSeries = sortBy(raw, sortByFunc)
-        if (this.sortConfig.sortOrder === SortOrder.desc) sortedSeries.reverse()
+        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedSeries.reverse()
         return sortedSeries
     }
 

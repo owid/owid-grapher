@@ -268,7 +268,8 @@ export class StackedDiscreteBarChart
                 }
         }
         const sortedItems = sortBy(this.items, sortByFunc)
-        if (this.sortConfig.sortOrder === SortOrder.desc) sortedItems.reverse()
+        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
         return sortedItems
     }
