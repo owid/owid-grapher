@@ -23,7 +23,11 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runFootnotes } from "./Footnote"
 import { Explorer } from "../explorer/Explorer"
-import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
+import {
+    BAKED_BASE_URL,
+    ENV,
+    BUGSNAG_API_KEY,
+} from "../settings/clientSettings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
@@ -69,10 +73,16 @@ window.runSiteFooterScripts = () => {
     }
 }
 
-Bugsnag.start({
-    apiKey: "0c88069ddc728aedd91001c376c0fe3c",
-    plugins: [new BugsnagPluginReact()],
-})
+if (BUGSNAG_API_KEY) {
+    try {
+        Bugsnag.start({
+            apiKey: BUGSNAG_API_KEY,
+            plugins: [new BugsnagPluginReact()],
+        })
+    } catch (error) {
+        console.error("Failed to initialize Bugsnag")
+    }
+}
 
 const analytics = new SiteAnalytics(ENV)
 analytics.logPageLoad()

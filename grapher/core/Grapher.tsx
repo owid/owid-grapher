@@ -1485,15 +1485,22 @@ export class Grapher
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            const ErrorBoundary = Bugsnag.getPlugin(
-                "react"
-            ).createErrorBoundary(React)
-            ReactDOM.render(
-                <ErrorBoundary>
-                    <Grapher ref={grapherInstanceRef} {...props} />
-                </ErrorBoundary>,
-                containerNode
-            )
+            if (Bugsnag && (Bugsnag as any)._client) {
+                const ErrorBoundary = Bugsnag.getPlugin(
+                    "react"
+                ).createErrorBoundary(React)
+                ReactDOM.render(
+                    <ErrorBoundary>
+                        <Grapher ref={grapherInstanceRef} {...props} />
+                    </ErrorBoundary>,
+                    containerNode
+                )
+            } else {
+                ReactDOM.render(
+                    <Grapher ref={grapherInstanceRef} {...props} />,
+                    containerNode
+                )
+            }
         }
 
         setBoundsFromContainerAndRender()
