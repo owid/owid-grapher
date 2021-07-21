@@ -34,4 +34,9 @@ export interface AxisConfigInterface {
      * See: https://github.com/d3/d3-scale#continuous_ticks
      */
     maxTicks?: number
+
+    /**
+     * Whether to use short labels, e.g. "5k" instead of "5,000".
+     */
+    compactLabels?: boolean
 }

@@ -30,6 +30,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
     @observable.ref nice: boolean = false
     @observable.ref maxTicks: number = 10
+    @observable.ref compactLabels: boolean = false
 }
 
 export class AxisConfig
@@ -65,6 +66,7 @@ export class AxisConfig
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
+            compactLabels: this.compactLabels,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

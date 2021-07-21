@@ -266,6 +266,10 @@ abstract class AbstractAxis {
     }
 
     private getTickFormattingOptions(): TickFormattingOptions {
+        const options: TickFormattingOptions = {}
+        if (this.config.compactLabels) {
+            options.shortNumberPrefixes = true
+        }
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.
         //
@@ -291,13 +295,14 @@ abstract class AbstractAxis {
         const minDist = min(
             rollingMap(tickValues, (a, b) => Math.abs(a.value - b.value))
         )
-        if (minDist === undefined) return {}
-
-        // Find the decimal places required to reach the first non-zero digit
-        const dp = Math.ceil(-Math.log10(minDist))
-        if (isFinite(dp) && dp >= 0) return { numDecimalPlaces: dp }
-
-        return {}
+        if (minDist !== undefined) {
+            // Find the decimal places required to reach the first non-zero digit
+            const dp = Math.ceil(-Math.log10(minDist))
+            if (isFinite(dp) && dp >= 0) {
+                options.numDecimalPlaces = dp
+            }
+        }
+        return options
     }
 
     getFormattedTicks(): string[] {
