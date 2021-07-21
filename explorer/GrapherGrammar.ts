@@ -16,6 +16,7 @@ import {
     GrapherTabOption,
 } from "../grapher/core/GrapherConstants"
 import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { SortBy, SortOrder } from "../clientUtils/owidTypes"
 
 export const GrapherGrammar: Grammar = {
     title: {
@@ -159,22 +160,30 @@ export const GrapherGrammar: Grammar = {
         keyword: "note",
         description: "Chart footnote",
     },
-    sortConfig: {
-        ...JSONObjectCellDef,
-        keyword: "sortConfig",
-        description: `JSON Object to specify how entities should be sorted.
-Examples:
-{"sortOrder": "asc", "sortBy": "entityName"}
-{"sortOrder": "desc", "sortBy": "dimension", "sortColumnSlug": "coal_per_capita"}`,
-        parse: (json: string) => {
-            if (json !== "") {
-                try {
-                    return JSON.parse(json)
-                } catch (e) {
-                    console.warn("Couldn't parse JSON sortConfig", e)
-                }
-            }
-            return undefined
-        },
+    sortBy: {
+        ...EnumCellDef,
+        keyword: "sortBy",
+        description: "Specify what to sort the entities by",
+        terminalOptions: Object.keys(SortBy).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+    },
+    sortOrder: {
+        ...EnumCellDef,
+        keyword: "sortOrder",
+        description: "Whether to sort entities ascending or descending",
+        terminalOptions: Object.keys(SortOrder).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
+    },
+    sortColumnSlug: {
+        ...EnumCellDef,
+        keyword: "sortColumnSlug",
+        description:
+            "This setting is only respected when `sortBy` is set to `column`",
     },
 } as const
