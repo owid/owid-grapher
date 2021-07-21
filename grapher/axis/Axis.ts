@@ -33,6 +33,10 @@ interface TickLabelPlacement {
     isHidden: boolean
 }
 
+const doIntersect = (bounds: Bounds, bounds2: Bounds): boolean => {
+    return bounds.intersects(bounds2)
+}
+
 const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
     const { x, y, width, height, xAlign, yAlign } = label
     const xShift =
@@ -67,6 +71,10 @@ abstract class AbstractAxis {
     }
 
     abstract get position(): Position
+    abstract get size(): number
+    abstract get labelWidth(): number
+
+    abstract placeTickLabel(value: number): TickLabelPlacement
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis
@@ -80,30 +88,16 @@ abstract class AbstractAxis {
         return this.config.nice
     }
 
-    // This will expand the domain but never shrink.
-    // This will change the min unless the user's min setting is less
-    // This will change the max unless the user's max setting is greater
-    // Undefined values are ignored
-    updateDomainPreservingUserSettings(
-        domain: [number | undefined, number | undefined]
-    ): this {
-        this.domain = [
-            domain[0] !== undefined
-                ? Math.min(this.domain[0], domain[0])
-                : this.domain[0],
-            domain[1] !== undefined
-                ? Math.max(this.domain[1], domain[1])
-                : this.domain[1],
-        ]
-        return this
-    }
-
     @computed get fontSize(): number {
         return this.config.fontSize
     }
 
     @computed private get maxTicks(): number {
         return this.config.maxTicks
+    }
+
+    @computed get canChangeScaleType(): boolean | undefined {
+        return this.config.canChangeScaleType
     }
 
     @computed get scaleType(): ScaleType {
@@ -122,8 +116,22 @@ abstract class AbstractAxis {
         this._label = value
     }
 
-    @computed get canChangeScaleType(): boolean | undefined {
-        return this.config.canChangeScaleType
+    // This will expand the domain but never shrink.
+    // This will change the min unless the user's min setting is less
+    // This will change the max unless the user's max setting is greater
+    // Undefined values are ignored
+    updateDomainPreservingUserSettings(
+        domain: [number | undefined, number | undefined]
+    ): this {
+        this.domain = [
+            domain[0] !== undefined
+                ? Math.min(this.domain[0], domain[0])
+                : this.domain[0],
+            domain[1] !== undefined
+                ? Math.max(this.domain[1], domain[1])
+                : this.domain[1],
+        ]
+        return this
     }
 
     // todo: refactor. switch to a parent pattern?
@@ -316,10 +324,6 @@ abstract class AbstractAxis {
         return 0.9 * this.fontSize
     }
 
-    protected doIntersect(bounds: Bounds, bounds2: Bounds): boolean {
-        return bounds.intersects(bounds2)
-    }
-
     @computed protected get baseTicks(): Tickmark[] {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
@@ -337,7 +341,7 @@ abstract class AbstractAxis {
                     t2 = tickLabels[j]
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
                 if (
-                    this.doIntersect(
+                    doIntersect(
                         boundsFromLabelPlacement(t1),
                         boundsFromLabelPlacement(t2)
                     )
@@ -365,11 +369,6 @@ abstract class AbstractAxis {
     @computed get labelFontSize(): number {
         return 0.7 * this.fontSize
     }
-
-    abstract get size(): number
-    abstract get labelWidth(): number
-
-    abstract placeTickLabel(value: number): TickLabelPlacement
 
     @computed get labelTextWrap(): TextWrap | undefined {
         const text = this.label
