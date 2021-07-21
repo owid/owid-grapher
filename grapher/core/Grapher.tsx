@@ -159,6 +159,7 @@ import {
     ColumnSlug,
     DimensionProperty,
     SortBy,
+    SortConfig,
     SortOrder,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
@@ -1828,6 +1829,26 @@ export class Grapher
     }
     set facet(strategy: FacetStrategy) {
         this.lastFacet = strategy
+    }
+
+    @computed get _sortConfig(): SortConfig {
+        return {
+            sortBy: this.sortBy ?? SortBy.total,
+            sortOrder: this.sortOrder ?? SortOrder.asc,
+            sortColumnSlug: this.sortColumnSlug,
+        }
+    }
+
+    @computed get sortConfig(): SortConfig {
+        const sortConfig = this._sortConfig
+        // In relative mode, where the values for every entity sum up to 100%, sorting by total
+        // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
+        // we sort by entity name instead.
+        if (this.isRelativeMode && sortConfig.sortBy === SortBy.total) {
+            sortConfig.sortBy = SortBy.entityName
+            sortConfig.sortOrder = SortOrder.asc
+        }
+        return sortConfig
     }
 
     @computed private get hasMultipleYColumns(): boolean {

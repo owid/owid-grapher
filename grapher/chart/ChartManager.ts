@@ -17,7 +17,7 @@ import { Annotation, ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
-export interface ChartManager extends SortConfig {
+export interface ChartManager {
     baseFontSize?: number
 
     table: OwidTable
@@ -66,6 +66,8 @@ export interface ChartManager extends SortConfig {
     hideYAxis?: boolean
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
+
+    sortConfig?: SortConfig
 
     seriesStrategy?: SeriesStrategy
 

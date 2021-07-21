@@ -130,11 +130,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed get sortConfig(): SortConfig {
-        return {
-            sortBy: this.manager.sortBy ?? SortBy.total,
-            sortOrder: this.manager.sortOrder ?? SortOrder.desc,
-            sortColumnSlug: this.manager.sortColumnSlug,
-        }
+        return this.manager.sortConfig ?? {}
     }
 
     @observable focusSeriesName?: SeriesName
@@ -252,26 +248,13 @@ export class StackedDiscreteBarChart
     }
 
     @computed get sortedItems(): readonly Item[] {
-        let sortState = { ...this.sortConfig }
-
-        if (this.manager.isRelativeMode && sortState.sortBy === SortBy.total) {
-            // In relative mode, where the values for every entity sum up to 100%, sorting by total
-            // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
-            // we sort by entity name instead.
-            sortState = {
-                ...sortState,
-                sortBy: SortBy.entityName,
-                sortOrder: SortOrder.asc,
-            }
-        }
-
         let sortByFunc: (item: Item) => number | string
-        switch (sortState.sortBy) {
+        switch (this.sortConfig.sortBy) {
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.label
                 break
             case SortBy.column:
-                const sortColumnSlug = sortState.sortColumnSlug
+                const sortColumnSlug = this.sortConfig.sortColumnSlug
                 sortByFunc = (item: Item): number =>
                     item.bars.find((b) => b.columnSlug === sortColumnSlug)
                         ?.point.value ?? 0
@@ -285,7 +268,7 @@ export class StackedDiscreteBarChart
                 }
         }
         const sortedItems = sortBy(this.items, sortByFunc)
-        if (sortState.sortOrder === SortOrder.desc) sortedItems.reverse()
+        if (this.sortConfig.sortOrder === SortOrder.desc) sortedItems.reverse()
 
         return sortedItems
     }

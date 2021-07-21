@@ -191,8 +191,10 @@ describe("sorting", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {
                 ...baseManager,
-                sortBy: SortBy.entityName,
-                sortOrder: SortOrder.asc,
+                sortConfig: {
+                    sortBy: SortBy.entityName,
+                    sortOrder: SortOrder.asc,
+                },
             },
         })
 
@@ -207,8 +209,10 @@ describe("sorting", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {
                 ...baseManager,
-                sortBy: SortBy.total,
-                sortOrder: SortOrder.desc,
+                sortConfig: {
+                    sortBy: SortBy.total,
+                    sortOrder: SortOrder.desc,
+                },
             },
         })
 
@@ -223,9 +227,11 @@ describe("sorting", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {
                 ...baseManager,
-                sortBy: SortBy.column,
-                sortColumnSlug: "coal",
-                sortOrder: SortOrder.desc,
+                sortConfig: {
+                    sortBy: SortBy.column,
+                    sortColumnSlug: "coal",
+                    sortOrder: SortOrder.desc,
+                },
             },
         })
 
@@ -240,8 +246,10 @@ describe("sorting", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {
                 ...baseManager,
-                sortBy: SortBy.total,
-                sortOrder: SortOrder.desc,
+                sortConfig: {
+                    sortBy: SortBy.total,
+                    sortOrder: SortOrder.desc,
+                },
                 isRelativeMode: true,
             },
         })

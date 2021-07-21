@@ -93,11 +93,7 @@ interface SortOrderDropdownOption {
 @observer
 class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
     @computed get sortConfig(): SortConfig {
-        return {
-            sortBy: this.grapher.sortBy ?? SortBy.total,
-            sortOrder: this.grapher.sortOrder ?? SortOrder.desc,
-            sortColumnSlug: this.grapher.sortColumnSlug,
-        }
+        return this.grapher._sortConfig
     }
 
     @computed get grapher() {

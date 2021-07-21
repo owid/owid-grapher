@@ -469,11 +469,7 @@ export class DiscreteBarChart
     }
 
     @computed get sortConfig(): SortConfig {
-        return {
-            sortBy: this.manager.sortBy ?? SortBy.total,
-            sortOrder: this.manager.sortOrder ?? SortOrder.desc,
-            sortColumnSlug: this.manager.sortColumnSlug,
-        }
+        return this.manager.sortConfig ?? {}
     }
 
     @computed private get sortedRawSeries(): DiscreteBarItem[] {
