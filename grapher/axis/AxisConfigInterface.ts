@@ -28,4 +28,10 @@ export interface AxisConfigInterface {
      * See: https://github.com/d3/d3-scale#continuous_nice
      */
     nice?: boolean
+
+    /**
+     * The (rough) maximum number of ticks to show. Not a strict limit, more ticks may be shown.
+     * See: https://github.com/d3/d3-scale#continuous_ticks
+     */
+    maxTicks?: number
 }

@@ -102,6 +102,10 @@ abstract class AbstractAxis {
         return this.config.fontSize
     }
 
+    @computed private get maxTicks(): number {
+        return this.config.maxTicks
+    }
+
     @computed get scaleType(): ScaleType {
         return this._scaleType ?? (this.config.scaleType || ScaleType.linear)
     }
@@ -161,7 +165,9 @@ abstract class AbstractAxis {
         // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
-        return Math.ceil(Math.min(10, this.rangeSize / (this.fontSize * 1.65)))
+        return Math.ceil(
+            Math.min(this.maxTicks, this.rangeSize / (this.fontSize * 1.65))
+        )
     }
 
     getTickValues(): Tickmark[] {

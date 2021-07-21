@@ -17,7 +17,7 @@ export interface FontSizeManager {
     fontSize: number
 }
 
-class AxisConfigDefaults {
+class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
@@ -29,6 +29,7 @@ class AxisConfigDefaults {
     @observable.ref labelPadding: number = 5
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
     @observable.ref nice: boolean = false
+    @observable.ref maxTicks: number = 10
 }
 
 export class AxisConfig
@@ -63,6 +64,7 @@ export class AxisConfig
             hideAxis: this.hideAxis,
             labelPadding: this.labelPadding,
             nice: this.nice,
+            maxTicks: this.maxTicks,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
