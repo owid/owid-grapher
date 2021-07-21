@@ -153,8 +153,8 @@ export class FacetChart
             }
         )
         const sharedAxisPadding: PositionMap<number> = {}
-        const xAxisConfig: AxisConfigInterface = {}
-        const yAxisConfig: AxisConfigInterface = {}
+        const globalXAxisConfig: AxisConfigInterface = {}
+        const globalYAxisConfig: AxisConfigInterface = {}
         // set the axis minSize
         const chartInstanceWithLargestXAxis = maxBy(
             chartInstances,
@@ -162,7 +162,7 @@ export class FacetChart
         )
         if (chartInstanceWithLargestXAxis) {
             const { size } = chartInstanceWithLargestXAxis.xAxis!
-            xAxisConfig.minSize = size
+            globalXAxisConfig.minSize = size
         }
         const chartInstanceWithLargestYAxis = maxBy(
             chartInstances,
@@ -170,7 +170,7 @@ export class FacetChart
         )
         if (chartInstanceWithLargestYAxis) {
             const { size } = chartInstanceWithLargestYAxis.yAxis!
-            yAxisConfig.minSize = size
+            globalYAxisConfig.minSize = size
         }
         // Uniform X axis
         const uniformXAxis = true
@@ -185,8 +185,8 @@ export class FacetChart
                     )
                 )
             )
-            xAxisConfig.min = min
-            xAxisConfig.max = max
+            globalXAxisConfig.min = min
+            globalXAxisConfig.max = max
             // xAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestXAxis) {
                 const axis = chartInstanceWithLargestXAxis.xAxis!.clone()
@@ -208,9 +208,9 @@ export class FacetChart
                     )
                 )
             )
-            yAxisConfig.min = min
-            yAxisConfig.max = max
-            yAxisConfig.labelPadding = 8
+            globalYAxisConfig.min = min
+            globalYAxisConfig.max = max
+            globalYAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestYAxis) {
                 const axis = chartInstanceWithLargestYAxis.yAxis!.clone()
                 axis.updateDomainPreservingUserSettings([min, max]).size
@@ -247,7 +247,7 @@ export class FacetChart
                     ...series.manager,
                     xAxisConfig: {
                         ...series.manager.xAxisConfig,
-                        ...xAxisConfig,
+                        ...globalXAxisConfig,
                         hideAxis:
                             xAxis &&
                             xAxis.position in sharedAxisPadding &&
@@ -259,7 +259,7 @@ export class FacetChart
                     },
                     yAxisConfig: {
                         ...series.manager.yAxisConfig,
-                        ...yAxisConfig,
+                        ...globalYAxisConfig,
                         hideAxis:
                             yAxis &&
                             yAxis.position in sharedAxisPadding &&
