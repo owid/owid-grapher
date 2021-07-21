@@ -121,8 +121,15 @@ export class FacetChart
             sizeColumnSlug,
             isRelativeMode,
         } = manager
-        const xAxisConfig = this.manager.xAxisConfig
-        const yAxisConfig = this.manager.yAxisConfig
+        const compactLabels = count > 2
+        const xAxisConfig = {
+            compactLabels,
+            ...this.manager.xAxisConfig,
+        }
+        const yAxisConfig = {
+            compactLabels,
+            ...this.manager.yAxisConfig,
+        }
 
         const table = this.transformedTable
 
