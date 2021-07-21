@@ -193,6 +193,15 @@ export class FacetChart
                 axis.updateDomainPreservingUserSettings([min, max]).size
                 sharedAxisPadding[axis.position] = axis.size
             }
+        } else {
+            if (this.facetStrategy === FacetStrategy.entity) {
+                // Force disable nice axes because we care about the trend,
+                // which gets skewed with "nice" axes.
+                globalXAxisConfig.nice = false
+                // Only show up to 3 ticks since we care about the trend
+                // (this is a rough input to D3, not a strict limit)
+                globalXAxisConfig.maxTicks = 3
+            }
         }
 
         // Uniform Y axis
@@ -215,6 +224,15 @@ export class FacetChart
                 const axis = chartInstanceWithLargestYAxis.yAxis!.clone()
                 axis.updateDomainPreservingUserSettings([min, max]).size
                 sharedAxisPadding[axis.position] = axis.size
+            }
+        } else {
+            if (this.facetStrategy === FacetStrategy.entity) {
+                // Force disable nice axes because we care about the trend,
+                // which gets skewed with "nice" axes.
+                globalYAxisConfig.nice = false
+                // Only show up to 3 ticks since we care about the trend
+                // (this is a rough input to D3, not a strict limit)
+                globalYAxisConfig.maxTicks = 3
             }
         }
         // Allocate space for axes
