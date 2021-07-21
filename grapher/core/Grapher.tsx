@@ -165,6 +165,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import Bugsnag from "@bugsnag/js"
 
 declare const window: any
 
@@ -1484,10 +1485,22 @@ export class Grapher
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            ReactDOM.render(
-                <Grapher ref={grapherInstanceRef} {...props} />,
-                containerNode
-            )
+            if (Bugsnag && (Bugsnag as any)._client) {
+                const ErrorBoundary = Bugsnag.getPlugin(
+                    "react"
+                ).createErrorBoundary(React)
+                ReactDOM.render(
+                    <ErrorBoundary>
+                        <Grapher ref={grapherInstanceRef} {...props} />
+                    </ErrorBoundary>,
+                    containerNode
+                )
+            } else {
+                ReactDOM.render(
+                    <Grapher ref={grapherInstanceRef} {...props} />,
+                    containerNode
+                )
+            }
         }
 
         setBoundsFromContainerAndRender()

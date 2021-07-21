@@ -23,7 +23,11 @@ import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runFootnotes } from "./Footnote"
 import { Explorer } from "../explorer/Explorer"
-import { BAKED_BASE_URL, ENV } from "../settings/clientSettings"
+import {
+    BAKED_BASE_URL,
+    ENV,
+    BUGSNAG_API_KEY,
+} from "../settings/clientSettings"
 import {
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
@@ -33,8 +37,10 @@ import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
+import Bugsnag from "@bugsnag/js"
+import BugsnagPluginReact from "@bugsnag/plugin-react"
 
-declare var window: any
+declare let window: any
 window.Grapher = Grapher
 window.Explorer = Explorer
 window.CoreTable = CoreTable
@@ -64,6 +70,17 @@ window.runSiteFooterScripts = () => {
         renderProminentLink(MultiEmbedderSingleton.selection)
     } else {
         renderProminentLink()
+    }
+}
+
+if (BUGSNAG_API_KEY) {
+    try {
+        Bugsnag.start({
+            apiKey: BUGSNAG_API_KEY,
+            plugins: [new BugsnagPluginReact()],
+        })
+    } catch (error) {
+        console.error("Failed to initialize Bugsnag")
     }
 }
 
