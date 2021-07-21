@@ -347,8 +347,10 @@ abstract class AbstractAxis {
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
                 if (
                     doIntersect(
-                        boundsFromLabelPlacement(t1),
-                        boundsFromLabelPlacement(t2)
+                        // Expand bounds slightly so that labels aren't
+                        // too close together.
+                        boundsFromLabelPlacement(t1).expand(3),
+                        boundsFromLabelPlacement(t2).expand(3)
                     )
                 )
                     t2.isHidden = true
