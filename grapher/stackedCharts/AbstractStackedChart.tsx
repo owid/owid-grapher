@@ -189,7 +189,13 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                nice: true,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
