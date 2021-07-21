@@ -44,6 +44,25 @@ const moveBottomToTop = (posMap: PositionMap<number>): PositionMap<number> => {
     return posMap
 }
 
+const getContentBounds = (
+    containerBounds: Bounds,
+    manager: ChartManager,
+    chartInstance: ChartInterface
+): Bounds => {
+    let bounds = containerBounds
+    const axes = [
+        { config: manager.xAxisConfig, axis: chartInstance.xAxis },
+        { config: manager.yAxisConfig, axis: chartInstance.yAxis },
+    ]
+    for (const { config, axis } of axes) {
+        if (!config || !axis) continue
+        if (!config.hideAxis && config.minSize !== undefined) {
+            bounds = bounds.pad({ [axis.position]: config.minSize })
+        }
+    }
+    return bounds
+}
+
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
@@ -134,6 +153,7 @@ export class FacetChart
             }
             return {
                 bounds,
+                contentBounds: bounds,
                 chartTypeName,
                 manager,
                 seriesName: series.seriesName,
@@ -236,16 +256,17 @@ export class FacetChart
             }
         }
         // Allocate space for axes
-        const bounds = this.bounds.pad(moveBottomToTop(sharedAxisPadding))
+        const fullBounds = this.bounds.pad(moveBottomToTop(sharedAxisPadding))
         const count = this.intermediatePlacedSeries.length
-        const gridBoundsArr = bounds.grid(
+        const gridBoundsArr = fullBounds.grid(
             count,
             getChartPadding(count, this.fontSize)
         )
         // Overwrite properties (without mutating original)
         return this.intermediatePlacedSeries.map((series, i) => {
-            const { bounds, edges } = gridBoundsArr[i]
-            const { xAxis, yAxis } = chartInstances[i]
+            const { bounds: gridBounds, edges } = gridBoundsArr[i]
+            const chartInstance = chartInstances[i]
+            const { xAxis, yAxis } = chartInstance
             const expand: PositionMap<number> = {}
             for (const edge of edges) {
                 if (edge === Position.top) {
@@ -258,36 +279,44 @@ export class FacetChart
                     expand[edge] = sharedAxisPadding[edge]
                 }
             }
+            const bounds = gridBounds.expand(expand)
+            const manager = {
+                ...series.manager,
+                xAxisConfig: {
+                    ...series.manager.xAxisConfig,
+                    ...globalXAxisConfig,
+                    hideAxis:
+                        xAxis &&
+                        xAxis.position in sharedAxisPadding &&
+                        !edges.has(
+                            xAxis.position === Position.bottom
+                                ? Position.top
+                                : xAxis.position
+                        ),
+                },
+                yAxisConfig: {
+                    ...series.manager.yAxisConfig,
+                    ...globalYAxisConfig,
+                    hideAxis:
+                        yAxis &&
+                        yAxis.position in sharedAxisPadding &&
+                        !edges.has(
+                            yAxis.position === Position.bottom
+                                ? Position.top
+                                : yAxis.position
+                        ),
+                },
+            }
+            const contentBounds = getContentBounds(
+                bounds,
+                manager,
+                chartInstance
+            )
             return {
                 ...series,
-                bounds: bounds.expand(expand),
-                manager: {
-                    ...series.manager,
-                    xAxisConfig: {
-                        ...series.manager.xAxisConfig,
-                        ...globalXAxisConfig,
-                        hideAxis:
-                            xAxis &&
-                            xAxis.position in sharedAxisPadding &&
-                            !edges.has(
-                                xAxis.position === Position.bottom
-                                    ? Position.top
-                                    : xAxis.position
-                            ),
-                    },
-                    yAxisConfig: {
-                        ...series.manager.yAxisConfig,
-                        ...globalYAxisConfig,
-                        hideAxis:
-                            yAxis &&
-                            yAxis.position in sharedAxisPadding &&
-                            !edges.has(
-                                yAxis.position === Position.bottom
-                                    ? Position.top
-                                    : yAxis.position
-                            ),
-                    },
-                },
+                bounds,
+                contentBounds,
+                manager,
             }
         })
     }
@@ -343,9 +372,12 @@ export class FacetChart
         return autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed private get facetStrategy(): FacetStrategy {
+        return this.manager.facetStrategy ?? FacetStrategy.none
+    }
+
     @computed get series(): FacetSeries[] {
-        const { facetStrategy } = this.manager
-        return facetStrategy === FacetStrategy.column
+        return this.facetStrategy === FacetStrategy.column
             ? this.columnFacets
             : this.countryFacets
     }
@@ -368,13 +400,13 @@ export class FacetChart
             const ChartClass =
                 ChartComponentClassMap.get(smallChart.chartTypeName) ??
                 DefaultChartClass
-            const { bounds, seriesName } = smallChart
+            const { bounds, contentBounds, seriesName } = smallChart
             const shiftTop = fontSize * 0.9
             return (
                 <React.Fragment key={index}>
                     <text
-                        x={bounds.x}
-                        y={bounds.top - shiftTop}
+                        x={contentBounds.x}
+                        y={contentBounds.top - shiftTop}
                         fill={"#1d3d63"}
                         fontSize={fontSize}
                         style={{ fontWeight: 700 }}
