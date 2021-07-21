@@ -1834,7 +1834,7 @@ export class Grapher
     @computed get _sortConfig(): SortConfig {
         return {
             sortBy: this.sortBy ?? SortBy.total,
-            sortOrder: this.sortOrder ?? SortOrder.asc,
+            sortOrder: this.sortOrder ?? SortOrder.desc,
             sortColumnSlug: this.sortColumnSlug,
         }
     }
