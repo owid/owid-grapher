@@ -21,12 +21,10 @@ const textAnchorFromAlign = (
     return "start"
 }
 
-const dominantBaselineFromAlign = (
-    align: VerticalAlign
-): "auto" | "middle" | "hanging" => {
-    if (align === VerticalAlign.middle) return "middle"
-    if (align === VerticalAlign.bottom) return "hanging"
-    return "auto"
+const dyFromAlign = (align: VerticalAlign): string => {
+    if (align === VerticalAlign.middle) return ".32em"
+    if (align === VerticalAlign.bottom) return ".71em"
+    return "0"
 }
 
 const TICK_COLOR = "#ddd"
@@ -204,13 +202,11 @@ export class VerticalAxisComponent extends React.Component<{
                                 verticalAxis.labelPadding
                             ).toFixed(2)}
                             y={y}
-                            fill={textColor}
-                            dominantBaseline={dominantBaselineFromAlign(
-                                yAlign ?? VerticalAlign.middle
-                            )}
+                            dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.right
                             )}
+                            fill={textColor}
                             fontSize={verticalAxis.tickFontSize}
                         >
                             {formattedValue}
