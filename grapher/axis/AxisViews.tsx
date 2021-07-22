@@ -111,12 +111,17 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
+    horizontalAxisLabelsOnTop?: boolean
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks } = this.props
+        const {
+            dualAxis,
+            showTickMarks,
+            horizontalAxisLabelsOnTop,
+        } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
@@ -146,6 +151,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 axisPosition={innerBounds.bottom}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
+                horizontalAxisLabelsOnTop={horizontalAxisLabelsOnTop}
             />
         )
 
@@ -210,6 +216,7 @@ export class HorizontalAxisComponent extends React.Component<{
     axis: HorizontalAxis
     axisPosition: number
     showTickMarks?: boolean
+    horizontalAxisLabelsOnTop?: boolean
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -226,7 +233,13 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 
     render(): JSX.Element {
-        const { bounds, axis, axisPosition, showTickMarks } = this.props
+        const {
+            bounds,
+            axis,
+            axisPosition,
+            showTickMarks,
+            horizontalAxisLabelsOnTop,
+        } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
 
@@ -240,6 +253,9 @@ export class HorizontalAxisComponent extends React.Component<{
             />
         ) : undefined
 
+        const tickYPlacement = horizontalAxisLabelsOnTop
+            ? bounds.top - axis.tickFontSize / 2
+            : bounds.bottom - labelOffset
         return (
             <g className="HorizontalAxis">
                 {label &&
@@ -254,7 +270,7 @@ export class HorizontalAxisComponent extends React.Component<{
                         <text
                             key={i}
                             x={x}
-                            y={bounds.bottom - labelOffset}
+                            y={tickYPlacement}
                             fill={textColor}
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.center

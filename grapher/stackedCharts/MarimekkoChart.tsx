@@ -123,6 +123,7 @@ export class MarimekkoChart
 
     defaultBaseColorScheme = ColorSchemeName.continents
     defaultNoDataColor = "#959595"
+    labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
@@ -330,10 +331,17 @@ export class MarimekkoChart
     }
 
     @computed private get dualAxis(): DualAxis {
+        const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
+        const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
+            Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
+            whiteSpaceOnLeft
         return new DualAxis({
             bounds: this.bounds
-                .padBottom(this.legendPaddingTop + this.labelHeight)
-                .padTop(this.legend.height),
+                .padBottom(this.longestLabelHeight)
+                .padTop(
+                    this.legend.height + this.horizontalAxisPart.labelFontSize
+                )
+                .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
@@ -500,7 +508,11 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    horizontalAxisLabelsOnTop={true}
+                />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
             </g>
@@ -543,9 +555,7 @@ export class MarimekkoChart
             const correctedWidth = exactWidth * xDomainCorrectionFactor
             const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
             const labelsYPosition =
-                dualAxis.verticalAxis.place(0) +
-                dualAxis.horizontalAxis.height +
-                this.baseFontSize
+                dualAxis.verticalAxis.place(0) + this.baseFontSize / 2
             const optionalLabelWithTooltip = (seriesName: string) =>
                 optionalLabel ? (
                     <g
@@ -757,14 +767,40 @@ export class MarimekkoChart
         return picked
     }
 
-    @computed private get labelHeight(): number {
+    @computed private get unrotatedLongestLabelWidth(): number {
         const widths = this.pickedLabelCandidates.map(
             (candidate) => candidate.bounds.width
         )
-        return Math.max(...widths)
+        const maxWidth = Math.max(...widths)
+        return maxWidth
+    }
+
+    @computed private get longestLabelHeight(): number {
+        // This takes the angle of rotation of the entity labels into account
+        // This is somewhat simplified as we treat this as a one-dimensional
+        // entity whereas in reality the textbox if of course 2D. To account
+        // for that we do max(fontSize, rotatedLabelHeight) in the end
+        // as a rough proxy
+        const rotatedLabelHeight =
+            this.unrotatedLongestLabelWidth *
+            Math.abs(Math.sin((this.labelAngleInDegrees * Math.PI) / 180))
+        return Math.max(this.fontSize, rotatedLabelHeight)
+    }
+
+    @computed private get longestLabelWidth(): number {
+        // This takes the angle of rotation of the entity labels into account
+        // This is somewhat simplified as we treat this as a one-dimensional
+        // entity whereas in reality the textbox if of course 2D. To account
+        // for that we do max(fontSize, rotatedLabelHeight) in the end
+        // as a rough proxy
+        const rotatedLabelWidth =
+            this.unrotatedLongestLabelWidth *
+            Math.abs(Math.cos((this.labelAngleInDegrees * Math.PI) / 180))
+        return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
     @computed private get labels(): Map<EntityName, JSX.Element> {
+        const { labelAngleInDegrees } = this
         const labelMap: Map<EntityName, JSX.Element> = new Map()
         for (const candidate of this.pickedLabelCandidates) {
             const labelX = candidate.bounds.width
@@ -778,7 +814,7 @@ export class MarimekkoChart
                     height={candidate.bounds.height}
                     fontWeight={candidate.isSelected ? 700 : 300}
                     fill="#000"
-                    transform={`rotate(-45, 0, 0)`}
+                    transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                     opacity={1}
                     fontSize="0.7em"
                     textAnchor="right"
