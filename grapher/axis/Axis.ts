@@ -1,6 +1,6 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed } from "mobx"
-import { rollingMap, min, uniq, sortBy, maxBy } from "../../clientUtils/Util"
+import { rollingMap, min, uniq, sortBy, max } from "../../clientUtils/Util"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
@@ -305,13 +305,6 @@ abstract class AbstractAxis {
         return options
     }
 
-    getFormattedTicks(): string[] {
-        // todo: pass in first or last?
-        return this.getTickValues().map((tickmark): string =>
-            this.formatTick(tickmark.value)
-        )
-    }
-
     place(value: number): number {
         if (!this.range) {
             console.error(
@@ -410,14 +403,10 @@ export class HorizontalAxis extends AbstractAxis {
 
     @computed get height(): number {
         const { labelOffset, labelPadding } = this
-        const firstFormattedTick = this.getFormattedTicks()[0]
-        const fontSize = this.tickFontSize
-        const height =
-            Bounds.forText(firstFormattedTick, {
-                fontSize,
-            }).height +
-            labelOffset +
-            labelPadding
+        const maxTickHeight = max(this.tickLabels.map((tick) => tick.height))
+        const height = maxTickHeight
+            ? maxTickHeight + labelOffset + labelPadding
+            : 0
         return Math.max(height, this.config.minSize ?? 0)
     }
 
@@ -508,14 +497,11 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get width(): number {
         const { labelOffset, labelPadding } = this
-        const longestTick = maxBy(
-            this.getFormattedTicks(),
-            (tick) => tick.length
-        )
+        const maxTickWidth = max(this.tickLabels.map((tick) => tick.width))
         const width =
-            Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
-            labelOffset +
-            labelPadding
+            maxTickWidth !== undefined
+                ? maxTickWidth + labelOffset + labelPadding
+                : 0
         return Math.max(width, this.config.minSize ?? 0)
     }
 

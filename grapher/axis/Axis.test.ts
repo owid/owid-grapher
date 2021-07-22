@@ -16,7 +16,6 @@ it("can create an axis", () => {
 
     const ticks = axis.getTickValues()
     expect(ticks.length).toBeGreaterThan(1)
-    expect(axis.getFormattedTicks().length).toEqual(ticks.length)
 })
 
 it("can assign a column to an axis", () => {
