@@ -216,15 +216,6 @@
                     "maximum": 32767,
                     "minimum": 0
                 },
-                "defaultYear": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "enum": ["latest"]
-                        },
-                        { "type": "number", "minimum": 0 }
-                    ]
-                },
                 "variableId": {
                     "type": "integer",
                     "maximum": 2147483647,
