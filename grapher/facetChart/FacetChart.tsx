@@ -191,11 +191,11 @@ export class FacetChart
     @computed private get placedSeries(): PlacedFacetSeries[] {
         // Create intermediate chart views to determine some of the properties
         const chartInstances = this.intermediatePlacedSeries.map(
-            ({ manager, chartTypeName }) => {
+            ({ bounds, manager, chartTypeName }) => {
                 const ChartClass =
                     ChartComponentClassMap.get(chartTypeName) ??
                     DefaultChartClass
-                return new ChartClass({ manager })
+                return new ChartClass({ bounds, manager })
             }
         )
         const sharedAxesSizes: PositionMap<number> = {}
