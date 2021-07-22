@@ -10,11 +10,6 @@
         "map": {
             "type": "object",
             "properties": {
-                "legendOrientation": {
-                    "type": ["string", "null"],
-                    "enum": ["portrait", "landscape", null],
-                    "description": "DELETE: never used in code"
-                },
                 "projection": {
                     "type": ["string", "null"],
                     "enum": [
@@ -27,88 +22,6 @@
                         "Oceania",
                         null
                     ]
-                },
-                "isColorblind": {
-                    "type": "boolean",
-                    "description": "DELETE: never used in code"
-                },
-                "defaultProjection": {
-                    "type": "string",
-                    "enum": [
-                        "World",
-                        "Europe",
-                        "Africa",
-                        "Asia",
-                        "NortAmerica",
-                        "SouthAmerica",
-                        "Oceania"
-                    ],
-                    "description": "DELETE: never used in code"
-                },
-                "timelineMode": {
-                    "type": ["string", "null"],
-                    "enum": ["slider", "timeline", "buttons", null],
-                    "description": "DELETE: never used in code"
-                },
-                "minYear": {
-                    "type": ["integer"],
-                    "description": "DELETE: never used in code"
-                },
-                "timeRanges": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "endYear": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["last"]
-                                    },
-                                    {
-                                        "type": "number",
-                                        "minimum": 0
-                                    }
-                                ]
-                            },
-                            "interval": {
-                                "type": "integer",
-                                "maximum": 32767,
-                                "minimum": 0
-                            },
-                            "startYear": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["first"]
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            },
-                            "year": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["last"]
-                                    },
-                                    {
-                                        "type": "number",
-                                        "minimum": 0
-                                    }
-                                ]
-                            }
-                        },
-                        "additionalProperties": false
-                    },
-                    "description": "DELETE: never used in code"
-                },
-                "legendStepSize": {
-                    "type": "integer",
-                    "maximum": 32767,
-                    "minimum": 0,
-                    "description": "DELETE: never used in code"
                 },
                 "hideTimeline": {
                     "type": "boolean"
@@ -211,34 +124,8 @@
                         }
                     ]
                 },
-                "maxYear": {
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "enum": ["latest"]
-                        },
-                        {
-                            "type": "number",
-                            "minimum": 0
-                        }
-                    ],
-                    "description": "DELETE: never used in code"
-                },
-                "colorSchemeName": {
-                    "type": "string",
-                    "description": "DELETE: never used in code"
-                },
                 "tooltipUseCustomLabels": {
                     "type": "boolean"
-                },
-                "targetYearMode": {
-                    "type": "string",
-                    "description": "DELETE: never used in code"
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": ["specific"],
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "time": {
                     "type": ["string", "integer"],
@@ -250,11 +137,6 @@
                     "type": "integer",
                     "maximum": 2147483647,
                     "minimum": 0
-                },
-                "timeInterval": {
-                    "type": "integer",
-                    "$comment": "TODO: This property is used only if 13 very old charts",
-                    "description": "DELETE: never used in code"
                 }
             },
             "additionalProperties": false
@@ -312,13 +194,8 @@
                 "canChangeScaleType": {
                     "type": "boolean"
                 },
-                "labelDistance": {
-                    "type": "number",
-                    "description": "DELETE: never used in code"
-                },
                 "facetAxisRange": {
-                    "type": "string",
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
+                    "type": "string"
                 },
                 "numDecimalPlaces": {
                     "type": "integer",
@@ -354,38 +231,6 @@
         },
         "matchingEntitiesOnly": {
             "type": "boolean"
-        },
-        "lastEditedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "DELETE: never used in code"
-        },
-        "margins": {
-            "type": "object",
-            "properties": {
-                "top": {
-                    "type": ["string", "integer"],
-                    "minimum": 0,
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
-                },
-                "left": {
-                    "type": ["string", "integer"],
-                    "minimum": 0,
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
-                },
-                "right": {
-                    "type": ["string", "integer"],
-                    "minimum": 0,
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
-                },
-                "bottom": {
-                    "type": ["string", "integer"],
-                    "minimum": 0,
-                    "description": "DEPRECATE: this field has not been used in 1y or more"
-                }
-            },
-            "additionalProperties": false,
-            "description": "DELETE: never used in code"
         },
         "hasChartTab": {
             "type": "boolean"
@@ -669,10 +514,6 @@
         "title": {
             "type": "string"
         },
-        "isAutoTitle": {
-            "type": "boolean",
-            "description": "DELETE: never used in code"
-        },
         "type": {
             "type": "string",
             "enum": [
@@ -745,12 +586,6 @@
                 "canChangeScaleType": {
                     "type": "boolean"
                 },
-                "labelDistance": {
-                    "type": "integer",
-                    "maximum": 32767,
-                    "minimum": -327681,
-                    "description": "DELETE: never used in code"
-                },
                 "numDecimalPlaces": {
                     "type": "integer",
                     "minimum": 0,
@@ -762,10 +597,6 @@
         "timelineMaxTime": {
             "type": "integer",
             "minimum": 0
-        },
-        "isExplorable": {
-            "type": "boolean",
-            "description": "DELETE: never used in code"
         },
         "hideConnectedScatterLines": {
             "type": "boolean"
