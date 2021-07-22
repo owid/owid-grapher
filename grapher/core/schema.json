@@ -12,7 +12,8 @@
             "properties": {
                 "legendOrientation": {
                     "type": ["string", "null"],
-                    "enum": ["portrait", "landscape", null]
+                    "enum": ["portrait", "landscape", null],
+                    "description": "DELETE: never used in code"
                 },
                 "projection": {
                     "type": ["string", "null"],
@@ -28,7 +29,8 @@
                     ]
                 },
                 "isColorblind": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "DELETE: never used in code"
                 },
                 "defaultProjection": {
                     "type": "string",
@@ -40,14 +42,17 @@
                         "NortAmerica",
                         "SouthAmerica",
                         "Oceania"
-                    ]
+                    ],
+                    "description": "DELETE: never used in code"
                 },
                 "timelineMode": {
                     "type": ["string", "null"],
-                    "enum": ["slider", "timeline", "buttons", null]
+                    "enum": ["slider", "timeline", "buttons", null],
+                    "description": "DELETE: never used in code"
                 },
                 "minYear": {
-                    "type": ["integer"]
+                    "type": ["integer"],
+                    "description": "DELETE: never used in code"
                 },
                 "timeRanges": {
                     "type": "array",
@@ -60,7 +65,10 @@
                                         "type": "string",
                                         "enum": ["last"]
                                     },
-                                    { "type": "number", "minimum": 0 }
+                                    {
+                                        "type": "number",
+                                        "minimum": 0
+                                    }
                                 ]
                             },
                             "interval": {
@@ -74,7 +82,9 @@
                                         "type": "string",
                                         "enum": ["first"]
                                     },
-                                    { "type": "number" }
+                                    {
+                                        "type": "number"
+                                    }
                                 ]
                             },
                             "year": {
@@ -83,17 +93,22 @@
                                         "type": "string",
                                         "enum": ["last"]
                                     },
-                                    { "type": "number", "minimum": 0 }
+                                    {
+                                        "type": "number",
+                                        "minimum": 0
+                                    }
                                 ]
                             }
                         },
                         "additionalProperties": false
-                    }
+                    },
+                    "description": "DELETE: never used in code"
                 },
                 "legendStepSize": {
                     "type": "integer",
                     "maximum": 32767,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DELETE: never used in code"
                 },
                 "hideTimeline": {
                     "type": "boolean"
@@ -110,7 +125,9 @@
                         "customCategoryColors": {
                             "type": ["object", "array"],
                             "patternProperties": {
-                                ".*": { "type": "string" }
+                                ".*": {
+                                    "type": "string"
+                                }
                             },
                             "items": {}
                         },
@@ -122,9 +139,10 @@
                         },
                         "customHiddenCategories": {
                             "type": ["object", "array"],
-
                             "patternProperties": {
-                                ".*": { "type": "boolean" }
+                                ".*": {
+                                    "type": "boolean"
+                                }
                             },
                             "items": {}
                         },
@@ -168,7 +186,9 @@
                         "customCategoryLabels": {
                             "type": ["object", "array"],
                             "patternProperties": {
-                                ".*": { "type": "string" }
+                                ".*": {
+                                    "type": "string"
+                                }
                             },
                             "items": {}
                         }
@@ -185,7 +205,10 @@
                             "type": "string",
                             "enum": ["latest"]
                         },
-                        { "type": "number", "minimum": 0 }
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        }
                     ]
                 },
                 "maxYear": {
@@ -194,25 +217,32 @@
                             "type": "string",
                             "enum": ["latest"]
                         },
-                        { "type": "number", "minimum": 0 }
-                    ]
+                        {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    ],
+                    "description": "DELETE: never used in code"
                 },
                 "colorSchemeName": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "DELETE: never used in code"
                 },
                 "tooltipUseCustomLabels": {
                     "type": "boolean"
                 },
                 "targetYearMode": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "DELETE: never used in code"
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["specific"]
+                    "enum": ["specific"],
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "time": {
                     "type": ["string", "integer"],
-
+                    "description": "Select a specific time to be displayed.",
                     "maximum": 32767,
                     "minimum": 0
                 },
@@ -223,10 +253,10 @@
                 },
                 "timeInterval": {
                     "type": "integer",
-                    "$comment": "TODO: This property is used only if 13 very old charts"
+                    "$comment": "TODO: This property is used only if 13 very old charts",
+                    "description": "DELETE: never used in code"
                 }
             },
-
             "additionalProperties": false
         },
         "maxTime": {
@@ -235,7 +265,10 @@
                     "type": "string",
                     "enum": ["latest"]
                 },
-                { "type": "number", "minimum": 0 }
+                {
+                    "type": "number",
+                    "minimum": 0
+                }
             ]
         },
         "subtitle": {
@@ -250,7 +283,6 @@
         "baseColorScheme": {
             "type": "string"
         },
-
         "yAxis": {
             "type": "object",
             "properties": {
@@ -281,14 +313,17 @@
                     "type": "boolean"
                 },
                 "labelDistance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "DELETE: never used in code"
                 },
                 "facetAxisRange": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "numDecimalPlaces": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 }
             },
             "additionalProperties": false
@@ -322,29 +357,35 @@
         },
         "lastEditedAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "DELETE: never used in code"
         },
         "margins": {
             "type": "object",
             "properties": {
                 "top": {
                     "type": ["string", "integer"],
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "left": {
                     "type": ["string", "integer"],
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "right": {
                     "type": ["string", "integer"],
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 },
                 "bottom": {
                     "type": ["string", "integer"],
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "DELETE: never used in code"
         },
         "hasChartTab": {
             "type": "boolean"
@@ -391,7 +432,9 @@
                 "customCategoryColors": {
                     "type": "object",
                     "patternProperties": {
-                        ".*": { "type": "string" }
+                        ".*": {
+                            "type": "string"
+                        }
                     }
                 },
                 "baseColorScheme": {
@@ -400,7 +443,9 @@
                 "customHiddenCategories": {
                     "type": "object",
                     "patternProperties": {
-                        ".*": { "type": "boolean" }
+                        ".*": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "binningStrategy": {
@@ -601,7 +646,9 @@
         "selectedEntityColors": {
             "type": "object",
             "patternProperties": {
-                ".*": { "type": "string" }
+                ".*": {
+                    "type": "string"
+                }
             }
         },
         "relatedQuestions": {
@@ -623,7 +670,8 @@
             "type": "string"
         },
         "isAutoTitle": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "DELETE: never used in code"
         },
         "type": {
             "type": "string",
@@ -653,7 +701,9 @@
                     "type": "string",
                     "enum": ["latest", "earliest"]
                 },
-                { "type": "number" }
+                {
+                    "type": "number"
+                }
             ]
         },
         "hideTitleAnnotation": {
@@ -698,11 +748,13 @@
                 "labelDistance": {
                     "type": "integer",
                     "maximum": 32767,
-                    "minimum": -327681
+                    "minimum": -327681,
+                    "description": "DELETE: never used in code"
                 },
                 "numDecimalPlaces": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 }
             },
             "additionalProperties": false
@@ -712,7 +764,8 @@
             "minimum": 0
         },
         "isExplorable": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "DELETE: never used in code"
         },
         "hideConnectedScatterLines": {
             "type": "boolean"
