@@ -153,12 +153,14 @@ export class FacetChart
         const table = this.transformedTable
 
         return series.map((series, index) => {
-            const { bounds } = gridBoundsArr[index]
+            const { bounds, edges } = gridBoundsArr[index]
             const chartTypeName =
                 series.chartTypeName ??
                 this.props.chartTypeName ??
                 ChartTypeName.LineChart
-            const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
+
+            // TODO figure out how to do legends better
+            const hideLegend = !edges.has(Position.right)
             const hidePoints = true
 
             const manager: ChartManager = {
