@@ -77,15 +77,15 @@ abstract class AbstractAxis {
     abstract placeTickLabel(value: number): TickLabelPlacement
 
     @computed get hideAxis(): boolean {
-        return this.config.hideAxis
+        return this.config.hideAxis ?? false
     }
 
     @computed get labelPadding(): number {
-        return this.config.labelPadding
+        return this.config.labelPadding ?? 5
     }
 
     @computed get nice(): boolean {
-        return this.config.nice
+        return this.config.nice ?? false
     }
 
     @computed get fontSize(): number {
@@ -93,7 +93,7 @@ abstract class AbstractAxis {
     }
 
     @computed private get maxTicks(): number {
-        return this.config.maxTicks
+        return this.config.maxTicks ?? 6
     }
 
     @computed get canChangeScaleType(): boolean | undefined {
@@ -101,7 +101,7 @@ abstract class AbstractAxis {
     }
 
     @computed get scaleType(): ScaleType {
-        return this._scaleType ?? (this.config.scaleType || ScaleType.linear)
+        return this._scaleType ?? this.config.scaleType ?? ScaleType.linear
     }
 
     set scaleType(value: ScaleType) {

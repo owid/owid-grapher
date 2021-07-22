@@ -20,17 +20,17 @@ export interface FontSizeManager {
 class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref canChangeScaleType?: boolean = undefined
-    @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
     @observable.ref minSize?: number = undefined
-    @observable.ref hideAxis: boolean = false
-    @observable.ref labelPadding: number = 5
-    @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
-    @observable.ref nice: boolean = false
-    @observable.ref maxTicks: number = 6
-    @observable.ref compactLabels: boolean = false
+    @observable.ref hideAxis?: boolean = undefined
+    @observable.ref labelPadding?: number = undefined
+    @observable.ref nice?: boolean = undefined
+    @observable.ref maxTicks?: number = undefined
+    @observable.ref compactLabels?: boolean = undefined
+    @observable.ref scaleType?: ScaleType = ScaleType.linear
+    @observable.ref facetAxisRange?: FacetAxisRange = FacetAxisRange.shared
+    @observable.ref label: string = ""
 }
 
 export class AxisConfig
@@ -54,19 +54,19 @@ export class AxisConfig
 
     toObject(): AxisConfigInterface {
         const obj = trimObject({
-            scaleType: this.scaleType,
-            label: this.label ? this.label : undefined,
             min: this.min,
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
-            facetAxisRange: this.facetAxisRange,
             minSize: this.minSize,
             hideAxis: this.hideAxis,
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
             compactLabels: this.compactLabels,
+            scaleType: this.scaleType,
+            label: this.label ? this.label : undefined,
+            facetAxisRange: this.facetAxisRange,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
