@@ -198,7 +198,7 @@ export class FacetChart
                 return new ChartClass({ manager })
             }
         )
-        const sharedAxisPadding: PositionMap<number> = {}
+        const sharedAxesSizes: PositionMap<number> = {}
         const globalXAxisConfig: AxisConfigInterface = {}
         const globalYAxisConfig: AxisConfigInterface = {}
         // set the axis minSize
@@ -238,7 +238,7 @@ export class FacetChart
                     min,
                     max,
                 ])
-                sharedAxisPadding[axis.position] = size
+                sharedAxesSizes[axis.position] = size
                 globalXAxisConfig.minSize = size
             }
         }
@@ -262,35 +262,32 @@ export class FacetChart
                     min,
                     max,
                 ])
-                sharedAxisPadding[axis.position] = size
+                sharedAxesSizes[axis.position] = size
                 globalYAxisConfig.minSize = size
             }
         }
-        // Allocate space for axes
-        const fullBounds = this.bounds.pad(moveBottomToTop(sharedAxisPadding))
+        // Allocate space for shared axes, so that the content areas of charts are all equal.
+        // Shared axes mean axes are only plotted on the facets that match the edge the axis is on.
+        // For example, a vertical Y axis would be plotted on the left-most charts only.
+        // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
+        // the bottom row of charts.
+        const sharedAxesPadding = moveBottomToTop(sharedAxesSizes)
+        const fullBounds = this.bounds.pad(sharedAxesPadding)
         const count = this.intermediatePlacedSeries.length
         const gridBoundsArr = fullBounds.grid(
             count,
             getChartPadding(count, this.fontSize)
         )
-        // Overwrite properties (without mutating original)
         return this.intermediatePlacedSeries.map((series, i) => {
-            const { bounds: gridBounds, edges } = gridBoundsArr[i]
             const chartInstance = chartInstances[i]
             const { xAxis, yAxis } = chartInstance
-            const expand: PositionMap<number> = {}
+            const { bounds: initialGridBounds, edges } = gridBoundsArr[i]
+            let bounds = initialGridBounds
             for (const edge of edges) {
-                if (edge === Position.top) {
-                    expand[Position.top] =
-                        (sharedAxisPadding[Position.top] ?? 0) +
-                        (sharedAxisPadding[Position.bottom] ?? 0)
-                } else if (edge === Position.bottom) {
-                    // do nothing
-                } else if (edge in sharedAxisPadding) {
-                    expand[edge] = sharedAxisPadding[edge]
-                }
+                bounds = bounds.expand({
+                    [edge]: sharedAxesPadding[edge],
+                })
             }
-            const bounds = gridBounds.expand(expand)
             const manager = {
                 ...series.manager,
                 xAxisConfig: {
@@ -298,7 +295,7 @@ export class FacetChart
                     ...globalXAxisConfig,
                     hideAxis:
                         xAxis &&
-                        xAxis.position in sharedAxisPadding &&
+                        xAxis.position in sharedAxesSizes &&
                         !edges.has(
                             xAxis.position === Position.bottom
                                 ? Position.top
@@ -310,7 +307,7 @@ export class FacetChart
                     ...globalYAxisConfig,
                     hideAxis:
                         yAxis &&
-                        yAxis.position in sharedAxisPadding &&
+                        yAxis.position in sharedAxesSizes &&
                         !edges.has(
                             yAxis.position === Position.bottom
                                 ? Position.top
