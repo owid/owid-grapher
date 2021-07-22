@@ -1046,6 +1046,7 @@ export class MarimekkoChart
                 .map((col, i) => {
                     return {
                         seriesName: col.displayName,
+                        columnSlug: col.slug,
                         color:
                             col.def.color ??
                             colorScheme.getColors(yColumns.length)[i],
