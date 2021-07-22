@@ -1903,7 +1903,8 @@ export class Grapher
         // that could offer both, faceting by entity is strictly worse than the original together view.
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
-        } else if (this.selection.numSelectedEntities > 1) {
+        }
+        if (this.selection.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.entity)
         }
 
