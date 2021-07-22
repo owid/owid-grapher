@@ -169,20 +169,24 @@ abstract class AbstractAxis {
 
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
     @computed private get totalTicksTarget(): number {
-        // Chose 1.65 here by trying a bunch of different faceted charts and figuring out what
+        // Chose 1.8 here by trying a bunch of different faceted charts and figuring out what
         // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
-        return Math.ceil(
-            Math.min(this.maxTicks, this.rangeSize / (this.fontSize * 1.65))
+        return Math.round(
+            Math.min(this.maxTicks, this.rangeSize / (this.fontSize * 1.8))
         )
     }
 
     getTickValues(): Tickmark[] {
-        const { scaleType, d3_scale, totalTicksTarget } = this
+        const { scaleType, d3_scale } = this
 
         let ticks: Tickmark[]
         if (scaleType === ScaleType.log) {
+            // Show a bit more ticks for log axes
+            const maxLabelledTicks = Math.round(this.totalTicksTarget * 1.25)
+            const maxTicks = Math.round(this.totalTicksTarget * 3)
+
             // This is a wild heuristic that decides how many tick lines and grid lines we want to
             // show for log charts.
             //
@@ -210,7 +214,7 @@ abstract class AbstractAxis {
             //   `totalTicks` labels overall
             //
             // -@MarcelGerber, 2020-08-07
-            const tickCandidates = d3_scale.ticks(totalTicksTarget)
+            const tickCandidates = d3_scale.ticks(maxTicks)
             ticks = tickCandidates.map((value) => {
                 // 10^x
                 if (Math.fround(Math.log10(value)) % 1 === 0)
@@ -224,8 +228,8 @@ abstract class AbstractAxis {
                 return { value, priority: 3 }
             })
 
-            if (ticks.length > totalTicksTarget) {
-                if (ticks.length <= 2 * totalTicksTarget) {
+            if (ticks.length > maxLabelledTicks) {
+                if (ticks.length <= maxTicks) {
                     // Convert all "in-between" lines to faint grid lines without labels
                     ticks = ticks.map((tick) => {
                         if (tick.priority === 3)
@@ -240,7 +244,7 @@ abstract class AbstractAxis {
                     // Remove some tickmarks again because the chart would get too overwhelming
                     // otherwise
                     for (let priority = 3; priority > 1; priority--) {
-                        if (ticks.length > totalTicksTarget)
+                        if (ticks.length > maxLabelledTicks)
                             ticks = ticks.filter(
                                 (tick) => tick.priority < priority
                             )
