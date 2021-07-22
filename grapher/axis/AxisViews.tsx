@@ -6,25 +6,12 @@ import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
 import { HorizontalAlign, VerticalAlign } from "../../clientUtils/owidTypes"
+import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)
     const spaceLength = Math.round((dashLength * 2) / 3)
     return `${dashLength},${spaceLength}`
-}
-
-const textAnchorFromAlign = (
-    align: HorizontalAlign
-): "start" | "middle" | "end" => {
-    if (align === HorizontalAlign.center) return "middle"
-    if (align === HorizontalAlign.right) return "end"
-    return "start"
-}
-
-const dyFromAlign = (align: VerticalAlign): string => {
-    if (align === VerticalAlign.middle) return ".32em"
-    if (align === VerticalAlign.bottom) return ".71em"
-    return "0"
 }
 
 const TICK_COLOR = "#ddd"

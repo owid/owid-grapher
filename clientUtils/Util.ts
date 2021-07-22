@@ -106,7 +106,15 @@ import { formatLocale } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
+import {
+    SortOrder,
+    Integer,
+    Time,
+    EPOCH_DATE,
+    ScaleType,
+    VerticalAlign,
+    HorizontalAlign,
+} from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 
@@ -1057,4 +1065,18 @@ export const wrapInDiv = (el: Element, classes?: string[]): Element => {
     el.parentNode.insertBefore(wrapper, el)
     wrapper.appendChild(el)
     return wrapper
+}
+
+export const textAnchorFromAlign = (
+    align: HorizontalAlign
+): "start" | "middle" | "end" => {
+    if (align === HorizontalAlign.center) return "middle"
+    if (align === HorizontalAlign.right) return "end"
+    return "start"
+}
+
+export const dyFromAlign = (align: VerticalAlign): string => {
+    if (align === VerticalAlign.middle) return ".32em"
+    if (align === VerticalAlign.bottom) return ".71em"
+    return "0"
 }

@@ -9,6 +9,7 @@ import {
     last,
     flatten,
     sum,
+    dyFromAlign,
 } from "../../clientUtils/Util"
 import { Bounds } from "../../clientUtils/Bounds"
 import {
@@ -17,7 +18,11 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
+import {
+    Color,
+    HorizontalAlign,
+    VerticalAlign,
+} from "../../clientUtils/owidTypes"
 
 interface PositionedBin {
     x: number
@@ -420,7 +425,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                         // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                         // do with some rough positioning.
-                        dy=".75em"
+                        dy={dyFromAlign(VerticalAlign.bottom)}
                         fontSize={label.fontSize}
                     >
                         {label.text}
@@ -562,7 +567,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                                     // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                                     // do with some rough positioning.
-                                    dy=".75em"
+                                    dy={dyFromAlign(VerticalAlign.bottom)}
                                     fontSize={mark.label.fontSize}
                                 >
                                     {mark.label.text}
