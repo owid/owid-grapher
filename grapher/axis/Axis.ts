@@ -250,13 +250,10 @@ abstract class AbstractAxis {
         } else {
             // Only use priority 2 here because we want the start / end ticks
             // to be priority 1
-            // Show a maximum of 6 ticks to match previous behaviour
-            ticks = d3_scale
-                .ticks(Math.min(6, this.totalTicksTarget))
-                .map((tickValue) => ({
-                    value: tickValue,
-                    priority: 2,
-                }))
+            ticks = d3_scale.ticks(this.totalTicksTarget).map((tickValue) => ({
+                value: tickValue,
+                priority: 2,
+            }))
         }
 
         if (this.hideFractionalTicks)

@@ -29,7 +29,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref labelPadding: number = 5
     @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
     @observable.ref nice: boolean = false
-    @observable.ref maxTicks: number = 10
+    @observable.ref maxTicks: number = 6
     @observable.ref compactLabels: boolean = false
 }
 
