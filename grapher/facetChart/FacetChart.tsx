@@ -6,6 +6,7 @@ import {
     ChartTypeName,
     FacetAxisRange,
     FacetStrategy,
+    ScaleType,
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import {
@@ -132,22 +133,25 @@ export class FacetChart
 
         // Use compact labels, e.g. 50k instead of 50,000.
         const compactLabels = count > 2
+        const globalXAxisConfig: AxisConfigInterface = {
+            compactLabels,
+        }
+        const globalYAxisConfig: AxisConfigInterface = {
+            compactLabels,
+        }
+
         // We infer that the user cares about the trend if the axis is not uniform
         // and the metrics on all facets are the same
         const careAboutTrend =
             !this.uniformYAxis && this.facetStrategy === FacetStrategy.entity
-
-        const xAxisConfig: AxisConfigInterface = {
-            compactLabels,
-            ...this.manager.xAxisConfig,
-        }
-        const yAxisConfig: AxisConfigInterface = {
-            compactLabels,
+        if (careAboutTrend) {
             // Force disable nice axes if we care about the trend,
             // because nice axes misrepresent trends.
-            nice: careAboutTrend ? false : undefined,
-            maxTicks: careAboutTrend ? 3 : undefined,
-            ...this.manager.yAxisConfig,
+            globalYAxisConfig.nice = false
+
+            const isLogScale =
+                this.manager.yAxisConfig?.scaleType === ScaleType.log
+            if (!isLogScale) globalYAxisConfig.maxTicks = 3
         }
 
         const table = this.transformedTable
@@ -163,14 +167,14 @@ export class FacetChart
             const hideLegend = !edges.has(Position.right)
             const hidePoints = true
 
+            // NOTE: The order of overrides is important!
+            // We need to preserve most config coming in.
             const manager: ChartManager = {
                 table,
                 baseFontSize,
                 lineStrokeWidth,
                 hideLegend,
                 hidePoints,
-                xAxisConfig,
-                yAxisConfig,
                 yColumnSlug,
                 xColumnSlug,
                 yColumnSlugs,
@@ -178,6 +182,16 @@ export class FacetChart
                 sizeColumnSlug,
                 isRelativeMode,
                 ...series.manager,
+                xAxisConfig: {
+                    ...globalXAxisConfig,
+                    ...this.manager.xAxisConfig,
+                    ...series.manager.xAxisConfig,
+                },
+                yAxisConfig: {
+                    ...globalYAxisConfig,
+                    ...this.manager.yAxisConfig,
+                    ...series.manager.yAxisConfig,
+                },
             }
             return {
                 bounds,
@@ -290,6 +304,8 @@ export class FacetChart
                     [edge]: sharedAxesPadding[edge],
                 })
             }
+            // NOTE: The order of overrides is important!
+            // We need to preserve most config coming in.
             const manager = {
                 ...series.manager,
                 xAxisConfig: {
@@ -339,20 +355,22 @@ export class FacetChart
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
-        const hideLegend = this.manager.yColumnSlugs?.length === 1
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
             // Only set overrides for this facet strategy.
             // Default properties are set elsewhere.
+            const manager: ChartManager = {
+                table: seriesTable,
+                selection: [seriesName],
+                seriesStrategy: SeriesStrategy.column,
+            }
+            if (this.manager.yColumnSlugs?.length === 1) {
+                manager.hideLegend = true
+            }
             return {
                 seriesName,
                 color: facetBackgroundColor,
-                manager: {
-                    table: seriesTable,
-                    selection: [seriesName],
-                    seriesStrategy: SeriesStrategy.column,
-                    hideLegend,
-                },
+                manager,
             }
         })
     }
