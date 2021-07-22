@@ -90,6 +90,14 @@ export class FacetChart
         return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
+    @computed private get uniformYAxis(): boolean {
+        return this.yAxisConfig.facetAxisRange === FacetAxisRange.shared
+    }
+
+    @computed private get uniformXAxis(): boolean {
+        return true
+    }
+
     /**
      * Holds the intermediate render properties for chart views, as well as the intermediate chart
      * views themselves.
@@ -121,13 +129,24 @@ export class FacetChart
             sizeColumnSlug,
             isRelativeMode,
         } = manager
+
+        // Use compact labels, e.g. 50k instead of 50,000.
         const compactLabels = count > 2
-        const xAxisConfig = {
+        // We infer that the user cares about the trend if the axis is not uniform
+        // and the metrics on all facets are the same
+        const careAboutTrend =
+            !this.uniformYAxis && this.facetStrategy === FacetStrategy.entity
+
+        const xAxisConfig: AxisConfigInterface = {
             compactLabels,
             ...this.manager.xAxisConfig,
         }
-        const yAxisConfig = {
+        const yAxisConfig: AxisConfigInterface = {
             compactLabels,
+            // Force disable nice axes if we care about the trend,
+            // because nice axes misrepresent trends.
+            nice: careAboutTrend ? false : undefined,
+            maxTicks: careAboutTrend ? 3 : undefined,
             ...this.manager.yAxisConfig,
         }
 
@@ -200,8 +219,7 @@ export class FacetChart
             globalYAxisConfig.minSize = size
         }
         // Uniform X axis
-        const uniformXAxis = true
-        if (uniformXAxis) {
+        if (this.uniformXAxis) {
             // set the domain
             const [min, max] = extent(
                 excludeUndefined(
@@ -214,27 +232,19 @@ export class FacetChart
             )
             globalXAxisConfig.min = min
             globalXAxisConfig.max = max
-            // xAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestXAxis) {
                 const axis = chartInstanceWithLargestXAxis.xAxis!.clone()
-                axis.updateDomainPreservingUserSettings([min, max]).size
-                sharedAxisPadding[axis.position] = axis.size
-            }
-        } else {
-            if (this.facetStrategy === FacetStrategy.entity) {
-                // Force disable nice axes because we care about the trend,
-                // which gets skewed with "nice" axes.
-                globalXAxisConfig.nice = false
-                // Only show up to 3 ticks since we care about the trend
-                // (this is a rough input to D3, not a strict limit)
-                globalXAxisConfig.maxTicks = 3
+                const { size } = axis.updateDomainPreservingUserSettings([
+                    min,
+                    max,
+                ])
+                sharedAxisPadding[axis.position] = size
+                globalXAxisConfig.minSize = size
             }
         }
 
         // Uniform Y axis
-        const uniformYAxis =
-            this.yAxisConfig.facetAxisRange === FacetAxisRange.shared
-        if (uniformYAxis) {
+        if (this.uniformYAxis) {
             const [min, max] = extent(
                 excludeUndefined(
                     flatten(
@@ -246,20 +256,14 @@ export class FacetChart
             )
             globalYAxisConfig.min = min
             globalYAxisConfig.max = max
-            globalYAxisConfig.labelPadding = 8
             if (chartInstanceWithLargestYAxis) {
                 const axis = chartInstanceWithLargestYAxis.yAxis!.clone()
-                axis.updateDomainPreservingUserSettings([min, max]).size
-                sharedAxisPadding[axis.position] = axis.size
-            }
-        } else {
-            if (this.facetStrategy === FacetStrategy.entity) {
-                // Force disable nice axes because we care about the trend,
-                // which gets skewed with "nice" axes.
-                globalYAxisConfig.nice = false
-                // Only show up to 3 ticks since we care about the trend
-                // (this is a rough input to D3, not a strict limit)
-                globalYAxisConfig.maxTicks = 3
+                const { size } = axis.updateDomainPreservingUserSettings([
+                    min,
+                    max,
+                ])
+                sharedAxisPadding[axis.position] = size
+                globalYAxisConfig.minSize = size
             }
         }
         // Allocate space for axes
