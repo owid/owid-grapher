@@ -87,7 +87,7 @@ interface Bar {
 }
 
 interface Item {
-    label: string
+    entityId: string
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint // contains the single x value
@@ -107,7 +107,7 @@ interface TooltipProps {
 }
 
 interface EntityWithSize {
-    label: string
+    entityId: string
     xValue: number
 }
 interface LabelCandidate {
@@ -115,6 +115,18 @@ interface LabelCandidate {
     bounds: Bounds
     isPicked: boolean
     isSelected: boolean
+}
+
+interface LabelWithPlacement {
+    label: JSX.Element
+    preferredPlacement: number
+    correctedPlacement: number
+    labelKey: string
+}
+
+interface LabelCandidateWithElement {
+    candidate: LabelCandidate
+    labelElement: JSX.Element
 }
 
 @observer
@@ -221,7 +233,7 @@ export class MarimekkoChart
 
     // Account for the width of the legend
     @computed private get labelWidth(): number {
-        const labels = this.sortedItems.map((item) => item.label)
+        const labels = this.sortedItems.map((item) => item.entityId)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.labelStyle).width
     }
@@ -380,19 +392,13 @@ export class MarimekkoChart
         const selectedSet = this.selectionArray.selectedSet
         const { sortedItems } = this
         if (selectedSet.size === 0) return []
-        return sortedItems.filter((item) => selectedSet.has(item.label))
+        return sortedItems.filter((item) => selectedSet.has(item.entityId))
     }
 
     @computed private get sortedItems(): Item[] {
         const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
-        const {
-            xSeries,
-            colorColumn,
-            colorScale,
-            series,
-            onePixelDomainValueEquivalent,
-        } = this
+        const { xSeries, colorColumn, colorScale, series } = this
 
         const items: Item[] = entityNames
             .map((entityName) => {
@@ -411,7 +417,7 @@ export class MarimekkoChart
                     : undefined
 
                 return {
-                    label: entityName,
+                    entityId: entityName,
                     xPoint: xPoint,
                     entityColor: color
                         ? { colorDomainValue: colorDomainValue?.value, color }
@@ -458,6 +464,10 @@ export class MarimekkoChart
             )
         }
         return placedItems
+    }
+
+    @computed get placedItemsMap(): Map<string, PlacedItem> {
+        return new Map(this.placedItems.map((item) => [item.entityId, item]))
     }
 
     // legend props
@@ -578,8 +588,7 @@ export class MarimekkoChart
             x0,
             xDomainCorrectionFactor,
             focusSeriesName,
-            labels,
-            manager,
+            placedLabels,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
@@ -587,15 +596,8 @@ export class MarimekkoChart
         const formatColumn = this.formatColumn
         const xAxisColumn = this.xColumn
 
-        const labelsWithPlacements: {
-            label: JSX.Element
-            preferredPlacement: number
-            correctedPlacement: number
-            labelKey: string
-        }[] = []
-
         for (const item of this.placedItems) {
-            const { label, bars, xPoint, entityColor } = item
+            const { entityId, bars, xPoint, entityColor } = item
             const currentX =
                 Math.round(dualAxis.horizontalAxis.place(x0)) +
                 item.pixelSpaceXOffset
@@ -606,51 +608,23 @@ export class MarimekkoChart
                 formatColumn,
                 xAxisColumn,
             }
-            const optionalLabel = labels.get(label)
 
             const exactWidth =
                 dualAxis.horizontalAxis.place(xPoint.value) -
                 dualAxis.horizontalAxis.place(x0)
             const correctedWidth = exactWidth * xDomainCorrectionFactor
             const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
-            const labelsYPosition =
-                dualAxis.verticalAxis.place(0) + this.baseFontSize / 2
-            if (optionalLabel) {
-                labelsWithPlacements.push({
-                    label: (
-                        <g
-                            transform={`translate(${
-                                barWidth / 2
-                            }, ${labelsYPosition})`}
-                        >
-                            <TippyIfInteractive
-                                lazy
-                                isInteractive={!manager.isExportingtoSvgOrPng}
-                                key={label}
-                                hideOnClick={false}
-                                content={
-                                    <MarimekkoChart.Tooltip {...tooltipProps} />
-                                }
-                            >
-                                {optionalLabel}
-                            </TippyIfInteractive>
-                        </g>
-                    ),
-                    preferredPlacement: currentX,
-                    correctedPlacement: currentX,
-                    labelKey: label,
-                })
-            }
-            const isSelected = selectionSet.has(label)
-            const isHovered = label === this.hoveredEntityName
+
+            const isSelected = selectionSet.has(entityId)
+            const isHovered = entityId === this.hoveredEntityName
             const result = (
                 <g
-                    key={label}
+                    key={entityId}
                     className="bar"
                     transform={`translate(${currentX}, 0)`}
-                    onMouseOver={(): void => this.onEntityMouseOver(label)}
+                    onMouseOver={(): void => this.onEntityMouseOver(entityId)}
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
-                    onClick={(): void => this.onEntityClick(label)}
+                    onClick={(): void => this.onEntityClick(entityId)}
                 >
                     {bars.map((bar) => {
                         const isFaint =
@@ -675,6 +649,237 @@ export class MarimekkoChart
             if (isSelected || isHovered) highlightedElements.push(result)
             else normalElements.push(result)
         }
+
+        return normalElements.concat(placedLabels, highlightedElements)
+    }
+    private paddingInPixels = 5
+
+    private renderBar(
+        bar: Bar,
+        tooltipProps: TooltipProps,
+        barWidth: number,
+        isHovered: boolean,
+        isSelected: boolean,
+        isFaint: boolean,
+        entityColor: string | undefined
+    ): JSX.Element {
+        const { dualAxis, manager } = this
+        const { yPoint, seriesName } = bar
+
+        const barBaseColor = entityColor ?? bar.color
+
+        const barColor = isHovered
+            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
+            : isSelected
+            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+            : barBaseColor
+        const strokeColor = isHovered || isSelected ? "#555" : "#666"
+        const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
+
+        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
+        const barHeight =
+            dualAxis.verticalAxis.place(this.y0) -
+            dualAxis.verticalAxis.place(yPoint.value)
+        const barX = 0
+
+        return (
+            <TippyIfInteractive
+                lazy
+                isInteractive={!manager.isExportingtoSvgOrPng}
+                key={seriesName}
+                hideOnClick={false}
+                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+            >
+                <g>
+                    <rect
+                        x={0}
+                        y={0}
+                        transform={`translate(${barX}, ${barY - barHeight})`}
+                        width={barWidth}
+                        height={barHeight}
+                        fill={barColor}
+                        stroke={strokeColor}
+                        strokeWidth={strokeWidth}
+                        opacity={
+                            isFaint ? 0.1 : isSelected || isHovered ? 0.85 : 0.6
+                        }
+                        style={{
+                            transition: "translate 200ms ease",
+                        }}
+                    />
+                </g>
+            </TippyIfInteractive>
+        )
+    }
+
+    private static labelCanidateFromItem(
+        item: EntityWithSize,
+        baseFontSize: number,
+        isSelected: boolean
+    ): LabelCandidate {
+        return {
+            item: item,
+            bounds: Bounds.forText(item.entityId, {
+                fontSize: 0.7 * baseFontSize,
+            }),
+            isPicked: isSelected,
+            isSelected,
+        }
+    }
+    private static splitIntoEqualDomainSizeChunks(
+        candidates: LabelCandidate[],
+        numChunks: number
+    ): LabelCandidate[][] {
+        const chunks: LabelCandidate[][] = []
+        let currentChunk: LabelCandidate[] = []
+        let domainSizeOfChunk = 0
+        const domainSizeThreshold = Math.ceil(
+            sumBy(candidates, (candidate) => candidate.item.xValue) / numChunks
+        )
+        for (const candidate of candidates) {
+            while (domainSizeOfChunk > domainSizeThreshold) {
+                chunks.push(currentChunk)
+                currentChunk = []
+                domainSizeOfChunk -= domainSizeThreshold
+            }
+            domainSizeOfChunk += candidate.item.xValue
+            currentChunk.push(candidate)
+        }
+        chunks.push(currentChunk)
+
+        return chunks.filter((chunk) => chunk.length > 0)
+    }
+
+    @computed private get pickedLabelCandidates(): LabelCandidate[] {
+        const { xColumnFullTimeRange, selectedItems, xRange } = this
+        const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
+        const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
+
+        for (const [entity, rows] of xRowsByEntity.entries()) {
+            const row = minBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
+            if (row) lastYearOfEachEntity.set(entity, row)
+        }
+        if (!lastYearOfEachEntity.size) return []
+        // Measure the labels (before any rotation, just normal horizontal labels)
+        const selectedItemsSet = new Set(
+            selectedItems.map((item) => item.entityId)
+        )
+
+        const labelCandidates: LabelCandidate[] = [
+            ...lastYearOfEachEntity.entries(),
+        ].map(([entity, row]) =>
+            MarimekkoChart.labelCanidateFromItem(
+                { entityId: entity, xValue: row.value },
+                this.baseFontSize,
+                selectedItemsSet.has(entity)
+            )
+        )
+
+        const labelHeight = labelCandidates[0].bounds.height
+        // Always pick the first and last element
+        labelCandidates[0].isPicked = true
+        labelCandidates[labelCandidates.length - 1].isPicked = true
+        const availablePixels = xRange[1] - xRange[0]
+
+        const numLabelsToAdd = Math.floor(
+            (availablePixels / (labelHeight + this.paddingInPixels)) * 0.7
+        )
+        const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
+            labelCandidates,
+            numLabelsToAdd
+        )
+        const picks = chunks.flatMap((chunk) => {
+            const picked = chunk.filter((candidate) => candidate.isPicked)
+            if (picked.length > 0) return picked
+            else {
+                return maxBy(chunk, (candidate) => candidate.item.xValue)
+            }
+        })
+        for (const max of picks) {
+            if (max) max.isPicked = true
+        }
+        const picked = labelCandidates.filter((candidate) => candidate.isPicked)
+
+        return picked
+    }
+
+    @computed private get placedLabels(): JSX.Element[] {
+        const {
+            dualAxis,
+            x0,
+            xDomainCorrectionFactor,
+            manager,
+            placedItemsMap,
+        } = this
+        const targetTime = this.manager.endTime
+        const timeColumn = this.inputTable.timeColumn
+        const formatColumn = this.formatColumn
+        const xAxisColumn = this.xColumn
+        const labelsYPosition =
+            dualAxis.verticalAxis.place(0) + this.baseFontSize / 2
+
+        const labelsWithPlacements: LabelWithPlacement[] = this.labels
+            .map(({ candidate, labelElement }) => {
+                const xPoint = candidate.item.xValue
+                const exactWidth =
+                    dualAxis.horizontalAxis.place(xPoint) -
+                    dualAxis.horizontalAxis.place(x0)
+                const correctedWidth = exactWidth * xDomainCorrectionFactor
+                const barWidth =
+                    correctedWidth > 1 ? Math.round(correctedWidth) : 1
+                const labelId = candidate.item.entityId
+                const item = placedItemsMap.get(candidate.item.entityId)
+                if (!item) {
+                    console.error(
+                        "Could not find item",
+                        candidate.item.entityId
+                    )
+                    return null
+                } else {
+                    const tooltipProps = {
+                        item,
+                        targetTime,
+                        timeColumn,
+                        formatColumn,
+                        xAxisColumn,
+                    }
+                    const currentX =
+                        Math.round(dualAxis.horizontalAxis.place(x0)) +
+                        item.pixelSpaceXOffset
+                    return {
+                        label: (
+                            <g
+                                transform={`translate(${
+                                    barWidth / 2
+                                }, ${labelsYPosition})`}
+                            >
+                                <TippyIfInteractive
+                                    lazy
+                                    isInteractive={
+                                        !manager.isExportingtoSvgOrPng
+                                    }
+                                    key={labelId}
+                                    hideOnClick={false}
+                                    content={
+                                        <MarimekkoChart.Tooltip
+                                            {...tooltipProps}
+                                        />
+                                    }
+                                >
+                                    {labelElement}
+                                </TippyIfInteractive>
+                            </g>
+                        ),
+                        preferredPlacement: currentX,
+                        correctedPlacement: currentX,
+                        labelKey: labelId,
+                    }
+                }
+            })
+            .filter(
+                (item: LabelWithPlacement | null): item is LabelWithPlacement =>
+                    item !== null
+            )
 
         // This collision detection code is optimized for the particular
         // case of distributing items in 1D, knowing that we picked a low
@@ -748,157 +953,7 @@ export class MarimekkoChart
             </g>
         ))
 
-        return normalElements.concat(placedLabels, highlightedElements)
-    }
-    private paddingInPixels = 5
-
-    private renderBar(
-        bar: Bar,
-        tooltipProps: TooltipProps,
-        barWidth: number,
-        isHovered: boolean,
-        isSelected: boolean,
-        isFaint: boolean,
-        entityColor: string | undefined
-    ): JSX.Element {
-        const { dualAxis, manager } = this
-        const { yPoint, seriesName } = bar
-
-        const barBaseColor = entityColor ?? bar.color
-
-        const barColor = isHovered
-            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
-            : isSelected
-            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
-            : barBaseColor
-        const strokeColor = isHovered || isSelected ? "#555" : "#666"
-        const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
-
-        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
-        const barHeight =
-            dualAxis.verticalAxis.place(this.y0) -
-            dualAxis.verticalAxis.place(yPoint.value)
-        const barX = 0
-
-        return (
-            <TippyIfInteractive
-                lazy
-                isInteractive={!manager.isExportingtoSvgOrPng}
-                key={seriesName}
-                hideOnClick={false}
-                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
-            >
-                <g>
-                    <rect
-                        x={0}
-                        y={0}
-                        transform={`translate(${barX}, ${barY - barHeight})`}
-                        width={barWidth}
-                        height={barHeight}
-                        fill={barColor}
-                        stroke={strokeColor}
-                        strokeWidth={strokeWidth}
-                        opacity={
-                            isFaint ? 0.1 : isSelected || isHovered ? 0.85 : 0.6
-                        }
-                        style={{
-                            transition: "translate 200ms ease",
-                        }}
-                    />
-                </g>
-            </TippyIfInteractive>
-        )
-    }
-
-    private static labelCanidateFromItem(
-        item: EntityWithSize,
-        baseFontSize: number,
-        isSelected: boolean
-    ): LabelCandidate {
-        return {
-            item: item,
-            bounds: Bounds.forText(item.label, {
-                fontSize: 0.7 * baseFontSize,
-            }),
-            isPicked: isSelected,
-            isSelected,
-        }
-    }
-    private static splitIntoEqualDomainSizeChunks(
-        candidates: LabelCandidate[],
-        numChunks: number
-    ): LabelCandidate[][] {
-        const chunks: LabelCandidate[][] = []
-        let currentChunk: LabelCandidate[] = []
-        let domainSizeOfChunk = 0
-        const domainSizeThreshold = Math.ceil(
-            sumBy(candidates, (candidate) => candidate.item.xValue) / numChunks
-        )
-        for (const candidate of candidates) {
-            while (domainSizeOfChunk > domainSizeThreshold) {
-                chunks.push(currentChunk)
-                currentChunk = []
-                domainSizeOfChunk -= domainSizeThreshold
-            }
-            domainSizeOfChunk += candidate.item.xValue
-            currentChunk.push(candidate)
-        }
-        chunks.push(currentChunk)
-
-        return chunks.filter((chunk) => chunk.length > 0)
-    }
-
-    @computed private get pickedLabelCandidates(): LabelCandidate[] {
-        const { xColumnFullTimeRange, selectedItems, xRange } = this
-        const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
-        const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
-
-        for (const [entity, rows] of xRowsByEntity.entries()) {
-            const row = minBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
-            if (row) lastYearOfEachEntity.set(entity, row)
-        }
-        if (!lastYearOfEachEntity.size) return []
-        // Measure the labels (before any rotation, just normal horizontal labels)
-        const selectedItemsSet = new Set(
-            selectedItems.map((item) => item.label)
-        )
-
-        const labelCandidates: LabelCandidate[] = [
-            ...lastYearOfEachEntity.entries(),
-        ].map(([entity, row]) =>
-            MarimekkoChart.labelCanidateFromItem(
-                { label: entity, xValue: row.value },
-                this.baseFontSize,
-                selectedItemsSet.has(entity)
-            )
-        )
-
-        const labelHeight = labelCandidates[0].bounds.height
-        // Always pick the first and last element
-        labelCandidates[0].isPicked = true
-        labelCandidates[labelCandidates.length - 1].isPicked = true
-        const availablePixels = xRange[1] - xRange[0]
-
-        const numLabelsToAdd = Math.floor(
-            (availablePixels / (labelHeight + this.paddingInPixels)) * 0.7
-        )
-        const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
-            labelCandidates,
-            numLabelsToAdd
-        )
-        const picks = chunks.flatMap((chunk) => {
-            const picked = chunk.filter((candidate) => candidate.isPicked)
-            if (picked.length > 0) return picked
-            else {
-                return maxBy(chunk, (candidate) => candidate.item.xValue)
-            }
-        })
-        for (const max of picks) {
-            if (max) max.isPicked = true
-        }
-        const picked = labelCandidates.filter((candidate) => candidate.isPicked)
-
-        return picked
+        return placedLabels
     }
 
     @computed private get unrotatedLongestLabelWidth(): number {
@@ -940,40 +995,39 @@ export class MarimekkoChart
         return Math.max(this.fontSize, rotatedLabelWidth)
     }
 
-    @computed private get labels(): Map<EntityName, JSX.Element> {
+    @computed private get labels(): LabelCandidateWithElement[] {
         const { labelAngleInDegrees } = this
-        const labelMap: Map<EntityName, JSX.Element> = new Map()
-        for (const candidate of this.pickedLabelCandidates) {
+        return this.pickedLabelCandidates.map((candidate) => {
             const labelX = candidate.bounds.width
-            labelMap.set(
-                candidate.item.label,
-                <text
-                    key={`${candidate.item.label}-label`}
-                    x={-labelX}
-                    y={0}
-                    width={candidate.bounds.width}
-                    height={candidate.bounds.height}
-                    fontWeight={candidate.isSelected ? 700 : 300}
-                    fill="#000"
-                    transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
-                    opacity={1}
-                    fontSize="0.7em"
-                    textAnchor="right"
-                    dominantBaseline="middle"
-                    onMouseOver={(): void =>
-                        this.onEntityMouseOver(candidate.item.label)
-                    }
-                    onMouseLeave={(): void => this.onEntityMouseLeave()}
-                    onClick={(): void =>
-                        this.onEntityClick(candidate.item.label)
-                    }
-                >
-                    {candidate.item.label}
-                </text>
-            )
-        }
-
-        return labelMap
+            return {
+                candidate,
+                labelElement: (
+                    <text
+                        key={`${candidate.item.entityId}-label`}
+                        x={-labelX}
+                        y={0}
+                        width={candidate.bounds.width}
+                        height={candidate.bounds.height}
+                        fontWeight={candidate.isSelected ? 700 : 300}
+                        fill="#000"
+                        transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
+                        opacity={1}
+                        fontSize="0.7em"
+                        textAnchor="right"
+                        dominantBaseline="middle"
+                        onMouseOver={(): void =>
+                            this.onEntityMouseOver(candidate.item.entityId)
+                        }
+                        onMouseLeave={(): void => this.onEntityMouseLeave()}
+                        onClick={(): void =>
+                            this.onEntityClick(candidate.item.entityId)
+                        }
+                    >
+                        {candidate.item.entityId}
+                    </text>
+                ),
+            }
+        })
     }
 
     private static Tooltip(props: TooltipProps): JSX.Element {
@@ -992,13 +1046,13 @@ export class MarimekkoChart
                     />
                 </td>
                 <td colSpan={3} style={{ color: "#111" }}>
-                    <strong>{props.item.label}</strong>
+                    <strong>{props.item.entityId}</strong>
                 </td>
             </tr>
         ) : (
             <tr>
                 <td colSpan={4} style={{ color: "#111" }}>
-                    <strong>{props.item.label}</strong>
+                    <strong>{props.item.entityId}</strong>
                 </td>
             </tr>
         )
