@@ -251,6 +251,7 @@ export class FacetStrategyDropdown extends React.Component<{
                 interactive={true}
                 trigger={"click"}
                 placement={"bottom"}
+                arrow={false}
             >
                 <div className="FacetStrategyDropdown">
                     {facetStrategyLabels[this.facetStrategy]}
