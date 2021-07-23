@@ -234,7 +234,7 @@ export class FilterSmallCountriesToggle extends React.Component<{
 }
 
 export interface FacetStrategyDropdownManager {
-    availableFacetStrategies?: FacetStrategy[]
+    availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
     showFacets?: boolean
 }
