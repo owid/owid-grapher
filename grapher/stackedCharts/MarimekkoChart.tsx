@@ -92,6 +92,11 @@ interface Item {
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint // contains the single x value
 }
+
+interface PlacedItem extends Item {
+    pixelSpaceXOffset: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
+}
+
 interface TooltipProps {
     item: Item
     highlightedSeriesName?: string
@@ -216,7 +221,7 @@ export class MarimekkoChart
 
     // Account for the width of the legend
     @computed private get labelWidth(): number {
-        const labels = this.items.map((item) => item.label)
+        const labels = this.sortedItems.map((item) => item.label)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.labelStyle).width
     }
@@ -243,7 +248,10 @@ export class MarimekkoChart
         ]
     }
 
-    @computed private get xDomainCorrectionFactor(): number {
+    @computed private get onePixelThresholdAndCorrectionFactor(): {
+        onePixelDomainValueEquivalent: number
+        xDomainCorrectionFactor: number
+    } {
         // Rounding up every country so that it is at least one pixel wide
         // on the X axis has a pretty annoying side effect: since there are
         // quite a few very small countries that get rounded up, the normal
@@ -262,11 +270,19 @@ export class MarimekkoChart
         // updating this threshold to take into account that the "normal" range gets
         // smaller by one pixel whenever we enlarge one small country to one pixel.
 
-        const points = this.xSeries.points
+        const { xSeries, xRange } = this
+
+        if (!xSeries.points.length)
+            return {
+                onePixelDomainValueEquivalent: 0,
+                xDomainCorrectionFactor: 1,
+            }
+
+        const points = xSeries.points
             .map((point) => point.value)
             .sort((a, b) => a - b)
         const total = sum(points)
-        const widthInPixels = this.xRange[1] - this.xRange[0]
+        const widthInPixels = xRange[1] - xRange[0]
         let onePixelDomainValueEquivalent = total / widthInPixels
         let numCountriesBelowOnePixel = 0
         let sumToRemoveFromTotal = 0
@@ -277,11 +293,20 @@ export class MarimekkoChart
             onePixelDomainValueEquivalent =
                 total / (widthInPixels - numCountriesBelowOnePixel)
         }
-        return (
+        const xDomainCorrectionFactor =
             (total -
                 numCountriesBelowOnePixel * onePixelDomainValueEquivalent) /
             (total - sumToRemoveFromTotal)
-        )
+        return { onePixelDomainValueEquivalent, xDomainCorrectionFactor }
+    }
+
+    @computed private get onePixelDomainValueEquivalent(): number {
+        return this.onePixelThresholdAndCorrectionFactor
+            .onePixelDomainValueEquivalent
+    }
+
+    @computed private get xDomainCorrectionFactor(): number {
+        return this.onePixelThresholdAndCorrectionFactor.xDomainCorrectionFactor
     }
 
     @computed private get xDomainDefault(): [number, number] {
@@ -353,15 +378,21 @@ export class MarimekkoChart
 
     @computed private get selectedItems(): Item[] {
         const selectedSet = this.selectionArray.selectedSet
-        const { items } = this
+        const { sortedItems } = this
         if (selectedSet.size === 0) return []
-        return items.filter((item) => selectedSet.has(item.label))
+        return sortedItems.filter((item) => selectedSet.has(item.label))
     }
 
-    @computed private get items(): Item[] {
+    @computed private get sortedItems(): Item[] {
         const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
-        const { xSeries, colorColumn, colorScale, series } = this
+        const {
+            xSeries,
+            colorColumn,
+            colorScale,
+            series,
+            onePixelDomainValueEquivalent,
+        } = this
 
         const items: Item[] = entityNames
             .map((entityName) => {
@@ -402,11 +433,31 @@ export class MarimekkoChart
             })
             .filter((item) => item?.bars.length) as Item[]
 
-        return sortBy(items, (item) => {
+        const sorted = sortBy(items, (item) => {
             const lastPoint = last(item.bars)?.yPoint
             if (!lastPoint) return 0
             return lastPoint.valueOffset + lastPoint.value
         }).reverse()
+
+        return sorted
+    }
+
+    @computed get placedItems(): PlacedItem[] {
+        const { sortedItems, dualAxis, x0, xDomainCorrectionFactor } = this
+        const placedItems: PlacedItem[] = []
+        let currentX = 0
+        for (const item of sortedItems) {
+            placedItems.push({ ...item, pixelSpaceXOffset: currentX })
+            currentX += Math.max(
+                1,
+                Math.round(
+                    dualAxis.horizontalAxis.place(
+                        item.xPoint.value * xDomainCorrectionFactor
+                    ) - dualAxis.horizontalAxis.place(x0)
+                )
+            )
+        }
+        return placedItems
     }
 
     // legend props
@@ -530,9 +581,7 @@ export class MarimekkoChart
             labels,
             manager,
         } = this
-        let currentX = Math.round(dualAxis.horizontalAxis.place(this.x0))
         const selectionSet = this.selectionArray.selectedSet
-        let isEven = true
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
         const formatColumn = this.formatColumn
@@ -545,8 +594,11 @@ export class MarimekkoChart
             labelKey: string
         }[] = []
 
-        for (const item of this.items) {
+        for (const item of this.placedItems) {
             const { label, bars, xPoint, entityColor } = item
+            const currentX =
+                Math.round(dualAxis.horizontalAxis.place(x0)) +
+                item.pixelSpaceXOffset
             const tooltipProps = {
                 item,
                 targetTime,
@@ -622,8 +674,6 @@ export class MarimekkoChart
             )
             if (isSelected || isHovered) highlightedElements.push(result)
             else normalElements.push(result)
-            currentX += barWidth
-            isEven = !isEven
         }
 
         // This collision detection code is optimized for the particular
@@ -722,7 +772,7 @@ export class MarimekkoChart
             ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
             : barBaseColor
         const strokeColor = isHovered || isSelected ? "#555" : "#666"
-        const strokeWidth = isHovered || isSelected ? "1px" : "0.3px"
+        const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
 
         const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
         const barHeight =
