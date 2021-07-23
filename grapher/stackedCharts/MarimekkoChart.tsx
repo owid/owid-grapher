@@ -538,6 +538,13 @@ export class MarimekkoChart
         const formatColumn = this.formatColumn
         const xAxisColumn = this.xColumn
 
+        const labelsWithPlacements: {
+            label: JSX.Element
+            preferredPlacement: number
+            correctedPlacement: number
+            labelKey: string
+        }[] = []
+
         for (const item of this.items) {
             const { label, bars, xPoint, entityColor } = item
             const tooltipProps = {
@@ -556,26 +563,32 @@ export class MarimekkoChart
             const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
             const labelsYPosition =
                 dualAxis.verticalAxis.place(0) + this.baseFontSize / 2
-            const optionalLabelWithTooltip = (seriesName: string) =>
-                optionalLabel ? (
-                    <g
-                        transform={`translate(${
-                            barWidth / 2
-                        }, ${labelsYPosition})`}
-                    >
-                        <TippyIfInteractive
-                            lazy
-                            isInteractive={!manager.isExportingtoSvgOrPng}
-                            key={seriesName}
-                            hideOnClick={false}
-                            content={
-                                <MarimekkoChart.Tooltip {...tooltipProps} />
-                            }
+            if (optionalLabel) {
+                labelsWithPlacements.push({
+                    label: (
+                        <g
+                            transform={`translate(${
+                                barWidth / 2
+                            }, ${labelsYPosition})`}
                         >
-                            {optionalLabel}
-                        </TippyIfInteractive>
-                    </g>
-                ) : undefined
+                            <TippyIfInteractive
+                                lazy
+                                isInteractive={!manager.isExportingtoSvgOrPng}
+                                key={label}
+                                hideOnClick={false}
+                                content={
+                                    <MarimekkoChart.Tooltip {...tooltipProps} />
+                                }
+                            >
+                                {optionalLabel}
+                            </TippyIfInteractive>
+                        </g>
+                    ),
+                    preferredPlacement: currentX,
+                    correctedPlacement: currentX,
+                    labelKey: label,
+                })
+            }
             const isSelected = selectionSet.has(label)
             const isHovered = label === this.hoveredEntityName
             const result = (
@@ -605,8 +618,6 @@ export class MarimekkoChart
                             entityColor?.color
                         )
                     })}
-
-                    {optionalLabelWithTooltip(label)}
                 </g>
             )
             if (isSelected || isHovered) highlightedElements.push(result)
@@ -614,7 +625,21 @@ export class MarimekkoChart
             currentX += barWidth
             isEven = !isEven
         }
-        return normalElements.concat(highlightedElements)
+
+        const placedLabels = labelsWithPlacements.map((item) => (
+            <g
+                key={`label-${item.labelKey}`}
+                className="bar-label"
+                transform={`translate(${item.preferredPlacement}, 0)`}
+                onMouseOver={(): void => this.onEntityMouseOver(item.labelKey)}
+                onMouseLeave={(): void => this.onEntityMouseLeave()}
+                onClick={(): void => this.onEntityClick(item.labelKey)}
+            >
+                {item.label}
+            </g>
+        ))
+
+        return normalElements.concat(placedLabels, highlightedElements)
     }
     private paddingInPixels = 5
 
