@@ -236,7 +236,7 @@ export class FilterSmallCountriesToggle extends React.Component<{
 export interface FacetStrategyDropdownManager {
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
-    showFacets?: boolean
+    hideFacetControl?: boolean
 }
 
 // A drop-down button that, when clicked, shows a hovering visual display

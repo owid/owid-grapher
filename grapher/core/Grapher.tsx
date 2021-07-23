@@ -301,7 +301,7 @@ export class Grapher
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined
 
-    @observable showFacets?: boolean = false
+    @observable hideFacetControl?: boolean = true
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy: FacetStrategy = FacetStrategy.none
@@ -1762,7 +1762,7 @@ export class Grapher
             },
             {
                 combo: "f",
-                fn: (): void => this.toggleFacetVisibility(),
+                fn: (): void => this.toggleFacetControlVisibility(),
                 title: `Toggle Faceting`,
                 category: "Chart",
             },
@@ -1837,8 +1837,8 @@ export class Grapher
         )
     }
 
-    @action.bound private toggleFacetVisibility(): void {
-        this.showFacets = !this.showFacets
+    @action.bound private toggleFacetControlVisibility(): void {
+        this.hideFacetControl = !this.hideFacetControl
     }
 
     @computed get showFacetYDomainToggle(): boolean {
@@ -1913,8 +1913,6 @@ export class Grapher
 
     // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
     @computed get facetStrategy(): FacetStrategy {
-        if (!this.showFacets) return FacetStrategy.none
-
         if (
             this.selectedFacetStrategy &&
             this.availableFacetStrategies.includes(this.selectedFacetStrategy)
