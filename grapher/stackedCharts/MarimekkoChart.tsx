@@ -626,6 +626,65 @@ export class MarimekkoChart
             isEven = !isEven
         }
 
+        // This collision detection code is optimized for the particular
+        // case of distributing items in 1D, knowing that we picked a low
+        // enough number of labels that we will be able to fit all labels.
+        // The algorithm iterates the list twice, i.e. works in linear time
+        // with the number of labels to show
+        // The logic in pseudo code:
+        // for current, next in iterate-left-to-right-pairs:
+        //   if next.x < current.x + label-width:
+        //      next.x = current.x + label-width
+        // last.x = Math.min(last.x, max-x)
+        // for current, prev in iterate-right-to-left-pairs:
+        //   if prev.x > current.x - label-width:
+        //      prev.x = current.x - label-width
+
+        // The label width is uniform for now and starts with
+        // the height of a label when printed in normal horizontal layout
+        // Since labels are rotated we need to make a bit more space so that they
+        // stack correctly. Consider:
+        //     ╱---╱ ╱---╱
+        //    ╱   ╱ ╱   ╱
+        //   ╱   ╱ ╱   ╱
+        //  ╱---╱ ╱   ╱
+        // If we would just use exactly the label width then the flatter the angle
+        // the more they would actually overlap so we need a correction factor. It turns
+        // out than tan(angle) is the correction factor we want, although for horizontal
+        // labels we don't want to use +infinity :) so we Math.min it with the longest label width
+
+        const labelWidth = this.unrotatedHighestLabelHeight
+        const correctionFactor =
+            1 +
+            Math.min(
+                this.unrotatedLongestLabelWidth / labelWidth,
+                Math.abs(Math.tan(this.labelAngleInDegrees))
+            )
+        const correctedLabelWidth = labelWidth * correctionFactor
+
+        for (let i = 0; i < labelsWithPlacements.length - 1; i++) {
+            const current = labelsWithPlacements[i]
+            const next = labelsWithPlacements[i + 1]
+            const minNextX = current.preferredPlacement + correctedLabelWidth
+            if (next.preferredPlacement < minNextX)
+                next.preferredPlacement = minNextX
+        }
+        labelsWithPlacements[
+            labelsWithPlacements.length - 1
+        ].preferredPlacement = Math.min(
+            labelsWithPlacements[labelsWithPlacements.length - 1]
+                .preferredPlacement,
+            this.xRange[1]
+        )
+        for (let i = labelsWithPlacements.length - 1; i > 0; i--) {
+            const current = labelsWithPlacements[i]
+            const previous = labelsWithPlacements[i - 1]
+            const maxPreviousX =
+                current.preferredPlacement - correctedLabelWidth
+            if (previous.preferredPlacement > maxPreviousX)
+                previous.preferredPlacement = maxPreviousX
+        }
+
         const placedLabels = labelsWithPlacements.map((item) => (
             <g
                 key={`label-${item.labelKey}`}
@@ -798,6 +857,13 @@ export class MarimekkoChart
         )
         const maxWidth = Math.max(...widths)
         return maxWidth
+    }
+
+    @computed private get unrotatedHighestLabelHeight(): number {
+        const heights = this.pickedLabelCandidates.map(
+            (candidate) => candidate.bounds.height
+        )
+        return Math.max(...heights)
     }
 
     @computed private get longestLabelHeight(): number {
