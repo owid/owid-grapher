@@ -7,6 +7,8 @@ import express from "express"
 import * as bodyParser from "body-parser"
 import * as nodeFetch from "node-fetch"
 
+jest.setTimeout(10000) // wait for up to 10s for the server to respond
+
 describe("client/server integration tests", () => {
     const baseDir = __dirname + "/integrationTestTempDirectoryOkToDelete"
 
