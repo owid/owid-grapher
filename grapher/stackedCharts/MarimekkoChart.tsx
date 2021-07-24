@@ -129,6 +129,9 @@ interface LabelCandidateWithElement {
     labelElement: JSX.Element
 }
 
+const MARKER_MARGIN: number = 4
+const MARKER_AREA_HEIGHT: number = 25
+
 @observer
 export class MarimekkoChart
     extends React.Component<{
@@ -589,12 +592,14 @@ export class MarimekkoChart
             xDomainCorrectionFactor,
             focusSeriesName,
             placedLabels,
+            labelLines,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
         const formatColumn = this.formatColumn
         const xAxisColumn = this.xColumn
+        const labelYOffset = 0
 
         for (const item of this.placedItems) {
             const { entityId, bars, xPoint, entityColor } = item
@@ -621,7 +626,7 @@ export class MarimekkoChart
                 <g
                     key={entityId}
                     className="bar"
-                    transform={`translate(${currentX}, 0)`}
+                    transform={`translate(${currentX}, ${labelYOffset})`}
                     onMouseOver={(): void => this.onEntityMouseOver(entityId)}
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
                     onClick={(): void => this.onEntityClick(entityId)}
@@ -650,7 +655,11 @@ export class MarimekkoChart
             else normalElements.push(result)
         }
 
-        return normalElements.concat(placedLabels, highlightedElements)
+        return normalElements.concat(
+            placedLabels,
+            labelLines,
+            highlightedElements
+        )
     }
     private paddingInPixels = 5
 
@@ -803,7 +812,7 @@ export class MarimekkoChart
         return picked
     }
 
-    @computed private get placedLabels(): JSX.Element[] {
+    @computed private get labelsWithPlacementInfo(): LabelWithPlacement[] {
         const {
             dualAxis,
             x0,
@@ -815,8 +824,7 @@ export class MarimekkoChart
         const timeColumn = this.inputTable.timeColumn
         const formatColumn = this.formatColumn
         const xAxisColumn = this.xColumn
-        const labelsYPosition =
-            dualAxis.verticalAxis.place(0) + this.baseFontSize / 2
+        const labelsYPosition = dualAxis.verticalAxis.place(0)
 
         const labelsWithPlacements: LabelWithPlacement[] = this.labels
             .map(({ candidate, labelElement }) => {
@@ -849,9 +857,7 @@ export class MarimekkoChart
                     return {
                         label: (
                             <g
-                                transform={`translate(${
-                                    barWidth / 2
-                                }, ${labelsYPosition})`}
+                                transform={`translate(${0}, ${labelsYPosition})`}
                             >
                                 <TippyIfInteractive
                                     lazy
@@ -870,8 +876,8 @@ export class MarimekkoChart
                                 </TippyIfInteractive>
                             </g>
                         ),
-                        preferredPlacement: currentX,
-                        correctedPlacement: currentX,
+                        preferredPlacement: currentX + barWidth / 2,
+                        correctedPlacement: currentX + barWidth / 2,
                         labelKey: labelId,
                     }
                 }
@@ -908,6 +914,10 @@ export class MarimekkoChart
         // out than tan(angle) is the correction factor we want, although for horizontal
         // labels we don't want to use +infinity :) so we Math.min it with the longest label width
 
+        labelsWithPlacements.sort(
+            (a, b) => a.preferredPlacement - b.preferredPlacement
+        )
+
         const labelWidth = this.unrotatedHighestLabelHeight
         const correctionFactor =
             1 +
@@ -920,31 +930,122 @@ export class MarimekkoChart
         for (let i = 0; i < labelsWithPlacements.length - 1; i++) {
             const current = labelsWithPlacements[i]
             const next = labelsWithPlacements[i + 1]
-            const minNextX = current.preferredPlacement + correctedLabelWidth
-            if (next.preferredPlacement < minNextX)
-                next.preferredPlacement = minNextX
+            const minNextX = current.correctedPlacement + correctedLabelWidth
+            if (next.correctedPlacement < minNextX)
+                next.correctedPlacement = minNextX
         }
         labelsWithPlacements[
             labelsWithPlacements.length - 1
-        ].preferredPlacement = Math.min(
+        ].correctedPlacement = Math.min(
             labelsWithPlacements[labelsWithPlacements.length - 1]
-                .preferredPlacement,
+                .correctedPlacement,
             this.xRange[1]
         )
         for (let i = labelsWithPlacements.length - 1; i > 0; i--) {
             const current = labelsWithPlacements[i]
             const previous = labelsWithPlacements[i - 1]
             const maxPreviousX =
-                current.preferredPlacement - correctedLabelWidth
-            if (previous.preferredPlacement > maxPreviousX)
-                previous.preferredPlacement = maxPreviousX
+                current.correctedPlacement - correctedLabelWidth
+            if (previous.correctedPlacement > maxPreviousX)
+                previous.correctedPlacement = maxPreviousX
         }
 
-        const placedLabels = labelsWithPlacements.map((item) => (
+        return labelsWithPlacements
+    }
+
+    @computed private get labelLines(): JSX.Element[] {
+        const { labelsWithPlacementInfo, dualAxis } = this
+        const shiftedGroups: LabelWithPlacement[][] = []
+        const unshiftedElements: LabelWithPlacement[] = []
+        let startNewGroup = true
+        const lineColor = "#000"
+        const barEndpointY = dualAxis.verticalAxis.place(0)
+
+        for (const labelWithPlacement of labelsWithPlacementInfo) {
+            if (
+                labelWithPlacement.preferredPlacement ===
+                labelWithPlacement.correctedPlacement
+            ) {
+                unshiftedElements.push(labelWithPlacement)
+                startNewGroup = true
+            } else {
+                if (startNewGroup) {
+                    shiftedGroups.push([labelWithPlacement])
+                    startNewGroup = false
+                } else {
+                    shiftedGroups[shiftedGroups.length - 1].push(
+                        labelWithPlacement
+                    )
+                }
+            }
+        }
+        // If we wanted to hide the label lines if all lines are straight
+        // then we could do this but this makes it jumpy over time
+        // if (shiftedGroups.length === 0) return []
+        // else {
+        const labelLines: JSX.Element[] = []
+        for (const group of shiftedGroups) {
+            let indexInGroup = 0
+            for (const item of group) {
+                const markerBarEndpointX = item.preferredPlacement
+                const markerTextEndpointX = item.correctedPlacement
+                const markerBarEndpointY = barEndpointY + MARKER_MARGIN
+                const markerTextEndpointY =
+                    barEndpointY + MARKER_AREA_HEIGHT - MARKER_MARGIN
+                const markerNetHeight = MARKER_AREA_HEIGHT - 2 * MARKER_MARGIN
+                const markerStepSize = markerNetHeight / (group.length + 1)
+                const directionUnawareMakerYMid =
+                    (indexInGroup + 1) * markerStepSize
+                const markerYMid =
+                    markerBarEndpointX > markerTextEndpointX
+                        ? directionUnawareMakerYMid
+                        : markerNetHeight - directionUnawareMakerYMid
+                labelLines.push(
+                    <g className="indicator" key={`labelline-${item.labelKey}`}>
+                        <path
+                            d={`M${markerBarEndpointX},${markerBarEndpointY} v${markerYMid} H${markerTextEndpointX} V${markerTextEndpointY}`}
+                            stroke={lineColor}
+                            strokeWidth={1}
+                            fill="none"
+                        />
+                    </g>
+                )
+                indexInGroup++
+            }
+        }
+        for (const item of unshiftedElements) {
+            const markerBarEndpointX = item.preferredPlacement
+            const markerBarEndpointY = barEndpointY + MARKER_MARGIN
+            const markerTextEndpointY =
+                barEndpointY + MARKER_AREA_HEIGHT - MARKER_MARGIN
+
+            labelLines.push(
+                <g className="indicator" key={`labelline-${item.labelKey}`}>
+                    <path
+                        d={`M${markerBarEndpointX},${markerBarEndpointY} V${markerTextEndpointY}`}
+                        stroke={lineColor}
+                        strokeWidth={0.5}
+                        fill="none"
+                    />
+                </g>
+            )
+        }
+        return labelLines
+        //}
+    }
+
+    @computed private get placedLabels(): JSX.Element[] {
+        const { labelLines } = this
+        const labelOffset = MARKER_AREA_HEIGHT
+        // old logic tried to hide labellines but that is too jumpy
+        // labelLines.length
+        //     ? MARKER_AREA_HEIGHT
+        //     : this.baseFontSize / 2
+        const placedLabels = this.labelsWithPlacementInfo.map((item) => (
             <g
                 key={`label-${item.labelKey}`}
                 className="bar-label"
-                transform={`translate(${item.preferredPlacement}, 0)`}
+                transform={`translate(${item.correctedPlacement}, ${labelOffset})`}
                 onMouseOver={(): void => this.onEntityMouseOver(item.labelKey)}
                 onMouseLeave={(): void => this.onEntityMouseLeave()}
                 onClick={(): void => this.onEntityClick(item.labelKey)}
