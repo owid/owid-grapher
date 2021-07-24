@@ -954,11 +954,14 @@ export class MarimekkoChart
     }
 
     @computed private get labelLines(): JSX.Element[] {
-        const { labelsWithPlacementInfo, dualAxis } = this
+        const { labelsWithPlacementInfo, dualAxis, selectedItems } = this
         const shiftedGroups: LabelWithPlacement[][] = []
         const unshiftedElements: LabelWithPlacement[] = []
+        const selectedItemsKeys = new Set(
+            selectedItems.map((item) => item.entityId)
+        )
         let startNewGroup = true
-        const lineColor = "#000"
+
         const barEndpointY = dualAxis.verticalAxis.place(0)
 
         for (const labelWithPlacement of labelsWithPlacementInfo) {
@@ -987,6 +990,9 @@ export class MarimekkoChart
         for (const group of shiftedGroups) {
             let indexInGroup = 0
             for (const item of group) {
+                const lineColor = selectedItemsKeys.has(item.labelKey)
+                    ? "#999"
+                    : "#bbb"
                 const markerBarEndpointX = item.preferredPlacement
                 const markerTextEndpointX = item.correctedPlacement
                 const markerBarEndpointY = barEndpointY + MARKER_MARGIN
@@ -1014,6 +1020,9 @@ export class MarimekkoChart
             }
         }
         for (const item of unshiftedElements) {
+            const lineColor = selectedItemsKeys.has(item.labelKey)
+                ? "#999"
+                : "#bbb"
             const markerBarEndpointX = item.preferredPlacement
             const markerBarEndpointY = barEndpointY + MARKER_MARGIN
             const markerTextEndpointY =
@@ -1024,7 +1033,7 @@ export class MarimekkoChart
                     <path
                         d={`M${markerBarEndpointX},${markerBarEndpointY} V${markerTextEndpointY}`}
                         stroke={lineColor}
-                        strokeWidth={0.5}
+                        strokeWidth={1}
                         fill="none"
                     />
                 </g>
