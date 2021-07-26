@@ -68,6 +68,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     queryStr?: string
     isEmbeddedInAnOwidPage?: boolean
     isInStandalonePage?: boolean
+    isPreview?: boolean
     canonicalUrl?: string
     selection?: SelectionArray
 }
@@ -86,6 +87,7 @@ const renderLivePreviewVersion = (props: ExplorerProps) => {
                 {...newProps}
                 queryStr={window.location.search}
                 key={Date.now()}
+                isPreview={true}
             />,
             document.getElementById(ExplorerContainerId)
         )
@@ -363,6 +365,7 @@ export class Explorer
     }
 
     @computed get currentUrl(): Url {
+        if (this.props.isPreview) return Url.fromQueryParams(this.queryParams)
         return Url.fromURL(this.baseUrl).setQueryParams(this.queryParams)
     }
 
