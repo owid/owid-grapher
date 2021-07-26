@@ -1,11 +1,9 @@
-import moment from "moment"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import {
     Action,
-    DATE_FORMAT,
+    CookiePreferencesDispatch,
     getPreferenceValue,
-    getTodayDate,
     Preference,
     PreferenceType,
 } from "../../site/CookiePreferencesManager"
@@ -67,12 +65,14 @@ const CookiePreference = ({
 
 export const CookiePreferences = ({
     preferences,
-    date,
+    acceptedPolicyId,
+    currentPolicyId,
     dispatch,
 }: {
     preferences: Preference[]
-    date?: number
-    dispatch: any
+    acceptedPolicyId?: number
+    currentPolicyId: number
+    dispatch: React.Dispatch<CookiePreferencesDispatch>
 }) => {
     const cookiePreferencesDomSlot = document.querySelector(
         ".wp-block-cookie-preferences"
@@ -103,25 +103,20 @@ export const CookiePreferences = ({
                         type: Action.TogglePreference,
                         payload: {
                             preferenceType: PreferenceType.Analytics,
-                            date: getTodayDate(),
+                            policyId: currentPolicyId,
                         },
                     })
                 }
             >
                 We use these cookies to monitor and improve website performance.
             </CookiePreference>
-            {date ? (
-                <div className="last-updated">
-                    Preferences last updated:{" "}
-                    {moment(date, DATE_FORMAT).format("LL")}
-                </div>
-            ) : (
+            {acceptedPolicyId === undefined && (
                 <button
                     className="owid-button"
                     onClick={() =>
                         dispatch({
                             type: Action.Accept,
-                            payload: { date: getTodayDate() },
+                            payload: { policyId: currentPolicyId },
                         })
                     }
                     data-test="accept"

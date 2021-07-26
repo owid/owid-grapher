@@ -3,15 +3,13 @@ import { useEffect, useState } from "react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
-import { Action, getTodayDate } from "./CookiePreferencesManager"
+import { Action } from "./CookiePreferencesManager"
 
 export const CookieNotice = ({
-    accepted,
-    outdated,
+    show,
     dispatch,
 }: {
-    accepted: boolean
-    outdated: boolean
+    show: boolean
     dispatch: any
 }) => {
     const [mounted, setMounted] = useState(false)
@@ -25,7 +23,7 @@ export const CookieNotice = ({
     return (
         <div
             className={classnames("cookie-notice", {
-                open: mounted && (!accepted || outdated),
+                open: mounted && show,
             })}
             data-test="cookie-notice"
         >
@@ -47,7 +45,6 @@ export const CookieNotice = ({
                             onClick={() =>
                                 dispatch({
                                     type: Action.Accept,
-                                    payload: { date: getTodayDate() },
                                 })
                             }
                             data-test="accept"

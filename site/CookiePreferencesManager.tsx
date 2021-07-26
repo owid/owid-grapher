@@ -4,7 +4,6 @@ import { useEffect, useReducer } from "react"
 import * as Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences"
 import { CookieNotice } from "../site/CookieNotice"
-import moment from "moment"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -22,20 +21,24 @@ export interface Preference {
     value: boolean
 }
 
-export const POLICY_DATE: number = 20201009
-export const DATE_FORMAT = "YYYYMMDD"
+export const POLICY_ID: number = 20210726 // Update this when we change the policy
 const COOKIE_NAME = "cookie_preferences"
 const PREFERENCES_SEPARATOR = "|"
-const DATE_SEPARATOR = "-"
+const POLICY_ID_SEPARATOR = "-"
 const PREFERENCE_KEY_VALUE_SEPARATOR = ":"
 // e.g. p:1-20200910
 
-interface State {
-    date?: number
+interface CookiePreferencesState {
+    policyId?: number
     preferences: Preference[]
 }
 
-const defaultState: State = {
+export interface CookiePreferencesDispatch {
+    type: Action
+    payload?: { preferenceType: PreferenceType; policyId: number }
+}
+
+const defaultState: CookiePreferencesState = {
     preferences: [
         {
             type: PreferenceType.Analytics,
@@ -47,36 +50,35 @@ const defaultState: State = {
 export const CookiePreferencesManager = ({
     initialState = defaultState,
 }: {
-    initialState: State
+    initialState: CookiePreferencesState
 }) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     // Reset state
     useEffect(() => {
-        if (arePreferencesOutdated(state.date, POLICY_DATE)) {
+        if (isPolicyOutdated(state.policyId, POLICY_ID)) {
             dispatch({ type: Action.Reset })
         }
-    }, [state.date])
+    }, [state.policyId])
 
     // Commit state
     useEffect(() => {
-        if (state.date) {
+        if (state.policyId) {
             Cookies.set(COOKIE_NAME, serializeState(state), {
                 expires: 365 * 3,
             })
         }
     }, [state])
 
+    const showControl = isPolicyOutdated(state.policyId, POLICY_ID)
+
     return (
-        <div data-test-policy-date={POLICY_DATE} className="cookie-manager">
-            <CookieNotice
-                accepted={!!state.date}
-                outdated={arePreferencesOutdated(state.date, POLICY_DATE)}
-                dispatch={dispatch}
-            />
+        <div data-test-policy-date={POLICY_ID} className="cookie-manager">
+            <CookieNotice show={showControl} dispatch={dispatch} />
             <CookiePreferences
                 preferences={state.preferences}
-                date={state.date}
+                acceptedPolicyId={state.policyId}
+                currentPolicyId={POLICY_ID}
                 dispatch={dispatch}
             />
         </div>
@@ -84,13 +86,13 @@ export const CookiePreferencesManager = ({
 }
 
 const reducer = (
-    state: State,
-    { type: actionType, payload }: { type: Action; payload?: any }
-): State => {
+    state: CookiePreferencesState,
+    { type: actionType, payload }: CookiePreferencesDispatch
+): CookiePreferencesState => {
     switch (actionType) {
         case Action.Accept: {
             return {
-                date: payload.date,
+                policyId: payload.policyId,
                 preferences: updatePreference(
                     PreferenceType.Analytics,
                     true,
@@ -100,7 +102,7 @@ const reducer = (
         }
         case Action.TogglePreference:
             return {
-                date: payload.date,
+                policyId: payload.policyId,
                 preferences: updatePreference(
                     payload.preferenceType,
                     !getPreferenceValue(
@@ -117,15 +119,17 @@ const reducer = (
     }
 }
 
-const getInitialState = (): State => {
+const getInitialState = (): CookiePreferencesState => {
     return parseRawCookieValue(Cookies.get(COOKIE_NAME)) ?? defaultState
 }
 
-export const parseRawCookieValue = (cookieValue?: string) => {
+export const parseRawCookieValue = (
+    cookieValue?: string
+): CookiePreferencesState | undefined => {
     if (!cookieValue) return
 
-    const [preferencesRaw, dateRaw] = cookieValue.split(DATE_SEPARATOR)
-    const date = parseDate(dateRaw)
+    const [preferencesRaw, dateRaw] = cookieValue.split(POLICY_ID_SEPARATOR)
+    const date = parseId(dateRaw)
     if (!date) return
 
     const preferences = parsePreferences(preferencesRaw)
@@ -133,7 +137,7 @@ export const parseRawCookieValue = (cookieValue?: string) => {
 
     return {
         preferences,
-        date,
+        policyId,
     }
 }
 
@@ -159,12 +163,9 @@ export const isValidPreference = ({ type, value }: Preference) => {
     )
 }
 
-export const parseDate = (date?: string): number | undefined => {
-    if (!date) return
-
-    return moment(date, DATE_FORMAT, true).isValid()
-        ? parseInt(date, 10)
-        : undefined
+export const parseId = (id?: string): number | undefined => {
+    if (!id) return
+    return parseInt(id, 10)
 }
 
 export const getPreferenceValue = (
@@ -193,15 +194,14 @@ export const updatePreference = (
     })
 }
 
-export const arePreferencesOutdated = (
-    preferencesDate: number | undefined,
-    policyDate: number
+export const isPolicyOutdated = (
+    preferencesPolicyId: number | undefined,
+    currentPolicyId: number
 ) => {
-    if (!preferencesDate) return false
-    return preferencesDate < policyDate
+    return preferencesPolicyId !== currentPolicyId
 }
 
-export const serializeState = (state: State) => {
+export const serializeState = (state: CookiePreferencesState) => {
     const serializedPreferences = state.preferences
         .map((preference) => {
             return `${preference.type}${PREFERENCE_KEY_VALUE_SEPARATOR}${
@@ -210,10 +210,8 @@ export const serializeState = (state: State) => {
         })
         .join(PREFERENCES_SEPARATOR)
 
-    return `${serializedPreferences}${DATE_SEPARATOR}${state.date}`
+    return `${serializedPreferences}${POLICY_ID_SEPARATOR}${state.policyId}`
 }
-
-export const getTodayDate = () => moment().format(DATE_FORMAT)
 
 export const runCookiePreferencesManager = () => {
     const div = document.createElement("div")

@@ -3,12 +3,12 @@
 import {
     PreferenceType,
     parseRawCookieValue,
-    parseDate,
+    parseId,
     parsePreferences,
     updatePreference,
     getPreferenceValue,
     serializeState,
-    arePreferencesOutdated,
+    isPolicyOutdated,
 } from "./CookiePreferencesManager"
 
 describe("cookie preferences", () => {
@@ -18,7 +18,7 @@ describe("cookie preferences", () => {
             value: true,
         },
     ]
-    const date = 20201009
+    const policyId = 20201009
     const serializedState = "a:1-20201009"
     it("parses raw cookie value", () => {
         expect(parseRawCookieValue()).toBeUndefined()
@@ -32,16 +32,16 @@ describe("cookie preferences", () => {
         expect(parseRawCookieValue("x:1-20201009")).toBeUndefined()
         expect(parseRawCookieValue(serializedState)).toEqual({
             preferences,
-            date,
+            policyId,
         })
     })
     it("parses date", () => {
-        expect(parseDate()).toBeUndefined()
-        expect(parseDate("")).toBeUndefined()
-        expect(parseDate("abcd")).toBeUndefined()
-        expect(parseDate("2020")).toBeUndefined()
-        expect(parseDate("20201032")).toBeUndefined()
-        expect(parseDate("20201001")).toEqual(20201001)
+        expect(parseId()).toBeUndefined()
+        expect(parseId("")).toBeUndefined()
+        expect(parseId("abcd")).toBeUndefined()
+        expect(parseId("2020")).toBeUndefined()
+        expect(parseId("20201032")).toBeUndefined()
+        expect(parseId("20201001")).toEqual(20201001)
     })
 
     it("parses preferences", () => {
@@ -76,13 +76,15 @@ describe("cookie preferences", () => {
     })
 
     it("serializes state", () => {
-        expect(serializeState({ preferences, date })).toEqual(serializedState)
+        expect(serializeState({ preferences, policyId })).toEqual(
+            serializedState
+        )
     })
 
     it("checks if preferences are outdated", () => {
-        expect(arePreferencesOutdated(date - 1, date)).toEqual(true)
-        expect(arePreferencesOutdated(date, date)).toEqual(false)
-        expect(arePreferencesOutdated(date + 1, date)).toEqual(false)
-        expect(arePreferencesOutdated(undefined, date)).toEqual(false)
+        expect(isPolicyOutdated(policyId - 1, policyId)).toEqual(true)
+        expect(isPolicyOutdated(policyId, policyId)).toEqual(false)
+        expect(isPolicyOutdated(policyId + 1, policyId)).toEqual(false)
+        expect(isPolicyOutdated(undefined, policyId)).toEqual(false)
     })
 })
