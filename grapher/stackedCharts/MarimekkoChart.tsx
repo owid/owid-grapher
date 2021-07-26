@@ -895,7 +895,7 @@ export class MarimekkoChart
         const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
 
         for (const [entity, rows] of xRowsByEntity.entries()) {
-            const row = minBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
+            const row = maxBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
             if (row) lastYearOfEachEntity.set(entity, row)
         }
         if (!lastYearOfEachEntity.size) return []
@@ -934,9 +934,9 @@ export class MarimekkoChart
                 return maxBy(chunk, (candidate) => candidate.item.xValue)
             }
         })
-        // for (const max of picks) {
-        //     if (max) max.isPicked = true
-        // }
+        for (const max of picks) {
+            if (max) max.isPicked = true
+        }
         const picked = labelCandidates.filter((candidate) => candidate.isPicked)
 
         return picked
@@ -958,7 +958,8 @@ export class MarimekkoChart
 
         const labelsWithPlacements: LabelWithPlacement[] = this.labels
             .map(({ candidate, labelElement }) => {
-                const xPoint = candidate.item.xValue
+                const item = placedItemsMap.get(candidate.item.entityId)
+                const xPoint = item?.xPoint.value ?? 0
                 const exactWidth =
                     dualAxis.horizontalAxis.place(
                         xPoint * xDomainCorrectionFactor
@@ -966,7 +967,7 @@ export class MarimekkoChart
                 const correctedWidth = exactWidth
                 const barWidth = correctedWidth > 1 ? correctedWidth : 1
                 const labelId = candidate.item.entityId
-                const item = placedItemsMap.get(candidate.item.entityId)
+
                 if (!item) {
                     console.error(
                         "Could not find item",
@@ -1006,8 +1007,8 @@ export class MarimekkoChart
                                 </TippyIfInteractive>
                             </g>
                         ),
-                        preferredPlacement: currentX + barWidth,
-                        correctedPlacement: currentX + barWidth,
+                        preferredPlacement: currentX + barWidth / 2,
+                        correctedPlacement: currentX + barWidth / 2,
                         labelKey: labelId,
                     }
                     if (labelWithPlacement.labelKey === "China")
