@@ -306,17 +306,11 @@ export class MarimekkoChart
                 xDomainCorrectionFactor: 1,
             }
 
-        console.log("Num points", xSeries.points.length)
-        console.log("Range size", this.dualAxis.horizontalAxis.rangeSize)
-        console.log("Range", this.dualAxis.horizontalAxis.range)
-
         const points = xSeries.points
             .map((point) => point.value)
             .sort((a, b) => a - b)
         const total = sum(points)
         const widthInPixels = this.dualAxis.horizontalAxis.rangeSize
-        console.log("total", total)
-        console.log("naive one pixel", total / widthInPixels)
         let onePixelDomainValueEquivalent = total / widthInPixels
         let numCountriesBelowOnePixel = 0
         let sumToRemoveFromTotal = 0
@@ -331,13 +325,6 @@ export class MarimekkoChart
         const xDomainCorrectionFactor =
             (total - numCountriesBelowOnePixel * (total / widthInPixels)) /
             (total - sumToRemoveFromTotal)
-        //(widthInPixels - numCountriesBelowOnePixel) / widthInPixels
-        //(total - sumToRemoveFromTotal) / total
-        console.log(
-            "One pixel domain value equiv",
-            onePixelDomainValueEquivalent
-        )
-        console.log("Correction factor", xDomainCorrectionFactor)
         return { onePixelDomainValueEquivalent, xDomainCorrectionFactor }
     }
 
@@ -627,7 +614,6 @@ export class MarimekkoChart
         const labelYOffset = 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
-        const debugLines: JSX.Element[] = []
 
         const firstNanValue = this.placedItems.findIndex(
             (item) => !item.bars.length
@@ -689,14 +675,6 @@ export class MarimekkoChart
                 </text>
             )
 
-            console.log("domain", this.xDomainDefault)
-            // debugLines.push(
-            //         <path
-            //             d={`M${},${markerBarEndpointY} V${markerTextEndpointY}`}
-            //             stroke={lineColor}
-            //             strokeWidth={1}
-            //             fill="none"
-            //         />)
         }
 
         for (const item of this.placedItems) {
@@ -774,7 +752,6 @@ export class MarimekkoChart
             placedLabels,
             labelLines,
             highlightedElements,
-            debugLines,
             noDataLabel ? [noDataLabel] : []
         )
     }
@@ -1011,8 +988,6 @@ export class MarimekkoChart
                         correctedPlacement: currentX + barWidth / 2,
                         labelKey: labelId,
                     }
-                    if (labelWithPlacement.labelKey === "China")
-                        console.log("China", labelWithPlacement)
                     return labelWithPlacement
                 }
             })
@@ -1546,7 +1521,6 @@ export class MarimekkoChart
             rows: LegacyOwidRow<any>[]
         ): SimplePoint[] => {
             const points: SimplePoint[] = []
-            console.log("x Points count", points.length)
             for (const row of rows) {
                 points.push({
                     time: row.time,
