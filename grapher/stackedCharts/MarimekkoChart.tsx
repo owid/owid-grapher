@@ -57,6 +57,7 @@ import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { CoreRow } from "../../coreTable/CoreTableConstants"
+import _ from "lodash"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
@@ -80,11 +81,24 @@ export interface SimpleChartSeries {
     points: SimplePoint[]
 }
 
+enum BarShape {
+    Bar,
+    BarPlaceholder,
+}
+
 interface Bar {
+    kind: BarShape.Bar
     color: Color // color from the variable
     seriesName: string
     yPoint: StackedPoint<EntityName>
 }
+
+interface BarPlaceholder {
+    kind: BarShape.BarPlaceholder
+    seriesName: string
+}
+
+type BarOrPlaceholder = Bar | BarPlaceholder
 
 interface Item {
     entityId: string
@@ -170,7 +184,6 @@ export class MarimekkoChart
         })
 
         table = table.interpolateColumnWithTolerance(xColumnSlug)
-        table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
         table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
 
         if (manager.isRelativeMode) {
@@ -432,6 +445,7 @@ export class MarimekkoChart
                             )
                             if (!point) return undefined
                             return {
+                                kind: BarShape.Bar,
                                 yPoint: point,
                                 color: series.color,
                                 seriesName: series.seriesName,
@@ -440,7 +454,7 @@ export class MarimekkoChart
                     ),
                 }
             })
-            .filter((item) => item?.bars.length) as Item[]
+            .filter((item) => item) as Item[]
 
         const sorted = sortBy(items, (item) => {
             const lastPoint = last(item.bars)?.yPoint
@@ -600,6 +614,69 @@ export class MarimekkoChart
         const formatColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelYOffset = 0
+        let noDataAreaElement = undefined
+        let noDataLabel = undefined
+
+        const firstNanValue = this.placedItems.findIndex(
+            (item) => !item.bars.length
+        )
+        const anyNonNanAfterFirstNan =
+            firstNanValue >= 0
+                ? _(this.placedItems)
+                      .drop(firstNanValue)
+                      .some((item) => item.bars.length !== 0)
+                : false
+
+        if (anyNonNanAfterFirstNan)
+            console.error("Found Non-NAN values after NAN value!")
+
+        if (firstNanValue !== -1) {
+            const firstNanValueItem = this.placedItems[firstNanValue]
+            const lastItem = _.last(this.placedItems)!
+            const noDataRangeStartX =
+                firstNanValueItem.pixelSpaceXOffset +
+                dualAxis.horizontalAxis.place(x0)
+            const noDataRangeEndX =
+                lastItem?.pixelSpaceXOffset +
+                dualAxis.horizontalAxis.place(lastItem.xPoint.value)
+            const yStart = dualAxis.verticalAxis.place(this.y0)
+            const height = dualAxis.verticalAxis.rangeSize
+            noDataAreaElement = (
+                <rect
+                    key="noDataArea"
+                    x={noDataRangeStartX}
+                    y={yStart - height}
+                    //transform={`translate(${barX}, ${barY - barHeight})`}
+                    width={noDataRangeEndX - noDataRangeStartX}
+                    height={height}
+                    fill={"#ccc"}
+                    // stroke={strokeColor}
+                    // strokeWidth={strokeWidth}
+                    opacity={0.5}
+                ></rect>
+            )
+
+            noDataLabel = (
+                <text
+                    key={`noDataArea-label`}
+                    x={
+                        noDataRangeStartX +
+                        (noDataRangeEndX - noDataRangeStartX) / 2
+                    }
+                    y={yStart - height / 2}
+                    width={noDataRangeEndX - noDataRangeStartX}
+                    height={height}
+                    fontWeight={300}
+                    fill="#000"
+                    opacity={1}
+                    fontSize="1em"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                >
+                    no data
+                </text>
+            )
+        }
 
         for (const item of this.placedItems) {
             const { entityId, bars, xPoint, entityColor } = item
@@ -622,6 +699,9 @@ export class MarimekkoChart
 
             const isSelected = selectionSet.has(entityId)
             const isHovered = entityId === this.hoveredEntityName
+            const isFaint =
+                focusSeriesName !== undefined &&
+                entityColor?.colorDomainValue !== focusSeriesName
             const result = (
                 <g
                     key={entityId}
@@ -631,40 +711,55 @@ export class MarimekkoChart
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
                     onClick={(): void => this.onEntityClick(entityId)}
                 >
-                    {bars.map((bar) => {
-                        const isFaint =
-                            focusSeriesName !== undefined &&
-                            entityColor?.colorDomainValue !== focusSeriesName
-
-                        return this.renderBar(
-                            bar,
-                            {
-                                ...tooltipProps,
-                                highlightedSeriesName: bar.seriesName,
-                            },
-                            barWidth,
-                            isHovered,
-                            isSelected,
-                            isFaint,
-                            entityColor?.color
-                        )
-                    })}
+                    {bars.length
+                        ? bars.map((bar) => {
+                              return this.renderBar(
+                                  bar,
+                                  {
+                                      ...tooltipProps,
+                                      highlightedSeriesName: bar.seriesName,
+                                  },
+                                  barWidth,
+                                  isHovered,
+                                  isSelected,
+                                  isFaint,
+                                  entityColor?.color
+                              )
+                          })
+                        : this.renderBar(
+                              {
+                                  kind: BarShape.BarPlaceholder,
+                                  seriesName: entityId,
+                              },
+                              {
+                                  ...tooltipProps,
+                                  highlightedSeriesName: "",
+                              },
+                              barWidth,
+                              isHovered,
+                              isSelected,
+                              isFaint,
+                              entityColor?.color
+                          )}
                 </g>
             )
             if (isSelected || isHovered) highlightedElements.push(result)
             else normalElements.push(result)
         }
 
-        return normalElements.concat(
+        return _.concat(
+            noDataAreaElement ? [noDataAreaElement] : [],
+            normalElements,
             placedLabels,
             labelLines,
-            highlightedElements
+            highlightedElements,
+            noDataLabel ? [noDataLabel] : []
         )
     }
     private paddingInPixels = 5
 
     private renderBar(
-        bar: Bar,
+        bar: BarOrPlaceholder,
         tooltipProps: TooltipProps,
         barWidth: number,
         isHovered: boolean,
@@ -673,22 +768,34 @@ export class MarimekkoChart
         entityColor: string | undefined
     ): JSX.Element {
         const { dualAxis, manager } = this
-        const { yPoint, seriesName } = bar
+        const { seriesName } = bar
+        const isPlaceholder = bar.kind === BarShape.BarPlaceholder
+        const barBaseColor =
+            entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
 
-        const barBaseColor = entityColor ?? bar.color
-
-        const barColor = isHovered
-            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
-            : isSelected
-            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
-            : barBaseColor
-        const strokeColor = isHovered || isSelected ? "#555" : "#666"
+        const barColor =
+            bar.kind === BarShape.BarPlaceholder
+                ? "#555"
+                : isHovered
+                ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
+                : isSelected
+                ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+                : barBaseColor
+        const strokeColor =
+            isHovered || isSelected ? "#555" : isPlaceholder ? "#aaa" : "#666"
         const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
 
-        const barY = dualAxis.verticalAxis.place(this.y0 + yPoint.valueOffset)
-        const barHeight =
-            dualAxis.verticalAxis.place(this.y0) -
-            dualAxis.verticalAxis.place(yPoint.value)
+        let barY: number = 0
+        let barHeight: number = 0
+        if (bar.kind === BarShape.Bar) {
+            barY = dualAxis.verticalAxis.place(this.y0 + bar.yPoint.valueOffset)
+            barHeight =
+                dualAxis.verticalAxis.place(this.y0) -
+                dualAxis.verticalAxis.place(bar.yPoint.value)
+        } else {
+            barY = dualAxis.verticalAxis.place(this.y0)
+            barHeight = dualAxis.verticalAxis.rangeSize
+        }
         const barX = 0
 
         return (
@@ -707,6 +814,7 @@ export class MarimekkoChart
                         width={barWidth}
                         height={barHeight}
                         fill={barColor}
+                        fillOpacity={isPlaceholder ? 0.0 : 1.0}
                         stroke={strokeColor}
                         strokeWidth={strokeWidth}
                         opacity={
