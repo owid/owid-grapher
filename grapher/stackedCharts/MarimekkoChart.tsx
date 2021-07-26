@@ -298,7 +298,7 @@ export class MarimekkoChart
         // updating this threshold to take into account that the "normal" range gets
         // smaller by one pixel whenever we enlarge one small country to one pixel.
 
-        const { xSeries, xRange } = this
+        const { xSeries } = this
 
         if (!xSeries.points.length)
             return {
@@ -306,11 +306,17 @@ export class MarimekkoChart
                 xDomainCorrectionFactor: 1,
             }
 
+        console.log("Num points", xSeries.points.length)
+        console.log("Range size", this.dualAxis.horizontalAxis.rangeSize)
+        console.log("Range", this.dualAxis.horizontalAxis.range)
+
         const points = xSeries.points
             .map((point) => point.value)
             .sort((a, b) => a - b)
         const total = sum(points)
-        const widthInPixels = xRange[1] - xRange[0]
+        const widthInPixels = this.dualAxis.horizontalAxis.rangeSize
+        console.log("total", total)
+        console.log("naive one pixel", total / widthInPixels)
         let onePixelDomainValueEquivalent = total / widthInPixels
         let numCountriesBelowOnePixel = 0
         let sumToRemoveFromTotal = 0
@@ -319,12 +325,19 @@ export class MarimekkoChart
             numCountriesBelowOnePixel++
             sumToRemoveFromTotal += points[i]
             onePixelDomainValueEquivalent =
-                total / (widthInPixels - numCountriesBelowOnePixel)
+                (total - sumToRemoveFromTotal) /
+                (widthInPixels - numCountriesBelowOnePixel)
         }
         const xDomainCorrectionFactor =
-            (total -
-                numCountriesBelowOnePixel * onePixelDomainValueEquivalent) /
+            (total - numCountriesBelowOnePixel * (total / widthInPixels)) /
             (total - sumToRemoveFromTotal)
+        //(widthInPixels - numCountriesBelowOnePixel) / widthInPixels
+        //(total - sumToRemoveFromTotal) / total
+        console.log(
+            "One pixel domain value equiv",
+            onePixelDomainValueEquivalent
+        )
+        console.log("Correction factor", xDomainCorrectionFactor)
         return { onePixelDomainValueEquivalent, xDomainCorrectionFactor }
     }
 
@@ -458,7 +471,7 @@ export class MarimekkoChart
 
         const sorted = sortBy(items, (item) => {
             const lastPoint = last(item.bars)?.yPoint
-            if (!lastPoint) return 0
+            if (!lastPoint) return -Infinity
             return lastPoint.valueOffset + lastPoint.value
         }).reverse()
 
@@ -473,11 +486,9 @@ export class MarimekkoChart
             placedItems.push({ ...item, pixelSpaceXOffset: currentX })
             currentX += Math.max(
                 1,
-                Math.round(
-                    dualAxis.horizontalAxis.place(
-                        item.xPoint.value * xDomainCorrectionFactor
-                    ) - dualAxis.horizontalAxis.place(x0)
-                )
+                dualAxis.horizontalAxis.place(
+                    item.xPoint.value * xDomainCorrectionFactor
+                ) - dualAxis.horizontalAxis.place(x0)
             )
         }
         return placedItems
@@ -616,6 +627,7 @@ export class MarimekkoChart
         const labelYOffset = 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
+        const debugLines: JSX.Element[] = []
 
         const firstNanValue = this.placedItems.findIndex(
             (item) => !item.bars.length
@@ -676,13 +688,21 @@ export class MarimekkoChart
                     no data
                 </text>
             )
+
+            console.log("domain", this.xDomainDefault)
+            // debugLines.push(
+            //         <path
+            //             d={`M${},${markerBarEndpointY} V${markerTextEndpointY}`}
+            //             stroke={lineColor}
+            //             strokeWidth={1}
+            //             fill="none"
+            //         />)
         }
 
         for (const item of this.placedItems) {
             const { entityId, bars, xPoint, entityColor } = item
             const currentX =
-                Math.round(dualAxis.horizontalAxis.place(x0)) +
-                item.pixelSpaceXOffset
+                dualAxis.horizontalAxis.place(x0) + item.pixelSpaceXOffset
             const tooltipProps = {
                 item,
                 targetTime,
@@ -692,10 +712,11 @@ export class MarimekkoChart
             }
 
             const exactWidth =
-                dualAxis.horizontalAxis.place(xPoint.value) -
-                dualAxis.horizontalAxis.place(x0)
-            const correctedWidth = exactWidth * xDomainCorrectionFactor
-            const barWidth = correctedWidth > 1 ? Math.round(correctedWidth) : 1
+                dualAxis.horizontalAxis.place(
+                    xPoint.value * xDomainCorrectionFactor
+                ) - dualAxis.horizontalAxis.place(x0)
+            const correctedWidth = exactWidth
+            const barWidth = correctedWidth > 1 ? correctedWidth : 1
 
             const isSelected = selectionSet.has(entityId)
             const isHovered = entityId === this.hoveredEntityName
@@ -753,6 +774,7 @@ export class MarimekkoChart
             placedLabels,
             labelLines,
             highlightedElements,
+            debugLines,
             noDataLabel ? [noDataLabel] : []
         )
     }
@@ -912,9 +934,9 @@ export class MarimekkoChart
                 return maxBy(chunk, (candidate) => candidate.item.xValue)
             }
         })
-        for (const max of picks) {
-            if (max) max.isPicked = true
-        }
+        // for (const max of picks) {
+        //     if (max) max.isPicked = true
+        // }
         const picked = labelCandidates.filter((candidate) => candidate.isPicked)
 
         return picked
@@ -938,11 +960,11 @@ export class MarimekkoChart
             .map(({ candidate, labelElement }) => {
                 const xPoint = candidate.item.xValue
                 const exactWidth =
-                    dualAxis.horizontalAxis.place(xPoint) -
-                    dualAxis.horizontalAxis.place(x0)
-                const correctedWidth = exactWidth * xDomainCorrectionFactor
-                const barWidth =
-                    correctedWidth > 1 ? Math.round(correctedWidth) : 1
+                    dualAxis.horizontalAxis.place(
+                        xPoint * xDomainCorrectionFactor
+                    ) - dualAxis.horizontalAxis.place(x0)
+                const correctedWidth = exactWidth
+                const barWidth = correctedWidth > 1 ? correctedWidth : 1
                 const labelId = candidate.item.entityId
                 const item = placedItemsMap.get(candidate.item.entityId)
                 if (!item) {
@@ -960,9 +982,9 @@ export class MarimekkoChart
                         xAxisColumn,
                     }
                     const currentX =
-                        Math.round(dualAxis.horizontalAxis.place(x0)) +
+                        dualAxis.horizontalAxis.place(x0) +
                         item.pixelSpaceXOffset
-                    return {
+                    const labelWithPlacement = {
                         label: (
                             <g
                                 transform={`translate(${0}, ${labelsYPosition})`}
@@ -984,10 +1006,13 @@ export class MarimekkoChart
                                 </TippyIfInteractive>
                             </g>
                         ),
-                        preferredPlacement: currentX + barWidth / 2,
-                        correctedPlacement: currentX + barWidth / 2,
+                        preferredPlacement: currentX + barWidth,
+                        correctedPlacement: currentX + barWidth,
                         labelKey: labelId,
                     }
+                    if (labelWithPlacement.labelKey === "China")
+                        console.log("China", labelWithPlacement)
+                    return labelWithPlacement
                 }
             })
             .filter(
@@ -1016,7 +1041,7 @@ export class MarimekkoChart
         //     ╱---╱ ╱---╱
         //    ╱   ╱ ╱   ╱
         //   ╱   ╱ ╱   ╱
-        //  ╱---╱ ╱   ╱
+        //  ╱---╱ ╱---╱
         // If we would just use exactly the label width then the flatter the angle
         // the more they would actually overlap so we need a correction factor. It turns
         // out than tan(angle) is the correction factor we want, although for horizontal
@@ -1047,7 +1072,7 @@ export class MarimekkoChart
         ].correctedPlacement = Math.min(
             labelsWithPlacements[labelsWithPlacements.length - 1]
                 .correctedPlacement,
-            this.xRange[1]
+            dualAxis.horizontalAxis.rangeSize
         )
         for (let i = labelsWithPlacements.length - 1; i > 0; i--) {
             const current = labelsWithPlacements[i]
@@ -1152,7 +1177,6 @@ export class MarimekkoChart
     }
 
     @computed private get placedLabels(): JSX.Element[] {
-        const { labelLines } = this
         const labelOffset = MARKER_AREA_HEIGHT
         // old logic tried to hide labellines but that is too jumpy
         // labelLines.length
@@ -1521,6 +1545,7 @@ export class MarimekkoChart
             rows: LegacyOwidRow<any>[]
         ): SimplePoint[] => {
             const points: SimplePoint[] = []
+            console.log("x Points count", points.length)
             for (const row of rows) {
                 points.push({
                     time: row.time,
