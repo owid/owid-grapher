@@ -749,13 +749,8 @@ export class LineChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: true,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
+        // TODO: enable nice axis ticks for linear scales
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
