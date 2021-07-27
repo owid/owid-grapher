@@ -148,7 +148,11 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
             <HorizontalAxisComponent
                 bounds={bounds}
-                axisPosition={innerBounds.bottom}
+                axisPosition={
+                    horizontalAxisLabelsOnTop
+                        ? innerBounds.top - 5
+                        : innerBounds.bottom
+                }
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
                 horizontalAxisLabelsOnTop={horizontalAxisLabelsOnTop}
