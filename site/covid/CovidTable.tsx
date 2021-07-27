@@ -231,12 +231,10 @@ export class CovidTable extends React.Component<CovidTableProps> {
         }
     }
 
-    @computed get countryColors(): Record<string, string> {
+    @computed get countryColors(): Map<string, string> {
         const locations = uniq((this.data || []).map((d) => d.location))
         const colors = schemeCategory10
-        return Object.fromEntries(
-            locations.map((l, i) => [l, colors[i % colors.length]])
-        )
+        return new Map(locations.map((l, i) => [l, colors[i % colors.length]]))
     }
 
     @action.bound onShowMore() {

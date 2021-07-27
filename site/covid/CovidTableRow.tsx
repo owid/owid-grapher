@@ -15,7 +15,7 @@ import {
 export interface CovidTableTransform {
     dateRange: DateRange
     totalTestsBarScale: ScaleLinear<number, number>
-    countryColors: Record<string, string>
+    countryColors: Map<string, string>
 }
 
 export interface CovidTableRowProps {
