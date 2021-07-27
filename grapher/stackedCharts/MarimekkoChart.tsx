@@ -55,13 +55,13 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
-import { CoreRow } from "../../coreTable/CoreTableConstants"
 import _ from "lodash"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     excludedEntities?: EntityId[]
     matchingEntitiesOnly?: boolean
+    tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
 }
 
 interface EntityColorData {
@@ -122,6 +122,7 @@ interface TooltipProps {
 interface EntityWithSize {
     entityId: string
     xValue: number
+    ySortValue: number | undefined
 }
 interface LabelCandidate {
     item: EntityWithSize
@@ -791,7 +792,7 @@ export class MarimekkoChart
         )
     }
 
-    private static labelCanidateFromItem(
+    private static labelCandidateFromItem(
         item: EntityWithSize,
         baseFontSize: number,
         isSelected: boolean
@@ -805,6 +806,11 @@ export class MarimekkoChart
             isSelected,
         }
     }
+
+    /** This function splits label candidates into N groups so that each group has approximately
+    the same sum of x value metric. This is useful for picking labels because we want to have e.g.
+    20 labels relatively evenly spaced (in x domain space) and this function gives us 20 groups that
+    are roughly of equal size and then we can pick the largest of each group */
     private static splitIntoEqualDomainSizeChunks(
         candidates: LabelCandidate[],
         numChunks: number
@@ -831,43 +837,71 @@ export class MarimekkoChart
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
         const {
-            xColumnFullTimeRange,
+            xColumnAtLastTimePoint,
+            yColumnsAtLastTimePoint,
             selectedItems,
             xRange,
             baseFontSize,
             paddingInPixels,
         } = this
-        const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
-        const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
 
-        for (const [entity, rows] of xRowsByEntity.entries()) {
-            const row = maxBy(rows, (row) => row.time) //last( rows.sort((a: CoreRow, b: CoreRow) => a.time - b.time))
-            if (row) lastYearOfEachEntity.set(entity, row)
-        }
-        if (!lastYearOfEachEntity.size) return []
+        if (!xColumnAtLastTimePoint || yColumnsAtLastTimePoint.length === 0)
+            return []
+
         // Measure the labels (before any rotation, just normal horizontal labels)
         const selectedItemsSet = new Set(
             selectedItems.map((item) => item.entityName)
         )
 
-        const labelCandidates: LabelCandidate[] = [
-            ...lastYearOfEachEntity.entries(),
-        ].map(([entity, row]) =>
-            MarimekkoChart.labelCanidateFromItem(
-                { entityId: entity, xValue: row.value },
-                baseFontSize,
-                selectedItemsSet.has(entity)
-            )
+        // This is similar to what we would get with .sortedItems but
+        // we want this for the last year to pick all labels there - sortedItems
+        // changes with the time point the user selects
+        const ySizeMap: Map<string, number> = new Map(
+            yColumnsAtLastTimePoint[0].owidRows.map((row) => [
+                row.entityName,
+                row.value,
+            ])
         )
 
+        const labelCandidates: LabelCandidate[] = xColumnAtLastTimePoint.owidRows.map(
+            (row) =>
+                MarimekkoChart.labelCandidateFromItem(
+                    {
+                        entityId: row.entityName,
+                        xValue: row.value,
+                        ySortValue: ySizeMap.get(row.entityName),
+                    },
+                    baseFontSize,
+                    selectedItemsSet.has(row.entityName)
+                )
+        )
+
+        labelCandidates.sort((a, b) => {
+            const yRowsForA = a.item.ySortValue
+            const yRowsForB = b.item.ySortValue
+
+            if (yRowsForA !== undefined && yRowsForB !== undefined)
+                return yRowsForB - yRowsForA
+            else if (yRowsForA === undefined && yRowsForB !== undefined)
+                return -1
+            else if (yRowsForA !== undefined && yRowsForB === undefined)
+                return 1
+            // (yRowsForA === undefined && yRowsForB === undefined)
+            else return 0
+        })
+
+        const firstDefined = labelCandidates.find(
+            (item) => item.item.ySortValue !== undefined
+        )
+        // Always pick the first and last element and the first one that is not undefined for y
+        if (firstDefined) firstDefined.isPicked = true
         const labelHeight = labelCandidates[0].bounds.height
-        // Always pick the first and last element
         labelCandidates[0].isPicked = true
         labelCandidates[labelCandidates.length - 1].isPicked = true
         const availablePixels = xRange[1] - xRange[0]
 
         const numLabelsToAdd = Math.floor(
-            (availablePixels / (labelHeight + paddingInPixels)) * 0.7
+            Math.min(availablePixels / (labelHeight + paddingInPixels) / 4, 20) // factor 4 is arbitrary to taste
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             labelCandidates,
@@ -1419,10 +1453,35 @@ export class MarimekkoChart
         return this.transformedTable.getColumns(columnSlugs)[0]
     }
 
-    @computed protected get xColumnFullTimeRange(): CoreColumn {
-        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
-        if (!columnSlugs.length) console.warn("No x column slug!")
-        return this.inputTable.getColumns(columnSlugs)[0]
+    @computed private get latestTime(): number | undefined {
+        const times = this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
+            this.yColumnSlugs
+        )
+
+        return times ? last(times) : undefined
+    }
+    @computed private get tableAtLatestTimelineTimepoint():
+        | OwidTable
+        | undefined {
+        if (this.latestTime)
+            return this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.filterByTargetTimes(
+                [this.latestTime],
+                0
+            )
+        else return undefined
+    }
+    @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
+        const columnSlug = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (this.tableAtLatestTimelineTimepoint)
+            return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
+        else return undefined
+    }
+
+    @computed protected get yColumnsAtLastTimePoint(): CoreColumn[] {
+        const columnSlugs = this.yColumnSlugs
+        return (
+            this.tableAtLatestTimelineTimepoint?.getColumns(columnSlugs) ?? []
+        )
     }
 
     @computed protected get yColumns(): CoreColumn[] {
