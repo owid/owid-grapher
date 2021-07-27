@@ -581,6 +581,7 @@ export class MarimekkoChart
         const yAxisColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelYOffset = 0
+        const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         let pattern: JSX.Element | undefined = undefined
@@ -676,8 +677,10 @@ export class MarimekkoChart
             const isSelected = selectionSet.has(entityName)
             const isHovered = entityName === hoveredEntityName
             const isFaint =
-                focusSeriesName !== undefined &&
-                entityColor?.colorDomainValue !== focusSeriesName
+                (focusSeriesName !== undefined &&
+                    entityColor?.colorDomainValue !== focusSeriesName) ||
+                (hasSelection && !isSelected)
+
             const result = (
                 <g
                     key={entityName}
@@ -761,7 +764,17 @@ export class MarimekkoChart
         const strokeColor =
             isHovered || isSelected ? "#555" : isPlaceholder ? "#ccc" : "#666"
         const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
-        const strokeOpacity = isPlaceholder ? 0.2 : 1.0
+        const strokeOpacity = isPlaceholder ? 0.8 : isSelected ? 0.5 : 0.1
+        const fillOpacity = isHovered
+            ? 0.7
+            : isFaint
+            ? 0.2
+            : isSelected
+            ? isPlaceholder
+                ? 0.3
+                : 0.7
+            : 0.7
+        const overalOpacity = isPlaceholder ? 0.2 : 0.7
 
         let barY: number = 0
         let barHeight: number = 0
@@ -792,13 +805,11 @@ export class MarimekkoChart
                         width={barWidth}
                         height={barHeight}
                         fill={barColor}
-                        fillOpacity={isPlaceholder ? 0.0 : 1.0}
+                        fillOpacity={fillOpacity}
                         stroke={strokeColor}
                         strokeWidth={strokeWidth}
                         strokeOpacity={strokeOpacity}
-                        opacity={
-                            isFaint ? 0.1 : isSelected || isHovered ? 0.85 : 0.6
-                        }
+                        opacity={overalOpacity}
                         style={{
                             transition: "translate 200ms ease",
                         }}
