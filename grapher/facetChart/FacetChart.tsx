@@ -25,11 +25,17 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { extent } from "d3-array"
-import { excludeUndefined, flatten, maxBy } from "../../clientUtils/Util"
+import {
+    excludeUndefined,
+    max,
+    maxBy,
+    min,
+    values,
+} from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import { Position, PositionMap } from "../../clientUtils/owidTypes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -62,6 +68,35 @@ const getContentBounds = (
         }
     }
     return bounds
+}
+
+const shouldHideFacetAxis = (
+    axis: HorizontalAxis | VerticalAxis | undefined,
+    edges: Set<Position>,
+    sharedAxesSizes: PositionMap<number>
+): boolean => {
+    if (axis) {
+        return (
+            axis.position in sharedAxesSizes &&
+            !edges.has(
+                axis.position === Position.bottom ? Position.top : axis.position
+            )
+        )
+    }
+    return false
+}
+
+interface AxisInfo {
+    config: AxisConfigInterface
+    axisAccessor: (
+        instance: ChartInterface
+    ) => HorizontalAxis | VerticalAxis | undefined
+    uniform: boolean
+}
+
+interface AxesInfo {
+    x: AxisInfo
+    y: AxisInfo
 }
 
 @observer
@@ -214,76 +249,54 @@ export class FacetChart
                 return new ChartClass({ bounds, manager })
             }
         )
-        const sharedAxesSizes: PositionMap<number> = {}
-        const globalXAxisConfig: AxisConfigInterface = {}
-        const globalYAxisConfig: AxisConfigInterface = {}
-        // set the axis minSize
-        const chartInstanceWithLargestXAxis = maxBy(
-            chartInstances,
-            (chartInstance) => chartInstance.xAxis?.size
-        )
-        if (chartInstanceWithLargestXAxis) {
-            const { size } = chartInstanceWithLargestXAxis.xAxis!
-            globalXAxisConfig.minSize = size
-        }
-        const chartInstanceWithLargestYAxis = maxBy(
-            chartInstances,
-            (chartInstance) => chartInstance.yAxis?.size
-        )
-        if (chartInstanceWithLargestYAxis) {
-            const { size } = chartInstanceWithLargestYAxis.yAxis!
-            globalYAxisConfig.minSize = size
-        }
-        // Uniform X axis
-        if (this.uniformXAxis) {
-            // set the domain
-            const [min, max] = extent(
-                excludeUndefined(
-                    flatten(
-                        chartInstances.map(
-                            (chartInstance) => chartInstance.xAxis?.domain
-                        )
-                    )
-                )
-            )
-            globalXAxisConfig.min = min
-            globalXAxisConfig.max = max
-            if (chartInstanceWithLargestXAxis) {
-                const axis = chartInstanceWithLargestXAxis.xAxis!.clone()
-                const { size } = axis.updateDomainPreservingUserSettings([
-                    min,
-                    max,
-                ])
-                sharedAxesSizes[axis.position] = size
-                globalXAxisConfig.minSize = size
-            }
-        }
 
-        // Uniform Y axis
-        if (this.uniformYAxis) {
-            const [min, max] = extent(
-                excludeUndefined(
-                    flatten(
-                        chartInstances.map(
-                            (chartInstance) => chartInstance.yAxis?.domain
-                        )
-                    )
-                )
-            )
-            globalYAxisConfig.min = min
-            globalYAxisConfig.max = max
-            if (chartInstanceWithLargestYAxis) {
-                const axis = chartInstanceWithLargestYAxis.yAxis!.clone()
-                const { size } = axis.updateDomainPreservingUserSettings([
-                    min,
-                    max,
-                ])
-                sharedAxesSizes[axis.position] = size
-                globalYAxisConfig.minSize = size
-            }
+        // Define the global axis config, shared between all facets
+        const sharedAxesSizes: PositionMap<number> = {}
+        const axes: AxesInfo = {
+            x: {
+                config: {},
+                axisAccessor: (instance) => instance.xAxis,
+                uniform: this.uniformXAxis,
+            },
+            y: {
+                config: {},
+                axisAccessor: (instance) => instance.yAxis,
+                uniform: this.uniformYAxis,
+            },
         }
+        values(axes).forEach(({ config, axisAccessor, uniform }) => {
+            // max size is the width (if vertical axis) or height (if horizontal axis)
+            const axisWithMaxSize = maxBy(
+                chartInstances.map(axisAccessor),
+                (axis) => axis?.size
+            )
+            if (uniform) {
+                // If the axes are uniform, we want to find the full domain extent across all facets
+                const domains = excludeUndefined(
+                    chartInstances.map(axisAccessor).map((axis) => axis?.domain)
+                )
+                config.min = min(domains.map((d) => d[0]))
+                config.max = max(domains.map((d) => d[1]))
+                // If there was at least one chart with a non-undefined axis,
+                // this variable will be populated
+                if (axisWithMaxSize) {
+                    // Create a new axis object with the full domain extent
+                    const axis = axisWithMaxSize.clone()
+                    const { size } = axis.updateDomainPreservingUserSettings([
+                        config.min,
+                        config.max,
+                    ])
+                    sharedAxesSizes[axis.position] = size
+                    config.minSize = size
+                }
+            } else if (axisWithMaxSize) {
+                config.minSize = axisWithMaxSize.size
+            }
+        })
+
         // Allocate space for shared axes, so that the content areas of charts are all equal.
-        // Shared axes mean axes are only plotted on the facets that match the edge the axis is on.
+        // If the axes are "shared", then an axis will only plotted on the facets that are on the
+        // same side as the axis.
         // For example, a vertical Y axis would be plotted on the left-most charts only.
         // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
         // the bottom row of charts.
@@ -309,28 +322,22 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 xAxisConfig: {
+                    hideAxis: shouldHideFacetAxis(
+                        xAxis,
+                        edges,
+                        sharedAxesSizes
+                    ),
                     ...series.manager.xAxisConfig,
-                    ...globalXAxisConfig,
-                    hideAxis:
-                        xAxis &&
-                        xAxis.position in sharedAxesSizes &&
-                        !edges.has(
-                            xAxis.position === Position.bottom
-                                ? Position.top
-                                : xAxis.position
-                        ),
+                    ...axes.x.config,
                 },
                 yAxisConfig: {
+                    hideAxis: shouldHideFacetAxis(
+                        yAxis,
+                        edges,
+                        sharedAxesSizes
+                    ),
                     ...series.manager.yAxisConfig,
-                    ...globalYAxisConfig,
-                    hideAxis:
-                        yAxis &&
-                        yAxis.position in sharedAxesSizes &&
-                        !edges.has(
-                            yAxis.position === Position.bottom
-                                ? Position.top
-                                : yAxis.position
-                        ),
+                    ...axes.y.config,
                 },
             }
             const contentBounds = getContentBounds(
