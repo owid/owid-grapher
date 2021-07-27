@@ -1150,7 +1150,7 @@ export class Grapher
             case GrapherTabOption.table:
                 return !this.hideTimeline
 
-            // StackedBar, StackedArea, and DiscreteBar, Marimekko charts never display a timeline
+            // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
             case GrapherTabOption.chart:
                 return (
                     !this.hideTimeline &&
@@ -1429,7 +1429,7 @@ export class Grapher
         )
     }
 
-    // todo: this is only relevant for scatter plots amd Marimekko. move to scatter plot class?
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
@@ -1437,7 +1437,7 @@ export class Grapher
         return this.xDimension?.targetYear
     }
 
-    // todo: this is only relevant for scatter plots. move to scatter plot class?
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
     }
