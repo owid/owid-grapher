@@ -583,6 +583,7 @@ export class MarimekkoChart
         const labelYOffset = 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
+        let pattern: JSX.Element | undefined = undefined
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
@@ -613,11 +614,23 @@ export class MarimekkoChart
                     //transform={`translate(${barX}, ${barY - barHeight})`}
                     width={noDataRangeEndX - noDataRangeStartX}
                     height={height}
-                    fill={"#ccc"}
+                    fill={"url(#diagonalHatch)"}
                     // stroke={strokeColor}
                     // strokeWidth={strokeWidth}
                     opacity={0.5}
                 ></rect>
+            )
+
+            pattern = (
+                <pattern
+                    id="diagonalHatch"
+                    patternUnits="userSpaceOnUse"
+                    width="4"
+                    height="4"
+                    patternTransform="rotate(-45 2 2)"
+                >
+                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="1" />
+                </pattern>
             )
 
             noDataLabel = (
@@ -711,6 +724,7 @@ export class MarimekkoChart
         }
 
         return _.concat(
+            pattern ? [pattern] : [],
             noDataAreaElement ? [noDataAreaElement] : [],
             normalElements,
             placedLabels,
@@ -745,8 +759,9 @@ export class MarimekkoChart
                 ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
                 : barBaseColor
         const strokeColor =
-            isHovered || isSelected ? "#555" : isPlaceholder ? "#aaa" : "#666"
+            isHovered || isSelected ? "#555" : isPlaceholder ? "#ccc" : "#666"
         const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
+        const strokeOpacity = isPlaceholder ? 0.2 : 1.0
 
         let barY: number = 0
         let barHeight: number = 0
@@ -780,6 +795,7 @@ export class MarimekkoChart
                         fillOpacity={isPlaceholder ? 0.0 : 1.0}
                         stroke={strokeColor}
                         strokeWidth={strokeWidth}
+                        strokeOpacity={strokeOpacity}
                         opacity={
                             isFaint ? 0.1 : isSelected || isHovered ? 0.85 : 0.6
                         }
