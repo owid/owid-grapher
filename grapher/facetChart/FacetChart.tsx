@@ -100,14 +100,14 @@ export class FacetChart
     }
 
     /**
-     * Holds the intermediate render properties for chart views, as well as the intermediate chart
-     * views themselves.
+     * Holds the intermediate render properties for chart views, before axes are synchronized,
+     * collapsed, aligned, etc.
      *
      * An example: a StackedArea has a Y axis domain that is the largest sum of all columns.
      * In order to avoid replicating that logic here (stacking values), we initialize StackedArea
      * instances, without rendering them. In a later method, we use those intermediate chart views to
      * determine the final axes for facets, e.g. for a uniform axis, we would iterate through all
-     * instances to find the domain.
+     * instances to find the full extent of the domain.
      *
      * @danielgavrilov, 2021-07-13
      */
