@@ -70,8 +70,13 @@ abstract class AbstractAxis {
         this.domain = [config.domain[0], config.domain[1]]
     }
 
-    abstract get position(): Position
+    /**
+     * The orthogonal size of the axis.
+     * For horizontal axes, this is the height.
+     * For vertical axes, this is the width.
+     */
     abstract get size(): number
+    abstract get position(): Position
     abstract get labelWidth(): number
 
     abstract placeTickLabel(value: number): TickLabelPlacement
