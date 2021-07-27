@@ -100,14 +100,14 @@ interface BarPlaceholder {
 type BarOrPlaceholder = Bar | BarPlaceholder
 
 interface Item {
-    entityId: string
+    entityName: string
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint // contains the single x value
 }
 
 interface PlacedItem extends Item {
-    pixelSpaceXOffset: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
+    xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
 }
 
 interface TooltipProps {
@@ -115,7 +115,7 @@ interface TooltipProps {
     highlightedSeriesName?: string
     targetTime?: Time
     timeColumn: CoreColumn
-    formatColumn: CoreColumn
+    yAxisColumn: CoreColumn
     xAxisColumn: CoreColumn
 }
 
@@ -349,7 +349,7 @@ export class MarimekkoChart
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
         return this.bounds
-                .padBottom(this.longestLabelHeight)
+            .padBottom(this.longestLabelHeight)
             .padTop(this.legend.height + this.horizontalAxisPart.labelFontSize)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
@@ -370,7 +370,7 @@ export class MarimekkoChart
         const selectedSet = this.selectionArray.selectedSet
         const { sortedItems } = this
         if (selectedSet.size === 0) return []
-        return sortedItems.filter((item) => selectedSet.has(item.entityId))
+        return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
     @computed private get sortedItems(): Item[] {
@@ -395,7 +395,7 @@ export class MarimekkoChart
                     : undefined
 
                 return {
-                    entityId: entityName,
+                    entityName,
                     xPoint: xPoint,
                     entityColor: color
                         ? { colorDomainValue: colorDomainValue?.value, color }
@@ -432,7 +432,7 @@ export class MarimekkoChart
         const placedItems: PlacedItem[] = []
         let currentX = 0
         for (const item of sortedItems) {
-            placedItems.push({ ...item, pixelSpaceXOffset: currentX })
+            placedItems.push({ ...item, xPosition: currentX })
             currentX += Math.max(
                 1,
                 dualAxis.horizontalAxis.place(
@@ -444,7 +444,7 @@ export class MarimekkoChart
     }
 
     @computed get placedItemsMap(): Map<string, PlacedItem> {
-        return new Map(this.placedItems.map((item) => [item.entityId, item]))
+        return new Map(this.placedItems.map((item) => [item.entityName, item]))
     }
 
     // legend props
@@ -571,7 +571,7 @@ export class MarimekkoChart
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
-        const formatColumn = this.formatColumn
+        const yAxisColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelYOffset = 0
         let noDataAreaElement = undefined
@@ -594,10 +594,9 @@ export class MarimekkoChart
             const firstNanValueItem = this.placedItems[firstNanValue]
             const lastItem = _.last(this.placedItems)!
             const noDataRangeStartX =
-                firstNanValueItem.pixelSpaceXOffset +
-                dualAxis.horizontalAxis.place(x0)
+                firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
             const noDataRangeEndX =
-                lastItem?.pixelSpaceXOffset +
+                lastItem?.xPosition +
                 dualAxis.horizontalAxis.place(lastItem.xPoint.value)
             const yStart = dualAxis.verticalAxis.place(this.y0)
             const height = dualAxis.verticalAxis.rangeSize
@@ -636,18 +635,16 @@ export class MarimekkoChart
                     no data
                 </text>
             )
-
         }
 
         for (const item of this.placedItems) {
-            const { entityId, bars, xPoint, entityColor } = item
-            const currentX =
-                dualAxis.horizontalAxis.place(x0) + item.pixelSpaceXOffset
+            const { entityName, bars, xPoint, entityColor } = item
+            const currentX = dualAxis.horizontalAxis.place(x0) + item.xPosition
             const tooltipProps = {
                 item,
                 targetTime,
                 timeColumn,
-                formatColumn,
+                yAxisColumn,
                 xAxisColumn,
             }
 
@@ -658,19 +655,19 @@ export class MarimekkoChart
             const correctedWidth = exactWidth
             const barWidth = correctedWidth > 1 ? correctedWidth : 1
 
-            const isSelected = selectionSet.has(entityId)
-            const isHovered = entityId === this.hoveredEntityName
+            const isSelected = selectionSet.has(entityName)
+            const isHovered = entityName === this.hoveredEntityName
             const isFaint =
                 focusSeriesName !== undefined &&
                 entityColor?.colorDomainValue !== focusSeriesName
             const result = (
                 <g
-                    key={entityId}
+                    key={entityName}
                     className="bar"
                     transform={`translate(${currentX}, ${labelYOffset})`}
-                    onMouseOver={(): void => this.onEntityMouseOver(entityId)}
+                    onMouseOver={(): void => this.onEntityMouseOver(entityName)}
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
-                    onClick={(): void => this.onEntityClick(entityId)}
+                    onClick={(): void => this.onEntityClick(entityName)}
                 >
                     {bars.length
                         ? bars.map((bar) => {
@@ -690,7 +687,7 @@ export class MarimekkoChart
                         : this.renderBar(
                               {
                                   kind: BarShape.BarPlaceholder,
-                                  seriesName: entityId,
+                                  seriesName: entityName,
                               },
                               {
                                   ...tooltipProps,
@@ -840,7 +837,7 @@ export class MarimekkoChart
         if (!lastYearOfEachEntity.size) return []
         // Measure the labels (before any rotation, just normal horizontal labels)
         const selectedItemsSet = new Set(
-            selectedItems.map((item) => item.entityId)
+            selectedItems.map((item) => item.entityName)
         )
 
         const labelCandidates: LabelCandidate[] = [
@@ -891,7 +888,7 @@ export class MarimekkoChart
         } = this
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
-        const formatColumn = this.formatColumn
+        const yAxisColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
@@ -918,12 +915,11 @@ export class MarimekkoChart
                         item,
                         targetTime,
                         timeColumn,
-                        formatColumn,
+                        yAxisColumn,
                         xAxisColumn,
                     }
                     const currentX =
-                        dualAxis.horizontalAxis.place(x0) +
-                        item.pixelSpaceXOffset
+                        dualAxis.horizontalAxis.place(x0) + item.xPosition
                     const labelWithPlacement = {
                         label: (
                             <g
@@ -1029,7 +1025,7 @@ export class MarimekkoChart
         const shiftedGroups: LabelWithPlacement[][] = []
         const unshiftedElements: LabelWithPlacement[] = []
         const selectedItemsKeys = new Set(
-            selectedItems.map((item) => item.entityId)
+            selectedItems.map((item) => item.entityName)
         )
         let startNewGroup = true
 
@@ -1226,13 +1222,13 @@ export class MarimekkoChart
                     />
                 </td>
                 <td colSpan={3} style={{ color: "#111" }}>
-                    <strong>{props.item.entityId}</strong>
+                    <strong>{props.item.entityName}</strong>
                 </td>
             </tr>
         ) : (
             <tr>
                 <td colSpan={4} style={{ color: "#111" }}>
-                    <strong>{props.item.entityId}</strong>
+                    <strong>{props.item.entityName}</strong>
                 </td>
             </tr>
         )
@@ -1298,7 +1294,7 @@ export class MarimekkoChart
                                 >
                                     {bar.yPoint.value === undefined
                                         ? "No data"
-                                        : props.formatColumn.formatValueShort(
+                                        : props.yAxisColumn.formatValueShort(
                                               bar.yPoint.value,
                                               {
                                                   noTrailingZeroes: false,
