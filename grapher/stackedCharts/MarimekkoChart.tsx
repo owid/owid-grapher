@@ -9,6 +9,7 @@ import {
     sortBy,
     sumBy,
     sum,
+    drop,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -55,7 +56,6 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
-import _ from "lodash"
 
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
@@ -591,9 +591,9 @@ export class MarimekkoChart
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
             firstNanValue >= 0
-                ? _(placedItems)
-                      .drop(firstNanValue)
-                      .some((item) => item.bars.length !== 0)
+                ? drop(placedItems, firstNanValue).some(
+                      (item) => item.bars.length !== 0
+                  )
                 : false
 
         if (anyNonNanAfterFirstNan)
@@ -601,7 +601,7 @@ export class MarimekkoChart
 
         if (firstNanValue !== -1) {
             const firstNanValueItem = placedItems[firstNanValue]
-            const lastItem = _.last(placedItems)!
+            const lastItem = last(placedItems)!
             const noDataRangeStartX =
                 firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
             const noDataRangeEndX =
@@ -729,7 +729,7 @@ export class MarimekkoChart
             else normalElements.push(result)
         }
 
-        return _.concat(
+        return ([] as JSX.Element[]).concat(
             pattern ? [pattern] : [],
             noDataAreaElement ? [noDataAreaElement] : [],
             normalElements,
