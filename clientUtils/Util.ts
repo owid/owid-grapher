@@ -1080,3 +1080,7 @@ export const dyFromAlign = (align: VerticalAlign): string => {
     if (align === VerticalAlign.bottom) return ".71em"
     return "0"
 }
+
+export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
+    return Object.values(obj)
+}
