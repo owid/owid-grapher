@@ -1480,27 +1480,25 @@ export class Grapher
         containerNode: Element
     ): Grapher | null {
         const grapherInstanceRef = React.createRef<Grapher>()
+
+        let ErrorBoundary = React.Fragment // use React.Fragment as a sort of default error boundary if Bugsnag is not available
+        if (Bugsnag && (Bugsnag as any)._client) {
+            ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(
+                React
+            )
+        }
+
         const setBoundsFromContainerAndRender = (): void => {
             const props: GrapherProgrammaticInterface = {
                 ...config,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
             }
-            if (Bugsnag && (Bugsnag as any)._client) {
-                const ErrorBoundary = Bugsnag.getPlugin(
-                    "react"
-                ).createErrorBoundary(React)
-                ReactDOM.render(
-                    <ErrorBoundary>
-                        <Grapher ref={grapherInstanceRef} {...props} />
-                    </ErrorBoundary>,
-                    containerNode
-                )
-            } else {
-                ReactDOM.render(
-                    <Grapher ref={grapherInstanceRef} {...props} />,
-                    containerNode
-                )
-            }
+            ReactDOM.render(
+                <ErrorBoundary>
+                    <Grapher ref={grapherInstanceRef} {...props} />
+                </ErrorBoundary>,
+                containerNode
+            )
         }
 
         setBoundsFromContainerAndRender()
