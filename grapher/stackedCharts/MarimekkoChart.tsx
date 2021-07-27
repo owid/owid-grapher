@@ -176,7 +176,7 @@ export class MarimekkoChart
         }
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
+        table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
 
         yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
@@ -186,9 +186,7 @@ export class MarimekkoChart
         table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
 
         if (manager.isRelativeMode) {
-            table = table.toPercentageFromEachEntityForEachTime(
-                this.xColumnSlug
-            )
+            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
         }
 
         if (colorColumnSlug) {
@@ -198,7 +196,7 @@ export class MarimekkoChart
                 colorColumnSlug,
                 tolerance
             )
-            if (this.manager.matchingEntitiesOnly) {
+            if (manager.matchingEntitiesOnly) {
                 table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
             }
         }
@@ -273,7 +271,7 @@ export class MarimekkoChart
         // updating this threshold to take into account that the "normal" range gets
         // smaller by one pixel whenever we enlarge one small country to one pixel.
 
-        const { xSeries } = this
+        const { xSeries, dualAxis } = this
 
         if (!xSeries.points.length) return 1
 
@@ -281,7 +279,7 @@ export class MarimekkoChart
             .map((point) => point.value)
             .sort((a, b) => a - b)
         const total = sum(points)
-        const widthInPixels = this.dualAxis.horizontalAxis.rangeSize
+        const widthInPixels = dualAxis.horizontalAxis.rangeSize
         let onePixelDomainValueEquivalent = total / widthInPixels
         let numCountriesBelowOnePixel = 0
         let sumToRemoveFromTotal = 0
@@ -373,7 +371,7 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
-    @computed private get sortedItems(): Item[] {
+    @computed private get items(): Item[] {
         const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
         const { xSeries, colorColumn, colorScale, series } = this
@@ -418,6 +416,11 @@ export class MarimekkoChart
             })
             .filter((item) => item) as Item[]
 
+        return items
+    }
+
+    @computed private get sortedItems(): Item[] {
+        const { items } = this
         const sorted = sortBy(items, (item) => {
             const lastPoint = last(item.bars)?.yPoint
             if (!lastPoint) return -Infinity
@@ -563,10 +566,13 @@ export class MarimekkoChart
         const {
             dualAxis,
             x0,
+            y0,
             xDomainCorrectionFactor,
             focusSeriesName,
             placedLabels,
             labelLines,
+            placedItems,
+            hoveredEntityName,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
@@ -577,12 +583,10 @@ export class MarimekkoChart
         let noDataAreaElement = undefined
         let noDataLabel = undefined
 
-        const firstNanValue = this.placedItems.findIndex(
-            (item) => !item.bars.length
-        )
+        const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
             firstNanValue >= 0
-                ? _(this.placedItems)
+                ? _(placedItems)
                       .drop(firstNanValue)
                       .some((item) => item.bars.length !== 0)
                 : false
@@ -591,14 +595,14 @@ export class MarimekkoChart
             console.error("Found Non-NAN values after NAN value!")
 
         if (firstNanValue !== -1) {
-            const firstNanValueItem = this.placedItems[firstNanValue]
-            const lastItem = _.last(this.placedItems)!
+            const firstNanValueItem = placedItems[firstNanValue]
+            const lastItem = _.last(placedItems)!
             const noDataRangeStartX =
                 firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
             const noDataRangeEndX =
                 lastItem?.xPosition +
                 dualAxis.horizontalAxis.place(lastItem.xPoint.value)
-            const yStart = dualAxis.verticalAxis.place(this.y0)
+            const yStart = dualAxis.verticalAxis.place(y0)
             const height = dualAxis.verticalAxis.rangeSize
             noDataAreaElement = (
                 <rect
@@ -637,7 +641,7 @@ export class MarimekkoChart
             )
         }
 
-        for (const item of this.placedItems) {
+        for (const item of placedItems) {
             const { entityName, bars, xPoint, entityColor } = item
             const currentX = dualAxis.horizontalAxis.place(x0) + item.xPosition
             const tooltipProps = {
@@ -656,7 +660,7 @@ export class MarimekkoChart
             const barWidth = correctedWidth > 1 ? correctedWidth : 1
 
             const isSelected = selectionSet.has(entityName)
-            const isHovered = entityName === this.hoveredEntityName
+            const isHovered = entityName === hoveredEntityName
             const isFaint =
                 focusSeriesName !== undefined &&
                 entityColor?.colorDomainValue !== focusSeriesName
@@ -725,7 +729,7 @@ export class MarimekkoChart
         isFaint: boolean,
         entityColor: string | undefined
     ): JSX.Element {
-        const { dualAxis, manager } = this
+        const { dualAxis, manager, y0 } = this
         const { seriesName } = bar
         const isPlaceholder = bar.kind === BarShape.BarPlaceholder
         const barBaseColor =
@@ -746,12 +750,12 @@ export class MarimekkoChart
         let barY: number = 0
         let barHeight: number = 0
         if (bar.kind === BarShape.Bar) {
-            barY = dualAxis.verticalAxis.place(this.y0 + bar.yPoint.valueOffset)
+            barY = dualAxis.verticalAxis.place(y0 + bar.yPoint.valueOffset)
             barHeight =
-                dualAxis.verticalAxis.place(this.y0) -
+                dualAxis.verticalAxis.place(y0) -
                 dualAxis.verticalAxis.place(bar.yPoint.value)
         } else {
-            barY = dualAxis.verticalAxis.place(this.y0)
+            barY = dualAxis.verticalAxis.place(y0)
             barHeight = dualAxis.verticalAxis.rangeSize
         }
         const barX = 0
@@ -826,7 +830,13 @@ export class MarimekkoChart
     }
 
     @computed private get pickedLabelCandidates(): LabelCandidate[] {
-        const { xColumnFullTimeRange, selectedItems, xRange } = this
+        const {
+            xColumnFullTimeRange,
+            selectedItems,
+            xRange,
+            baseFontSize,
+            paddingInPixels,
+        } = this
         const xRowsByEntity = xColumnFullTimeRange.owidRowsByEntityName
         const lastYearOfEachEntity: Map<string, CoreRow> = new Map()
 
@@ -845,7 +855,7 @@ export class MarimekkoChart
         ].map(([entity, row]) =>
             MarimekkoChart.labelCanidateFromItem(
                 { entityId: entity, xValue: row.value },
-                this.baseFontSize,
+                baseFontSize,
                 selectedItemsSet.has(entity)
             )
         )
@@ -857,7 +867,7 @@ export class MarimekkoChart
         const availablePixels = xRange[1] - xRange[0]
 
         const numLabelsToAdd = Math.floor(
-            (availablePixels / (labelHeight + this.paddingInPixels)) * 0.7
+            (availablePixels / (labelHeight + paddingInPixels)) * 0.7
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             labelCandidates,
@@ -885,6 +895,10 @@ export class MarimekkoChart
             xDomainCorrectionFactor,
             manager,
             placedItemsMap,
+            labels,
+            unrotatedLongestLabelWidth,
+            unrotatedHighestLabelHeight,
+            labelAngleInDegrees,
         } = this
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
@@ -892,7 +906,7 @@ export class MarimekkoChart
         const xAxisColumn = this.xColumn
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
-        const labelsWithPlacements: LabelWithPlacement[] = this.labels
+        const labelsWithPlacements: LabelWithPlacement[] = labels
             .map(({ candidate, labelElement }) => {
                 const item = placedItemsMap.get(candidate.item.entityId)
                 const xPoint = item?.xPoint.value ?? 0
@@ -985,12 +999,12 @@ export class MarimekkoChart
             (a, b) => a.preferredPlacement - b.preferredPlacement
         )
 
-        const labelWidth = this.unrotatedHighestLabelHeight
+        const labelWidth = unrotatedHighestLabelHeight
         const correctionFactor =
             1 +
             Math.min(
-                this.unrotatedLongestLabelWidth / labelWidth,
-                Math.abs(Math.tan(this.labelAngleInDegrees))
+                unrotatedLongestLabelWidth / labelWidth,
+                Math.abs(Math.tan(labelAngleInDegrees))
             )
         const correctedLabelWidth = labelWidth * correctionFactor
 
