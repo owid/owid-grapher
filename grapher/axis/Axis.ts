@@ -408,6 +408,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     @computed get height(): number {
+        if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
         const maxTickHeight = max(this.tickLabels.map((tick) => tick.height))
         const height = maxTickHeight
@@ -502,6 +503,7 @@ export class VerticalAxis extends AbstractAxis {
     }
 
     @computed get width(): number {
+        if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
         const maxTickWidth = max(this.tickLabels.map((tick) => tick.width))
         const width =
@@ -571,14 +573,14 @@ export class DualAxis {
     @computed private get horizontalAxisHeight(): number {
         const axis = this.props.horizontalAxis.clone()
         axis.range = [0, this.bounds.width]
-        return axis.hideAxis ? 0 : axis.height
+        return axis.height
     }
 
     // We calculate an initial width from the range of the input bounds
     @computed private get verticalAxisWidth(): number {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
-        return axis.hideAxis ? 0 : axis.width
+        return axis.width
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
