@@ -95,6 +95,7 @@ interface Bar {
 interface BarPlaceholder {
     kind: BarShape.BarPlaceholder
     seriesName: string
+    height: number
 }
 
 type BarOrPlaceholder = Bar | BarPlaceholder
@@ -585,6 +586,7 @@ export class MarimekkoChart
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         let pattern: JSX.Element | undefined = undefined
+        const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
@@ -606,15 +608,36 @@ export class MarimekkoChart
                 lastItem?.xPosition +
                 dualAxis.horizontalAxis.place(lastItem.xPoint.value)
             const yStart = dualAxis.verticalAxis.place(y0)
-            const height = dualAxis.verticalAxis.rangeSize
+
+            noDataLabel = (
+                <text
+                    key={`noDataArea-label`}
+                    x={
+                        noDataRangeStartX +
+                        (noDataRangeEndX - noDataRangeStartX) / 2
+                    }
+                    y={yStart - noDataHeight / 2}
+                    width={noDataRangeEndX - noDataRangeStartX}
+                    height={noDataHeight}
+                    fontWeight={300}
+                    fill="#000"
+                    opacity={1}
+                    fontSize="1em"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                >
+                    no data
+                </text>
+            )
+
             noDataAreaElement = (
                 <rect
                     key="noDataArea"
                     x={noDataRangeStartX}
-                    y={yStart - height}
+                    y={yStart - noDataHeight}
                     //transform={`translate(${barX}, ${barY - barHeight})`}
                     width={noDataRangeEndX - noDataRangeStartX}
-                    height={height}
+                    height={noDataHeight}
                     fill={"url(#diagonalHatch)"}
                     // stroke={strokeColor}
                     // strokeWidth={strokeWidth}
@@ -632,27 +655,6 @@ export class MarimekkoChart
                 >
                     <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="1" />
                 </pattern>
-            )
-
-            noDataLabel = (
-                <text
-                    key={`noDataArea-label`}
-                    x={
-                        noDataRangeStartX +
-                        (noDataRangeEndX - noDataRangeStartX) / 2
-                    }
-                    y={yStart - height / 2}
-                    width={noDataRangeEndX - noDataRangeStartX}
-                    height={height}
-                    fontWeight={300}
-                    fill="#000"
-                    opacity={1}
-                    fontSize="1em"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                >
-                    no data
-                </text>
             )
         }
 
@@ -709,6 +711,7 @@ export class MarimekkoChart
                               {
                                   kind: BarShape.BarPlaceholder,
                                   seriesName: entityName,
+                                  height: noDataHeight,
                               },
                               {
                                   ...tooltipProps,
@@ -785,7 +788,7 @@ export class MarimekkoChart
                 dualAxis.verticalAxis.place(bar.yPoint.value)
         } else {
             barY = dualAxis.verticalAxis.place(y0)
-            barHeight = dualAxis.verticalAxis.rangeSize
+            barHeight = bar.height
         }
         const barX = 0
 
