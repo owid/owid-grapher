@@ -9,7 +9,6 @@ import {
     sortBy,
     sumBy,
     sum,
-    minBy,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -208,10 +207,6 @@ export class MarimekkoChart
 
     @observable private hoveredEntityName?: string
 
-    @computed get entityNameSlug(): string {
-        return "entityName"
-    }
-
     @observable focusSeriesName?: SeriesName
 
     @computed get inputTable(): OwidTable {
@@ -237,23 +232,6 @@ export class MarimekkoChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get labelStyle(): {
-        fontSize: number
-        fontWeight: number
-    } {
-        return {
-            fontSize: 0.75 * this.baseFontSize,
-            fontWeight: 700,
-        }
-    }
-
-    // Account for the width of the legend
-    @computed private get labelWidth(): number {
-        const labels = this.sortedItems.map((item) => item.entityId)
-        const longestLabel = maxBy(labels, (d) => d.length)
-        return Bounds.forText(longestLabel, this.labelStyle).width
-    }
-
     @computed private get x0(): number {
         return 0
     }
@@ -276,10 +254,7 @@ export class MarimekkoChart
         ]
     }
 
-    @computed private get onePixelThresholdAndCorrectionFactor(): {
-        onePixelDomainValueEquivalent: number
-        xDomainCorrectionFactor: number
-    } {
+    @computed private get xDomainCorrectionFactor(): number {
         // Rounding up every country so that it is at least one pixel wide
         // on the X axis has a pretty annoying side effect: since there are
         // quite a few very small countries that get rounded up, the normal
@@ -300,11 +275,7 @@ export class MarimekkoChart
 
         const { xSeries } = this
 
-        if (!xSeries.points.length)
-            return {
-                onePixelDomainValueEquivalent: 0,
-                xDomainCorrectionFactor: 1,
-            }
+        if (!xSeries.points.length) return 1
 
         const points = xSeries.points
             .map((point) => point.value)
@@ -325,28 +296,19 @@ export class MarimekkoChart
         const xDomainCorrectionFactor =
             (total - numCountriesBelowOnePixel * (total / widthInPixels)) /
             (total - sumToRemoveFromTotal)
-        return { onePixelDomainValueEquivalent, xDomainCorrectionFactor }
-    }
-
-    @computed private get onePixelDomainValueEquivalent(): number {
-        return this.onePixelThresholdAndCorrectionFactor
-            .onePixelDomainValueEquivalent
-    }
-
-    @computed private get xDomainCorrectionFactor(): number {
-        return this.onePixelThresholdAndCorrectionFactor.xDomainCorrectionFactor
+        return xDomainCorrectionFactor
     }
 
     @computed private get xDomainDefault(): [number, number] {
         const sum = sumBy(this.xSeries.points, (point) => point.value)
 
-        return [0, sum]
+        return [this.x0, sum]
     }
 
     @computed private get yRange(): [number, number] {
         return [
             this.bounds.top - this.legend.height,
-            this.bounds.bottom - this.labelWidth,
+            this.bounds.bottom - this.longestLabelHeight,
         ]
     }
 
@@ -367,7 +329,6 @@ export class MarimekkoChart
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.range = this.yRange
         axis.label = ""
         return axis
     }
@@ -378,23 +339,24 @@ export class MarimekkoChart
         else axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.formatColumn = this.xColumn
-        axis.range = this.xRange
         axis.label = ""
         return axis
     }
 
-    @computed private get dualAxis(): DualAxis {
+    @computed private get innerBounds(): Bounds {
         const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
         const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
-        return new DualAxis({
-            bounds: this.bounds
+        return this.bounds
                 .padBottom(this.longestLabelHeight)
-                .padTop(
-                    this.legend.height + this.horizontalAxisPart.labelFontSize
-                )
-                .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0),
+            .padTop(this.legend.height + this.horizontalAxisPart.labelFontSize)
+            .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
+    }
+
+    @computed private get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
         })
