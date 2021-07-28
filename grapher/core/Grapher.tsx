@@ -2179,6 +2179,9 @@ export class Grapher
         this.map = grapher.map
         this.yAxis.scaleType = grapher.yAxis.scaleType
         this.yAxis.min = grapher.yAxis.min
+        this.sortBy = grapher.sortBy
+        this.sortOrder = grapher.sortOrder
+        this.sortColumnSlug = grapher.sortColumnSlug
     }
 
     debounceMode = false
