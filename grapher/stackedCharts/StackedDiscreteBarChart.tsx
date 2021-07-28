@@ -431,7 +431,11 @@ export class StackedDiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisComponent bounds={bounds} axis={yAxis} />
+                <HorizontalAxisComponent
+                    bounds={bounds}
+                    axis={yAxis}
+                    preferredAxisPosition={innerBounds.bottom}
+                />
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}

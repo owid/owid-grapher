@@ -150,6 +150,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 bounds={bounds}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
+                preferredAxisPosition={innerBounds.bottom}
                 horizontalAxisLabelsOnTop={horizontalAxisLabelsOnTop}
             />
         )
@@ -214,6 +215,7 @@ export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
     showTickMarks?: boolean
+    preferredAxisPosition?: number
     horizontalAxisLabelsOnTop?: boolean
 }> {
     @computed get scaleType(): ScaleType {
@@ -238,16 +240,17 @@ export class HorizontalAxisComponent extends React.Component<{
             axis,
             showTickMarks,
             horizontalAxisLabelsOnTop,
+            preferredAxisPosition,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
         const labelYPosition = horizontalAxisLabelsOnTop
             ? bounds.top
-            : bounds.bottom - labelOffset
+            : bounds.bottom - (label?.height ?? 0)
 
         const tickMarksYPosition = horizontalAxisLabelsOnTop
             ? bounds.top + axis.height - 5
-            : bounds.bottom
+            : preferredAxisPosition ?? bounds.bottom
 
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
