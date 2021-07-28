@@ -6,7 +6,6 @@ import {
     ChartTypeName,
     FacetAxisRange,
     FacetStrategy,
-    ScaleType,
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import {
@@ -131,6 +130,7 @@ export class FacetChart
     }
 
     @computed private get uniformXAxis(): boolean {
+        // TODO: maybe should not be the default for ScatterPlot?
         return true
     }
 
@@ -233,7 +233,8 @@ export class FacetChart
         })
     }
 
-    @computed private get placedSeries(): PlacedFacetSeries[] {
+    // Only made public for testing
+    @computed get placedSeries(): PlacedFacetSeries[] {
         // Create intermediate chart views to determine some of the properties
         const chartInstances = this.intermediatePlacedSeries.map(
             ({ bounds, manager, chartTypeName }) => {
