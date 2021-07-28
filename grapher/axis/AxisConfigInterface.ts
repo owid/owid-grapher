@@ -1,4 +1,4 @@
-import { ScaleType } from "../core/GrapherConstants"
+import { FacetAxisRange, ScaleType } from "../core/GrapherConstants"
 
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
@@ -9,6 +9,11 @@ export interface AxisConfigInterface {
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
+
+    /**
+     * Whether the axis domain should be the same across faceted charts (if possible)
+     */
+    facetAxisRange?: FacetAxisRange
 
     /**
      * Minimum pixels to take up.
