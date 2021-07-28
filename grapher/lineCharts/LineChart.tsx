@@ -9,6 +9,7 @@ import {
     flatten,
     last,
     exposeInstanceOnWindow,
+    round,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -142,6 +143,7 @@ class Lines extends React.Component<LinesProps> {
                     <path
                         stroke={series.color}
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                         d={pointsToPath(
                             series.placedPoints.map((value) => [
                                 value.x,
@@ -177,6 +179,7 @@ class Lines extends React.Component<LinesProps> {
                 <path
                     key={getSeriesKey(series, "line")}
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                     stroke="#ddd"
                     d={pointsToPath(
                         series.placedPoints.map((value) => [
@@ -704,8 +707,8 @@ export class LineChart
                     placedPoints: series.points.map(
                         (point) =>
                             new PointVector(
-                                Math.round(horizontalAxis.place(point.x)),
-                                Math.round(verticalAxis.place(point.y))
+                                round(horizontalAxis.place(point.x), 1),
+                                round(verticalAxis.place(point.y), 1)
                             )
                     ),
                 }

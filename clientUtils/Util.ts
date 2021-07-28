@@ -83,6 +83,7 @@ export {
     pick,
     range,
     reverse,
+    round,
     sample,
     sampleSize,
     sortBy,
