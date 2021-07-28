@@ -292,7 +292,7 @@ export class LineChart
         this.mouseHoverX = hoverX
     }
 
-    @computed get hoverX() {
+    @computed get hoverX(): number | undefined {
         return this.mouseHoverX ?? this.props.manager.annotation?.year
     }
 
@@ -489,18 +489,6 @@ export class LineChart
         exposeInstanceOnWindow(this)
     }
 
-    private runFancyIntroAnimation(): void {
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-    }
-
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
@@ -515,6 +503,27 @@ export class LineChart
 
     @computed get legendX(): number {
         return this.bounds.right - (this.legendDimensions?.width || 0)
+    }
+
+    @computed get clipPathBounds(): Bounds {
+        const { dualAxis, bounds } = this
+        return bounds.extend({ x: dualAxis.innerBounds.x }).expand(10)
+    }
+
+    @computed get clipPath(): { id: string; element: JSX.Element } {
+        return makeClipPath(this.renderUid, this.clipPathBounds)
+    }
+
+    private runFancyIntroAnimation(): void {
+        this.animSelection = select(this.base.current)
+            .selectAll("clipPath > rect")
+            .attr("width", 0)
+        this.animSelection
+            .transition()
+            .duration(800)
+            .ease(easeLinear)
+            .attr("width", this.clipPathBounds.width)
+            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     @computed private get legendDimensions(): LineLegend | undefined {
@@ -533,18 +542,12 @@ export class LineChart
                 />
             )
 
-        const { manager, tooltip, dualAxis, hoverX, renderUid, bounds } = this
+        const { manager, tooltip, dualAxis, hoverX, clipPath } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
         const comparisonLines = manager.comparisonLines || []
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
-        const clipPath = makeClipPath(renderUid, {
-            x: dualAxis.innerBounds.x - 10,
-            y: bounds.y - 18, // subtract 18 to reverse the padding after header in captioned chart
-            width: bounds.width + 10,
-            height: bounds.height * 2,
-        })
         return (
             <g ref={this.base} className="LineChart">
                 {clipPath.element}
