@@ -57,7 +57,7 @@ export interface CovidTableCellSpec {
         "data" | "xDomain" | "x" | "currentX" | "highlightedX" | "onHover"
     >
     totalTestsBarScale: ScaleLinear<number, number>
-    countryColors: Record<string, string>
+    countryColors: Map<string, string>
     baseRowSpan: number
 }
 
@@ -477,8 +477,9 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                         <div
                             className="bar"
                             style={{
-                                backgroundColor:
-                                    props.countryColors[props.datum.location],
+                                backgroundColor: props.countryColors.get(
+                                    props.datum.location
+                                ),
                                 width: `${
                                     props.totalTestsBarScale(
                                         props.datum.latestWithTests.tests
