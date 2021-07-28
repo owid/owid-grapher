@@ -1,6 +1,6 @@
 import * as React from "react"
 import simpleGit from "simple-git"
-import express from "express"
+import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
@@ -147,7 +147,14 @@ export class OwidAdminApp {
         })
     }
 
-    errorHandler = async (err: any, req: any, res: express.Response) => {
+    errorHandler = async (
+        err: any,
+        req: express.Request,
+        res: express.Response,
+        // keep `next` because Express only passes errors to handlers with 4 parameters.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        next: NextFunction
+    ) => {
         if (!res.headersSent) {
             res.status(err.status || 500)
             res.send({
