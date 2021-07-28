@@ -353,7 +353,7 @@ export class FacetChart
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get countryFacets(): FacetSeries[] {
+    @computed private get entityFacets(): FacetSeries[] {
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
@@ -409,7 +409,7 @@ export class FacetChart
     @computed get series(): FacetSeries[] {
         return this.facetStrategy === FacetStrategy.column
             ? this.columnFacets
-            : this.countryFacets
+            : this.entityFacets
     }
 
     @computed protected get bounds(): Bounds {
