@@ -49,6 +49,28 @@ describe(ColorScale, () => {
             )
         })
 
+        it("returns correct bin indices", () => {
+            const colorValuePairs = [
+                { value: -10 },
+                { value: 1.1 },
+                { value: 2.1 },
+                { value: 15 },
+            ]
+            const scale = createColorScaleFromTable(
+                colorValuePairs,
+                colorScaleConfig
+            )
+            expect(scale.getBinIndex(-100)).toEqual(-1) // doesn't belong in any bin
+            expect(scale.getBinIndex(-10)).toEqual(0)
+            expect(scale.getBinIndex(0)).toEqual(0)
+            expect(scale.getBinIndex(0.9)).toEqual(0)
+            expect(scale.getBinIndex(1)).toEqual(0)
+            expect(scale.getBinIndex(1.1)).toEqual(1)
+            expect(scale.getBinIndex(2)).toEqual(1)
+            expect(scale.getBinIndex(3)).toEqual(2)
+            expect(scale.getBinIndex(15)).toEqual(2)
+        })
+
         describe("filtering outliers", () => {
             it("should filter out outliers", () => {
                 const colorValuePairs = [

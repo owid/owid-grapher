@@ -313,12 +313,16 @@ export class MapChart
     @computed get formatTooltipValue(): (d: number | string) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
-        const customLabels = mapConfig.tooltipUseCustomLabels
-            ? colorScale.customNumericLabels
-            : []
         return (d: number | string): string => {
             if (isString(d)) return d
-            else return customLabels[d] ?? mapColumn?.formatValueLong(d) ?? ""
+            else if (mapConfig.tooltipUseCustomLabels) {
+                // Find the bin (and its label) that this value belongs to
+                const binIndex = colorScale.getBinIndex(d)
+                const customLabels = colorScale.customNumericLabels
+                const customLabel = customLabels[binIndex]
+                if (customLabel !== undefined) return customLabel
+            }
+            return mapColumn?.formatValueLong(d) ?? ""
         }
     }
 
