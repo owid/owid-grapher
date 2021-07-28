@@ -57,7 +57,6 @@ export interface ChartManager {
     seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options
-    lineStrokeWidth?: number
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 
