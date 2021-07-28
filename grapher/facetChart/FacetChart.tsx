@@ -183,10 +183,6 @@ export class FacetChart
             // Force disable nice axes if we care about the trend,
             // because nice axes misrepresent trends.
             globalYAxisConfig.nice = false
-
-            const isLogScale =
-                this.manager.yAxisConfig?.scaleType === ScaleType.log
-            if (!isLogScale) globalYAxisConfig.maxTicks = 3
         }
 
         const table = this.transformedTable
