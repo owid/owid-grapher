@@ -1,5 +1,4 @@
 import parse from "csv-parse"
-import { ReadStream } from "fs"
 
 export const parseCSV = async (csv: string): Promise<string[][]> =>
     new Promise<string[][]>((resolve, reject) => {
@@ -12,68 +11,3 @@ export const parseCSV = async (csv: string): Promise<string[][]> =>
             }
         )
     })
-
-export class CSVStreamParser {
-    private parser: any
-    private error: any
-    private isEnded = false
-    private isReadable = false
-
-    private rowResolve?: (value: any) => void
-    private rowReject?: (error: any) => void
-
-    constructor(input: ReadStream) {
-        const parser = parse({
-            relax_column_count: true,
-            skip_empty_lines: true,
-            trim: true,
-        })
-
-        parser.on("readable", () => {
-            this.isReadable = true
-            this.update()
-        })
-        parser.on("error", (err: any) => {
-            this.error = err
-            this.update()
-        })
-        parser.on("end", () => {
-            this.isEnded = true
-            this.update()
-        })
-
-        input.pipe(parser)
-        this.parser = parser
-    }
-
-    private update(): void {
-        if (!this.rowResolve || !this.rowReject) return
-
-        if (this.error) {
-            this.rowReject(this.error)
-            this.rowResolve = undefined
-            this.rowReject = undefined
-        } else if (this.isEnded) {
-            this.rowResolve(undefined)
-            this.rowResolve = undefined
-            this.rowReject = undefined
-        } else if (this.isReadable) {
-            const row = this.parser.read()
-            if (row) {
-                this.rowResolve(row)
-                this.rowResolve = undefined
-                this.rowReject = undefined
-            } else {
-                this.isReadable = false
-            }
-        }
-    }
-
-    async nextRow(): Promise<string[] | undefined> {
-        return new Promise<string[] | undefined>((resolve, reject) => {
-            this.rowResolve = resolve
-            this.rowReject = reject
-            this.update()
-        })
-    }
-}
