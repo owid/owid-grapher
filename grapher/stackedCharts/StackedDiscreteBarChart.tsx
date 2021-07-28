@@ -282,6 +282,17 @@ export class StackedDiscreteBarChart
         return sortedItems
     }
 
+    @computed private get placedItems(): PlacedItem[] {
+        const { innerBounds, barHeight, barSpacing } = this
+
+        const topYOffset = innerBounds.top + barHeight / 2
+
+        return this.sortedItems.map((d, i) => ({
+            yPosition: topYOffset + (barHeight + barSpacing) * i,
+            ...d,
+        }))
+    }
+
     @computed private get barHeight(): number {
         return (0.8 * this.innerBounds.height) / this.items.length
     }
@@ -378,12 +389,6 @@ export class StackedDiscreteBarChart
             isInteractive: !this.manager.isExportingtoSvgOrPng,
         }
 
-        const yOffset = innerBounds.top + barHeight / 2
-        const placedItems = this.sortedItems.map((d, i) => ({
-            yPosition: yOffset + (barHeight + barSpacing) * i,
-            ...d,
-        }))
-
         const handlePositionUpdate = (d: PlacedItem) => ({
             translateY: [d.yPosition],
             timing: { duration: 350, ease: easeQuadOut },
@@ -410,7 +415,7 @@ export class StackedDiscreteBarChart
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 <NodeGroup
-                    data={placedItems}
+                    data={this.placedItems}
                     keyAccessor={(d: PlacedItem) => d.label}
                     start={handlePositionUpdate}
                     update={handlePositionUpdate}
