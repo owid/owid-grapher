@@ -2207,6 +2207,7 @@ export class Grapher
         this.sortBy = grapher.sortBy
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
+        this.stackMode = grapher.stackMode
     }
 
     debounceMode = false

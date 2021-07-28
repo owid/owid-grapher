@@ -14,6 +14,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
+    StackMode,
 } from "../grapher/core/GrapherConstants"
 import { ColorSchemes } from "../grapher/color/ColorSchemes"
 import { SortBy, SortOrder } from "../clientUtils/owidTypes"
@@ -191,9 +192,20 @@ export const GrapherGrammar: Grammar = {
         })),
     },
     sortColumnSlug: {
-        ...EnumCellDef,
+        ...SlugDeclarationCellDef,
         keyword: "sortColumnSlug",
         description:
             "This setting is only respected when `sortBy` is set to `column`",
+    },
+    stackMode: {
+        ...EnumCellDef,
+        keyword: "stackMode",
+        description:
+            "Show chart in absolute (default) or relative mode. Only works for some chart types.",
+        terminalOptions: Object.keys(StackMode).map((keyword) => ({
+            keyword,
+            description: "",
+            cssClass: "",
+        })),
     },
 } as const
