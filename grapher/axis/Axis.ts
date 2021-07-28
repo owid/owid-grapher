@@ -175,7 +175,7 @@ abstract class AbstractAxis {
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
     @computed private get totalTicksTarget(): number {
         // Chose 1.8 here by trying a bunch of different faceted charts and figuring out what
-        // a reasonable lower bound is. A maximum of 10 ticks arbitrarily chosen.
+        // a reasonable lower bound is.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
         // -@danielgavrilov, 2021-06-15
         return Math.round(
