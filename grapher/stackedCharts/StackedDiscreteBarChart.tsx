@@ -166,11 +166,33 @@ export class StackedDiscreteBarChart
         }
     }
 
+    @computed private get totalValueLabelStyle() {
+        return {
+            fill: "#555",
+            fontSize: 0.75 * this.baseFontSize,
+        }
+    }
+
     // Account for the width of the legend
     @computed private get labelWidth(): number {
         const labels = this.items.map((item) => item.label)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.labelStyle).width
+    }
+
+    @computed get showTotalValueLabel(): boolean {
+        return !this.manager.isRelativeMode
+    }
+
+    // The amount of space we need to allocate for total value labels on the right
+    @computed private get totalValueLabelWidth(): number {
+        if (!this.showTotalValueLabel) return 0
+
+        const labels = this.items.map((d) =>
+            this.formatValueForLabel(d.totalValue)
+        )
+        const longestLabel = maxBy(labels, (l) => l.length)
+        return Bounds.forText(longestLabel, this.totalValueLabelStyle).width
     }
 
     @computed private get x0(): number {
@@ -193,7 +215,10 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get xRange(): [number, number] {
-        return [this.bounds.left + this.labelWidth, this.bounds.right]
+        return [
+            this.bounds.left + this.labelWidth,
+            this.bounds.right - this.totalValueLabelWidth,
+        ]
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -217,6 +242,7 @@ export class StackedDiscreteBarChart
             .padBottom(this.yAxis.height)
             .padTop(this.legendPaddingTop)
             .padTop(this.legend.height)
+            .padRight(this.totalValueLabelWidth)
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -374,7 +400,7 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds, barHeight, barSpacing } = this
+        const { bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
@@ -422,65 +448,89 @@ export class StackedDiscreteBarChart
                 >
                     {(nodes) => (
                         <g>
-                            {nodes.map(({ data, state }) => {
-                                const { label, bars } = data as PlacedItem
-                                const tooltipProps = {
-                                    ...chartContext,
-                                    item: data,
-                                }
+                            {nodes.map(
+                                ({
+                                    data,
+                                    state,
+                                }: {
+                                    data: PlacedItem
+                                    state: { translateY: number }
+                                }) => {
+                                    const { label, bars, totalValue } = data
+                                    const tooltipProps = {
+                                        ...chartContext,
+                                        item: data,
+                                    }
 
-                                return (
-                                    <g
-                                        key={label}
-                                        className="bar"
-                                        transform={`translate(0, ${state.translateY})`}
-                                    >
-                                        <TippyIfInteractive
-                                            lazy
-                                            isInteractive={
-                                                !this.manager
-                                                    .isExportingtoSvgOrPng
-                                            }
-                                            hideOnClick={false}
-                                            content={
-                                                <StackedDiscreteBarChart.Tooltip
-                                                    {...tooltipProps}
-                                                    highlightedSeriesName={
-                                                        undefined
-                                                    }
-                                                />
-                                            }
+                                    const totalLabel = this.formatValueForLabel(
+                                        totalValue
+                                    )
+
+                                    return (
+                                        <g
+                                            key={label}
+                                            className="bar"
+                                            transform={`translate(0, ${state.translateY})`}
                                         >
-                                            <text
-                                                x={0}
-                                                y={0}
-                                                transform={`translate(${
-                                                    yAxis.place(this.x0) -
-                                                    labelToBarPadding
-                                                }, 0)`}
-                                                fill="#555"
-                                                dominantBaseline="middle"
-                                                textAnchor="end"
-                                                {...this.labelStyle}
+                                            <TippyIfInteractive
+                                                lazy
+                                                isInteractive={
+                                                    !this.manager
+                                                        .isExportingtoSvgOrPng
+                                                }
+                                                hideOnClick={false}
+                                                content={
+                                                    <StackedDiscreteBarChart.Tooltip
+                                                        {...tooltipProps}
+                                                        highlightedSeriesName={
+                                                            undefined
+                                                        }
+                                                    />
+                                                }
                                             >
-                                                {label}
-                                            </text>
-                                        </TippyIfInteractive>
-                                        {bars.map((bar) => (
-                                            <StackedDiscreteBarChart.Bar
-                                                key={bar.seriesName}
-                                                bar={bar}
-                                                chartContext={chartContext}
-                                                tooltipProps={{
-                                                    ...tooltipProps,
-                                                    highlightedSeriesName:
-                                                        bar.seriesName,
-                                                }}
-                                            />
-                                        ))}
-                                    </g>
-                                )
-                            })}
+                                                <text
+                                                    transform={`translate(${
+                                                        yAxis.place(this.x0) -
+                                                        labelToBarPadding
+                                                    }, 0)`}
+                                                    fill="#555"
+                                                    dominantBaseline="middle"
+                                                    textAnchor="end"
+                                                    {...this.labelStyle}
+                                                >
+                                                    {label}
+                                                </text>
+                                            </TippyIfInteractive>
+                                            {bars.map((bar) => (
+                                                <StackedDiscreteBarChart.Bar
+                                                    key={bar.seriesName}
+                                                    bar={bar}
+                                                    chartContext={chartContext}
+                                                    tooltipProps={{
+                                                        ...tooltipProps,
+                                                        highlightedSeriesName:
+                                                            bar.seriesName,
+                                                    }}
+                                                />
+                                            ))}
+                                            {this.showTotalValueLabel && (
+                                                <text
+                                                    transform={`translate(${
+                                                        yAxis.place(
+                                                            totalValue
+                                                        ) + labelToBarPadding
+                                                    }, 0)`}
+                                                    dominantBaseline="middle"
+                                                    {...this
+                                                        .totalValueLabelStyle}
+                                                >
+                                                    {totalLabel}
+                                                </text>
+                                            )}
+                                        </g>
+                                    )
+                                }
+                            )}
                         </g>
                     )}
                 </NodeGroup>
