@@ -507,7 +507,7 @@ export class LineChart
 
     @computed get clipPathBounds(): Bounds {
         const { dualAxis, bounds } = this
-        return bounds.extend({ x: dualAxis.innerBounds.x }).expand(10)
+        return bounds.set({ x: dualAxis.innerBounds.x }).expand(10)
     }
 
     @computed get clipPath(): { id: string; element: JSX.Element } {

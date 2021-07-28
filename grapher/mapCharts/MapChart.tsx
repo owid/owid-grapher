@@ -131,7 +131,7 @@ const geoBoundsFor = (projectionName: MapProjectionName): Bounds[] => {
 
         // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
         if (feature.id === "Fiji")
-            return bounds.extend({
+            return bounds.set({
                 x: bounds.right - bounds.height,
                 width: bounds.height,
             })

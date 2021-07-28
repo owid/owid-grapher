@@ -222,7 +222,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             return {
                 text: text,
                 fontSize: tickFontSize,
-                bounds: labelBounds.extend({ x: x, y: y }),
+                bounds: labelBounds.set({ x: x, y: y }),
                 hidden: false,
             }
         }
@@ -237,7 +237,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             return {
                 text: bin.bin.text,
                 fontSize: tickFontSize,
-                bounds: labelBounds.extend({ x: x, y: y }),
+                bounds: labelBounds.set({ x: x, y: y }),
                 priority: true,
                 hidden: false,
             }
@@ -284,7 +284,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             for (let index = 1; index < labels.length; index++) {
                 const label = labels[index]
                 if (index % 2 !== 0) {
-                    label.bounds = label.bounds.extend({
+                    label.bounds = label.bounds.set({
                         y: label.bounds.y - label.bounds.height - 1,
                     })
                 }
@@ -471,7 +471,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
             const label = {
                 text: bin.text,
-                bounds: labelBounds.extend({
+                bounds: labelBounds.set({
                     x: markX + rectSize + rectPadding,
                     y: markY + 1,
                 }),
@@ -514,7 +514,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                     : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
-                mark.label.bounds = mark.label.bounds.extend({
+                mark.label.bounds = mark.label.bounds.set({
                     x: mark.label.bounds.x + xShift,
                 })
             })

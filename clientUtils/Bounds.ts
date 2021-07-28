@@ -229,7 +229,7 @@ export class Bounds {
         )
     }
 
-    extend(props: {
+    set(props: {
         x?: number
         y?: number
         width?: number
