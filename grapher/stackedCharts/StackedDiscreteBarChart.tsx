@@ -8,7 +8,6 @@ import {
     excludeUndefined,
     sortBy,
     numberMagnitude,
-    sum,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -64,6 +63,7 @@ export interface StackedDiscreteBarChartManager extends ChartManager {
 interface Item {
     label: string
     bars: Bar[]
+    totalValue: number
 }
 
 interface PlacedItem extends Item {
@@ -78,8 +78,7 @@ interface Bar {
 }
 
 interface TooltipProps extends StackedBarChartContext {
-    label: string
-    bars: Bar[]
+    item: PlacedItem
     highlightedSeriesName: string | undefined
 }
 
@@ -225,14 +224,15 @@ export class StackedDiscreteBarChart
     @computed private get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
-            .map((entityName) => ({
-                label: entityName,
-                bars: excludeUndefined(
+            .map((entityName) => {
+                let totalValue = 0
+                const bars = excludeUndefined(
                     this.series.map((series) => {
                         const point = series.points.find(
                             (point) => point.position === entityName
                         )
                         if (!point) return undefined
+                        totalValue += point.value
                         return {
                             point,
                             columnSlug: series.columnSlug,
@@ -240,8 +240,14 @@ export class StackedDiscreteBarChart
                             seriesName: series.seriesName,
                         }
                     })
-                ),
-            }))
+                )
+
+                return {
+                    label: entityName,
+                    bars,
+                    totalValue,
+                }
+            })
             .filter((item) => item.bars.length)
 
         return items
@@ -402,8 +408,7 @@ export class StackedDiscreteBarChart
                                 const { label, bars } = data as PlacedItem
                                 const tooltipProps = {
                                     ...chartContext,
-                                    label,
-                                    bars,
+                                        item: data,
                                 }
 
                                 return (
@@ -539,8 +544,8 @@ export class StackedDiscreteBarChart
 
     private static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
-        const { highlightedSeriesName } = props
-        const showTotal = !props.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
+        const { highlightedSeriesName, item } = props
+        const showTotal = !item.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
 
         const timeNoticeStyle = {
             fontWeight: "normal",
@@ -561,10 +566,10 @@ export class StackedDiscreteBarChart
                 <tbody>
                     <tr>
                         <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{props.label}</strong>
+                            <strong>{item.label}</strong>
                         </td>
                     </tr>
-                    {props.bars.map((bar) => {
+                    {item.bars.map((bar) => {
                         const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
@@ -666,9 +671,7 @@ export class StackedDiscreteBarChart
                                 }}
                             >
                                 {props.formatColumn.formatValueShort(
-                                    sum(
-                                        props.bars.map((bar) => bar.point.value)
-                                    ),
+                                    item.totalValue,
                                     {
                                         noTrailingZeroes: false,
                                     }
