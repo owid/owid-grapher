@@ -148,11 +148,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
             <HorizontalAxisComponent
                 bounds={bounds}
-                axisPosition={
-                    horizontalAxisLabelsOnTop
-                        ? innerBounds.top - 5
-                        : innerBounds.bottom
-                }
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
                 horizontalAxisLabelsOnTop={horizontalAxisLabelsOnTop}
@@ -218,7 +213,6 @@ export class VerticalAxisComponent extends React.Component<{
 export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
-    axisPosition: number
     showTickMarks?: boolean
     horizontalAxisLabelsOnTop?: boolean
 }> {
@@ -232,24 +226,32 @@ export class HorizontalAxisComponent extends React.Component<{
 
     // for scale selector. todo: cleanup
     @computed get bounds(): Bounds {
-        const { bounds } = this.props
-        return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
+        const { bounds, horizontalAxisLabelsOnTop } = this.props
+        if (horizontalAxisLabelsOnTop)
+            return new Bounds(bounds.right, bounds.top + 30, 100, 100)
+        else return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
     render(): JSX.Element {
         const {
             bounds,
             axis,
-            axisPosition,
             showTickMarks,
             horizontalAxisLabelsOnTop,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
+        const labelYPosition = horizontalAxisLabelsOnTop
+            ? bounds.top
+            : bounds.bottom - labelOffset
+
+        const tickMarksYPosition = horizontalAxisLabelsOnTop
+            ? bounds.top + axis.height - 5
+            : bounds.bottom
 
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
-                tickMarkTopPosition={axisPosition}
+                tickMarkTopPosition={tickMarksYPosition}
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
                 )}
@@ -257,15 +259,15 @@ export class HorizontalAxisComponent extends React.Component<{
             />
         ) : undefined
 
-        const tickYPlacement = horizontalAxisLabelsOnTop
-            ? bounds.top - axis.tickFontSize / 2
+        const tickLabelYPlacement = horizontalAxisLabelsOnTop
+            ? bounds.top + labelOffset + 10
             : bounds.bottom - labelOffset
         return (
             <g className="HorizontalAxis">
                 {label &&
                     label.render(
                         bounds.centerX - label.width / 2,
-                        bounds.bottom - label.height
+                        labelYPosition
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {
@@ -274,7 +276,7 @@ export class HorizontalAxisComponent extends React.Component<{
                         <text
                             key={i}
                             x={x}
-                            y={tickYPlacement}
+                            y={tickLabelYPlacement}
                             fill={textColor}
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.center

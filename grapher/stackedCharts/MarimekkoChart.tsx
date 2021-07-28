@@ -61,6 +61,7 @@ export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     excludedEntities?: EntityId[]
     matchingEntitiesOnly?: boolean
+    xOverrideTime?: number
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
 }
 
@@ -316,41 +317,59 @@ export class MarimekkoChart
         return [this.bounds.left, this.bounds.right]
     }
 
-    @computed private get yAxisPart(): AxisConfig {
-        return this.manager.yAxis || new AxisConfig()
+    @computed private get yAxisConfig(): AxisConfig {
+        return (
+            this.manager.yAxis ?? new AxisConfig(this.manager.yAxisConfig, this)
+        )
     }
 
-    @computed private get xAxisPart(): AxisConfig {
-        return this.manager.xAxis || new AxisConfig()
+    @computed private get xAxisConfig(): AxisConfig {
+        return (
+            this.manager.xAxis ?? new AxisConfig(this.manager.xAxisConfig, this)
+        )
     }
-
     @computed private get verticalAxisPart(): VerticalAxis {
-        const axis = this.yAxisPart.toVerticalAxis()
+        const config = this.yAxisConfig
+        const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label = ""
+        axis.label =
+            config.label ||
+            (this.yColumns.length > 0 ? this.yColumns[0].displayName : "")
         return axis
+    }
+    @computed private get xAxisLabelBase(): string {
+        const xDimName = this.xColumn?.displayName
+        if (this.manager.xOverrideTime !== undefined)
+            return `${xDimName} in ${this.manager.xOverrideTime}`
+        return xDimName
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisPart.toHorizontalAxis()
-        if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(this.xDomainDefault)
+        const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
+        const config = this.xAxisConfig
+        const axis = config.toHorizontalAxis()
+        if (manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings(xDomainDefault)
 
-        axis.formatColumn = this.xColumn
-        axis.label = ""
+        axis.formatColumn = xColumn
+
+        const label = config.label || xAxisLabelBase
+        axis.label = label
         return axis
     }
 
     @computed private get innerBounds(): Bounds {
         const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
+        const labelLinesHeight = MARKER_AREA_HEIGHT
         const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
         return this.bounds
             .padBottom(this.longestLabelHeight)
-            .padTop(this.legend.height + this.horizontalAxisPart.labelFontSize)
+            .padBottom(labelLinesHeight)
+            .padTop(this.legend.height)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -359,6 +378,7 @@ export class MarimekkoChart
             bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
+            horizontalAxisOnTop: true,
         })
     }
 
@@ -585,7 +605,7 @@ export class MarimekkoChart
         const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
-        let pattern: JSX.Element | undefined = undefined
+        let patterns: JSX.Element[] = []
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
@@ -645,17 +665,18 @@ export class MarimekkoChart
                 ></rect>
             )
 
-            pattern = (
+            patterns = [
                 <pattern
                     id="diagonalHatch"
+                    key="diagonalHatch"
                     patternUnits="userSpaceOnUse"
                     width="4"
                     height="4"
                     patternTransform="rotate(-45 2 2)"
                 >
                     <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="1" />
-                </pattern>
-            )
+                </pattern>,
+            ]
         }
 
         for (const item of placedItems) {
@@ -730,7 +751,7 @@ export class MarimekkoChart
         }
 
         return ([] as JSX.Element[]).concat(
-            pattern ? [pattern] : [],
+            patterns,
             noDataAreaElement ? [noDataAreaElement] : [],
             normalElements,
             placedLabels,

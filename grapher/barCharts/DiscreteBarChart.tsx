@@ -313,11 +313,7 @@ export class DiscreteBarChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <HorizontalAxisComponent
-                    bounds={bounds}
-                    axis={yAxis}
-                    axisPosition={innerBounds.bottom}
-                />
+                <HorizontalAxisComponent bounds={bounds} axis={yAxis} />
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}

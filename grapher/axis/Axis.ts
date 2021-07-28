@@ -560,6 +560,7 @@ interface DualAxisProps {
     bounds?: Bounds
     horizontalAxis: HorizontalAxis
     verticalAxis: VerticalAxis
+    horizontalAxisOnTop?: boolean
 }
 
 // DualAxis has the important task of coordinating two axes so that they work together!
@@ -600,9 +601,10 @@ export class DualAxis {
 
     // Now we can determine the "true" inner bounds of the dual axis
     @computed get innerBounds(): Bounds {
-        return this.bounds
-            .padBottom(this.horizontalAxisHeight)
-            .padLeft(this.verticalAxisWidth)
+        const leftPaddedBounds = this.bounds.padLeft(this.verticalAxisWidth)
+        return this.props.horizontalAxisOnTop
+            ? leftPaddedBounds.padTop(this.horizontalAxisHeight)
+            : leftPaddedBounds.padBottom(this.horizontalAxisHeight)
     }
 
     @computed get bounds(): Bounds {
