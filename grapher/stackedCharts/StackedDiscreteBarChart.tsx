@@ -53,6 +53,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
+import { bind } from "decko"
 
 const labelToBarPadding = 5
 
@@ -87,6 +88,7 @@ interface StackedBarChartContext {
     targetTime?: number
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+    formatValueForLabel: (value: number) => string
     focusSeriesName?: string
     barHeight: number
     x0: number
@@ -341,6 +343,16 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
+    @bind private formatValueForLabel(value: number): string {
+        // Compute how many decimal places we should show.
+        // Basically, this makes us show 2 significant digits, or no decimal places if the number
+        // is big enough already.
+        const magnitude = numberMagnitude(value)
+        return this.formatColumn.formatValueShort(value, {
+            numDecimalPlaces: Math.max(0, -magnitude + 2),
+        })
+    }
+
     render(): JSX.Element {
         if (this.failMessage)
             return (
@@ -358,6 +370,7 @@ export class StackedDiscreteBarChart
             targetTime: this.manager.endTime,
             timeColumn: this.inputTable.timeColumn,
             formatColumn: this.formatColumn,
+            formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
             focusSeriesName: this.focusSeriesName,
             x0: this.x0,
@@ -408,7 +421,7 @@ export class StackedDiscreteBarChart
                                 const { label, bars } = data as PlacedItem
                                 const tooltipProps = {
                                     ...chartContext,
-                                        item: data,
+                                    item: data,
                                 }
 
                                 return (
@@ -476,7 +489,12 @@ export class StackedDiscreteBarChart
         tooltipProps: TooltipProps
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
-        const { yAxis, formatColumn, focusSeriesName, barHeight } = chartContext
+        const {
+            yAxis,
+            formatValueForLabel,
+            focusSeriesName,
+            barHeight,
+        } = chartContext
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
@@ -484,13 +502,7 @@ export class StackedDiscreteBarChart
         const barWidth =
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
-        // Compute how many decimal places we should show.
-        // Basically, this makes us show 2 significant digits, or no decimal places if the number
-        // is big enough already.
-        const magnitude = numberMagnitude(bar.point.value)
-        const barLabel = formatColumn.formatValueShort(bar.point.value, {
-            numDecimalPlaces: Math.max(0, -magnitude + 2),
-        })
+        const barLabel = formatValueForLabel(bar.point.value)
         const labelFontSize = 0.7 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
