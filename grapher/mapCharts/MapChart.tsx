@@ -466,7 +466,7 @@ export class MapChart
 
         if (focusBracket) return focusBracket
 
-        if (focusValue)
+        if (focusValue !== undefined)
             return numericLegendData.find((bin) => bin.contains(focusValue))
 
         return undefined
@@ -478,7 +478,7 @@ export class MapChart
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
 
-        if (focusValue)
+        if (focusValue !== undefined)
             return categoricalLegendData.find((bin) => bin.contains(focusValue))
 
         return undefined
