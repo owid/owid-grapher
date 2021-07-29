@@ -317,10 +317,9 @@ export class MapChart
             if (isString(d)) return d
             else if (mapConfig.tooltipUseCustomLabels) {
                 // Find the bin (and its label) that this value belongs to
-                const binIndex = colorScale.getBinIndex(d)
-                const customLabels = colorScale.customNumericLabels
-                const customLabel = customLabels[binIndex]
-                if (customLabel !== undefined) return customLabel
+                const bin = colorScale.getBinForValue(d)
+                const label = bin?.label
+                if (label !== undefined && label !== "") return label
             }
             return mapColumn?.formatValueLong(d) ?? ""
         }

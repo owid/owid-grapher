@@ -60,15 +60,16 @@ describe(ColorScale, () => {
                 colorValuePairs,
                 colorScaleConfig
             )
-            expect(scale.getBinIndex(-100)).toEqual(-1) // doesn't belong in any bin
-            expect(scale.getBinIndex(-10)).toEqual(0)
-            expect(scale.getBinIndex(0)).toEqual(0)
-            expect(scale.getBinIndex(0.9)).toEqual(0)
-            expect(scale.getBinIndex(1)).toEqual(0)
-            expect(scale.getBinIndex(1.1)).toEqual(1)
-            expect(scale.getBinIndex(2)).toEqual(1)
-            expect(scale.getBinIndex(3)).toEqual(2)
-            expect(scale.getBinIndex(15)).toEqual(2)
+            const bins = scale.legendBins
+            expect(scale.getBinForValue(-100)).toBeUndefined() // doesn't belong in any bin
+            expect(scale.getBinForValue(-10)).toEqual(bins[0])
+            expect(scale.getBinForValue(0)).toEqual(bins[0])
+            expect(scale.getBinForValue(0.9)).toEqual(bins[0])
+            expect(scale.getBinForValue(1)).toEqual(bins[0])
+            expect(scale.getBinForValue(1.1)).toEqual(bins[1])
+            expect(scale.getBinForValue(2)).toEqual(bins[1])
+            expect(scale.getBinForValue(3)).toEqual(bins[2])
+            expect(scale.getBinForValue(15)).toEqual(bins[2])
         })
 
         describe("filtering outliers", () => {
