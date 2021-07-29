@@ -1,7 +1,12 @@
 import { isNumber, makeGrid, mapValues, range } from "./Util"
 import { PointVector } from "./PointVector"
 import pixelWidth from "string-pixel-width"
-import { Box, Position, PositionMap } from "./owidTypes"
+import {
+    Box,
+    IDEAL_CHART_ASPECT_RATIO,
+    Position,
+    PositionMap,
+} from "./owidTypes"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -321,7 +326,11 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    grid(pieces: number, padding: SplitBoundsPadding = {}): GridBounds[] {
+    grid(
+        pieces: number,
+        idealAspectRatio: number = IDEAL_CHART_ASPECT_RATIO,
+        padding: SplitBoundsPadding = {}
+    ): GridBounds[] {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -330,7 +339,12 @@ export class Bounds {
         // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Karma points for the person who adds those tests and makes
         // any required adjustments.
         const { columnPadding = 0, rowPadding = 0, outerPadding = 0 } = padding
-        const { columns, rows } = makeGrid(pieces)
+        const containerAspectRatio = this.width / this.height
+        const { columns, rows } = makeGrid(
+            pieces,
+            containerAspectRatio,
+            idealAspectRatio
+        )
         const contentWidth =
             this.width - columnPadding * (columns - 1) - outerPadding * 2
         const contentHeight =

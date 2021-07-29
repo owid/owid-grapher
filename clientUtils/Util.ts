@@ -571,12 +571,22 @@ const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     return clonedArr
 }
 
-export const makeGrid = (pieces: number): { columns: number; rows: number } => {
-    const columns = Math.ceil(Math.sqrt(pieces))
-    const rows = Math.ceil(pieces / columns)
+export const makeGrid = (
+    n: number,
+    containerAspectRatio: number,
+    idealAspectRatio: number
+): { columns: number; rows: number } => {
+    // See Observable notebook: https://observablehq.com/@danielgavrilov/pack-rectangles-of-a-preferred-aspect-ratio
+    // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
+    const ratio = containerAspectRatio / idealAspectRatio
+    // prefer vertical grid for count=2
+    if (n === 2 && ratio < 2) return { rows: 2, columns: 1 }
+    // otherwise, optimize for closest to the ideal aspect ratio
+    const columns = Math.min(Math.round(Math.sqrt(n * ratio)), n)
+    const rows = Math.ceil(n / columns)
     return {
-        columns,
         rows,
+        columns,
     }
 }
 

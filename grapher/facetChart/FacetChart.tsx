@@ -32,7 +32,11 @@ import {
     values,
 } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
-import { Position, PositionMap } from "../../clientUtils/owidTypes"
+import {
+    IDEAL_CHART_ASPECT_RATIO,
+    Position,
+    PositionMap,
+} from "../../clientUtils/owidTypes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
@@ -154,6 +158,7 @@ export class FacetChart
         const baseFontSize = this.fontSize
         const gridBoundsArr = this.bounds.grid(
             count,
+            IDEAL_CHART_ASPECT_RATIO,
             getChartPadding(count, baseFontSize)
         )
         const {
@@ -300,6 +305,7 @@ export class FacetChart
         const count = this.intermediatePlacedSeries.length
         const gridBoundsArr = fullBounds.grid(
             count,
+            IDEAL_CHART_ASPECT_RATIO,
             getChartPadding(count, this.fontSize)
         )
         return this.intermediatePlacedSeries.map((series, i) => {

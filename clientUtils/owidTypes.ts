@@ -1,6 +1,8 @@
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
+export const IDEAL_CHART_ASPECT_RATIO: number = 1.41667
+
 export interface Box {
     x: number
     y: number
