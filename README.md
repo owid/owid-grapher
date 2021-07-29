@@ -202,4 +202,4 @@ The following is an excerpt explaining the origin of this repo and what the alte
 
 Cross-browser testing provided by <a href="https://www.browserstack.com"><img src="https://3fxtqy18kygf3on3bu39kh93-wpengine.netdna-ssl.com/wp-content/themes/browserstack/img/bs-logo.svg" /> BrowserStack</a>
 
-Client-side bug tracking provided by <a href="http://www.bugsnag.com/"><img style="max-width: 20%; vertical-align: middle;" src="https://images.typeform.com/images/QKuaAssrFCq7/image/default" /></a>
+Client-side bug tracking provided by <a href="http://www.bugsnag.com/"><img width="110" src="https://images.typeform.com/images/QKuaAssrFCq7/image/default" /></a>
