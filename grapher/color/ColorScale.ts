@@ -342,9 +342,16 @@ export class ColorScale {
         })
     }
 
-    getColor(value: number | string | undefined): string | undefined {
+    getBinForValue(
+        value: number | string | undefined
+    ): ColorScaleBin | undefined {
         return value === undefined
-            ? this.noDataColor
-            : this.legendBins.find((bin) => bin.contains(value))?.color
+            ? undefined
+            : this.legendBins.find((bin) => bin.contains(value))
+    }
+
+    getColor(value: number | string | undefined): string | undefined {
+        if (value === undefined) return this.noDataColor
+        return this.getBinForValue(value)?.color
     }
 }

@@ -313,12 +313,15 @@ export class MapChart
     @computed get formatTooltipValue(): (d: number | string) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
-        const customLabels = mapConfig.tooltipUseCustomLabels
-            ? colorScale.customNumericLabels
-            : []
         return (d: number | string): string => {
             if (isString(d)) return d
-            else return customLabels[d] ?? mapColumn?.formatValueLong(d) ?? ""
+            else if (mapConfig.tooltipUseCustomLabels) {
+                // Find the bin (and its label) that this value belongs to
+                const bin = colorScale.getBinForValue(d)
+                const label = bin?.label
+                if (label !== undefined && label !== "") return label
+            }
+            return mapColumn?.formatValueLong(d) ?? ""
         }
     }
 
@@ -462,7 +465,7 @@ export class MapChart
 
         if (focusBracket) return focusBracket
 
-        if (focusValue)
+        if (focusValue !== undefined)
             return numericLegendData.find((bin) => bin.contains(focusValue))
 
         return undefined
@@ -474,7 +477,7 @@ export class MapChart
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
 
-        if (focusValue)
+        if (focusValue !== undefined)
             return categoricalLegendData.find((bin) => bin.contains(focusValue))
 
         return undefined
