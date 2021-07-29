@@ -26,6 +26,8 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import {
     excludeUndefined,
+    getIdealGridParams,
+    GridParameters,
     max,
     maxBy,
     min,
@@ -138,6 +140,16 @@ export class FacetChart
         return true
     }
 
+    @computed private get gridParams(): GridParameters {
+        const count = this.series.length
+        const containerAspectRatio = this.bounds.width / this.bounds.height
+        return getIdealGridParams({
+            count,
+            containerAspectRatio,
+            idealAspectRatio: IDEAL_CHART_ASPECT_RATIO,
+        })
+    }
+
     /**
      * Holds the intermediate render properties for chart views, before axes are synchronized,
      * collapsed, aligned, etc.
@@ -157,10 +169,10 @@ export class FacetChart
         // Copy properties from manager to facets
         const baseFontSize = this.fontSize
         const gridBoundsArr = this.bounds.grid(
-            count,
-            IDEAL_CHART_ASPECT_RATIO,
+            this.gridParams,
             getChartPadding(count, baseFontSize)
         )
+
         const {
             yColumnSlug,
             xColumnSlug,
@@ -304,8 +316,7 @@ export class FacetChart
         const fullBounds = this.bounds.pad(sharedAxesPadding)
         const count = this.intermediatePlacedSeries.length
         const gridBoundsArr = fullBounds.grid(
-            count,
-            IDEAL_CHART_ASPECT_RATIO,
+            this.gridParams,
             getChartPadding(count, this.fontSize)
         )
         return this.intermediatePlacedSeries.map((series, i) => {

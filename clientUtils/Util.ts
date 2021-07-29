@@ -115,6 +115,7 @@ import {
     ScaleType,
     VerticalAlign,
     HorizontalAlign,
+    IDEAL_CHART_ASPECT_RATIO,
 } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
@@ -571,19 +572,28 @@ const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     return clonedArr
 }
 
-export const makeGrid = (
-    n: number,
-    containerAspectRatio: number,
-    idealAspectRatio: number
-): { columns: number; rows: number } => {
+export interface GridParameters {
+    rows: number
+    columns: number
+}
+
+export const getIdealGridParams = ({
+    count,
+    containerAspectRatio,
+    idealAspectRatio = IDEAL_CHART_ASPECT_RATIO,
+}: {
+    count: number
+    containerAspectRatio: number
+    idealAspectRatio?: number
+}): GridParameters => {
     // See Observable notebook: https://observablehq.com/@danielgavrilov/pack-rectangles-of-a-preferred-aspect-ratio
     // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
     const ratio = containerAspectRatio / idealAspectRatio
     // prefer vertical grid for count=2
-    if (n === 2 && ratio < 2) return { rows: 2, columns: 1 }
+    if (count === 2 && ratio < 2) return { rows: 2, columns: 1 }
     // otherwise, optimize for closest to the ideal aspect ratio
-    const columns = Math.min(Math.round(Math.sqrt(n * ratio)), n)
-    const rows = Math.ceil(n / columns)
+    const columns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
+    const rows = Math.ceil(count / columns)
     return {
         rows,
         columns,

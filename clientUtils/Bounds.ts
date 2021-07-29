@@ -1,12 +1,7 @@
-import { isNumber, makeGrid, mapValues, range } from "./Util"
+import { isNumber, mapValues, range, GridParameters } from "./Util"
 import { PointVector } from "./PointVector"
 import pixelWidth from "string-pixel-width"
-import {
-    Box,
-    IDEAL_CHART_ASPECT_RATIO,
-    Position,
-    PositionMap,
-} from "./owidTypes"
+import { Box, Position, PositionMap } from "./owidTypes"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -327,31 +322,20 @@ export class Bounds {
     }
 
     grid(
-        pieces: number,
-        idealAspectRatio: number = IDEAL_CHART_ASPECT_RATIO,
+        gridParams: GridParameters,
         padding: SplitBoundsPadding = {}
     ): GridBounds[] {
-        // Splits a rectangle into smaller rectangles.
-        // The Facet Storybook has a visual demo of how this works.
-        // I form the smallest possible square and then fill that up. This always goes left to right, top down.
-        // So when we don't have a round number we first add a column, then a row, etc, until we reach the next square.
-        // In the future we may want to position these bounds in custom ways, but this only does basic splitting for now.
-        // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Karma points for the person who adds those tests and makes
-        // any required adjustments.
+        const { columns, rows } = gridParams
         const { columnPadding = 0, rowPadding = 0, outerPadding = 0 } = padding
-        const containerAspectRatio = this.width / this.height
-        const { columns, rows } = makeGrid(
-            pieces,
-            containerAspectRatio,
-            idealAspectRatio
-        )
+
         const contentWidth =
             this.width - columnPadding * (columns - 1) - outerPadding * 2
         const contentHeight =
             this.height - rowPadding * (rows - 1) - outerPadding * 2
         const boxWidth = Math.floor(contentWidth / columns)
         const boxHeight = Math.floor(contentHeight / rows)
-        return range(0, pieces).map((index: number) => {
+
+        return range(0, rows * columns).map((index: number) => {
             const col = index % columns
             const row = Math.floor(index / columns)
             const edges = new Set<Position>()
