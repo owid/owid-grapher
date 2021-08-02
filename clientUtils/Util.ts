@@ -211,6 +211,13 @@ export const formatYear = (year: number): string => {
         : year.toString()
 }
 
+// Computes the base-10 magnitude of a number, which can be useful for rounding by sigfigs etc.
+// Formally, numberMagnitude computes m such that 10^(m-1) <= abs(num) < 10^m.
+// Equivalently, num / 10^(numberMagnitude(num)) is always in the range ±[0.1, 1[.
+// E.g.: - numberMagnitude(0.5) = 0
+//       - numberMagnitude(1) = 1
+//       - numberMagnitude(-2) = 1
+//       - numberMagnitude(100) = 3
 export const numberMagnitude = (num: number): number => {
     if (num === 0) return 0
     const magnitude = Math.floor(Math.log10(Math.abs(num))) + 1
