@@ -1,6 +1,13 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed } from "mobx"
-import { rollingMap, min, uniq, sortBy, max } from "../../clientUtils/Util"
+import {
+    rollingMap,
+    min,
+    uniq,
+    sortBy,
+    max,
+    numberMagnitude,
+} from "../../clientUtils/Util"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { TextWrap } from "../text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
@@ -302,8 +309,8 @@ abstract class AbstractAxis {
         )
         if (minDist !== undefined) {
             // Find the decimal places required to reach the first non-zero digit
-            const dp = Math.ceil(-Math.log10(minDist))
-            if (isFinite(dp) && dp >= 0) {
+            const dp = -numberMagnitude(minDist) + 1
+            if (dp >= 0) {
                 options.numDecimalPlaces = dp
             }
         }
