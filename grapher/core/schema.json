@@ -10,10 +10,6 @@
         "map": {
             "type": "object",
             "properties": {
-                "legendOrientation": {
-                    "type": ["string", "null"],
-                    "enum": ["portrait", "landscape", null]
-                },
                 "projection": {
                     "type": ["string", "null"],
                     "enum": [
@@ -26,74 +22,6 @@
                         "Oceania",
                         null
                     ]
-                },
-                "isColorblind": {
-                    "type": "boolean"
-                },
-                "defaultProjection": {
-                    "type": "string",
-                    "enum": [
-                        "World",
-                        "Europe",
-                        "Africa",
-                        "Asia",
-                        "NortAmerica",
-                        "SouthAmerica",
-                        "Oceania"
-                    ]
-                },
-                "timelineMode": {
-                    "type": ["string", "null"],
-                    "enum": ["slider", "timeline", "buttons", null]
-                },
-                "minYear": {
-                    "type": ["integer"]
-                },
-                "timeRanges": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "endYear": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["last"]
-                                    },
-                                    { "type": "number", "minimum": 0 }
-                                ]
-                            },
-                            "interval": {
-                                "type": "integer",
-                                "maximum": 32767,
-                                "minimum": 0
-                            },
-                            "startYear": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["first"]
-                                    },
-                                    { "type": "number" }
-                                ]
-                            },
-                            "year": {
-                                "oneOf": [
-                                    {
-                                        "type": "string",
-                                        "enum": ["last"]
-                                    },
-                                    { "type": "number", "minimum": 0 }
-                                ]
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "legendStepSize": {
-                    "type": "integer",
-                    "maximum": 32767,
-                    "minimum": 0
                 },
                 "hideTimeline": {
                     "type": "boolean"
@@ -110,7 +38,9 @@
                         "customCategoryColors": {
                             "type": ["object", "array"],
                             "patternProperties": {
-                                ".*": { "type": "string" }
+                                ".*": {
+                                    "type": "string"
+                                }
                             },
                             "items": {}
                         },
@@ -122,9 +52,10 @@
                         },
                         "customHiddenCategories": {
                             "type": ["object", "array"],
-
                             "patternProperties": {
-                                ".*": { "type": "boolean" }
+                                ".*": {
+                                    "type": "boolean"
+                                }
                             },
                             "items": {}
                         },
@@ -168,7 +99,9 @@
                         "customCategoryLabels": {
                             "type": ["object", "array"],
                             "patternProperties": {
-                                ".*": { "type": "string" }
+                                ".*": {
+                                    "type": "string"
+                                }
                             },
                             "items": {}
                         }
@@ -185,34 +118,18 @@
                             "type": "string",
                             "enum": ["latest"]
                         },
-                        { "type": "number", "minimum": 0 }
-                    ]
-                },
-                "maxYear": {
-                    "oneOf": [
                         {
-                            "type": "string",
-                            "enum": ["latest"]
-                        },
-                        { "type": "number", "minimum": 0 }
+                            "type": "number",
+                            "minimum": 0
+                        }
                     ]
-                },
-                "colorSchemeName": {
-                    "type": "string"
                 },
                 "tooltipUseCustomLabels": {
                     "type": "boolean"
                 },
-                "targetYearMode": {
-                    "type": "string"
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": ["specific"]
-                },
                 "time": {
                     "type": ["string", "integer"],
-
+                    "description": "Select a specific time to be displayed.",
                     "maximum": 32767,
                     "minimum": 0
                 },
@@ -220,13 +137,8 @@
                     "type": "integer",
                     "maximum": 2147483647,
                     "minimum": 0
-                },
-                "timeInterval": {
-                    "type": "integer",
-                    "$comment": "TODO: This property is used only if 13 very old charts"
                 }
             },
-
             "additionalProperties": false
         },
         "maxTime": {
@@ -235,7 +147,10 @@
                     "type": "string",
                     "enum": ["latest"]
                 },
-                { "type": "number", "minimum": 0 }
+                {
+                    "type": "number",
+                    "minimum": 0
+                }
             ]
         },
         "subtitle": {
@@ -250,7 +165,6 @@
         "baseColorScheme": {
             "type": "string"
         },
-
         "yAxis": {
             "type": "object",
             "properties": {
@@ -280,15 +194,13 @@
                 "canChangeScaleType": {
                     "type": "boolean"
                 },
-                "labelDistance": {
-                    "type": "number"
-                },
                 "facetAxisRange": {
                     "type": "string"
                 },
                 "numDecimalPlaces": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 }
             },
             "additionalProperties": false
@@ -319,32 +231,6 @@
         },
         "matchingEntitiesOnly": {
             "type": "boolean"
-        },
-        "lastEditedAt": {
-            "type": "string",
-            "format": "date-time"
-        },
-        "margins": {
-            "type": "object",
-            "properties": {
-                "top": {
-                    "type": ["string", "integer"],
-                    "minimum": 0
-                },
-                "left": {
-                    "type": ["string", "integer"],
-                    "minimum": 0
-                },
-                "right": {
-                    "type": ["string", "integer"],
-                    "minimum": 0
-                },
-                "bottom": {
-                    "type": ["string", "integer"],
-                    "minimum": 0
-                }
-            },
-            "additionalProperties": false
         },
         "hasChartTab": {
             "type": "boolean"
@@ -391,7 +277,9 @@
                 "customCategoryColors": {
                     "type": "object",
                     "patternProperties": {
-                        ".*": { "type": "string" }
+                        ".*": {
+                            "type": "string"
+                        }
                     }
                 },
                 "baseColorScheme": {
@@ -400,7 +288,9 @@
                 "customHiddenCategories": {
                     "type": "object",
                     "patternProperties": {
-                        ".*": { "type": "boolean" }
+                        ".*": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "binningStrategy": {
@@ -601,7 +491,9 @@
         "selectedEntityColors": {
             "type": "object",
             "patternProperties": {
-                ".*": { "type": "string" }
+                ".*": {
+                    "type": "string"
+                }
             }
         },
         "relatedQuestions": {
@@ -621,9 +513,6 @@
         },
         "title": {
             "type": "string"
-        },
-        "isAutoTitle": {
-            "type": "boolean"
         },
         "type": {
             "type": "string",
@@ -653,7 +542,9 @@
                     "type": "string",
                     "enum": ["latest", "earliest"]
                 },
-                { "type": "number" }
+                {
+                    "type": "number"
+                }
             ]
         },
         "hideTitleAnnotation": {
@@ -695,14 +586,10 @@
                 "canChangeScaleType": {
                     "type": "boolean"
                 },
-                "labelDistance": {
-                    "type": "integer",
-                    "maximum": 32767,
-                    "minimum": -327681
-                },
                 "numDecimalPlaces": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "DEPRECATE: this field has not been used in 1y or more"
                 }
             },
             "additionalProperties": false
@@ -710,9 +597,6 @@
         "timelineMaxTime": {
             "type": "integer",
             "minimum": 0
-        },
-        "isExplorable": {
-            "type": "boolean"
         },
         "hideConnectedScatterLines": {
             "type": "boolean"
