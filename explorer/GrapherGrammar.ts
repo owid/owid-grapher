@@ -139,7 +139,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "facetYDomain",
         description:
             "Whether facets axes default to shared or independent domain",
-        terminalOptions: Object.keys(FacetAxisDomain).map((keyword) => ({
+        terminalOptions: Object.values(FacetAxisDomain).map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",
@@ -175,7 +175,7 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         keyword: "sortBy",
         description: "Specify what to sort the entities by",
-        terminalOptions: Object.keys(SortBy).map((keyword) => ({
+        terminalOptions: Object.values(SortBy).map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",
@@ -185,7 +185,7 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         keyword: "sortOrder",
         description: "Whether to sort entities ascending or descending",
-        terminalOptions: Object.keys(SortOrder).map((keyword) => ({
+        terminalOptions: Object.values(SortOrder).map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",
@@ -202,7 +202,7 @@ export const GrapherGrammar: Grammar = {
         keyword: "stackMode",
         description:
             "Show chart in absolute (default) or relative mode. Only works for some chart types.",
-        terminalOptions: Object.keys(StackMode).map((keyword) => ({
+        terminalOptions: Object.values(StackMode).map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",
