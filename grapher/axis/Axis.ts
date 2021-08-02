@@ -297,9 +297,8 @@ abstract class AbstractAxis {
         // See: https://github.com/d3/d3-array/blob/master/README.md#ticks
         //
         // -@danielgavrilov, 2020-05-27
-        const tickValues = this.getTickValues()
         const minDist = min(
-            rollingMap(tickValues, (a, b) => Math.abs(a.value - b.value))
+            rollingMap(this.baseTicks, (a, b) => Math.abs(a.value - b.value))
         )
         if (minDist !== undefined) {
             // Find the decimal places required to reach the first non-zero digit
