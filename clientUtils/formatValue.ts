@@ -8,7 +8,6 @@ export interface TickFormattingOptions {
     numberPrefixes?: boolean
     shortNumberPrefixes?: boolean
     showPlus?: boolean
-    isFirstOrLastTick?: boolean
 }
 
 // todo: Should this be numberSuffixes instead of Prefixes?
