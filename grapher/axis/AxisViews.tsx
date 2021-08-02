@@ -253,10 +253,6 @@ export class HorizontalAxisComponent extends React.Component<{
                     return (
                         <text
                             key={i}
-                            // We use placeTickLabel() instead of using tick.x directly because the
-                            // range may have shifted e.g. to create space for the Y axis.
-                            // We use placeTickLabel() instead of place() because it sets an X
-                            // coordinate that may be different from the X coordinate of the tick mark.
                             x={x}
                             y={bounds.bottom - labelOffset}
                             fill={textColor}
