@@ -4,7 +4,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
-    FacetAxisRange,
+    FacetAxisDomain,
     FacetStrategy,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -132,7 +132,7 @@ export class FacetChart
     }
 
     @computed private get uniformYAxis(): boolean {
-        return this.yAxisConfig.facetAxisRange === FacetAxisRange.shared
+        return this.yAxisConfig.facetDomain === FacetAxisDomain.shared
     }
 
     @computed private get uniformXAxis(): boolean {

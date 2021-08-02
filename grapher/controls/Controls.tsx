@@ -15,7 +15,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import {
-    FacetAxisRange,
+    FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     HighlightToggleConfig,
@@ -131,24 +131,22 @@ export class AbsRelToggle extends React.Component<{
     }
 }
 
-export interface FacetYRangeToggleManager {
+export interface FacetYDomainToggleManager {
     yAxis?: AxisConfig
 }
 
 @observer
-export class FacetYRangeToggle extends React.Component<{
-    manager: FacetYRangeToggleManager
+export class FacetYDomainToggle extends React.Component<{
+    manager: FacetYDomainToggleManager
 }> {
     @action.bound onToggle(): void {
-        this.props.manager.yAxis!.facetAxisRange = this.isYRangeShared
-            ? FacetAxisRange.independent
-            : FacetAxisRange.shared
+        this.props.manager.yAxis!.facetDomain = this.isYDomainShared
+            ? FacetAxisDomain.independent
+            : FacetAxisDomain.shared
     }
 
-    @computed get isYRangeShared(): boolean {
-        return (
-            this.props.manager.yAxis!.facetAxisRange === FacetAxisRange.shared
-        )
+    @computed get isYDomainShared(): boolean {
+        return this.props.manager.yAxis!.facetDomain === FacetAxisDomain.shared
     }
 
     render(): JSX.Element {
@@ -156,9 +154,9 @@ export class FacetYRangeToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={this.isYRangeShared}
+                    checked={this.isYDomainShared}
                     onChange={this.onToggle}
-                    data-track-note="chart-facet-yrange-toggle"
+                    data-track-note="chart-facet-ydomain-toggle"
                 />{" "}
                 &nbsp;Uniform y-axis
             </label>

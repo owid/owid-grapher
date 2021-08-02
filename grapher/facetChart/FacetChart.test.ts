@@ -5,7 +5,7 @@ import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ChartTypeName,
-    FacetAxisRange,
+    FacetAxisDomain,
     FacetStrategy,
 } from "../core/GrapherConstants"
 import { uniq } from "../../clientUtils/Util"
@@ -58,7 +58,7 @@ describe("uniform axes", () => {
         selection: table.availableEntityNames,
         facetStrategy: FacetStrategy.entity,
         yAxisConfig: {
-            facetAxisRange: FacetAxisRange.shared,
+            facetDomain: FacetAxisDomain.shared,
         },
     }
     const chart = new FacetChart({
@@ -148,7 +148,7 @@ describe("config overrides", () => {
         facetStrategy: FacetStrategy.entity,
         yAxisConfig: {
             compactLabels: false,
-            facetAxisRange: FacetAxisRange.shared,
+            facetDomain: FacetAxisDomain.shared,
             min: -1e15,
             max: 1e15,
         },
@@ -169,7 +169,7 @@ describe("config overrides", () => {
         const newManager: ChartManager = {
             ...manager,
             yAxisConfig: {
-                facetAxisRange: FacetAxisRange.independent,
+                facetDomain: FacetAxisDomain.independent,
                 nice: true,
             },
         }

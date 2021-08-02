@@ -117,12 +117,12 @@ graphers
         expect(grapherConfig).toEqual({ title: "Foo", ySlugs: "gdp" })
     })
 
-    it("can set a facet y range", () => {
+    it("can set a facet y domain", () => {
         const grapherConfig = new ExplorerProgram(
             "test",
-            `facetYRange\tindependent`
+            `facetYDomain\tindependent`
         ).tuplesObject
-        expect(grapherConfig).toEqual({ facetYRange: "independent" })
+        expect(grapherConfig).toEqual({ facetYDomain: "independent" })
     })
 
     it("prefers inline data to url if it has both", () => {

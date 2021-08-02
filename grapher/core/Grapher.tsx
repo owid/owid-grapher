@@ -1836,7 +1836,7 @@ export class Grapher
         this.showFacets = !this.showFacets
     }
 
-    @computed get showFacetYRangeToggle(): boolean {
+    @computed get showFacetYDomainToggle(): boolean {
         // don't offer to make the y range relative if the range is discrete
         return this.facet !== FacetStrategy.none && !this.isStackedDiscreteBar
     }

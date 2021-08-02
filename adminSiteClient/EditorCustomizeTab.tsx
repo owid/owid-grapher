@@ -23,7 +23,7 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
-import { FacetAxisRange } from "../grapher/core/GrapherConstants"
+import { FacetAxisDomain } from "../grapher/core/GrapherConstants"
 import Select, { ValueType } from "react-select"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
 import { asArray } from "../clientUtils/react-select"
@@ -421,13 +421,13 @@ export class EditorCustomizeTab extends React.Component<{
                                     <Toggle
                                         label={`Facets have uniform y-axis`}
                                         value={
-                                            yAxisConfig.facetAxisRange ===
-                                            FacetAxisRange.shared
+                                            yAxisConfig.facetDomain ===
+                                            FacetAxisDomain.shared
                                         }
                                         onValue={(value) => {
-                                            yAxisConfig.facetAxisRange = value
-                                                ? FacetAxisRange.shared
-                                                : FacetAxisRange.independent
+                                            yAxisConfig.facetDomain = value
+                                                ? FacetAxisDomain.shared
+                                                : FacetAxisDomain.independent
                                         }}
                                     />
                                 </FieldsRow>

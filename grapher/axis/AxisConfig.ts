@@ -1,6 +1,6 @@
 import {
     BASE_FONT_SIZE,
-    FacetAxisRange,
+    FacetAxisDomain,
     ScaleType,
 } from "../core/GrapherConstants"
 import { extend, trimObject } from "../../clientUtils/Util"
@@ -29,7 +29,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref maxTicks?: number = undefined
     @observable.ref compactLabels?: boolean = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
-    @observable.ref facetAxisRange?: FacetAxisRange = FacetAxisRange.shared
+    @observable.ref facetDomain?: FacetAxisDomain = FacetAxisDomain.shared
     @observable.ref label: string = ""
 }
 
@@ -66,7 +66,7 @@ export class AxisConfig
             compactLabels: this.compactLabels,
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
-            facetAxisRange: this.facetAxisRange,
+            facetDomain: this.facetDomain,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
