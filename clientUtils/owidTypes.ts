@@ -293,3 +293,8 @@ export enum VerticalAlign {
     middle = "middle",
     bottom = "bottom",
 }
+
+export interface GridParameters {
+    rows: number
+    columns: number
+}

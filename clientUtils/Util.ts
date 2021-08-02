@@ -116,6 +116,7 @@ import {
     VerticalAlign,
     HorizontalAlign,
     IDEAL_CHART_ASPECT_RATIO,
+    GridParameters,
 } from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
@@ -570,11 +571,6 @@ const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
         ]
     }
     return clonedArr
-}
-
-export interface GridParameters {
-    rows: number
-    columns: number
 }
 
 export const getIdealGridParams = ({

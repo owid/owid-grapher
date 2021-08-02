@@ -27,7 +27,6 @@ import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import {
     excludeUndefined,
     getIdealGridParams,
-    GridParameters,
     max,
     maxBy,
     min,
@@ -36,6 +35,7 @@ import {
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
     IDEAL_CHART_ASPECT_RATIO,
+    GridParameters,
     Position,
     PositionMap,
 } from "../../clientUtils/owidTypes"
