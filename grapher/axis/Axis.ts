@@ -226,7 +226,7 @@ abstract class AbstractAxis {
             //   `maxLabelledTicks` labels overall
             //
             // -@MarcelGerber, 2020-08-07
-            const tickCandidates = d3_scale.ticks(maxTicks)
+            const tickCandidates = d3_scale.ticks(maxLabelledTicks)
             ticks = tickCandidates.map((value) => {
                 // 10^x
                 if (Math.fround(Math.log10(value)) % 1 === 0)
