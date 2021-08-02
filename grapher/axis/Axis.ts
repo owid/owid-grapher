@@ -210,13 +210,13 @@ abstract class AbstractAxis {
             // * priority 3 (lowest) to all other ("in-between") values (e.g. 70, 300)
             //
             // We then decide depending on the number of tick candidates what to do:
-            // * if we have less than `totalTicks`, just show all
-            // * if we have betwenn `totalTicks` and `2 * totalTicks`, show all "in-between" lines
+            // * if we have less than `maxLabelledTicks`, just show all
+            // * if we have between `maxLabelledTicks` and `maxTicks`, show all "in-between" lines
             //   as faint grid lines without labels to give the chart that log paper look.
             //   We also show all priority 1 and 2 lines with labels, because there aren't too many
             //   of them.
             // * otherwise, remove priority 3 and, if necessary, priority 2 labels until we're below
-            //   `totalTicks` labels overall
+            //   `maxLabelledTicks` labels overall
             //
             // -@MarcelGerber, 2020-08-07
             const tickCandidates = d3_scale.ticks(maxTicks)
