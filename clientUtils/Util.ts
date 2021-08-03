@@ -19,6 +19,7 @@ import isNumber from "lodash/isNumber"
 import isObject from "lodash/isObject"
 import isString from "lodash/isString"
 import keyBy from "lodash/keyBy"
+import mapValues from "lodash/mapValues"
 import max from "lodash/max"
 import maxBy from "lodash/maxBy"
 import memoize from "lodash/memoize"
@@ -68,6 +69,7 @@ export {
     isNumber,
     isString,
     keyBy,
+    mapValues,
     max,
     maxBy,
     memoize,
@@ -81,6 +83,7 @@ export {
     pick,
     range,
     reverse,
+    round,
     sample,
     sampleSize,
     sortBy,
@@ -104,7 +107,17 @@ import { formatLocale } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import { SortOrder, Integer, Time, EPOCH_DATE, ScaleType } from "./owidTypes"
+import {
+    SortOrder,
+    Integer,
+    Time,
+    EPOCH_DATE,
+    ScaleType,
+    VerticalAlign,
+    HorizontalAlign,
+    IDEAL_PLOT_ASPECT_RATIO,
+    GridParameters,
+} from "./owidTypes"
 import { PointVector } from "./PointVector"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 
@@ -560,12 +573,26 @@ const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
     return clonedArr
 }
 
-export const makeGrid = (pieces: number): { columns: number; rows: number } => {
-    const columns = Math.ceil(Math.sqrt(pieces))
-    const rows = Math.ceil(pieces / columns)
+export const getIdealGridParams = ({
+    count,
+    containerAspectRatio,
+    idealAspectRatio = IDEAL_PLOT_ASPECT_RATIO,
+}: {
+    count: number
+    containerAspectRatio: number
+    idealAspectRatio?: number
+}): GridParameters => {
+    // See Observable notebook: https://observablehq.com/@danielgavrilov/pack-rectangles-of-a-preferred-aspect-ratio
+    // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
+    const ratio = containerAspectRatio / idealAspectRatio
+    // prefer vertical grid for count=2
+    if (count === 2 && ratio < 2) return { rows: 2, columns: 1 }
+    // otherwise, optimize for closest to the ideal aspect ratio
+    const columns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
+    const rows = Math.ceil(count / columns)
     return {
-        columns,
         rows,
+        columns,
     }
 }
 
@@ -1055,4 +1082,22 @@ export const wrapInDiv = (el: Element, classes?: string[]): Element => {
     el.parentNode.insertBefore(wrapper, el)
     wrapper.appendChild(el)
     return wrapper
+}
+
+export const textAnchorFromAlign = (
+    align: HorizontalAlign
+): "start" | "middle" | "end" => {
+    if (align === HorizontalAlign.center) return "middle"
+    if (align === HorizontalAlign.right) return "end"
+    return "start"
+}
+
+export const dyFromAlign = (align: VerticalAlign): string => {
+    if (align === VerticalAlign.middle) return ".32em"
+    if (align === VerticalAlign.bottom) return ".71em"
+    return "0"
+}
+
+export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
+    return Object.values(obj)
 }

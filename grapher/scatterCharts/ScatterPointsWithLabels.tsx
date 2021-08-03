@@ -257,18 +257,18 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     ): void {
         for (const label of labels) {
             if (label.bounds.left < bounds.left - 1)
-                label.bounds = label.bounds.extend({
+                label.bounds = label.bounds.set({
                     x: label.bounds.x + label.bounds.width,
                 })
             else if (label.bounds.right > bounds.right + 1)
-                label.bounds = label.bounds.extend({
+                label.bounds = label.bounds.set({
                     x: label.bounds.x - label.bounds.width,
                 })
 
             if (label.bounds.top < bounds.top - 1)
-                label.bounds = label.bounds.extend({ y: bounds.top })
+                label.bounds = label.bounds.set({ y: bounds.top })
             else if (label.bounds.bottom > bounds.bottom + 1)
-                label.bounds = label.bounds.extend({
+                label.bounds = label.bounds.set({
                     y: bounds.bottom - label.bounds.height,
                 })
         }

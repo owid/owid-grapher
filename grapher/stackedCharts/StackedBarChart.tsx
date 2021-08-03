@@ -287,7 +287,7 @@ export class StackedBarChart
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
             return {
                 text,
-                bounds: bounds.extend({
+                bounds: bounds.set({
                     x: xPos + barWidth / 2 - bounds.width / 2,
                     y: dualAxis.innerBounds.bottom + 5,
                 }),

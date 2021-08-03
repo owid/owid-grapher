@@ -34,12 +34,12 @@ import {
     Time,
     SortBy,
     SortConfig,
+    HorizontalAlign,
 } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import {
-    LegendAlign,
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
@@ -196,7 +196,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return this.manager.yAxis || new AxisConfig()
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed get yAxis(): HorizontalAxis {
@@ -300,8 +300,8 @@ export class StackedDiscreteBarChart
         return this.bounds.width
     }
 
-    @computed get legendAlign(): LegendAlign {
-        return LegendAlign.left
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
     }
 
     @computed get fontSize(): number {

@@ -62,7 +62,7 @@ function stackGroupVertically(
 ): PlacedSeries[] {
     let currentY = y
     group.forEach((mark) => {
-        mark.bounds = mark.bounds.extend({ y: currentY })
+        mark.bounds = mark.bounds.set({ y: currentY })
         mark.repositions += 1
         currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING
     })

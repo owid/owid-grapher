@@ -8,7 +8,6 @@ export interface TickFormattingOptions {
     numberPrefixes?: boolean
     shortNumberPrefixes?: boolean
     showPlus?: boolean
-    isFirstOrLastTick?: boolean
 }
 
 // todo: Should this be numberSuffixes instead of Prefixes?
@@ -53,6 +52,13 @@ export function formatValue(
                 noSpaceUnit: shortNumberPrefixes,
                 numDecimalPlaces: 2,
             })
+    } else if (!isNoSpaceUnit && shortNumberPrefixes && absValue >= 1e3) {
+        output = formatValue(value / 1e3, {
+            ...options,
+            unit: "k",
+            noSpaceUnit: true,
+            numDecimalPlaces: 2,
+        })
     } else {
         const targetDigits = Math.pow(10, -numDecimalPlaces)
 

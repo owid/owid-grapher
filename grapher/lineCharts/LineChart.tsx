@@ -9,6 +9,7 @@ import {
     flatten,
     last,
     exposeInstanceOnWindow,
+    round,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -34,7 +35,7 @@ import {
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
-import { AxisConfig } from "../axis/AxisConfig"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     LinesProps,
@@ -142,6 +143,7 @@ class Lines extends React.Component<LinesProps> {
                     <path
                         stroke={series.color}
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                         d={pointsToPath(
                             series.placedPoints.map((value) => [
                                 value.x,
@@ -177,6 +179,7 @@ class Lines extends React.Component<LinesProps> {
                 <path
                     key={getSeriesKey(series, "line")}
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                     stroke="#ddd"
                     d={pointsToPath(
                         series.placedPoints.map((value) => [
@@ -242,7 +245,7 @@ export class LineChart
         bounds?: Bounds
         manager: LineChartManager
     }>
-    implements ChartInterface, LineLegendManager {
+    implements ChartInterface, LineLegendManager, FontSizeManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {
@@ -292,7 +295,7 @@ export class LineChart
         this.mouseHoverX = hoverX
     }
 
-    @computed get hoverX() {
+    @computed get hoverX(): number | undefined {
         return this.mouseHoverX ?? this.props.manager.annotation?.year
     }
 
@@ -489,18 +492,6 @@ export class LineChart
         exposeInstanceOnWindow(this)
     }
 
-    private runFancyIntroAnimation(): void {
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-    }
-
     componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
@@ -515,6 +506,27 @@ export class LineChart
 
     @computed get legendX(): number {
         return this.bounds.right - (this.legendDimensions?.width || 0)
+    }
+
+    @computed get clipPathBounds(): Bounds {
+        const { dualAxis, bounds } = this
+        return bounds.set({ x: dualAxis.innerBounds.x }).expand(10)
+    }
+
+    @computed get clipPath(): { id: string; element: JSX.Element } {
+        return makeClipPath(this.renderUid, this.clipPathBounds)
+    }
+
+    private runFancyIntroAnimation(): void {
+        this.animSelection = select(this.base.current)
+            .selectAll("clipPath > rect")
+            .attr("width", 0)
+        this.animSelection
+            .transition()
+            .duration(800)
+            .ease(easeLinear)
+            .attr("width", this.clipPathBounds.width)
+            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     @computed private get legendDimensions(): LineLegend | undefined {
@@ -533,18 +545,12 @@ export class LineChart
                 />
             )
 
-        const { manager, tooltip, dualAxis, hoverX, renderUid, bounds } = this
+        const { manager, tooltip, dualAxis, hoverX, clipPath } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
         const comparisonLines = manager.comparisonLines || []
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
-        const clipPath = makeClipPath(renderUid, {
-            x: dualAxis.innerBounds.x - 10,
-            y: bounds.y - 18, // subtract 18 to reverse the padding after header in captioned chart
-            width: bounds.width + 10,
-            height: bounds.height * 2,
-        })
         return (
             <g ref={this.base} className="LineChart">
                 {clipPath.element}
@@ -701,8 +707,8 @@ export class LineChart
                     placedPoints: series.points.map(
                         (point) =>
                             new PointVector(
-                                Math.round(horizontalAxis.place(point.x)),
-                                Math.round(verticalAxis.place(point.y))
+                                round(horizontalAxis.place(point.x), 1),
+                                round(verticalAxis.place(point.y), 1)
                             )
                     ),
                 }
@@ -732,12 +738,12 @@ export class LineChart
         })
     }
 
+    @computed private get xAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.xAxisConfig, this)
+    }
+
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { manager } = this
-        const axisConfig =
-            manager.xAxis ?? new AxisConfig(manager.xAxisConfig, this)
-        if (manager.hideXAxis) axisConfig.hideAxis = true
-        const axis = axisConfig.toHorizontalAxis()
+        const axis = this.xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
@@ -749,14 +755,12 @@ export class LineChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        const { manager } = this
-        return manager.yAxis ?? new AxisConfig(manager.yAxisConfig, this)
+        // TODO: enable nice axis ticks for linear scales
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const { manager } = this
         const axisConfig = this.yAxisConfig
-        if (manager.hideYAxis) axisConfig.hideAxis = true
         const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()

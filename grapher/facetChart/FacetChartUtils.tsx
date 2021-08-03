@@ -4,30 +4,23 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 export const getFontSize = (
     count: number,
     baseFontSize = BASE_FONT_SIZE,
-    min = 8
+    minSize = 8
 ): number => {
-    if (count === 2) return baseFontSize
-    if (count < 5) return baseFontSize - 2
-    if (count < 10) return baseFontSize - 4
-    if (count < 17) return baseFontSize - 6
-    if (count < 36) return baseFontSize - 8
-    return min
+    if (count <= 2) return Math.max(minSize, baseFontSize * (16 / 16))
+    if (count <= 4) return Math.max(minSize, baseFontSize * (14.5 / 16))
+    if (count <= 9) return Math.max(minSize, baseFontSize * (13 / 16))
+    if (count <= 16) return Math.max(minSize, baseFontSize * (12 / 16))
+    if (count <= 25) return Math.max(minSize, baseFontSize * (11 / 16))
+    return minSize
 }
 
 export const getChartPadding = (
-    count: number
+    count: number,
+    baseFontSize: number
 ): { rowPadding: number; columnPadding: number; outerPadding: number } => {
-    if (count > 9) {
-        return {
-            rowPadding: 20,
-            columnPadding: 20,
-            outerPadding: 20,
-        }
-    }
-
     return {
-        rowPadding: 40,
-        columnPadding: 40,
-        outerPadding: 20,
+        rowPadding: Math.round(baseFontSize * 3.5),
+        columnPadding: Math.round(baseFontSize),
+        outerPadding: 0,
     }
 }

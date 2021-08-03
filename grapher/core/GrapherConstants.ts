@@ -43,9 +43,9 @@ export enum FacetStrategy {
     column = "column", // One chart for each Y column
 }
 
-export enum FacetAxisRange {
-    independent = "independent", // all facets have their own y range
-    shared = "shared", // all facets share the same y range
+export enum FacetAxisDomain {
+    independent = "independent", // all facets have their own y domain
+    shared = "shared", // all facets share the same y domain
 }
 
 export enum SeriesStrategy {

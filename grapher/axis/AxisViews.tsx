@@ -5,6 +5,18 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
+import { HorizontalAlign, VerticalAlign } from "../../clientUtils/owidTypes"
+import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util"
+
+const dasharrayFromFontSize = (fontSize: number): string => {
+    const dashLength = Math.round((fontSize / 16) * 3)
+    const spaceLength = Math.round((dashLength * 2) / 3)
+    return `${dashLength},${spaceLength}`
+}
+
+const TICK_COLOR = "#ddd"
+const FAINT_TICK_COLOR = "#eee"
+const DOMAIN_TICK_COLOR = "#999"
 
 @observer
 export class VerticalAxisGridLines extends React.Component<{
@@ -20,10 +32,10 @@ export class VerticalAxisGridLines extends React.Component<{
             <g className={classNames("AxisGridLines", "horizontalLines")}>
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
-                        ? "#eee"
+                        ? FAINT_TICK_COLOR
                         : t.value === 0
-                        ? "#ccc"
-                        : "#d3d3d3"
+                        ? DOMAIN_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line
@@ -33,7 +45,13 @@ export class VerticalAxisGridLines extends React.Component<{
                             x2={bounds.right.toFixed(2)}
                             y2={axis.place(t.value)}
                             stroke={color}
-                            strokeDasharray={t.value !== 0 ? "3,2" : undefined}
+                            strokeDasharray={
+                                t.value !== 0
+                                    ? dasharrayFromFontSize(
+                                          verticalAxis.tickFontSize
+                                      )
+                                    : undefined
+                            }
                         />
                     )
                 })}
@@ -61,10 +79,10 @@ export class HorizontalAxisGridLines extends React.Component<{
             <g className={classNames("AxisGridLines", "verticalLines")}>
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
-                        ? "#eee"
+                        ? FAINT_TICK_COLOR
                         : t.value === 0
-                        ? "#ccc"
-                        : "#d3d3d3"
+                        ? DOMAIN_TICK_COLOR
+                        : TICK_COLOR
 
                     return (
                         <line
@@ -74,7 +92,13 @@ export class HorizontalAxisGridLines extends React.Component<{
                             x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
-                            strokeDasharray={t.value !== 0 ? "3,2" : undefined}
+                            strokeDasharray={
+                                t.value !== 0
+                                    ? dasharrayFromFontSize(
+                                          horizontalAxis.tickFontSize
+                                      )
+                                    : undefined
+                            }
                         />
                     )
                 })}
@@ -143,7 +167,7 @@ export class VerticalAxisComponent extends React.Component<{
 }> {
     render(): JSX.Element {
         const { bounds, verticalAxis } = this.props
-        const { ticks, labelTextWrap } = verticalAxis
+        const { tickLabels, labelTextWrap } = verticalAxis
         const textColor = "#666"
 
         return (
@@ -154,19 +178,28 @@ export class VerticalAxisComponent extends React.Component<{
                         bounds.left,
                         { transform: "rotate(-90)" }
                     )}
-                {ticks.map((tick, i) => (
-                    <text
-                        key={i}
-                        x={(bounds.left + verticalAxis.width - 5).toFixed(2)}
-                        y={verticalAxis.place(tick)}
-                        fill={textColor}
-                        dominantBaseline="middle"
-                        textAnchor="end"
-                        fontSize={verticalAxis.tickFontSize}
-                    >
-                        {verticalAxis.formatTick(tick)}
-                    </text>
-                ))}
+                {tickLabels.map((label, i) => {
+                    const { y, xAlign, yAlign, formattedValue } = label
+                    return (
+                        <text
+                            key={i}
+                            x={(
+                                bounds.left +
+                                verticalAxis.width -
+                                verticalAxis.labelPadding
+                            ).toFixed(2)}
+                            y={y}
+                            dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
+                            textAnchor={textAnchorFromAlign(
+                                xAlign ?? HorizontalAlign.right
+                            )}
+                            fill={textColor}
+                            fontSize={verticalAxis.tickFontSize}
+                        >
+                            {formattedValue}
+                        </text>
+                    )
+                })}
             </g>
         )
     }
@@ -194,16 +227,16 @@ export class HorizontalAxisComponent extends React.Component<{
 
     render(): JSX.Element {
         const { bounds, axis, axisPosition, showTickMarks } = this.props
-        const { ticks, labelTextWrap: label, labelOffset } = axis
+        const { tickLabels, labelTextWrap: label, labelOffset } = axis
         const textColor = "#666"
 
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
                 tickMarkTopPosition={axisPosition}
-                tickMarkXPositions={ticks.map((tick): number =>
-                    axis.place(tick)
+                tickMarkXPositions={tickLabels.map((label): number =>
+                    axis.place(label.value)
                 )}
-                color="#ccc"
+                color={DOMAIN_TICK_COLOR}
             />
         ) : undefined
 
@@ -215,34 +248,22 @@ export class HorizontalAxisComponent extends React.Component<{
                         bounds.bottom - label.height
                     )}
                 {tickMarks}
-                {ticks.map((tick, i) => {
-                    const label = axis.formatTick(tick, {
-                        isFirstOrLastTick: i === 0 || i === ticks.length - 1,
-                    })
-                    const rawXPosition = axis.place(tick)
-                    // Ensure the first label does not exceed the chart viewing area
-                    const xPosition =
-                        i === 0
-                            ? Bounds.getRightShiftForMiddleAlignedTextIfNeeded(
-                                  label,
-                                  axis.tickFontSize,
-                                  rawXPosition
-                              ) + rawXPosition
-                            : rawXPosition
-                    const element = (
+                {tickLabels.map((label, i) => {
+                    const { x, xAlign, formattedValue } = label
+                    return (
                         <text
                             key={i}
-                            x={xPosition}
+                            x={x}
                             y={bounds.bottom - labelOffset}
                             fill={textColor}
-                            textAnchor="middle"
+                            textAnchor={textAnchorFromAlign(
+                                xAlign ?? HorizontalAlign.center
+                            )}
                             fontSize={axis.tickFontSize}
                         >
-                            {label}
+                            {formattedValue}
                         </text>
                     )
-
-                    return element
                 })}
             </g>
         )
@@ -256,7 +277,7 @@ export class AxisTickMarks extends React.Component<{
 }> {
     render(): JSX.Element[] {
         const { tickMarkTopPosition, tickMarkXPositions, color } = this.props
-        const tickSize = 4
+        const tickSize = 5
         const tickBottom = tickMarkTopPosition + tickSize
         return tickMarkXPositions.map((tickMarkPosition, index) => {
             return (

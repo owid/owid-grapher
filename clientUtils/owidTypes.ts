@@ -1,6 +1,9 @@
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
+/** The "plot" is a chart without any header, footer or controls */
+export const IDEAL_PLOT_ASPECT_RATIO: number = 1.8
+
 export interface Box {
     x: number
     y: number
@@ -268,3 +271,31 @@ export enum DimensionProperty {
 
 // see CoreTableConstants.ts
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
+
+export enum Position {
+    top = "top",
+    right = "right",
+    bottom = "bottom",
+    left = "left",
+}
+
+export type PositionMap<Value> = {
+    [key in Position]?: Value
+}
+
+export enum HorizontalAlign {
+    left = "left",
+    center = "center",
+    right = "right",
+}
+
+export enum VerticalAlign {
+    top = "top",
+    middle = "middle",
+    bottom = "bottom",
+}
+
+export interface GridParameters {
+    rows: number
+    columns: number
+}

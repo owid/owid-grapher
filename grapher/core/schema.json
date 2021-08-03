@@ -194,7 +194,7 @@
                 "canChangeScaleType": {
                     "type": "boolean"
                 },
-                "facetAxisRange": {
+                "facetDomain": {
                     "type": "string"
                 },
                 "numDecimalPlaces": {

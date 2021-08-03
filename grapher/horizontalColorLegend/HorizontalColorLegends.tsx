@@ -9,6 +9,7 @@ import {
     last,
     flatten,
     sum,
+    dyFromAlign,
 } from "../../clientUtils/Util"
 import { Bounds } from "../../clientUtils/Bounds"
 import {
@@ -17,7 +18,11 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { Color } from "../../clientUtils/owidTypes"
+import {
+    Color,
+    HorizontalAlign,
+    VerticalAlign,
+} from "../../clientUtils/owidTypes"
 
 interface PositionedBin {
     x: number
@@ -55,16 +60,10 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-export enum LegendAlign {
-    left = "left",
-    center = "center",
-    right = "right",
-}
-
 export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
-    legendAlign?: LegendAlign
+    legendAlign?: HorizontalAlign
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
@@ -110,7 +109,7 @@ class HorizontalColorLegend extends React.Component<{
 
     @computed get legendAlign() {
         // Assume center alignment if none specified, for backwards-compatibility
-        return this.manager.legendAlign ?? LegendAlign.center
+        return this.manager.legendAlign ?? HorizontalAlign.center
     }
 
     @computed get fontSize(): number {
@@ -223,7 +222,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             return {
                 text: text,
                 fontSize: tickFontSize,
-                bounds: labelBounds.extend({ x: x, y: y }),
+                bounds: labelBounds.set({ x: x, y: y }),
                 hidden: false,
             }
         }
@@ -238,7 +237,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             return {
                 text: bin.bin.text,
                 fontSize: tickFontSize,
-                bounds: labelBounds.extend({ x: x, y: y }),
+                bounds: labelBounds.set({ x: x, y: y }),
                 priority: true,
                 hidden: false,
             }
@@ -285,7 +284,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             for (let index = 1; index < labels.length; index++) {
                 const label = labels[index]
                 if (index % 2 !== 0) {
-                    label.bounds = label.bounds.extend({
+                    label.bounds = label.bounds.set({
                         y: label.bounds.y - label.bounds.height - 1,
                     })
                 }
@@ -426,7 +425,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                         // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                         // do with some rough positioning.
-                        dy=".75em"
+                        dy={dyFromAlign(VerticalAlign.bottom)}
                         fontSize={label.fontSize}
                     >
                         {label.text}
@@ -472,7 +471,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
             const label = {
                 text: bin.text,
-                bounds: labelBounds.extend({
+                bounds: labelBounds.set({
                     x: markX + rectSize + rectPadding,
                     y: markY + 1,
                 }),
@@ -506,15 +505,16 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
         // Center each line
         lines.forEach((line) => {
+            // TODO abstract this
             const xShift =
-                align === LegendAlign.center
+                align === HorizontalAlign.center
                     ? (this.width - line.totalWidth) / 2
-                    : align === LegendAlign.right
+                    : align === HorizontalAlign.right
                     ? this.width - line.totalWidth
                     : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
-                mark.label.bounds = mark.label.bounds.extend({
+                mark.label.bounds = mark.label.bounds.set({
                     x: mark.label.bounds.x + xShift,
                 })
             })
@@ -567,7 +567,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                                     // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                                     // do with some rough positioning.
-                                    dy=".75em"
+                                    dy={dyFromAlign(VerticalAlign.bottom)}
                                     fontSize={mark.label.fontSize}
                                 >
                                     {mark.label.text}

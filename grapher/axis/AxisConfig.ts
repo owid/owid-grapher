@@ -1,6 +1,6 @@
 import {
     BASE_FONT_SIZE,
-    FacetAxisRange,
+    FacetAxisDomain,
     ScaleType,
 } from "../core/GrapherConstants"
 import { extend, trimObject } from "../../clientUtils/Util"
@@ -17,20 +17,25 @@ export interface FontSizeManager {
     fontSize: number
 }
 
-class AxisConfigDefaults {
+class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref canChangeScaleType?: boolean = undefined
-    @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
-    @observable.ref facetAxisRange: FacetAxisRange = FacetAxisRange.shared
+    @observable.ref minSize?: number = undefined
+    @observable.ref hideAxis?: boolean = undefined
+    @observable.ref labelPadding?: number = undefined
+    @observable.ref nice?: boolean = undefined
+    @observable.ref maxTicks?: number = undefined
+    @observable.ref compactLabels?: boolean = undefined
+    @observable.ref scaleType?: ScaleType = ScaleType.linear
+    @observable.ref facetDomain?: FacetAxisDomain = FacetAxisDomain.shared
+    @observable.ref label: string = ""
 }
 
 export class AxisConfig
     extends AxisConfigDefaults
     implements AxisConfigInterface, Persistable, ScaleSelectorManager {
-    // todo: test/refactor
     constructor(
         props?: AxisConfigInterface,
         fontSizeManager?: FontSizeManager
@@ -41,7 +46,6 @@ export class AxisConfig
     }
 
     private fontSizeManager?: FontSizeManager
-    @observable hideAxis = false
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
@@ -50,13 +54,19 @@ export class AxisConfig
 
     toObject(): AxisConfigInterface {
         const obj = trimObject({
-            scaleType: this.scaleType,
-            label: this.label ? this.label : undefined,
             min: this.min,
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
-            facetAxisRange: this.facetAxisRange,
+            minSize: this.minSize,
+            hideAxis: this.hideAxis,
+            labelPadding: this.labelPadding,
+            nice: this.nice,
+            maxTicks: this.maxTicks,
+            compactLabels: this.compactLabels,
+            scaleType: this.scaleType,
+            label: this.label ? this.label : undefined,
+            facetDomain: this.facetDomain,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

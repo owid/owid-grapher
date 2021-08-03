@@ -18,4 +18,5 @@ export interface PlacedFacetSeries extends FacetSeries {
     manager: ChartManager
     chartTypeName: ChartTypeName
     bounds: Bounds
+    contentBounds: Bounds
 }

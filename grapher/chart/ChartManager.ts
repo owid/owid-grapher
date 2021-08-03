@@ -1,4 +1,3 @@
-import { AxisConfig } from "../axis/AxisConfig"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
@@ -37,12 +36,10 @@ export interface ChartManager {
     zoomToSelection?: boolean
     matchingEntitiesOnly?: boolean
 
-    colorScale?: ColorScaleConfigInterface
+    colorScale?: Readonly<ColorScaleConfigInterface>
 
-    yAxis?: AxisConfig // Remove? Just pass interfaces?
-    xAxis?: AxisConfig
-    yAxisConfig?: AxisConfigInterface
-    xAxisConfig?: AxisConfigInterface
+    yAxisConfig?: Readonly<AxisConfigInterface>
+    xAxisConfig?: Readonly<AxisConfigInterface>
 
     addCountryMode?: EntitySelectionMode
 
@@ -60,10 +57,6 @@ export interface ChartManager {
     seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options
-    lineStrokeWidth?: number
-
-    hideXAxis?: boolean
-    hideYAxis?: boolean
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 

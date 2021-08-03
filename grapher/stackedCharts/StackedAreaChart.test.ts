@@ -20,7 +20,7 @@ class MockManager implements ChartManager {
         timeRange: [1950, 2010],
     })
     yColumnSlugs = [SampleColumnSlugs.GDP]
-    yAxis = new AxisConfig({ min: 0, max: 200 })
+    yAxisConfig = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
     selection = new SelectionArray()
 }

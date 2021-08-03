@@ -4,7 +4,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { computed } from "mobx"
 import {
     ChartTypeName,
-    FacetAxisRange,
+    FacetAxisDomain,
     FacetStrategy,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -24,16 +24,75 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { extent } from "d3-array"
-import { excludeUndefined, flatten } from "../../clientUtils/Util"
+import {
+    excludeUndefined,
+    getIdealGridParams,
+    max,
+    maxBy,
+    min,
+    values,
+} from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+import {
+    IDEAL_PLOT_ASPECT_RATIO,
+    GridParameters,
+    Position,
+    PositionMap,
+} from "../../clientUtils/owidTypes"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
+
+const getContentBounds = (
+    containerBounds: Bounds,
+    manager: ChartManager,
+    chartInstance: ChartInterface
+): Bounds => {
+    let bounds = containerBounds
+    const axes = [
+        { config: manager.xAxisConfig, axis: chartInstance.xAxis },
+        { config: manager.yAxisConfig, axis: chartInstance.yAxis },
+    ]
+    for (const { config, axis } of axes) {
+        if (!config || !axis) continue
+        if (!config.hideAxis && config.minSize !== undefined) {
+            bounds = bounds.pad({ [axis.position]: config.minSize })
+        }
+    }
+    return bounds
+}
+
+const shouldHideFacetAxis = (
+    axis: HorizontalAxis | VerticalAxis | undefined,
+    edges: Set<Position>,
+    sharedAxesSizes: PositionMap<number>
+): boolean => {
+    if (axis) {
+        return axis.position in sharedAxesSizes && !edges.has(axis.position)
+    }
+    return false
+}
+
+interface AxisInfo {
+    config: AxisConfigInterface
+    axisAccessor: (
+        instance: ChartInterface
+    ) => HorizontalAxis | VerticalAxis | undefined
+    uniform: boolean
+    /** only considered when `uniform` is `true`, otherwise ignored */
+    shared: boolean
+}
+
+interface AxesInfo {
+    x: AxisInfo
+    y: AxisInfo
+}
 
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface {
+    implements ChartInterface, FontSizeManager {
     transformTable(table: OwidTable): OwidTable {
         return table
     }
@@ -49,25 +108,56 @@ export class FacetChart
         )
     }
 
+    @computed get fontSize(): number {
+        return getFontSize(this.series.length, this.manager.baseFontSize)
+    }
+
+    @computed private get yAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.yAxisConfig, this)
+    }
+
+    @computed private get uniformYAxis(): boolean {
+        return this.yAxisConfig.facetDomain === FacetAxisDomain.shared
+    }
+
+    @computed private get uniformXAxis(): boolean {
+        // TODO: maybe should not be the default for ScatterPlot?
+        return true
+    }
+
+    @computed private get gridParams(): GridParameters {
+        const count = this.series.length
+        const containerAspectRatio = this.bounds.width / this.bounds.height
+        return getIdealGridParams({
+            count,
+            containerAspectRatio,
+            idealAspectRatio: IDEAL_PLOT_ASPECT_RATIO,
+        })
+    }
+
     /**
-     * Holds the intermediate render properties for chart views, as well as the intermediate chart
-     * views themselves.
+     * Holds the intermediate render properties for chart views, before axes are synchronized,
+     * collapsed, aligned, etc.
      *
      * An example: a StackedArea has a Y axis domain that is the largest sum of all columns.
      * In order to avoid replicating that logic here (stacking values), we initialize StackedArea
      * instances, without rendering them. In a later method, we use those intermediate chart views to
      * determine the final axes for facets, e.g. for a uniform axis, we would iterate through all
-     * instances to find the domain.
+     * instances to find the full extent of the domain.
      *
      * @danielgavrilov, 2021-07-13
      */
-    @computed get intermediatePlacedSeries(): PlacedFacetSeries[] {
+    @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
         const { manager, series } = this
         const count = series.length
 
-        const boundsArr = this.bounds.split(count, getChartPadding(count))
-
         // Copy properties from manager to facets
+        const baseFontSize = this.fontSize
+        const gridBoundsArr = this.bounds.grid(
+            this.gridParams,
+            getChartPadding(count, baseFontSize)
+        )
+
         const {
             yColumnSlug,
             xColumnSlug,
@@ -76,37 +166,46 @@ export class FacetChart
             sizeColumnSlug,
             isRelativeMode,
         } = manager
-        const xAxisConfig =
-            this.manager.xAxisConfig ?? this.manager.xAxis?.toObject()
-        const yAxisConfig =
-            this.manager.yAxisConfig ?? this.manager.yAxis?.toObject()
 
-        const baseFontSize = getFontSize(count, manager.baseFontSize)
-        const lineStrokeWidth = count > 16 ? 1 : undefined
+        // Use compact labels, e.g. 50k instead of 50,000.
+        const compactLabels = count > 2
+        const globalXAxisConfig: AxisConfigInterface = {
+            compactLabels,
+        }
+        const globalYAxisConfig: AxisConfigInterface = {
+            compactLabels,
+        }
+
+        // We infer that the user cares about the trend if the axis is not uniform
+        // and the metrics on all facets are the same
+        const careAboutTrend =
+            !this.uniformYAxis && this.facetStrategy === FacetStrategy.entity
+        if (careAboutTrend) {
+            // Force disable nice axes if we care about the trend,
+            // because nice axes misrepresent trends.
+            globalYAxisConfig.nice = false
+        }
 
         const table = this.transformedTable
 
         return series.map((series, index) => {
-            const bounds = boundsArr[index]
+            const { bounds, edges } = gridBoundsArr[index]
             const chartTypeName =
                 series.chartTypeName ??
                 this.props.chartTypeName ??
                 ChartTypeName.LineChart
-            const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
-            const hideYAxis = false // column > 0 // todo: figure out design issues here
-            const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
+
+            // TODO figure out how to do legends better
+            const hideLegend = !edges.has(Position.right)
             const hidePoints = true
 
+            // NOTE: The order of overrides is important!
+            // We need to preserve most config coming in.
             const manager: ChartManager = {
                 table,
-                hideXAxis,
-                hideYAxis,
                 baseFontSize,
-                lineStrokeWidth,
                 hideLegend,
                 hidePoints,
-                xAxisConfig,
-                yAxisConfig,
                 yColumnSlug,
                 xColumnSlug,
                 yColumnSlugs,
@@ -114,9 +213,20 @@ export class FacetChart
                 sizeColumnSlug,
                 isRelativeMode,
                 ...series.manager,
+                xAxisConfig: {
+                    ...globalXAxisConfig,
+                    ...this.manager.xAxisConfig,
+                    ...series.manager.xAxisConfig,
+                },
+                yAxisConfig: {
+                    ...globalYAxisConfig,
+                    ...this.manager.yAxisConfig,
+                    ...series.manager.yAxisConfig,
+                },
             }
             return {
                 bounds,
+                contentBounds: bounds,
                 chartTypeName,
                 manager,
                 seriesName: series.seriesName,
@@ -125,86 +235,155 @@ export class FacetChart
         })
     }
 
+    // Only made public for testing
     @computed get placedSeries(): PlacedFacetSeries[] {
         // Create intermediate chart views to determine some of the properties
         const chartInstances = this.intermediatePlacedSeries.map(
-            ({ manager, chartTypeName }) => {
+            ({ bounds, manager, chartTypeName }) => {
                 const ChartClass =
                     ChartComponentClassMap.get(chartTypeName) ??
                     DefaultChartClass
-                return new ChartClass({ manager })
+                return new ChartClass({ bounds, manager })
             }
         )
-        // Uniform X axis
-        const uniformXAxis = true
-        let xAxisConfig: AxisConfigInterface = {}
-        if (uniformXAxis) {
-            const [min, max] = extent(
-                excludeUndefined(
-                    flatten(
-                        chartInstances.map(
-                            (chartInstance) => chartInstance.xAxis?.domain
-                        )
-                    )
-                )
-            )
-            xAxisConfig = { min, max }
+
+        // Define the global axis config, shared between all facets
+        const sharedAxesSizes: PositionMap<number> = {}
+        const axes: AxesInfo = {
+            x: {
+                config: {},
+                axisAccessor: (instance) => instance.xAxis,
+                uniform: this.uniformXAxis,
+                // For now, X axes are never shared for any chart.
+                // If we ever allow them to be shared, we need to be careful with how we determine
+                // the `minSize` – in the intermediate series (at this time) all axes are shown in
+                // order to find the one with maximum size, but in the placed series, some axes are
+                // hidden. This expands the available area for the chart, which can in turn increase
+                // the number of ticks shown, which can make the size of the axis in the placed
+                // series greater than the one in the intermediate series.
+                shared: false,
+            },
+            y: {
+                config: {},
+                axisAccessor: (instance) => instance.yAxis,
+                uniform: this.uniformYAxis,
+                shared: this.uniformYAxis,
+            },
         }
-        // Uniform Y axis
-        const uniformYAxis =
-            this.manager.yAxis?.facetAxisRange === FacetAxisRange.shared
-        let yAxisConfig: AxisConfigInterface = {}
-        if (uniformYAxis) {
-            const [min, max] = extent(
-                excludeUndefined(
-                    flatten(
-                        chartInstances.map(
-                            (chartInstance) => chartInstance.yAxis?.domain
-                        )
-                    )
-                )
+        values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
+            // max size is the width (if vertical axis) or height (if horizontal axis)
+            const axisWithMaxSize = maxBy(
+                chartInstances.map(axisAccessor),
+                (axis) => axis?.size
             )
-            yAxisConfig = { min, max }
-        }
-        // Overwrite properties (without mutating original)
-        return this.intermediatePlacedSeries.map((series) => ({
-            ...series,
-            manager: {
+            if (uniform) {
+                // If the axes are uniform, we want to find the full domain extent across all facets
+                const domains = excludeUndefined(
+                    chartInstances.map(axisAccessor).map((axis) => axis?.domain)
+                )
+                config.min = min(domains.map((d) => d[0]))
+                config.max = max(domains.map((d) => d[1]))
+                // If there was at least one chart with a non-undefined axis,
+                // this variable will be populated
+                if (axisWithMaxSize) {
+                    // Create a new axis object with the full domain extent
+                    const axis = axisWithMaxSize.clone()
+                    const { size } = axis.updateDomainPreservingUserSettings([
+                        config.min,
+                        config.max,
+                    ])
+                    config.minSize = size
+                    if (shared) sharedAxesSizes[axis.position] = size
+                }
+            } else if (axisWithMaxSize) {
+                config.minSize = axisWithMaxSize.size
+            }
+        })
+
+        // Allocate space for shared axes, so that the content areas of charts are all equal.
+        // If the axes are "shared", then an axis will only plotted on the facets that are on the
+        // same side as the axis.
+        // For example, a vertical Y axis would be plotted on the left-most charts only.
+        // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
+        // the bottom row of charts.
+        const fullBounds = this.bounds.pad(sharedAxesSizes)
+        const count = this.intermediatePlacedSeries.length
+        const gridBoundsArr = fullBounds.grid(
+            this.gridParams,
+            getChartPadding(count, this.fontSize)
+        )
+        return this.intermediatePlacedSeries.map((series, i) => {
+            const chartInstance = chartInstances[i]
+            const { xAxis, yAxis } = chartInstance
+            const { bounds: initialGridBounds, edges } = gridBoundsArr[i]
+            let bounds = initialGridBounds
+            // Only expand bounds if the facet is on the same edge as the shared axes
+            for (const edge of edges) {
+                bounds = bounds.expand({
+                    [edge]: sharedAxesSizes[edge],
+                })
+            }
+            // NOTE: The order of overrides is important!
+            // We need to preserve most config coming in.
+            const manager = {
                 ...series.manager,
                 xAxisConfig: {
+                    hideAxis: shouldHideFacetAxis(
+                        xAxis,
+                        edges,
+                        sharedAxesSizes
+                    ),
                     ...series.manager.xAxisConfig,
-                    ...xAxisConfig,
+                    ...axes.x.config,
                 },
                 yAxisConfig: {
+                    hideAxis: shouldHideFacetAxis(
+                        yAxis,
+                        edges,
+                        sharedAxesSizes
+                    ),
                     ...series.manager.yAxisConfig,
-                    ...yAxisConfig,
+                    ...axes.y.config,
                 },
-            },
-        }))
+            }
+            const contentBounds = getContentBounds(
+                bounds,
+                manager,
+                chartInstance
+            )
+            return {
+                ...series,
+                bounds,
+                contentBounds,
+                manager,
+            }
+        })
     }
 
     @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get countryFacets(): FacetSeries[] {
+    @computed private get entityFacets(): FacetSeries[] {
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
-        const hideLegend = this.manager.yColumnSlugs?.length === 1
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
             // Only set overrides for this facet strategy.
             // Default properties are set elsewhere.
+            const manager: ChartManager = {
+                table: seriesTable,
+                selection: [seriesName],
+                seriesStrategy: SeriesStrategy.column,
+            }
+            if (this.manager.yColumnSlugs?.length === 1) {
+                manager.hideLegend = true
+            }
             return {
                 seriesName,
                 color: facetBackgroundColor,
-                manager: {
-                    table: seriesTable,
-                    selection: [seriesName],
-                    seriesStrategy: SeriesStrategy.column,
-                    hideLegend,
-                },
+                manager,
             }
         })
     }
@@ -234,15 +413,18 @@ export class FacetChart
         return autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed private get facetStrategy(): FacetStrategy {
+        return this.manager.facetStrategy ?? FacetStrategy.none
+    }
+
     @computed get series(): FacetSeries[] {
-        const { facetStrategy } = this.manager
-        return facetStrategy === FacetStrategy.column
+        return this.facetStrategy === FacetStrategy.column
             ? this.columnFacets
-            : this.countryFacets
+            : this.entityFacets
     }
 
     @computed protected get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(this.fontSize + 10)
     }
 
     @computed protected get manager(): ChartManager {
@@ -253,27 +435,21 @@ export class FacetChart
         return ""
     }
 
-    @computed private get subtitleFontSize(): number {
-        const { placedSeries, manager } = this
-        return getFontSize(placedSeries.length, manager.baseFontSize)
-    }
-
     render(): JSX.Element[] {
-        const { subtitleFontSize } = this
+        const { fontSize } = this
         return this.placedSeries.map((smallChart, index: number) => {
             const ChartClass =
                 ChartComponentClassMap.get(smallChart.chartTypeName) ??
                 DefaultChartClass
-            const { bounds, seriesName } = smallChart
-            const shiftTop =
-                smallChart.chartTypeName === ChartTypeName.LineChart ? 6 : 10
+            const { bounds, contentBounds, seriesName } = smallChart
+            const shiftTop = fontSize * 0.9
             return (
                 <React.Fragment key={index}>
                     <text
-                        x={bounds.x}
-                        y={bounds.top - shiftTop}
+                        x={contentBounds.x}
+                        y={contentBounds.top - shiftTop}
                         fill={"#1d3d63"}
-                        fontSize={subtitleFontSize}
+                        fontSize={fontSize}
                         style={{ fontWeight: 700 }}
                     >
                         {seriesName}

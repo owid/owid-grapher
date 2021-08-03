@@ -165,6 +165,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 
 declare const window: any
@@ -500,6 +501,14 @@ export class Grapher
 
     @computed private get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
+    }
+
+    @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.yAxis.toObject()
+    }
+
+    @computed get xAxisConfig(): Readonly<AxisConfigInterface> {
+        return this.xAxis.toObject()
     }
 
     @computed get tableForSelection(): OwidTable {
@@ -1827,7 +1836,7 @@ export class Grapher
         this.showFacets = !this.showFacets
     }
 
-    @computed get showFacetYRangeToggle(): boolean {
+    @computed get showFacetYDomainToggle(): boolean {
         // don't offer to make the y range relative if the range is discrete
         return this.facet !== FacetStrategy.none && !this.isStackedDiscreteBar
     }
@@ -1894,7 +1903,8 @@ export class Grapher
         // that could offer both, faceting by entity is strictly worse than the original together view.
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
-        } else if (this.selection.numSelectedEntities > 1) {
+        }
+        if (this.selection.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.entity)
         }
 

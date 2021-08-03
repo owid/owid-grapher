@@ -17,7 +17,11 @@ import {
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
+import {
+    StackedPoint,
+    StackedPointPositionType,
+    StackedSeries,
+} from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -169,12 +173,12 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return this.dualAxis.horizontalAxis
     }
 
-    @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axisConfig =
-            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
-        if (this.manager.hideXAxis) axisConfig.hideAxis = true
+    @computed private get xAxisConfig(): AxisConfig {
+        return new AxisConfig(this.manager.xAxisConfig, this)
+    }
 
-        const axis = axisConfig.toHorizontalAxis()
+    @computed private get horizontalAxisPart(): HorizontalAxis {
+        const axis = this.xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
             this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
@@ -184,16 +188,18 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return axis
     }
 
+    @computed private get yAxisConfig(): AxisConfig {
+        // TODO: enable nice axis ticks for linear scales
+        return new AxisConfig(this.manager.yAxisConfig, this)
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         // const lastSeries = this.series[this.series.length - 1]
         // const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
-        const axisConfig =
-            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
-        if (this.manager.hideYAxis) axisConfig.hideAxis = true
-        const axis = axisConfig.toVerticalAxis()
+        const axis = this.yAxisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
         else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
@@ -232,7 +238,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
             : this.columnsAsSeries
     }
 
-    @computed protected get allStackedPoints() {
+    @computed protected get allStackedPoints(): StackedPoint<PositionType>[] {
         return flatten(this.series.map((series) => series.points))
     }
 
