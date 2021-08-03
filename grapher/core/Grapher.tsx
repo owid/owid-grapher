@@ -304,7 +304,7 @@ export class Grapher
     @observable hideFacetControl?: boolean = true
 
     // the desired faceting strategy, which might not be possible if we change the data
-    @observable selectedFacetStrategy: FacetStrategy = FacetStrategy.none
+    @observable selectedFacetStrategy?: FacetStrategy = undefined
 
     @observable sortBy?: SortBy
     @observable sortOrder?: SortOrder
