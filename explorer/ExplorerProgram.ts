@@ -32,7 +32,10 @@ import { ColumnGrammar } from "./ColumnGrammar"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix"
 import { CoreColumnDef } from "../coreTable/CoreColumnDef"
 import { PromiseCache } from "../clientUtils/PromiseCache"
-import { FacetAxisDomain } from "../grapher/core/GrapherConstants"
+import {
+    FacetAxisDomain,
+    FacetStrategy,
+} from "../grapher/core/GrapherConstants"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 
@@ -48,6 +51,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     yScaleToggle?: boolean
     yAxisMin?: number
     facetYDomain?: FacetAxisDomain
+    selectedFacetStrategy?: FacetStrategy
 }
 
 const ExplorerRootDef: CellDef = {
