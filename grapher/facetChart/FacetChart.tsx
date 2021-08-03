@@ -44,18 +44,6 @@ import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
-const moveBottomToTop = (posMap: PositionMap<number>): PositionMap<number> => {
-    if (posMap.bottom) {
-        const { top, right, bottom, left } = posMap
-        return {
-            top: (top ?? 0) + bottom,
-            right,
-            left,
-        }
-    }
-    return posMap
-}
-
 const getContentBounds = (
     containerBounds: Bounds,
     manager: ChartManager,
@@ -81,12 +69,7 @@ const shouldHideFacetAxis = (
     sharedAxesSizes: PositionMap<number>
 ): boolean => {
     if (axis) {
-        return (
-            axis.position in sharedAxesSizes &&
-            !edges.has(
-                axis.position === Position.bottom ? Position.top : axis.position
-            )
-        )
+        return axis.position in sharedAxesSizes && !edges.has(axis.position)
     }
     return false
 }
@@ -97,6 +80,8 @@ interface AxisInfo {
         instance: ChartInterface
     ) => HorizontalAxis | VerticalAxis | undefined
     uniform: boolean
+    /** only considered when `uniform` is `true`, otherwise ignored */
+    shared: boolean
 }
 
 interface AxesInfo {
@@ -269,14 +254,23 @@ export class FacetChart
                 config: {},
                 axisAccessor: (instance) => instance.xAxis,
                 uniform: this.uniformXAxis,
+                // For now, X axes are never shared for any chart.
+                // If we ever allow them to be shared, we need to be careful with how we determine
+                // the `minSize` – in the intermediate series (at this time) all axes are shown in
+                // order to find the one with maximum size, but in the placed series, some axes are
+                // hidden. This expands the available area for the chart, which can in turn increase
+                // the number of ticks shown, which can make the size of the axis in the placed
+                // series greater than the one in the intermediate series.
+                shared: false,
             },
             y: {
                 config: {},
                 axisAccessor: (instance) => instance.yAxis,
                 uniform: this.uniformYAxis,
+                shared: this.uniformYAxis,
             },
         }
-        values(axes).forEach(({ config, axisAccessor, uniform }) => {
+        values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
             // max size is the width (if vertical axis) or height (if horizontal axis)
             const axisWithMaxSize = maxBy(
                 chartInstances.map(axisAccessor),
@@ -298,8 +292,8 @@ export class FacetChart
                         config.min,
                         config.max,
                     ])
-                    sharedAxesSizes[axis.position] = size
                     config.minSize = size
+                    if (shared) sharedAxesSizes[axis.position] = size
                 }
             } else if (axisWithMaxSize) {
                 config.minSize = axisWithMaxSize.size
@@ -312,8 +306,7 @@ export class FacetChart
         // For example, a vertical Y axis would be plotted on the left-most charts only.
         // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
         // the bottom row of charts.
-        const sharedAxesPadding = moveBottomToTop(sharedAxesSizes)
-        const fullBounds = this.bounds.pad(sharedAxesPadding)
+        const fullBounds = this.bounds.pad(sharedAxesSizes)
         const count = this.intermediatePlacedSeries.length
         const gridBoundsArr = fullBounds.grid(
             this.gridParams,
@@ -324,9 +317,10 @@ export class FacetChart
             const { xAxis, yAxis } = chartInstance
             const { bounds: initialGridBounds, edges } = gridBoundsArr[i]
             let bounds = initialGridBounds
+            // Only expand bounds if the facet is on the same edge as the shared axes
             for (const edge of edges) {
                 bounds = bounds.expand({
-                    [edge]: sharedAxesPadding[edge],
+                    [edge]: sharedAxesSizes[edge],
                 })
             }
             // NOTE: The order of overrides is important!

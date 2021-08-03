@@ -115,7 +115,7 @@ describe("uniform axes", () => {
         )
     })
 
-    it("x axis is shared by default", () => {
+    it("x axis domains are identical", () => {
         expect(xAxisConfigs[0]?.min).toBeDefined()
         expect(xAxisConfigs[0]?.max).toBeDefined()
         expect(
@@ -126,15 +126,19 @@ describe("uniform axes", () => {
         ).toBeTruthy()
     })
 
-    it("shared bottom axis is shown in first row of facets", () => {
-        const first = chart.placedSeries[0]
-        const last = chart.placedSeries[xAxisConfigs.length - 1]
-        expect(first.bounds.height).toBeGreaterThan(last.bounds.height)
-        expect(first.bounds.height).toBeCloseTo(
-            last.bounds.height + (xAxisConfigs[0]?.minSize ?? 0),
-            0
-        )
+    it("x axis is shown on all facets", () => {
+        expect(xAxisConfigs.every((config) => !config?.hideAxis)).toBeTruthy()
     })
+
+    // it("shared bottom axis is shown in first row of facets", () => {
+    //     const first = chart.placedSeries[0]
+    //     const last = chart.placedSeries[xAxisConfigs.length - 1]
+    //     expect(first.bounds.height).toBeGreaterThan(last.bounds.height)
+    //     expect(first.bounds.height).toBeCloseTo(
+    //         last.bounds.height + (xAxisConfigs[0]?.minSize ?? 0),
+    //         0
+    //     )
+    // })
 })
 
 describe("config overrides", () => {
