@@ -27,6 +27,7 @@ import { TimelineController } from "../timeline/TimelineController"
 import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy } from "../chart/Tippy"
+import { Bounds } from "../../clientUtils/Bounds"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -253,7 +254,10 @@ export class FacetStrategyDropdown extends React.Component<{
                 placement={"bottom-start"}
                 arrow={false}
             >
-                <div className="FacetStrategyDropdown">
+                <div
+                    className="FacetStrategyDropdown"
+                    style={{ width: this.dropDownWidth }}
+                >
                     {facetStrategyLabels[this.facetStrategy]}
                     <div>
                         <FontAwesomeIcon icon={faChevronDown} />
@@ -263,14 +267,30 @@ export class FacetStrategyDropdown extends React.Component<{
         )
     }
 
+    @computed get strategies(): FacetStrategy[] {
+        return (
+            this.props.manager.availableFacetStrategies || [
+                FacetStrategy.none,
+                FacetStrategy.entity,
+                FacetStrategy.column,
+            ]
+        )
+    }
+
+    @computed get dropDownWidth(): string {
+        const maxWidth = Math.max(
+            ...this.strategies.map(
+                (s) =>
+                    Bounds.forText(facetStrategyLabels[s], { fontSize: 12 })
+                        .width
+            )
+        )
+        return `${maxWidth + 45}px` // leave room for the chevron
+    }
+
     // A hovering visual display giving options to be selected from
     @computed get content(): JSX.Element {
-        const strategies = this.props.manager.availableFacetStrategies || [
-            FacetStrategy.none,
-            FacetStrategy.entity,
-            FacetStrategy.column,
-        ]
-        const parts = strategies.map((value: FacetStrategy) => {
+        const parts = this.strategies.map((value: FacetStrategy) => {
             // There are only ever two strategies, none + (country OR entity).
             const label = facetStrategyLabels[value]
             const selected = value == this.facetStrategy ? " selected" : ""
