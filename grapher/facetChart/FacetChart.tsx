@@ -34,7 +34,7 @@ import {
 } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
-    IDEAL_CHART_ASPECT_RATIO,
+    IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
     Position,
     PositionMap,
@@ -131,7 +131,7 @@ export class FacetChart
         return getIdealGridParams({
             count,
             containerAspectRatio,
-            idealAspectRatio: IDEAL_CHART_ASPECT_RATIO,
+            idealAspectRatio: IDEAL_PLOT_ASPECT_RATIO,
         })
     }
 

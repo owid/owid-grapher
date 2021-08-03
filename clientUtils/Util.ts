@@ -115,7 +115,7 @@ import {
     ScaleType,
     VerticalAlign,
     HorizontalAlign,
-    IDEAL_CHART_ASPECT_RATIO,
+    IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
 } from "./owidTypes"
 import { PointVector } from "./PointVector"
@@ -576,7 +576,7 @@ const shuffleArray = <T>(array: T[], seed = Date.now()): T[] => {
 export const getIdealGridParams = ({
     count,
     containerAspectRatio,
-    idealAspectRatio = IDEAL_CHART_ASPECT_RATIO,
+    idealAspectRatio = IDEAL_PLOT_ASPECT_RATIO,
 }: {
     count: number
     containerAspectRatio: number
