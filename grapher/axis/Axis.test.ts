@@ -104,3 +104,15 @@ it("creates compact labels", () => {
         tickLabels.every((tickLabel) => tickLabel.formattedValue.endsWith("k"))
     ).toBeTruthy()
 })
+
+it("a single-value domain plots to lower or upper end of range", () => {
+    const config: AxisConfigInterface = {
+        min: 0,
+        max: 0,
+    }
+    const axis = new AxisConfig(config).toVerticalAxis()
+    axis.range = [0, 500]
+    expect(axis.place(-1)).toEqual(0)
+    expect(axis.place(0)).toEqual(0)
+    expect(axis.place(1)).toEqual(500)
+})
