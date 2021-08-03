@@ -76,9 +76,9 @@ describe("column charts", () => {
 it("use author axis settings unless relative mode", () => {
     const manager = new MockManager()
     const chart = new StackedAreaChart({ manager })
-    expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
+    expect(chart.yAxis.domain[1]).toBeGreaterThan(100)
     manager.isRelativeMode = true
-    expect(chart.verticalAxis.domain).toEqual([0, 100])
+    expect(chart.yAxis.domain).toEqual([0, 100])
 })
 
 it("shows a failure message if there are columns but no series", () => {

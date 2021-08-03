@@ -24,6 +24,9 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { extent } from "d3-array"
+import { excludeUndefined, flatten } from "../../clientUtils/Util"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -46,13 +49,25 @@ export class FacetChart
         )
     }
 
-    @computed get placedSeries(): PlacedFacetSeries[] {
+    /**
+     * Holds the intermediate render properties for chart views, as well as the intermediate chart
+     * views themselves.
+     *
+     * An example: a StackedArea has a Y axis domain that is the largest sum of all columns.
+     * In order to avoid replicating that logic here (stacking values), we initialize StackedArea
+     * instances, without rendering them. In a later method, we use those intermediate chart views to
+     * determine the final axes for facets, e.g. for a uniform axis, we would iterate through all
+     * instances to find the domain.
+     *
+     * @danielgavrilov, 2021-07-13
+     */
+    @computed get intermediatePlacedSeries(): PlacedFacetSeries[] {
         const { manager, series } = this
-        const chartTypeName =
-            this.props.chartTypeName ?? ChartTypeName.LineChart
         const count = series.length
 
         const boundsArr = this.bounds.split(count, getChartPadding(count))
+
+        // Copy properties from manager to facets
         const {
             yColumnSlug,
             xColumnSlug,
@@ -61,6 +76,10 @@ export class FacetChart
             sizeColumnSlug,
             isRelativeMode,
         } = manager
+        const xAxisConfig =
+            this.manager.xAxisConfig ?? this.manager.xAxis?.toObject()
+        const yAxisConfig =
+            this.manager.yAxisConfig ?? this.manager.yAxis?.toObject()
 
         const baseFontSize = getFontSize(count, manager.baseFontSize)
         const lineStrokeWidth = count > 16 ? 1 : undefined
@@ -69,12 +88,14 @@ export class FacetChart
 
         return series.map((series, index) => {
             const bounds = boundsArr[index]
+            const chartTypeName =
+                series.chartTypeName ??
+                this.props.chartTypeName ??
+                ChartTypeName.LineChart
             const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
             const hideYAxis = false // column > 0 // todo: figure out design issues here
             const hideLegend = false // !(column !== columns - 1) // todo: only show 1?
             const hidePoints = true
-            const xAxisConfig = undefined
-            const yAxisConfig = undefined
 
             const manager: ChartManager = {
                 table,
@@ -96,11 +117,70 @@ export class FacetChart
             }
             return {
                 bounds,
-                chartTypeName: series.chartTypeName ?? chartTypeName,
+                chartTypeName,
                 manager,
                 seriesName: series.seriesName,
-            } as PlacedFacetSeries
+                color: series.color,
+            }
         })
+    }
+
+    @computed get placedSeries(): PlacedFacetSeries[] {
+        // Create intermediate chart views to determine some of the properties
+        const chartInstances = this.intermediatePlacedSeries.map(
+            ({ manager, chartTypeName }) => {
+                const ChartClass =
+                    ChartComponentClassMap.get(chartTypeName) ??
+                    DefaultChartClass
+                return new ChartClass({ manager })
+            }
+        )
+        // Uniform X axis
+        const uniformXAxis = true
+        let xAxisConfig: AxisConfigInterface = {}
+        if (uniformXAxis) {
+            const [min, max] = extent(
+                excludeUndefined(
+                    flatten(
+                        chartInstances.map(
+                            (chartInstance) => chartInstance.xAxis?.domain
+                        )
+                    )
+                )
+            )
+            xAxisConfig = { min, max }
+        }
+        // Uniform Y axis
+        const uniformYAxis =
+            this.manager.yAxis?.facetAxisRange === FacetAxisRange.shared
+        let yAxisConfig: AxisConfigInterface = {}
+        if (uniformYAxis) {
+            const [min, max] = extent(
+                excludeUndefined(
+                    flatten(
+                        chartInstances.map(
+                            (chartInstance) => chartInstance.yAxis?.domain
+                        )
+                    )
+                )
+            )
+            yAxisConfig = { min, max }
+        }
+        // Overwrite properties (without mutating original)
+        return this.intermediatePlacedSeries.map((series) => ({
+            ...series,
+            manager: {
+                ...series.manager,
+                xAxisConfig: {
+                    ...series.manager.xAxisConfig,
+                    ...xAxisConfig,
+                },
+                yAxisConfig: {
+                    ...series.manager.yAxisConfig,
+                    ...yAxisConfig,
+                },
+            },
+        }))
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -111,34 +191,11 @@ export class FacetChart
         const table = this.transformedTable.filterByEntityNames(
             this.selectionArray.selectedEntityNames
         )
-        const sharedYDomain = table.domainFor(this.yColumnSlugs)
-        const scaleType = this.manager.yAxis?.scaleType
-        const sameXAxis = true
-        const xAxisConfig = sameXAxis
-            ? {
-                  max: table.maxTime,
-                  min: table.minTime,
-                  scaleType,
-              }
-            : undefined
-
         const hideLegend = this.manager.yColumnSlugs?.length === 1
-
         return this.selectionArray.selectedEntityNames.map((seriesName) => {
             const seriesTable = table.filterByEntityNames([seriesName])
-            const seriesYDomain = seriesTable.domainFor(this.yColumnSlugs)
-            const yAxisConfig =
-                this.manager.yAxis!.facetAxisRange == FacetAxisRange.shared
-                    ? {
-                          max: sharedYDomain[1],
-                          min: sharedYDomain[0],
-                          scaleType,
-                      }
-                    : {
-                          max: seriesYDomain[1],
-                          min: seriesYDomain[0],
-                          scaleType,
-                      }
+            // Only set overrides for this facet strategy.
+            // Default properties are set elsewhere.
             return {
                 seriesName,
                 color: facetBackgroundColor,
@@ -147,8 +204,6 @@ export class FacetChart
                     selection: [seriesName],
                     seriesStrategy: SeriesStrategy.column,
                     hideLegend,
-                    yAxisConfig,
-                    xAxisConfig,
                 },
             }
         })
@@ -156,13 +211,15 @@ export class FacetChart
 
     @computed private get columnFacets(): FacetSeries[] {
         return this.yColumns.map((col) => {
+            // Only set overrides for this facet strategy.
+            // Default properties are set elsewhere.
             return {
                 seriesName: col.displayName,
                 color: facetBackgroundColor,
                 manager: {
                     selection: this.selectionArray,
                     yColumnSlug: col.slug,
-                    yColumnSlugs: [col.slug], // In a column facet strategy, only have 1 yColumn per chart.
+                    yColumnSlugs: [col.slug],
                     seriesStrategy: SeriesStrategy.entity,
                 },
             }

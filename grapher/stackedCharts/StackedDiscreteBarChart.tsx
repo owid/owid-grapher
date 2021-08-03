@@ -84,7 +84,7 @@ interface TooltipProps extends StackedBarChartContext {
 }
 
 interface StackedBarChartContext {
-    axis: HorizontalAxis
+    yAxis: HorizontalAxis
     targetTime?: number
     timeColumn: CoreColumn
     formatColumn: CoreColumn
@@ -195,13 +195,13 @@ export class StackedDiscreteBarChart
         return [this.bounds.left + this.labelWidth, this.bounds.right]
     }
 
-    @computed private get yAxis(): AxisConfig {
+    @computed private get yAxisConfig(): AxisConfig {
         return this.manager.yAxis || new AxisConfig()
     }
 
-    @computed private get axis(): HorizontalAxis {
+    @computed get yAxis(): HorizontalAxis {
         // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.yAxis.toHorizontalAxis()
+        const axis = this.yAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
@@ -213,7 +213,7 @@ export class StackedDiscreteBarChart
     @computed private get innerBounds(): Bounds {
         return this.bounds
             .padLeft(this.labelWidth)
-            .padBottom(this.axis.height)
+            .padBottom(this.yAxis.height)
             .padTop(this.legendPaddingTop)
             .padTop(this.legend.height)
     }
@@ -345,10 +345,10 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, axis, innerBounds, barHeight, barSpacing } = this
+        const { bounds, yAxis, innerBounds, barHeight, barSpacing } = this
 
         const chartContext: StackedBarChartContext = {
-            axis,
+            yAxis,
             targetTime: this.manager.endTime,
             timeColumn: this.inputTable.timeColumn,
             formatColumn: this.formatColumn,
@@ -382,11 +382,11 @@ export class StackedDiscreteBarChart
                 />
                 <HorizontalAxisComponent
                     bounds={bounds}
-                    axis={axis}
+                    axis={yAxis}
                     axisPosition={innerBounds.bottom}
                 />
                 <HorizontalAxisGridLines
-                    horizontalAxis={axis}
+                    horizontalAxis={yAxis}
                     bounds={innerBounds}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
@@ -432,7 +432,7 @@ export class StackedDiscreteBarChart
                                                 x={0}
                                                 y={0}
                                                 transform={`translate(${
-                                                    axis.place(this.x0) -
+                                                    yAxis.place(this.x0) -
                                                     labelToBarPadding
                                                 }, 0)`}
                                                 fill="#555"
@@ -471,13 +471,13 @@ export class StackedDiscreteBarChart
         tooltipProps: TooltipProps
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
-        const { axis, formatColumn, focusSeriesName, barHeight } = chartContext
+        const { yAxis, formatColumn, focusSeriesName, barHeight } = chartContext
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
-        const barX = axis.place(chartContext.x0 + bar.point.valueOffset)
+        const barX = yAxis.place(chartContext.x0 + bar.point.valueOffset)
         const barWidth =
-            axis.place(bar.point.value) - axis.place(chartContext.x0)
+            yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number

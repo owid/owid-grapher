@@ -57,7 +57,7 @@ it("can filter points with negative values when using a log scale", () => {
         },
     }
     const logChart = new LineChart({ manager: logScaleManager })
-    expect(logChart.verticalAxis.domain[0]).toBeGreaterThan(0)
+    expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
     expect(logChart.series.length).toEqual(2)
     expect(logChart.allPoints.length).toEqual(180)
 })

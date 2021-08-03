@@ -29,6 +29,7 @@ interface TickPlacement {
     bounds: Bounds
     isHidden: boolean
 }
+
 abstract class AbstractAxis {
     config: AxisConfig
     @observable.ref domain: ValueRange

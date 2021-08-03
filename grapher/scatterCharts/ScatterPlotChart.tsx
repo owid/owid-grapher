@@ -458,6 +458,14 @@ export class ScatterPlotChart
         })
     }
 
+    @computed get yAxis(): VerticalAxis {
+        return this.dualAxis.verticalAxis
+    }
+
+    @computed get xAxis(): HorizontalAxis {
+        return this.dualAxis.horizontalAxis
+    }
+
     @computed private get comparisonLines():
         | ComparisonLineConfig[]
         | undefined {

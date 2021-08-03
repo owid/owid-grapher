@@ -154,7 +154,7 @@ export interface LineLegendManager {
     onLegendClick?: (key: EntityName) => void
     onLegendMouseLeave?: () => void
     focusedSeriesNames: EntityName[]
-    verticalAxis: VerticalAxis
+    yAxis: VerticalAxis
     legendX?: number
 }
 
@@ -233,14 +233,13 @@ export class LineLegend extends React.Component<{
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialSeries(): PlacedSeries[] {
-        const { verticalAxis } = this.manager
+        const { yAxis } = this.manager
         const { legendX } = this
 
         return sortBy(
             this.sizedLabels.map((label) => {
                 // place vertically centered at Y value
-                const initialY =
-                    verticalAxis.place(label.yValue) - label.height / 2
+                const initialY = yAxis.place(label.yValue) - label.height / 2
                 const origBounds = new Bounds(
                     legendX,
                     initialY,
@@ -250,8 +249,8 @@ export class LineLegend extends React.Component<{
 
                 // ensure label doesn't go beyond the top or bottom of the chart
                 const y = Math.min(
-                    Math.max(initialY, verticalAxis.rangeMin),
-                    verticalAxis.rangeMax - label.height
+                    Math.max(initialY, yAxis.rangeMin),
+                    yAxis.rangeMax - label.height
                 )
                 const bounds = new Bounds(legendX, y, label.width, label.height)
 
@@ -268,12 +267,12 @@ export class LineLegend extends React.Component<{
 
                 // Ensure list is sorted by the visual position in ascending order
             }),
-            (label) => verticalAxis.place(label.yValue)
+            (label) => yAxis.place(label.yValue)
         )
     }
 
     @computed get standardPlacement(): PlacedSeries[] {
-        const { verticalAxis } = this.manager
+        const { yAxis } = this.manager
 
         const groups: PlacedSeries[][] = cloneDeep(
             this.initialSeries
@@ -302,12 +301,9 @@ export class LineLegend extends React.Component<{
                         overlapHeight *
                             (bottomGroup.length /
                                 (topGroup.length + bottomGroup.length))
-                    const overflowTop = Math.max(
-                        verticalAxis.rangeMin - targetY,
-                        0
-                    )
+                    const overflowTop = Math.max(yAxis.rangeMin - targetY, 0)
                     const overflowBottom = Math.max(
-                        targetY + newHeight - verticalAxis.rangeMax,
+                        targetY + newHeight - yAxis.rangeMax,
                         0
                     )
                     const newY = targetY + overflowTop - overflowBottom
@@ -365,8 +361,8 @@ export class LineLegend extends React.Component<{
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
         const availableHeight = this.manager.canAddData
-            ? this.manager.verticalAxis.rangeSize - ADD_BUTTON_HEIGHT
-            : this.manager.verticalAxis.rangeSize
+            ? this.manager.yAxis.rangeSize - ADD_BUTTON_HEIGHT
+            : this.manager.yAxis.rangeSize
 
         // Need to be careful here – the controls overlay will automatically add padding if
         // needed to fit the floating 'Add country' button, therefore decreasing the space

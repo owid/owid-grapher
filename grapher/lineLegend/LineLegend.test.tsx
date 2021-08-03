@@ -22,7 +22,7 @@ const manager: LineLegendManager = {
     ],
     legendX: 200,
     focusedSeriesNames: [],
-    verticalAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
+    yAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 
 it("can create a new legend", () => {

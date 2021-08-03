@@ -732,23 +732,6 @@ export class LineChart
         })
     }
 
-    // todo: Refactor
-    @computed private get dualAxis(): DualAxis {
-        return new DualAxis({
-            bounds: this.bounds.padRight(
-                this.legendDimensions
-                    ? this.legendDimensions.width
-                    : this.defaultRightPadding
-            ),
-            verticalAxis: this.verticalAxisPart,
-            horizontalAxis: this.horizontalAxisPart,
-        })
-    }
-
-    @computed get verticalAxis(): VerticalAxis {
-        return this.dualAxis.verticalAxis
-    }
-
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const { manager } = this
         const axisConfig =
@@ -787,5 +770,25 @@ export class LineChart
         axis.label = ""
         axis.formatColumn = this.formatColumn
         return axis
+    }
+
+    @computed private get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.bounds.padRight(
+                this.legendDimensions
+                    ? this.legendDimensions.width
+                    : this.defaultRightPadding
+            ),
+            verticalAxis: this.verticalAxisPart,
+            horizontalAxis: this.horizontalAxisPart,
+        })
+    }
+
+    @computed get yAxis(): VerticalAxis {
+        return this.dualAxis.verticalAxis
+    }
+
+    @computed get xAxis(): HorizontalAxis {
+        return this.dualAxis.horizontalAxis
     }
 }
