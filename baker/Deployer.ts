@@ -92,6 +92,10 @@ yarn testPrettierAll`
         // Making sure we have the latest changes from the upstream
         // Also, will fail if working copy is not clean
         try {
+            const gitStatus = await simpleGit.status()
+            // gitStatus.isClean() checks for staged, unstaged, and untracked files
+            if (!gitStatus.isClean()) throw "Git working directory is not clean"
+
             await simpleGit.pull("origin", undefined, { "--rebase": "true" })
         } catch (err) {
             this.printAndExit(JSON.stringify(err))
