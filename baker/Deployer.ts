@@ -262,7 +262,7 @@ yarn testPrettierAll`
     private async copyLocalRepoToServerTmpDirectory() {
         const { owidGrapherRootDir } = this.options
         const { rsyncTargetDir } = this.pathsOnTarget
-        const RSYNC = `rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=${owidGrapherRootDir}/.rsync-ignore`
+        const RSYNC = `rsync -havz --no-perms --progress --delete --delete-excluded --prune-empty-dirs --exclude-from=${owidGrapherRootDir}/.rsync-ignore`
         await execWrapper(
             `${RSYNC} ${owidGrapherRootDir}/ ${this.sshHost}:${rsyncTargetDir}`
         )
