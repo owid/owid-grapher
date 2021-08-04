@@ -337,7 +337,7 @@
         },
         "selectedFacetStrategy": {
             "type": "string",
-            "enum": ["none", "entity", "column"]
+            "enum": ["none", "entity", "metric"]
         },
         "sourceDesc": {
             "type": "string"
