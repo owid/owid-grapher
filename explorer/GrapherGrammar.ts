@@ -148,7 +148,7 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         keyword: "selectedFacetStrategy",
         description: "Whether the chart should be faceted or not",
-        terminalOptions: Object.keys(FacetStrategy).map((keyword) => ({
+        terminalOptions: Object.values(FacetStrategy).map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",
