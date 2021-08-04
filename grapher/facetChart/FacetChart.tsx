@@ -117,7 +117,10 @@ export class FacetChart
     }
 
     @computed private get uniformYAxis(): boolean {
-        return this.yAxisConfig.facetDomain === FacetAxisDomain.shared
+        // default to shared
+        const facetDomain =
+            this.yAxisConfig.facetDomain || FacetAxisDomain.shared
+        return facetDomain === FacetAxisDomain.shared
     }
 
     @computed private get uniformXAxis(): boolean {

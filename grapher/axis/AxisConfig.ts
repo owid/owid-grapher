@@ -29,7 +29,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref maxTicks?: number = undefined
     @observable.ref compactLabels?: boolean = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
-    @observable.ref facetDomain?: FacetAxisDomain = FacetAxisDomain.shared
+    @observable.ref facetDomain?: FacetAxisDomain = undefined
     @observable.ref label: string = ""
 }
 

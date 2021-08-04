@@ -145,7 +145,9 @@ export class FacetYDomainToggle extends React.Component<{
     }
 
     @computed get isYDomainShared(): boolean {
-        return this.props.manager.yAxis!.facetDomain === FacetAxisDomain.shared
+        const facetDomain =
+            this.props.manager.yAxis!.facetDomain || FacetAxisDomain.shared
+        return facetDomain === FacetAxisDomain.shared
     }
 
     render(): JSX.Element {
