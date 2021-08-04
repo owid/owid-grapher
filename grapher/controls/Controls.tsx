@@ -280,7 +280,7 @@ export class FacetStrategyDropdown extends React.Component<{
         return {
             [FacetStrategy.none]: "All together",
             [FacetStrategy.entity]: `Split by ${entityLabel}`,
-            [FacetStrategy.column]: "Split by metric",
+            [FacetStrategy.metric]: "Split by metric",
         }
     }
 
@@ -289,7 +289,7 @@ export class FacetStrategyDropdown extends React.Component<{
             this.props.manager.availableFacetStrategies || [
                 FacetStrategy.none,
                 FacetStrategy.entity,
-                FacetStrategy.column,
+                FacetStrategy.metric,
             ]
         )
     }

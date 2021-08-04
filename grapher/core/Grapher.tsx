@@ -1474,7 +1474,7 @@ export class Grapher
                 this.yScaleType !== ScaleType.log
             )
 
-        if (this.facetStrategy === FacetStrategy.column) return false
+        if (this.facetStrategy === FacetStrategy.metric) return false
 
         return !this.hideRelativeToggle
     }
@@ -1898,7 +1898,7 @@ export class Grapher
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
         if (this.hasMultipleYColumns) {
-            strategies.push(FacetStrategy.column)
+            strategies.push(FacetStrategy.metric)
         }
 
         if (this.selection.numSelectedEntities > 1) {
@@ -1933,7 +1933,7 @@ export class Grapher
             this.hasMultipleYColumns &&
             this.selection.numSelectedEntities > 1
         )
-            return FacetStrategy.column
+            return FacetStrategy.metric
 
         return FacetStrategy.none
     }

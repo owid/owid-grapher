@@ -25,8 +25,8 @@ it("can create a new FacetChart", () => {
     // default to country facets
     expect(chart.series.length).toEqual(2)
 
-    // switch to column facets
-    manager.facetStrategy = FacetStrategy.column
+    // switch to metric facets
+    manager.facetStrategy = FacetStrategy.metric
     expect(chart.series.length).toEqual(3)
 })
 

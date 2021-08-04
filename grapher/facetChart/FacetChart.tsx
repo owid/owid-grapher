@@ -418,7 +418,7 @@ export class FacetChart
     }
 
     @computed get series(): FacetSeries[] {
-        return this.facetStrategy === FacetStrategy.column
+        return this.facetStrategy === FacetStrategy.metric
             ? this.columnFacets
             : this.entityFacets
     }
