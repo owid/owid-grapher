@@ -180,4 +180,10 @@ export const GrapherGrammar: Grammar = {
             "Show chart in absolute (default) or relative mode. Only works for some chart types.",
         terminalOptions: toTerminalOptions(Object.values(StackMode)),
     },
+    hideTotalValueLabel: {
+        ...BooleanCellDef,
+        keyword: "hideTotalValueLabel",
+        description:
+            "Hide the total value that is normally displayed to the right of the bars in a stacked bar chart.",
+    },
 } as const
