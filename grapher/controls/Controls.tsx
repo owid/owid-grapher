@@ -28,6 +28,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy } from "../chart/Tippy"
 import { Bounds } from "../../clientUtils/Bounds"
+import classnames from "classnames"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -293,7 +294,6 @@ export class FacetStrategyDropdown extends React.Component<{
         const parts = this.strategies.map((value: FacetStrategy) => {
             // There are only ever two strategies, none + (country OR entity).
             const label = facetStrategyLabels[value]
-            const selected = value == this.facetStrategy ? " selected" : ""
             const children =
                 value === FacetStrategy.none ? (
                     // a single solid block
@@ -311,7 +311,10 @@ export class FacetStrategyDropdown extends React.Component<{
                 )
             return (
                 <div
-                    className={"FacetStrategyOption" + selected}
+                    className={classnames({
+                        FacetStrategyOption: true,
+                        selected: value === this.facetStrategy,
+                    })}
                     key={value.toString()}
                 >
                     <a

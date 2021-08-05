@@ -51,7 +51,6 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     yScaleToggle?: boolean
     yAxisMin?: number
     facetYDomain?: FacetAxisDomain
-    selectedFacetStrategy?: FacetStrategy
 }
 
 const ExplorerRootDef: CellDef = {
