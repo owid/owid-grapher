@@ -244,6 +244,7 @@ export interface FacetStrategyDropdownManager {
 
 // A drop-down button that, when clicked, shows a hovering visual display
 // indicating the faceting options.
+@observer
 export class FacetStrategyDropdown extends React.Component<{
     manager: FacetStrategyDropdownManager
 }> {
