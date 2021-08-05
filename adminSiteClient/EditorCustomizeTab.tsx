@@ -23,7 +23,10 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "../grapher/color/ColorConstants"
 import { TimeBoundValue } from "../clientUtils/TimeBounds"
-import { FacetAxisDomain } from "../grapher/core/GrapherConstants"
+import {
+    FacetAxisDomain,
+    FacetStrategy,
+} from "../grapher/core/GrapherConstants"
 import Select, { ValueType } from "react-select"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
 import { asArray } from "../clientUtils/react-select"
@@ -182,6 +185,72 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
                         onChange={this.onSortOrderChange}
                     />
                 </div>
+            </Section>
+        )
+    }
+}
+
+@observer
+class FacetSection extends React.Component<{ editor: ChartEditor }> {
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed get grapher() {
+        return this.props.editor.grapher
+    }
+
+    @computed get facetOptions(): Array<{
+        label: string
+        value?: FacetStrategy
+    }> {
+        return [{ label: "auto" }].concat(
+            this.grapher.availableFacetStrategies.map((s) => {
+                return { label: s.toString(), value: s }
+            })
+        )
+    }
+
+    @computed get facetSelection(): { label: string; value?: FacetStrategy } {
+        const strategy = this.grapher.selectedFacetStrategy
+        if (strategy) {
+            return { label: strategy.toString(), value: strategy }
+        }
+
+        return { label: "auto" }
+    }
+
+    @action.bound onFacetSelectionChange(
+        selected: ValueType<{ label: string; value?: FacetStrategy }>
+    ) {
+        const value = asArray(selected)[0].value
+        this.grapher.selectedFacetStrategy = value
+    }
+
+    render() {
+        const yAxisConfig = this.props.editor.grapher.yAxis
+
+        return (
+            <Section name="Faceting">
+                <div className="form-group">
+                    Faceting strategy
+                    <Select
+                        options={this.facetOptions}
+                        value={this.facetSelection}
+                        onChange={this.onFacetSelectionChange}
+                    />
+                </div>
+                <FieldsRow>
+                    <Toggle
+                        label={`Facets have uniform y-axis`}
+                        value={
+                            yAxisConfig.facetDomain === FacetAxisDomain.shared
+                        }
+                        onValue={(value) => {
+                            yAxisConfig.facetDomain = value
+                                ? FacetAxisDomain.shared
+                                : FacetAxisDomain.independent
+                        }}
+                    />
+                </FieldsRow>
             </Section>
         )
     }
@@ -417,20 +486,6 @@ export class EditorCustomizeTab extends React.Component<{
                                         }
                                     />
                                 </FieldsRow>
-                                <FieldsRow>
-                                    <Toggle
-                                        label={`Facets have uniform y-axis`}
-                                        value={
-                                            yAxisConfig.facetDomain ===
-                                            FacetAxisDomain.shared
-                                        }
-                                        onValue={(value) => {
-                                            yAxisConfig.facetDomain = value
-                                                ? FacetAxisDomain.shared
-                                                : FacetAxisDomain.independent
-                                        }}
-                                    />
-                                </FieldsRow>
                             </React.Fragment>
                         )}
                         {features.canCustomizeYAxisLabel && (
@@ -506,6 +561,7 @@ export class EditorCustomizeTab extends React.Component<{
                     </Section>
                 )}
                 <TimelineSection editor={this.props.editor} />
+                <FacetSection editor={this.props.editor} />
                 <Section name="Color scheme">
                     <ColorSchemeSelector grapher={grapher} />
                 </Section>

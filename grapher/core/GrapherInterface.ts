@@ -167,6 +167,8 @@ export const grapherKeysToSerialize = [
     "sortOrder",
     "sortColumnSlug",
     "excludedEntities",
+    "selectedFacetStrategy",
+    "hideFacetControl",
     "comparisonLines",
     "relatedQuestions",
 ]

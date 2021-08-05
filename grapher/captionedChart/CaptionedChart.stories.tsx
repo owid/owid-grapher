@@ -1,6 +1,7 @@
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
+    FacetStrategy,
     GrapherTabOption,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -28,6 +29,7 @@ const manager: CaptionedChartManager = {
     note: "Here are some footer notes",
     populateFromQueryParams: (): void => {},
     isReady: true,
+    availableFacetStrategies: [FacetStrategy.none],
 }
 
 export const LineChart = (): JSX.Element => <CaptionedChart manager={manager} />
