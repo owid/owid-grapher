@@ -618,6 +618,20 @@ export class EditorCustomizeTab extends React.Component<{
                         </FieldsRow>
                     </Section>
                 )}
+                {features.canHideTotalValueLabel && (
+                    <Section name="Display">
+                        <FieldsRow>
+                            <Toggle
+                                label={`Hide total value label`}
+                                value={!!grapher.hideTotalValueLabel}
+                                onValue={(value) =>
+                                    (grapher.hideTotalValueLabel =
+                                        value || false)
+                                }
+                            />
+                        </FieldsRow>
+                    </Section>
+                )}
                 {features.comparisonLine && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}

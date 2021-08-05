@@ -95,4 +95,8 @@ export class EditorFeatures {
     @computed get canSortByColumn() {
         return this.grapher.isStackedDiscreteBar
     }
+
+    @computed get canHideTotalValueLabel() {
+        return this.grapher.isStackedDiscreteBar
+    }
 }
