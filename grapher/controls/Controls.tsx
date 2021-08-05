@@ -239,6 +239,7 @@ export interface FacetStrategyDropdownManager {
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
     hideFacetControl?: boolean
+    entityType?: string
 }
 
 // A drop-down button that, when clicked, shows a hovering visual display
@@ -259,13 +260,27 @@ export class FacetStrategyDropdown extends React.Component<{
                     className="FacetStrategyDropdown"
                     style={{ width: this.dropDownWidth }}
                 >
-                    {facetStrategyLabels[this.facetStrategy]}
+                    {this.facetStrategyLabels[this.facetStrategy]}
                     <div>
                         <FontAwesomeIcon icon={faChevronDown} />
                     </div>
                 </div>
             </Tippy>
         )
+    }
+
+    @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
+        // arbitrary entity names can be too long for our current design; as a trade-off,
+        // we accept them only if they are not too long, otherwise we just use "item"
+        const entityType = this.props.manager.entityType ?? "country"
+        const entityLabel =
+            entityType.length > "country".length ? "item" : entityType
+
+        return {
+            [FacetStrategy.none]: "All together",
+            [FacetStrategy.entity]: `Split by ${entityLabel}`,
+            [FacetStrategy.column]: "Split by metric",
+        }
     }
 
     @computed get strategies(): FacetStrategy[] {
@@ -282,8 +297,9 @@ export class FacetStrategyDropdown extends React.Component<{
         const maxWidth = Math.max(
             ...this.strategies.map(
                 (s) =>
-                    Bounds.forText(facetStrategyLabels[s], { fontSize: 12 })
-                        .width
+                    Bounds.forText(this.facetStrategyLabels[s], {
+                        fontSize: 12,
+                    }).width
             )
         )
         return `${maxWidth + 45}px` // leave room for the chevron
@@ -292,8 +308,7 @@ export class FacetStrategyDropdown extends React.Component<{
     // A hovering visual display giving options to be selected from
     @computed get content(): JSX.Element {
         const parts = this.strategies.map((value: FacetStrategy) => {
-            // There are only ever two strategies, none + (country OR entity).
-            const label = facetStrategyLabels[value]
+            const label = this.facetStrategyLabels[value]
             const children =
                 value === FacetStrategy.none ? (
                     // a single solid block
@@ -336,12 +351,6 @@ export class FacetStrategyDropdown extends React.Component<{
     @computed get facetStrategy(): FacetStrategy {
         return this.props.manager.facetStrategy || FacetStrategy.none
     }
-}
-
-const facetStrategyLabels = {
-    [FacetStrategy.none]: "All together",
-    [FacetStrategy.entity]: "Split by country",
-    [FacetStrategy.column]: "Split by metric",
 }
 
 export interface FooterControlsManager extends ShareMenuManager {
