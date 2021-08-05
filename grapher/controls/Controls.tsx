@@ -145,7 +145,9 @@ export class FacetYDomainToggle extends React.Component<{
     }
 
     @computed get isYDomainShared(): boolean {
-        return this.props.manager.yAxis!.facetDomain === FacetAxisDomain.shared
+        const facetDomain =
+            this.props.manager.yAxis!.facetDomain || FacetAxisDomain.shared
+        return facetDomain === FacetAxisDomain.shared
     }
 
     render(): JSX.Element {
@@ -280,7 +282,7 @@ export class FacetStrategyDropdown extends React.Component<{
         return {
             [FacetStrategy.none]: "All together",
             [FacetStrategy.entity]: `Split by ${entityLabel}`,
-            [FacetStrategy.column]: "Split by metric",
+            [FacetStrategy.metric]: "Split by metric",
         }
     }
 
@@ -289,7 +291,7 @@ export class FacetStrategyDropdown extends React.Component<{
             this.props.manager.availableFacetStrategies || [
                 FacetStrategy.none,
                 FacetStrategy.entity,
-                FacetStrategy.column,
+                FacetStrategy.metric,
             ]
         )
     }

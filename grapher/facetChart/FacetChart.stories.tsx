@@ -70,7 +70,7 @@ export const OneChartPerMetric = (): JSX.Element => {
                 bounds={bounds}
                 chartTypeName={ChartTypeName.LineChart}
                 manager={{
-                    facetStrategy: FacetStrategy.column,
+                    facetStrategy: FacetStrategy.metric,
                     yColumnSlugs: table.numericColumnSlugs,
                     selection: table.availableEntityNames,
                     table,

@@ -106,6 +106,8 @@ export interface GrapherQueryParams extends QueryParams {
     shown?: string
     endpointsOnly?: string
     selection?: string
+    facet?: string
+    uniformYAxis?: string
 }
 
 export interface LegacyGrapherQueryParams extends GrapherQueryParams {

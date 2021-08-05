@@ -47,6 +47,7 @@ import {
     FacetStrategy,
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
+    FacetAxisDomain,
 } from "../core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 import * as Cookies from "js-cookie"
@@ -489,6 +490,14 @@ export class Grapher
 
         if (this.addCountryMode !== EntitySelectionMode.Disabled && selection)
             this.selection.setSelectedEntities(selection)
+
+        // faceting
+        if (params.facet && params.facet in FacetStrategy) {
+            this.selectedFacetStrategy = params.facet as FacetStrategy
+        }
+        if (params.uniformYAxis === "0") {
+            this.yAxis.facetDomain = FacetAxisDomain.independent
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
@@ -1474,7 +1483,7 @@ export class Grapher
                 this.yScaleType !== ScaleType.log
             )
 
-        if (this.facetStrategy === FacetStrategy.column) return false
+        if (this.facetStrategy === FacetStrategy.metric) return false
 
         return !this.hideRelativeToggle
     }
@@ -1898,7 +1907,7 @@ export class Grapher
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
         if (this.hasMultipleYColumns) {
-            strategies.push(FacetStrategy.column)
+            strategies.push(FacetStrategy.metric)
         }
 
         if (this.selection.numSelectedEntities > 1) {
@@ -1933,7 +1942,7 @@ export class Grapher
             this.hasMultipleYColumns &&
             this.selection.numSelectedEntities > 1
         )
-            return FacetStrategy.column
+            return FacetStrategy.metric
 
         return FacetStrategy.none
     }
@@ -2213,6 +2222,9 @@ export class Grapher
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
+        params.facet = this.selectedFacetStrategy
+        params.uniformYAxis =
+            this.yAxis.facetDomain === FacetAxisDomain.independent ? "0" : "1"
         return setSelectedEntityNamesParam(
             Url.fromQueryParams(params),
             this.selectedEntitiesIfDifferentThanAuthors

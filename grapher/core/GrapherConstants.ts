@@ -40,7 +40,7 @@ export const BASE_FONT_SIZE = 16
 export enum FacetStrategy {
     none = "none", // No facets
     entity = "entity", // One chart for each country/entity
-    column = "column", // One chart for each Y column
+    metric = "metric", // One chart for each Y column
 }
 
 export enum FacetAxisDomain {
