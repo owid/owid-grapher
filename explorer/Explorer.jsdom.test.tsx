@@ -24,7 +24,7 @@ describe(Explorer, () => {
         expect(element.text()).toContain("Kingdom")
     })
 
-    it("each grapher has its own set of URL params/options are preserved even when the grapher changes", () => {
+    it("preserves the current tab between explorer views", () => {
         const explorer = element.instance() as Explorer
         expect(explorer.queryParams.tab).toBeUndefined()
 
@@ -35,7 +35,22 @@ describe(Explorer, () => {
         expect(explorer.queryParams.tab).toEqual("table")
 
         explorer.onChangeChoice("Gas")("CO₂")
+        expect(explorer.queryParams.tab).toEqual("table")
+
+        explorer.grapher.tab = GrapherTabOption.chart
+    })
+
+    it("switches to first tab if current tab does not exist in new view", () => {
+        const explorer = element.instance() as Explorer
         expect(explorer.queryParams.tab).toBeUndefined()
+        if (explorer.grapher) explorer.grapher.tab = GrapherTabOption.map
+        else throw Error("where's the grapher?")
+        expect(explorer.queryParams.tab).toEqual("map")
+
+        explorer.onChangeChoice("Gas")("All GHGs (CO₂eq)")
+
+        expect(explorer.grapher.tab).toEqual("chart")
+        expect(explorer.queryParams.tab).toEqual(undefined)
     })
 
     it("recovers country selection from URL params", () => {

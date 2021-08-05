@@ -14,34 +14,34 @@ Gas Radio	CO₂
 Accounting Radio	Production-based
 subNavCurrentId	co2-data-explorer
 graphers
-	grapherId	Gas Radio	Accounting Radio	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox
-	488	CO₂	Production-based	Total	Per country	false
-	3219	CO₂	Production-based	Total	Per country	Share of global emissions
-	486	CO₂	Production-based	Total	Per capita
-	485	CO₂	Production-based	Total	Cumulative	false
-	3218	CO₂	Production-based	Total	Cumulative	Share of global emissions
-	4267	CO₂	Production-based	Total	Per MWh of energy
-	530	CO₂	Production-based	Total	Per $ of GDP
-	3621	CO₂	Consumption-based		Per country
-	3488	CO₂	Consumption-based		Per capita
-	4331	CO₂	Consumption-based		Per $ of GDP
-	696	CO₂	Consumption-based		Share of emissions embedded in trade
-	4250	CO₂	Production-based	Coal	Per country
-	4251	CO₂	Production-based	Oil	Per country
-	4253	CO₂	Production-based	Gas	Per country
-	4255	CO₂	Production-based	Cement	Per country
-	4332	CO₂	Production-based	Flaring	Per country
-	4249	CO₂	Production-based	Coal	Per capita
-	4252	CO₂	Production-based	Oil	Per capita
-	4254	CO₂	Production-based	Gas	Per capita
-	4256	CO₂	Production-based	Cement	Per capita
-	4333	CO₂	Production-based	Flaring	Per capita
-	4147	All GHGs (CO₂eq)	Production-based		Per country
-	4239	All GHGs (CO₂eq)	Production-based		Per capita
-	4222	Methane	Production-based		Per country
-	4243	Methane	Production-based		Per capita
-	4224	Nitrous oxide	Production-based		Per country
-	4244	Nitrous oxide	Production-based		Per capita`
+	grapherId	Gas Radio	Accounting Radio	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox	hasMapTab
+	488	CO₂	Production-based	Total	Per country	false	true
+	3219	CO₂	Production-based	Total	Per country	Share of global emissions	false
+	486	CO₂	Production-based	Total	Per capita	false
+	485	CO₂	Production-based	Total	Cumulative	false	false
+	3218	CO₂	Production-based	Total	Cumulative	Share of global emissions	false
+	4267	CO₂	Production-based	Total	Per MWh of energy	false
+	530	CO₂	Production-based	Total	Per $ of GDP	false
+	3621	CO₂	Consumption-based		Per country	false
+	3488	CO₂	Consumption-based		Per capita	false
+	4331	CO₂	Consumption-based		Per $ of GDP	false
+	696	CO₂	Consumption-based		Share of emissions embedded in trade	false
+	4250	CO₂	Production-based	Coal	Per country	false
+	4251	CO₂	Production-based	Oil	Per country	false
+	4253	CO₂	Production-based	Gas	Per country	false
+	4255	CO₂	Production-based	Cement	Per country	false
+	4332	CO₂	Production-based	Flaring	Per country	false
+	4249	CO₂	Production-based	Coal	Per capita	false
+	4252	CO₂	Production-based	Oil	Per capita	false
+	4254	CO₂	Production-based	Gas	Per capita	false
+	4256	CO₂	Production-based	Cement	Per capita	false
+	4333	CO₂	Production-based	Flaring	Per capita	false
+	4147	All GHGs (CO₂eq)	Production-based		Per country	false
+	4239	All GHGs (CO₂eq)	Production-based		Per capita	false
+	4222	Methane	Production-based		Per country	false
+	4243	Methane	Production-based		Per capita	false
+	4224	Nitrous oxide	Production-based		Per country	false
+	4244	Nitrous oxide	Production-based		Per capita	false`
 
 export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
     const title = "AlphaBeta"

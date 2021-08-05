@@ -246,10 +246,19 @@ export class Explorer
             ...this.persistedGrapherQueryParamsBySelectedRow.get(
                 this.explorerProgram.currentlySelectedGrapherRow
             ),
+            region: oldGrapherParams.region,
             time: this.grapher.timeParam,
         }
 
+        const previousTab = this.grapher.tab
+
         this.updateGrapherFromExplorer()
+
+        // preserve the previous tab if that's still available in the new view;
+        // and use the first tab otherwise
+        newGrapherParams.tab = this.grapher.availableTabs.includes(previousTab)
+            ? previousTab
+            : this.grapher.availableTabs[0]
 
         this.grapher.populateFromQueryParams(newGrapherParams)
     }
