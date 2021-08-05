@@ -59,6 +59,7 @@ const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
     endTime?: Time
+    hideTotalValueLabel?: boolean
 }
 
 interface Item {
@@ -181,7 +182,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed get showTotalValueLabel(): boolean {
-        return !this.manager.isRelativeMode
+        return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
     }
 
     // The amount of space we need to allocate for total value labels on the right

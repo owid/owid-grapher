@@ -280,6 +280,7 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
+    @observable.ref hideTotalValueLabel?: boolean = undefined // Hides the total value label that is normally displayed for stacked bar charts
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
