@@ -257,7 +257,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (
             !manager.hideFacetControl &&
-            manager.availableFacetStrategies!.length > 1
+            manager.availableFacetStrategies.length > 1
         ) {
             controls.push(
                 <FacetStrategyDropdown
