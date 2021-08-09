@@ -1187,7 +1187,7 @@ export class MarimekkoChart
         }
         for (const item of unshiftedElements) {
             const lineColor = selectedItemsKeys.has(item.labelKey)
-                ? "#999"
+                ? "#555"
                 : "#bbb"
             const markerBarEndpointX = item.preferredPlacement
             const markerBarEndpointY = barEndpointY + MARKER_MARGIN
@@ -1220,9 +1220,6 @@ export class MarimekkoChart
                 key={`label-${item.labelKey}`}
                 className="bar-label"
                 transform={`translate(${item.correctedPlacement}, ${labelOffset})`}
-                onMouseOver={(): void => this.onEntityMouseOver(item.labelKey)}
-                onMouseLeave={(): void => this.onEntityMouseLeave()}
-                onClick={(): void => this.onEntityClick(item.labelKey)}
             >
                 {item.label}
             </g>
