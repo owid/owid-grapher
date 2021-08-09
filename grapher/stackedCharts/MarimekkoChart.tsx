@@ -947,7 +947,6 @@ export class MarimekkoChart
         // Always pick the first and last element and the first one that is not undefined for y
         if (firstDefined) firstDefined.isPicked = true
         const labelHeight = labelCandidates[0].bounds.height
-        labelCandidates[0].isPicked = true
         labelCandidates[labelCandidates.length - 1].isPicked = true
         const availablePixels = xRange[1] - xRange[0]
 
