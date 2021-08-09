@@ -148,6 +148,102 @@ interface LabelCandidateWithElement {
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
 
+interface MarimekkoBarProps {
+    bar: BarOrPlaceholder
+    tooltipProps: TooltipProps
+    barWidth: number
+    isHovered: boolean
+    isSelected: boolean
+    isFaint: boolean
+    entityColor: string | undefined
+    y0: number
+    isInteractive: boolean
+    dualAxis: DualAxis
+}
+
+function MarimekkoBar({
+    bar,
+    tooltipProps,
+    barWidth,
+    isHovered,
+    isSelected,
+    isFaint,
+    entityColor,
+    y0,
+    isInteractive,
+    dualAxis,
+}: MarimekkoBarProps): JSX.Element {
+    const { seriesName } = bar
+    const isPlaceholder = bar.kind === BarShape.BarPlaceholder
+    const barBaseColor =
+        entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
+
+    const barColor =
+        bar.kind === BarShape.BarPlaceholder
+            ? "#555"
+            : isHovered
+            ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
+            : isSelected
+            ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
+            : barBaseColor
+    const strokeColor =
+        isHovered || isSelected ? "#555" : isPlaceholder ? "#ccc" : "#666"
+    const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
+    const strokeOpacity = isPlaceholder ? 0.8 : isSelected ? 0.5 : 0.1
+    const fillOpacity = isHovered
+        ? 0.7
+        : isFaint
+        ? 0.2
+        : isSelected
+        ? isPlaceholder
+            ? 0.3
+            : 0.7
+        : 0.7
+    const overalOpacity = isPlaceholder ? 0.2 : 0.7
+
+    let barY: number = 0
+    let barHeight: number = 0
+    if (bar.kind === BarShape.Bar) {
+        barY = dualAxis.verticalAxis.place(y0 + bar.yPoint.valueOffset)
+        barHeight =
+            dualAxis.verticalAxis.place(y0) -
+            dualAxis.verticalAxis.place(bar.yPoint.value)
+    } else {
+        barY = dualAxis.verticalAxis.place(y0)
+        barHeight = bar.height
+    }
+    const barX = 0
+
+    return (
+        <TippyIfInteractive
+            lazy
+            isInteractive={isInteractive}
+            key={seriesName}
+            visible={isHovered}
+            content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+        >
+            <g>
+                <rect
+                    x={0}
+                    y={0}
+                    transform={`translate(${barX}, ${barY - barHeight})`}
+                    width={barWidth}
+                    height={barHeight}
+                    fill={barColor}
+                    fillOpacity={fillOpacity}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokeOpacity={strokeOpacity}
+                    opacity={overalOpacity}
+                    style={{
+                        transition: "translate 200ms ease",
+                    }}
+                />
+            </g>
+        </TippyIfInteractive>
+    )
+}
+
 @observer
 export class MarimekkoChart
     extends React.Component<{
@@ -713,37 +809,46 @@ export class MarimekkoChart
                     onMouseLeave={(): void => this.onEntityMouseLeave()}
                     onClick={(): void => this.onEntityClick(entityName)}
                 >
-                    {bars.length
-                        ? bars.map((bar) => {
-                              return this.renderBar(
-                                  bar,
-                                  {
-                                      ...tooltipProps,
-                                      highlightedSeriesName: bar.seriesName,
-                                  },
-                                  barWidth,
-                                  isHovered,
-                                  isSelected,
-                                  isFaint,
-                                  entityColor?.color
-                              )
-                          })
-                        : this.renderBar(
-                              {
-                                  kind: BarShape.BarPlaceholder,
-                                  seriesName: entityName,
-                                  height: noDataHeight,
-                              },
-                              {
-                                  ...tooltipProps,
-                                  highlightedSeriesName: "",
-                              },
-                              barWidth,
-                              isHovered,
-                              isSelected,
-                              isFaint,
-                              entityColor?.color
-                          )}
+                    {bars.length ? (
+                        bars.map((bar) => (
+                            <MarimekkoBar
+                                key={`${entityName}-${bar.seriesName}`}
+                                bar={bar}
+                                tooltipProps={{
+                                    ...tooltipProps,
+                                    highlightedSeriesName: bar.seriesName,
+                                }}
+                                barWidth={barWidth}
+                                isHovered={isHovered}
+                                isSelected={isSelected}
+                                isFaint={isFaint}
+                                entityColor={entityColor?.color}
+                                y0={y0}
+                                isInteractive={
+                                    !this.manager.isExportingtoSvgOrPng
+                                }
+                                dualAxis={dualAxis}
+                            />
+                        ))
+                    ) : (
+                        <MarimekkoBar
+                            key={`${entityName}-placeholder`}
+                            tooltipProps={tooltipProps}
+                            bar={{
+                                kind: BarShape.BarPlaceholder,
+                                seriesName: entityName,
+                                height: noDataHeight,
+                            }}
+                            barWidth={barWidth}
+                            isHovered={isHovered}
+                            isSelected={isSelected}
+                            isFaint={isFaint}
+                            entityColor={entityColor?.color}
+                            y0={y0}
+                            isInteractive={!this.manager.isExportingtoSvgOrPng}
+                            dualAxis={dualAxis}
+                        />
+                    )}
                 </g>
             )
             if (isSelected || isHovered) highlightedElements.push(result)
@@ -761,88 +866,6 @@ export class MarimekkoChart
         )
     }
     private paddingInPixels = 5
-
-    private renderBar(
-        bar: BarOrPlaceholder,
-        tooltipProps: TooltipProps,
-        barWidth: number,
-        isHovered: boolean,
-        isSelected: boolean,
-        isFaint: boolean,
-        entityColor: string | undefined
-    ): JSX.Element {
-        const { dualAxis, manager, y0 } = this
-        const { seriesName } = bar
-        const isPlaceholder = bar.kind === BarShape.BarPlaceholder
-        const barBaseColor =
-            entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
-
-        const barColor =
-            bar.kind === BarShape.BarPlaceholder
-                ? "#555"
-                : isHovered
-                ? color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor
-                : isSelected
-                ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
-                : barBaseColor
-        const strokeColor =
-            isHovered || isSelected ? "#555" : isPlaceholder ? "#ccc" : "#666"
-        const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
-        const strokeOpacity = isPlaceholder ? 0.8 : isSelected ? 0.5 : 0.1
-        const fillOpacity = isHovered
-            ? 0.7
-            : isFaint
-            ? 0.2
-            : isSelected
-            ? isPlaceholder
-                ? 0.3
-                : 0.7
-            : 0.7
-        const overalOpacity = isPlaceholder ? 0.2 : 0.7
-
-        let barY: number = 0
-        let barHeight: number = 0
-        if (bar.kind === BarShape.Bar) {
-            barY = dualAxis.verticalAxis.place(y0 + bar.yPoint.valueOffset)
-            barHeight =
-                dualAxis.verticalAxis.place(y0) -
-                dualAxis.verticalAxis.place(bar.yPoint.value)
-        } else {
-            barY = dualAxis.verticalAxis.place(y0)
-            barHeight = bar.height
-        }
-        const barX = 0
-
-        return (
-            <TippyIfInteractive
-                lazy
-                isInteractive={!manager.isExportingtoSvgOrPng}
-                key={seriesName}
-                hideOnClick={false}
-                visible={isHovered}
-                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
-            >
-                <g>
-                    <rect
-                        x={0}
-                        y={0}
-                        transform={`translate(${barX}, ${barY - barHeight})`}
-                        width={barWidth}
-                        height={barHeight}
-                        fill={barColor}
-                        fillOpacity={fillOpacity}
-                        stroke={strokeColor}
-                        strokeWidth={strokeWidth}
-                        strokeOpacity={strokeOpacity}
-                        opacity={overalOpacity}
-                        style={{
-                            transition: "translate 200ms ease",
-                        }}
-                    />
-                </g>
-            </TippyIfInteractive>
-        )
-    }
 
     private static labelCandidateFromItem(
         item: EntityWithSize,
@@ -1275,7 +1298,7 @@ export class MarimekkoChart
         })
     }
 
-    private static Tooltip(props: TooltipProps): JSX.Element {
+    static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
         const isSingleVariable = props.item.bars.length === 1
         const header = isSingleVariable ? (
