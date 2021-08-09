@@ -25,6 +25,7 @@ import { faAngleDoubleLeft } from "@fortawesome/free-solid-svg-icons/faAngleDoub
 import { faAngleDoubleRight } from "@fortawesome/free-solid-svg-icons/faAngleDoubleRight"
 import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
 import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
+import { faRandom } from "@fortawesome/free-solid-svg-icons/faRandom"
 import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,
@@ -81,6 +82,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
 
     @computed get nextBtnIsDisabled() {
         return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
+    }
+
+    @computed get randomBtnIsDisabled() {
+        return !this._isGraphersSet || this.numTotalRows <= 1
     }
 
     @computed get grapherBounds() {
@@ -256,6 +261,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     @action.bound onLast() {
         if (!this.nextBtnIsDisabled) {
             this.rowNum = this.numTotalRows
+            this.refresh()
+        }
+    }
+
+    @action.bound onRandom() {
+        if (!this.randomBtnIsDisabled) {
+            this.rowNum = Math.floor(Math.random() * this.numTotalRows + 1)
             this.refresh()
         }
     }
@@ -1361,6 +1373,20 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 }}
                             >
                                 <FontAwesomeIcon icon={faAngleDoubleRight} />
+                            </button>
+                            <button
+                                className="btn btn-outline-dark"
+                                onClick={this.onRandom}
+                                title="Go to random suggestion"
+                                disabled={this.randomBtnIsDisabled}
+                                aria-disabled={this.randomBtnIsDisabled}
+                                style={{
+                                    pointerEvents: this.randomBtnIsDisabled
+                                        ? "none"
+                                        : undefined,
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faRandom} />
                             </button>
                         </React.Fragment>
                     )}
