@@ -819,6 +819,7 @@ export class MarimekkoChart
                 isInteractive={!manager.isExportingtoSvgOrPng}
                 key={seriesName}
                 hideOnClick={false}
+                visible={isHovered}
                 content={<MarimekkoChart.Tooltip {...tooltipProps} />}
             >
                 <g>
@@ -977,17 +978,12 @@ export class MarimekkoChart
             dualAxis,
             x0,
             xDomainCorrectionFactor,
-            manager,
             placedItemsMap,
             labels,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
             labelAngleInDegrees,
         } = this
-        const targetTime = this.manager.endTime
-        const timeColumn = this.inputTable.timeColumn
-        const yAxisColumn = this.formatColumn
-        const xAxisColumn = this.xColumn
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
         const labelsWithPlacements: LabelWithPlacement[] = labels
@@ -1001,7 +997,6 @@ export class MarimekkoChart
                 const correctedWidth = exactWidth
                 const barWidth = correctedWidth > 1 ? correctedWidth : 1
                 const labelId = candidate.item.entityId
-
                 if (!item) {
                     console.error(
                         "Could not find item",
@@ -1009,13 +1004,6 @@ export class MarimekkoChart
                     )
                     return null
                 } else {
-                    const tooltipProps = {
-                        item,
-                        targetTime,
-                        timeColumn,
-                        yAxisColumn,
-                        xAxisColumn,
-                    }
                     const currentX =
                         dualAxis.horizontalAxis.place(x0) + item.xPosition
                     const labelWithPlacement = {
@@ -1023,21 +1011,7 @@ export class MarimekkoChart
                             <g
                                 transform={`translate(${0}, ${labelsYPosition})`}
                             >
-                                <TippyIfInteractive
-                                    lazy
-                                    isInteractive={
-                                        !manager.isExportingtoSvgOrPng
-                                    }
-                                    key={labelId}
-                                    hideOnClick={false}
-                                    content={
-                                        <MarimekkoChart.Tooltip
-                                            {...tooltipProps}
-                                        />
-                                    }
-                                >
-                                    {labelElement}
-                                </TippyIfInteractive>
+                                {labelElement}
                             </g>
                         ),
                         preferredPlacement: currentX + barWidth / 2,
