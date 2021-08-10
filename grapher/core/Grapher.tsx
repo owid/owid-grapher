@@ -2210,6 +2210,7 @@ export class Grapher
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
         this.stackMode = grapher.stackMode
+        this.hideTotalValueLabel = grapher.hideTotalValueLabel
     }
 
     debounceMode = false
