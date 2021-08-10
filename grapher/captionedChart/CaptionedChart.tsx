@@ -344,7 +344,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get svgProps() {
+    @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
         return {
             xmlns: "http://www.w3.org/2000/svg",
             version: "1.1",
@@ -353,7 +353,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
                 fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
                 backgroundColor: "white",
-                textRendering: "optimizeLegibility" as any,
+                textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
             },
         }
