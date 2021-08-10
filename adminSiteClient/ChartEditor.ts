@@ -188,6 +188,11 @@ export class ChartEditor {
         if (json.success) {
             if (isNewGrapher) {
                 this.newChartId = json.chartId
+                this.grapher.id = json.chartId
+                this.savedGrapherJson = JSON.stringify({
+                    ...currentGrapherObject,
+                    id: json.chartId,
+                })
             } else {
                 runInAction(() => {
                     grapher.version += 1
@@ -195,9 +200,7 @@ export class ChartEditor {
                     this.savedGrapherJson = JSON.stringify(currentGrapherObject)
                 })
             }
-        } else {
-            if (onError) onError()
-        }
+        } else onError?.()
     }
 
     async saveAsNewGrapher(): Promise<void> {
