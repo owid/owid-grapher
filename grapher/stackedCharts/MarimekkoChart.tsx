@@ -465,7 +465,7 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight)
             .padBottom(labelLinesHeight)
-            .padTop(this.legend.height)
+            .padTop(this.legend.height + this.legendPaddingTop)
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -571,7 +571,7 @@ export class MarimekkoChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return 0
+        return this.baseFontSize
     }
 
     @computed get legendX(): number {
@@ -579,7 +579,7 @@ export class MarimekkoChart
     }
 
     @computed get categoryLegendY(): number {
-        return 0
+        return this.bounds.top
     }
 
     @computed get legendWidth(): number {
