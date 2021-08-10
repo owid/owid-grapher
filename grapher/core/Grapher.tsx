@@ -1908,9 +1908,12 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
+        const numNonProjectedColumns = this.yColumns.filter(
+            (c) => !c.display || !c.display.isProjection
+        ).length
         if (
-            // multiple metrics
-            this.hasMultipleYColumns &&
+            // multiple metrics (excluding projections)
+            numNonProjectedColumns > 1 &&
             // more than one data point per metric
             this.transformedTable.numRows > 1
         ) {
