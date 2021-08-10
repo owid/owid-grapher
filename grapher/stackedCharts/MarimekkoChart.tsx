@@ -735,12 +735,13 @@ export class MarimekkoChart
                     y={yStart - noDataHeight / 2}
                     width={noDataRangeEndX - noDataRangeStartX}
                     height={noDataHeight}
-                    fontWeight={300}
-                    fill="#000"
+                    fontWeight={400}
+                    fill="#666"
                     opacity={1}
                     fontSize="1em"
                     textAnchor="middle"
                     dominantBaseline="middle"
+                    style={{ pointerEvents: "none" }}
                 >
                     no data
                 </text>
