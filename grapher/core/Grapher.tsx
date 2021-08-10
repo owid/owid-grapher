@@ -1912,7 +1912,12 @@ export class Grapher
             strategies.push(FacetStrategy.metric)
         }
 
-        if (this.selection.numSelectedEntities > 1) {
+        if (
+            // multiple entities
+            this.selection.numSelectedEntities > 1 &&
+            // more than one data point per entity
+            this.transformedTable.numRows > this.selection.numSelectedEntities
+        ) {
             strategies.push(FacetStrategy.entity)
         }
 
