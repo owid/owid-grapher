@@ -13,6 +13,7 @@ import {
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { partition } from "lodash"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import {
     BASE_FONT_SIZE,
@@ -27,7 +28,13 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "./StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
-import { Color, Time } from "../../clientUtils/owidTypes"
+import {
+    Color,
+    SortBy,
+    SortConfig,
+    SortOrder,
+    Time,
+} from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
@@ -63,6 +70,7 @@ export interface MarimekkoChartManager extends ChartManager {
     matchingEntitiesOnly?: boolean
     xOverrideTime?: number
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
+    sortConfig?: SortConfig
 }
 
 interface EntityColorData {
@@ -317,6 +325,10 @@ export class MarimekkoChart
         )
     }
 
+    @computed private get sortConfig(): SortConfig {
+        return this.manager.sortConfig ?? {}
+    }
+
     @computed private get manager(): MarimekkoChartManager {
         return this.props.manager
     }
@@ -538,14 +550,37 @@ export class MarimekkoChart
     }
 
     @computed private get sortedItems(): Item[] {
-        const { items } = this
-        const sorted = sortBy(items, (item) => {
-            const lastPoint = last(item.bars)?.yPoint
-            if (!lastPoint) return -Infinity
-            return lastPoint.valueOffset + lastPoint.value
-        }).reverse()
+        const { items, sortConfig } = this
 
-        return sorted
+        let sortByFunc: (item: Item) => number | string
+        switch (sortConfig.sortBy) {
+            case SortBy.entityName:
+                sortByFunc = (item: Item): string => item.entityName
+                break
+            case SortBy.column:
+                const sortColumnSlug = sortConfig.sortColumnSlug
+                sortByFunc = (item: Item): number =>
+                    item.bars.find((b) => b.seriesName === sortColumnSlug)
+                        ?.yPoint.value ?? 0
+                break
+            default:
+            case SortBy.total:
+                sortByFunc = (item: Item): number => {
+                    const lastPoint = last(item.bars)?.yPoint
+                    if (!lastPoint) return 0
+                    return lastPoint.valueOffset + lastPoint.value
+                }
+        }
+        const sortedItems = sortBy(items, sortByFunc)
+        const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedItems.reverse()
+
+        const [itemsWithValues, itemsWithoutValues] = partition(
+            sortedItems,
+            (item) => item.bars.length !== 0
+        )
+
+        return [...itemsWithValues, ...itemsWithoutValues]
     }
 
     @computed get placedItems(): PlacedItem[] {
@@ -691,6 +726,7 @@ export class MarimekkoChart
             labelLines,
             placedItems,
             hoveredEntityName,
+            sortConfig,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
