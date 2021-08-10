@@ -280,6 +280,8 @@ export class Grapher
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
     @observable.ref compareEndPointsOnly?: boolean = undefined
     @observable.ref matchingEntitiesOnly?: boolean = undefined
+    /** Hides the total value label that is normally displayed for stacked bar charts */
+    @observable.ref hideTotalValueLabel?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -2207,6 +2209,7 @@ export class Grapher
         this.sortBy = grapher.sortBy
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
+        this.stackMode = grapher.stackMode
     }
 
     debounceMode = false

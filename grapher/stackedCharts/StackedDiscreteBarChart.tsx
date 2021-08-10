@@ -8,7 +8,6 @@ import {
     excludeUndefined,
     sortBy,
     numberMagnitude,
-    sum,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -54,16 +53,19 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import { NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
+import { bind } from "decko"
 
 const labelToBarPadding = 5
 
 export interface StackedDiscreteBarChartManager extends ChartManager {
     endTime?: Time
+    hideTotalValueLabel?: boolean
 }
 
 interface Item {
     label: string
     bars: Bar[]
+    totalValue: number
 }
 
 interface PlacedItem extends Item {
@@ -78,8 +80,7 @@ interface Bar {
 }
 
 interface TooltipProps extends StackedBarChartContext {
-    label: string
-    bars: Bar[]
+    item: PlacedItem
     highlightedSeriesName: string | undefined
 }
 
@@ -88,6 +89,7 @@ interface StackedBarChartContext {
     targetTime?: number
     timeColumn: CoreColumn
     formatColumn: CoreColumn
+    formatValueForLabel: (value: number) => string
     focusSeriesName?: string
     barHeight: number
     x0: number
@@ -165,11 +167,33 @@ export class StackedDiscreteBarChart
         }
     }
 
+    @computed private get totalValueLabelStyle() {
+        return {
+            fill: "#555",
+            fontSize: 0.75 * this.baseFontSize,
+        }
+    }
+
     // Account for the width of the legend
     @computed private get labelWidth(): number {
         const labels = this.items.map((item) => item.label)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.labelStyle).width
+    }
+
+    @computed get showTotalValueLabel(): boolean {
+        return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
+    }
+
+    // The amount of space we need to allocate for total value labels on the right
+    @computed private get totalValueLabelWidth(): number {
+        if (!this.showTotalValueLabel) return 0
+
+        const labels = this.items.map((d) =>
+            this.formatValueForLabel(d.totalValue)
+        )
+        const longestLabel = maxBy(labels, (l) => l.length)
+        return Bounds.forText(longestLabel, this.totalValueLabelStyle).width
     }
 
     @computed private get x0(): number {
@@ -192,7 +216,10 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get xRange(): [number, number] {
-        return [this.bounds.left + this.labelWidth, this.bounds.right]
+        return [
+            this.bounds.left + this.labelWidth,
+            this.bounds.right - this.totalValueLabelWidth,
+        ]
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -216,6 +243,7 @@ export class StackedDiscreteBarChart
             .padBottom(this.yAxis.height)
             .padTop(this.legendPaddingTop)
             .padTop(this.legend.height)
+            .padRight(this.totalValueLabelWidth)
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -225,14 +253,15 @@ export class StackedDiscreteBarChart
     @computed private get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
-            .map((entityName) => ({
-                label: entityName,
-                bars: excludeUndefined(
+            .map((entityName) => {
+                let totalValue = 0
+                const bars = excludeUndefined(
                     this.series.map((series) => {
                         const point = series.points.find(
                             (point) => point.position === entityName
                         )
                         if (!point) return undefined
+                        totalValue += point.value
                         return {
                             point,
                             columnSlug: series.columnSlug,
@@ -240,8 +269,14 @@ export class StackedDiscreteBarChart
                             seriesName: series.seriesName,
                         }
                     })
-                ),
-            }))
+                )
+
+                return {
+                    label: entityName,
+                    bars,
+                    totalValue,
+                }
+            })
             .filter((item) => item.bars.length)
 
         return items
@@ -272,6 +307,17 @@ export class StackedDiscreteBarChart
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
         return sortedItems
+    }
+
+    @computed private get placedItems(): PlacedItem[] {
+        const { innerBounds, barHeight, barSpacing } = this
+
+        const topYOffset = innerBounds.top + barHeight / 2
+
+        return this.sortedItems.map((d, i) => ({
+            yPosition: topYOffset + (barHeight + barSpacing) * i,
+            ...d,
+        }))
     }
 
     @computed private get barHeight(): number {
@@ -335,6 +381,16 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
+    @bind private formatValueForLabel(value: number): string {
+        // Compute how many decimal places we should show.
+        // Basically, this makes us show 2 significant digits, or no decimal places if the number
+        // is big enough already.
+        const magnitude = numberMagnitude(value)
+        return this.formatColumn.formatValueShort(value, {
+            numDecimalPlaces: Math.max(0, -magnitude + 2),
+        })
+    }
+
     render(): JSX.Element {
         if (this.failMessage)
             return (
@@ -345,25 +401,20 @@ export class StackedDiscreteBarChart
                 />
             )
 
-        const { bounds, yAxis, innerBounds, barHeight, barSpacing } = this
+        const { bounds, yAxis, innerBounds } = this
 
         const chartContext: StackedBarChartContext = {
             yAxis,
             targetTime: this.manager.endTime,
             timeColumn: this.inputTable.timeColumn,
             formatColumn: this.formatColumn,
+            formatValueForLabel: this.formatValueForLabel,
             barHeight: this.barHeight,
             focusSeriesName: this.focusSeriesName,
             x0: this.x0,
             baseFontSize: this.baseFontSize,
             isInteractive: !this.manager.isExportingtoSvgOrPng,
         }
-
-        const yOffset = innerBounds.top + barHeight / 2
-        const placedItems = this.sortedItems.map((d, i) => ({
-            yPosition: yOffset + (barHeight + barSpacing) * i,
-            ...d,
-        }))
 
         const handlePositionUpdate = (d: PlacedItem) => ({
             translateY: [d.yPosition],
@@ -391,73 +442,96 @@ export class StackedDiscreteBarChart
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 <NodeGroup
-                    data={placedItems}
+                    data={this.placedItems}
                     keyAccessor={(d: PlacedItem) => d.label}
                     start={handlePositionUpdate}
                     update={handlePositionUpdate}
                 >
                     {(nodes) => (
                         <g>
-                            {nodes.map(({ data, state }) => {
-                                const { label, bars } = data as PlacedItem
-                                const tooltipProps = {
-                                    ...chartContext,
-                                    label,
-                                    bars,
-                                }
+                            {nodes.map(
+                                ({
+                                    data,
+                                    state,
+                                }: {
+                                    data: PlacedItem
+                                    state: { translateY: number }
+                                }) => {
+                                    const { label, bars, totalValue } = data
+                                    const tooltipProps = {
+                                        ...chartContext,
+                                        item: data,
+                                    }
 
-                                return (
-                                    <g
-                                        key={label}
-                                        className="bar"
-                                        transform={`translate(0, ${state.translateY})`}
-                                    >
-                                        <TippyIfInteractive
-                                            lazy
-                                            isInteractive={
-                                                !this.manager
-                                                    .isExportingtoSvgOrPng
-                                            }
-                                            hideOnClick={false}
-                                            content={
-                                                <StackedDiscreteBarChart.Tooltip
-                                                    {...tooltipProps}
-                                                    highlightedSeriesName={
-                                                        undefined
-                                                    }
-                                                />
-                                            }
+                                    const totalLabel = this.formatValueForLabel(
+                                        totalValue
+                                    )
+
+                                    return (
+                                        <g
+                                            key={label}
+                                            className="bar"
+                                            transform={`translate(0, ${state.translateY})`}
                                         >
-                                            <text
-                                                x={0}
-                                                y={0}
-                                                transform={`translate(${
-                                                    yAxis.place(this.x0) -
-                                                    labelToBarPadding
-                                                }, 0)`}
-                                                fill="#555"
-                                                dominantBaseline="middle"
-                                                textAnchor="end"
-                                                {...this.labelStyle}
+                                            <TippyIfInteractive
+                                                lazy
+                                                isInteractive={
+                                                    !this.manager
+                                                        .isExportingtoSvgOrPng
+                                                }
+                                                hideOnClick={false}
+                                                content={
+                                                    <StackedDiscreteBarChart.Tooltip
+                                                        {...tooltipProps}
+                                                        highlightedSeriesName={
+                                                            undefined
+                                                        }
+                                                    />
+                                                }
                                             >
-                                                {label}
-                                            </text>
-                                        </TippyIfInteractive>
-                                        {bars.map((bar) => (
-                                            <StackedDiscreteBarChart.Bar
-                                                key={bar.seriesName}
-                                                bar={bar}
-                                                chartContext={chartContext}
-                                                tooltipProps={{
-                                                    ...tooltipProps,
-                                                    highlightedSeriesName:
-                                                        bar.seriesName,
-                                                }}
-                                            />
-                                        ))}
-                                    </g>
-                                )
-                            })}
+                                                <text
+                                                    transform={`translate(${
+                                                        yAxis.place(this.x0) -
+                                                        labelToBarPadding
+                                                    }, 0)`}
+                                                    fill="#555"
+                                                    dominantBaseline="middle"
+                                                    textAnchor="end"
+                                                    {...this.labelStyle}
+                                                >
+                                                    {label}
+                                                </text>
+                                            </TippyIfInteractive>
+                                            {bars.map((bar) => (
+                                                <StackedDiscreteBarChart.Bar
+                                                    key={bar.seriesName}
+                                                    bar={bar}
+                                                    chartContext={chartContext}
+                                                    tooltipProps={{
+                                                        ...tooltipProps,
+                                                        highlightedSeriesName:
+                                                            bar.seriesName,
+                                                    }}
+                                                />
+                                            ))}
+                                            {this.showTotalValueLabel && (
+                                                <text
+                                                    transform={`translate(${
+                                                        yAxis.place(
+                                                            totalValue
+                                                        ) + labelToBarPadding
+                                                    }, 0)`}
+                                                    dominantBaseline="middle"
+                                                    {...this
+                                                        .totalValueLabelStyle}
+                                                >
+                                                    {totalLabel}
+                                                </text>
+                                            )}
+                                        </g>
+                                    )
+                                }
+                            )}
                         </g>
                     )}
                 </NodeGroup>
@@ -471,7 +545,12 @@ export class StackedDiscreteBarChart
         tooltipProps: TooltipProps
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
-        const { yAxis, formatColumn, focusSeriesName, barHeight } = chartContext
+        const {
+            yAxis,
+            formatValueForLabel,
+            focusSeriesName,
+            barHeight,
+        } = chartContext
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName
@@ -479,13 +558,7 @@ export class StackedDiscreteBarChart
         const barWidth =
             yAxis.place(bar.point.value) - yAxis.place(chartContext.x0)
 
-        // Compute how many decimal places we should show.
-        // Basically, this makes us show 2 significant digits, or no decimal places if the number
-        // is big enough already.
-        const magnitude = numberMagnitude(bar.point.value)
-        const barLabel = formatColumn.formatValueShort(bar.point.value, {
-            numDecimalPlaces: Math.max(0, -magnitude + 2),
-        })
+        const barLabel = formatValueForLabel(bar.point.value)
         const labelFontSize = 0.7 * chartContext.baseFontSize
         const labelBounds = Bounds.forText(barLabel, {
             fontSize: labelFontSize,
@@ -539,8 +612,8 @@ export class StackedDiscreteBarChart
 
     private static Tooltip(props: TooltipProps): JSX.Element {
         let hasTimeNotice = false
-        const { highlightedSeriesName } = props
-        const showTotal = !props.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
+        const { highlightedSeriesName, item } = props
+        const showTotal = !item.bars.some((bar) => bar.point.fake) // If some data is missing, don't calculate a total
 
         const timeNoticeStyle = {
             fontWeight: "normal",
@@ -561,10 +634,10 @@ export class StackedDiscreteBarChart
                 <tbody>
                     <tr>
                         <td colSpan={4} style={{ color: "#111" }}>
-                            <strong>{props.label}</strong>
+                            <strong>{item.label}</strong>
                         </td>
                     </tr>
-                    {props.bars.map((bar) => {
+                    {item.bars.map((bar) => {
                         const squareColor = bar.color
                         const isHighlighted =
                             bar.seriesName === highlightedSeriesName
@@ -666,9 +739,7 @@ export class StackedDiscreteBarChart
                                 }}
                             >
                                 {props.formatColumn.formatValueShort(
-                                    sum(
-                                        props.bars.map((bar) => bar.point.value)
-                                    ),
+                                    item.totalValue,
                                     {
                                         noTrailingZeroes: false,
                                     }

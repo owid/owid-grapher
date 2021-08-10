@@ -70,6 +70,7 @@ export interface GrapherInterface extends SortConfig {
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     compareEndPointsOnly?: boolean
     matchingEntitiesOnly?: boolean
+    hideTotalValueLabel?: boolean
     excludedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string }
@@ -157,6 +158,7 @@ export const grapherKeysToSerialize = [
     "scatterPointLabelStrategy",
     "compareEndPointsOnly",
     "matchingEntitiesOnly",
+    "hideTotalValueLabel",
     "xAxis",
     "yAxis",
     "colorScale",

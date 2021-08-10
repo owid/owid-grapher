@@ -7,16 +7,25 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
-    JSONObjectCellDef,
+    CellDef,
 } from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
+    StackMode,
 } from "../grapher/core/GrapherConstants"
 import { ColorSchemes } from "../grapher/color/ColorSchemes"
 import { SortBy, SortOrder } from "../clientUtils/owidTypes"
+
+const toTerminalOptions = (keywords: string[]): CellDef[] => {
+    return keywords.map((keyword) => ({
+        keyword,
+        cssClass: "",
+        description: "",
+    }))
+}
 
 export const GrapherGrammar: Grammar = {
     title: {
@@ -40,11 +49,7 @@ export const GrapherGrammar: Grammar = {
         ...StringCellDef,
         keyword: "type",
         description: `The type of chart to show such as LineChart or ScatterPlot.`,
-        terminalOptions: Object.values(ChartTypeName).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(ChartTypeName)),
     },
     grapherId: {
         ...IntegerCellDef,
@@ -65,11 +70,7 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         keyword: "tab",
         description: "Which tab to show by default",
-        terminalOptions: Object.values(GrapherTabOption).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(GrapherTabOption)),
     },
     hasChartTab: {
         ...BooleanCellDef,
@@ -106,11 +107,7 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         description: "Facet by column or entities",
         keyword: "facet",
-        terminalOptions: Object.values(FacetStrategy).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(FacetStrategy)),
     },
     hideTitleAnnotation: {
         ...BooleanCellDef,
@@ -138,32 +135,20 @@ export const GrapherGrammar: Grammar = {
         keyword: "facetYDomain",
         description:
             "Whether facets axes default to shared or independent domain",
-        terminalOptions: Object.keys(FacetAxisDomain).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(FacetAxisDomain)),
     },
     selectedFacetStrategy: {
         ...EnumCellDef,
         keyword: "selectedFacetStrategy",
         description: "Whether the chart should be faceted or not",
-        terminalOptions: Object.values(FacetStrategy).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(FacetStrategy)),
     },
     baseColorScheme: {
         ...EnumCellDef,
         keyword: "baseColorScheme",
         description:
             "The default color scheme if no color overrides are specified",
-        terminalOptions: Object.keys(ColorSchemes).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.keys(ColorSchemes)),
     },
     note: {
         ...StringCellDef,
@@ -174,26 +159,31 @@ export const GrapherGrammar: Grammar = {
         ...EnumCellDef,
         keyword: "sortBy",
         description: "Specify what to sort the entities by",
-        terminalOptions: Object.keys(SortBy).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(SortBy)),
     },
     sortOrder: {
         ...EnumCellDef,
         keyword: "sortOrder",
         description: "Whether to sort entities ascending or descending",
-        terminalOptions: Object.keys(SortOrder).map((keyword) => ({
-            keyword,
-            description: "",
-            cssClass: "",
-        })),
+        terminalOptions: toTerminalOptions(Object.values(SortOrder)),
     },
     sortColumnSlug: {
-        ...EnumCellDef,
+        ...SlugDeclarationCellDef,
         keyword: "sortColumnSlug",
         description:
             "This setting is only respected when `sortBy` is set to `column`",
+    },
+    stackMode: {
+        ...EnumCellDef,
+        keyword: "stackMode",
+        description:
+            "Show chart in absolute (default) or relative mode. Only works for some chart types.",
+        terminalOptions: toTerminalOptions(Object.values(StackMode)),
+    },
+    hideTotalValueLabel: {
+        ...BooleanCellDef,
+        keyword: "hideTotalValueLabel",
+        description:
+            "Hide the total value that is normally displayed to the right of the bars in a stacked bar chart.",
     },
 } as const
