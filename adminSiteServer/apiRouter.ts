@@ -530,6 +530,10 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
         await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [
             chart.id,
         ])
+        await t.execute(
+            `DELETE FROM suggested_chart_revisions WHERE chartId=?`,
+            [chart.id]
+        )
         await t.execute(`DELETE FROM charts WHERE id=?`, [chart.id])
     })
 
