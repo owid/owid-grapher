@@ -1485,7 +1485,7 @@ export class Grapher
                 this.yScaleType !== ScaleType.log
             )
 
-        if (this.facetStrategy === FacetStrategy.metric) return false
+        if (this.facetStrategy !== FacetStrategy.none) return false
 
         return !this.hideRelativeToggle
     }
@@ -1964,6 +1964,9 @@ export class Grapher
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
+        if (facet !== FacetStrategy.none) {
+            this.stackMode = StackMode.absolute
+        }
     }
 
     @action.bound randomSelection(num: number): void {
