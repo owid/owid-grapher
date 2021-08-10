@@ -1908,7 +1908,12 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        if (this.hasMultipleYColumns) {
+        if (
+            // multiple metrics
+            this.hasMultipleYColumns &&
+            // more than one data point per metric
+            this.transformedTable.numRows > 1
+        ) {
             strategies.push(FacetStrategy.metric)
         }
 
