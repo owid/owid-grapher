@@ -194,10 +194,9 @@ function MarimekkoBar({
             : isSelected
             ? color(barBaseColor)?.brighter(0.6).toString() ?? barBaseColor
             : barBaseColor
-    const strokeColor =
-        isHovered || isSelected ? "#555" : isPlaceholder ? "#ccc" : "#666"
+    const strokeColor = barColor
     const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
-    const strokeOpacity = isPlaceholder ? 0.8 : isSelected ? 0.5 : 0.1
+    const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
         ? 0.7
         : isFaint
@@ -207,7 +206,7 @@ function MarimekkoBar({
             ? 0.3
             : 0.7
         : 0.7
-    const overalOpacity = isPlaceholder ? 0.2 : 0.7
+    const overalOpacity = isPlaceholder ? 0.2 : 1.0
 
     let barY: number = 0
     let barHeight: number = 0
@@ -502,8 +501,26 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
+    private getDomainColorForEntity(
+        colorColumn: CoreColumn,
+        colorScale: ColorScale,
+        entityName: string
+    ): EntityColorData | undefined {
+        const hasColorColumn = !colorColumn.isMissing
+        const colorRowsByEntity = hasColorColumn
+            ? colorColumn.owidRowsByEntityName
+            : undefined
+        const colorDomainValue = colorRowsByEntity?.get(entityName)?.[0]
+
+        if (colorDomainValue) {
+            const color = colorScale.getColor(colorDomainValue.value)
+            if (color)
+                return { color, colorDomainValue: colorDomainValue.value }
+            else return undefined
+        } else return undefined
+    }
+
     @computed private get items(): Item[] {
-        const hasColorColumn = !this.colorColumn.isMissing
         const entityNames = this.xColumn.uniqEntityNames
         const { xSeries, colorColumn, colorScale, series } = this
 
@@ -514,21 +531,16 @@ export class MarimekkoChart
                 )
                 if (!xPoint) return undefined
 
-                const colorRowsByEntity = hasColorColumn
-                    ? colorColumn.owidRowsByEntityName
-                    : undefined
-                const colorDomainValue = colorRowsByEntity?.get(entityName)?.[0]
-
-                const color = colorDomainValue
-                    ? colorScale.getColor(colorDomainValue.value)
-                    : undefined
+                const color = this.getDomainColorForEntity(
+                    colorColumn,
+                    colorScale,
+                    entityName
+                )
 
                 return {
                     entityName,
                     xPoint: xPoint,
-                    entityColor: color
-                        ? { colorDomainValue: colorDomainValue?.value, color }
-                        : undefined,
+                    entityColor: color,
                     bars: excludeUndefined(
                         series.map((series): Bar | undefined => {
                             const point = series.points.find(
@@ -775,7 +787,7 @@ export class MarimekkoChart
                     fontWeight={400}
                     fill="#666"
                     opacity={1}
-                    fontSize="1em"
+                    fontSize="0.8em"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{ pointerEvents: "none" }}
@@ -1113,6 +1125,7 @@ export class MarimekkoChart
         // the more they would actually overlap so we need a correction factor. It turns
         // out than tan(angle) is the correction factor we want, although for horizontal
         // labels we don't want to use +infinity :) so we Math.min it with the longest label width
+        if (labelsWithPlacements.length === 0) return []
 
         labelsWithPlacements.sort(
             (a, b) => a.preferredPlacement - b.preferredPlacement
@@ -1302,9 +1315,16 @@ export class MarimekkoChart
     }
 
     @computed private get labels(): LabelCandidateWithElement[] {
-        const { labelAngleInDegrees } = this
+        const { labelAngleInDegrees, colorColumn, colorScale, series } = this
         return this.pickedLabelCandidates.map((candidate) => {
             const labelX = candidate.bounds.width
+            const domainColor = this.getDomainColorForEntity(
+                colorColumn,
+                colorScale,
+                candidate.item.entityId
+            )
+            const seriesColor = series[0].color
+            const color = domainColor?.color ?? seriesColor ?? "#000"
             return {
                 candidate,
                 labelElement: (
@@ -1315,7 +1335,7 @@ export class MarimekkoChart
                         width={candidate.bounds.width}
                         height={candidate.bounds.height}
                         fontWeight={candidate.isSelected ? 700 : 300}
-                        fill="#000"
+                        fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                         opacity={1}
                         fontSize="0.7em"
