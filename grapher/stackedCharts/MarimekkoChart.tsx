@@ -227,6 +227,7 @@ function MarimekkoBar({
             lazy
             isInteractive={isInteractive}
             key={seriesName}
+            animation={false}
             visible={isHovered}
             content={<MarimekkoChart.Tooltip {...tooltipProps} />}
         >
