@@ -1886,7 +1886,12 @@ export class Grapher
         // In relative mode, where the values for every entity sum up to 100%, sorting by total
         // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
         // we sort by entity name instead.
-        if (this.isRelativeMode && sortConfig.sortBy === SortBy.total) {
+        // Marimekko charts are special and there we don't do this forcing of sort order
+        if (
+            !this.isMarimekko &&
+            this.isRelativeMode &&
+            sortConfig.sortBy === SortBy.total
+        ) {
             sortConfig.sortBy = SortBy.entityName
             sortConfig.sortOrder = SortOrder.asc
         }
