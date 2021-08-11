@@ -1334,7 +1334,7 @@ export class MarimekkoChart
                         y={0}
                         width={candidate.bounds.width}
                         height={candidate.bounds.height}
-                        fontWeight={candidate.isSelected ? 700 : 300}
+                        fontWeight={candidate.isSelected ? 700 : 400}
                         fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                         opacity={1}
