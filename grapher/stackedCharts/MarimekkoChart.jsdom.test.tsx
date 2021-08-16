@@ -1,24 +1,12 @@
 #! /usr/bin/env jest
 
 import { Bounds } from "../../clientUtils/Bounds"
-import { SortOrder, SortBy } from "../../clientUtils/owidTypes"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { OwidTable } from "../../coreTable/OwidTable"
-import {
-    SampleColumnSlugs,
-    SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
 import { Grapher } from "../core/Grapher"
 import { ChartTypeName } from "../core/GrapherConstants"
-import { SelectionArray } from "../selection/SelectionArray"
-import {
-    MarimekkoChart,
-    MarimekkoChartManager,
-    BarShape,
-    PlacedItem,
-} from "./MarimekkoChart"
-
+import { MarimekkoChart } from "./MarimekkoChart"
+import { BarShape, PlacedItem } from "./MarimekkoChartConstants"
 it("can filter years correctly", () => {
     const csv = `year,entityName,population,percentBelow2USD
 2000,medium,4000,5

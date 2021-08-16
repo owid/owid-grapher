@@ -27,19 +27,16 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { stackSeries } from "./StackedUtils"
-import { ChartManager } from "../chart/ChartManager"
+
 import {
-    Color,
     HorizontalAlign,
     SortBy,
     SortConfig,
     SortOrder,
-    Time,
 } from "../../clientUtils/owidTypes"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
-    EntityId,
     EntityName,
     LegacyOwidRow,
     OwidTableSlugs,
@@ -63,111 +60,25 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
-
-export interface MarimekkoChartManager extends ChartManager {
-    endTime?: Time
-    excludedEntities?: EntityId[]
-    matchingEntitiesOnly?: boolean
-    xOverrideTime?: number
-    tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
-    sortConfig?: SortConfig
-}
-
-interface EntityColorData {
-    color: Color
-    colorDomainValue: string
-}
-// Points used on the X axis
-interface SimplePoint {
-    value: number
-    entity: string
-    time: number
-}
-
-export interface SimpleChartSeries {
-    seriesName: string
-    points: SimplePoint[]
-}
-
-export enum BarShape {
+import {
+    MarimekkoChartManager,
+    EntityColorData,
+    SimplePoint,
+    SimpleChartSeries,
+    BarShape,
     Bar,
-    BarPlaceholder,
-}
-
-interface Bar {
-    kind: BarShape.Bar
-    color: Color // color from the variable
-    seriesName: string
-    yPoint: StackedPoint<EntityName>
-}
-
-interface BarPlaceholder {
-    kind: BarShape.BarPlaceholder
-    seriesName: string
-    height: number
-}
-
-type BarOrPlaceholder = Bar | BarPlaceholder
-
-export interface Item {
-    entityName: string
-    entityColor: EntityColorData | undefined
-    bars: Bar[] // contains the y values for every y variable
-    xPoint: SimplePoint // contains the single x value
-}
-
-export interface PlacedItem extends Item {
-    xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
-}
-
-interface TooltipProps {
-    item: Item
-    highlightedSeriesName?: string
-    targetTime?: Time
-    timeColumn: CoreColumn
-    yAxisColumn: CoreColumn
-    xAxisColumn: CoreColumn
-}
-
-interface EntityWithSize {
-    entityId: string
-    xValue: number
-    ySortValue: number | undefined
-}
-interface LabelCandidate {
-    item: EntityWithSize
-    bounds: Bounds
-    isPicked: boolean
-    isSelected: boolean
-}
-
-interface LabelWithPlacement {
-    label: JSX.Element
-    preferredPlacement: number
-    correctedPlacement: number
-    labelKey: string
-}
-
-interface LabelCandidateWithElement {
-    candidate: LabelCandidate
-    labelElement: JSX.Element
-}
+    Item,
+    PlacedItem,
+    TooltipProps,
+    EntityWithSize,
+    LabelCandidate,
+    LabelWithPlacement,
+    LabelCandidateWithElement,
+    MarimekkoBarProps,
+} from "./MarimekkoChartConstants"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
-
-interface MarimekkoBarProps {
-    bar: BarOrPlaceholder
-    tooltipProps: TooltipProps
-    barWidth: number
-    isHovered: boolean
-    isSelected: boolean
-    isFaint: boolean
-    entityColor: string | undefined
-    y0: number
-    isInteractive: boolean
-    dualAxis: DualAxis
-}
 
 function MarimekkoBar({
     bar,
@@ -325,6 +236,137 @@ export class MarimekkoChart
         )
     }
 
+    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
+        const { colorScheme, yColumns } = this
+        return (
+            yColumns
+                .map((col, i) => {
+                    return {
+                        seriesName: col.displayName,
+                        columnSlug: col.slug,
+                        color:
+                            col.def.color ??
+                            colorScheme.getColors(yColumns.length)[i],
+                        points: col.owidRows.map((row) => ({
+                            time: row.time,
+                            position: row.entityName,
+                            value: row.value,
+                            valueOffset: 0,
+                        })),
+                    }
+                })
+                // Do not plot columns without data
+                .filter((series) => series.points.length > 0)
+        )
+    }
+
+    @computed get series(): readonly StackedSeries<EntityName>[] {
+        return stackSeries(this.unstackedSeries)
+    }
+
+    @computed get xSeries(): SimpleChartSeries {
+        const createStackedXPoints = (
+            rows: LegacyOwidRow<any>[]
+        ): SimplePoint[] => {
+            const points: SimplePoint[] = []
+            for (const row of rows) {
+                points.push({
+                    time: row.time,
+                    value: row.value,
+                    entity: row.entityName,
+                })
+            }
+            return points
+        }
+        const column = this.xColumn
+        return {
+            seriesName: column.displayName,
+            points: createStackedXPoints(column.owidRows),
+        }
+    }
+
+    @computed protected get yColumnSlugs(): string[] {
+        return (
+            this.manager.yColumnSlugsInSelectionOrder ??
+            autoDetectYColumnSlugs(this.manager)
+        )
+    }
+
+    @computed protected get xColumnSlug(): string | undefined {
+        return this.manager.xColumnSlug
+    }
+
+    @computed protected get xColumn(): CoreColumn {
+        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (!columnSlugs.length) console.warn("No x column slug!")
+        return this.transformedTable.getColumns(columnSlugs)[0]
+    }
+
+    @computed private get latestTime(): number | undefined {
+        const times = this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
+            this.yColumnSlugs
+        )
+
+        return times ? last(times) : undefined
+    }
+    @computed private get tableAtLatestTimelineTimepoint():
+        | OwidTable
+        | undefined {
+        if (this.latestTime)
+            return this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.filterByTargetTimes(
+                [this.latestTime],
+                0
+            )
+        else return undefined
+    }
+    @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
+        const columnSlug = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (this.tableAtLatestTimelineTimepoint)
+            return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
+        else return undefined
+    }
+
+    @computed protected get yColumnsAtLastTimePoint(): CoreColumn[] {
+        const columnSlugs = this.yColumnSlugs
+        return (
+            this.tableAtLatestTimelineTimepoint?.getColumns(columnSlugs) ?? []
+        )
+    }
+
+    @computed protected get yColumns(): CoreColumn[] {
+        return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed private get colorScheme(): ColorScheme {
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : undefined) ?? ColorSchemes["owid-distinct"]
+        )
+    }
+
+    @computed private get colorColumnSlug(): string | undefined {
+        return this.manager.colorColumnSlug
+    }
+
+    @computed private get colorColumn(): CoreColumn {
+        return this.transformedTable.get(this.colorColumnSlug)
+    }
+
+    colorScale = new ColorScale(this)
+    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
+        return (
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
+        )
+    }
+
+    @computed get colorScaleColumn(): CoreColumn {
+        // We need to use inputTable in order to get consistent coloring for a variable across
+        // charts, e.g. each continent being assigned to the same color.
+        // inputTable is unfiltered, so it contains every value that exists in the variable.
+        return this.inputTable.get(this.colorColumnSlug)
+    }
     @computed private get sortConfig(): SortConfig {
         return this.manager.sortConfig ?? {}
     }
@@ -335,6 +377,19 @@ export class MarimekkoChart
 
     @computed private get bounds(): Bounds {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+    }
+
+    @computed private get innerBounds(): Bounds {
+        const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
+        const labelLinesHeight = MARKER_AREA_HEIGHT
+        const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
+            Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
+            whiteSpaceOnLeft
+        return this.bounds
+            .padBottom(this.longestLabelHeight)
+            .padBottom(labelLinesHeight)
+            .padTop(this.legend.height + this.legendPaddingTop)
+            .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
     @computed private get baseFontSize(): number {
@@ -414,13 +469,6 @@ export class MarimekkoChart
         return [this.x0, sum]
     }
 
-    @computed private get yRange(): [number, number] {
-        return [
-            this.bounds.top - this.legend.height,
-            this.bounds.bottom - this.longestLabelHeight,
-        ]
-    }
-
     @computed private get xRange(): [number, number] {
         return [this.bounds.left, this.bounds.right]
     }
@@ -462,19 +510,6 @@ export class MarimekkoChart
         const label = config.label || xAxisLabelBase
         axis.label = label
         return axis
-    }
-
-    @computed private get innerBounds(): Bounds {
-        const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
-        const labelLinesHeight = MARKER_AREA_HEIGHT
-        const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
-            Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
-            whiteSpaceOnLeft
-        return this.bounds
-            .padBottom(this.longestLabelHeight)
-            .padBottom(labelLinesHeight)
-            .padTop(this.legend.height + this.legendPaddingTop)
-            .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
     @computed private get dualAxis(): DualAxis {
@@ -1532,137 +1567,5 @@ export class MarimekkoChart
         return yColumns.every((col) => col.isEmpty)
             ? `No matching data in columns ${yColumnSlugs.join(", ")}`
             : ""
-    }
-
-    @computed protected get yColumnSlugs(): string[] {
-        return (
-            this.manager.yColumnSlugsInSelectionOrder ??
-            autoDetectYColumnSlugs(this.manager)
-        )
-    }
-
-    @computed protected get xColumnSlug(): string | undefined {
-        return this.manager.xColumnSlug
-    }
-
-    @computed protected get xColumn(): CoreColumn {
-        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
-        if (!columnSlugs.length) console.warn("No x column slug!")
-        return this.transformedTable.getColumns(columnSlugs)[0]
-    }
-
-    @computed private get latestTime(): number | undefined {
-        const times = this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
-            this.yColumnSlugs
-        )
-
-        return times ? last(times) : undefined
-    }
-    @computed private get tableAtLatestTimelineTimepoint():
-        | OwidTable
-        | undefined {
-        if (this.latestTime)
-            return this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.filterByTargetTimes(
-                [this.latestTime],
-                0
-            )
-        else return undefined
-    }
-    @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
-        const columnSlug = this.xColumnSlug ? [this.xColumnSlug] : []
-        if (this.tableAtLatestTimelineTimepoint)
-            return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
-        else return undefined
-    }
-
-    @computed protected get yColumnsAtLastTimePoint(): CoreColumn[] {
-        const columnSlugs = this.yColumnSlugs
-        return (
-            this.tableAtLatestTimelineTimepoint?.getColumns(columnSlugs) ?? []
-        )
-    }
-
-    @computed protected get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
-    }
-
-    @computed private get colorScheme(): ColorScheme {
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : undefined) ?? ColorSchemes["owid-distinct"]
-        )
-    }
-
-    @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
-    }
-
-    @computed private get colorColumn(): CoreColumn {
-        return this.transformedTable.get(this.colorColumnSlug)
-    }
-
-    colorScale = new ColorScale(this)
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
-        return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
-        )
-    }
-
-    @computed get colorScaleColumn(): CoreColumn {
-        // We need to use inputTable in order to get consistent coloring for a variable across
-        // charts, e.g. each continent being assigned to the same color.
-        // inputTable is unfiltered, so it contains every value that exists in the variable.
-        return this.inputTable.get(this.colorColumnSlug)
-    }
-
-    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
-        const { colorScheme, yColumns } = this
-        return (
-            yColumns
-                .map((col, i) => {
-                    return {
-                        seriesName: col.displayName,
-                        columnSlug: col.slug,
-                        color:
-                            col.def.color ??
-                            colorScheme.getColors(yColumns.length)[i],
-                        points: col.owidRows.map((row) => ({
-                            time: row.time,
-                            position: row.entityName,
-                            value: row.value,
-                            valueOffset: 0,
-                        })),
-                    }
-                })
-                // Do not plot columns without data
-                .filter((series) => series.points.length > 0)
-        )
-    }
-
-    @computed get series(): readonly StackedSeries<EntityName>[] {
-        return stackSeries(this.unstackedSeries)
-    }
-
-    @computed get xSeries(): SimpleChartSeries {
-        const createStackedXPoints = (
-            rows: LegacyOwidRow<any>[]
-        ): SimplePoint[] => {
-            const points: SimplePoint[] = []
-            for (const row of rows) {
-                points.push({
-                    time: row.time,
-                    value: row.value,
-                    entity: row.entityName,
-                })
-            }
-            return points
-        }
-        const column = this.xColumn
-        return {
-            seriesName: column.displayName,
-            points: createStackedXPoints(column.owidRows),
-        }
     }
 }

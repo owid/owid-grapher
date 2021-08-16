@@ -8,13 +8,13 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
+import { MarimekkoChart } from "./MarimekkoChart"
 import {
-    MarimekkoChart,
     MarimekkoChartManager,
     BarShape,
-    PlacedItem,
     Item,
-} from "./MarimekkoChart"
+    PlacedItem,
+} from "./MarimekkoChartConstants"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({
