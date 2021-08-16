@@ -77,7 +77,6 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             href: "/identify-covid-exemplars",
             id: "exemplars",
         },
-        { label: "All charts", href: "/coronavirus-data", id: "data" },
     ],
     co2: [
         {
