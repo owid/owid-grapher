@@ -30,6 +30,7 @@ import { stackSeries } from "./StackedUtils"
 import { ChartManager } from "../chart/ChartManager"
 import {
     Color,
+    HorizontalAlign,
     SortBy,
     SortConfig,
     SortOrder,
@@ -44,7 +45,6 @@ import {
     OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import {
-    LegendAlign,
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
@@ -426,15 +426,11 @@ export class MarimekkoChart
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return (
-            this.manager.yAxis ?? new AxisConfig(this.manager.yAxisConfig, this)
-        )
+        return new AxisConfig(this.manager.yAxisConfig, this)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return (
-            this.manager.xAxis ?? new AxisConfig(this.manager.xAxisConfig, this)
-        )
+        return new AxisConfig(this.manager.xAxisConfig, this)
     }
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
@@ -634,8 +630,8 @@ export class MarimekkoChart
         return this.bounds.width
     }
 
-    @computed get legendAlign(): LegendAlign {
-        return LegendAlign.left
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.left
     }
 
     @computed get fontSize(): number {
