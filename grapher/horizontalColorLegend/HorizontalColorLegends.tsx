@@ -83,36 +83,36 @@ export interface HorizontalColorLegendManager {
 class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
-    @computed get manager(): HorizontalColorLegendManager {
+    @computed protected get manager(): HorizontalColorLegendManager {
         return this.props.manager
     }
 
-    @computed get legendX(): number {
+    @computed protected get legendX(): number {
         return this.manager.legendX ?? 0
     }
 
-    @computed get categoryLegendY(): number {
+    @computed protected get categoryLegendY(): number {
         return this.manager.categoryLegendY ?? 0
     }
 
-    @computed get numericLegendY(): number {
+    @computed protected get numericLegendY(): number {
         return this.manager.numericLegendY ?? 0
     }
 
-    @computed get legendWidth(): number {
+    @computed protected get legendWidth(): number {
         return this.manager.legendWidth ?? 200
     }
 
-    @computed get legendHeight(): number {
+    @computed protected get legendHeight(): number {
         return this.manager.legendHeight ?? 200
     }
 
-    @computed get legendAlign() {
+    @computed protected get legendAlign(): HorizontalAlign {
         // Assume center alignment if none specified, for backwards-compatibility
         return this.manager.legendAlign ?? HorizontalAlign.center
     }
 
-    @computed get fontSize(): number {
+    @computed protected get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 }
