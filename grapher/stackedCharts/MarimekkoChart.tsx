@@ -89,7 +89,7 @@ export interface SimpleChartSeries {
     points: SimplePoint[]
 }
 
-enum BarShape {
+export enum BarShape {
     Bar,
     BarPlaceholder,
 }
@@ -109,14 +109,14 @@ interface BarPlaceholder {
 
 type BarOrPlaceholder = Bar | BarPlaceholder
 
-interface Item {
+export interface Item {
     entityName: string
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint // contains the single x value
 }
 
-interface PlacedItem extends Item {
+export interface PlacedItem extends Item {
     xPosition: number // x value (in pixel space) when placed in final sorted order and including shifts due to one pixel entity minimum
 }
 
