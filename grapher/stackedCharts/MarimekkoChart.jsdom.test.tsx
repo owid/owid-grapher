@@ -156,7 +156,7 @@ it("shows no data points at the end", () => {
     const grapher = new Grapher(manager)
     const chart = new MarimekkoChart({
         manager: grapher,
-        bounds: new Bounds(0, 0, 1000, 1000),
+        bounds: new Bounds(0, 0, 1001, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
