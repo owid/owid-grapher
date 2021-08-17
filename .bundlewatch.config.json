@@ -1,7 +1,7 @@
 {
     "files": [
         {
-            "path": "./itsJustJavascript/webpack/commons.js",
+            "path": "./itsJustJavascript/webpack/commons-js.js",
             "maxSize": "1.85 MB"
         },
         {
