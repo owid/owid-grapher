@@ -1081,13 +1081,28 @@ export class MarimekkoChart
             else return 0
         })
 
+        const averageCharacterCount =
+            sumBy(labelCandidates, (item) => item.item.entityId.length) /
+            labelCandidates.length
+
         const firstDefined = labelCandidates.find(
             (item) => item.item.ySortValue !== undefined
         )
+        const labelCharacterCountThreshold = 1.4 * averageCharacterCount
         // Always pick the first and last element and the first one that is not undefined for y
-        if (firstDefined) firstDefined.isPicked = true
+        // but only if it is less than 1.4 times as long in character count as the average label (avoid
+        // picking "Democratic Republic of Congo" for this reason and thus needing lots of space)
+        if (
+            firstDefined &&
+            firstDefined.item.entityId.length < labelCharacterCountThreshold
+        )
+            firstDefined.isPicked = true
         const labelHeight = labelCandidates[0].bounds.height
-        labelCandidates[labelCandidates.length - 1].isPicked = true
+        if (
+            labelCandidates[labelCandidates.length - 1].item.entityId.length <
+            labelCharacterCountThreshold
+        )
+            labelCandidates[labelCandidates.length - 1].isPicked = true
         const availablePixels = xRange[1] - xRange[0]
 
         const numLabelsToAdd = Math.floor(
