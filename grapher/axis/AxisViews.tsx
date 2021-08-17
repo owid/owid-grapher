@@ -5,7 +5,11 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
-import { HorizontalAlign, VerticalAlign } from "../../clientUtils/owidTypes"
+import {
+    HorizontalAlign,
+    Position,
+    VerticalAlign,
+} from "../../clientUtils/owidTypes"
 import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
@@ -111,17 +115,12 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
-    horizontalAxisLabelsOnTop?: boolean
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const {
-            dualAxis,
-            showTickMarks,
-            horizontalAxisLabelsOnTop,
-        } = this.props
+        const { dualAxis, showTickMarks } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
@@ -151,7 +150,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
                 preferredAxisPosition={innerBounds.bottom}
-                horizontalAxisLabelsOnTop={horizontalAxisLabelsOnTop}
             />
         )
 
@@ -216,7 +214,6 @@ export class HorizontalAxisComponent extends React.Component<{
     axis: HorizontalAxis
     showTickMarks?: boolean
     preferredAxisPosition?: number
-    horizontalAxisLabelsOnTop?: boolean
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -228,8 +225,8 @@ export class HorizontalAxisComponent extends React.Component<{
 
     // for scale selector. todo: cleanup
     @computed get bounds(): Bounds {
-        const { bounds, horizontalAxisLabelsOnTop } = this.props
-        if (horizontalAxisLabelsOnTop)
+        const { bounds, axis } = this.props
+        if (axis.orient === Position.top)
             return new Bounds(bounds.right, bounds.top + 30, 100, 100)
         else return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
@@ -239,10 +236,10 @@ export class HorizontalAxisComponent extends React.Component<{
             bounds,
             axis,
             showTickMarks,
-            horizontalAxisLabelsOnTop,
             preferredAxisPosition,
         } = this.props
-        const { tickLabels, labelTextWrap: label, labelOffset } = axis
+        const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const horizontalAxisLabelsOnTop = orient === Position.top
         const textColor = "#666"
         const labelYPosition = horizontalAxisLabelsOnTop
             ? bounds.top

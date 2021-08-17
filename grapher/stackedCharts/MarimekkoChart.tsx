@@ -30,6 +30,7 @@ import { stackSeries } from "./StackedUtils"
 
 import {
     HorizontalAlign,
+    Position,
     SortBy,
     SortConfig,
     SortOrder,
@@ -497,7 +498,10 @@ export class MarimekkoChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        return new AxisConfig(
+            { ...this.manager.xAxisConfig, orient: Position.top },
+            this
+        )
     }
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
@@ -541,7 +545,6 @@ export class MarimekkoChart
             bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
-            horizontalAxisOnTop: true,
         })
     }
 
@@ -777,11 +780,7 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <DualAxisComponent
-                    dualAxis={dualAxis}
-                    showTickMarks={true}
-                    horizontalAxisLabelsOnTop={true}
-                />
+                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}
             </g>
