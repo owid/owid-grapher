@@ -380,8 +380,16 @@ export class MarimekkoChart
     }
 
     @computed private get innerBounds(): Bounds {
-        const whiteSpaceOnLeft = this.bounds.left + this.verticalAxisPart.width
+        // This is a workaround to get the actual width of the vertical axis - dualAxis does this
+        // internally but we can't access this.dualAxis here due to a dependency cycle
+        const axis = this.verticalAxisPart.clone()
+        axis.range = [0, this.bounds.height]
+        const verticalAxisTrueWidth = axis.width
+
+        const whiteSpaceOnLeft = this.bounds.left + verticalAxisTrueWidth
         const labelLinesHeight = MARKER_AREA_HEIGHT
+        // only pad left by the amount the longest label would exceed whatever space the
+        // vertical axis needs anyhow for label and tickmarks
         const marginToEnsureWidestEntityLabelFitsEvenIfAtX0 =
             Math.max(whiteSpaceOnLeft, this.longestLabelWidth) -
             whiteSpaceOnLeft
@@ -418,6 +426,15 @@ export class MarimekkoChart
         ]
     }
 
+    /** This flag is on if we are on a non-narrow display. If it is set then the
+        every entity is drawn at least one px wide (e.g. the Vatican in a list of
+        countries). If this happens then the xDomainCorrectionFactor is caluclated
+        to compensate for this artificial enlarging of small entities
+    */
+    @computed private get mustEnsureOnePixelXSize(): boolean {
+        return !this.isNarrow
+    }
+
     @computed private get xDomainCorrectionFactor(): number {
         // Rounding up every country so that it is at least one pixel wide
         // on the X axis has a pretty annoying side effect: since there are
@@ -438,6 +455,8 @@ export class MarimekkoChart
         // smaller by one pixel whenever we enlarge one small country to one pixel.
 
         const { xSeries, dualAxis } = this
+
+        if (!this.mustEnsureOnePixelXSize) return 1
 
         if (!xSeries.points.length) return 1
 
@@ -486,10 +505,15 @@ export class MarimekkoChart
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label =
-            config.label ||
-            (this.yColumns.length > 0 ? this.yColumns[0].displayName : "")
+        const fallbackLabel =
+            this.yColumns.length > 0 ? this.yColumns[0].displayName : ""
+        axis.label = this.isNarrow ? "" : config.label || fallbackLabel
+
         return axis
+    }
+    @computed private get isNarrow(): boolean {
+        // TODO: this should probably come from grapher?
+        return this.bounds.width < 650 // innerBounds would lead to dependency cycle
     }
     @computed private get xAxisLabelBase(): string {
         const xDimName = this.xColumn?.displayName
@@ -628,17 +652,24 @@ export class MarimekkoChart
     }
 
     @computed get placedItems(): PlacedItem[] {
-        const { sortedItems, dualAxis, x0, xDomainCorrectionFactor } = this
+        const {
+            sortedItems,
+            dualAxis,
+            x0,
+            xDomainCorrectionFactor,
+            mustEnsureOnePixelXSize,
+        } = this
         const placedItems: PlacedItem[] = []
         let currentX = 0
         for (const item of sortedItems) {
             placedItems.push({ ...item, xPosition: currentX })
-            currentX += Math.max(
-                1,
+            const preciseX =
                 dualAxis.horizontalAxis.place(
                     item.xPoint.value * xDomainCorrectionFactor
                 ) - dualAxis.horizontalAxis.place(x0)
-            )
+            currentX += mustEnsureOnePixelXSize
+                ? Math.max(1, preciseX)
+                : preciseX
         }
         return placedItems
     }
@@ -770,7 +801,7 @@ export class MarimekkoChart
             labelLines,
             placedItems,
             hoveredEntityName,
-            sortConfig,
+            mustEnsureOnePixelXSize,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
@@ -872,7 +903,11 @@ export class MarimekkoChart
                     xPoint.value * xDomainCorrectionFactor
                 ) - dualAxis.horizontalAxis.place(x0)
             const correctedWidth = exactWidth
-            const barWidth = correctedWidth > 1 ? correctedWidth : 1
+            const barWidth = mustEnsureOnePixelXSize
+                ? correctedWidth > 1
+                    ? correctedWidth
+                    : 1
+                : correctedWidth
 
             const isSelected = selectionSet.has(entityName)
             const isHovered = entityName === hoveredEntityName
@@ -1087,6 +1122,7 @@ export class MarimekkoChart
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
             labelAngleInDegrees,
+            mustEnsureOnePixelXSize,
         } = this
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
@@ -1099,7 +1135,11 @@ export class MarimekkoChart
                         xPoint * xDomainCorrectionFactor
                     ) - dualAxis.horizontalAxis.place(x0)
                 const correctedWidth = exactWidth
-                const barWidth = correctedWidth > 1 ? correctedWidth : 1
+                const barWidth = mustEnsureOnePixelXSize
+                    ? correctedWidth > 1
+                        ? correctedWidth
+                        : 1
+                    : correctedWidth
                 const labelId = candidate.item.entityId
                 if (!item) {
                     console.error(

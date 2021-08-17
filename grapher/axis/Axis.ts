@@ -593,7 +593,7 @@ export class DualAxis {
     }
 
     // We calculate an initial width from the range of the input bounds
-    @computed private get verticalAxisWidth(): number {
+    @computed get verticalAxisWidth(): number {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
         return axis.width
