@@ -33,6 +33,7 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                         name: "commons",
                         chunks: "all",
                         minChunks: 2,
+                        maxSize: isProduction ? 1024 * 1024 : undefined, // in bytes
                     },
                 },
             },
