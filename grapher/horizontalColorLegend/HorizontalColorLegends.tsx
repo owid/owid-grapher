@@ -495,22 +495,23 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return lines
     }
 
-    @computed get width(): number {
+    @computed get contentWidth(): number {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
+        const width = this.contentWidth
 
         // Center each line
         lines.forEach((line) => {
             // TODO abstract this
             const xShift =
                 align === HorizontalAlign.center
-                    ? (this.width - line.totalWidth) / 2
+                    ? (width - line.totalWidth) / 2
                     : align === HorizontalAlign.right
-                    ? this.width - line.totalWidth
+                    ? width - line.totalWidth
                     : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
