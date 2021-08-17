@@ -499,10 +499,14 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
+    @computed private get containerWidth(): number {
+        return this.manager.legendWidth ?? this.contentWidth
+    }
+
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
-        const width = this.contentWidth
+        const width = this.containerWidth
 
         // Center each line
         lines.forEach((line) => {
@@ -525,7 +529,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed get height(): number {
-        return max(this.marks.map((mark) => mark.y + mark.rectSize)) as number
+        return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
     render(): JSX.Element {
