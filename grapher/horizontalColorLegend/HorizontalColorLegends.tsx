@@ -473,7 +473,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 text: bin.text,
                 bounds: labelBounds.set({
                     x: markX + rectSize + rectPadding,
-                    y: markY + 1,
+                    y: markY + rectSize / 2,
                 }),
                 fontSize,
             }
@@ -572,7 +572,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                                     // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                                     // do with some rough positioning.
-                                    dy={dyFromAlign(VerticalAlign.bottom)}
+                                    dy={dyFromAlign(VerticalAlign.middle)}
                                     fontSize={mark.label.fontSize}
                                 >
                                     {mark.label.text}
