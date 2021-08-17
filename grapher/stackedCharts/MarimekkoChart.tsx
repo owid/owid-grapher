@@ -1443,8 +1443,13 @@ export class MarimekkoChart
     }
 
     static Tooltip(props: TooltipProps): JSX.Element {
-        let hasTimeNotice = false
         const isSingleVariable = props.item.bars.length === 1
+        // shouldShowXTimeNoitice is a bit of a lie since at the moment we don't include
+        // entities that don't have x values for the current year. This might change though
+        // and then the mechanism is already in place
+        const shouldShowXTimeNotice =
+            props.item.xPoint.time !== props.targetTime
+        let hasTimeNotice = shouldShowXTimeNotice
         const header = isSingleVariable ? (
             <tr>
                 <td>
@@ -1487,10 +1492,11 @@ export class MarimekkoChart
                         const isFaint =
                             highlightedSeriesName !== undefined &&
                             !isHighlighted
-                        const shouldShowTimeNotice =
+                        const shouldShowYTimeNotice =
                             bar.yPoint.value !== undefined &&
                             bar.yPoint.time !== props.targetTime
-                        hasTimeNotice ||= shouldShowTimeNotice
+
+                        hasTimeNotice ||= shouldShowYTimeNotice
                         const colorSquare = isSingleVariable ? null : (
                             <div
                                 style={{
@@ -1537,7 +1543,7 @@ export class MarimekkoChart
                                               }
                                           )}
                                 </td>
-                                {shouldShowTimeNotice && (
+                                {shouldShowYTimeNotice && (
                                     <td
                                         style={{
                                             fontWeight: "normal",
@@ -1556,7 +1562,7 @@ export class MarimekkoChart
                                             />{" "}
                                         </span>
                                         {props.timeColumn.formatValue(
-                                            props.item.xPoint.time
+                                            bar.yPoint.time
                                         )}
                                     </td>
                                 )}
@@ -1574,6 +1580,29 @@ export class MarimekkoChart
                         >
                             {props.xAxisColumn.formatValueShort(
                                 props.item.xPoint.value
+                            )}
+                            {shouldShowXTimeNotice && (
+                                <td
+                                    style={{
+                                        fontWeight: "normal",
+                                        color: "#707070",
+                                        fontSize: "0.8em",
+                                        whiteSpace: "nowrap",
+                                        paddingLeft: "8px",
+                                    }}
+                                >
+                                    <span className="icon">
+                                        <FontAwesomeIcon
+                                            icon={faInfoCircle}
+                                            style={{
+                                                marginRight: "0.25em",
+                                            }}
+                                        />{" "}
+                                    </span>
+                                    {props.timeColumn.formatValue(
+                                        props.item.xPoint.time
+                                    )}
+                                </td>
                             )}
                         </td>
                         <td></td>
