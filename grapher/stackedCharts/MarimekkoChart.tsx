@@ -132,34 +132,161 @@ function MarimekkoBar({
     }
     const barX = 0
 
+    const renderedBar = (
+        <g>
+            <rect
+                x={0}
+                y={0}
+                transform={`translate(${barX}, ${barY - barHeight})`}
+                width={barWidth}
+                height={barHeight}
+                fill={barColor}
+                fillOpacity={fillOpacity}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeOpacity={strokeOpacity}
+                opacity={overalOpacity}
+                style={{
+                    transition: "translate 200ms ease",
+                }}
+            />
+        </g>
+    )
+    if (tooltipProps) {
+        return (
+            <TippyIfInteractive
+                lazy
+                isInteractive={isInteractive}
+                key={seriesName}
+                animation={false}
+                visible={isHovered}
+                content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+            >
+                {renderedBar}
+            </TippyIfInteractive>
+        )
+    } else return renderedBar
+}
+
+interface MarimekkoBarsProps {
+    entityName: string
+    bars: Bar[]
+    entityColor: EntityColorData | undefined
+    isFaint: boolean
+    isHovered: boolean
+    isSelected: boolean
+    barWidth: number
+    tooltipProps: TooltipProps
+    currentX: number
+    onEntityMouseOver: (entityName: string) => void
+    onEntityMouseLeave: () => void
+    onEntityClick: (entityName: string) => void
+    labelYOffset: number
+    y0: number
+    noDataHeight: number
+    dualAxis: DualAxis
+    isExportingToSvgOrPng: boolean | undefined
+}
+
+function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
+    7
+    const {
+        entityName,
+        bars,
+        entityColor,
+        isFaint,
+        isHovered,
+        isSelected,
+        barWidth,
+        tooltipProps,
+        currentX,
+        onEntityClick,
+        onEntityMouseLeave,
+        onEntityMouseOver,
+        labelYOffset,
+        y0,
+        noDataHeight,
+        dualAxis,
+        isExportingToSvgOrPng,
+    } = props
+
+    let content = undefined
+    if (bars.length) {
+        const allButLast = bars.slice(0, -1)
+        const last = bars[bars.length - 1]
+        // This is annoying - I tried to use the tippy element around all bars instead of inside
+        // one single bar but then it renders at the document origin instead of at the right attach point
+        // since we will switch to another tooltip solution anyhow I would leave it at this for now -
+        // later on this splitting into allbutlast and last can be removed and tooltips just done elsewhere
+        const allButLastElements = allButLast.map((bar) => (
+            <MarimekkoBar
+                key={`${entityName}-${bar.seriesName}`}
+                bar={bar}
+                tooltipProps={undefined}
+                barWidth={barWidth}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isFaint={isFaint}
+                entityColor={entityColor?.color}
+                y0={y0}
+                isInteractive={!isExportingToSvgOrPng}
+                dualAxis={dualAxis}
+            />
+        ))
+        const lastElement = (
+            <MarimekkoBar
+                key={`${entityName}-${last.seriesName}`}
+                bar={last}
+                tooltipProps={{
+                    ...tooltipProps,
+                    highlightedSeriesName: last.seriesName,
+                }}
+                barWidth={barWidth}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isFaint={isFaint}
+                entityColor={entityColor?.color}
+                y0={y0}
+                isInteractive={!isExportingToSvgOrPng}
+                dualAxis={dualAxis}
+            />
+        )
+
+        content = allButLastElements
+        content.push(lastElement)
+    } else {
+        content = (
+            <MarimekkoBar
+                key={`${entityName}-placeholder`}
+                tooltipProps={tooltipProps}
+                bar={{
+                    kind: BarShape.BarPlaceholder,
+                    seriesName: entityName,
+                    height: noDataHeight,
+                }}
+                barWidth={barWidth}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isFaint={isFaint}
+                entityColor={entityColor?.color}
+                y0={y0}
+                isInteractive={!isExportingToSvgOrPng}
+                dualAxis={dualAxis}
+            />
+        )
+    }
+
     return (
-        <TippyIfInteractive
-            lazy
-            isInteractive={isInteractive}
-            key={seriesName}
-            animation={false}
-            visible={isHovered}
-            content={<MarimekkoChart.Tooltip {...tooltipProps} />}
+        <g
+            key={entityName}
+            className="bar"
+            transform={`translate(${currentX}, ${labelYOffset})`}
+            onMouseOver={(): void => onEntityMouseOver(entityName)}
+            onMouseLeave={(): void => onEntityMouseLeave()}
+            onClick={(): void => onEntityClick(entityName)}
         >
-            <g>
-                <rect
-                    x={0}
-                    y={0}
-                    transform={`translate(${barX}, ${barY - barHeight})`}
-                    width={barWidth}
-                    height={barHeight}
-                    fill={barColor}
-                    fillOpacity={fillOpacity}
-                    stroke={strokeColor}
-                    strokeWidth={strokeWidth}
-                    strokeOpacity={strokeOpacity}
-                    opacity={overalOpacity}
-                    style={{
-                        transition: "translate 200ms ease",
-                    }}
-                />
-            </g>
-        </TippyIfInteractive>
+            {content}
+        </g>
     )
 }
 
@@ -916,57 +1043,27 @@ export class MarimekkoChart
                     entityColor?.colorDomainValue !== focusSeriesName) ||
                 (hasSelection && !isSelected)
 
-            const result = (
-                <g
-                    key={entityName}
-                    className="bar"
-                    transform={`translate(${currentX}, ${labelYOffset})`}
-                    onMouseOver={(): void => this.onEntityMouseOver(entityName)}
-                    onMouseLeave={(): void => this.onEntityMouseLeave()}
-                    onClick={(): void => this.onEntityClick(entityName)}
-                >
-                    {bars.length ? (
-                        bars.map((bar) => (
-                            <MarimekkoBar
-                                key={`${entityName}-${bar.seriesName}`}
-                                bar={bar}
-                                tooltipProps={{
-                                    ...tooltipProps,
-                                    highlightedSeriesName: bar.seriesName,
-                                }}
-                                barWidth={barWidth}
-                                isHovered={isHovered}
-                                isSelected={isSelected}
-                                isFaint={isFaint}
-                                entityColor={entityColor?.color}
-                                y0={y0}
-                                isInteractive={
-                                    !this.manager.isExportingtoSvgOrPng
-                                }
-                                dualAxis={dualAxis}
-                            />
-                        ))
-                    ) : (
-                        <MarimekkoBar
-                            key={`${entityName}-placeholder`}
-                            tooltipProps={tooltipProps}
-                            bar={{
-                                kind: BarShape.BarPlaceholder,
-                                seriesName: entityName,
-                                height: noDataHeight,
-                            }}
-                            barWidth={barWidth}
-                            isHovered={isHovered}
-                            isSelected={isSelected}
-                            isFaint={isFaint}
-                            entityColor={entityColor?.color}
-                            y0={y0}
-                            isInteractive={!this.manager.isExportingtoSvgOrPng}
-                            dualAxis={dualAxis}
-                        />
-                    )}
-                </g>
-            )
+            const barsProps = {
+                entityName,
+                bars,
+                xPoint,
+                entityColor,
+                isFaint,
+                isHovered,
+                isSelected,
+                barWidth,
+                tooltipProps,
+                currentX,
+                onEntityClick: this.onEntityClick,
+                onEntityMouseLeave: this.onEntityMouseLeave,
+                onEntityMouseOver: this.onEntityMouseOver,
+                labelYOffset,
+                y0,
+                noDataHeight,
+                dualAxis,
+                isExportingToSvgOrPng: this.manager.isExportingtoSvgOrPng,
+            }
+            const result = <MarimekkoBarsForOneEntity {...barsProps} />
             if (isSelected || isHovered) highlightedElements.push(result)
             else normalElements.push(result)
         }

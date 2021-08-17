@@ -97,7 +97,7 @@ export interface LabelCandidateWithElement {
 }
 export interface MarimekkoBarProps {
     bar: BarOrPlaceholder
-    tooltipProps: TooltipProps
+    tooltipProps: TooltipProps | undefined
     barWidth: number
     isHovered: boolean
     isSelected: boolean
