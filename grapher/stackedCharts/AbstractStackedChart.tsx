@@ -34,6 +34,7 @@ import { select } from "d3-selection"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { SelectionArray } from "../selection/SelectionArray"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -315,5 +316,22 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
 
     @computed get series(): readonly StackedSeries<PositionType>[] {
         return this.unstackedSeries
+    }
+
+    @computed get externalLegendBins(): CategoricalBin[] {
+        if (this.manager.hideLegend) {
+            return this.series
+                .map(
+                    (series, index) =>
+                        new CategoricalBin({
+                            index,
+                            value: series.seriesName,
+                            label: series.seriesName,
+                            color: series.color,
+                        })
+                )
+                .reverse()
+        }
+        return []
     }
 }

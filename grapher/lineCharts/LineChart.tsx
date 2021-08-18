@@ -10,6 +10,7 @@ import {
     last,
     exposeInstanceOnWindow,
     round,
+    excludeUndefined,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -58,6 +59,7 @@ import { ColorScheme } from "../color/ColorScheme"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { PrimitiveType } from "../../coreTable/CoreTableConstants"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 const BLUR_COLOR = "#eee"
 
@@ -470,11 +472,11 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        const entityName =
-            this.props.manager.annotation?.entityName ??
-            this.hoveredSeriesName ??
-            undefined
-        return entityName ? [entityName] : []
+        return excludeUndefined([
+            this.manager.externalLegendFocusBin?.value,
+            this.props.manager.annotation?.entityName,
+            this.hoveredSeriesName,
+        ])
     }
 
     @computed get isFocusMode(): boolean {
@@ -796,5 +798,20 @@ export class LineChart
 
     @computed get xAxis(): HorizontalAxis {
         return this.dualAxis.horizontalAxis
+    }
+
+    @computed get externalLegendBins(): CategoricalBin[] {
+        if (this.manager.hideLegend) {
+            return this.series.map(
+                (series, index) =>
+                    new CategoricalBin({
+                        index,
+                        value: series.seriesName,
+                        label: series.seriesName,
+                        color: series.color,
+                    })
+            )
+        }
+        return []
     }
 }

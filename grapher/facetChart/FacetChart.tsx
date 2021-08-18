@@ -1,8 +1,9 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import {
+    BASE_FONT_SIZE,
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
@@ -26,10 +27,12 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import {
     excludeUndefined,
+    flatten,
     getIdealGridParams,
     max,
     maxBy,
     min,
+    uniqBy,
     values,
 } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
@@ -38,9 +41,15 @@ import {
     GridParameters,
     Position,
     PositionMap,
+    HorizontalAlign,
 } from "../../clientUtils/owidTypes"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import {
+    HorizontalCategoricalColorLegend,
+    HorizontalColorLegendManager,
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -92,7 +101,7 @@ interface AxesInfo {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface, FontSizeManager {
+    implements ChartInterface, HorizontalColorLegendManager {
     transformTable(table: OwidTable): OwidTable {
         return table
     }
@@ -108,12 +117,37 @@ export class FacetChart
         )
     }
 
+    @computed private get manager(): ChartManager {
+        return this.props.manager
+    }
+
+    @computed get failMessage(): string {
+        return ""
+    }
+
+    @computed private get bounds(): Bounds {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get facetsContainerBounds(): Bounds {
+        const fontSize = this.facetFontSize
+        const legendHeightWithPadding =
+            this.legend.height > 0 ? this.legend.height + fontSize * 0.875 : 0
+        return this.bounds.padTop(legendHeightWithPadding + 1.8 * fontSize)
+    }
+
     @computed get fontSize(): number {
-        return getFontSize(this.series.length, this.manager.baseFontSize)
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed private get facetFontSize(): number {
+        return getFontSize(this.series.length, this.fontSize)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(this.manager.yAxisConfig, {
+            fontSize: this.facetFontSize,
+        })
     }
 
     @computed private get uniformYAxis(): boolean {
@@ -128,14 +162,31 @@ export class FacetChart
         return true
     }
 
+    @computed private get facetCount(): number {
+        return this.series.length
+    }
+
     @computed private get gridParams(): GridParameters {
-        const count = this.series.length
-        const containerAspectRatio = this.bounds.width / this.bounds.height
+        const count = this.facetCount
+        const { width, height } = this.bounds
         return getIdealGridParams({
             count,
-            containerAspectRatio,
+            containerAspectRatio: width / height,
             idealAspectRatio: IDEAL_PLOT_ASPECT_RATIO,
         })
+    }
+
+    @computed private get facetGridPadding(): {
+        rowPadding: number
+        columnPadding: number
+        outerPadding: number
+    } {
+        return getChartPadding(this.facetCount, this.facetFontSize)
+    }
+
+    @computed private get hideFacetLegends(): boolean {
+        if (this.facetCount <= 2) return false
+        return true
     }
 
     /**
@@ -151,14 +202,15 @@ export class FacetChart
      * @danielgavrilov, 2021-07-13
      */
     @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
-        const { manager, series } = this
-        const count = series.length
+        const { manager, series, facetCount } = this
 
         // Copy properties from manager to facets
-        const baseFontSize = this.fontSize
+        const baseFontSize = this.facetFontSize
+        // We are using `bounds` instead of `facetsContainerBounds` because the legend
+        // is not yet created, and it is derived from the intermediate chart series.
         const gridBoundsArr = this.bounds.grid(
             this.gridParams,
-            getChartPadding(count, baseFontSize)
+            this.facetGridPadding
         )
 
         const {
@@ -171,7 +223,7 @@ export class FacetChart
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
-        const compactLabels = count > 2
+        const compactLabels = facetCount > 2
         const globalXAxisConfig: AxisConfigInterface = {
             compactLabels,
         }
@@ -192,14 +244,13 @@ export class FacetChart
         const table = this.transformedTable
 
         return series.map((series, index) => {
-            const { bounds, edges } = gridBoundsArr[index]
+            const { bounds } = gridBoundsArr[index]
             const chartTypeName =
                 series.chartTypeName ??
                 this.props.chartTypeName ??
                 ChartTypeName.LineChart
 
-            // TODO figure out how to do legends better
-            const hideLegend = !edges.has(Position.right)
+            const hideLegend = this.hideFacetLegends
             const hidePoints = true
 
             // NOTE: The order of overrides is important!
@@ -238,10 +289,8 @@ export class FacetChart
         })
     }
 
-    // Only made public for testing
-    @computed get placedSeries(): PlacedFacetSeries[] {
-        // Create intermediate chart views to determine some of the properties
-        const chartInstances = this.intermediatePlacedSeries.map(
+    @computed private get intermediateChartInstances(): ChartInterface[] {
+        return this.intermediatePlacedSeries.map(
             ({ bounds, manager, chartTypeName }) => {
                 const ChartClass =
                     ChartComponentClassMap.get(chartTypeName) ??
@@ -249,7 +298,11 @@ export class FacetChart
                 return new ChartClass({ bounds, manager })
             }
         )
+    }
 
+    // Only made public for testing
+    @computed get placedSeries(): PlacedFacetSeries[] {
+        const { intermediateChartInstances } = this
         // Define the global axis config, shared between all facets
         const sharedAxesSizes: PositionMap<number> = {}
         const axes: AxesInfo = {
@@ -276,13 +329,15 @@ export class FacetChart
         values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
             // max size is the width (if vertical axis) or height (if horizontal axis)
             const axisWithMaxSize = maxBy(
-                chartInstances.map(axisAccessor),
+                intermediateChartInstances.map(axisAccessor),
                 (axis) => axis?.size
             )
             if (uniform) {
                 // If the axes are uniform, we want to find the full domain extent across all facets
                 const domains = excludeUndefined(
-                    chartInstances.map(axisAccessor).map((axis) => axis?.domain)
+                    intermediateChartInstances
+                        .map(axisAccessor)
+                        .map((axis) => axis?.domain)
                 )
                 config.min = min(domains.map((d) => d[0]))
                 config.max = max(domains.map((d) => d[1]))
@@ -309,14 +364,13 @@ export class FacetChart
         // For example, a vertical Y axis would be plotted on the left-most charts only.
         // An exception is the bottom axis, which gets plotted on the top row of charts, instead of
         // the bottom row of charts.
-        const fullBounds = this.bounds.pad(sharedAxesSizes)
-        const count = this.intermediatePlacedSeries.length
+        const fullBounds = this.facetsContainerBounds.pad(sharedAxesSizes)
         const gridBoundsArr = fullBounds.grid(
             this.gridParams,
-            getChartPadding(count, this.fontSize)
+            this.facetGridPadding
         )
         return this.intermediatePlacedSeries.map((series, i) => {
-            const chartInstance = chartInstances[i]
+            const chartInstance = intermediateChartInstances[i]
             const { xAxis, yAxis } = chartInstance
             const { bounds: initialGridBounds, edges } = gridBoundsArr[i]
             let bounds = initialGridBounds
@@ -330,6 +384,7 @@ export class FacetChart
             // We need to preserve most config coming in.
             const manager = {
                 ...series.manager,
+                externalLegendFocusBin: this.legendFocusBin,
                 xAxisConfig: {
                     hideAxis: shouldHideFacetAxis(
                         xAxis,
@@ -380,9 +435,6 @@ export class FacetChart
                 selection: [seriesName],
                 seriesStrategy: SeriesStrategy.column,
             }
-            if (this.manager.yColumnSlugs?.length === 1) {
-                manager.hideLegend = true
-            }
             return {
                 seriesName,
                 color: facetBackgroundColor,
@@ -426,40 +478,99 @@ export class FacetChart
             : this.entityFacets
     }
 
-    @computed protected get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padTop(this.fontSize + 10)
+    // legend props
+
+    @computed get legendPaddingTop(): number {
+        return 0
     }
 
-    @computed protected get manager(): ChartManager {
-        return this.props.manager
+    @computed get legendX(): number {
+        return this.bounds.x
     }
 
-    @computed get failMessage(): string {
-        return ""
+    @computed get categoryLegendY(): number {
+        return this.bounds.top
     }
 
-    render(): JSX.Element[] {
-        const { fontSize } = this
-        return this.placedSeries.map((smallChart, index: number) => {
-            const ChartClass =
-                ChartComponentClassMap.get(smallChart.chartTypeName) ??
-                DefaultChartClass
-            const { bounds, contentBounds, seriesName } = smallChart
-            const shiftTop = fontSize * 0.9
-            return (
-                <React.Fragment key={index}>
-                    <text
-                        x={contentBounds.x}
-                        y={contentBounds.top - shiftTop}
-                        fill={"#1d3d63"}
-                        fontSize={fontSize}
-                        style={{ fontWeight: 700 }}
-                    >
-                        {seriesName}
-                    </text>
-                    <ChartClass bounds={bounds} manager={smallChart.manager} />
-                </React.Fragment>
+    @computed get legendWidth(): number {
+        return this.bounds.width
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.center
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        if (this.hideFacetLegends) {
+            const bins = uniqBy(
+                flatten(
+                    excludeUndefined(
+                        this.intermediateChartInstances.map(
+                            (instance) => instance.externalLegendBins
+                        )
+                    )
+                ),
+                (bin) => bin.value
+            ).map(
+                // remap index to ensure it's unique (the above procedure can lead to duplicates)
+                (bin, index) =>
+                    new CategoricalBin({
+                        ...bin.props,
+                        index,
+                    })
             )
-        })
+            if (bins.length > 1) return bins
+        }
+        return []
+    }
+
+    @observable.ref legendFocusBin: CategoricalBin | undefined = undefined
+
+    @action.bound onLegendMouseOver(bin: CategoricalBin): void {
+        this.legendFocusBin = bin
+    }
+
+    @action.bound onLegendMouseLeave(): void {
+        this.legendFocusBin = undefined
+    }
+
+    @computed private get legend(): HorizontalCategoricalColorLegend {
+        return new HorizontalCategoricalColorLegend({ manager: this })
+    }
+
+    render(): JSX.Element {
+        const { facetFontSize } = this
+        const showLegend = this.categoricalLegendData.length > 0
+        return (
+            <React.Fragment>
+                {showLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
+                {this.placedSeries.map((facetChart, index: number) => {
+                    const ChartClass =
+                        ChartComponentClassMap.get(facetChart.chartTypeName) ??
+                        DefaultChartClass
+                    const { bounds, contentBounds, seriesName } = facetChart
+                    const shiftTop = facetFontSize * 0.9
+                    return (
+                        <React.Fragment key={index}>
+                            <text
+                                x={contentBounds.x}
+                                y={contentBounds.top - shiftTop}
+                                fill={"#1d3d63"}
+                                fontSize={facetFontSize}
+                                style={{ fontWeight: 700 }}
+                            >
+                                {seriesName}
+                            </text>
+                            <ChartClass
+                                bounds={bounds}
+                                manager={facetChart.manager}
+                            />
+                        </React.Fragment>
+                    )
+                })}
+            </React.Fragment>
+        )
     }
 }

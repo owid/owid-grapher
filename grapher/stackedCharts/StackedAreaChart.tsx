@@ -7,12 +7,13 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy,
+    excludeUndefined,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis, VerticalAxis } from "../axis/Axis"
+import { DualAxis } from "../axis/Axis"
 import {
     LineLabelSeries,
     LineLegend,
@@ -280,7 +281,10 @@ export class StackedAreaChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        return this.hoverSeriesName ? [this.hoverSeriesName] : []
+        return excludeUndefined([
+            this.manager.externalLegendFocusBin?.value,
+            this.hoverSeriesName,
+        ])
     }
 
     @computed get isFocusMode(): boolean {
