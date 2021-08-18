@@ -550,6 +550,8 @@ export class LineChart
 
         const comparisonLines = manager.comparisonLines || []
 
+        const showLegend = !manager.hideLegend
+
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
             <g ref={this.base} className="LineChart">
@@ -563,7 +565,7 @@ export class LineChart
                             comparisonLine={line}
                         />
                     ))}
-                    <LineLegend manager={this} />
+                    {showLegend && <LineLegend manager={this} />}
                     <Lines
                         dualAxis={dualAxis}
                         placedSeries={this.placedSeries}
