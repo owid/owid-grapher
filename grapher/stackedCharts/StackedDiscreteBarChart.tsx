@@ -361,7 +361,7 @@ export class StackedDiscreteBarChart
         return this.baseFontSize
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get legendBins(): CategoricalBin[] {
         return this.series.map((series, index) => {
             return new CategoricalBin({
                 index,
@@ -370,6 +370,14 @@ export class StackedDiscreteBarChart
                 color: series.color,
             })
         })
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        return this.showLegend ? this.legendBins : []
+    }
+
+    @computed get externalLegendBins(): CategoricalBin[] {
+        return this.showLegend ? [] : this.legendBins
     }
 
     @action.bound onLegendMouseOver(bin: CategoricalBin): void {

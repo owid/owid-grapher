@@ -282,3 +282,33 @@ describe("sorting", () => {
         ])
     })
 })
+
+describe("hideLegend", () => {
+    const table = SynthesizeFruitTable({
+        timeRange: [2000, 2001],
+        entityCount: 5,
+    })
+    const baseManager: ChartManager = {
+        table,
+        selection: table.sampleEntityName(5),
+        yColumnSlugs: [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+    }
+
+    it("renders internal legend when hideLegend is true", () => {
+        const chart = new StackedDiscreteBarChart({
+            manager: { ...baseManager },
+        })
+        expect(chart["legend"].height).toBeGreaterThan(0)
+        expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
+        expect(chart["externalLegendBins"].length).toEqual(0)
+    })
+
+    it("exposes externalLegendBins when hideLegend is false", () => {
+        const chart = new StackedDiscreteBarChart({
+            manager: { ...baseManager, hideLegend: true },
+        })
+        expect(chart["legend"].height).toEqual(0)
+        expect(chart["categoricalLegendData"].length).toEqual(0)
+        expect(chart["externalLegendBins"].length).toEqual(2)
+    })
+})
