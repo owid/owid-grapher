@@ -1909,7 +1909,7 @@ export class Grapher
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
         const numNonProjectedColumns = this.yColumns.filter(
-            (c) => !c.display || !c.display.isProjection
+            (c) => !c.display?.isProjection
         ).length
         if (
             // multiple metrics (excluding projections)
