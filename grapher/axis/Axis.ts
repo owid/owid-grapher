@@ -83,7 +83,7 @@ abstract class AbstractAxis {
      * For vertical axes, this is the width.
      */
     abstract get size(): number
-    abstract get position(): Position
+    abstract get orient(): Position
     abstract get labelWidth(): number
 
     abstract placeTickLabel(value: number): TickLabelPlacement
@@ -408,8 +408,11 @@ export class HorizontalAxis extends AbstractAxis {
         return new HorizontalAxis(this.config)._update(this)
     }
 
-    @computed get position(): Position {
-        return Position.bottom
+    @computed get orient(): Position {
+        // Default to `bottom` unless overriden to `top`.
+        return this.config.orient === Position.top
+            ? Position.top
+            : Position.bottom
     }
 
     @computed get labelOffset(): number {
@@ -503,7 +506,7 @@ export class VerticalAxis extends AbstractAxis {
         return new VerticalAxis(this.config)._update(this)
     }
 
-    @computed get position(): Position {
+    @computed get orient(): Position {
         return Position.left
     }
 
@@ -560,7 +563,6 @@ interface DualAxisProps {
     bounds?: Bounds
     horizontalAxis: HorizontalAxis
     verticalAxis: VerticalAxis
-    horizontalAxisOnTop?: boolean
 }
 
 // DualAxis has the important task of coordinating two axes so that they work together!
@@ -586,25 +588,25 @@ export class DualAxis {
     }
 
     // We calculate an initial height from the range of the input bounds
-    @computed private get horizontalAxisHeight(): number {
+    @computed private get horizontalAxisSize(): number {
         const axis = this.props.horizontalAxis.clone()
         axis.range = [0, this.bounds.width]
-        return axis.height
+        return axis.size
     }
 
     // We calculate an initial width from the range of the input bounds
-    @computed get verticalAxisWidth(): number {
+    @computed private get verticalAxisSize(): number {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
-        return axis.width
+        return axis.size
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
     @computed get innerBounds(): Bounds {
-        const leftPaddedBounds = this.bounds.padLeft(this.verticalAxisWidth)
-        return this.props.horizontalAxisOnTop
-            ? leftPaddedBounds.padTop(this.horizontalAxisHeight)
-            : leftPaddedBounds.padBottom(this.horizontalAxisHeight)
+        return this.bounds.pad({
+            [this.props.horizontalAxis.orient]: this.horizontalAxisSize,
+            [this.props.verticalAxis.orient]: this.verticalAxisSize,
+        })
     }
 
     @computed get bounds(): Bounds {

@@ -1,3 +1,4 @@
+import { Position } from "../../clientUtils/owidTypes"
 import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants"
 
 // Represents the actual entered configuration state in the editor
@@ -9,6 +10,12 @@ export interface AxisConfigInterface {
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
+
+    /**
+     * The *preferred* orientation of the axis.
+     * If the orientation is not supported by the axis, this parameter will be ignored.
+     */
+    orient?: Position
 
     /**
      * Whether the axis domain should be the same across faceted charts (if possible)

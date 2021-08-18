@@ -12,12 +12,14 @@ import {
 } from "../persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
 import { ScaleSelectorManager } from "../controls/ScaleSelector"
+import { Position } from "../../clientUtils/owidTypes"
 
 export interface FontSizeManager {
     fontSize: number
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
+    @observable.ref orient?: Position = undefined
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
     @observable.ref canChangeScaleType?: boolean = undefined
@@ -54,6 +56,7 @@ export class AxisConfig
 
     toObject(): AxisConfigInterface {
         const obj = trimObject({
+            orient: this.orient,
             min: this.min,
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
