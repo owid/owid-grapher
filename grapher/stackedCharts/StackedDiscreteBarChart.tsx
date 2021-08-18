@@ -160,6 +160,10 @@ export class StackedDiscreteBarChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get showLegend(): boolean {
+        return !this.manager.hideLegend
+    }
+
     @computed private get labelStyle() {
         return {
             fontSize: 0.75 * this.baseFontSize,
@@ -241,8 +245,11 @@ export class StackedDiscreteBarChart
         return this.bounds
             .padLeft(this.labelWidth)
             .padBottom(this.yAxis.height)
-            .padTop(this.legendPaddingTop)
-            .padTop(this.legend.height)
+            .padTop(
+                this.showLegend && this.legend.height > 0
+                    ? this.legend.height + this.legendPaddingTop
+                    : 0
+            )
             .padRight(this.totalValueLabelWidth)
     }
 
@@ -440,7 +447,9 @@ export class StackedDiscreteBarChart
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
                 />
-                <HorizontalCategoricalColorLegend manager={this} />
+                {this.showLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
                 <NodeGroup
                     data={this.placedItems}
                     keyAccessor={(d: PlacedItem) => d.label}

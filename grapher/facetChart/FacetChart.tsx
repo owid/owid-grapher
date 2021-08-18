@@ -185,7 +185,6 @@ export class FacetChart
     }
 
     @computed private get hideFacetLegends(): boolean {
-        if (this.facetCount <= 2) return false
         return true
     }
 
