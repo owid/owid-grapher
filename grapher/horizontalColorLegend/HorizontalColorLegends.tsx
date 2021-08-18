@@ -68,7 +68,6 @@ export interface HorizontalColorLegendManager {
     numericLegendY?: number
     legendWidth?: number
     legendHeight?: number
-    scale?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     categoricalBinStroke?: Color
@@ -443,12 +442,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const manager = this.manager
-        const scale = manager.scale ?? 1
-        const rectSize = 12 * scale
+        const fontSize = this.fontSize * 0.8
+        const rectSize = fontSize
         const rectPadding = 5
         const markPadding = 5
-        const fontSize = 0.8 * scale * this.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
