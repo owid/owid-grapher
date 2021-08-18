@@ -26,7 +26,6 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { stackSeries } from "./StackedUtils"
 
 import {
     HorizontalAlign,
