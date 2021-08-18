@@ -133,7 +133,7 @@ function MarimekkoBar({
     const barX = 0
 
     const renderedBar = (
-        <g>
+        <g key={seriesName}>
             <rect
                 x={0}
                 y={0}
@@ -387,8 +387,19 @@ export class MarimekkoChart
         )
     }
 
+    //@computed private get rows(): readonly
+
     @computed get series(): readonly StackedSeries<EntityName>[] {
-        return stackSeries(this.unstackedSeries)
+        const valueOffsets = new Map<string, number>()
+        return this.unstackedSeries.map((series) => ({
+            ...series,
+            points: series.points.map((point) => {
+                const offset = valueOffsets.get(point.position) ?? 0
+                const newPoint = { ...point, valueOffset: offset }
+                valueOffsets.set(point.position, offset + point.value)
+                return newPoint
+            }),
+        }))
     }
 
     @computed get xSeries(): SimpleChartSeries {
@@ -1063,7 +1074,9 @@ export class MarimekkoChart
                 dualAxis,
                 isExportingToSvgOrPng: this.manager.isExportingtoSvgOrPng,
             }
-            const result = <MarimekkoBarsForOneEntity {...barsProps} />
+            const result = (
+                <MarimekkoBarsForOneEntity key={entityName} {...barsProps} />
+            )
             if (isSelected || isHovered) highlightedElements.push(result)
             else normalElements.push(result)
         }
