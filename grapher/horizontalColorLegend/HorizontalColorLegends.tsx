@@ -443,7 +443,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     @computed private get markLines(): MarkLine[] {
         const fontSize = this.fontSize * 0.8
-        const rectSize = fontSize
+        const rectSize = this.fontSize * 0.75
         const rectPadding = 5
         const markPadding = 5
 
