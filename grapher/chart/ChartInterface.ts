@@ -31,5 +31,9 @@ export interface ChartInterface {
     yAxis?: HorizontalAxis | VerticalAxis
     xAxis?: HorizontalAxis | VerticalAxis
 
+    /**
+     * The legend bins that have been hidden from the chart plot and should be shown externally.
+     * Used to create a global legend for faceted charts.
+     */
     externalLegendBins?: CategoricalBin[] // TODO allow NumericBin in the future
 }
