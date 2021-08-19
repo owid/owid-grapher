@@ -1,7 +1,6 @@
 import * as React from "react"
-import { flatten } from "../clientUtils/Util"
 import { ENV, GITHUB_USERNAME } from "../settings/serverSettings"
-import { webpackUrls } from "../site/webpackUtils"
+import { webpackUrl } from "../site/webpackUtils"
 
 export const IndexPage = (props: {
     username: string
@@ -27,28 +26,21 @@ export const IndexPage = (props: {
                     href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
                     rel="stylesheet"
                 />
-                {flatten(
-                    ["commons.css", "admin.css"].map((assetName) =>
-                        webpackUrls(assetName, "/admin")
-                    )
-                ).map((href) => (
-                    <link
-                        key={href}
-                        href={href}
-                        rel="stylesheet"
-                        type="text/css"
-                    />
-                ))}
+                <link
+                    href={webpackUrl("commons.css", "/admin")}
+                    rel="stylesheet"
+                    type="text/css"
+                />
+                <link
+                    href={webpackUrl("admin.css", "/admin")}
+                    rel="stylesheet"
+                    type="text/css"
+                />
             </head>
             <body>
                 <div id="app"></div>
-                {flatten(
-                    ["commons.js", "admin.js"].map((assetName) =>
-                        webpackUrls(assetName, "/admin")
-                    )
-                ).map((href) => (
-                    <script key={href} src={href} />
-                ))}
+                <script src={webpackUrl("commons.js", "/admin")}></script>
+                <script src={webpackUrl("admin.js", "/admin")}></script>
                 <script
                     type="text/javascript"
                     dangerouslySetInnerHTML={{ __html: script }}
