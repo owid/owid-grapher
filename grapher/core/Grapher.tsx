@@ -1986,6 +1986,8 @@ export class Grapher
     }
 
     set facetStrategy(facet: FacetStrategy) {
+        this.selectedFacetStrategy = facet
+
         if (
             this.isStackedDiscreteBar &&
             this.selectedFacetStrategy !== FacetStrategy.none
