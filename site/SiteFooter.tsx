@@ -1,7 +1,8 @@
 import * as React from "react"
-import { webpackUrl } from "../site/webpackUtils"
+import { webpackUrls } from "../site/webpackUtils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { flatten } from "../clientUtils/Util"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -239,8 +240,13 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
             <div className="site-tools" />
             <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
-            <script src={webpackUrl("commons.js", props.baseUrl)} />
-            <script src={webpackUrl("owid.js", props.baseUrl)} />
+            {flatten(
+                ["commons.js", "owid.js"].map((assetName) =>
+                    webpackUrls(assetName, props.baseUrl)
+                )
+            ).map((href) => (
+                <script key={href} src={href} />
+            ))}
             <script
                 dangerouslySetInnerHTML={{
                     __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
