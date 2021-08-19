@@ -696,28 +696,35 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
-    private getDomainColorForEntity(
-        colorColumn: CoreColumn,
-        colorScale: ColorScale,
-        entityName: string
-    ): EntityColorData | undefined {
+    @computed private get domainColorForEntityMap(): Map<
+        string,
+        EntityColorData
+    > {
+        const { colorColumn, colorScale } = this
+        const entityNames = this.xColumn.uniqEntityNames
         const hasColorColumn = !colorColumn.isMissing
         const colorRowsByEntity = hasColorColumn
             ? colorColumn.owidRowsByEntityName
             : undefined
-        const colorDomainValue = colorRowsByEntity?.get(entityName)?.[0]
+        const domainColorMap = new Map<string, EntityColorData>()
+        for (const name of entityNames) {
+            const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
 
-        if (colorDomainValue) {
-            const color = colorScale.getColor(colorDomainValue.value)
-            if (color)
-                return { color, colorDomainValue: colorDomainValue.value }
-            else return undefined
-        } else return undefined
+            if (colorDomainValue) {
+                const color = colorScale.getColor(colorDomainValue.value)
+                if (color)
+                    domainColorMap.set(name, {
+                        color,
+                        colorDomainValue: colorDomainValue.value,
+                    })
+            }
+        }
+        return domainColorMap
     }
 
     @computed private get items(): Item[] {
         const entityNames = this.xColumn.uniqEntityNames
-        const { xSeries, colorColumn, colorScale, series } = this
+        const { xSeries, series, domainColorForEntityMap } = this
 
         const items: Item[] = entityNames
             .map((entityName) => {
@@ -726,11 +733,7 @@ export class MarimekkoChart
                 )
                 if (!xPoint) return undefined
 
-                const color = this.getDomainColorForEntity(
-                    colorColumn,
-                    colorScale,
-                    entityName
-                )
+                const color = domainColorForEntityMap.get(entityName)
 
                 return {
                     entityName,
@@ -954,9 +957,9 @@ export class MarimekkoChart
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
             firstNanValue >= 0
-                ? drop(placedItems, firstNanValue).some(
-                      (item) => item.bars.length !== 0
-                  )
+                ? placedItems
+                      .slice(firstNanValue)
+                      .some((item) => item.bars.length !== 0)
                 : false
 
         if (anyNonNanAfterFirstNan)
@@ -1034,11 +1037,10 @@ export class MarimekkoChart
                 xAxisColumn,
             }
 
-            const exactWidth =
+            const correctedWidth =
                 dualAxis.horizontalAxis.place(
                     xPoint.value * xDomainCorrectionFactor
                 ) - dualAxis.horizontalAxis.place(x0)
-            const correctedWidth = exactWidth
             const barWidth = mustEnsureOnePixelXSize
                 ? correctedWidth > 1
                     ? correctedWidth
@@ -1098,7 +1100,7 @@ export class MarimekkoChart
     ): LabelCandidate {
         return {
             item: item,
-            bounds: Bounds.forText(item.entityId, {
+            bounds: Bounds.forText(item.entityName, {
                 fontSize: 0.7 * baseFontSize,
             }),
             isPicked: isSelected,
@@ -1166,7 +1168,7 @@ export class MarimekkoChart
             (row) =>
                 MarimekkoChart.labelCandidateFromItem(
                     {
-                        entityId: row.entityName,
+                        entityName: row.entityName,
                         xValue: row.value,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
@@ -1190,7 +1192,7 @@ export class MarimekkoChart
         })
 
         const averageCharacterCount =
-            sumBy(labelCandidates, (item) => item.item.entityId.length) /
+            sumBy(labelCandidates, (item) => item.item.entityName.length) /
             labelCandidates.length
 
         const firstDefined = labelCandidates.find(
@@ -1202,12 +1204,12 @@ export class MarimekkoChart
         // picking "Democratic Republic of Congo" for this reason and thus needing lots of space)
         if (
             firstDefined &&
-            firstDefined.item.entityId.length < labelCharacterCountThreshold
+            firstDefined.item.entityName.length < labelCharacterCountThreshold
         )
             firstDefined.isPicked = true
         const labelHeight = labelCandidates[0].bounds.height
         if (
-            labelCandidates[labelCandidates.length - 1].item.entityId.length <
+            labelCandidates[labelCandidates.length - 1].item.entityName.length <
             labelCharacterCountThreshold
         )
             labelCandidates[labelCandidates.length - 1].isPicked = true
@@ -1251,23 +1253,22 @@ export class MarimekkoChart
 
         const labelsWithPlacements: LabelWithPlacement[] = labels
             .map(({ candidate, labelElement }) => {
-                const item = placedItemsMap.get(candidate.item.entityId)
+                const item = placedItemsMap.get(candidate.item.entityName)
                 const xPoint = item?.xPoint.value ?? 0
-                const exactWidth =
+                const correctedWidth =
                     dualAxis.horizontalAxis.place(
                         xPoint * xDomainCorrectionFactor
                     ) - dualAxis.horizontalAxis.place(x0)
-                const correctedWidth = exactWidth
                 const barWidth = mustEnsureOnePixelXSize
                     ? correctedWidth > 1
                         ? correctedWidth
                         : 1
                     : correctedWidth
-                const labelId = candidate.item.entityId
+                const labelId = candidate.item.entityName
                 if (!item) {
                     console.error(
                         "Could not find item",
-                        candidate.item.entityId
+                        candidate.item.entityName
                     )
                     return null
                 } else {
@@ -1509,13 +1510,11 @@ export class MarimekkoChart
     }
 
     @computed private get labels(): LabelCandidateWithElement[] {
-        const { labelAngleInDegrees, colorColumn, colorScale, series } = this
+        const { labelAngleInDegrees, series, domainColorForEntityMap } = this
         return this.pickedLabelCandidates.map((candidate) => {
             const labelX = candidate.bounds.width
-            const domainColor = this.getDomainColorForEntity(
-                colorColumn,
-                colorScale,
-                candidate.item.entityId
+            const domainColor = domainColorForEntityMap.get(
+                candidate.item.entityName
             )
             const seriesColor = series[0].color
             const color = domainColor?.color ?? seriesColor ?? "#000"
@@ -1523,7 +1522,7 @@ export class MarimekkoChart
                 candidate,
                 labelElement: (
                     <text
-                        key={`${candidate.item.entityId}-label`}
+                        key={`${candidate.item.entityName}-label`}
                         x={-labelX}
                         y={0}
                         width={candidate.bounds.width}
@@ -1536,14 +1535,14 @@ export class MarimekkoChart
                         textAnchor="right"
                         dominantBaseline="middle"
                         onMouseOver={(): void =>
-                            this.onEntityMouseOver(candidate.item.entityId)
+                            this.onEntityMouseOver(candidate.item.entityName)
                         }
                         onMouseLeave={(): void => this.onEntityMouseLeave()}
                         onClick={(): void =>
-                            this.onEntityClick(candidate.item.entityId)
+                            this.onEntityClick(candidate.item.entityName)
                         }
                     >
-                        {candidate.item.entityId}
+                        {candidate.item.entityName}
                     </text>
                 ),
             }

@@ -73,7 +73,7 @@ export interface TooltipProps {
 }
 
 export interface EntityWithSize {
-    entityId: string
+    entityName: string
     xValue: number
     ySortValue: number | undefined
 }
