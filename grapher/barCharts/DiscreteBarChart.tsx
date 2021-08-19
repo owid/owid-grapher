@@ -316,7 +316,7 @@ export class DiscreteBarChart
                 <HorizontalAxisComponent
                     bounds={bounds}
                     axis={yAxis}
-                    axisPosition={innerBounds.bottom}
+                    preferredAxisPosition={innerBounds.bottom}
                 />
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}

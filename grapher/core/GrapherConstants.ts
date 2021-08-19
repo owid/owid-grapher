@@ -10,6 +10,7 @@ export enum ChartTypeName {
     SlopeChart = "SlopeChart",
     StackedBar = "StackedBar",
     WorldMap = "WorldMap",
+    Marimekko = "Marimekko",
 }
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"

@@ -139,9 +139,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart(): Bounds {
+        const topPadding = this.isMapTab
+            ? 0
+            : this.manager.type === ChartTypeName.Marimekko
+            ? PADDING_BELOW_HEADER / 2
+            : PADDING_BELOW_HEADER
         return new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
-            .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
+            .padTop(topPadding)
             .padBottom(OUTSIDE_PADDING)
     }
 
@@ -224,6 +229,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     type="button"
                     key="grapher-select-entities"
                     data-track-note="grapher-select-entities"
+                    style={controls.length === 0 ? { padding: 0 } : {}} // If there are no controls to the left then set padding to 0 for better alignment
                     onClick={this.startSelecting}
                 >
                     <span className="SelectEntitiesButton">

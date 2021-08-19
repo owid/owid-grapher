@@ -23,7 +23,7 @@ export class EditorFeatures {
     }
 
     @computed get canCustomizeYAxisLabel() {
-        return this.grapher.isScatter
+        return this.grapher.isScatter || this.grapher.isMarimekko
     }
 
     @computed get canCustomizeXAxisLabel() {
@@ -76,7 +76,8 @@ export class EditorFeatures {
             this.grapher.isStackedArea ||
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
-            this.grapher.isScatter
+            this.grapher.isScatter ||
+            this.grapher.isMarimekko
         )
     }
 
@@ -88,12 +89,13 @@ export class EditorFeatures {
         return (
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
-            this.grapher.isDiscreteBar
+            this.grapher.isDiscreteBar ||
+            this.grapher.isMarimekko
         )
     }
 
     @computed get canSortByColumn() {
-        return this.grapher.isStackedDiscreteBar
+        return this.grapher.isStackedDiscreteBar || this.grapher.isMarimekko
     }
 
     @computed get canHideTotalValueLabel() {

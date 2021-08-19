@@ -166,6 +166,7 @@ import {
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 
@@ -236,6 +237,7 @@ export class Grapher
         FooterControlsManager,
         DataTableManager,
         ScatterPlotManager,
+        MarimekkoChartManager,
         FacetStrategyDropdownManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
@@ -400,8 +402,8 @@ export class Grapher
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
         // todo: remove dimensions concept
-        if (this.legacyConfigAsAuthored?.dimensions)
-            obj.dimensions = this.legacyConfigAsAuthored.dimensions
+        // if (this.legacyConfigAsAuthored?.dimensions)
+        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
 
         return obj
     }
@@ -619,7 +621,11 @@ export class Grapher
                     table.get(this.mapColumnSlug).tolerance
             )
 
-        if (this.isDiscreteBar || this.isLineChartThatTurnedIntoDiscreteBar)
+        if (
+            this.isDiscreteBar ||
+            this.isLineChartThatTurnedIntoDiscreteBar ||
+            this.isMarimekko
+        )
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
@@ -884,7 +890,10 @@ export class Grapher
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
         return (
-            this.isDiscreteBar || this.isStackedDiscreteBar || this.isOnMapTab
+            this.isDiscreteBar ||
+            this.isStackedDiscreteBar ||
+            this.isOnMapTab ||
+            this.isMarimekko
         )
     }
 
@@ -1047,6 +1056,7 @@ export class Grapher
         const size = new DimensionSlot(this, DimensionProperty.size)
 
         if (this.isScatter) return [yAxis, xAxis, size, color]
+        else if (this.isMarimekko) return [yAxis, xAxis, color]
         else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
@@ -1388,7 +1398,10 @@ export class Grapher
     @computed get isStackedBar(): boolean {
         return this.type === ChartTypeName.StackedBar
     }
-    @computed get isStackedDiscreteBar() {
+    @computed get isMarimekko(): boolean {
+        return this.type === ChartTypeName.Marimekko
+    }
+    @computed get isStackedDiscreteBar(): boolean {
         return this.type === ChartTypeName.StackedDiscreteBar
     }
 
@@ -1416,7 +1429,7 @@ export class Grapher
         )
     }
 
-    // todo: this is only relevant for scatter plots. move to scatter plot class?
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
@@ -1424,7 +1437,7 @@ export class Grapher
         return this.xDimension?.targetYear
     }
 
-    // todo: this is only relevant for scatter plots. move to scatter plot class?
+    // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
         this.xDimension!.targetYear = value
     }
@@ -1873,7 +1886,12 @@ export class Grapher
         // In relative mode, where the values for every entity sum up to 100%, sorting by total
         // doesn't make sense. It's also jumpy because of some rounding errors. For this reason,
         // we sort by entity name instead.
-        if (this.isRelativeMode && sortConfig.sortBy === SortBy.total) {
+        // Marimekko charts are special and there we don't do this forcing of sort order
+        if (
+            !this.isMarimekko &&
+            this.isRelativeMode &&
+            sortConfig.sortBy === SortBy.total
+        ) {
             sortConfig.sortBy = SortBy.entityName
             sortConfig.sortOrder = SortOrder.asc
         }
@@ -2402,7 +2420,8 @@ export class Grapher
             this.isStackedArea ||
             this.isStackedDiscreteBar ||
             this.isScatter ||
-            this.isLineChart
+            this.isLineChart ||
+            this.isMarimekko
         )
     }
 

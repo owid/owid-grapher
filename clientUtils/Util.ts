@@ -7,6 +7,7 @@ import compact from "lodash/compact"
 import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
+import drop from "lodash/drop"
 import extend from "lodash/extend"
 import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
@@ -58,6 +59,7 @@ export {
     countBy,
     debounce,
     difference,
+    drop,
     extend,
     findIndex,
     flatten,

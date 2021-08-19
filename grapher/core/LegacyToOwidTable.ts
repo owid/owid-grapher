@@ -167,7 +167,8 @@ export const legacyToOwidTableAndDimensions = (
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
         if (
-            grapherConfig.type === ChartTypeName.ScatterPlot &&
+            (grapherConfig.type === ChartTypeName.ScatterPlot ||
+                grapherConfig.type === ChartTypeName.Marimekko) &&
             isNumber(targetTime)
         ) {
             variableTable = variableTable

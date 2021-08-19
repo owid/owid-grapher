@@ -57,7 +57,7 @@ const getContentBounds = (
     for (const { config, axis } of axes) {
         if (!config || !axis) continue
         if (!config.hideAxis && config.minSize !== undefined) {
-            bounds = bounds.pad({ [axis.position]: config.minSize })
+            bounds = bounds.pad({ [axis.orient]: config.minSize })
         }
     }
     return bounds
@@ -69,7 +69,7 @@ const shouldHideFacetAxis = (
     sharedAxesSizes: PositionMap<number>
 ): boolean => {
     if (axis) {
-        return axis.position in sharedAxesSizes && !edges.has(axis.position)
+        return axis.orient in sharedAxesSizes && !edges.has(axis.orient)
     }
     return false
 }
@@ -296,7 +296,7 @@ export class FacetChart
                         config.max,
                     ])
                     config.minSize = size
-                    if (shared) sharedAxesSizes[axis.position] = size
+                    if (shared) sharedAxesSizes[axis.orient] = size
                 }
             } else if (axisWithMaxSize) {
                 config.minSize = axisWithMaxSize.size

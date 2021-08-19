@@ -5,7 +5,11 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ScaleType } from "../core/GrapherConstants"
-import { HorizontalAlign, VerticalAlign } from "../../clientUtils/owidTypes"
+import {
+    HorizontalAlign,
+    Position,
+    VerticalAlign,
+} from "../../clientUtils/owidTypes"
 import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
@@ -143,9 +147,9 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
             <HorizontalAxisComponent
                 bounds={bounds}
-                axisPosition={innerBounds.bottom}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
+                preferredAxisPosition={innerBounds.bottom}
             />
         )
 
@@ -208,8 +212,8 @@ export class VerticalAxisComponent extends React.Component<{
 export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
     axis: HorizontalAxis
-    axisPosition: number
     showTickMarks?: boolean
+    preferredAxisPosition?: number
 }> {
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
@@ -221,18 +225,33 @@ export class HorizontalAxisComponent extends React.Component<{
 
     // for scale selector. todo: cleanup
     @computed get bounds(): Bounds {
-        const { bounds } = this.props
-        return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
+        const { bounds, axis } = this.props
+        if (axis.orient === Position.top)
+            return new Bounds(bounds.right, bounds.top + 30, 100, 100)
+        else return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
     render(): JSX.Element {
-        const { bounds, axis, axisPosition, showTickMarks } = this.props
-        const { tickLabels, labelTextWrap: label, labelOffset } = axis
+        const {
+            bounds,
+            axis,
+            showTickMarks,
+            preferredAxisPosition,
+        } = this.props
+        const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
+        const horizontalAxisLabelsOnTop = orient === Position.top
         const textColor = "#666"
+        const labelYPosition = horizontalAxisLabelsOnTop
+            ? bounds.top
+            : bounds.bottom - (label?.height ?? 0)
+
+        const tickMarksYPosition = horizontalAxisLabelsOnTop
+            ? bounds.top + axis.height - 5
+            : preferredAxisPosition ?? bounds.bottom
 
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
-                tickMarkTopPosition={axisPosition}
+                tickMarkTopPosition={tickMarksYPosition}
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
                 )}
@@ -240,12 +259,15 @@ export class HorizontalAxisComponent extends React.Component<{
             />
         ) : undefined
 
+        const tickLabelYPlacement = horizontalAxisLabelsOnTop
+            ? bounds.top + labelOffset + 10
+            : bounds.bottom - labelOffset
         return (
             <g className="HorizontalAxis">
                 {label &&
                     label.render(
                         bounds.centerX - label.width / 2,
-                        bounds.bottom - label.height
+                        labelYPosition
                     )}
                 {tickMarks}
                 {tickLabels.map((label, i) => {
@@ -254,7 +276,7 @@ export class HorizontalAxisComponent extends React.Component<{
                         <text
                             key={i}
                             x={x}
-                            y={bounds.bottom - labelOffset}
+                            y={tickLabelYPlacement}
                             fill={textColor}
                             textAnchor={textAnchorFromAlign(
                                 xAlign ?? HorizontalAlign.center
