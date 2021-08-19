@@ -1485,7 +1485,12 @@ export class Grapher
                 this.yScaleType !== ScaleType.log
             )
 
-        if (this.facetStrategy !== FacetStrategy.none) return false
+        // actually trying to exclude relative mode with just one metric
+        if (
+            this.isStackedDiscreteBar &&
+            this.facetStrategy !== FacetStrategy.none
+        )
+            return false
 
         return !this.hideRelativeToggle
     }
@@ -1963,8 +1968,11 @@ export class Grapher
     }
 
     set facetStrategy(facet: FacetStrategy) {
-        this.selectedFacetStrategy = facet
-        if (facet !== FacetStrategy.none) {
+        if (
+            this.isStackedDiscreteBar &&
+            this.selectedFacetStrategy !== FacetStrategy.none
+        ) {
+            // actually trying to exclude relative mode with just one metric
             this.stackMode = StackMode.absolute
         }
     }
