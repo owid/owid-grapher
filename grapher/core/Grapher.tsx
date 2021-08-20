@@ -1314,7 +1314,16 @@ export class Grapher
                 "World Bank",
                 "ILOSTAT",
             ]) {
-                if (sourceName.startsWith(majorSource)) return majorSource
+                if (
+                    sourceName.startsWith(majorSource) &&
+                    !sourceName.match(
+                        new RegExp(
+                            "^" + majorSource + "\\s+(based on|and)",
+                            "gi"
+                        )
+                    )
+                )
+                    return majorSource
             }
             return sourceName
         })
