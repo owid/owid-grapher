@@ -62,7 +62,6 @@ const inverseSortOrder = (order: SortOrder): SortOrder =>
 
 export interface DataTableManager {
     table: OwidTable
-    entityType: string
     endTime?: Time
     startTime?: Time
     minPopulationFilter?: number
@@ -119,16 +118,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed get manager(): DataTableManager {
-        return (
-            this.props.manager ?? {
-                table: BlankOwidTable(),
-                entityType: "country",
-            }
-        )
+        return this.props.manager || { table: BlankOwidTable() }
     }
 
     @computed private get entityType(): string {
-        return this.manager.entityType
+        return this.table.entityType
     }
 
     @computed private get sortValueMapper(): (

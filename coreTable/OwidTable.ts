@@ -59,6 +59,8 @@ import { ColumnSlug } from "../clientUtils/owidTypes"
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
 export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
+    entityType = "Country"
+
     @imemo get availableEntityNames(): any[] {
         return Array.from(this.availableEntityNameSet)
     }

@@ -14,12 +14,9 @@ const table = SynthesizeGDPTable({
     entityCount: 7,
 })
 
-const entityType = "country"
-
 export const Default = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
-        entityType,
     }
     return <DataTable manager={manager} />
 }
@@ -27,7 +24,6 @@ export const Default = (): JSX.Element => {
 export const WithTimeRange = (): JSX.Element => {
     const manager: DataTableManager = {
         table,
-        entityType,
     }
     manager.startTime = 1950
     manager.endTime = 2000
@@ -55,7 +51,6 @@ export const WithTolerance = (): JSX.Element => {
                     table,
                     startTime: 2010,
                     endTime: 2010,
-                    entityType,
                 }}
             />
             <div>
@@ -67,7 +62,6 @@ export const WithTolerance = (): JSX.Element => {
                     startTime: 2010,
                     endTime: 2010,
                     table: filteredTable,
-                    entityType,
                 }}
             />
         </div>
