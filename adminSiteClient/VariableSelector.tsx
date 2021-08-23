@@ -22,6 +22,7 @@ import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
+import _ from "lodash"
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -34,6 +35,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
+    usedInCharts: Set<number> | undefined
     searchKey?: Fuzzysort.Prepared
 }
 
@@ -84,14 +86,19 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get availableVariables(): Variable[] {
+        const { variablesToGrapherIdsMap } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
-            const sorted = sortBy(dataset.variables, (v) => v.name)
+            const sorted = sortBy(
+                dataset.variables,
+                (v) => (variablesToGrapherIdsMap.get(v.id)?.size ?? 0) * -1
+            )
             sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
+                    usedInCharts: variablesToGrapherIdsMap.get(variable.id),
                     searchKey: fuzzysort.prepare(
                         dataset.name + " - " + variable.name
                     ),
@@ -121,7 +128,15 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { resultsByDataset } = this
 
         const rows: Array<string | Variable[]> = []
-        Object.entries(resultsByDataset).forEach(([datasetName, variables]) => {
+        const unsorted = Object.entries(resultsByDataset)
+        const sorted = _.sortBy(unsorted, ([datasetName, variables]) => {
+            const sizes = _.map(
+                variables,
+                (variable) => variable.usedInCharts?.size ?? 0
+            )
+            return Math.max(...sizes) * -1
+        })
+        sorted.forEach(([datasetName, variables]) => {
             rows.push(datasetName)
 
             for (let i = 0; i < variables.length; i += 2) {
@@ -297,9 +312,32 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                         v
                                                                     )
                                                                 }
-                                                                label={highlight(
-                                                                    v.name
-                                                                )}
+                                                                label={
+                                                                    <React.Fragment>
+                                                                        {highlight(
+                                                                            v.name
+                                                                        )}
+
+                                                                        <span
+                                                                            style={{
+                                                                                fontWeight: 500,
+                                                                                color:
+                                                                                    "#555",
+                                                                            }}
+                                                                        >
+                                                                            {v
+                                                                                .usedInCharts
+                                                                                ?.size
+                                                                                ? ` (used ${
+                                                                                      v
+                                                                                          .usedInCharts
+                                                                                          ?.size ??
+                                                                                      "-"
+                                                                                  } times)`
+                                                                                : " (ununsed)"}
+                                                                        </span>
+                                                                    </React.Fragment>
+                                                                }
                                                             />
                                                         </li>
                                                     ))
@@ -401,19 +439,22 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     componentDidMount() {
         this.dispose = autorun(() => {
             if (!this.editorData)
-                runInAction(() =>
+                runInAction(() => {
                     this.props.editor.loadNamespace(this.currentNamespace.name)
-                )
+                    this.props.editor.loadVariableToGraphersMap()
+                })
         })
 
         this.initChosenVariables()
     }
 
     @action.bound private initChosenVariables() {
+        const { variablesToGrapherIdsMap } = this.database
         this.chosenVariables = this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,
+                usedInCharts: variablesToGrapherIdsMap.get(d.variableId),
                 datasetName: "",
             })
         )

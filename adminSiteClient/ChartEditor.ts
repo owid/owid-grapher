@@ -10,6 +10,8 @@ import { Grapher } from "../grapher/core/Grapher"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
+import _ from "lodash"
+import { number } from "prop-types"
 
 type EditorTab = string
 
@@ -60,6 +62,10 @@ export interface NamespaceData {
 
 export class EditorDatabase {
     @observable.ref namespaces: Namespace[]
+    @observable.ref variablesToGrapherIdsMap: Map<
+        number,
+        Set<number>
+    > = new Map()
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
@@ -152,6 +158,25 @@ export class ChartEditor {
         runInAction(() =>
             this.database.dataByNamespace.set(namespace, data as any)
         )
+    }
+    async loadVariableToGraphersMap(): Promise<void> {
+        const data = (await this.manager.admin.getJSON(
+            `/api/variables.usages.json`
+        )) as Record<string, number[]>
+        const semiParsed = _.mapValues(
+            data,
+            (grapherIds: number[]) => new Set(grapherIds)
+        )
+        const parsedData = (new Map(
+            Object.entries(semiParsed)
+        ) as unknown) as Map<string, Set<number>>
+        const finalData = new Map(
+            [...parsedData].map(([key, value]: [string, Set<number>]) => [
+                parseInt(key),
+                value,
+            ])
+        )
+        runInAction(() => (this.database.variablesToGrapherIdsMap = finalData))
     }
 
     async saveGrapher({
