@@ -29,18 +29,10 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         optimization: {
             splitChunks: {
                 cacheGroups: {
-                    css: {
-                        test: (module) => module.type?.startsWith("css"),
-                        name: "commons-css",
+                    commons: {
+                        name: "commons",
                         chunks: "all",
                         minChunks: 2,
-                    },
-                    js: {
-                        test: (module) => !module.type?.startsWith("css"),
-                        name: "commons-js",
-                        chunks: "all",
-                        minChunks: 2,
-                        maxSize: isProduction ? 1024 * 1024 : undefined, // in bytes
                     },
                 },
             },

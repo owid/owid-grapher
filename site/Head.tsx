@@ -1,6 +1,5 @@
 import * as React from "react"
-import { flatten } from "../clientUtils/Util"
-import { webpackUrls } from "../site/webpackUtils"
+import { webpackUrl } from "../site/webpackUtils"
 
 export const Head = (props: {
     canonicalUrl: string
@@ -55,13 +54,8 @@ export const Head = (props: {
                 href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
                 rel="stylesheet"
             />
-            {flatten(
-                ["commons-css.css", "owid.css"].map((assetName) =>
-                    webpackUrls(assetName, baseUrl)
-                )
-            ).map((href) => (
-                <link key={href} rel="stylesheet" href={href} />
-            ))}
+            <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} />
+            <link rel="stylesheet" href={webpackUrl("owid.css", baseUrl)} />
             {props.children}
         </head>
     )

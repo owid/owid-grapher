@@ -1314,7 +1314,16 @@ export class Grapher
                 "World Bank",
                 "ILOSTAT",
             ]) {
-                if (sourceName.startsWith(majorSource)) return majorSource
+                if (
+                    sourceName.startsWith(majorSource) &&
+                    !sourceName.match(
+                        new RegExp(
+                            "^" + majorSource + "\\s+(based on|and)",
+                            "gi"
+                        )
+                    )
+                )
+                    return majorSource
             }
             return sourceName
         })
@@ -1498,7 +1507,12 @@ export class Grapher
                 this.yScaleType !== ScaleType.log
             )
 
-        if (this.facetStrategy === FacetStrategy.metric) return false
+        // actually trying to exclude relative mode with just one metric
+        if (
+            this.isStackedDiscreteBar &&
+            this.facetStrategy !== FacetStrategy.none
+        )
+            return false
 
         return !this.hideRelativeToggle
     }
@@ -1926,11 +1940,24 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        if (this.hasMultipleYColumns) {
+        const numNonProjectedColumns = this.yColumns.filter(
+            (c) => !c.display?.isProjection
+        ).length
+        if (
+            // multiple metrics (excluding projections)
+            numNonProjectedColumns > 1 &&
+            // more than one data point per metric
+            this.transformedTable.numRows > 1
+        ) {
             strategies.push(FacetStrategy.metric)
         }
 
-        if (this.selection.numSelectedEntities > 1) {
+        if (
+            // multiple entities
+            this.selection.numSelectedEntities > 1 &&
+            // more than one data point per entity
+            this.transformedTable.numRows > this.selection.numSelectedEntities
+        ) {
             strategies.push(FacetStrategy.entity)
         }
 
@@ -1969,6 +1996,14 @@ export class Grapher
 
     set facetStrategy(facet: FacetStrategy) {
         this.selectedFacetStrategy = facet
+
+        if (
+            this.isStackedDiscreteBar &&
+            this.selectedFacetStrategy !== FacetStrategy.none
+        ) {
+            // actually trying to exclude relative mode with just one metric
+            this.stackMode = StackMode.absolute
+        }
     }
 
     @action.bound randomSelection(num: number): void {
