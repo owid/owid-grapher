@@ -306,7 +306,7 @@ export class Grapher
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined
 
-    @observable hideFacetControl?: boolean = true
+    @observable hideFacetControl?: boolean = false
 
     // the desired faceting strategy, which might not be possible if we change the data
     @observable selectedFacetStrategy?: FacetStrategy = undefined
