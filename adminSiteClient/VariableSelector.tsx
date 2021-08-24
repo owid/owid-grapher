@@ -18,11 +18,8 @@ import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 import { asArray } from "../clientUtils/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
-import fuzzysort from "fuzzysort"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
-import _ from "lodash"
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -31,12 +28,16 @@ interface VariableSelectorProps {
     onComplete: (variableIds: LegacyVariableId[]) => void
 }
 
+interface SearchWord {
+    regex: RegExp
+    word: string
+}
+
 interface Variable {
     id: number
     name: string
     datasetName: string
     usedInCharts: Set<number> | undefined
-    searchKey?: Fuzzysort.Prepared
 }
 
 @observer
@@ -62,6 +63,19 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             this.chosenNamespace ??
             this.database.namespaces.find((n) => n.name === "owid")!
         )
+    }
+
+    @computed get searchWordRegexes(): SearchWord[] {
+        const { searchInput } = this
+        if (!searchInput) return []
+        const wordRegexes = searchInput
+            .split(" ")
+            .filter((item) => item)
+            .map((item) => ({
+                regex: new RegExp(lodash.escapeRegExp(item), "i"),
+                word: item,
+            }))
+        return wordRegexes
     }
 
     @computed get editorData() {
@@ -99,9 +113,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     name: variable.name,
                     datasetName: dataset.name,
                     usedInCharts: variablesToGrapherIdsMap.get(variable.id),
-                    searchKey: fuzzysort.prepare(
-                        dataset.name + " - " + variable.name
-                    ),
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -110,13 +121,19 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get searchResults(): Variable[] {
-        const results =
-            this.searchInput &&
-            fuzzysort.go(this.searchInput, this.availableVariables, {
-                key: "searchKey",
-            })
+        let results: Variable[] | undefined
+        const { searchWordRegexes } = this
+        if (searchWordRegexes.length > 0) {
+            results = this.availableVariables.filter((variable) =>
+                searchWordRegexes.every(
+                    (wordRegex) =>
+                        wordRegex.regex.test(variable.name) ||
+                        wordRegex.regex.test(variable.datasetName)
+                )
+            )
+        }
         return results && results.length
-            ? results.map((result) => result.obj)
+            ? results // results.map((result) => result.obj)
             : this.availableVariables
     }
 
@@ -129,8 +146,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
         const rows: Array<string | Variable[]> = []
         const unsorted = Object.entries(resultsByDataset)
-        const sorted = _.sortBy(unsorted, ([datasetName, variables]) => {
-            const sizes = _.map(
+        const sorted = lodash.sortBy(unsorted, ([datasetName, variables]) => {
+            const sizes = lodash.map(
                 variables,
                 (variable) => variable.usedInCharts?.size ?? 0
             )
@@ -193,14 +210,43 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             numVisibleRows,
             numTotalRows,
             searchResultRows,
+            searchWordRegexes,
         } = this
 
         const highlight = (text: string) => {
-            if (this.searchInput) {
-                const html =
-                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
-                    text
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
+            if (searchWordRegexes.length > 0) {
+                const firstMatches = searchWordRegexes
+                    .map(
+                        (regex) =>
+                            [text.search(regex.regex), regex.word] as const
+                    )
+                    .filter(([index, word]) => index >= 0)
+                const sortedFirstMatches = lodash.sortBy(
+                    firstMatches,
+                    ([index, word]) => index
+                )
+                const fragments: JSX.Element[] = []
+                let lastIndex = 0
+                for (const [index, word] of sortedFirstMatches) {
+                    fragments.push(
+                        <span key={`${lastIndex}-start`}>
+                            {text.substring(lastIndex, index)}
+                        </span>
+                    )
+                    fragments.push(
+                        <span
+                            key={`${lastIndex}-content`}
+                            style={{ color: "#aa3333" }}
+                        >
+                            {word}
+                        </span>
+                    )
+                    lastIndex = index + word.length
+                }
+                fragments.push(
+                    <span key={lastIndex}>{text.substring(lastIndex)}</span>
+                )
+                return <span>{fragments}</span>
             } else return text
         }
 
