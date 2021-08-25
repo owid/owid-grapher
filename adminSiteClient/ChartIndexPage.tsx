@@ -1,7 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import fuzzysort from "fuzzysort"
 
 import { TextField } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
@@ -9,11 +8,12 @@ import { uniq } from "../clientUtils/Util"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-
-interface Searchable {
-    chart: ChartListItem
-    term?: Fuzzysort.Prepared
-}
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../clientUtils/search"
 
 @observer
 export class ChartIndexPage extends React.Component {
@@ -24,37 +24,35 @@ export class ChartIndexPage extends React.Component {
     @observable maxVisibleCharts = 50
     @observable charts: ChartListItem[] = []
 
+    @computed get searchWords(): SearchWord[] {
+        const { searchInput } = this
+        return buildSearchWordsFromSearchString(searchInput)
+    }
     @computed get numTotalCharts() {
         return this.charts.length
     }
 
-    @computed get searchIndex(): Searchable[] {
-        const searchIndex: Searchable[] = []
-        for (const chart of this.charts) {
-            searchIndex.push({
-                chart: chart,
-                term: fuzzysort.prepare(
-                    `${chart.title} ${chart.variantName || ""} ${
-                        chart.internalNotes || ""
-                    } ${chart.publishedBy} ${chart.lastEditedBy}`
-                ),
-            })
+    @computed get allChartsToShow(): ChartListItem[] {
+        const { searchWords, charts } = this
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (chart: ChartListItem) => [
+                    chart.title,
+                    chart.variantName,
+                    chart.internalNotes,
+                    chart.publishedBy,
+                    chart.lastEditedBy,
+                ]
+            )
+            return charts.filter(filterFn)
+        } else {
+            return this.charts
         }
-
-        return searchIndex
     }
 
     @computed get chartsToShow(): ChartListItem[] {
-        const { searchInput, searchIndex, maxVisibleCharts } = this
-        if (searchInput) {
-            const results = fuzzysort.go(searchInput, searchIndex, {
-                limit: 50,
-                key: "term",
-            })
-            return uniq(results.map((result) => result.obj.chart))
-        } else {
-            return this.charts.slice(0, maxVisibleCharts)
-        }
+        return this.allChartsToShow.slice(0, this.maxVisibleCharts)
     }
 
     @action.bound onSearchInput(input: string) {
@@ -68,14 +66,7 @@ export class ChartIndexPage extends React.Component {
     render() {
         const { chartsToShow, searchInput, numTotalCharts } = this
 
-        const highlight = (text: string) => {
-            if (this.searchInput) {
-                const html =
-                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
-                    text
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
-            } else return text
-        }
+        const highlight = highlightFunctionForSearchWords(this.searchWords)
 
         return (
             <AdminLayout title="Charts">

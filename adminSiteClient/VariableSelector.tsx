@@ -9,6 +9,12 @@ import {
     runInAction,
     IReactionDisposer,
 } from "mobx"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../clientUtils/search"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
@@ -26,11 +32,6 @@ interface VariableSelectorProps {
     slot: DimensionSlot
     onDismiss: () => void
     onComplete: (variableIds: LegacyVariableId[]) => void
-}
-
-interface SearchWord {
-    regex: RegExp
-    word: string
 }
 
 interface Variable {
@@ -65,17 +66,9 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         )
     }
 
-    @computed get searchWordRegexes(): SearchWord[] {
+    @computed get searchWords(): SearchWord[] {
         const { searchInput } = this
-        if (!searchInput) return []
-        const wordRegexes = searchInput
-            .split(" ")
-            .filter((item) => item)
-            .map((item) => ({
-                regex: new RegExp(lodash.escapeRegExp(item), "i"),
-                word: item,
-            }))
-        return wordRegexes
+        return buildSearchWordsFromSearchString(searchInput)
     }
 
     @computed get editorData() {
@@ -122,15 +115,13 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @computed get searchResults(): Variable[] {
         let results: Variable[] | undefined
-        const { searchWordRegexes } = this
-        if (searchWordRegexes.length > 0) {
-            results = this.availableVariables.filter((variable) =>
-                searchWordRegexes.every(
-                    (wordRegex) =>
-                        wordRegex.regex.test(variable.name) ||
-                        wordRegex.regex.test(variable.datasetName)
-                )
+        const { searchWords } = this
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (variable: Variable) => [variable.name, variable.datasetName]
             )
+            results = this.availableVariables.filter(filterFn)
         }
         return results && results.length
             ? results // results.map((result) => result.obj)
@@ -210,45 +201,10 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             numVisibleRows,
             numTotalRows,
             searchResultRows,
-            searchWordRegexes,
+            searchWords,
         } = this
 
-        const highlight = (text: string) => {
-            if (searchWordRegexes.length > 0) {
-                const firstMatches = searchWordRegexes
-                    .map(
-                        (regex) =>
-                            [text.search(regex.regex), regex.word] as const
-                    )
-                    .filter(([index, word]) => index >= 0)
-                const sortedFirstMatches = lodash.sortBy(
-                    firstMatches,
-                    ([index, word]) => index
-                )
-                const fragments: JSX.Element[] = []
-                let lastIndex = 0
-                for (const [index, word] of sortedFirstMatches) {
-                    fragments.push(
-                        <span key={`${lastIndex}-start`}>
-                            {text.substring(lastIndex, index)}
-                        </span>
-                    )
-                    fragments.push(
-                        <span
-                            key={`${lastIndex}-content`}
-                            style={{ color: "#aa3333" }}
-                        >
-                            {word}
-                        </span>
-                    )
-                    lastIndex = index + word.length
-                }
-                fragments.push(
-                    <span key={lastIndex}>{text.substring(lastIndex)}</span>
-                )
-                return <span>{fragments}</span>
-            } else return text
-        }
+        const highlight = highlightFunctionForSearchWords(searchWords)
 
         return (
             <Modal onClose={this.onDismiss} className="VariableSelector">
