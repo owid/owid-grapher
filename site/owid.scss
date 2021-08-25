@@ -1229,6 +1229,12 @@ html:not(.js) {
             margin: 0 0 0.5rem;
             font-size: inherit;
         }
+        a {
+            color: #453cbb;
+        }
+        a:hover {
+            color: #7d8aef;
+        }
     }
 
     > .footer {

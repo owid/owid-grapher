@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { observable, action, toJS } from "mobx"
+import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 
@@ -44,6 +44,10 @@ class Feedback {
         this.message = ""
     }
 }
+
+const vaccinationRegexe = /vaccination|vaccine|doses/i
+const licensingRegex = /license|licensing|copyright/i
+const citationRegex = /cite|citation/i
 
 @observer
 export class FeedbackForm extends React.Component<{
@@ -95,9 +99,32 @@ export class FeedbackForm extends React.Component<{
         this.done = false
     }
 
+    @computed private get isTopicVaccines(): boolean {
+        const { message } = this.feedback
+        return vaccinationRegexe.test(message)
+    }
+
+    @computed private get isTopicCopyright(): boolean {
+        const { message } = this.feedback
+        return licensingRegex.test(message)
+    }
+
+    @computed private get isTopicCitation(): boolean {
+        const { message } = this.feedback
+        return citationRegex.test(message)
+    }
+
     renderBody() {
-        const { loading, done } = this
+        const {
+            loading,
+            done,
+            isTopicCitation,
+            isTopicVaccines,
+            isTopicCopyright,
+        } = this
         const autofocus = this.props.autofocus ?? true
+        const isSpecialTopic =
+            isTopicCitation || isTopicCopyright || isTopicVaccines
         if (done) {
             return (
                 <div className="doneMessage">
@@ -117,13 +144,67 @@ export class FeedbackForm extends React.Component<{
                 </div>
             )
         }
+        const vaccineNotice = (
+            <a
+                key="vaccineNotice"
+                href="https://ourworldindata.org/covid-vaccinations#frequently-asked-questions"
+                target="_blank"
+                rel="noreferrer"
+            >
+                Covid Vaccines Questions
+            </a>
+        )
+
+        const copyrightNotice = (
+            <a
+                key="copyrightNotice"
+                href="https://ourworldindata.org/faqs#how-is-your-work-copyrighted"
+                target="_blank"
+                rel="noreferrer"
+            >
+                Copyright Queries
+            </a>
+        )
+        const citationNotice = (
+            <a
+                key="citationNotice"
+                href="https://ourworldindata.org/faqs#how-should-i-cite-your-work"
+                target="_blank"
+                rel="noreferrer"
+            >
+                How to Cite our Work&nbsp;
+            </a>
+        )
+        const notices = isSpecialTopic
+            ? isTopicCitation
+                ? citationNotice
+                : isTopicCopyright
+                ? copyrightNotice
+                : isTopicVaccines
+                ? vaccineNotice
+                : undefined
+            : [
+                  vaccineNotice,
+                  <span key="vaccineComma">, </span>,
+                  copyrightNotice,
+                  <span key="copyrightComma">, </span>,
+                  citationNotice,
+              ]
         return (
             <React.Fragment>
                 <div className="header">Leave us feedback</div>
                 <div className="notice">
                     <p>
-                        We read and consider all feedback, but due to a high
-                        volume of messages we are not able to reply to all.
+                        You may have a question we've already answered in&nbsp;
+                        <a
+                            href="https://ourworldindata.org/faqs"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            our Frequently Asked Questions.&nbsp;
+                        </a>
+                        Find quick answers to&nbsp;
+                        {notices}
                     </p>
                 </div>
                 <div className="formBody">
