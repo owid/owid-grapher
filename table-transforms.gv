@@ -1,0 +1,185 @@
+digraph G {
+    legacyjson -> legacyToOwidTableAndDimensions;
+    subgraph clusterLegacyToOwidTableAndDimensions {
+        setDefaultColumns [label="set default columns: entityname, id, code"];
+        setOptionalColorColumn [label="Set optional color column from selection"];
+
+
+        legacyToOwidTableAndDimensions -> setDefaultColumns -> setOptionalColorColumn -> perDimensionAndOptionalTargetTime;
+        subgraph clusterDimensions {
+            label="Per dimension"
+            perDimensionAndOptionalTargetTime [label="Prepare each dimension (per targetyear if set)"]
+            copyBaseColumns [label="Copy base columns from above into new Map"]
+            addTimeColums [label="Add time column (day or year)"]
+            addValueColumn [label="Add value column"]
+            addAnnotationsMap [label="Add optional annotations column"]
+            fillTimeAndEntityColumns [label="Fill time and entity columns"]
+            fillValueColumn [label="Fill value column with optional conversion factor"]
+            buildVariableTable [label="Build variable table"]
+            dropTimecolumnIfTargetTimeSet [label="Scatter and Marimekko: drop the time column if targetTime is set\n(for entity-only join later)"]
+            loopForNextDimension [label="Loop with next dimension"]
+
+            perDimensionAndOptionalTargetTime -> copyBaseColumns -> addTimeColums
+             -> addValueColumn -> addAnnotationsMap -> fillTimeAndEntityColumns
+             -> fillValueColumn -> buildVariableTable -> dropTimecolumnIfTargetTimeSet
+             -> loopForNextDimension -> perDimensionAndOptionalTargetTime
+        }
+        fullJoin [label="Outer join all partial dimension tables together"]
+        addSharedTimeColumn [label="Add shared time column"]
+
+        loopForNextDimension -> fullJoin -> addSharedTimeColumn
+
+        label="convert legacy json to OwidTable"
+    }
+
+    subgraph clusterGrapherTables {
+        label="Tables that are properties on grapher"
+        propsTable [label="Table set from props"]
+        explorerSetTable [label="Table set by explorer"]
+        explorerSetTable -> inputTable
+        addSharedTimeColumn -> inputTable [constraint=false]
+        propsTable -> inputTable
+        inputTable -> tableAfterAuthorTimelineFilter -> tableAfterAuthorTimelineAndActiveChartTransform -> tableForSelection
+        inputTable -> tableForSelection
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformLineChart
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformScatterPlot
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformAbstractStacked
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transfromDiscreteBar
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformStackedDiscreteBar
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transfromSlope
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformWorldMap
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformMarimekko
+
+        tableAfterAuthorTimelineAndActiveChartTransform -> tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter -> tableAfterAllTransformsAndFilters -> transformedTable
+        tableAfterAuthorTimelineFilter -> table
+    }
+
+    subgraph clusterLineChart {
+        label="LineChart transformations"
+        LCfilterByEntityNames [label="filterByEntityNames on selected entities"]
+        LCreplaceNonNumericCellsWithErrorValues [label="replace nonNumeric cells with error values"]
+        LCreplaceNonPositiveCellsForLogScale [label="replace nonpositive cells if in log scale mode"]
+        transformLineChart -> LCfilterByEntityNames -> LCreplaceNonNumericCellsWithErrorValues -> LCreplaceNonPositiveCellsForLogScale -> tableLineChart
+        tableLineChart
+           }
+
+    subgraph clusterScatterPlot {
+        label="ScatterChart transformations"
+        SPfilterByEntityNames [label="filterByEntityNames on selected entities"]
+        SPfilterExcludedEntities [label="columnFilter on excluded entities"]
+        SPfilterBackgroundSeries [label="columnFilter on selected and background series"]
+        SPreplaceNonPositivieCellsForLogScale [label="replace nonpositive cells if in log mode"]
+        SPinterpolateColumnSize [label="interpolate column size"]
+        SPinterpolateColumnColor [label="interpolate column color"]
+        SPdropErrorValuesColor [label="drop error values for column color"]
+        SPfilterByTimeRange [label="filter by X and Y time range\n(avoids time handles exceeding data range)"]
+        SPinterpolateColumn [label="interpolateColumn\nif xOverrideTime is set then interpolatecolumnWithTolerance\nelse interpolatecolumnsByClosestMatch"]
+        SPfilterNonNumeric [label="columnFilter on X and Y to remove nonnumeric"]
+        transformScatterPlot -> SPfilterByEntityNames -> SPfilterExcludedEntities ->
+            SPfilterBackgroundSeries -> SPreplaceNonPositivieCellsForLogScale ->
+            SPinterpolateColumnSize -> SPinterpolateColumnColor -> SPdropErrorValuesColor ->
+            SPfilterByTimeRange -> SPinterpolateColumn -> SPfilterNonNumeric ->
+            tableScatterPlot
+        tableScatterPlot
+    }
+
+    subgraph clusterTimeScatter {
+
+
+    }
+
+    subgraph clusterAbstractStacked {
+        label="AbstractStacked transformations"
+
+        ASfilterByEntityNames [label="filterByEntityNames on selected entities"]
+
+        ASreplaceNonNumericCellsWithErrorValues [label="replace nonnumeric cells with error values"]
+        ASdropErrorValuesAllColumnsValues [label="drop error values if all columns error"]
+        ASinterpolateColumn [label="interpolate Y columns linearly unless disabled"]
+        ASdropErrorValuesAnyColumnError [label="drop error values if any column has errors"]
+        ASconvertToPercentages [label="convert Y series to percentages if desired"]
+
+        transformAbstractStacked -> ASfilterByEntityNames -> ASreplaceNonNumericCellsWithErrorValues ->
+            ASdropErrorValuesAllColumnsValues -> ASinterpolateColumn -> ASdropErrorValuesAnyColumnError
+            -> ASconvertToPercentages -> tableAbstractStacked
+
+    }
+
+    subgraph clusterDiscreteBar {
+        label="DiscreteBarChart transformations"
+        DBfilterByEntityNames [label="filterByEntityNames on selected entities"]
+
+        DBreplaceNonNumericCellsWithErrorValues [label="replace nonnumeric cells with error values"]
+        DBreplaceNonPositivieCellsForLogScale [label="replace nonpositive cells if in log mode"]
+        DBdropErrorValuesAllColumnsValues [label="drop error values if all columns error"]
+        DBinterpolateColumn [label="interpolate Y columns"]
+
+        transformDiscreteBar -> DBfilterByEntityNames -> DBreplaceNonNumericCellsWithErrorValues ->
+            DBreplaceNonPositivieCellsForLogScale -> DBdropErrorValuesAllColumnsValues ->
+            DBinterpolateColumn -> tableDiscreteBar
+
+
+    }
+
+    subgraph clusterStackedDiscreteBar {
+        label="StackedDiscreteBar transformations"
+        SDfilterByEntityNames [label="filterByEntityNames on selected entities"]
+
+        SDreplaceNonNumericCellsWithErrorValues [label="replace nonnumeric cells with error values"]
+        SDdropErrorValuesAllColumnsValues [label="drop error values if all columns error"]
+        SDinterpolateColumn [label="interpolate Y columns linearly unless disabled"]
+        SDdropErrorValuesAnyColumnError [label="drop error values if any column has errors"]
+        SDconvertToPercentages [label="convert Y series to percentages if desired"]
+
+        transformStackedDiscreteBar -> SDfilterByEntityNames -> SDreplaceNonNumericCellsWithErrorValues -> SDdropErrorValuesAllColumnsValues ->
+            SDinterpolateColumn -> SDdropErrorValuesAnyColumnError
+            -> SDconvertToPercentages -> tableStackedDiscreteBar
+
+
+    }
+
+    subgraph clusterSlope {
+        label="SlopeChart transformations"
+        SreplaceNonNumericCellsWithErrorValues [label="replace nonnumeric cells with error values"]
+        SdropErrorValuesAllColumnsValues [label="drop error values for column errors"]
+        SinterpolateColumn [label="interpolate Y column linearly"]
+
+        transformSlope -> SreplaceNonNumericCellsWithErrorValues ->
+            SdropErrorValuesAllColumnsValues -> SinterpolateColumn ->
+            SslopeTable
+    }
+
+    subgraph clusterStackedBar {
+
+    }
+
+    subgraph clusterWorldMap {
+        label="MapChart transformations"
+        WMdropNonMapEntities [label="Drop non-map entities"]
+        WMdropErrorValuesAllColumnsValues [label="drop error values for column errors"]
+        WMinterpolateColumn [label="interpolate Y column linearly"]
+
+        transformWorldMap -> WMdropNonMapEntities -> WMdropErrorValuesAllColumnsValues ->
+            WMinterpolateColumn -> tableWorldMap
+    }
+
+    subgraph clusterMarimekko {
+        label="Marimekko tranformations"
+        MexcludeEntities [label="exclude excluded entities"]
+
+        MreplaceNonNumericCellsWithErrorValues [label="replace nonnumeric cells with error values"]
+        MinterpolateYColumns [label="interpolate Y columns"]
+        MinterpolateXColumn [label="interpolate X column"]
+        MdropErrorValuesAnyColumnError [label="drop error values if any column has errors"]
+        MconvertToPercentages [label="convert Y series to percentages if desired"]
+        MinterplateColorColumn [label="interpolate color column"]
+        MdropNonColoredEntities [label="drop entities without color if specified"]
+
+        transformMarimekko -> MexcludeEntities -> MreplaceNonNumericCellsWithErrorValues ->
+            MinterpolateYColumns -> MinterpolateXColumn -> MdropErrorValuesAnyColumnError ->
+            MconvertToPercentages -> MinterplateColorColumn -> MdropNonColoredEntities ->
+            tableMarimekko
+    }
+
+
+}
