@@ -1,0 +1,25 @@
+digraph G {
+
+    subgraph clusterGrapherTables {
+        label="Tables that are properties on grapher"
+        propsTable [label="Table set from props"]
+        explorerSetTable [label="Table set by explorer"]
+        explorerSetTable -> inputTable
+        legacyToOwidTableAndDimensions -> inputTable [constraint=false]
+        propsTable -> inputTable
+        inputTable -> tableAfterAuthorTimelineFilter -> tableAfterAuthorTimelineAndActiveChartTransform -> tableForSelection
+        inputTable -> tableForSelection
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformLineChart
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformScatterPlot
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformAbstractStacked
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transfromDiscreteBar
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformStackedDiscreteBar
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transfromSlope
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformWorldMap
+        // tableAfterAuthorTimelineAndActiveChartTransform -> transformMarimekko
+
+        tableAfterAuthorTimelineAndActiveChartTransform -> tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter -> tableAfterAllTransformsAndFilters -> transformedTable
+        tableAfterAuthorTimelineFilter -> table
+    }
+
+}

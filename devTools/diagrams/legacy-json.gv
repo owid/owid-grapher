@@ -1,0 +1,36 @@
+digraph G {
+    fetch [label="fetch Json data"];
+    fetch -> setDefaultColumns
+    subgraph clusterLegacyToOwidTableAndDimensions {
+        setDefaultColumns [label="set default columns: entityname, id, code"];
+        setOptionalColorColumn [label="Set optional color column from selection"];
+
+
+        setDefaultColumns -> setOptionalColorColumn -> perDimensionAndOptionalTargetTime;
+        subgraph clusterDimensions {
+            label="Per dimension"
+            perDimensionAndOptionalTargetTime [label="Prepare each dimension (per targetyear if set)"]
+            copyBaseColumns [label="Copy base columns from above into new Map"]
+            addTimeColums [label="Add time column (day or year)"]
+            addValueColumn [label="Add value column"]
+            addAnnotationsMap [label="Add optional annotations column"]
+            fillTimeAndEntityColumns [label="Fill time and entity columns"]
+            fillValueColumn [label="Fill value column with optional conversion factor"]
+            buildVariableTable [label="Build variable table"]
+            dropTimecolumnIfTargetTimeSet [label="Scatter and Marimekko: drop the time column if targetTime is set\n(for entity-only join later)"]
+            loopForNextDimension [label="Loop with next dimension"]
+
+            perDimensionAndOptionalTargetTime -> copyBaseColumns -> addTimeColums
+             -> addValueColumn -> addAnnotationsMap -> fillTimeAndEntityColumns
+             -> fillValueColumn -> buildVariableTable -> dropTimecolumnIfTargetTimeSet
+             -> loopForNextDimension -> perDimensionAndOptionalTargetTime
+        }
+        fullJoin [label="Outer join all partial dimension tables together"]
+        addSharedTimeColumn [label="Add shared time column"]
+        innerTable [label="Set inner table on grapher"]
+
+        loopForNextDimension -> fullJoin -> addSharedTimeColumn -> innerTable
+
+        label="convert legacy json to OwidTable"
+    }
+}
