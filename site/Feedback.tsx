@@ -182,14 +182,8 @@ export class FeedbackForm extends React.Component<{
                 ? copyrightNotice
                 : isTopicVaccines
                 ? vaccineNotice
-                : undefined
-            : [
-                  vaccineNotice,
-                  <span key="vaccineComma">, </span>,
-                  copyrightNotice,
-                  <span key="copyrightComma">, </span>,
-                  citationNotice,
-              ]
+                : null
+            : null
         return (
             <React.Fragment>
                 <div className="header">Leave us feedback</div>
@@ -203,11 +197,20 @@ export class FeedbackForm extends React.Component<{
                         >
                             our Frequently Asked Questions.&nbsp;
                         </a>
-                        Find quick answers to&nbsp;
-                        {notices}
                     </p>
                 </div>
                 <div className="formBody">
+                    <div className="formSection formSectionExpand">
+                        <label htmlFor="feedback.message">Message</label>
+                        <textarea
+                            id="feedback.message"
+                            onChange={this.onMessage}
+                            rows={5}
+                            minLength={30}
+                            required
+                            disabled={loading}
+                        />
+                    </div>
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
                         <input
@@ -227,17 +230,6 @@ export class FeedbackForm extends React.Component<{
                             disabled={loading}
                         />
                     </div>
-                    <div className="formSection formSectionExpand">
-                        <label htmlFor="feedback.message">Message</label>
-                        <textarea
-                            id="feedback.message"
-                            onChange={this.onMessage}
-                            rows={5}
-                            minLength={30}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
                     {this.error ? (
                         <div style={{ color: "red" }}>{this.error}</div>
                     ) : undefined}
@@ -247,6 +239,12 @@ export class FeedbackForm extends React.Component<{
                         </div>
                     ) : undefined}
                 </div>
+                {notices ? (
+                    <div className="topic-notice">
+                        Your question may be related to this FAQ entry on &nbsp;
+                        {notices}
+                    </div>
+                ) : null}
                 <div className="footer">
                     <button type="submit" disabled={loading}>
                         Send message

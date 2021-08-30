@@ -1237,6 +1237,25 @@ html:not(.js) {
         }
     }
 
+    .topic-notice {
+        @include info;
+        margin-top: 0;
+        padding: 1rem;
+        background-color: $tertiary-color-brighter;
+        color: $primary-color;
+        .title {
+            font-weight: bold;
+            margin: 0 0 0.5rem;
+            font-size: inherit;
+        }
+        a {
+            color: #453cbb;
+        }
+        a:hover {
+            color: #7d8aef;
+        }
+    }
+
     > .footer {
         box-shadow: 0 -0.07143rem 0.85714rem rgba(0, 0, 0, 0.08);
         padding: 0.8rem 1rem;
