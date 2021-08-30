@@ -2248,6 +2248,7 @@ export class Grapher
         const grapher = new Grapher()
         this.title = grapher.title
         this.subtitle = grapher.subtitle
+        this.note = grapher.note
         this.type = grapher.type
         this.ySlugs = grapher.ySlugs
         this.xSlug = grapher.xSlug
