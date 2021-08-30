@@ -35,7 +35,7 @@ function buildRegexFromSearchWord(str: string): RegExp {
             replacement.regexTerm
         )
     }
-    return new RegExp(moreTolerantMatch, "i")
+    return new RegExp(moreTolerantMatch, "iu")
 }
 export const buildSearchWordsFromSearchString = (
     searchInput: string | undefined
