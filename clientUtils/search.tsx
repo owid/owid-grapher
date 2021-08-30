@@ -14,19 +14,19 @@ function buildRegexFromSearchWord(str: string): RegExp {
     const moreTolerantMatchReplacements =
         // Match digit or superscript/subscript variant
         [
-            { searchTerm: "0", regexTerm: "(0|\u2070|}\u2080)" },
+            { searchTerm: "0", regexTerm: "(0|\u2070|\u2080)" },
             {
                 searchTerm: "1",
                 regexTerm: "(1|\u00B9|\u2081)", // superscript for 1, 2 and 3 are odd codepoints
             },
-            { searchTerm: "2", regexTerm: "(2|\u00B2|}\u2082)" },
-            { searchTerm: "3", regexTerm: "(3|\u00B3|}\u2083)" },
-            { searchTerm: "4", regexTerm: "(4|\u2074|}\u2084)" },
-            { searchTerm: "5", regexTerm: "(5|\u2075|}\u2085)" },
-            { searchTerm: "6", regexTerm: "(6|\u2076|}\u2086)" },
-            { searchTerm: "7", regexTerm: "(7|\u2077|}\u2087)" },
-            { searchTerm: "8", regexTerm: "(8|\u2078|}\u2088)" },
-            { searchTerm: "9", regexTerm: "(9|\u2079|}\u2089)" },
+            { searchTerm: "2", regexTerm: "(2|\u00B2|\u2082)" },
+            { searchTerm: "3", regexTerm: "(3|\u00B3|\u2083)" },
+            { searchTerm: "4", regexTerm: "(4|\u2074|\u2084)" },
+            { searchTerm: "5", regexTerm: "(5|\u2075|\u2085)" },
+            { searchTerm: "6", regexTerm: "(6|\u2076|\u2086)" },
+            { searchTerm: "7", regexTerm: "(7|\u2077|\u2087)" },
+            { searchTerm: "8", regexTerm: "(8|\u2078|\u2088)" },
+            { searchTerm: "9", regexTerm: "(9|\u2079|\u2089)" },
         ]
     let moreTolerantMatch = escapedString //.replace(/([0-9])/g, "($1|p{No})")
     for (const replacement of moreTolerantMatchReplacements) {
