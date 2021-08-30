@@ -43,6 +43,7 @@ export class ChartIndexPage extends React.Component {
                     chart.internalNotes,
                     chart.publishedBy,
                     chart.lastEditedBy,
+                    ...chart.tags.map((tag) => tag.name),
                 ]
             )
             return charts.filter(filterFn)
