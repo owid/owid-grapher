@@ -9,11 +9,10 @@ import {
     sortBy,
     sumBy,
     sum,
-    drop,
+    partition,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { partition } from "lodash"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import {
     BASE_FONT_SIZE,
