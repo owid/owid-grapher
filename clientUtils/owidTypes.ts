@@ -2,7 +2,7 @@
 export const EPOCH_DATE = "2020-01-21"
 
 /** The "plot" is a chart without any header, footer or controls */
-export const IDEAL_PLOT_ASPECT_RATIO: number = 1.8
+export const IDEAL_PLOT_ASPECT_RATIO: number = 2.2
 
 export interface Box {
     x: number
