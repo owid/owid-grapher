@@ -45,9 +45,9 @@ class Feedback {
     }
 }
 
-const vaccinationRegexe = /vaccination|vaccine|doses/i
+const vaccinationRegexe = /vaccination|vaccine|doses|vaccinat/i
 const licensingRegex = /license|licensing|copyright/i
-const citationRegex = /cite|citation/i
+const citationRegex = /cite|citation|citing|reference/i
 
 @observer
 export class FeedbackForm extends React.Component<{
@@ -195,7 +195,17 @@ export class FeedbackForm extends React.Component<{
                             target="_blank"
                             rel="noreferrer"
                         >
-                            our Frequently Asked Questions.&nbsp;
+                            our Frequently Asked Questions.
+                        </a>
+                        <br></br>
+                        Questions about our Covid vaccination data might&nbsp;
+                        be already answered in&nbsp;
+                        <a
+                            href="https://ourworldindata.org/covid-vaccinations#frequently-asked-questions"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            our vaccination FAQ.
                         </a>
                     </p>
                 </div>
