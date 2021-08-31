@@ -954,7 +954,6 @@ apiRouter.get("/variables.usages.json", async (req) => {
     // but since the variables are stored inside the json config and mysql 5.7's limited
     // support for json and arrays we can'd do it that way - so instead we select the arrays
     // and create a map that we use to "transpose" the table, then serialize this
-    console.log("entering usages")
 
     const query = `select id, JSON_EXTRACT(config, "$.dimensions[*].variableId") as variables from charts`
 

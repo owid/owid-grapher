@@ -1,7 +1,7 @@
 import { flatten } from "./Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
-import { escapeRegExp, sortBy } from "lodash"
+import { drop, escapeRegExp, sortBy } from "lodash"
 import React from "react"
 
 export interface SearchWord {
@@ -28,7 +28,7 @@ function buildRegexFromSearchWord(str: string): RegExp {
             { searchTerm: "8", regexTerm: "(8|\u2078|\u2088)" },
             { searchTerm: "9", regexTerm: "(9|\u2079|\u2089)" },
         ]
-    let moreTolerantMatch = escapedString //.replace(/([0-9])/g, "($1|p{No})")
+    let moreTolerantMatch = escapedString
     for (const replacement of moreTolerantMatchReplacements) {
         moreTolerantMatch = moreTolerantMatch.replace(
             replacement.searchTerm,
@@ -53,7 +53,7 @@ export const buildSearchWordsFromSearchString = (
 
 /** Given a list of SearchWords constructed with buildSearchWordsFromSearchString
     and a search field string extractor function, this function returns a filter function
-    that tells you if all search terms occur in any of the fields extracted by the extractor fn.
+    that tells you if all search terms occur in any of the fields extracted by the extractor fn (in any order).
 
     E.g. if you have a type Person with firstName and lastName and you want it to search in both fields,
     you would call it like this:
@@ -83,29 +83,65 @@ export function highlightFunctionForSearchWords(
     return (text: string): JSX.Element | string => {
         if (searchWords.length > 0) {
             const firstMatches = searchWords
-                .map((regex) => [text.search(regex.regex), regex.word] as const)
-                .filter(([index, word]) => index >= 0)
-            const sortedFirstMatches = sortBy(
-                firstMatches,
-                ([index, word]) => index
-            )
+                .map((regex) => ({
+                    matchStart: text.search(regex.regex),
+                    matchLength: regex.word.length,
+                }))
+                .filter(({ matchStart }) => matchStart >= 0)
             const fragments: JSX.Element[] = []
             let lastIndex = 0
-            for (const [index, word] of sortedFirstMatches) {
-                fragments.push(
-                    <span key={`${lastIndex}-start`}>
-                        {text.substring(lastIndex, index)}
-                    </span>
+            if (firstMatches.length > 0) {
+                // sort descending by end position and then length
+                const sortedFirstMatches = sortBy(firstMatches, [
+                    ({ matchStart, matchLength }) =>
+                        -(matchStart + matchLength),
+                    ({ matchStart, matchLength }) => -matchLength,
+                ])
+                // merge overlapping match ranges
+                const mergedMatches = [sortedFirstMatches[0]]
+                let lastMatch = mergedMatches[0]
+                for (const match of drop(sortedFirstMatches, 1)) {
+                    if (
+                        lastMatch.matchStart <=
+                        match.matchStart + match.matchLength
+                    ) {
+                        lastMatch.matchLength =
+                            Math.max(
+                                lastMatch.matchStart + lastMatch.matchLength,
+                                match.matchStart + match.matchLength
+                            ) - match.matchStart
+                        lastMatch.matchStart = match.matchStart
+                    } else {
+                        mergedMatches.push(match)
+                        lastMatch = match
+                    }
+                }
+                // sort ascending
+                const sortedMergedMatches = sortBy(
+                    mergedMatches,
+                    (match) => match.matchStart
                 )
-                fragments.push(
-                    <span
-                        key={`${lastIndex}-content`}
-                        style={{ color: "#aa3333" }}
-                    >
-                        {word}
-                    </span>
-                )
-                lastIndex = index + word.length
+
+                // cut and add fragments
+                for (const { matchStart, matchLength } of sortedMergedMatches) {
+                    fragments.push(
+                        <span key={`${lastIndex}-start`}>
+                            {text.substring(lastIndex, matchStart)}
+                        </span>
+                    )
+                    fragments.push(
+                        <span
+                            key={`${lastIndex}-content`}
+                            style={{ color: "#aa3333" }}
+                        >
+                            {text.substring(
+                                matchStart,
+                                matchStart + matchLength
+                            )}
+                        </span>
+                    )
+                    lastIndex = matchStart + matchLength
+                }
             }
             fragments.push(
                 <span key={lastIndex}>{text.substring(lastIndex)}</span>
