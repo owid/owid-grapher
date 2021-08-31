@@ -38,7 +38,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
-    usedInChartIds: Set<number>
+    usageCount: number
 }
 
 @observer
@@ -97,7 +97,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
             const sorted = sortBy(dataset.variables, [
-                (v) => (variablesToGrapherIdsMap.get(v.id)?.size ?? 0) * -1,
+                (v) => (variablesToGrapherIdsMap.get(v.id) ?? 0) * -1,
                 (v) => v.name,
             ])
             sorted.forEach((variable) => {
@@ -105,8 +105,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
-                    usedInChartIds:
-                        variablesToGrapherIdsMap.get(variable.id) ?? new Set(),
+                    usageCount: variablesToGrapherIdsMap.get(variable.id) ?? 0,
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -146,7 +145,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const sorted = lodash.sortBy(unsorted, ([datasetName, variables]) => {
             const sizes = lodash.map(
                 variables,
-                (variable) => variable.usedInChartIds.size ?? 0
+                (variable) => variable.usageCount ?? 0
             )
             return Math.max(...sizes) * -1
         })
@@ -333,13 +332,9 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                                     "#555",
                                                                             }}
                                                                         >
-                                                                            {v
-                                                                                .usedInChartIds
-                                                                                .size
+                                                                            {v.usageCount
                                                                                 ? ` (used ${
-                                                                                      v
-                                                                                          .usedInChartIds
-                                                                                          .size ??
+                                                                                      v.usageCount ??
                                                                                       "-"
                                                                                   } times)`
                                                                                 : " (ununsed)"}
@@ -462,8 +457,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,
-                usedInChartIds:
-                    variablesToGrapherIdsMap.get(d.variableId) ?? new Set(),
+                usageCount: variablesToGrapherIdsMap.get(d.variableId) ?? 0,
                 datasetName: "",
             })
         )

@@ -955,26 +955,15 @@ apiRouter.get("/variables.usages.json", async (req) => {
     // support for json and arrays we can'd do it that way - so instead we select the arrays
     // and create a map that we use to "transpose" the table, then serialize this
 
-    const query = `select id, JSON_EXTRACT(config, "$.dimensions[*].variableId") as variables from charts`
+    const query = `SELECT variableId, COUNT(DISTINCT chartId) AS usageCount
+FROM chart_dimensions
+GROUP BY variableId
+ORDER BY usageCount DESC`
 
     const rows = await db.queryMysql(query)
 
-    const variablesToChartIds = new Map<number, Set<number>>()
-    for (const row of rows) {
-        const variableArray = JSON.parse(row.variables)
-        for (const variable of variableArray) {
-            if (!variablesToChartIds.has(variable)) {
-                variablesToChartIds.set(variable, new Set())
-            }
-            const chartsForVariable = variablesToChartIds.get(variable)
-            chartsForVariable!.add(row.id)
-        }
-    }
-
     // JSON.stringify supports neither Map nor Set so we have to convert the Map to an object and the Sets to arrays
-    return _.mapValues(Object.fromEntries(variablesToChartIds), (chartIds) => [
-        ...chartIds,
-    ])
+    return rows
 })
 
 interface VariableSingleMeta {

@@ -11,7 +11,6 @@ import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
 import _ from "lodash"
-import { number } from "prop-types"
 
 type EditorTab = string
 
@@ -62,10 +61,7 @@ export interface NamespaceData {
 
 export class EditorDatabase {
     @observable.ref namespaces: Namespace[]
-    @observable.ref variablesToGrapherIdsMap: Map<
-        number,
-        Set<number>
-    > = new Map()
+    @observable.ref variablesToGrapherIdsMap: Map<number, number> = new Map()
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
@@ -80,6 +76,11 @@ export interface ChartEditorManager {
     logs: Log[]
     references: PostReference[]
     redirects: ChartRedirect[]
+}
+
+interface VariableIdUsageRecord {
+    variableId: number
+    usageCount: number
 }
 
 export class ChartEditor {
@@ -162,18 +163,11 @@ export class ChartEditor {
     async loadVariableToGraphersMap(): Promise<void> {
         const data = (await this.manager.admin.getJSON(
             `/api/variables.usages.json`
-        )) as Record<string, number[]>
-        const semiParsed = _.mapValues(
-            data,
-            (grapherIds: number[]) => new Set(grapherIds)
-        )
-        const parsedData = (new Map(
-            Object.entries(semiParsed)
-        ) as unknown) as Map<string, Set<number>>
+        )) as VariableIdUsageRecord[]
         const finalData = new Map(
-            [...parsedData].map(([key, value]: [string, Set<number>]) => [
-                parseInt(key),
-                value,
+            data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
+                variableId,
+                usageCount,
             ])
         )
         runInAction(() => (this.database.variablesToGrapherIdsMap = finalData))
