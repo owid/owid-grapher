@@ -38,7 +38,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
-    usedInCharts: Set<number> | undefined
+    usedInChartIds: Set<number>
 }
 
 @observer
@@ -96,16 +96,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { variablesToGrapherIdsMap } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
-            const sorted = sortBy(
-                dataset.variables,
-                (v) => (variablesToGrapherIdsMap.get(v.id)?.size ?? 0) * -1
-            )
+            const sorted = sortBy(dataset.variables, [
+                (v) => (variablesToGrapherIdsMap.get(v.id)?.size ?? 0) * -1,
+                (v) => v.name,
+            ])
             sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
-                    usedInCharts: variablesToGrapherIdsMap.get(variable.id),
+                    usedInChartIds:
+                        variablesToGrapherIdsMap.get(variable.id) ?? new Set(),
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -125,11 +126,16 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         }
         return results && results.length
             ? results // results.map((result) => result.obj)
-            : this.availableVariables
+            : []
     }
 
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
-        return groupBy(this.searchResults, (d) => d.datasetName)
+        const { searchResults, searchWords, availableVariables } = this
+        let datasetListToUse = searchResults
+        if (searchWords.length == 0) {
+            datasetListToUse = availableVariables
+        }
+        return groupBy(datasetListToUse, (d) => d.datasetName)
     }
 
     @computed get searchResultRows() {
@@ -140,7 +146,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const sorted = lodash.sortBy(unsorted, ([datasetName, variables]) => {
             const sizes = lodash.map(
                 variables,
-                (variable) => variable.usedInCharts?.size ?? 0
+                (variable) => variable.usedInChartIds.size ?? 0
             )
             return Math.max(...sizes) * -1
         })
@@ -328,12 +334,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                             }}
                                                                         >
                                                                             {v
-                                                                                .usedInCharts
-                                                                                ?.size
+                                                                                .usedInChartIds
+                                                                                .size
                                                                                 ? ` (used ${
                                                                                       v
-                                                                                          .usedInCharts
-                                                                                          ?.size ??
+                                                                                          .usedInChartIds
+                                                                                          .size ??
                                                                                       "-"
                                                                                   } times)`
                                                                                 : " (ununsed)"}
@@ -456,7 +462,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,
-                usedInCharts: variablesToGrapherIdsMap.get(d.variableId),
+                usedInChartIds:
+                    variablesToGrapherIdsMap.get(d.variableId) ?? new Set(),
                 datasetName: "",
             })
         )
