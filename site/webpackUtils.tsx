@@ -46,23 +46,19 @@ export const webpackUrls = (
 }
 
 export const bakeEmbedSnippet = (baseUrl: string) => {
-    const jsScriptFiles: string[] = [
+    const jsFiles: string[] = [
         "https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry",
-        ...flatten(
-            ["commons-js.js", "owid.js"].map((assetName) =>
-                webpackUrls(assetName, baseUrl)
-            )
-        ),
+        ...webpackUrls("commons-js.js", baseUrl),
+        ...webpackUrls("owid.js", baseUrl),
     ]
+
+    const cssFiles: string[] = [...webpackUrls("commons-css.css", baseUrl)]
 
     return `const embedSnippet = () => {
 
 const coreStylesheets = [
-    ${webpackUrls("commons-css.css", baseUrl)
-        .map((href) => `'${href}'`)
-        .join(",\n")}
+    ${cssFiles.map((href) => `'${href}'`).join(",\n")}
 ]
-
 
 coreStylesheets.forEach(url => {
     const link = document.createElement('link')
@@ -75,12 +71,12 @@ coreStylesheets.forEach(url => {
 let loadedScripts = 0;
 const checkReady = () => {
     loadedScripts++
-    if (loadedScripts === ${jsScriptFiles.length})
+    if (loadedScripts === ${jsFiles.length})
         window.MultiEmbedderSingleton.embedAll()
 }
 
 const coreScripts = [
-    ${jsScriptFiles.map((href) => `'${href}'`).join(",\n")}
+    ${jsFiles.map((href) => `'${href}'`).join(",\n")}
 ]
 
 coreScripts.forEach(url => {
