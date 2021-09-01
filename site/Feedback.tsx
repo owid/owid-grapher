@@ -45,9 +45,78 @@ class Feedback {
     }
 }
 
-const vaccinationRegexe = /vaccination|vaccine|doses|vaccinat/i
+const vaccinationRegex = /vaccination|vaccine|doses|vaccinat/i
 const licensingRegex = /license|licensing|copyright/i
 const citationRegex = /cite|citation|citing|reference/i
+const translateRegex = /translat/i
+
+enum SpecialFeedbackTopic {
+    Vaccination,
+    Licensing,
+    Citation,
+    Translation,
+}
+
+interface SpecialTopicMatcher {
+    regex: RegExp
+    topic: SpecialFeedbackTopic
+}
+
+const topicMatchers = [
+    { regex: vaccinationRegex, topic: SpecialFeedbackTopic.Vaccination },
+    { regex: licensingRegex, topic: SpecialFeedbackTopic.Licensing },
+    { regex: citationRegex, topic: SpecialFeedbackTopic.Citation },
+    { regex: translateRegex, topic: SpecialFeedbackTopic.Translation },
+]
+
+const vaccineNotice = (
+    <a
+        key="vaccineNotice"
+        href="https://ourworldindata.org/covid-vaccinations#frequently-asked-questions"
+        target="_blank"
+        rel="noreferrer"
+    >
+        Covid Vaccines Questions
+    </a>
+)
+
+const copyrightNotice = (
+    <a
+        key="copyrightNotice"
+        href="https://ourworldindata.org/faqs#how-is-your-work-copyrighted"
+        target="_blank"
+        rel="noreferrer"
+    >
+        Copyright Queries
+    </a>
+)
+const citationNotice = (
+    <a
+        key="citationNotice"
+        href="https://ourworldindata.org/faqs#how-should-i-cite-your-work"
+        target="_blank"
+        rel="noreferrer"
+    >
+        How to Cite our Work
+    </a>
+)
+const translateNotice = (
+    <a
+        key="translateNotice"
+        href="https://ourworldindata.org/faqs#can-i-translate-your-work-into-another-language"
+        target="_blank"
+        rel="noreferrer"
+    >
+        Translating our work
+    </a>
+)
+
+const topicNotices = new Map<SpecialFeedbackTopic, JSX.Element>([
+    [SpecialFeedbackTopic.Vaccination, vaccineNotice],
+    [SpecialFeedbackTopic.Citation, citationNotice],
+    [SpecialFeedbackTopic.Licensing, copyrightNotice],
+    [SpecialFeedbackTopic.Translation, translateNotice],
+])
 
 @observer
 export class FeedbackForm extends React.Component<{
@@ -99,32 +168,16 @@ export class FeedbackForm extends React.Component<{
         this.done = false
     }
 
-    @computed private get isTopicVaccines(): boolean {
+    @computed private get specialTopic(): SpecialFeedbackTopic | undefined {
         const { message } = this.feedback
-        return vaccinationRegexe.test(message)
-    }
-
-    @computed private get isTopicCopyright(): boolean {
-        const { message } = this.feedback
-        return licensingRegex.test(message)
-    }
-
-    @computed private get isTopicCitation(): boolean {
-        const { message } = this.feedback
-        return citationRegex.test(message)
+        return topicMatchers.find((matcher) => matcher.regex.test(message))
+            ?.topic
     }
 
     renderBody() {
-        const {
-            loading,
-            done,
-            isTopicCitation,
-            isTopicVaccines,
-            isTopicCopyright,
-        } = this
+        const { loading, done, specialTopic } = this
         const autofocus = this.props.autofocus ?? true
-        const isSpecialTopic =
-            isTopicCitation || isTopicCopyright || isTopicVaccines
+
         if (done) {
             return (
                 <div className="doneMessage">
@@ -144,46 +197,10 @@ export class FeedbackForm extends React.Component<{
                 </div>
             )
         }
-        const vaccineNotice = (
-            <a
-                key="vaccineNotice"
-                href="https://ourworldindata.org/covid-vaccinations#frequently-asked-questions"
-                target="_blank"
-                rel="noreferrer"
-            >
-                Covid Vaccines Questions
-            </a>
-        )
 
-        const copyrightNotice = (
-            <a
-                key="copyrightNotice"
-                href="https://ourworldindata.org/faqs#how-is-your-work-copyrighted"
-                target="_blank"
-                rel="noreferrer"
-            >
-                Copyright Queries
-            </a>
-        )
-        const citationNotice = (
-            <a
-                key="citationNotice"
-                href="https://ourworldindata.org/faqs#how-should-i-cite-your-work"
-                target="_blank"
-                rel="noreferrer"
-            >
-                How to Cite our Work&nbsp;
-            </a>
-        )
-        const notices = isSpecialTopic
-            ? isTopicCitation
-                ? citationNotice
-                : isTopicCopyright
-                ? copyrightNotice
-                : isTopicVaccines
-                ? vaccineNotice
-                : null
-            : null
+        const notices = specialTopic
+            ? topicNotices.get(specialTopic)
+            : undefined
         return (
             <React.Fragment>
                 <div className="header">Leave us feedback</div>
