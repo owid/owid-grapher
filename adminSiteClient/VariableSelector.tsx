@@ -93,11 +93,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get availableVariables(): Variable[] {
-        const { variablesToGrapherIdsMap } = this.database
+        const { variableUsageCounts } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
             const sorted = sortBy(dataset.variables, [
-                (v) => (variablesToGrapherIdsMap.get(v.id) ?? 0) * -1,
+                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
                 (v) => v.name,
             ])
             sorted.forEach((variable) => {
@@ -105,7 +105,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
-                    usageCount: variablesToGrapherIdsMap.get(variable.id) ?? 0,
+                    usageCount: variableUsageCounts.get(variable.id) ?? 0,
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -333,10 +333,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                             }}
                                                                         >
                                                                             {v.usageCount
-                                                                                ? ` (used ${
-                                                                                      v.usageCount ??
-                                                                                      "-"
-                                                                                  } times)`
+                                                                                ? ` (used ${v.usageCount} times)`
                                                                                 : " (ununsed)"}
                                                                         </span>
                                                                     </React.Fragment>
@@ -444,7 +441,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             if (!this.editorData)
                 runInAction(() => {
                     this.props.editor.loadNamespace(this.currentNamespace.name)
-                    this.props.editor.loadVariableToGraphersMap()
+                    this.props.editor.loadVariableUsageCounts()
                 })
         })
 
@@ -452,12 +449,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound private initChosenVariables() {
-        const { variablesToGrapherIdsMap } = this.database
+        const { variableUsageCounts } = this.database
         this.chosenVariables = this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,
-                usageCount: variablesToGrapherIdsMap.get(d.variableId) ?? 0,
+                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
                 datasetName: "",
             })
         )

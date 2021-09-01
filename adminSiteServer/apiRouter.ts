@@ -949,12 +949,6 @@ apiRouter.get("/variables.json", async (req) => {
 })
 
 apiRouter.get("/variables.usages.json", async (req) => {
-    // This is a bit of a workaround - what we would like is to select
-    // all variables and do a group by on the joined charts table with a count(*)
-    // but since the variables are stored inside the json config and mysql 5.7's limited
-    // support for json and arrays we can'd do it that way - so instead we select the arrays
-    // and create a map that we use to "transpose" the table, then serialize this
-
     const query = `SELECT variableId, COUNT(DISTINCT chartId) AS usageCount
 FROM chart_dimensions
 GROUP BY variableId
@@ -962,7 +956,6 @@ ORDER BY usageCount DESC`
 
     const rows = await db.queryMysql(query)
 
-    // JSON.stringify supports neither Map nor Set so we have to convert the Map to an object and the Sets to arrays
     return rows
 })
 

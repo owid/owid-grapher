@@ -61,7 +61,7 @@ export interface NamespaceData {
 
 export class EditorDatabase {
     @observable.ref namespaces: Namespace[]
-    @observable.ref variablesToGrapherIdsMap: Map<number, number> = new Map()
+    @observable.ref variableUsageCounts: Map<number, number> = new Map()
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
@@ -160,7 +160,7 @@ export class ChartEditor {
             this.database.dataByNamespace.set(namespace, data as any)
         )
     }
-    async loadVariableToGraphersMap(): Promise<void> {
+    async loadVariableUsageCounts(): Promise<void> {
         const data = (await this.manager.admin.getJSON(
             `/api/variables.usages.json`
         )) as VariableIdUsageRecord[]
@@ -170,7 +170,7 @@ export class ChartEditor {
                 usageCount,
             ])
         )
-        runInAction(() => (this.database.variablesToGrapherIdsMap = finalData))
+        runInAction(() => (this.database.variableUsageCounts = finalData))
     }
 
     async saveGrapher({
