@@ -10,6 +10,7 @@ import { Grapher } from "../grapher/core/Grapher"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
+import _ from "lodash"
 
 type EditorTab = string
 
@@ -60,6 +61,7 @@ export interface NamespaceData {
 
 export class EditorDatabase {
     @observable.ref namespaces: Namespace[]
+    @observable.ref variableUsageCounts: Map<number, number> = new Map()
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
@@ -74,6 +76,11 @@ export interface ChartEditorManager {
     logs: Log[]
     references: PostReference[]
     redirects: ChartRedirect[]
+}
+
+interface VariableIdUsageRecord {
+    variableId: number
+    usageCount: number
 }
 
 export class ChartEditor {
@@ -152,6 +159,18 @@ export class ChartEditor {
         runInAction(() =>
             this.database.dataByNamespace.set(namespace, data as any)
         )
+    }
+    async loadVariableUsageCounts(): Promise<void> {
+        const data = (await this.manager.admin.getJSON(
+            `/api/variables.usages.json`
+        )) as VariableIdUsageRecord[]
+        const finalData = new Map(
+            data.map(({ variableId, usageCount }: VariableIdUsageRecord) => [
+                variableId,
+                usageCount,
+            ])
+        )
+        runInAction(() => (this.database.variableUsageCounts = finalData))
     }
 
     async saveGrapher({

@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
-import * as lodash from "lodash"
+import _, * as lodash from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
 import * as db from "../db/db"
@@ -946,6 +946,17 @@ apiRouter.get("/variables.json", async (req) => {
     )[0].count
 
     return { variables: rows, numTotalRows: numTotalRows }
+})
+
+apiRouter.get("/variables.usages.json", async (req) => {
+    const query = `SELECT variableId, COUNT(DISTINCT chartId) AS usageCount
+FROM chart_dimensions
+GROUP BY variableId
+ORDER BY usageCount DESC`
+
+    const rows = await db.queryMysql(query)
+
+    return rows
 })
 
 interface VariableSingleMeta {

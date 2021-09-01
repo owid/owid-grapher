@@ -1,17 +1,20 @@
 import * as React from "react"
 import { debounce, excludeUndefined } from "../clientUtils/Util"
-import { computed, action } from "mobx"
+import { computed, action, IReactionDisposer, reaction, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher"
 import { Toggle, NumberField, SelectField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "../coreTable/OwidTableConstants"
+import lodash from "lodash"
 
 @observer
 export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
+    @observable xOverrideTimeInputField: number | undefined
     constructor(props: { grapher: Grapher }) {
         super(props)
+        this.xOverrideTimeInputField = props.grapher.xOverrideTime
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
@@ -44,7 +47,7 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.grapher.xOverrideTime = value
+        this.xOverrideTimeInputField = value
     }
 
     @action.bound onUnexcludeEntity(entity: string) {
@@ -66,8 +69,8 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                 <Section name="Filtering">
                     <NumberField
                         label="Override X axis target year"
-                        value={grapher.xOverrideTime}
-                        onValue={debounce(this.onXOverrideYear, 300)}
+                        value={this.xOverrideTimeInputField}
+                        onValue={this.onXOverrideYear}
                         allowNegative
                     />
 
@@ -107,5 +110,20 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                 </Section>
             </div>
         )
+    }
+    dispose!: IReactionDisposer
+    componentDidMount() {
+        this.dispose = reaction(
+            () => this.xOverrideTimeInputField,
+            lodash.debounce(
+                () =>
+                    (this.props.grapher.xOverrideTime = this.xOverrideTimeInputField),
+                800
+            )
+        )
+    }
+
+    componentWillUnmount() {
+        this.dispose()
     }
 }

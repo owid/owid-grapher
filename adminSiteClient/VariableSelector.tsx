@@ -9,6 +9,12 @@ import {
     runInAction,
     IReactionDisposer,
 } from "mobx"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    SearchWord,
+} from "../clientUtils/search"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
@@ -18,8 +24,6 @@ import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 import { asArray } from "../clientUtils/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
-import fuzzysort from "fuzzysort"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 
@@ -34,7 +38,7 @@ interface Variable {
     id: number
     name: string
     datasetName: string
-    searchKey?: Fuzzysort.Prepared
+    usageCount: number
 }
 
 @observer
@@ -62,6 +66,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         )
     }
 
+    @computed get searchWords(): SearchWord[] {
+        const { searchInput } = this
+        return buildSearchWordsFromSearchString(searchInput)
+    }
+
     @computed get editorData() {
         return this.database.dataByNamespace.get(this.currentNamespace.name)
     }
@@ -84,17 +93,19 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get availableVariables(): Variable[] {
+        const { variableUsageCounts } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
-            const sorted = sortBy(dataset.variables, (v) => v.name)
+            const sorted = sortBy(dataset.variables, [
+                (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
+                (v) => v.name,
+            ])
             sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
-                    searchKey: fuzzysort.prepare(
-                        dataset.name + " - " + variable.name
-                    ),
+                    usageCount: variableUsageCounts.get(variable.id) ?? 0,
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -103,25 +114,42 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get searchResults(): Variable[] {
-        const results =
-            this.searchInput &&
-            fuzzysort.go(this.searchInput, this.availableVariables, {
-                key: "searchKey",
-            })
+        let results: Variable[] | undefined
+        const { searchWords } = this
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (variable: Variable) => [variable.name, variable.datasetName]
+            )
+            results = this.availableVariables.filter(filterFn)
+        }
         return results && results.length
-            ? results.map((result) => result.obj)
-            : this.availableVariables
+            ? results // results.map((result) => result.obj)
+            : []
     }
 
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
-        return groupBy(this.searchResults, (d) => d.datasetName)
+        const { searchResults, searchWords, availableVariables } = this
+        let datasetListToUse = searchResults
+        if (searchWords.length == 0) {
+            datasetListToUse = availableVariables
+        }
+        return groupBy(datasetListToUse, (d) => d.datasetName)
     }
 
     @computed get searchResultRows() {
         const { resultsByDataset } = this
 
         const rows: Array<string | Variable[]> = []
-        Object.entries(resultsByDataset).forEach(([datasetName, variables]) => {
+        const unsorted = Object.entries(resultsByDataset)
+        const sorted = lodash.sortBy(unsorted, ([datasetName, variables]) => {
+            const sizes = lodash.map(
+                variables,
+                (variable) => variable.usageCount ?? 0
+            )
+            return Math.max(...sizes) * -1
+        })
+        sorted.forEach(([datasetName, variables]) => {
             rows.push(datasetName)
 
             for (let i = 0; i < variables.length; i += 2) {
@@ -178,16 +206,10 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             numVisibleRows,
             numTotalRows,
             searchResultRows,
+            searchWords,
         } = this
 
-        const highlight = (text: string) => {
-            if (this.searchInput) {
-                const html =
-                    fuzzyHighlight(fuzzysort.single(this.searchInput, text)) ??
-                    text
-                return <span dangerouslySetInnerHTML={{ __html: html }} />
-            } else return text
-        }
+        const highlight = highlightFunctionForSearchWords(searchWords)
 
         return (
             <Modal onClose={this.onDismiss} className="VariableSelector">
@@ -297,9 +319,25 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                         v
                                                                     )
                                                                 }
-                                                                label={highlight(
-                                                                    v.name
-                                                                )}
+                                                                label={
+                                                                    <React.Fragment>
+                                                                        {highlight(
+                                                                            v.name
+                                                                        )}
+
+                                                                        <span
+                                                                            style={{
+                                                                                fontWeight: 500,
+                                                                                color:
+                                                                                    "#555",
+                                                                            }}
+                                                                        >
+                                                                            {v.usageCount
+                                                                                ? ` (used ${v.usageCount} times)`
+                                                                                : " (ununsed)"}
+                                                                        </span>
+                                                                    </React.Fragment>
+                                                                }
                                                             />
                                                         </li>
                                                     ))
@@ -401,19 +439,22 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     componentDidMount() {
         this.dispose = autorun(() => {
             if (!this.editorData)
-                runInAction(() =>
+                runInAction(() => {
                     this.props.editor.loadNamespace(this.currentNamespace.name)
-                )
+                    this.props.editor.loadVariableUsageCounts()
+                })
         })
 
         this.initChosenVariables()
     }
 
     @action.bound private initChosenVariables() {
+        const { variableUsageCounts } = this.database
         this.chosenVariables = this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
             (d) => ({
                 name: d.column.displayName,
                 id: d.variableId,
+                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
                 datasetName: "",
             })
         )
