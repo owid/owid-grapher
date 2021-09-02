@@ -1,60 +1,60 @@
 name: owid
 recipe: wordpress
 env_file:
-    - .env
+  - .env
 config:
-    webroot: web
-    via: nginx
-    # Remove next line once the Lando Wordpress recipe upgrades Composer >= 2.0.12
-    # Fixed support for new GitHub OAuth token format (#9757)
-    # see https://getcomposer.org/changelog/2.0.12
-    composer_version: "2.1.2"
-    config:
-        vhosts: .lando/config/vhosts.conf
+  webroot: web
+  via: nginx
+  # Remove next line once the Lando Wordpress recipe upgrades Composer >= 2.0.12
+  # Fixed support for new GitHub OAuth token format (#9757)
+  # see https://getcomposer.org/changelog/2.0.12
+  composer_version: "2.1.2"
+  config:
+    vhosts: .lando/config/vhosts.conf
 excludes:
-    # prevent those from being synced back to the host
-    # (reduces CPU usage after installing large amount of deps)
-    - vendor
-    - web/app/plugins/owid/node_modules
+  # prevent those from being synced back to the host
+  # (reduces CPU usage after installing large amount of deps)
+  - vendor
+  - web/app/plugins/owid/node_modules
 services:
-    appserver:
-        xdebug: true
-        config:
-            php: .lando/config/php.ini
-        build_as_root:
-            - ln -sf /user/.ssh/config /var/www/.ssh/config
-    node:
-        type: node:12.22.3
-    database:
-        portforward: 3306
-        healthcheck:
-    database-grapher:
-        type: mysql
-        creds:
-            user: grapher
-            password: grapher
-            database: grapher
-        portforward: 3307
-        healthcheck:
+  appserver:
+    xdebug: true
+    config:
+      php: .lando/config/php.ini
+    build_as_root:
+      - ln -sf /user/.ssh/config /var/www/.ssh/config
+  node:
+    type: node:12
+  database:
+    portforward: 3306
+    healthcheck:
+  database-grapher:
+    type: mysql
+    creds:
+      user: grapher
+      password: grapher
+      database: grapher
+    portforward: 3307
+    healthcheck:
 events:
-    pre-build:
-        # post-start:
-        - appserver: composer install
-        - node: cd web/app/plugins/owid && yarn
+  pre-build:
+    # post-start:
+    - appserver: composer install
+    - node: cd web/app/plugins/owid && yarn
 tooling:
-    refresh:
-        description: Refreshes dev content (--help for more information)
-        service: appserver
-        cmd: .lando/scripts/refresh-dev.sh
-    build:
-        description: Installs dependencies and builds app
-        service: node
-        cmd: cd web/app/plugins/owid && yarn build
-    dev:
-        description: Starts development for OWID plugin
-        service: node
-        cmd: cd web/app/plugins/owid && yarn start
-    yarn:
-        description: enables 'lando yarn' # e.g. 'lando yarn start' within web/app/plugins/owid
-        service: node
-        cmd: yarn
+  refresh:
+    description: Refreshes dev content (--help for more information)
+    service: appserver
+    cmd: .lando/scripts/refresh-dev.sh
+  build:
+    description: Installs dependencies and builds app
+    service: node
+    cmd: cd web/app/plugins/owid && yarn build
+  dev:
+    description: Starts development for OWID plugin
+    service: node
+    cmd: cd web/app/plugins/owid && yarn start
+  yarn:
+    description: enables 'lando yarn' # e.g. 'lando yarn start' within web/app/plugins/owid
+    service: node
+    cmd: yarn
