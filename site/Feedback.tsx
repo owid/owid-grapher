@@ -4,9 +4,10 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { observable, action, toJS } from "mobx"
+import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
+import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 const sendFeedback = (feedback: Feedback) =>
     new Promise((resolve, reject) => {
@@ -44,6 +45,79 @@ class Feedback {
         this.message = ""
     }
 }
+
+const vaccinationRegex = /vaccination|vaccine|doses|vaccinat/i
+const licensingRegex = /license|licensing|copyright/i
+const citationRegex = /cite|citation|citing|reference/i
+const translateRegex = /translat/i
+
+enum SpecialFeedbackTopic {
+    Vaccination,
+    Licensing,
+    Citation,
+    Translation,
+}
+
+interface SpecialTopicMatcher {
+    regex: RegExp
+    topic: SpecialFeedbackTopic
+}
+
+const topicMatchers: SpecialTopicMatcher[] = [
+    { regex: vaccinationRegex, topic: SpecialFeedbackTopic.Vaccination },
+    { regex: licensingRegex, topic: SpecialFeedbackTopic.Licensing },
+    { regex: citationRegex, topic: SpecialFeedbackTopic.Citation },
+    { regex: translateRegex, topic: SpecialFeedbackTopic.Translation },
+]
+
+const vaccineNotice = (
+    <a
+        key="vaccineNotice"
+        href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions"`}
+        target="_blank"
+        rel="noreferrer"
+    >
+        Covid Vaccines Questions
+    </a>
+)
+
+const copyrightNotice = (
+    <a
+        key="copyrightNotice"
+        href={`${BAKED_BASE_URL}/faqs#how-is-your-work-copyrighted"`}
+        target="_blank"
+        rel="noreferrer"
+    >
+        Copyright Queries
+    </a>
+)
+const citationNotice = (
+    <a
+        key="citationNotice"
+        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-work"`}
+        target="_blank"
+        rel="noreferrer"
+    >
+        How to Cite our Work
+    </a>
+)
+const translateNotice = (
+    <a
+        key="translateNotice"
+        href={`${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language"`}
+        target="_blank"
+        rel="noreferrer"
+    >
+        Translating our work
+    </a>
+)
+
+const topicNotices = new Map<SpecialFeedbackTopic, JSX.Element>([
+    [SpecialFeedbackTopic.Vaccination, vaccineNotice],
+    [SpecialFeedbackTopic.Citation, citationNotice],
+    [SpecialFeedbackTopic.Licensing, copyrightNotice],
+    [SpecialFeedbackTopic.Translation, translateNotice],
+])
 
 @observer
 export class FeedbackForm extends React.Component<{
@@ -95,9 +169,16 @@ export class FeedbackForm extends React.Component<{
         this.done = false
     }
 
+    @computed private get specialTopic(): SpecialFeedbackTopic | undefined {
+        const { message } = this.feedback
+        return topicMatchers.find((matcher) => matcher.regex.test(message))
+            ?.topic
+    }
+
     renderBody() {
-        const { loading, done } = this
+        const { loading, done, specialTopic } = this
         const autofocus = this.props.autofocus ?? true
+
         if (done) {
             return (
                 <div className="doneMessage">
@@ -117,16 +198,53 @@ export class FeedbackForm extends React.Component<{
                 </div>
             )
         }
+
+        const notices = specialTopic
+            ? topicNotices.get(specialTopic)
+            : undefined
         return (
             <React.Fragment>
                 <div className="header">Leave us feedback</div>
                 <div className="notice">
                     <p>
-                        We read and consider all feedback, but due to a high
-                        volume of messages we are not able to reply to all.
+                        <strong>Have a question?</strong> You may find an answer
+                        in:
+                        <br />
+                        <a
+                            href={`${BAKED_BASE_URL}/faqs`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <strong>General FAQ</strong>
+                        </a>{" "}
+                        or{" "}
+                        <a
+                            href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <strong>Vaccinations FAQ</strong>
+                        </a>
                     </p>
                 </div>
                 <div className="formBody">
+                    <div className="formSection formSectionExpand">
+                        <label htmlFor="feedback.message">Message</label>
+                        <textarea
+                            id="feedback.message"
+                            onChange={this.onMessage}
+                            rows={5}
+                            minLength={30}
+                            required
+                            disabled={loading}
+                        />
+                        {notices ? (
+                            <div className="topic-notice">
+                                Your question may be answered in{" "}
+                                <strong>{notices}</strong>.
+                            </div>
+                        ) : null}
+                    </div>
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
                         <input
@@ -142,17 +260,6 @@ export class FeedbackForm extends React.Component<{
                             id="feedback.email"
                             onChange={this.onEmail}
                             type="email"
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="formSection formSectionExpand">
-                        <label htmlFor="feedback.message">Message</label>
-                        <textarea
-                            id="feedback.message"
-                            onChange={this.onMessage}
-                            rows={5}
-                            minLength={30}
                             required
                             disabled={loading}
                         />

@@ -1153,7 +1153,7 @@ html:not(.js) {
 
 .FeedbackForm {
     height: calc(100vh - 100px);
-    max-height: 600px;
+    max-height: 700px;
     transition: opacity 0.25s ease-in-out;
 
     &.loading > * {
@@ -1218,17 +1218,30 @@ html:not(.js) {
         }
     }
 
-    .notice {
+    .notice,
+    .topic-notice {
         @include info;
+        font-size: 1rem;
         margin-top: 0;
         padding: 1rem;
-        background-color: $tertiary-color;
-        color: $primary-color;
+        background-color: #f1f1f1;
         .title {
             font-weight: bold;
             margin: 0 0 0.5rem;
             font-size: inherit;
         }
+        a {
+            color: #453cbb;
+        }
+        a:hover {
+            color: #7d8aef;
+        }
+    }
+
+    .topic-notice {
+        font-size: 0.875rem;
+        border-radius: 0 0 3px 3px;
+        padding: 0.5rem 0.75rem;
     }
 
     > .footer {
