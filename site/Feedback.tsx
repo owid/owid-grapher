@@ -63,7 +63,7 @@ interface SpecialTopicMatcher {
     topic: SpecialFeedbackTopic
 }
 
-const topicMatchers = [
+const topicMatchers: SpecialTopicMatcher[] = [
     { regex: vaccinationRegex, topic: SpecialFeedbackTopic.Vaccination },
     { regex: licensingRegex, topic: SpecialFeedbackTopic.Licensing },
     { regex: citationRegex, topic: SpecialFeedbackTopic.Citation },
