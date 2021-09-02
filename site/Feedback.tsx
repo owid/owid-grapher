@@ -7,6 +7,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
+import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 const sendFeedback = (feedback: Feedback) =>
     new Promise((resolve, reject) => {
@@ -206,23 +207,23 @@ export class FeedbackForm extends React.Component<{
                 <div className="header">Leave us feedback</div>
                 <div className="notice">
                     <p>
-                        You may have a question we've already answered in&nbsp;
+                        <strong>Have a question?</strong> You may find an answer
+                        in:
+                        <br />
                         <a
-                            href="https://ourworldindata.org/faqs"
+                            href={`${BAKED_BASE_URL}/faqs`}
                             target="_blank"
                             rel="noreferrer"
                         >
-                            our Frequently Asked Questions.
-                        </a>
-                        <br></br>
-                        Questions about our Covid vaccination data might&nbsp;
-                        be already answered in&nbsp;
+                            <strong>General FAQ</strong>
+                        </a>{" "}
+                        or{" "}
                         <a
-                            href="https://ourworldindata.org/covid-vaccinations#frequently-asked-questions"
+                            href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
                             target="_blank"
                             rel="noreferrer"
                         >
-                            our vaccination FAQ.
+                            <strong>Vaccinations FAQ</strong>
                         </a>
                     </p>
                 </div>
@@ -237,6 +238,12 @@ export class FeedbackForm extends React.Component<{
                             required
                             disabled={loading}
                         />
+                        {notices ? (
+                            <div className="topic-notice">
+                                Your question may be answered in{" "}
+                                <strong>{notices}</strong>.
+                            </div>
+                        ) : null}
                     </div>
                     <div className="formSection">
                         <label htmlFor="feedback.name">Your name</label>
@@ -266,12 +273,6 @@ export class FeedbackForm extends React.Component<{
                         </div>
                     ) : undefined}
                 </div>
-                {notices ? (
-                    <div className="topic-notice">
-                        Your question may be related to this FAQ entry on &nbsp;
-                        {notices}
-                    </div>
-                ) : null}
                 <div className="footer">
                     <button type="submit" disabled={loading}>
                         Send message

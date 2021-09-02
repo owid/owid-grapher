@@ -1218,12 +1218,13 @@ html:not(.js) {
         }
     }
 
-    .notice {
+    .notice,
+    .topic-notice {
         @include info;
+        font-size: 1rem;
         margin-top: 0;
         padding: 1rem;
-        background-color: $tertiary-color;
-        color: $primary-color;
+        background-color: #f1f1f1;
         .title {
             font-weight: bold;
             margin: 0 0 0.5rem;
@@ -1238,22 +1239,9 @@ html:not(.js) {
     }
 
     .topic-notice {
-        @include info;
-        margin-top: 0;
-        padding: 1rem;
-        background-color: $tertiary-color-brighter;
-        color: $primary-color;
-        .title {
-            font-weight: bold;
-            margin: 0 0 0.5rem;
-            font-size: inherit;
-        }
-        a {
-            color: #453cbb;
-        }
-        a:hover {
-            color: #7d8aef;
-        }
+        font-size: 0.875rem;
+        border-radius: 0 0 3px 3px;
+        padding: 0.5rem 0.75rem;
     }
 
     > .footer {
