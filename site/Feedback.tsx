@@ -73,7 +73,7 @@ const topicMatchers: SpecialTopicMatcher[] = [
 const vaccineNotice = (
     <a
         key="vaccineNotice"
-        href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions"`}
+        href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
         target="_blank"
         rel="noreferrer"
     >
@@ -84,7 +84,7 @@ const vaccineNotice = (
 const copyrightNotice = (
     <a
         key="copyrightNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-is-your-work-copyrighted"`}
+        href={`${BAKED_BASE_URL}/faqs#how-is-your-work-copyrighted`}
         target="_blank"
         rel="noreferrer"
     >
@@ -94,7 +94,7 @@ const copyrightNotice = (
 const citationNotice = (
     <a
         key="citationNotice"
-        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-work"`}
+        href={`${BAKED_BASE_URL}/faqs#how-should-i-cite-your-work`}
         target="_blank"
         rel="noreferrer"
     >
@@ -104,7 +104,7 @@ const citationNotice = (
 const translateNotice = (
     <a
         key="translateNotice"
-        href={`${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language"`}
+        href={`${BAKED_BASE_URL}/faqs#can-i-translate-your-work-into-another-language`}
         target="_blank"
         rel="noreferrer"
     >
