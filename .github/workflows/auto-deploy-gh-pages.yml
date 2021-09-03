@@ -66,7 +66,8 @@ jobs:
             - name: Generate coverage badge 🔖
               run: |
                   mkdir -p badges
-                  npx -y lcov-badge@1.0.4 -o badges/coverage.svg coverage/lcov.info
+                  yarn add lcov-badge@1.0.4
+                  yarn lcov-badge -o badges/coverage.svg coverage/lcov.info
 
             # We're using two subsequent deploys instead of making them parallel because `github-pages-deploy-action`
             # force-pushes, and if we have two deploys running at the same time that might lead to missing update situations.
