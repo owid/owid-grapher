@@ -7,6 +7,7 @@ charset = utf-8
 indent_size = 4
 indent_style = space
 trim_trailing_whitespace = true
+insert_final_newline = true # somehow required for prettier to add a new line at the end of composer.json
 
 [*.md]
 trim_trailing_whitespace = false
