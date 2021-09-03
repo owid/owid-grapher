@@ -181,7 +181,7 @@
         "reflect-metadata": "^0.1.13",
         "sass": "^1.26.10",
         "sass-loader": "^10.0.2",
-        "sharp": "^0.28.3",
+        "sharp": "^0.29.0",
         "shell-quote": "^1.6.1",
         "shelljs": "^0.8.3",
         "simple-git": "^2.38.0",
