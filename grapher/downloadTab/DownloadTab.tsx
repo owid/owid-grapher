@@ -166,7 +166,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         ev: React.MouseEvent<HTMLAnchorElement>
     ): void {
         if (!(window.navigator as any).msSaveBlob) return
-
         ;(window.navigator as any).msSaveBlob(
             this.svgBlob,
             this.baseFilename + ".svg"

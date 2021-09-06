@@ -1105,8 +1105,7 @@ export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
 }
 
 export function stringifyUnkownError(error: unknown): string | undefined {
-    if (error === undefined || error === null )
-        return undefined
+    if (error === undefined || error === null) return undefined
     if (error instanceof Error) {
         return error.message
     }
