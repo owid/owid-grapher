@@ -341,15 +341,15 @@ export class EntityPicker extends React.Component<{
             } else currentToken.text += char
         }
         return (
-            <React.Fragment>
+            <span>
                 {tokens.map((token, i) =>
                     token.match ? (
                         <mark key={i}>{token.text}</mark>
                     ) : (
-                        <React.Fragment key={i}>{token.text}</React.Fragment>
+                        <span key={i}>{token.text}</span>
                     )
                 )}
-            </React.Fragment>
+            </span>
         )
     }
 
