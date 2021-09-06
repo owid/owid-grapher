@@ -2,10 +2,16 @@
 
 namespace OWID;
 
-use Lcobucci\JWT\Parser;
-use Lcobucci\JWT\Signer\Key;
+use DateTimeImmutable;
+use Exception;
+use Lcobucci\Clock\FrozenClock;
+use Lcobucci\JWT\Configuration;
+use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
-use Lcobucci\JWT\ValidationData;
+use Lcobucci\JWT\Validation\Constraint\PermittedFor;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Constraint\StrictValidAt;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization";
 /*
@@ -34,9 +40,6 @@ function auth_cloudflare_sso($user, $username, $password)
         return;
     }
 
-    $token = (new Parser())->parse((string) $jwt_cookie);
-
-    // Verify the JWT
     $certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs";
     $response = file_get_contents($certsUrl);
     $certs = json_decode($response);
@@ -46,33 +49,51 @@ function auth_cloudflare_sso($user, $username, $password)
         return;
     }
 
-    $signer = new Sha256();
-    $verified = false;
+    $valid = false;
     foreach ($publicCerts as $publicCert) {
-        $key = new Key($publicCert->cert);
-        if ($token->verify($signer, $key)) {
-            $verified = true;
+        // Configure for token verification only (as opposed to creation and verification)
+        // see https://github.com/lcobucci/jwt/discussions/720#discussioncomment-606683
+        $config = Configuration::forAsymmetricSigner(
+            new Sha256(),
+            InMemory::empty(),
+            InMemory::plainText($publicCert->cert)
+        );
+
+        try {
+            $token = $config->parser()->parse($jwt_cookie);
+        } catch (Exception $e) {
+            error_log(
+                "Malformed JWT token in " .
+                    CLOUDFLARE_COOKIE_NAME .
+                    " cookie, cannot be parsed"
+            );
+            return;
+        }
+
+        try {
+            $config->setValidationConstraints(
+                new PermittedFor($audTag),
+                new SignedWith($config->signer(), $config->verificationKey()),
+                new StrictValidAt(new FrozenClock(new DateTimeImmutable()))
+            );
+            $config
+                ->validator()
+                ->assert($token, ...$config->validationConstraints());
+            $valid = true;
             break;
+        } catch (RequiredConstraintsViolated $e) {
+            error_log($e);
         }
     }
-    if (!$verified) {
-        error_log("Token verification failed.");
+
+    if (!$valid) {
+        error_log(
+            "Token validation failed: signature mismatch, token expired or wrong audience"
+        );
         return;
     }
 
-    // Validate JWT claims
-    $data = new ValidationData();
-    if (!$token->validate($data)) {
-        error_log("Authorization token invalid: token expired.");
-        return;
-    }
-    // Ideally, we should be able to validate after setting $data->setAudience($audTag)
-    // but this fails, probably due to the fact that CF sets the audience as an array.
-    if ($token->getClaim('aud')[0] !== $audTag) {
-        error_log("Authorization token invalid: wrong audience.");
-        return;
-    }
-    $user = get_user_by('email', $token->getClaim('email'));
+    $user = get_user_by('email', $token->claims()->get('email'));
     if (!$user) {
         // This error will be shown to the user. We won't show the fallback
         // login form here as attempting to log in with the same user will
