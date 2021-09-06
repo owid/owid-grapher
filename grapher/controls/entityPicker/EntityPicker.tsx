@@ -341,7 +341,7 @@ export class EntityPicker extends React.Component<{
             } else currentToken.text += char
         }
         return (
-            <span>
+            <span translate="no">
                 {tokens.map((token, i) =>
                     token.match ? (
                         <mark key={i}>{token.text}</mark>
