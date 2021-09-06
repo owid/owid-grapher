@@ -151,8 +151,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @action.bound private onPNGDownload(
         ev: React.MouseEvent<HTMLAnchorElement>
     ): void {
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(
+        // TODO: here and below - msSaveBlob seems to be a legacy IE11 construct - remove in favour of createElement solution
+        // further down? Typescript 4.4 removed this from window.navigator which is why we cast to any here...
+        if ((window.navigator as any).msSaveBlob) {
+            ;(window.navigator as any).msSaveBlob(
                 this.pngBlob,
                 this.baseFilename + ".png"
             )
@@ -163,9 +165,12 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @action.bound private onSVGDownload(
         ev: React.MouseEvent<HTMLAnchorElement>
     ): void {
-        if (!window.navigator.msSaveBlob) return
+        if (!(window.navigator as any).msSaveBlob) return
 
-        window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
+        ;(window.navigator as any).msSaveBlob(
+            this.svgBlob,
+            this.baseFilename + ".svg"
+        )
         ev.preventDefault()
     }
 
@@ -179,8 +184,8 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         const csv = inputTable.toPrettyCsv() || ""
 
         // IE11 compatibility
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(
+        if ((window.navigator as any).msSaveBlob) {
+            ;(window.navigator as any).msSaveBlob(
                 new Blob([csv], { type: "text/csv" }),
                 csvFilename
             )

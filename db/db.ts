@@ -17,7 +17,7 @@ export const getConnection = async () => {
     try {
         typeormConnection = typeorm.getConnection()
     } catch (err) {
-        if (err.name === "ConnectionNotFoundError")
+        if (err instanceof Error && err.name === "ConnectionNotFoundError")
             typeormConnection = await typeorm.createConnection()
         else throw err
     }

@@ -1103,3 +1103,25 @@ export const dyFromAlign = (align: VerticalAlign): string => {
 export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
     return Object.values(obj)
 }
+
+export function stringifyUnkownError(error: unknown): string | undefined {
+    if (error === undefined || error === null )
+        return undefined
+    if (error instanceof Error) {
+        return error.message
+    }
+    if (typeof error === "function") {
+        // Within this branch, `error` has type `Function`,
+        // so we can access the function's `name` property
+        const functionName = error.name || "(anonymous)"
+        return `[function ${functionName}]`
+    }
+
+    if (error instanceof Date) {
+        // Within this branch, `error` has type `Date`,
+        // so we can call the `toISOString` method
+        return error.toISOString()
+    }
+
+    return String(error)
+}

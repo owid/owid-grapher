@@ -12,6 +12,7 @@ import {
 } from "../../settings/clientSettings"
 
 import stripe from "./stripe"
+import { stringifyUnkownError } from "../../clientUtils/Util"
 
 type Interval = "once" | "monthly"
 
@@ -192,7 +193,7 @@ export class DonateForm extends React.Component {
             runInAction(
                 () =>
                     (this.errorMessage =
-                        (error && error.message) ||
+                        stringifyUnkownError(error) ||
                         "Something went wrong. Please get in touch with us at donate@ourworldindata.org")
             )
         }

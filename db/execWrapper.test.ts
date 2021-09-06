@@ -21,9 +21,11 @@ describe("execWrapper()", () => {
             })
         } catch (err) {
             expect(err).toBeInstanceOf(ExecError)
-            expect(err.code).toEqual(1)
-            expect(err.stdout).toEqual("begin\n")
-            expect(err.stderr).toEqual("fail\n")
+            if (err instanceof ExecError) {
+                expect(err.code).toEqual(1)
+                expect(err.stdout).toEqual("begin\n")
+                expect(err.stderr).toEqual("fail\n")
+            }
         } finally {
             expect.assertions(4)
         }

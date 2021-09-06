@@ -1,6 +1,6 @@
 import { PageOverrides } from "../site/LongFormPage"
 import { BAKED_BASE_URL } from "../settings/serverSettings"
-import { urlToSlug } from "../clientUtils/Util"
+import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util"
 import { FormattingOptions, FullPost } from "../clientUtils/owidTypes"
 import { getPostBySlug, isPostCitable } from "../db/wpdb"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
@@ -11,7 +11,7 @@ export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     try {
         post = await getPostBySlug(slug)
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(err.toString())
+        log.logErrorAndMaybeSendToSlack(stringifyUnkownError(err))
     } finally {
         return post
     }

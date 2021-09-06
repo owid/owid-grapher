@@ -515,8 +515,11 @@ export class CountryStandardizerPage extends React.Component {
     @action.bound onDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         const { shouldSaveSelection } = this
 
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(this.outputCSV, this.csvFilename)
+        if ((window.navigator as any).msSaveBlob) {
+            ;(window.navigator as any).msSaveBlob(
+                this.outputCSV,
+                this.csvFilename
+            )
             ev.preventDefault()
         }
 

@@ -17,6 +17,7 @@ import {
     addDays,
     extend,
     uniq,
+    stringifyUnkownError,
 } from "../../clientUtils/Util"
 import { SortOrder } from "../../coreTable/CoreTableConstants"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
@@ -107,7 +108,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
             this.isLoaded = true
             this.error = undefined
         } catch (error) {
-            this.error = error && error.message
+            this.error = stringifyUnkownError(error)
         }
         this.isLoading = false
     }

@@ -8,6 +8,7 @@ import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
+import { stringifyUnkownError } from "../clientUtils/Util"
 
 const sendFeedback = (feedback: Feedback) =>
     new Promise((resolve, reject) => {
@@ -135,7 +136,7 @@ export class FeedbackForm extends React.Component<{
             this.feedback.clear()
             this.done = true
         } catch (err) {
-            this.error = err
+            this.error = stringifyUnkownError(err)
         } finally {
             this.loading = false
         }

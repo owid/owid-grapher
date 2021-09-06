@@ -82,7 +82,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         const savedVersion = deserializeJSONFromHTML(html)
         isSameVersion = savedVersion?.version === grapher.version
     } catch (err) {
-        if (err.code !== "ENOENT") console.error(err)
+        if ((err as any).code !== "ENOENT") console.error(err)
     }
 
     // Always bake the html for every chart; it's cheap to do so

@@ -448,7 +448,9 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        return Promise.resolve(resultError(referenceEntry.chartId, err))
+        return Promise.resolve(
+            resultError(referenceEntry.chartId, err as Error)
+        )
     }
 }
 export async function prepareVerifyRun(

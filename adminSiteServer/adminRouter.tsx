@@ -19,6 +19,7 @@ import { renderPreview } from "../baker/siteRenderers"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GitCmsServer } from "../gitCms/GitCmsServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { stringifyUnkownError } from "../clientUtils/Util"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -96,7 +97,7 @@ adminRouter.post(
                 renderToHtmlPage(
                     <LoginPage
                         next={req.query.next}
-                        errorMessage={err.message}
+                        errorMessage={stringifyUnkownError(err)}
                     />
                 )
             )
@@ -132,8 +133,8 @@ adminRouter.get(
             invite = await UserInvitation.findOne({ code: req.query.code })
             if (!invite) throw new JsonError("Invite code invalid or expired")
         } catch (err) {
-            errorMessage = err.message
-            res.status(tryInt(err.code, 500))
+            errorMessage = stringifyUnkownError(err)
+            res.status(tryInt((err as any).code, 500))
         } finally {
             res.send(
                 renderToHtmlPage(
@@ -190,10 +191,13 @@ adminRouter.post(
             await logInWithCredentials(req.body.email, req.body.password)
             res.redirect("/admin")
         } catch (err) {
-            res.status(tryInt(err.code, 500))
+            res.status(tryInt((err as any).code, 500))
             res.send(
                 renderToHtmlPage(
-                    <RegisterPage errorMessage={err.message} body={req.body} />
+                    <RegisterPage
+                        errorMessage={stringifyUnkownError(err)}
+                        body={req.body}
+                    />
                 )
             )
         }
