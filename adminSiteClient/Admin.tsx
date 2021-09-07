@@ -5,7 +5,7 @@ import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp"
-import { Json } from "../clientUtils/Util"
+import { Json, stringifyUnkownError } from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
@@ -128,7 +128,9 @@ export class Admin {
                     title:
                         `Failed to ${method} ${targetPath}` +
                         (response ? ` (${response.status})` : ""),
-                    content: err?.message || text || err,
+                    content:
+                        (stringifyUnkownError(err) || text) ??
+                        "unexpected error value in setErrorMessage",
                     isFatal: response?.status !== 404,
                 })
             throw err

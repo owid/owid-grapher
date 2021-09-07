@@ -207,7 +207,7 @@ function useScrollLock<ElementType extends HTMLElement>(
             ...opts,
         }
         if (el) {
-            function onWheel(ev: MouseWheelEvent): void {
+            function onWheel(ev: WheelEvent): void {
                 const el = ref.current
                 if (el) {
                     const delta = ev.deltaY
@@ -240,13 +240,13 @@ function useScrollLock<ElementType extends HTMLElement>(
                     }
                 }
             }
-            el.addEventListener("mousewheel", onWheel as any, {
+            el.addEventListener("wheel", onWheel as any, {
                 // We need to be in non-passive mode to be able to cancel the event
                 passive: false,
             })
             return (): void => {
                 if (el) {
-                    el.removeEventListener("mousewheel", onWheel as any)
+                    el.removeEventListener("wheel", onWheel as any)
                 }
             }
         }
