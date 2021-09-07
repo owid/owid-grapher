@@ -40,7 +40,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         },
         {
             label: "Data explorer",
-            href: "/coronavirus-data-explorer",
+            href: "/explorers/coronavirus-data-explorer",
             id: "data-explorer",
             highlight: true,
         },
