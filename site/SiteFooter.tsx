@@ -241,9 +241,11 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <div className="site-tools" />
             <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
             {flatten(
-                ["commons-js.js", "owid.js"].map((assetName) =>
-                    webpackUrls(assetName, props.baseUrl)
-                )
+                [
+                    "commons-css.js",
+                    "commons-js.js",
+                    "owid.js",
+                ].map((assetName) => webpackUrls(assetName, props.baseUrl))
             ).map((href) => (
                 <script key={href} src={href} />
             ))}

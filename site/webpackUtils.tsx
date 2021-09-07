@@ -47,6 +47,7 @@ export const webpackUrls = (
 export const bakeEmbedSnippet = (baseUrl: string) => {
     const jsFiles: string[] = [
         "https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry",
+        ...webpackUrls("commons-css.js", baseUrl),
         ...webpackUrls("commons-js.js", baseUrl),
         ...webpackUrls("owid.js", baseUrl),
     ]

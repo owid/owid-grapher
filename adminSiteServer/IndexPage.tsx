@@ -43,9 +43,11 @@ export const IndexPage = (props: {
             <body>
                 <div id="app"></div>
                 {flatten(
-                    ["commons-js.js", "admin.js"].map((assetName) =>
-                        webpackUrls(assetName, "/admin")
-                    )
+                    [
+                        "commons-css.js",
+                        "commons-js.js",
+                        "admin.js",
+                    ].map((assetName) => webpackUrls(assetName, "/admin"))
                 ).map((href) => (
                     <script key={href} src={href} />
                 ))}
