@@ -29,15 +29,24 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         optimization: {
             splitChunks: {
                 cacheGroups: {
+                    // We split up the bundle in order to improve our cache hit rate on Netlify's
+                    // CDN. The algorithm Netlify uses is unclear, but a >1MB file is likely to be
+                    // dropped from their cache often, leading to slow loading times while the CDN
+                    // fetches the file from origin.
+                    //
+                    // We do not split up the CSS because it can arrive out of order, and order of
+                    // definition matters in CSS.
+                    //
+                    // -@danielgavrilov, 2021-08-31
                     css: {
                         test: (module) => module.type?.startsWith("css"),
-                        name: "commons-css",
+                        name: "commons-css", // needs to be unique
                         chunks: "all",
                         minChunks: 2,
                     },
                     js: {
                         test: (module) => !module.type?.startsWith("css"),
-                        name: "commons-js",
+                        name: "commons-js", // needs to be unique
                         chunks: "all",
                         minChunks: 2,
                         maxSize: isProduction ? 1024 * 1024 : undefined, // in bytes
