@@ -231,7 +231,7 @@ export class SiteBaker {
         await explorerAdminServer.bakeAllExplorerRedirects(this.bakedSiteDir)
 
         await explorerAdminServer.bakeAllPublishedExplorers(
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }
