@@ -40,6 +40,7 @@ export const IndexPage = (props: {
             <body>
                 <div id="app"></div>
                 <script src={webpackUrl("commons.js", "/admin")}></script>
+                <script src={webpackUrl("vendors.js", "/admin")}></script>
                 <script src={webpackUrl("admin.js", "/admin")}></script>
                 <script
                     type="text/javascript"
