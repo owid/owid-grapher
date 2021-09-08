@@ -29,10 +29,18 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         optimization: {
             splitChunks: {
                 cacheGroups: {
+                    vendors: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: "vendors",
+                        chunks: "all",
+                        minChunks: 2,
+                        priority: 1, // needs to be higher than for "commons"
+                    },
                     commons: {
                         name: "commons",
                         chunks: "all",
                         minChunks: 2,
+                        priority: 0,
                     },
                 },
             },
