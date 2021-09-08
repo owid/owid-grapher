@@ -1196,7 +1196,7 @@ export class Grapher
             ?.columnSlug
     }
 
-    @computed get yColumns(): CoreColumn[] {
+    @computed get yColumnsFromDimensions(): CoreColumn[] {
         return this.filledDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
@@ -1341,8 +1341,8 @@ export class Grapher
 
     // todo: remove when we remove dimensions
     @computed private get yColumnsFromDimensionsOrSlugsOrAuto(): CoreColumn[] {
-        return this.yColumns.length
-            ? this.yColumns
+        return this.yColumnsFromDimensions.length
+            ? this.yColumnsFromDimensions
             : this.table.getColumns(autoDetectYColumnSlugs(this))
     }
 

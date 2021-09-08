@@ -123,7 +123,7 @@ class VariableEditRow extends React.Component<{
         const { availableEntityNames } = selection
         if (grapher.isScatter || grapher.isSlopeChart) {
             selection.clearSelection()
-        } else if (grapher.yColumns.length > 1) {
+        } else if (grapher.yColumnsFromDimensions.length > 1) {
             const entity = selection.availableEntityNameSet.has(WorldEntityName)
                 ? WorldEntityName
                 : lodash.sample(availableEntityNames)
