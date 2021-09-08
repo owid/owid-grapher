@@ -30,7 +30,9 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
             splitChunks: {
                 cacheGroups: {
                     vendors: {
-                        test: /[\\/]node_modules[\\/]/,
+                        test: (module) =>
+                            !module.type?.startsWith("css") &&
+                            /[\\/]node_modules[\\/]/.test(module.resource),
                         name: "vendors",
                         chunks: "all",
                         minChunks: 2,
