@@ -1940,7 +1940,7 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        const numNonProjectedColumns = this.yColumns.filter(
+        const numNonProjectedColumns = this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
             (c) => !c.display?.isProjection
         ).length
         if (
