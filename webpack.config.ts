@@ -29,10 +29,24 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         optimization: {
             splitChunks: {
                 cacheGroups: {
+                    // The bundle created through this cache group contains all the dependencies
+                    // that are _both_ used by owid.entry.js and admin.entry.js.
+                    vendors: {
+                        test: (module) =>
+                            !module.type?.startsWith("css") && // no need to split CSS, since there's very little vendor css anyway
+                            /[\\/]node_modules[\\/]/.test(module.resource),
+                        name: "vendors",
+                        chunks: "all",
+                        minChunks: 2,
+                        priority: 1, // needs to be higher than for "commons"
+                    },
+                    // The bundle created through this cache group contains all the code
+                    // that is _both_ used by owid.entry.js and admin.entry.js.
                     commons: {
                         name: "commons",
                         chunks: "all",
                         minChunks: 2,
+                        priority: 0,
                     },
                 },
             },

@@ -240,6 +240,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <div className="site-tools" />
             <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
             <script src={webpackUrl("commons.js", props.baseUrl)} />
+            <script src={webpackUrl("vendors.js", props.baseUrl)} />
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{

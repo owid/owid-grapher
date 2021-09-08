@@ -2,7 +2,11 @@
     "files": [
         {
             "path": "./itsJustJavascript/webpack/commons.js",
-            "maxSize": "1.85 MB"
+            "maxSize": "850 KB"
+        },
+        {
+            "path": "./itsJustJavascript/webpack/vendors.js",
+            "maxSize": "1 MB"
         },
         {
             "path": "./itsJustJavascript/webpack/owid.js",
