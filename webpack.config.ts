@@ -37,6 +37,9 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                     // We do not split up the CSS because it can arrive out of order, and order of
                     // definition matters in CSS.
                     //
+                    // The `commons-css` group generates a JS module `commons-css.js` which needs to
+                    // be loaded for everything to work.
+                    //
                     // -@danielgavrilov, 2021-08-31
                     css: {
                         test: (module) => module.type?.startsWith("css"),
