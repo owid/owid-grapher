@@ -15,6 +15,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
+    renderShortsByPageNum,
 } from "../baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
 import {
@@ -138,6 +139,17 @@ mockSiteRouter.get("/blog/page/:pageno", async (req, res) => {
         res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
     else throw new Error("invalid page number")
 })
+
+mockSiteRouter.get("/shorts", async (req, res) =>
+    res.send(await renderShortsByPageNum(1))
+)
+
+// mockSiteRouter.get("/blog/page/:pageno", async (req, res) => {
+//     const pagenum = parseInt(req.params.pageno, 10)
+//     if (!isNaN(pagenum))
+//         res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
+//     else throw new Error("invalid page number")
+// })
 
 mockSiteRouter.get("/headerMenu.json", async (req, res) => {
     if (!isWordpressAPIEnabled) {

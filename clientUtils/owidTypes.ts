@@ -180,6 +180,13 @@ export interface CategoryWithEntries {
 export enum WP_PostType {
     Post = "post",
     Page = "page",
+    Short = "short",
+}
+
+export enum WP_PostType_Plural {
+    Posts = "posts",
+    Pages = "pages",
+    Shorts = "shorts",
 }
 
 export interface EntryNode {

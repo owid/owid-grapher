@@ -29,6 +29,7 @@ import {
     PostReference,
     JsonError,
     CategoryNode,
+    WP_PostType_Plural,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
@@ -146,6 +147,24 @@ const graphqlQuery = async (
         }),
     })
     return response.json()
+}
+
+// todo: merge with getDocumentsInfo()?
+export const paginatedGraphqlQuery = async (
+    query: string,
+    type: WP_PostType | WP_PostType_Plural,
+    cursor: string = ""
+): Promise<any[]> => {
+    const result = await graphqlQuery(query, { cursor })
+    const pageInfo = result?.data[type].pageInfo
+    const nodes = result?.data[type].nodes
+    if (pageInfo.hasNextPage) {
+        return nodes.concat(
+            await paginatedGraphqlQuery(query, type, pageInfo.endCursor)
+        )
+    } else {
+        return nodes
+    }
 }
 
 /* Wordpress REST API query
@@ -622,6 +641,26 @@ export const getBlogIndex = memoize(
         return Promise.all(posts.map((post) => getFullPost(post, true)))
     }
 )
+
+export const getShortsIndex = async (): Promise<any[]> => {
+    const query = `
+    query($cursor: String){
+        ${WP_PostType_Plural.Shorts}(first:50, after: $cursor) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                id: databaseId
+                title
+                slug
+                content
+            }
+        }
+    }
+    `
+    return paginatedGraphqlQuery(query, WP_PostType_Plural.Shorts)
+}
 
 interface TablepressTable {
     tableId: string

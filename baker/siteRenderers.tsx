@@ -17,7 +17,11 @@ import {
 } from "../baker/GrapherBakingUtils"
 import * as cheerio from "cheerio"
 import { Post } from "../db/model/Post"
-import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "../settings/serverSettings"
+import {
+    BAKED_BASE_URL,
+    BLOG_POSTS_PER_PAGE,
+    SHORTS_PER_PAGE,
+} from "../settings/serverSettings"
 import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings"
 import {
     EntriesByYearPage,
@@ -43,7 +47,9 @@ import {
     getLatestPostRevision,
     getPostBySlug,
     getPosts,
+    getShortsIndex,
     isPostCitable,
+    paginatedGraphqlQuery,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
@@ -193,6 +199,26 @@ export const renderBlogByPageNum = async (pageNum: number) => {
             numPages={numPages}
             baseUrl={BAKED_BASE_URL}
         />
+    )
+}
+
+export const renderShortsByPageNum = async (pageNum: number) => {
+    const allShorts = await getShortsIndex()
+
+    const numPages = Math.ceil(allShorts.length / SHORTS_PER_PAGE)
+    const shorts = allShorts.slice(
+        (pageNum - 1) * SHORTS_PER_PAGE,
+        pageNum * SHORTS_PER_PAGE
+    )
+
+    return renderToHtmlPage(
+        shorts.map((short) => (
+            <>
+                <div>Title: {short.title}</div>
+                <div>Slug: {short.slug}</div>
+                <hr />
+            </>
+        ))
     )
 }
 
