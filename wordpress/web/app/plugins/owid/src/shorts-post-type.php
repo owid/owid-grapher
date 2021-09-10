@@ -13,6 +13,9 @@ add_action('init', function () {
         'supports' => ['title', 'editor', 'author', 'revisions', 'thumbnail'],
         'show_in_rest' => true,
         'taxonomies' => ['category'],
+        'show_in_graphql' => true,
+        'graphql_single_name' => 'short',
+        'graphql_plural_name' => 'shorts',
     ];
 
     register_post_type('shorts', $args);
