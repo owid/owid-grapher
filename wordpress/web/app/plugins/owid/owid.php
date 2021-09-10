@@ -25,6 +25,9 @@ include 'src/Byline/byline.php';
 include 'src/Grid/grid.php';
 include 'src/Card/card.php';
 
+// Custom post types
+include 'src/shorts-post-type.php';
+
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 const SUBTITLE_META_FIELD = "owid_subtitle_meta_field";
