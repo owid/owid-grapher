@@ -91,7 +91,7 @@ class DimensionSlotView extends React.Component<{
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => grapher.type && grapher.yColumns,
+            () => grapher.type && grapher.yColumnsFromDimensions,
             () => {
                 if (
                     grapher.isScatter ||
@@ -99,7 +99,7 @@ class DimensionSlotView extends React.Component<{
                     grapher.isMarimekko
                 ) {
                     selection.clearSelection()
-                } else if (grapher.yColumns.length > 1) {
+                } else if (grapher.yColumnsFromDimensions.length > 1) {
                     const entity = availableEntityNameSet.has(WorldEntityName)
                         ? WorldEntityName
                         : sample(availableEntityNames)

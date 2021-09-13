@@ -119,7 +119,7 @@ const legacyConfig = {
 
 it("can apply legacy chart dimension settings", () => {
     const grapher = new Grapher(legacyConfig)
-    const col = grapher.yColumns[0]!
+    const col = grapher.yColumnsFromDimensions[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
 })
