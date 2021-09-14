@@ -66,7 +66,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { SelectionArray } from "../selection/SelectionArray"
-import { Color } from "../../clientUtils/owidTypes"
+import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -522,11 +522,7 @@ export class MapChart
     }
 
     @computed get legendX(): number {
-        const { bounds, numericLegend, categoryLegend } = this
-        if (numericLegend) return bounds.centerX - this.legendWidth / 2
-
-        if (categoryLegend) return bounds.centerX - categoryLegend!.width / 2
-        return 0
+        return this.bounds.centerX - this.legendWidth / 2
     }
 
     @computed get categoryLegendY(): number {
@@ -534,6 +530,10 @@ export class MapChart
 
         if (categoryLegend) return bounds.bottom - categoryLegendHeight
         return 0
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.center
     }
 
     @computed get numericLegendY(): number {

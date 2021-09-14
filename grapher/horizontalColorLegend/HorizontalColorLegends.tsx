@@ -68,7 +68,6 @@ export interface HorizontalColorLegendManager {
     numericLegendY?: number
     legendWidth?: number
     legendHeight?: number
-    scale?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     categoricalBinStroke?: Color
@@ -83,36 +82,36 @@ export interface HorizontalColorLegendManager {
 class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
-    @computed get manager(): HorizontalColorLegendManager {
+    @computed protected get manager(): HorizontalColorLegendManager {
         return this.props.manager
     }
 
-    @computed get legendX(): number {
+    @computed protected get legendX(): number {
         return this.manager.legendX ?? 0
     }
 
-    @computed get categoryLegendY(): number {
+    @computed protected get categoryLegendY(): number {
         return this.manager.categoryLegendY ?? 0
     }
 
-    @computed get numericLegendY(): number {
+    @computed protected get numericLegendY(): number {
         return this.manager.numericLegendY ?? 0
     }
 
-    @computed get legendWidth(): number {
+    @computed protected get legendWidth(): number {
         return this.manager.legendWidth ?? 200
     }
 
-    @computed get legendHeight(): number {
+    @computed protected get legendHeight(): number {
         return this.manager.legendHeight ?? 200
     }
 
-    @computed get legendAlign() {
+    @computed protected get legendAlign(): HorizontalAlign {
         // Assume center alignment if none specified, for backwards-compatibility
         return this.manager.legendAlign ?? HorizontalAlign.center
     }
 
-    @computed get fontSize(): number {
+    @computed protected get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 }
@@ -443,12 +442,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get markLines(): MarkLine[] {
-        const manager = this.manager
-        const scale = manager.scale ?? 1
-        const rectSize = 12 * scale
+        const fontSize = this.fontSize * 0.8
+        const rectSize = this.fontSize * 0.75
         const rectPadding = 5
         const markPadding = 5
-        const fontSize = 0.8 * scale * this.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = []
@@ -473,7 +470,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                 text: bin.text,
                 bounds: labelBounds.set({
                     x: markX + rectSize + rectPadding,
-                    y: markY + 1,
+                    y: markY + rectSize / 2,
                 }),
                 fontSize,
             }
@@ -495,22 +492,27 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return lines
     }
 
-    @computed get width(): number {
+    @computed get contentWidth(): number {
         return max(this.markLines.map((l) => l.totalWidth)) as number
+    }
+
+    @computed private get containerWidth(): number {
+        return this.manager.legendWidth ?? this.contentWidth
     }
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
+        const width = this.containerWidth
 
         // Center each line
         lines.forEach((line) => {
             // TODO abstract this
             const xShift =
                 align === HorizontalAlign.center
-                    ? (this.width - line.totalWidth) / 2
+                    ? (width - line.totalWidth) / 2
                     : align === HorizontalAlign.right
-                    ? this.width - line.totalWidth
+                    ? width - line.totalWidth
                     : 0
             line.marks.forEach((mark) => {
                 mark.x += xShift
@@ -524,7 +526,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed get height(): number {
-        return max(this.marks.map((mark) => mark.y + mark.rectSize)) as number
+        return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
     render(): JSX.Element {
@@ -567,7 +569,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                                     // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                                     // do with some rough positioning.
-                                    dy={dyFromAlign(VerticalAlign.bottom)}
+                                    dy={dyFromAlign(VerticalAlign.middle)}
                                     fontSize={mark.label.fontSize}
                                 >
                                     {mark.label.text}

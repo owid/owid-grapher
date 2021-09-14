@@ -156,3 +156,29 @@ it("should drop missing values at start or end", () => {
     expect(chart.series[0].points.length).toEqual(3)
     expect(chart.series[1].points.length).toEqual(3)
 })
+
+describe("externalLegendBins", () => {
+    const table = SynthesizeFruitTable({
+        timeRange: [2000, 2010],
+        entityCount: 1,
+    })
+    const baseManager: ChartManager = {
+        table,
+        selection: table.sampleEntityName(1),
+        yColumnSlugs: [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+    }
+
+    it("doesn't expose externalLegendBins when legend is shown", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...baseManager },
+        })
+        expect(chart["externalLegendBins"].length).toEqual(0)
+    })
+
+    it("exposes externalLegendBins when legend is hidden", () => {
+        const chart = new StackedAreaChart({
+            manager: { ...baseManager, hideLegend: true },
+        })
+        expect(chart["externalLegendBins"].length).toEqual(2)
+    })
+})

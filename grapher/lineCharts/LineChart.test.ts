@@ -3,6 +3,7 @@
 import { LineChart } from "./LineChart"
 import {
     SampleColumnSlugs,
+    SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
@@ -181,4 +182,30 @@ it("reverses order of plotted series to plot the first one over the others", () 
 
     expect(chart.placedSeries).toHaveLength(2)
     expect(chart.placedSeries[0].seriesName).toEqual("pop")
+})
+
+describe("externalLegendBins", () => {
+    const table = SynthesizeFruitTable({
+        timeRange: [2000, 2010],
+        entityCount: 1,
+    })
+    const baseManager: ChartManager = {
+        table,
+        selection: table.sampleEntityName(1),
+        yColumnSlugs: [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+    }
+
+    it("doesn't expose externalLegendBins when legend is shown", () => {
+        const chart = new LineChart({
+            manager: { ...baseManager },
+        })
+        expect(chart["externalLegendBins"].length).toEqual(0)
+    })
+
+    it("exposes externalLegendBins when legend is hidden", () => {
+        const chart = new LineChart({
+            manager: { ...baseManager, hideLegend: true },
+        })
+        expect(chart["externalLegendBins"].length).toEqual(2)
+    })
 })

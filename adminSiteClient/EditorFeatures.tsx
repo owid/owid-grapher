@@ -55,7 +55,11 @@ export class EditorFeatures {
     }
 
     @computed get hideLegend() {
-        return this.grapher.isLineChart || this.grapher.isStackedArea
+        return (
+            this.grapher.isLineChart ||
+            this.grapher.isStackedArea ||
+            this.grapher.isStackedDiscreteBar
+        )
     }
 
     @computed get stackedArea() {
