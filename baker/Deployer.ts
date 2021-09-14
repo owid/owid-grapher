@@ -240,11 +240,17 @@ yarn testPrettierAll`
         await this.copyLocalRepoToServerTmpDirectory()
 
         for await (const name of Object.keys(scripts)) {
-            await this.runAndStreamScriptOnRemoteServerViaSSH(
+            const exitCode: number = await this.runAndStreamScriptOnRemoteServerViaSSH(
                 `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
             const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             fs.removeSync(localPath)
+            if (exitCode !== 0) {
+                console.error(
+                    `❌ HALTING DEPLOY: received exit code ${exitCode} from '${name}' script.`
+                )
+                break
+            }
         }
     }
 
@@ -275,7 +281,9 @@ yarn testPrettierAll`
         })
     }
 
-    private async runAndStreamScriptOnRemoteServerViaSSH(path: string) {
+    private async runAndStreamScriptOnRemoteServerViaSSH(
+        path: string
+    ): Promise<number> {
         // eslint-disable-next-line no-console
         console.log(`📡 Running ${path} on ${this.sshHost}`)
         const bashTerminateIfAnyNonZero = "bash -e" // https://stackoverflow.com/questions/9952177/whats-the-meaning-of-the-parameter-e-for-bash-shell-command-line/9952249
@@ -302,17 +310,19 @@ yarn testPrettierAll`
             console.error(trimmed)
         })
 
-        const exitCode = await new Promise((resolve) => {
+        const exitCode: number = await new Promise((resolve) => {
             child.on("close", resolve)
         })
 
-        if (exitCode) {
+        if (exitCode !== 0) {
             // eslint-disable-next-line no-console
             console.log(`Exit code: ${exitCode}`)
+        } else {
+            this.progressBar.tick({
+                name: `✅ 📡 finished running ${path}`,
+            })
         }
 
-        this.progressBar.tick({
-            name: `✅ 📡 finished running ${path}`,
-        })
+        return exitCode
     }
 }
