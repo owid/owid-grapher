@@ -522,12 +522,7 @@ export class MapChart
     }
 
     @computed get legendX(): number {
-        const { bounds, numericLegend, categoryLegend } = this
-        // TODO move alignment logic to legend internals
-        if (numericLegend) return bounds.centerX - this.legendWidth / 2
-        if (categoryLegend)
-            return bounds.centerX - categoryLegend!.contentWidth / 2
-        return 0
+        return this.bounds.centerX - this.legendWidth / 2
     }
 
     @computed get categoryLegendY(): number {
@@ -538,8 +533,7 @@ export class MapChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        // TODO pass `center` here and move alignment responsibility to legend
-        return HorizontalAlign.left
+        return HorizontalAlign.center
     }
 
     @computed get numericLegendY(): number {
