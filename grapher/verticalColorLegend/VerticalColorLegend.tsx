@@ -20,7 +20,7 @@ export interface VerticalColorLegendManager {
     focusColors?: Color[]
 }
 
-interface LegendItem {
+export interface LegendItem {
     label?: string
     minText?: string
     maxText?: string

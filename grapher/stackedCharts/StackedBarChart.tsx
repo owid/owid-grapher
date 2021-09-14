@@ -13,6 +13,7 @@ import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
+    LegendItem,
 } from "../verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "../tooltip/Tooltip"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
@@ -170,7 +171,7 @@ export class StackedBarChart
         )
     }
 
-    @computed get legendItems() {
+    @computed get legendItems(): LegendItem[] {
         return this.series
             .map((series) => {
                 return {
