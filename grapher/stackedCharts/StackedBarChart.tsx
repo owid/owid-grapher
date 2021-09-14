@@ -192,6 +192,7 @@ export class StackedBarChart
         return 100
     }
     @computed get sidebarWidth(): number {
+        if (this.manager.hideLegend) return 0
         const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
@@ -461,7 +462,9 @@ export class StackedBarChart
                     })}
                 </g>
 
-                <VerticalColorLegend manager={this} />
+                {!this.manager.hideLegend && (
+                    <VerticalColorLegend manager={this} />
+                )}
                 {tooltip}
             </g>
         )
