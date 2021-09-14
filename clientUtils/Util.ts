@@ -587,11 +587,14 @@ export const getIdealGridParams = ({
     // See Observable notebook: https://observablehq.com/@danielgavrilov/pack-rectangles-of-a-preferred-aspect-ratio
     // Also Desmos graph: https://www.desmos.com/calculator/tmajzuq5tm
     const ratio = containerAspectRatio / idealAspectRatio
-    // prefer vertical grid for count=2
+    // Prefer vertical grid for count=2.
     if (count === 2 && ratio < 2) return { rows: 2, columns: 1 }
-    // otherwise, optimize for closest to the ideal aspect ratio
-    const columns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
-    const rows = Math.ceil(count / columns)
+    // Otherwise, optimize for closest to the ideal aspect ratio.
+    const initialColumns = Math.min(Math.round(Math.sqrt(count * ratio)), count)
+    const rows = Math.ceil(count / initialColumns)
+    // Remove extra columns if we can fit everything in fewer.
+    // This will result in wider aspect ratios than ideal, which is ok.
+    const columns = Math.ceil(count / rows)
     return {
         rows,
         columns,
