@@ -2263,6 +2263,7 @@ export class Grapher
         this.sortBy = grapher.sortBy
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
+        this.hideRelativeToggle = grapher.hideRelativeToggle
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
     }
