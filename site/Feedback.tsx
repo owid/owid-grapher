@@ -48,7 +48,7 @@ class Feedback {
 }
 
 const vaccinationRegex = /vaccination|vaccine|doses|vaccinat/i
-const licensingRegex = /license|licensing|copyright/i
+const licensingRegex = /license|licensing|copyright|permission|permit/i
 const citationRegex = /cite|citation|citing|reference/i
 const translateRegex = /translat/i
 
