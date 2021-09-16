@@ -329,10 +329,6 @@ export class MarimekkoChart
         table = table.interpolateColumnWithTolerance(xColumnSlug)
         table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
 
-        if (manager.isRelativeMode) {
-            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
-        }
-
         if (colorColumnSlug) {
             const tolerance =
                 table.get(colorColumnSlug)?.display?.tolerance ?? Infinity
@@ -340,10 +336,15 @@ export class MarimekkoChart
                 colorColumnSlug,
                 tolerance
             )
-            if (manager.matchingEntitiesOnly) {
-                table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
-            }
+            // if (manager.matchingEntitiesOnly) {
+            //     table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
+            // }
         }
+
+        if (manager.isRelativeMode) {
+            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
+        }
+
         return table
     }
 

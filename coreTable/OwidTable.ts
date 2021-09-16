@@ -264,6 +264,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     private sumsByTime(columnSlug: ColumnSlug): Map<number, number> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
+        if (timeValues.length !== values.length)
+            throw Error(
+                "Tried to run sumsByTime when timeValues and values had different length"
+            )
+        const nonnumber = values.find((x) => !((x as any) instanceof Number))
+        if (nonnumber)
+            console.log("There are nonnumber values", typeof nonnumber)
         const map = new Map<number, number>()
         timeValues.forEach((time, index) =>
             map.set(time, (map.get(time) ?? 0) + values[index])
@@ -671,6 +678,22 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 toleranceInterpolation,
                 { timeTolerance: tolerance }
             )
+
+            if (
+                interpolationResult.values.length !==
+                interpolationResult.times.length
+            )
+                throw new Error(
+                    "interpolationresult values and times had different length!"
+                )
+
+            if (
+                withAllRows.timeColumn.values.length !==
+                interpolationResult.times.length
+            )
+                throw new Error(
+                    "original times length and interpolationresult times length were different length!"
+                )
 
             columnStore = {
                 ...withAllRows.columnStore,
