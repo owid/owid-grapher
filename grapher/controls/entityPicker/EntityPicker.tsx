@@ -135,8 +135,9 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get availableEntitiesForCurrentView(): Set<string> {
-        if (!this.manager.requiredColumnSlugs?.length || !this.grapherTable)
-            return this.selection.availableEntityNameSet
+        if (!this.grapherTable) return this.selection.availableEntityNameSet
+        if (!this.manager.requiredColumnSlugs?.length)
+            return this.grapherTable.availableEntityNameSet
         return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
