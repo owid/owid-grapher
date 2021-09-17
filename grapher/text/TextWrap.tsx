@@ -135,7 +135,7 @@ export class TextWrap {
         //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options}>{strip(text)}</p>
 
         return (
-            <React.Fragment>
+            <span>
                 {lines.map((line, index) => {
                     const content = props.rawHtml ? (
                         <span
@@ -150,7 +150,7 @@ export class TextWrap {
                             }}
                         />
                     ) : (
-                        line.text
+                        <span>{line.text}</span>
                     )
                     return (
                         <React.Fragment key={index}>
@@ -159,7 +159,7 @@ export class TextWrap {
                         </React.Fragment>
                     )
                 })}
-            </React.Fragment>
+            </span>
         )
     }
 
