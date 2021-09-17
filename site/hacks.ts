@@ -1,3 +1,5 @@
+import Bugsnag from "@bugsnag/js"
+
 /**
  * React and the browser-integrated Google Translate don't love each other:
  * In a translated page, some interactions entirely break the page.
@@ -7,17 +9,36 @@
  * -@MarcelGerber, 2021-09-06
  */
 export const runMonkeyPatchForGoogleTranslate = (): void => {
+    const nodeToString = (elem: Element | Node): string | null => {
+        if (elem instanceof Element)
+            // https://stackoverflow.com/a/34639030/10670163
+            return elem.innerHTML
+                ? elem.outerHTML.slice(
+                      0,
+                      elem.outerHTML.indexOf(elem.innerHTML)
+                  )
+                : elem.outerHTML
+        else return elem.textContent
+    }
+
     if (typeof Node === "function" && Node.prototype) {
         const originalRemoveChild = Node.prototype.removeChild
         Node.prototype.removeChild = function <T extends Node>(child: T): T {
             if (child.parentNode !== this) {
-                if (console) {
-                    console.error(
-                        "Cannot remove a child from a different parent",
-                        child,
-                        this
-                    )
-                }
+                console?.error(
+                    "Cannot remove a child from a different parent",
+                    child,
+                    this
+                )
+                Bugsnag?.notify(
+                    "removeChild: Cannot remove a child from a different parent",
+                    (event) => {
+                        event.addMetadata("context", {
+                            child: nodeToString(child),
+                            this: nodeToString(this),
+                        })
+                    }
+                )
                 return child
             }
             return originalRemoveChild.apply(this, [child]) as T
@@ -29,13 +50,20 @@ export const runMonkeyPatchForGoogleTranslate = (): void => {
             referenceNode: Node | null
         ) {
             if (referenceNode && referenceNode.parentNode !== this) {
-                if (console) {
-                    console.error(
-                        "Cannot insert before a reference node from a different parent",
-                        referenceNode,
-                        this
-                    )
-                }
+                console?.error(
+                    "Cannot insert before a reference node from a different parent",
+                    referenceNode,
+                    this
+                )
+                Bugsnag?.notify(
+                    "insertBefore: Cannot insert before a reference node from a different parent",
+                    (event) => {
+                        event.addMetadata("context", {
+                            child: nodeToString(referenceNode),
+                            this: nodeToString(this as Element),
+                        })
+                    }
+                )
                 return newNode
             }
             return originalInsertBefore.apply(this, [
