@@ -82,7 +82,10 @@ function auth_cloudflare_sso($user, $username, $password)
             $valid = true;
             break;
         } catch (RequiredConstraintsViolated $e) {
-            error_log($e);
+            // Do not send the whole $e to error_log (will trigger a 502 on Nginx without proper configuration)
+            // "upstream sent too big header while reading response header from upstream"
+            // todo: revisit current workaround to resurface the full stack trace output
+            error_log($e->getMessage() . "\n");
         }
     }
 
