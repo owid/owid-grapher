@@ -39,6 +39,7 @@ import { SiteAnalytics } from "./SiteAnalytics"
 import { renderProminentLink } from "./blocks/ProminentLink"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
+import { runMonkeyPatchForGoogleTranslate } from "./hacks"
 
 declare let window: any
 window.Grapher = Grapher
@@ -72,6 +73,8 @@ window.runSiteFooterScripts = () => {
         renderProminentLink()
     }
 }
+
+runMonkeyPatchForGoogleTranslate()
 
 if (BUGSNAG_API_KEY) {
     try {

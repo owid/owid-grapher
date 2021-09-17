@@ -355,7 +355,7 @@ const TimelineHandle = ({
             }}
         >
             <Tippy
-                content={tooltipContent}
+                content={<span>{tooltipContent}</span>}
                 visible={tooltipVisible}
                 zIndex={tooltipZIndex}
             >
