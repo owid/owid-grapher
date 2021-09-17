@@ -310,7 +310,7 @@ export class GlobalEntitySelector extends React.Component<{
                             autoFocus={true}
                         />
                     ) : (
-                        <>
+                        <div>
                             {!this.selection.hasSelection
                                 ? "None selected"
                                 : this.selection.selectedEntityNames
@@ -329,7 +329,7 @@ export class GlobalEntitySelector extends React.Component<{
                                                   : [...acc, ", ", item],
                                           [] as (JSX.Element | string)[]
                                       )}
-                        </>
+                        </div>
                     )}
                 </div>
                 <div className="narrow-actions">
