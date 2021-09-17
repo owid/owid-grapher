@@ -212,8 +212,8 @@
     },
     "devDependencies": {
         "@babel/core": "^7.14.3",
-        "@storybook/addon-essentials": "^6.2.9",
-        "@storybook/react": "^6.2.9",
+        "@storybook/addon-essentials": "^6.3.8",
+        "@storybook/react": "^6.3.8",
         "@types/jest": "^26.0.23",
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^4.26.0",
@@ -228,7 +228,7 @@
         "opener": "^1.5.1",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
-        "storybook": "^6.2.9",
+        "storybook": "^6.3.8",
         "tsc-watch": "^4.2.9",
         "xhr-mock": "^2.5.1"
     },
