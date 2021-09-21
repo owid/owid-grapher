@@ -83,13 +83,13 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "CO₂ and GHG Emissions",
             href: "/co2-and-other-greenhouse-gas-emissions",
             id: "co2-and-ghg-emissions",
+            highlight: true,
         },
         {
             label: "By country",
             href:
                 "/co2-and-other-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles",
             id: "by-country",
-            highlight: true,
         },
         {
             label: "Data explorer",
