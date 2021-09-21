@@ -105,14 +105,14 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         },
         { label: "By sector", href: "/emissions-by-sector", id: "by-sector" },
         {
-            label: "Emissions drivers",
-            href: "/emissions-drivers",
-            id: "emissions-drivers",
-        },
-        {
             label: "Atmospheric concentrations",
             href: "/atmospheric-concentrations",
             id: "atm-concentrations",
+        },
+        {
+            label: "Climate impacts",
+            href: "/explorers/climate-change",
+            id: "climate-impacts",
         },
     ],
     energy: [
