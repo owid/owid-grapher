@@ -611,12 +611,11 @@ export const findClosestTimeIndex = (
     for (let index = 0; index < times.length; index++) {
         const time = times[index]
         const currentTimeDist = Math.abs(time - targetTime)
-        if (!currentTimeDist) return index // Found the winner, stop searching.
+        if (currentTimeDist === 0) return index // Found the winner, stop searching.
         if (tolerance !== undefined && currentTimeDist > tolerance) continue
 
-        const closestTimeDist = closest
-            ? Math.abs(closest - targetTime)
-            : Infinity
+        const closestTimeDist =
+            closest !== undefined ? Math.abs(closest - targetTime) : Infinity
 
         if (
             closest === undefined ||

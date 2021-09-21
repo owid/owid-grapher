@@ -68,6 +68,17 @@ describe(findClosestTime, () => {
             expect(findClosestTime(years, 2002)).toEqual(1990)
         })
     })
+
+    describe("negative numbers", () => {
+        it("works with negative years and zero", () => {
+            const years = [-100, 0, 100]
+            expect(findClosestTime(years, 0)).toEqual(0)
+            expect(findClosestTime(years, 1)).toEqual(0)
+            expect(findClosestTime(years, -1)).toEqual(0)
+            expect(findClosestTime(years, -99)).toEqual(-100)
+            expect(findClosestTime(years, 99)).toEqual(100)
+        })
+    })
 })
 
 describe(getStartEndValues, () => {
