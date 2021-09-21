@@ -1282,24 +1282,28 @@ export class Grapher
     }
 
     @computed get columnsWithSources(): CoreColumn[] {
-        // Only use dimensions/columns that are actually part of the visualization
-        // In Explorers, this also ensures that only columns which are currently in use will be shown in Sources tab
-        const columnSlugs = uniq(this.activeColumnSlugs)
+        const {
+            yColumnSlugs,
+            xColumnSlug,
+            sizeColumnSlug,
+            colorColumnSlug,
+        } = this
 
-        // exclude some columns that are "too common" (they are used in most scatter plots for color & size)
-        // todo: this sort of conditional we could do in a smarter editor, and not at runtime
-        const excludedColumnSlugs = [
-            "72", // "Total population (Gapminder, HYDE & UN)", usually used as "size" dimension in scatter plots
-            "123", // "Countries Continent", usually used as color in scatter plots, slope charts, etc.
-        ]
+        const columnSlugs = [...yColumnSlugs]
+
+        if (xColumnSlug !== undefined) columnSlugs.push(xColumnSlug)
+
+        // exclude "Total population (Gapminder, HYDE & UN)" if its used as the size dimension in a scatter plot
+        if (sizeColumnSlug !== undefined && sizeColumnSlug != "72")
+            columnSlugs.push(sizeColumnSlug)
+
+        // exclude "Countries Continent" if its used as the color dimension in a scatter plot, slope chart etc.
+        if (colorColumnSlug !== undefined && colorColumnSlug != "123")
+            columnSlugs.push(colorColumnSlug)
 
         return this.inputTable
-            .getColumns(columnSlugs)
-            .filter(
-                (column) =>
-                    !!column.source.name &&
-                    !excludedColumnSlugs.includes(column.slug)
-            )
+            .getColumns(uniq(columnSlugs))
+            .filter((column) => !!column.source.name)
     }
 
     @computed private get defaultSourcesLine(): string {
