@@ -68,7 +68,7 @@ export async function getPublishedGraphersBySlug(
 LEFT JOIN chart_tags on chart_tags.chartId = charts.id
 LEFT JOIN tags on tags.id = chart_tags.tagid
 WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE
-AND tags.name != 'Private'`
+AND (tags.name IS NULL OR tags.name != 'Private')`
 
     const query = db.queryMysql(sql)
     for (const row of await query) {
