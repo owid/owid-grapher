@@ -327,7 +327,6 @@ export class MarimekkoChart
         })
 
         table = table.interpolateColumnWithTolerance(xColumnSlug)
-        table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
 
         if (colorColumnSlug) {
             const tolerance =
@@ -336,11 +335,12 @@ export class MarimekkoChart
                 colorColumnSlug,
                 tolerance
             )
-            // if (manager.matchingEntitiesOnly) {
-            //     table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
-            // }
+            if (manager.matchingEntitiesOnly) {
+                table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
+            }
         }
 
+        table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
         if (manager.isRelativeMode) {
             table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
         }

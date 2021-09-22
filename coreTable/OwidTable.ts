@@ -265,8 +265,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
         if (timeValues.length !== values.length)
+            // This will lead to an error in any case if the lengths are different (can happen when dropping
+            // rows with errors is done incorrectly)
+            // when it happens but this way we get a better error message
             throw Error(
-                "Tried to run sumsByTime when timeValues and values had different length"
+                `Tried to run sumsByTime when timeValues (${timeValues.length}) and values (${values.length}) had different length`
             )
         const nonnumber = values.find((x) => !((x as any) instanceof Number))
         if (nonnumber)
