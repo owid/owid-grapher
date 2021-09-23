@@ -981,17 +981,20 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(lastItem.xPoint.value)
             const yStart = dualAxis.verticalAxis.place(y0)
 
+            const noDataLabelX =
+                noDataRangeStartX + (noDataRangeEndX - noDataRangeStartX) / 2
+            const boundsForNoData = Bounds.forText("no data")
+            const noDataLabelY = yStart - boundsForNoData.width
             noDataLabel = (
                 <text
                     key={`noDataArea-label`}
-                    x={
-                        noDataRangeStartX +
-                        (noDataRangeEndX - noDataRangeStartX) / 2
-                    }
-                    y={yStart - noDataHeight / 2}
+                    x={0}
+                    transform={`rotate(-90, ${noDataLabelX}, ${noDataLabelY})
+                    translate(${noDataLabelX}, ${noDataLabelY})`}
+                    y={0}
                     width={noDataRangeEndX - noDataRangeStartX}
                     height={noDataHeight}
-                    fontWeight={400}
+                    fontWeight={700}
                     fill="#666"
                     opacity={1}
                     fontSize="0.8em"
