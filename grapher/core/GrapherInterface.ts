@@ -44,6 +44,8 @@ export interface GrapherInterface extends SortConfig {
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
     stackMode?: StackMode
+
+    showNoDataArea?: boolean
     hideLegend?: boolean
     logo?: LogoOption
     hideLogo?: boolean
@@ -134,6 +136,7 @@ export const grapherKeysToSerialize = [
     "addCountryMode",
     "highlightToggle",
     "stackMode",
+    "showNoDataArea",
     "hideLegend",
     "logo",
     "hideLogo",
