@@ -339,6 +339,8 @@ export class MarimekkoChart
                 table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
             }
         }
+        if (!manager.showNoDataArea)
+            table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
         table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
         if (manager.isRelativeMode) {

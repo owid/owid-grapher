@@ -25,6 +25,7 @@ it("can create a chart", () => {
         table,
         yColumnSlugs: [SampleColumnSlugs.GDP],
         xColumnSlug: SampleColumnSlugs.Population,
+        showNoDataArea: false,
     }
 
     const chart = new MarimekkoChart({ manager })
@@ -56,6 +57,7 @@ it("can display a Marimekko chart correctly", () => {
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     const chart = new MarimekkoChart({
         manager,
@@ -169,6 +171,7 @@ it("can display two time series stacked correctly", () => {
         yColumnSlugs: ["percentBelow2USD", "percentBelow10USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     const chart = new MarimekkoChart({
         manager,
@@ -313,6 +316,7 @@ it("ensures that entities with tiny x values are drawn at least 1 px wide", () =
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     const chart = new MarimekkoChart({
         manager,
@@ -440,6 +444,7 @@ it("can do sorting", () => {
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     let chart = new MarimekkoChart({
         manager: {

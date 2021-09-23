@@ -62,6 +62,7 @@ export interface ChartManager {
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 
     sortConfig?: SortConfig
+    showNoDataArea?: boolean
 
     seriesStrategy?: SeriesStrategy
 

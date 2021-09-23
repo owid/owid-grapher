@@ -256,6 +256,7 @@ export class Grapher
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode = StackMode.absolute
+    @observable.ref showNoDataArea: boolean = true
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -2464,6 +2465,10 @@ export class Grapher
             this.isLineChart ||
             this.isMarimekko
         )
+    }
+
+    @computed get showNoDataAreaToggle(): boolean {
+        return this.isMarimekko
     }
 
     @computed get showHighlightToggle(): boolean {

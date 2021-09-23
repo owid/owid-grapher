@@ -14,6 +14,7 @@ export interface MarimekkoChartManager extends ChartManager {
     xOverrideTime?: number
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
     sortConfig?: SortConfig
+    hideNoDataArea?: boolean
 }
 
 export interface EntityColorData {

@@ -96,6 +96,38 @@ export interface AbsRelToggleManager {
     relativeToggleLabel?: string
 }
 
+export interface NoDataAreaToggleManager {
+    showNoDataArea?: boolean
+}
+
+@observer
+export class NoDataAreaToggle extends React.Component<{
+    manager: NoDataAreaToggleManager
+}> {
+    @action.bound onToggle(): void {
+        this.manager.showNoDataArea = this.manager.showNoDataArea ? false : true
+    }
+
+    @computed get manager(): NoDataAreaToggleManager {
+        return this.props.manager
+    }
+
+    render(): JSX.Element {
+        const label = "Show 'no data' area"
+        return (
+            <label className="clickable">
+                <input
+                    type="checkbox"
+                    checked={this.manager.showNoDataArea}
+                    onChange={this.onToggle}
+                    data-track-note="chart-no-data-area-toggle"
+                />{" "}
+                &nbsp;{label}
+            </label>
+        )
+    }
+}
+
 @observer
 export class AbsRelToggle extends React.Component<{
     manager: AbsRelToggleManager
