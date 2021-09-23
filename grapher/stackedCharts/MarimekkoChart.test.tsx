@@ -391,7 +391,7 @@ it("ensures that entities with tiny x values are drawn at least 1 px wide", () =
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5) - 1, // subtract 1 here and below to accomodate tiny country
+            xPosition: Math.round(xAxisRange * 0.5 - 1), // subtract 1 here and below to accomodate tiny country
         },
         {
             entityName: "small",
@@ -405,7 +405,7 @@ it("ensures that entities with tiny x values are drawn at least 1 px wide", () =
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9) - 1,
+            xPosition: Math.round(xAxisRange * 0.9 - 1),
         },
         {
             entityName: "tiny",
@@ -419,12 +419,12 @@ it("ensures that entities with tiny x values are drawn at least 1 px wide", () =
                 },
             ],
             xPoint: expectedXPoints[3],
-            xPosition: Math.round(xAxisRange) - 1,
+            xPosition: Math.round(xAxisRange - 1),
         },
     ])
 
-    expect(chart["xDomainCorrectionFactor"]).toBeLessThan(1) // xDomainCorrectionFactor should be less than 1 now but by a tiny amount
-    expect(chart["xDomainCorrectionFactor"]).toBeCloseTo(1)
+    expect(chart["xDomainCorrectionFactor"]).toBe(1)
+    //expect(chart["xDomainCorrectionFactor"]).toBeCloseTo(1)
 })
 
 it("can do sorting", () => {
