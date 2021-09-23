@@ -566,13 +566,17 @@ export class MarimekkoChart
         ]
     }
 
-    /** This flag is on if we are on a non-narrow display. If it is set then the
+    /** This flag determines if we ensure that every entity is at least
+        one pixel wide. If it is set then
         every entity is drawn at least one px wide (e.g. the Vatican in a list of
         countries). If this happens then the xDomainCorrectionFactor is caluclated
-        to compensate for this artificial enlarging of small entities
+        to compensate for this artificial enlarging of small entities.
+
+        In late September 2021 I am removing this mechanism as I think it leads
+        to more confusion than it's worth
     */
     @computed private get mustEnsureOnePixelXSize(): boolean {
-        return !this.isNarrow
+        return false
     }
 
     @computed private get xDomainCorrectionFactor(): number {
