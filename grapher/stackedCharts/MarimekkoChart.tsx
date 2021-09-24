@@ -672,9 +672,16 @@ export class MarimekkoChart
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
         const config = this.xAxisConfig
-        const axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(xDomainDefault)
+        let axis = config.toHorizontalAxis()
+        if (manager.isRelativeMode) {
+            // MobX and classes  interact in an annoying way here so we have to construct a new object via
+            // an object copy of the AxisConfig class instance to be able to set a property without
+            // making MobX unhappy about a mutation originating from a computed property
+            axis = new HorizontalAxis(
+                new AxisConfig({ ...config.toObject(), maxTicks: 10 })
+            )
+            axis.domain = [0, 100]
+        } else axis.updateDomainPreservingUserSettings(xDomainDefault)
 
         axis.formatColumn = xColumn
 
