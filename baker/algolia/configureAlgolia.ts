@@ -75,6 +75,7 @@ export const configureAlgolia = async () => {
         ["price", "cost"],
         ["vaccine", "vaccination", "vacuna"],
         ["ghg", "greenhouse gas"],
+        ["rate", "share"],
     ]
 
     // Send all our country variant names to algolia as synonyms
