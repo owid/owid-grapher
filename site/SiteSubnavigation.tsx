@@ -120,12 +120,12 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "Energy",
             href: "/energy",
             id: "energy",
+            highlight: true,
         },
         {
             label: "By country",
             href: "/energy#energy-country-profiles",
             id: "by-country",
-            highlight: true,
         },
         {
             label: "Data explorer",
@@ -151,6 +151,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "renewable-energy",
         },
         { label: "Nuclear", href: "/nuclear-energy", id: "nuclear-energy" },
+        { label: "Transport", href: "/transport", id: "transport" },
     ],
     forests: [
         {
