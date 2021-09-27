@@ -223,8 +223,6 @@ describe("global legend", () => {
             table,
             selection: table.availableEntityNames,
             facetStrategy: FacetStrategy.metric,
-            seriesColorMap: new Map(),
-            // ^- important! this map enables globally consistent colors, if it is passed down correctly in FacetChart.
         }
         const chart = new FacetChart({
             manager,

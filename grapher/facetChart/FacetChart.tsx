@@ -7,6 +7,7 @@ import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
+    SeriesColorMap,
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import {
@@ -189,6 +190,9 @@ export class FacetChart
         return true
     }
 
+    // Passing this color map is important to ensure that all facets use the same entity colors
+    seriesColorMap: SeriesColorMap = new Map()
+
     /**
      * Holds the intermediate render properties for chart views, before axes are synchronized,
      * collapsed, aligned, etc.
@@ -203,7 +207,7 @@ export class FacetChart
      */
     @computed
     private get intermediatePlacedSeries(): IntermediatePlacedFacetSeries[] {
-        const { manager, series, facetCount } = this
+        const { manager, series, facetCount, seriesColorMap } = this
 
         // Copy properties from manager to facets
         const baseFontSize = this.facetFontSize
@@ -221,7 +225,6 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
-            seriesColorMap,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
