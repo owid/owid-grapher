@@ -310,9 +310,14 @@ export class MarimekkoChart
 
         if (excludedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
+            const baseFilterFn = (entityId: any): boolean =>
+                excludedEntityIdsSet.has(entityId as number)
+            const filterFn = manager.invertExcludedEntitiesList
+                ? baseFilterFn
+                : (entityId: any): boolean => !baseFilterFn(entityId)
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
-                (entityId) => !excludedEntityIdsSet.has(entityId as number),
+                filterFn,
                 `Excluded entity ids specified by author: ${excludedEntities.join(
                     ", "
                 )}`

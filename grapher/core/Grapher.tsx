@@ -303,6 +303,7 @@ export class Grapher
     @observable selectedEntityColors: { [entityName: string]: string } = {}
     @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
+    @observable invertExcludedEntitiesList?: boolean = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined

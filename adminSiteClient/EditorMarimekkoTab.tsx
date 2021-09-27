@@ -26,6 +26,10 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
+    @computed private get invertExcludedEntitiesList(): boolean {
+        return !!this.props.grapher.invertExcludedEntitiesList
+    }
+
     @computed private get excludedEntityChoices() {
         const { inputTable } = this.props.grapher
         return inputTable.availableEntityNames
@@ -61,7 +65,7 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { excludedEntityChoices } = this
+        const { excludedEntityChoices, invertExcludedEntitiesList } = this
         const { grapher } = this.props
 
         return (
@@ -83,9 +87,25 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                                     value || undefined)
                         )}
                     />
+                    <Toggle
+                        label="Start with empty selection and explicitly add entities below"
+                        value={invertExcludedEntitiesList}
+                        onValue={action(
+                            (value: boolean) =>
+                                (grapher.invertExcludedEntitiesList =
+                                    value || undefined)
+                        )}
+                    />
                     <SelectField
-                        label="Exclude individual entities"
-                        placeholder="Select an entity to exclude"
+                        label={
+                            invertExcludedEntitiesList
+                                ? "Include individual entities"
+                                : "Exclude individual entities"
+                        }
+                        placeholder={
+                            "Select an entity to " +
+                            (invertExcludedEntitiesList ? "include" : "exclude")
+                        }
                         value={undefined}
                         onValue={(v) => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
