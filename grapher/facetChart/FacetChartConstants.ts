@@ -1,4 +1,4 @@
-import { ChartSeries } from "../chart/ChartInterface"
+import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ChartTypeName } from "../core/GrapherConstants"
 import { Bounds } from "../../clientUtils/Bounds"
@@ -14,9 +14,13 @@ export interface FacetSeries extends ChartSeries {
     chartTypeName?: ChartTypeName
 }
 
-export interface PlacedFacetSeries extends FacetSeries {
+export interface IntermediatePlacedFacetSeries extends FacetSeries {
     manager: ChartManager
     chartTypeName: ChartTypeName
     bounds: Bounds
     contentBounds: Bounds
+}
+
+export interface PlacedFacetSeries extends IntermediatePlacedFacetSeries {
+    chartInstance: ChartInterface
 }

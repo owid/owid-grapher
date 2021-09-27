@@ -20,6 +20,7 @@ import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
+    IntermediatePlacedFacetSeries,
 } from "./FacetChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
@@ -200,7 +201,8 @@ export class FacetChart
      *
      * @danielgavrilov, 2021-07-13
      */
-    @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
+    @computed
+    private get intermediatePlacedSeries(): IntermediatePlacedFacetSeries[] {
         const { manager, series, facetCount } = this
 
         // Copy properties from manager to facets
@@ -413,6 +415,7 @@ export class FacetChart
                 bounds,
                 contentBounds,
                 manager,
+                chartInstance,
             }
         })
     }
