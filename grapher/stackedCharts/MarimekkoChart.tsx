@@ -211,13 +211,22 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
 
     let content = undefined
     if (bars.length) {
-        const allButLast = bars.slice(0, -1)
-        const last = bars[bars.length - 1]
+        const lastNonZeroBarIndex =
+            bars.length -
+            bars.reverse().findIndex((bar) => bar.yPoint.value > 0) -
+            1
+        const predecessors = bars.slice(0, lastNonZeroBarIndex)
+        const lastNonZero = bars.slice(
+            lastNonZeroBarIndex,
+            lastNonZeroBarIndex + 1
+        )
+        const successors = bars.slice(lastNonZeroBarIndex + 1, bars.length)
+
         // This is annoying - I tried to use the tippy element around all bars instead of inside
         // one single bar but then it renders at the document origin instead of at the right attach point
         // since we will switch to another tooltip solution anyhow I would leave it at this for now -
         // later on this splitting into allbutlast and last can be removed and tooltips just done elsewhere
-        const allButLastElements = allButLast.map((bar) => (
+        const predecessorBars = predecessors.map((bar) => (
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
                 bar={bar}
@@ -232,13 +241,13 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 dualAxis={dualAxis}
             />
         ))
-        const lastElement = (
+        const lastNonZeroBar = lastNonZero.map((bar) => (
             <MarimekkoBar
-                key={`${entityName}-${last.seriesName}`}
-                bar={last}
+                key={`${entityName}-${bar.seriesName}`}
+                bar={bar}
                 tooltipProps={{
                     ...tooltipProps,
-                    highlightedSeriesName: last.seriesName,
+                    highlightedSeriesName: bar.seriesName,
                 }}
                 barWidth={barWidth}
                 isHovered={isHovered}
@@ -249,10 +258,24 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
-        )
+        ))
+        const successorBars = successors.map((bar) => (
+            <MarimekkoBar
+                key={`${entityName}-${bar.seriesName}`}
+                bar={bar}
+                tooltipProps={undefined}
+                barWidth={barWidth}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isFaint={isFaint}
+                entityColor={entityColor?.color}
+                y0={y0}
+                isInteractive={!isExportingToSvgOrPng}
+                dualAxis={dualAxis}
+            />
+        ))
 
-        content = allButLastElements
-        content.push(lastElement)
+        content = [...predecessorBars, ...lastNonZeroBar, ...successorBars]
     } else {
         content = (
             <MarimekkoBar
