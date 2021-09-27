@@ -565,67 +565,6 @@ export class MarimekkoChart
             Math.max(this.y0, max(maxValues) as number),
         ]
     }
-
-    /** This flag determines if we ensure that every entity is at least
-        one pixel wide. If it is set then
-        every entity is drawn at least one px wide (e.g. the Vatican in a list of
-        countries). If this happens then the xDomainCorrectionFactor is caluclated
-        to compensate for this artificial enlarging of small entities.
-
-        In late September 2021 I am removing this mechanism as I think it leads
-        to more confusion than it's worth
-    */
-    @computed private get mustEnsureOnePixelXSize(): boolean {
-        return false
-    }
-
-    @computed private get xDomainCorrectionFactor(): number {
-        // Rounding up every country so that it is at least one pixel wide
-        // on the X axis has a pretty annoying side effect: since there are
-        // quite a few very small countries that get rounded up, the normal
-        // placing on the X axis ends up overshooting the naive domain max value
-        // by quite a bit.
-        // Correcting for this naively is a simple job of calculating the domain
-        // amount of one pixel, counting the countries below that and adjusting by
-        // a simple factor. BUT this would now make the normal placement on the x
-        // axis map the value we calculated above of "one pixel worth of domain amount"
-        // to *slightly less* than one pixel, screwing up the rounding to pixel borders
-        // that is required to avoid SVG hairline artifacts.
-        // Instead what we do below is sort all x axis values ascending and then
-        // continously adjusting the one pixel domain threshold value. This way we make sure
-        // that in the final placement everything fits. In other words, what we are
-        // doing is that we count all entities that would be less than one pixel WHILE
-        // updating this threshold to take into account that the "normal" range gets
-        // smaller by one pixel whenever we enlarge one small country to one pixel.
-
-        const { xSeries, dualAxis } = this
-
-        if (!this.mustEnsureOnePixelXSize) return 1
-
-        if (!xSeries.points.length) return 1
-
-        const points = xSeries.points
-            .map((point) => point.value)
-            .sort((a, b) => a - b)
-        const total = sum(points)
-        const widthInPixels = dualAxis.horizontalAxis.rangeSize
-        let onePixelDomainValueEquivalent = total / widthInPixels
-        let numCountriesBelowOnePixel = 0
-        let sumToRemoveFromTotal = 0
-        for (let i = 0; i < points.length; i++) {
-            if (points[i] >= onePixelDomainValueEquivalent) break
-            numCountriesBelowOnePixel++
-            sumToRemoveFromTotal += points[i]
-            onePixelDomainValueEquivalent =
-                (total - sumToRemoveFromTotal) /
-                (widthInPixels - numCountriesBelowOnePixel)
-        }
-        const xDomainCorrectionFactor =
-            (total - numCountriesBelowOnePixel * (total / widthInPixels)) /
-            (total - sumToRemoveFromTotal)
-        return xDomainCorrectionFactor
-    }
-
     @computed private get xDomainDefault(): [number, number] {
         const sum = sumBy(this.xSeries.points, (point) => point.value)
 
@@ -808,24 +747,15 @@ export class MarimekkoChart
     }
 
     @computed get placedItems(): PlacedItem[] {
-        const {
-            sortedItems,
-            dualAxis,
-            x0,
-            xDomainCorrectionFactor,
-            mustEnsureOnePixelXSize,
-        } = this
+        const { sortedItems, dualAxis, x0 } = this
         const placedItems: PlacedItem[] = []
         let currentX = 0
         for (const item of sortedItems) {
             placedItems.push({ ...item, xPosition: currentX })
             const preciseX =
-                dualAxis.horizontalAxis.place(
-                    item.xPoint.value * xDomainCorrectionFactor
-                ) - dualAxis.horizontalAxis.place(x0)
-            currentX += mustEnsureOnePixelXSize
-                ? Math.max(1, preciseX)
-                : preciseX
+                dualAxis.horizontalAxis.place(item.xPoint.value) -
+                dualAxis.horizontalAxis.place(x0)
+            currentX += preciseX
         }
         return placedItems
     }
@@ -947,13 +877,11 @@ export class MarimekkoChart
             dualAxis,
             x0,
             y0,
-            xDomainCorrectionFactor,
             focusSeriesName,
             placedLabels,
             labelLines,
             placedItems,
             hoveredEntityName,
-            mustEnsureOnePixelXSize,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
@@ -1053,15 +981,9 @@ export class MarimekkoChart
                 xAxisColumn,
             }
 
-            const correctedWidth =
-                dualAxis.horizontalAxis.place(
-                    xPoint.value * xDomainCorrectionFactor
-                ) - dualAxis.horizontalAxis.place(x0)
-            const barWidth = mustEnsureOnePixelXSize
-                ? correctedWidth > 1
-                    ? correctedWidth
-                    : 1
-                : correctedWidth
+            const barWidth =
+                dualAxis.horizontalAxis.place(xPoint.value) -
+                dualAxis.horizontalAxis.place(x0)
 
             const isSelected = selectionSet.has(entityName)
             const isHovered = entityName === hoveredEntityName
@@ -1257,13 +1179,11 @@ export class MarimekkoChart
         const {
             dualAxis,
             x0,
-            xDomainCorrectionFactor,
             placedItemsMap,
             labels,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
             labelAngleInDegrees,
-            mustEnsureOnePixelXSize,
         } = this
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
@@ -1271,15 +1191,10 @@ export class MarimekkoChart
             .map(({ candidate, labelElement }) => {
                 const item = placedItemsMap.get(candidate.item.entityName)
                 const xPoint = item?.xPoint.value ?? 0
-                const correctedWidth =
-                    dualAxis.horizontalAxis.place(
-                        xPoint * xDomainCorrectionFactor
-                    ) - dualAxis.horizontalAxis.place(x0)
-                const barWidth = mustEnsureOnePixelXSize
-                    ? correctedWidth > 1
-                        ? correctedWidth
-                        : 1
-                    : correctedWidth
+                const barWidth =
+                    dualAxis.horizontalAxis.place(xPoint) -
+                    dualAxis.horizontalAxis.place(x0)
+
                 const labelId = candidate.item.entityName
                 if (!item) {
                     console.error(
