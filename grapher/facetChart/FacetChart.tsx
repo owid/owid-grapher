@@ -221,6 +221,7 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
+            seriesColorMap,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -267,6 +268,7 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
+                seriesColorMap,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
