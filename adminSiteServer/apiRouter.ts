@@ -27,7 +27,7 @@ import { ChartRevision } from "../db/model/ChartRevision"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision"
 import { Post } from "../db/model/Post"
 import { camelCaseProperties } from "../clientUtils/string"
-import { log } from "../baker/slackLog"
+import { logErrorAndMaybeSendToSlack } from "../baker/slackLog"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles"
 import { BAKED_BASE_URL } from "../settings/serverSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
@@ -1229,7 +1229,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             commitEmail: res.locals.user.email,
         })
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToSlack(err)
         // Continue
     }
 
@@ -1302,7 +1302,7 @@ apiRouter.delete(
                 commitEmail: res.locals.user.email,
             })
         } catch (err) {
-            log.logErrorAndMaybeSendToSlack(err)
+            logErrorAndMaybeSendToSlack(err)
             // Continue
         }
 

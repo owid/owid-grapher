@@ -14,7 +14,6 @@ import {
 } from "../settings/serverSettings"
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
-import { log } from "../baker/slackLog"
 import { IndexPage } from "./IndexPage"
 import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"

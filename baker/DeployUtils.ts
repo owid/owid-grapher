@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { SiteBaker } from "../baker/SiteBaker"
-import { log } from "./slackLog"
+import { warn, logErrorAndMaybeSendToSlack } from "./slackLog"
 import { DeployQueueServer } from "./DeployQueueServer"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings"
 import { DeployChange } from "../clientUtils/owidTypes"
@@ -16,7 +16,7 @@ const defaultCommitMessage = async (): Promise<string> => {
         const sha = await fs.readFile("public/head.txt", "utf8")
         message += `\nowid/owid-grapher@${sha}`
     } catch (err) {
-        log.warn(err)
+        warn(err)
     }
 
     return message
@@ -38,7 +38,7 @@ const bakeAndDeploy = async (
         await baker.bakeAll()
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToSlack(err)
         throw err
     }
 }
@@ -48,7 +48,7 @@ export const tryBake = async () => {
     try {
         await baker.bakeAll()
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToSlack(err)
     } finally {
         baker.endDbConnections()
     }
@@ -69,7 +69,7 @@ export const tryDeploy = async (
     try {
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(err)
+        logErrorAndMaybeSendToSlack(err)
     } finally {
         baker.endDbConnections()
     }

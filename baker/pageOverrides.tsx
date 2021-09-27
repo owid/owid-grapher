@@ -4,14 +4,14 @@ import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util"
 import { FormattingOptions, FullPost } from "../clientUtils/owidTypes"
 import { getPostBySlug, isPostCitable } from "../db/wpdb"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
-import { log } from "./slackLog"
+import { logErrorAndMaybeSendToSlack } from "./slackLog"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post
     try {
         post = await getPostBySlug(slug)
     } catch (err) {
-        log.logErrorAndMaybeSendToSlack(stringifyUnkownError(err))
+        logErrorAndMaybeSendToSlack(stringifyUnkownError(err))
     } finally {
         return post
     }
@@ -38,7 +38,7 @@ export const getLandingOnlyIfParent = async (
     // citation overrides are absent, but the rest keeps updating.
     const landing = await getPostBySlugLogToSlackNoThrow(landingSlug)
     if (!landing) {
-        log.logErrorAndMaybeSendToSlack(
+        logErrorAndMaybeSendToSlack(
             `Warning: The href of the first item of the "subnavs[${formattingOptions.subnavId}]" array (the landing page) is likely out-of-date and is being redirected. Please update to avoid unnecessary and SEO damaging internal redirects.`
         )
     }
