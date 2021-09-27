@@ -14,4 +14,5 @@ const deployer = new Deployer({
     skipChecks: parsedArgs["skip-checks"] === true,
     runChecksRemotely: parsedArgs["r"] === true,
 })
-deployer.deploy()
+
+deployer.buildAndDeploy()

@@ -156,7 +156,7 @@ yarn testPrettierAll`
     }
 
     // 📡 indicates that a task is running/ran on the remote server
-    async deploy() {
+    async buildAndDeploy() {
         const { skipChecks, runChecksRemotely } = this.options
 
         if (this.targetIsProd) await this.runLiveSafetyChecks()
@@ -187,7 +187,9 @@ yarn testPrettierAll`
 
         await this.writeHeadDotText()
         await this.ensureTmpDirExistsOnServer()
-        await this.generateShellScriptsAndRunThemOnServer()
+
+        const exitCode = await this.generateShellScriptsAndRunThemOnServer()
+        if (exitCode !== 0) return
 
         this.progressBar.tick({
             name: `✅ 📡 finished everything`,
@@ -196,7 +198,7 @@ yarn testPrettierAll`
     }
 
     // todo: the old deploy script would generete BASH on the fly and run it on the server. we should clean that up and remove these shell scripts.
-    private async generateShellScriptsAndRunThemOnServer() {
+    private async generateShellScriptsAndRunThemOnServer(): Promise<number> {
         const { simpleGit } = this
         const { target, owidGrapherRootDir } = this.options
 
@@ -239,19 +241,17 @@ yarn testPrettierAll`
 
         await this.copyLocalRepoToServerTmpDirectory()
 
+        let exitCode: number = 0
         for await (const name of Object.keys(scripts)) {
-            const exitCode: number = await this.runAndStreamScriptOnRemoteServerViaSSH(
+            exitCode = await this.runAndStreamScriptOnRemoteServerViaSSH(
                 `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
             const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             fs.removeSync(localPath)
-            if (exitCode !== 0) {
-                console.error(
-                    `❌ HALTING DEPLOY: received exit code ${exitCode} from '${name}' script.`
-                )
-                break
-            }
+            if (exitCode !== 0) break // halt the deploy sequence
         }
+
+        return exitCode
     }
 
     printAndExit(message: string) {
@@ -314,14 +314,11 @@ yarn testPrettierAll`
             child.on("close", resolve)
         })
 
-        if (exitCode !== 0) {
-            // eslint-disable-next-line no-console
-            console.log(`Exit code: ${exitCode}`)
-        } else {
-            this.progressBar.tick({
-                name: `✅ 📡 finished running ${path}`,
-            })
-        }
+        this.progressBar.tick({
+            name: `📡${
+                exitCode ? "⛔️ failed" : "✅ finished"
+            } running ${path}${exitCode ? ` [exit code: ${exitCode}]` : ``}`,
+        })
 
         return exitCode
     }
