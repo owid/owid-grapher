@@ -75,6 +75,7 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
+import { ErrorValue } from "../../coreTable/ErrorValues"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -370,8 +371,12 @@ export class MarimekkoChart
         if (!manager.showNoDataArea)
             table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
-        table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
+        table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
         if (manager.isRelativeMode) {
+            // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
+            table = table.dropRowsWithErrorValuesForColumn(
+                table.timeColumn.slug
+            )
             table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
         }
 
