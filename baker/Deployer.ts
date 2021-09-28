@@ -223,13 +223,13 @@ yarn testPrettierAll`
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
-            algolia: `cd ${rsyncTargetDirTmp} && node itsJustJavascript/baker/algolia/configureAlgolia.js`,
+            algolia: `cd ${rsyncTargetDirTmp} && node --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js`,
             createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
-            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
-            deployToNetlify: `cd ${finalTargetDir} && node itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
+            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
+            deployToNetlify: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
 
