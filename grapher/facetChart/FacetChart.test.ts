@@ -235,10 +235,10 @@ describe("global legend", () => {
         expect(colors.size).toEqual(2)
 
         expect(
-            getColorMap(chart.intermediateChartInstances[0] as LineChart)
+            getColorMap(chart["intermediateChartInstances"][0] as LineChart)
         ).toEqual(colors)
         expect(
-            getColorMap(chart.intermediateChartInstances[1] as LineChart)
+            getColorMap(chart["intermediateChartInstances"][1] as LineChart)
         ).toEqual(colors)
     })
 })
