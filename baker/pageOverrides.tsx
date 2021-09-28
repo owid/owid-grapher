@@ -32,14 +32,15 @@ export const getLandingOnlyIfParent = async (
     if (landingSlug === post.slug) return
 
     // Using no-throw version to prevent throwing and stopping baking mid-way.
-    // Since deploying steps are independent, throwing would result in baking
-    // the site up to that point, and running a deploy of that half-baked
-    // version. It is more desirable to deploy a more consistent version, where
-    // citation overrides are absent, but the rest keeps updating.
+    // It is more desirable to temporarily deploy with citation overrides
+    // absent, while fixing the issue.
     const landing = await getPostBySlugLogToSlackNoThrow(landingSlug)
     if (!landing) {
+        // todo: the concept of "citation overrides" does not belong to that
+        // generic function. Logging this message should be the responsibility
+        // of the caller function.
         logErrorAndMaybeSendToSlack(
-            `Warning: The href of the first item of the "subnavs[${formattingOptions.subnavId}]" array (the landing page) is likely out-of-date and is being redirected. Please update to avoid unnecessary and SEO damaging internal redirects.`
+            `Error: citation overrides not applied for ${post.slug}. Please check the href of the "subnavs[${formattingOptions.subnavId}]" landing page (the first item in the array): it is likely out-of-date and is being redirected.`
         )
     }
 
