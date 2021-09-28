@@ -9,6 +9,9 @@ import {
     FacetStrategy,
 } from "../core/GrapherConstants"
 import { uniq } from "../../clientUtils/Util"
+import { OwidTable } from "../../coreTable/OwidTable"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
+import { LineChart } from "../lineCharts/LineChart"
 
 const allElementsAreEqual = (array: any[]): boolean => {
     return uniq(array).length === 1
@@ -186,5 +189,56 @@ describe("config overrides", () => {
 
     it("entity legend is hidden for single-metric facets by entity", () => {
         expect(chart.placedSeries[0].manager.hideLegend).toEqual(true)
+    })
+})
+
+describe("global legend", () => {
+    /**
+     * There was an issue where the global legend showed some color for an entity,
+     * but one of the facet charts was actually displaying the same entity in a different color.
+     * This occurred when the order of the first non-empty value for an entity in the table is
+     * different for different columns:
+     * I.e. in the below table, the first entity for the "gdp" column is germany, but for the co2
+     * column it is france.
+     */
+
+    const getColorMap = (chart: LineChart): Map<string, string> =>
+        new Map(chart.series.map((s) => [s.seriesName, s.color]))
+
+    it("consistently assigns entity colors", () => {
+        // The order of lines is important here! see the explanation above.
+        const csv = `gdp,co2,year,entityName
+1,,2000,germany
+2,1,2000,france
+3,2,2001,france
+4,3,2001,germany`
+        const table = new OwidTable(csv, [
+            { slug: "gdp", type: ColumnTypeNames.Numeric },
+            { slug: "co2", type: ColumnTypeNames.Numeric },
+            { slug: "year", type: ColumnTypeNames.Year },
+            { slug: "entityName", type: ColumnTypeNames.EntityName },
+        ])
+
+        const manager: ChartManager = {
+            table,
+            selection: table.availableEntityNames,
+            facetStrategy: FacetStrategy.metric,
+        }
+        const chart = new FacetChart({
+            manager,
+            chartTypeName: ChartTypeName.LineChart,
+        })
+
+        const legend = chart.categoricalLegendData
+        const colors = new Map(legend.map((bin) => [bin.value, bin.color]))
+
+        expect(colors.size).toEqual(2)
+
+        expect(
+            getColorMap(chart.intermediateChartInstances[0] as LineChart)
+        ).toEqual(colors)
+        expect(
+            getColorMap(chart.intermediateChartInstances[1] as LineChart)
+        ).toEqual(colors)
     })
 })
