@@ -323,7 +323,9 @@ export class FacetChart
                 config: {},
                 axisAccessor: (instance) => instance.yAxis,
                 uniform: this.uniformYAxis,
-                shared: this.uniformYAxis,
+                shared:
+                    this.uniformYAxis &&
+                    this.chartTypeName !== ChartTypeName.StackedDiscreteBar,
             },
         }
         values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
