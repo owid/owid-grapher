@@ -265,15 +265,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
         if (timeValues.length !== values.length)
-            // This will lead to an error in any case if the lengths are different (can happen when dropping
-            // rows with errors is done incorrectly)
-            // when it happens but this way we get a better error message
+            // Throwing here may seem drastic but this will lead to an error in any case if the lengths are different
+            // (can happen when dropping rows with errors is done incorrectly).
+            // When it happens then throwing here is an easier to diagnose error
             throw Error(
                 `Tried to run sumsByTime when timeValues (${timeValues.length}) and values (${values.length}) had different length`
             )
-        const nonnumber = values.find((x) => !((x as any) instanceof Number))
-        if (nonnumber)
-            console.log("There are nonnumber values", typeof nonnumber)
         const map = new Map<number, number>()
         timeValues.forEach((time, index) =>
             map.set(time, (map.get(time) ?? 0) + values[index])
@@ -681,22 +678,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 toleranceInterpolation,
                 { timeTolerance: tolerance }
             )
-
-            if (
-                interpolationResult.values.length !==
-                interpolationResult.times.length
-            )
-                throw new Error(
-                    "interpolationresult values and times had different length!"
-                )
-
-            if (
-                withAllRows.timeColumn.values.length !==
-                interpolationResult.times.length
-            )
-                throw new Error(
-                    "original times length and interpolationresult times length were different length!"
-                )
 
             columnStore = {
                 ...withAllRows.columnStore,
