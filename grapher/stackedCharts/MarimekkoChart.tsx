@@ -650,7 +650,10 @@ export class MarimekkoChart
             // an object copy of the AxisConfig class instance to be able to set a property without
             // making MobX unhappy about a mutation originating from a computed property
             axis = new HorizontalAxis(
-                new AxisConfig({ ...config.toObject(), maxTicks: 10 })
+                new AxisConfig(
+                    { ...config.toObject(), maxTicks: 10 },
+                    config.fontSizeManager
+                )
             )
             axis.domain = [0, 100]
         } else axis.updateDomainPreservingUserSettings(xDomainDefault)
