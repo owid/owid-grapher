@@ -11,12 +11,10 @@ export interface FacetChartProps {
 
 export interface FacetSeries extends ChartSeries {
     manager: Partial<ChartManager>
-    chartTypeName?: ChartTypeName
 }
 
 export interface PlacedFacetSeries extends FacetSeries {
     manager: ChartManager
-    chartTypeName: ChartTypeName
     bounds: Bounds
     contentBounds: Bounds
 }

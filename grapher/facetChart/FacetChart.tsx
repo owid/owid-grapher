@@ -122,6 +122,10 @@ export class FacetChart
         return this.props.manager
     }
 
+    @computed private get chartTypeName(): ChartTypeName {
+        return this.props.chartTypeName ?? ChartTypeName.LineChart
+    }
+
     @computed get failMessage(): string {
         return ""
     }
@@ -248,11 +252,6 @@ export class FacetChart
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
-            const chartTypeName =
-                series.chartTypeName ??
-                this.props.chartTypeName ??
-                ChartTypeName.LineChart
-
             const hideLegend = this.hideFacetLegends
             const hidePoints = true
 
@@ -285,7 +284,6 @@ export class FacetChart
             return {
                 bounds,
                 contentBounds: bounds,
-                chartTypeName,
                 manager,
                 seriesName: series.seriesName,
                 color: series.color,
@@ -294,14 +292,12 @@ export class FacetChart
     }
 
     @computed private get intermediateChartInstances(): ChartInterface[] {
-        return this.intermediatePlacedSeries.map(
-            ({ bounds, manager, chartTypeName }) => {
-                const ChartClass =
-                    ChartComponentClassMap.get(chartTypeName) ??
-                    DefaultChartClass
-                return new ChartClass({ bounds, manager })
-            }
-        )
+        return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
+            const ChartClass =
+                ChartComponentClassMap.get(this.chartTypeName) ??
+                DefaultChartClass
+            return new ChartClass({ bounds, manager })
+        })
     }
 
     // Only made public for testing
@@ -327,7 +323,9 @@ export class FacetChart
                 config: {},
                 axisAccessor: (instance) => instance.yAxis,
                 uniform: this.uniformYAxis,
-                shared: this.uniformYAxis,
+                shared:
+                    this.uniformYAxis &&
+                    this.chartTypeName !== ChartTypeName.StackedDiscreteBar,
             },
         }
         values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
@@ -552,7 +550,7 @@ export class FacetChart
                 )}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const ChartClass =
-                        ChartComponentClassMap.get(facetChart.chartTypeName) ??
+                        ChartComponentClassMap.get(this.chartTypeName) ??
                         DefaultChartClass
                     const { bounds, contentBounds, seriesName } = facetChart
                     const shiftTop = facetFontSize * 0.9
