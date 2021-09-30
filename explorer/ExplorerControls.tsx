@@ -139,7 +139,7 @@ export class ExplorerControlPanel extends React.Component<{
                     IndicatorSeparator: null,
                 }}
                 styles={styles}
-                isSearchable={options.length > 20}
+                isSearchable={!this.props.isMobile && options.length > 10}
                 maxMenuHeight={350}
             />
         )
