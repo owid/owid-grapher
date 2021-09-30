@@ -169,6 +169,7 @@ import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableD
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
+import { FacetChartManager } from "../facetChart/FacetChartConstants"
 
 declare const window: any
 
@@ -239,6 +240,7 @@ export class Grapher
         ScatterPlotManager,
         MarimekkoChartManager,
         FacetStrategyDropdownManager,
+        FacetChartManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined

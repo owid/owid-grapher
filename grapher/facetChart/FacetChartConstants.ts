@@ -3,10 +3,14 @@ import { ChartManager } from "../chart/ChartManager"
 import { ChartTypeName } from "../core/GrapherConstants"
 import { Bounds } from "../../clientUtils/Bounds"
 
+export interface FacetChartManager extends ChartManager {
+    canSelectMultipleEntities?: boolean
+}
+
 export interface FacetChartProps {
     bounds?: Bounds
     chartTypeName?: ChartTypeName
-    manager: ChartManager
+    manager: FacetChartManager
 }
 
 export interface FacetSeries extends ChartSeries {

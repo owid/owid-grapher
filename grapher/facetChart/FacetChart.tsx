@@ -5,6 +5,7 @@ import { action, computed, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
+    EntitySelectionMode,
     FacetAxisDomain,
     FacetStrategy,
     SeriesColorMap,
@@ -521,7 +522,18 @@ export class FacetChart
                         index,
                     })
             )
-            if (bins.length > 1) return bins
+            if (
+                bins.length > 1 ||
+                // If the facetStrategy is metric, then the legend (probably?) shows entity items.
+                // If the user happens to select only a single entity, we don't want to collapse the
+                // legend, because it's (probably?) the only information about what is selected.
+                // This is fragile and ideally we shouldn't be making assumptions about what type of
+                // items are shown on the legend, but it works for now...
+                // -@danielgavrilov, 2021-09-28
+                (this.facetStrategy === FacetStrategy.metric &&
+                    this.props.manager.canSelectMultipleEntities)
+            )
+                return bins
         }
         return []
     }
