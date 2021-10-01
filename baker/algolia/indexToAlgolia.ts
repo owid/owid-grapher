@@ -1,13 +1,11 @@
-import algoliasearch from "algoliasearch"
-
 import * as db from "../../db/db"
 import * as wpdb from "../../db/wpdb"
-import { ALGOLIA_ID } from "../../settings/clientSettings"
-import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search"
 import { countries } from "../../clientUtils/countries"
 import { FormattedPost } from "../../clientUtils/owidTypes"
 import { formatPost } from "../../baker/formatWordpressPost"
+import { getAlgoliaClient } from "./configureAlgolia"
 
 interface Tag {
     id: number
@@ -92,7 +90,13 @@ const getPagesRecords = async () => {
 }
 
 const indexToAlgolia = async () => {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    if (!ALGOLIA_INDEXING) return
+
+    const client = getAlgoliaClient()
+    if (!client) {
+        console.error(`Failed indexing pages (Algolia client not initialized)`)
+        return
+    }
     const index = client.initIndex("pages")
 
     const records = await getPagesRecords()

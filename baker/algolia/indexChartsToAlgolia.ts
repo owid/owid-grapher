@@ -1,9 +1,8 @@
-import algoliasearch from "algoliasearch"
 import * as lodash from "lodash"
 
 import * as db from "../../db/db"
-import { ALGOLIA_ID } from "../../settings/clientSettings"
-import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
+import { getAlgoliaClient } from "./configureAlgolia"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
@@ -60,7 +59,14 @@ const getChartsRecords = async () => {
 }
 
 const indexChartsToAlgolia = async () => {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    if (!ALGOLIA_INDEXING) return
+
+    const client = getAlgoliaClient()
+    if (!client) {
+        console.error(`Failed indexing charts (Algolia client not initialized)`)
+        return
+    }
+
     const index = client.initIndex("charts")
 
     const records = await getChartsRecords()
