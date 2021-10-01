@@ -8,7 +8,6 @@ import {
     excludeUndefined,
     sortBy,
     sumBy,
-    sum,
     partition,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
@@ -75,7 +74,7 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
-import { ErrorValue } from "../../coreTable/ErrorValues"
+import { findLastIndex } from "lodash"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -212,15 +211,13 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
 
     let content = undefined
     if (bars.length) {
-        const lastNonZeroBarIndex =
-            bars.length -
-            bars.reverse().findIndex((bar) => bar.yPoint.value > 0) -
-            1
-        const predecessors = bars.slice(0, lastNonZeroBarIndex)
-        const lastNonZero = bars.slice(
-            lastNonZeroBarIndex,
-            lastNonZeroBarIndex + 1
+        let lastNonZeroBarIndex = findLastIndex(
+            bars,
+            (bar) => bar.yPoint.value > 0
         )
+        lastNonZeroBarIndex = lastNonZeroBarIndex >= 0 ? lastNonZeroBarIndex : 0 // if we don't find an item with a nonzero value it doesn't really matter which one we pick
+        const predecessors = bars.slice(0, lastNonZeroBarIndex)
+        const lastNonZero = bars[lastNonZeroBarIndex]
         const successors = bars.slice(lastNonZeroBarIndex + 1, bars.length)
 
         // This is annoying - I tried to use the tippy element around all bars instead of inside
@@ -242,13 +239,13 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 dualAxis={dualAxis}
             />
         ))
-        const lastNonZeroBar = lastNonZero.map((bar) => (
+        const lastNonZeroBar = (
             <MarimekkoBar
-                key={`${entityName}-${bar.seriesName}`}
-                bar={bar}
+                key={`${entityName}-${lastNonZero.seriesName}`}
+                bar={lastNonZero}
                 tooltipProps={{
                     ...tooltipProps,
-                    highlightedSeriesName: bar.seriesName,
+                    highlightedSeriesName: lastNonZero.seriesName,
                 }}
                 barWidth={barWidth}
                 isHovered={isHovered}
@@ -259,7 +256,7 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 isInteractive={!isExportingToSvgOrPng}
                 dualAxis={dualAxis}
             />
-        ))
+        )
         const successorBars = successors.map((bar) => (
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
@@ -276,7 +273,7 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
             />
         ))
 
-        content = [...predecessorBars, ...lastNonZeroBar, ...successorBars]
+        content = [...predecessorBars, lastNonZeroBar, ...successorBars]
     } else {
         content = (
             <MarimekkoBar

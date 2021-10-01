@@ -105,7 +105,7 @@ export class NoDataAreaToggle extends React.Component<{
     manager: NoDataAreaToggleManager
 }> {
     @action.bound onToggle(): void {
-        this.manager.showNoDataArea = this.manager.showNoDataArea ? false : true
+        this.manager.showNoDataArea = !this.manager.showNoDataArea
     }
 
     @computed get manager(): NoDataAreaToggleManager {
