@@ -36,10 +36,7 @@ const getPostType = (post: FormattedPost, tags: Tag[]) => {
     return "page"
 }
 
-const indexToAlgolia = async () => {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex("pages")
-
+const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
 
     const records = []
@@ -88,10 +85,18 @@ const indexToAlgolia = async () => {
         }
     }
 
-    index.replaceAllObjects(records)
-
     await wpdb.singleton.end()
     await db.closeTypeOrmAndKnexConnections()
+
+    return records
+}
+
+const indexToAlgolia = async () => {
+    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    const index = client.initIndex("pages")
+
+    const records = await getPagesRecords()
+    index.replaceAllObjects(records)
 }
 
 indexToAlgolia()

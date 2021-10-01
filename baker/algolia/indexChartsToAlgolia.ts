@@ -5,7 +5,7 @@ import * as db from "../../db/db"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
 import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
 
-const indexChartsToAlgolia = async () => {
+const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName, config->>"$.data.availableEntities" as availableEntitiesStr
         FROM charts
@@ -34,9 +34,6 @@ const indexChartsToAlgolia = async () => {
         }
     }
 
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
-    const index = client.initIndex("charts")
-
     const records = []
     for (const c of chartsToIndex) {
         if (!c.tags) continue
@@ -56,9 +53,18 @@ const indexChartsToAlgolia = async () => {
             titleLength: c.title.length,
         })
     }
-    await index.replaceAllObjects(records)
 
     await db.closeTypeOrmAndKnexConnections()
+
+    return records
+}
+
+const indexChartsToAlgolia = async () => {
+    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    const index = client.initIndex("charts")
+
+    const records = await getChartsRecords()
+    await index.replaceAllObjects(records)
 }
 
 indexChartsToAlgolia()
