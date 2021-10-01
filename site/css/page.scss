@@ -45,7 +45,7 @@
 
     .article-titles {
         margin-top: $vertical-spacing;
-        margin-bottom: $vertical-spacing * 2;
+        margin-bottom: $vertical-spacing * 1.5;
     }
 
     .supertitle {
@@ -68,8 +68,9 @@
 
     .authors-byline {
         margin-right: 1rem;
-        font-size: 1.125rem;
-        color: $secondary-text-color;
+        font-weight: bold;
+        // font-size: 1.125rem;
+        // color: $secondary-text-color;
 
         a {
             color: inherit;
@@ -145,25 +146,29 @@
 
     &.thin-banner {
         .offset-header {
-            background-color: $tertiary-color-100;
+            // background-color: $tertiary-color-100;
         }
         .article-header {
             padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
 
             h1 {
-                max-width: $content-max-width;
                 font-size: 2rem;
             }
 
             time {
                 display: block;
                 font-size: 0.875rem;
-                color: $secondary-text-color;
+                // color: $secondary-text-color;
             }
 
             .blog-info {
                 margin-top: $vertical-spacing;
+            }
+
+            .excerpt {
+                margin-top: $vertical-spacing;
+                font-size: 1.1rem;
             }
         }
     }

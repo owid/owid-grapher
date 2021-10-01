@@ -127,58 +127,41 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
-                                <div className="article-titles">
-                                    {post.supertitle && (
-                                        <div className="supertitle">
-                                            {post.supertitle}
-                                        </div>
-                                    )}
-                                    <h1 className="entry-title">{pageTitle}</h1>
-                                    {post.subtitle && (
-                                        <div className="subtitle">
-                                            {post.subtitle}
-                                        </div>
-                                    )}
-                                    {formattingOptions.subnavId && (
-                                        <Breadcrumb
-                                            subnavId={
-                                                formattingOptions.subnavId
-                                            }
-                                            subnavCurrentId={
-                                                formattingOptions.subnavCurrentId
-                                            }
-                                        />
-                                    )}
-                                </div>
-                                {!formattingOptions.hideAuthors && (
-                                    <div className="authors-byline">
-                                        {post.byline ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.byline,
-                                                }}
-                                            ></div>
-                                        ) : (
-                                            <a href="/team">
-                                                {`by ${formatAuthors(
-                                                    post.authors,
-                                                    withCitation
-                                                )}`}
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                                {isPost && <time>{formatDate(post.date)}</time>}
-                                {post.info && (
-                                    <div
-                                        className="blog-info"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.info,
-                                        }}
-                                    />
-                                )}
+                                <div className="wp-block-columns is-style-sticky-right">
+                                    <div className="wp-block-column">
+                                        <div className="article-titles">
+                                            {post.supertitle && (
+                                                <div className="supertitle">
+                                                    {post.supertitle}
+                                                </div>
+                                            )}
+                                            <h1 className="entry-title">
+                                                {pageTitle}
+                                            </h1>
+                                            {post.subtitle && (
+                                                <div className="subtitle">
+                                                    {post.subtitle}
+                                                </div>
+                                            )}
+                                            {post.excerpt && (
+                                                <div className="excerpt">
+                                                    {post.excerpt}
+                                                </div>
+                                            )}
 
-                                {(isPost ||
+                                            {formattingOptions.subnavId && (
+                                                <Breadcrumb
+                                                    subnavId={
+                                                        formattingOptions.subnavId
+                                                    }
+                                                    subnavCurrentId={
+                                                        formattingOptions.subnavCurrentId
+                                                    }
+                                                />
+                                            )}
+                                        </div>
+
+                                        {/* {(isPost ||
                                     withCitation ||
                                     post.lastUpdated) && (
                                     <div className="tools">
@@ -212,7 +195,40 @@ export const LongFormPage = (props: {
                                             </a>
                                         )}
                                     </div>
-                                )}
+                                )} */}
+                                        {!formattingOptions.hideAuthors && (
+                                            <div className="authors-byline">
+                                                {post.byline ? (
+                                                    <div
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: post.byline,
+                                                        }}
+                                                    ></div>
+                                                ) : (
+                                                    <a href="/team">
+                                                        {`by ${formatAuthors(
+                                                            post.authors,
+                                                            withCitation
+                                                        )}`}
+                                                    </a>
+                                                )}
+                                            </div>
+                                        )}
+                                        {isPost && (
+                                            <time>{formatDate(post.date)}</time>
+                                        )}
+                                    </div>
+                                    <div className="wp-block-column">
+                                        {post.info && (
+                                            <div
+                                                className="blog-info"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: post.info,
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
                             </header>
                         </div>
                         {formattingOptions.subnavId && (

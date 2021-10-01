@@ -329,3 +329,28 @@ figure[data-explorer-src] {
 code {
     white-space: pre-wrap; // make sure long code lines do not overflow
 }
+
+/*******************************************************************************
+ * Topic pills
+ */
+
+a.topic-pill {
+    border-radius: 25px;
+    background-color: $primary-color;
+    color: white;
+    padding: 0.5rem;
+    margin: 0 0.2rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-family: $sans-serif-font-stack;
+}
+
+a.topic-pill:visited {
+    color: white;
+}
+
+a.topic-pill:hover {
+    color: white;
+    background-color: $primary-color-700;
+    text-decoration: none;
+}
