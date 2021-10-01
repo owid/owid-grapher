@@ -4,11 +4,8 @@ import * as lodash from "lodash"
 import * as db from "../../db/db"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
 import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
-import { configureAlgolia } from "./configureAlgolia"
 
 const indexChartsToAlgolia = async () => {
-    await configureAlgolia()
-
     const allCharts = await db.queryMysql(`
         SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName, config->>"$.data.availableEntities" as availableEntitiesStr
         FROM charts
