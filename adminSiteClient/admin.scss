@@ -436,7 +436,8 @@ body {
 }
 
 .EditorScatterTab {
-    ul.excludedEntities {
+    ul.excludedEntities,
+    ul.includedEntities {
         padding: 0;
 
         li {

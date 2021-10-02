@@ -326,22 +326,31 @@ export class MarimekkoChart
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
         if (!this.xColumnSlug) return table
-        const { excludedEntities } = this.manager
+        const { excludedEntities, includedEntities } = this.manager
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
-        if (excludedEntities) {
+        if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
-            const baseFilterFn = (entityId: any): boolean =>
-                excludedEntityIdsSet.has(entityId as number)
-            const filterFn = manager.invertExcludedEntitiesList
-                ? baseFilterFn
-                : (entityId: any): boolean => !baseFilterFn(entityId)
+            const includedEntityIdsSet = new Set(includedEntities)
+            const excludeEntitiesFilter = (entityId: any): boolean =>
+                !excludedEntityIdsSet.has(entityId as number)
+            const includedEntitiesFilter = (entityId: any): boolean =>
+                includedEntityIdsSet.size > 0
+                    ? includedEntityIdsSet.has(entityId as number)
+                    : true
+            const filterFn = (entityId: any): boolean =>
+                excludeEntitiesFilter(entityId) &&
+                includedEntitiesFilter(entityId)
+            const excludedList = excludedEntities ? excludedEntities.join(
+                    ", "
+                ) : ""
+            const includedList = includedEntities ? includedEntities.join(
+                    ", "
+                ) : ""
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
                 filterFn,
-                `Excluded entity ids specified by author: ${excludedEntities.join(
-                    ", "
-                )}`
+                `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
         }
 

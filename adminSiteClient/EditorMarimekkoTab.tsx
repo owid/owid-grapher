@@ -17,6 +17,45 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         this.xOverrideTimeInputField = props.grapher.xOverrideTime
     }
 
+    @computed private get includedEntityNames(): EntityName[] {
+        const { includedEntities, inputTable } = this.props.grapher
+        const { entityIdToNameMap } = inputTable
+        const includedEntityIds = includedEntities ?? []
+        return excludeUndefined(
+            includedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
+        )
+    }
+
+    @computed private get includedEntityChoices() {
+        const { inputTable } = this.props.grapher
+        return inputTable.availableEntityNames
+            .filter(
+                (entityName) => !this.includedEntityNames.includes(entityName)
+            )
+            .sort()
+    }
+
+    @action.bound onIncludeEntity(entity: string) {
+        const { grapher } = this.props
+        if (grapher.includedEntities === undefined) {
+            grapher.includedEntities = []
+        }
+
+        const entityId = grapher.table.entityNameToIdMap.get(entity)!
+        if (grapher.includedEntities.indexOf(entityId) === -1)
+            grapher.includedEntities.push(entityId)
+    }
+
+    @action.bound onUnincludeEntity(entity: string) {
+        const { grapher } = this.props
+        if (!grapher.includedEntities) return
+
+        const entityId = grapher.table.entityNameToIdMap.get(entity)
+        grapher.includedEntities = grapher.includedEntities.filter(
+            (e) => e !== entityId
+        )
+    }
+
     @computed private get excludedEntityNames(): EntityName[] {
         const { excludedEntities, inputTable } = this.props.grapher
         const { entityIdToNameMap } = inputTable
@@ -24,10 +63,6 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         return excludeUndefined(
             excludedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
         )
-    }
-
-    @computed private get invertExcludedEntitiesList(): boolean {
-        return !!this.props.grapher.invertExcludedEntitiesList
     }
 
     @computed private get excludedEntityChoices() {
@@ -50,10 +85,6 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
             grapher.excludedEntities.push(entityId)
     }
 
-    @action.bound onXOverrideYear(value: number | undefined) {
-        this.xOverrideTimeInputField = value
-    }
-
     @action.bound onUnexcludeEntity(entity: string) {
         const { grapher } = this.props
         if (!grapher.excludedEntities) return
@@ -64,8 +95,11 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
+    @action.bound onXOverrideYear(value: number | undefined) {
+        this.xOverrideTimeInputField = value
+    }
     render() {
-        const { excludedEntityChoices, invertExcludedEntitiesList } = this
+        const { excludedEntityChoices, includedEntityChoices } = this
         const { grapher } = this.props
 
         return (
@@ -87,25 +121,37 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                                     value || undefined)
                         )}
                     />
-                    <Toggle
-                        label="Start with empty selection and explicitly add entities below"
-                        value={invertExcludedEntitiesList}
-                        onValue={action(
-                            (value: boolean) =>
-                                (grapher.invertExcludedEntitiesList =
-                                    value || undefined)
-                        )}
-                    />
+                </Section>
+                <Section name="Manual entity selection">
                     <SelectField
                         label={
-                            invertExcludedEntitiesList
-                                ? "Include individual entities"
-                                : "Exclude individual entities"
+                            "Explicit start selection (leave empty to show all entities)"
                         }
-                        placeholder={
-                            "Select an entity to " +
-                            (invertExcludedEntitiesList ? "include" : "exclude")
-                        }
+                        placeholder={"Select an entity to include"}
+                        value={undefined}
+                        onValue={(v) => v && this.onIncludeEntity(v)}
+                        options={includedEntityChoices}
+                    />
+                    {this.includedEntityNames && (
+                        <ul className="includedEntities">
+                            {this.includedEntityNames.map((entity) => (
+                                <li key={entity}>
+                                    <div
+                                        className="clickable"
+                                        onClick={() =>
+                                            this.onUnincludeEntity(entity)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faMinus} />
+                                    </div>
+                                    {entity}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    <SelectField
+                        label={"Exclude individual entities"}
+                        placeholder={"Select an entity to exclude"}
                         value={undefined}
                         onValue={(v) => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}

@@ -303,7 +303,11 @@ export class Grapher
     @observable selectedEntityColors: { [entityName: string]: string } = {}
     @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
-    @observable invertExcludedEntitiesList?: boolean = undefined
+    /** IncludedEntities are ususally empty which means use all available entites. When
+        includedEntities is set it means "only use these entities". excludedEntities
+        are evaluated afterwards and can still remove entities even if they were included before.
+     */
+    @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined

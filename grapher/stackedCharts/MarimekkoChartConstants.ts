@@ -15,7 +15,7 @@ export interface MarimekkoChartManager extends ChartManager {
     tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
-    invertExcludedEntitiesList?: boolean
+    includedEntities?: number[]
 }
 
 export interface EntityColorData {
