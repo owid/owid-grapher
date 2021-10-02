@@ -341,12 +341,12 @@ export class MarimekkoChart
             const filterFn = (entityId: any): boolean =>
                 excludeEntitiesFilter(entityId) &&
                 includedEntitiesFilter(entityId)
-            const excludedList = excludedEntities ? excludedEntities.join(
-                    ", "
-                ) : ""
-            const includedList = includedEntities ? includedEntities.join(
-                    ", "
-                ) : ""
+            const excludedList = excludedEntities
+                ? excludedEntities.join(", ")
+                : ""
+            const includedList = includedEntities
+                ? includedEntities.join(", ")
+                : ""
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
                 filterFn,
