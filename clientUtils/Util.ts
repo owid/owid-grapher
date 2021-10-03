@@ -10,6 +10,7 @@ import difference from "lodash/difference"
 import drop from "lodash/drop"
 import extend from "lodash/extend"
 import findIndex from "lodash/findIndex"
+import findLastIndex from "lodash/findLastIndex"
 import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import identity from "lodash/identity"
@@ -62,6 +63,7 @@ export {
     drop,
     extend,
     findIndex,
+    findLastIndex,
     flatten,
     groupBy,
     identity,

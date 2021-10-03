@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    findLastIndex,
     min,
     max,
     maxBy,
@@ -74,7 +75,6 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
-import { findLastIndex } from "lodash"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
