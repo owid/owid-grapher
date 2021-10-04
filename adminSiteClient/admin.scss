@@ -435,7 +435,12 @@ body {
     margin-bottom: 0;
 }
 
-.EditorScatterTab {
+.EditorScatterTab,
+.EditorMarimekkoTab {
+    .form-group > label {
+        margin-bottom: 0.3rem;
+    }
+
     ul.excludedEntities,
     ul.includedEntities {
         padding: 0;
@@ -453,6 +458,10 @@ body {
         .clickable {
             margin-right: 0.2em;
         }
+    }
+
+    .btn-clear-selection {
+        margin-bottom: 0.7rem;
     }
 }
 

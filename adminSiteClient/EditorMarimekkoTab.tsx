@@ -3,11 +3,14 @@ import { debounce, excludeUndefined } from "../clientUtils/Util"
 import { computed, action, IReactionDisposer, reaction, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher"
-import { Toggle, NumberField, SelectField, Section } from "./Forms"
+import { Toggle, NumberField, SelectField, Section, Button } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "../coreTable/OwidTableConstants"
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
 import lodash from "lodash"
+import { grapherKeysToSerialize } from "../grapher/core/GrapherInterface"
+import { tSParenthesizedType } from "@babel/types"
 
 @observer
 export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
@@ -95,6 +98,16 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
+    @action.bound onClearExcludedEntities() {
+        const { grapher } = this.props
+        grapher.excludedEntities = []
+    }
+
+    @action.bound onClearIncludedEntities() {
+        const { grapher } = this.props
+        grapher.includedEntities = []
+    }
+
     @action.bound onXOverrideYear(value: number | undefined) {
         this.xOverrideTimeInputField = value
     }
@@ -103,7 +116,7 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
         const { grapher } = this.props
 
         return (
-            <div className="EditorScatterTab">
+            <div className="EditorMarimekkoTab">
                 <Section name="Filtering">
                     <NumberField
                         label="Override X axis target year"
@@ -149,6 +162,15 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                             ))}
                         </ul>
                     )}
+                    {this.includedEntityNames && (
+                        <button
+                            className="btn btn-light btn-clear-selection"
+                            onClick={this.onClearIncludedEntities}
+                        >
+                            <FontAwesomeIcon icon={faTrash} /> Clear start
+                            selection
+                        </button>
+                    )}
                     <SelectField
                         label={"Exclude individual entities"}
                         placeholder={"Select an entity to exclude"}
@@ -172,6 +194,15 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                                 </li>
                             ))}
                         </ul>
+                    )}
+                    {this.excludedEntityNames && (
+                        <button
+                            className="btn btn-light btn-clear-selection"
+                            onClick={this.onClearExcludedEntities}
+                        >
+                            <FontAwesomeIcon icon={faTrash} /> Clear exclude
+                            list
+                        </button>
                     )}
                 </Section>
             </div>
