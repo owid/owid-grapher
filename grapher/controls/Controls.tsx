@@ -91,11 +91,6 @@ export class HighlightToggle extends React.Component<{
     }
 }
 
-export interface AbsRelToggleManager {
-    stackMode?: StackMode
-    relativeToggleLabel?: string
-}
-
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
 }
@@ -126,6 +121,10 @@ export class NoDataAreaToggle extends React.Component<{
             </label>
         )
     }
+}
+export interface AbsRelToggleManager {
+    stackMode?: StackMode
+    relativeToggleLabel?: string
 }
 
 @observer
