@@ -264,6 +264,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     private sumsByTime(columnSlug: ColumnSlug): Map<number, number> {
         const timeValues = this.timeColumn.values
         const values = this.get(columnSlug).values as number[]
+        if (timeValues.length !== values.length)
+            // Throwing here may seem drastic but this will lead to an error in any case if the lengths are different
+            // (can happen when dropping rows with errors is done incorrectly).
+            // When it happens then throwing here is an easier to diagnose error
+            throw Error(
+                `Tried to run sumsByTime when timeValues (${timeValues.length}) and values (${values.length}) had different length`
+            )
         const map = new Map<number, number>()
         timeValues.forEach((time, index) =>
             map.set(time, (map.get(time) ?? 0) + values[index])

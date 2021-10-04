@@ -19,7 +19,7 @@ export class EditorFeatures {
     }
 
     @computed get canCustomizeXAxisScale() {
-        return this.grapher.isScatter
+        return this.grapher.isScatter || this.grapher.isMarimekko
     }
 
     @computed get canCustomizeYAxisLabel() {

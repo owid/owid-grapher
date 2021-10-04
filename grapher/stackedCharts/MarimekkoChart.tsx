@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    findLastIndex,
     min,
     max,
     maxBy,
@@ -8,7 +9,6 @@ import {
     excludeUndefined,
     sortBy,
     sumBy,
-    sum,
     partition,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
@@ -211,13 +211,20 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
 
     let content = undefined
     if (bars.length) {
-        const allButLast = bars.slice(0, -1)
-        const last = bars[bars.length - 1]
+        let lastNonZeroBarIndex = findLastIndex(
+            bars,
+            (bar) => bar.yPoint.value > 0
+        )
+        lastNonZeroBarIndex = lastNonZeroBarIndex >= 0 ? lastNonZeroBarIndex : 0 // if we don't find an item with a nonzero value it doesn't really matter which one we pick
+        const predecessors = bars.slice(0, lastNonZeroBarIndex)
+        const lastNonZero = bars[lastNonZeroBarIndex]
+        const successors = bars.slice(lastNonZeroBarIndex + 1, bars.length)
+
         // This is annoying - I tried to use the tippy element around all bars instead of inside
         // one single bar but then it renders at the document origin instead of at the right attach point
         // since we will switch to another tooltip solution anyhow I would leave it at this for now -
         // later on this splitting into allbutlast and last can be removed and tooltips just done elsewhere
-        const allButLastElements = allButLast.map((bar) => (
+        const predecessorBars = predecessors.map((bar) => (
             <MarimekkoBar
                 key={`${entityName}-${bar.seriesName}`}
                 bar={bar}
@@ -232,13 +239,13 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 dualAxis={dualAxis}
             />
         ))
-        const lastElement = (
+        const lastNonZeroBar = (
             <MarimekkoBar
-                key={`${entityName}-${last.seriesName}`}
-                bar={last}
+                key={`${entityName}-${lastNonZero.seriesName}`}
+                bar={lastNonZero}
                 tooltipProps={{
                     ...tooltipProps,
-                    highlightedSeriesName: last.seriesName,
+                    highlightedSeriesName: lastNonZero.seriesName,
                 }}
                 barWidth={barWidth}
                 isHovered={isHovered}
@@ -250,9 +257,23 @@ function MarimekkoBarsForOneEntity(props: MarimekkoBarsProps): JSX.Element {
                 dualAxis={dualAxis}
             />
         )
+        const successorBars = successors.map((bar) => (
+            <MarimekkoBar
+                key={`${entityName}-${bar.seriesName}`}
+                bar={bar}
+                tooltipProps={undefined}
+                barWidth={barWidth}
+                isHovered={isHovered}
+                isSelected={isSelected}
+                isFaint={isFaint}
+                entityColor={entityColor?.color}
+                y0={y0}
+                isInteractive={!isExportingToSvgOrPng}
+                dualAxis={dualAxis}
+            />
+        ))
 
-        content = allButLastElements
-        content.push(lastElement)
+        content = [...predecessorBars, lastNonZeroBar, ...successorBars]
     } else {
         content = (
             <MarimekkoBar
@@ -305,17 +326,31 @@ export class MarimekkoChart
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
         if (!this.xColumnSlug) return table
-        const { excludedEntities } = this.manager
+        const { excludedEntities, includedEntities } = this.manager
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
-        if (excludedEntities) {
+        if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
+            const includedEntityIdsSet = new Set(includedEntities)
+            const excludeEntitiesFilter = (entityId: any): boolean =>
+                !excludedEntityIdsSet.has(entityId as number)
+            const includedEntitiesFilter = (entityId: any): boolean =>
+                includedEntityIdsSet.size > 0
+                    ? includedEntityIdsSet.has(entityId as number)
+                    : true
+            const filterFn = (entityId: any): boolean =>
+                excludeEntitiesFilter(entityId) &&
+                includedEntitiesFilter(entityId)
+            const excludedList = excludedEntities
+                ? excludedEntities.join(", ")
+                : ""
+            const includedList = includedEntities
+                ? includedEntities.join(", ")
+                : ""
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
-                (entityId) => !excludedEntityIdsSet.has(entityId as number),
-                `Excluded entity ids specified by author: ${excludedEntities.join(
-                    ", "
-                )}`
+                filterFn,
+                `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
         }
 
@@ -327,11 +362,6 @@ export class MarimekkoChart
         })
 
         table = table.interpolateColumnWithTolerance(xColumnSlug)
-        table = table.dropRowsWithErrorValuesForAnyColumn([xColumnSlug])
-
-        if (manager.isRelativeMode) {
-            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
-        }
 
         if (colorColumnSlug) {
             const tolerance =
@@ -344,6 +374,18 @@ export class MarimekkoChart
                 table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
             }
         }
+        if (!manager.showNoDataArea)
+            table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
+
+        table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
+        if (manager.isRelativeMode) {
+            // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
+            table = table.dropRowsWithErrorValuesForColumn(
+                table.timeColumn.slug
+            )
+            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
+        }
+
         return table
     }
 
@@ -562,63 +604,6 @@ export class MarimekkoChart
             Math.max(this.y0, max(maxValues) as number),
         ]
     }
-
-    /** This flag is on if we are on a non-narrow display. If it is set then the
-        every entity is drawn at least one px wide (e.g. the Vatican in a list of
-        countries). If this happens then the xDomainCorrectionFactor is caluclated
-        to compensate for this artificial enlarging of small entities
-    */
-    @computed private get mustEnsureOnePixelXSize(): boolean {
-        return !this.isNarrow
-    }
-
-    @computed private get xDomainCorrectionFactor(): number {
-        // Rounding up every country so that it is at least one pixel wide
-        // on the X axis has a pretty annoying side effect: since there are
-        // quite a few very small countries that get rounded up, the normal
-        // placing on the X axis ends up overshooting the naive domain max value
-        // by quite a bit.
-        // Correcting for this naively is a simple job of calculating the domain
-        // amount of one pixel, counting the countries below that and adjusting by
-        // a simple factor. BUT this would now make the normal placement on the x
-        // axis map the value we calculated above of "one pixel worth of domain amount"
-        // to *slightly less* than one pixel, screwing up the rounding to pixel borders
-        // that is required to avoid SVG hairline artifacts.
-        // Instead what we do below is sort all x axis values ascending and then
-        // continously adjusting the one pixel domain threshold value. This way we make sure
-        // that in the final placement everything fits. In other words, what we are
-        // doing is that we count all entities that would be less than one pixel WHILE
-        // updating this threshold to take into account that the "normal" range gets
-        // smaller by one pixel whenever we enlarge one small country to one pixel.
-
-        const { xSeries, dualAxis } = this
-
-        if (!this.mustEnsureOnePixelXSize) return 1
-
-        if (!xSeries.points.length) return 1
-
-        const points = xSeries.points
-            .map((point) => point.value)
-            .sort((a, b) => a - b)
-        const total = sum(points)
-        const widthInPixels = dualAxis.horizontalAxis.rangeSize
-        let onePixelDomainValueEquivalent = total / widthInPixels
-        let numCountriesBelowOnePixel = 0
-        let sumToRemoveFromTotal = 0
-        for (let i = 0; i < points.length; i++) {
-            if (points[i] >= onePixelDomainValueEquivalent) break
-            numCountriesBelowOnePixel++
-            sumToRemoveFromTotal += points[i]
-            onePixelDomainValueEquivalent =
-                (total - sumToRemoveFromTotal) /
-                (widthInPixels - numCountriesBelowOnePixel)
-        }
-        const xDomainCorrectionFactor =
-            (total - numCountriesBelowOnePixel * (total / widthInPixels)) /
-            (total - sumToRemoveFromTotal)
-        return xDomainCorrectionFactor
-    }
-
     @computed private get xDomainDefault(): [number, number] {
         const sum = sumBy(this.xSeries.points, (point) => point.value)
 
@@ -665,9 +650,19 @@ export class MarimekkoChart
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
         const config = this.xAxisConfig
-        const axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(xDomainDefault)
+        let axis = config.toHorizontalAxis()
+        if (manager.isRelativeMode) {
+            // MobX and classes  interact in an annoying way here so we have to construct a new object via
+            // an object copy of the AxisConfig class instance to be able to set a property without
+            // making MobX unhappy about a mutation originating from a computed property
+            axis = new HorizontalAxis(
+                new AxisConfig(
+                    { ...config.toObject(), maxTicks: 10 },
+                    config.fontSizeManager
+                )
+            )
+            axis.domain = [0, 100]
+        } else axis.updateDomainPreservingUserSettings(xDomainDefault)
 
         axis.formatColumn = xColumn
 
@@ -794,24 +789,15 @@ export class MarimekkoChart
     }
 
     @computed get placedItems(): PlacedItem[] {
-        const {
-            sortedItems,
-            dualAxis,
-            x0,
-            xDomainCorrectionFactor,
-            mustEnsureOnePixelXSize,
-        } = this
+        const { sortedItems, dualAxis, x0 } = this
         const placedItems: PlacedItem[] = []
         let currentX = 0
         for (const item of sortedItems) {
             placedItems.push({ ...item, xPosition: currentX })
             const preciseX =
-                dualAxis.horizontalAxis.place(
-                    item.xPoint.value * xDomainCorrectionFactor
-                ) - dualAxis.horizontalAxis.place(x0)
-            currentX += mustEnsureOnePixelXSize
-                ? Math.max(1, preciseX)
-                : preciseX
+                dualAxis.horizontalAxis.place(item.xPoint.value) -
+                dualAxis.horizontalAxis.place(x0)
+            currentX += preciseX
         }
         return placedItems
     }
@@ -933,13 +919,11 @@ export class MarimekkoChart
             dualAxis,
             x0,
             y0,
-            xDomainCorrectionFactor,
             focusSeriesName,
             placedLabels,
             labelLines,
             placedItems,
             hoveredEntityName,
-            mustEnsureOnePixelXSize,
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
@@ -974,17 +958,20 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(lastItem.xPoint.value)
             const yStart = dualAxis.verticalAxis.place(y0)
 
+            const noDataLabelX =
+                noDataRangeStartX + (noDataRangeEndX - noDataRangeStartX) / 2
+            const boundsForNoData = Bounds.forText("no data")
+            const noDataLabelY = yStart - boundsForNoData.width
             noDataLabel = (
                 <text
                     key={`noDataArea-label`}
-                    x={
-                        noDataRangeStartX +
-                        (noDataRangeEndX - noDataRangeStartX) / 2
-                    }
-                    y={yStart - noDataHeight / 2}
+                    x={0}
+                    transform={`rotate(-90, ${noDataLabelX}, ${noDataLabelY})
+                    translate(${noDataLabelX}, ${noDataLabelY})`}
+                    y={0}
                     width={noDataRangeEndX - noDataRangeStartX}
                     height={noDataHeight}
-                    fontWeight={400}
+                    fontWeight={700}
                     fill="#666"
                     opacity={1}
                     fontSize="0.8em"
@@ -1036,15 +1023,9 @@ export class MarimekkoChart
                 xAxisColumn,
             }
 
-            const correctedWidth =
-                dualAxis.horizontalAxis.place(
-                    xPoint.value * xDomainCorrectionFactor
-                ) - dualAxis.horizontalAxis.place(x0)
-            const barWidth = mustEnsureOnePixelXSize
-                ? correctedWidth > 1
-                    ? correctedWidth
-                    : 1
-                : correctedWidth
+            const barWidth =
+                dualAxis.horizontalAxis.place(xPoint.value) -
+                dualAxis.horizontalAxis.place(x0)
 
             const isSelected = selectionSet.has(entityName)
             const isHovered = entityName === hoveredEntityName
@@ -1240,13 +1221,11 @@ export class MarimekkoChart
         const {
             dualAxis,
             x0,
-            xDomainCorrectionFactor,
             placedItemsMap,
             labels,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
             labelAngleInDegrees,
-            mustEnsureOnePixelXSize,
         } = this
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
@@ -1254,15 +1233,10 @@ export class MarimekkoChart
             .map(({ candidate, labelElement }) => {
                 const item = placedItemsMap.get(candidate.item.entityName)
                 const xPoint = item?.xPoint.value ?? 0
-                const correctedWidth =
-                    dualAxis.horizontalAxis.place(
-                        xPoint * xDomainCorrectionFactor
-                    ) - dualAxis.horizontalAxis.place(x0)
-                const barWidth = mustEnsureOnePixelXSize
-                    ? correctedWidth > 1
-                        ? correctedWidth
-                        : 1
-                    : correctedWidth
+                const barWidth =
+                    dualAxis.horizontalAxis.place(xPoint) -
+                    dualAxis.horizontalAxis.place(x0)
+
                 const labelId = candidate.item.entityName
                 if (!item) {
                     console.error(

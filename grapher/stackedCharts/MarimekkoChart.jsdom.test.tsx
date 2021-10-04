@@ -115,8 +115,6 @@ it("can filter years correctly", () => {
             xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
-
-    expect(chart["xDomainCorrectionFactor"]).toEqual(1)
 })
 
 it("shows no data points at the end", () => {
@@ -213,8 +211,6 @@ it("shows no data points at the end", () => {
             xPosition: Math.round(xAxisRange * 0.6),
         },
     ])
-
-    expect(chart["xDomainCorrectionFactor"]).toEqual(1)
 })
 
 test("interpolation works as expected", () => {
@@ -329,8 +325,6 @@ test("interpolation works as expected", () => {
             xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
-
-    expect(chart["xDomainCorrectionFactor"]).toEqual(1)
 })
 
 it("can deal with y columns with missing values", () => {
@@ -471,8 +465,6 @@ it("can deal with y columns with missing values", () => {
             xPosition: Math.round(xAxisRange * 0.5),
         },
     ])
-
-    expect(chart["xDomainCorrectionFactor"]).toEqual(1)
 })
 
 function roundXPosition(item: PlacedItem): PlacedItem {

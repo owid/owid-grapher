@@ -25,6 +25,7 @@ it("can create a chart", () => {
         table,
         yColumnSlugs: [SampleColumnSlugs.GDP],
         xColumnSlug: SampleColumnSlugs.Population,
+        showNoDataArea: false,
     }
 
     const chart = new MarimekkoChart({ manager })
@@ -56,6 +57,7 @@ it("can display a Marimekko chart correctly", () => {
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     const chart = new MarimekkoChart({
         manager,
@@ -140,8 +142,6 @@ it("can display a Marimekko chart correctly", () => {
             xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
-
-    expect(chart["xDomainCorrectionFactor"]).toEqual(1)
 })
 
 function roundXPosition(item: PlacedItem): PlacedItem {
@@ -169,6 +169,7 @@ it("can display two time series stacked correctly", () => {
         yColumnSlugs: ["percentBelow2USD", "percentBelow10USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     const chart = new MarimekkoChart({
         manager,
@@ -295,134 +296,6 @@ it("can display two time series stacked correctly", () => {
     ])
 })
 
-it("ensures that entities with tiny x values are drawn at least 1 px wide", () => {
-    const csv = `year,entityName,population,percentBelow2USD
-2001,medium,4000,4
-2001,big,5000,8
-2001,small,1000,3
-2001,tiny,10,1`
-    const table = new OwidTable(csv, [
-        { slug: "population", type: ColumnTypeNames.Numeric },
-        { slug: "percentBelow2USD", type: ColumnTypeNames.Numeric },
-        { slug: "year", type: ColumnTypeNames.Year },
-    ])
-
-    const manager: MarimekkoChartManager = {
-        table,
-        selection: table.availableEntityNames,
-        yColumnSlugs: ["percentBelow2USD"],
-        xColumnSlug: "population",
-        endTime: 2001,
-    }
-    const chart = new MarimekkoChart({
-        manager,
-        bounds: new Bounds(0, 0, 1000, 1000),
-    })
-    const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
-
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(4)
-    // Y series points should be one series in order of the data
-    const expectedYPoints = [
-        {
-            position: "medium",
-            value: 4,
-            valueOffset: 0,
-            time: 2001,
-        },
-        {
-            position: "big",
-            value: 8,
-            valueOffset: 0,
-            time: 2001,
-        },
-        {
-            position: "small",
-            value: 3,
-            valueOffset: 0,
-            time: 2001,
-        },
-        {
-            position: "tiny",
-            value: 1,
-            valueOffset: 0,
-            time: 2001,
-        },
-    ]
-    // X series points should be in order of the data
-    const expectedXPoints = [
-        { value: 4000, entity: "medium", time: 2001 },
-        { value: 5000, entity: "big", time: 2001 },
-        { value: 1000, entity: "small", time: 2001 },
-        { value: 10, entity: "tiny", time: 2001 },
-    ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
-    // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
-        {
-            entityName: "big",
-            entityColor: undefined,
-            bars: [
-                {
-                    kind: BarShape.Bar,
-                    color: "#3C4E66",
-                    seriesName: "percentBelow2USD",
-                    yPoint: expectedYPoints[1],
-                },
-            ],
-            xPoint: expectedXPoints[1],
-            xPosition: 0,
-        },
-        {
-            entityName: "medium",
-            entityColor: undefined,
-            bars: [
-                {
-                    kind: BarShape.Bar,
-                    color: "#3C4E66",
-                    seriesName: "percentBelow2USD",
-                    yPoint: expectedYPoints[0],
-                },
-            ],
-            xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5) - 1, // subtract 1 here and below to accomodate tiny country
-        },
-        {
-            entityName: "small",
-            entityColor: undefined,
-            bars: [
-                {
-                    kind: BarShape.Bar,
-                    color: "#3C4E66",
-                    seriesName: "percentBelow2USD",
-                    yPoint: expectedYPoints[2],
-                },
-            ],
-            xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9) - 1,
-        },
-        {
-            entityName: "tiny",
-            entityColor: undefined,
-            bars: [
-                {
-                    kind: BarShape.Bar,
-                    color: "#3C4E66",
-                    seriesName: "percentBelow2USD",
-                    yPoint: expectedYPoints[3],
-                },
-            ],
-            xPoint: expectedXPoints[3],
-            xPosition: Math.round(xAxisRange) - 1,
-        },
-    ])
-
-    expect(chart["xDomainCorrectionFactor"]).toBeLessThan(1) // xDomainCorrectionFactor should be less than 1 now but by a tiny amount
-    expect(chart["xDomainCorrectionFactor"]).toBeCloseTo(1)
-})
-
 it("can do sorting", () => {
     const csv = `year,entityName,population,percentBelow2USD
 2001,AA,4000,4
@@ -440,6 +313,7 @@ it("can do sorting", () => {
         yColumnSlugs: ["percentBelow2USD"],
         xColumnSlug: "population",
         endTime: 2001,
+        showNoDataArea: false,
     }
     let chart = new MarimekkoChart({
         manager: {

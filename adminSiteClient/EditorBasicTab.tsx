@@ -13,6 +13,7 @@ import {
     EntitySelectionMode,
     ChartTypeName,
     WorldEntityName,
+    StackMode,
 } from "../grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
@@ -287,6 +288,11 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
+
+        if (grapher.isMarimekko) {
+            grapher.hideRelativeToggle = false
+            grapher.stackMode = StackMode.relative
+        }
 
         if (!grapher.isScatter && !grapher.isSlopeChart) return
 

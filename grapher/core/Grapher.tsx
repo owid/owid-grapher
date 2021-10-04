@@ -258,6 +258,7 @@ export class Grapher
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode = StackMode.absolute
+    @observable.ref showNoDataArea: boolean = true
     @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -304,6 +305,11 @@ export class Grapher
     @observable selectedEntityColors: { [entityName: string]: string } = {}
     @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
+    /** IncludedEntities are ususally empty which means use all available entites. When
+        includedEntities is set it means "only use these entities". excludedEntities
+        are evaluated afterwards and can still remove entities even if they were included before.
+     */
+    @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
     @observable.ref annotation?: Annotation = undefined
@@ -2466,6 +2472,10 @@ export class Grapher
             this.isLineChart ||
             this.isMarimekko
         )
+    }
+
+    @computed get showNoDataAreaToggle(): boolean {
+        return this.isMarimekko
     }
 
     @computed get showHighlightToggle(): boolean {

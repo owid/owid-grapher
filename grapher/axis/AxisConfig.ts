@@ -47,7 +47,7 @@ export class AxisConfig
         this.fontSizeManager = fontSizeManager
     }
 
-    private fontSizeManager?: FontSizeManager
+    fontSizeManager?: FontSizeManager
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {

@@ -44,6 +44,8 @@ export interface GrapherInterface extends SortConfig {
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
     stackMode?: StackMode
+
+    showNoDataArea?: boolean
     hideLegend?: boolean
     logo?: LogoOption
     hideLogo?: boolean
@@ -72,6 +74,7 @@ export interface GrapherInterface extends SortConfig {
     matchingEntitiesOnly?: boolean
     hideTotalValueLabel?: boolean
     excludedEntities?: number[]
+    includedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityColors?: { [entityName: string]: string }
     selectedEntityIds?: EntityId[]
@@ -134,6 +137,7 @@ export const grapherKeysToSerialize = [
     "addCountryMode",
     "highlightToggle",
     "stackMode",
+    "showNoDataArea",
     "hideLegend",
     "logo",
     "hideLogo",
@@ -158,6 +162,7 @@ export const grapherKeysToSerialize = [
     "scatterPointLabelStrategy",
     "compareEndPointsOnly",
     "matchingEntitiesOnly",
+    "includedEntities",
     "hideTotalValueLabel",
     "xAxis",
     "yAxis",

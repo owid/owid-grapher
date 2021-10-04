@@ -33,6 +33,7 @@ import {
     FacetYDomainToggleManager,
     FacetStrategyDropdown,
     FacetStrategyDropdownManager,
+    NoDataAreaToggle,
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
@@ -71,6 +72,7 @@ export interface CaptionedChartManager
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
     showAbsRelToggle?: boolean
+    showNoDataAreaToggle?: boolean
     showFacetYDomainToggle?: boolean
     showHighlightToggle?: boolean
     showChangeEntityButton?: boolean
@@ -275,6 +277,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (manager.showAbsRelToggle)
             controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
+
+        if (manager.showNoDataAreaToggle)
+            controls.push(
+                <NoDataAreaToggle key="NoDataAreaToggle" manager={manager} />
+            )
 
         if (manager.showFacetYDomainToggle)
             controls.push(
