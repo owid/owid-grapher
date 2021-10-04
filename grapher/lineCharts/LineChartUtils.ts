@@ -14,7 +14,7 @@ export const columnToLineChartSeriesArray = (
         if (seriesStrategy === SeriesStrategy.entity) {
             seriesName = entityName
         } else {
-            if (canSelectMultipleEntities) {
+            if (entityNames.length > 1 || canSelectMultipleEntities) {
                 seriesName = `${entityName} - ${col.displayName}`
             } else {
                 seriesName = col.displayName
