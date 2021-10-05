@@ -9,7 +9,7 @@ import {
 
 import * as db from "../db/db"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"
-import { log } from "./slackLog"
+import { warn } from "./slackLog"
 import { Chart } from "../db/model/Chart"
 import md5 from "md5"
 import { Url } from "../clientUtils/urls/Url"
@@ -58,13 +58,13 @@ export const bakeGrapherUrls = async (urls: string[]) => {
 
         const slug = lodash.last(Url.fromURL(url).pathname?.split("/"))
         if (!slug) {
-            log.warn(`Invalid chart url ${url}`)
+            warn(`Invalid chart url ${url}`)
             continue
         }
 
         const chartId = slugToId[slug]
         if (chartId === undefined) {
-            log.warn(`Couldn't find chart with slug ${slug}`)
+            warn(`Couldn't find chart with slug ${slug}`)
             continue
         }
 
@@ -73,7 +73,7 @@ export const bakeGrapherUrls = async (urls: string[]) => {
             [chartId]
         )
         if (!rows.length) {
-            log.warn(`Mysteriously missing chart by id ${chartId}`)
+            warn(`Mysteriously missing chart by id ${chartId}`)
             continue
         }
 

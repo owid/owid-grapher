@@ -50,11 +50,9 @@ const sendErrorToSlack = async (err: any) => {
     })
 }
 
-export namespace log {
-    export const logErrorAndMaybeSendToSlack = async (err: any) => {
-        console.error(err)
-        if (SLACK_ERRORS_WEBHOOK_URL) sendErrorToSlack(err)
-    }
-
-    export const warn = (err: any) => console.warn(err)
+export const logErrorAndMaybeSendToSlack = async (err: any) => {
+    console.error(err)
+    if (SLACK_ERRORS_WEBHOOK_URL) sendErrorToSlack(err)
 }
+
+export const warn = (err: any) => console.warn(err)

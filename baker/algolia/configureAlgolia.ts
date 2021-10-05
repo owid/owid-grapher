@@ -1,14 +1,33 @@
-import algoliasearch from "algoliasearch"
+import algoliasearch, { SearchClient } from "algoliasearch"
 import { Synonym } from "@algolia/client-search"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
-import { ALGOLIA_SECRET_KEY } from "../../settings/serverSettings"
+import {
+    ALGOLIA_INDEXING,
+    ALGOLIA_SECRET_KEY,
+} from "../../settings/serverSettings"
 import { countries } from "../../clientUtils/countries"
 
+export const getAlgoliaClient = (): SearchClient | undefined => {
+    if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {
+        console.error(`Missing ALGOLIA_ID or ALGOLIA_SECRET_KEY`)
+        return
+    }
+
+    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    return client
+}
+
 // This function initializes and applies settings to the Algolia search indices
-// Algolia settings should be configured here rather than   in the Algolia dashboard UI, as then
+// Algolia settings should be configured here rather than in the Algolia dashboard UI, as then
 // they are recorded and transferrable across dev/prod instances
 export const configureAlgolia = async () => {
-    const client = algoliasearch(ALGOLIA_ID, ALGOLIA_SECRET_KEY)
+    if (!ALGOLIA_INDEXING) return
+
+    const client = getAlgoliaClient()
+    if (!client)
+        // throwing here to halt deploy process
+        throw new Error("Algolia configuration failed (client not initialized)")
+
     const chartsIndex = client.initIndex("charts")
 
     await chartsIndex.setSettings({

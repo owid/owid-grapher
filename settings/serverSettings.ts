@@ -71,6 +71,8 @@ export const SESSION_COOKIE_AGE: number =
     parseIntOrUndefined(serverSettings.SESSION_COOKIE_AGE) ?? 1209600
 export const ALGOLIA_SECRET_KEY: string =
     serverSettings.ALGOLIA_SECRET_KEY ?? ""
+export const ALGOLIA_INDEXING: boolean =
+    serverSettings.ALGOLIA_INDEXING === "true" ?? false
 export const STRIPE_SECRET_KEY: string = serverSettings.STRIPE_SECRET_KEY ?? ""
 
 // Settings for automated email sending, e.g. for admin invite

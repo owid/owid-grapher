@@ -156,7 +156,7 @@ yarn testPrettierAll`
     }
 
     // 📡 indicates that a task is running/ran on the remote server
-    async deploy() {
+    async buildAndDeploy() {
         const { skipChecks, runChecksRemotely } = this.options
 
         if (this.targetIsProd) await this.runLiveSafetyChecks()
@@ -187,7 +187,9 @@ yarn testPrettierAll`
 
         await this.writeHeadDotText()
         await this.ensureTmpDirExistsOnServer()
-        await this.generateShellScriptsAndRunThemOnServer()
+
+        const exitCode = await this.generateShellScriptsAndRunThemOnServer()
+        if (exitCode !== 0) return
 
         this.progressBar.tick({
             name: `✅ 📡 finished everything`,
@@ -196,7 +198,7 @@ yarn testPrettierAll`
     }
 
     // todo: the old deploy script would generete BASH on the fly and run it on the server. we should clean that up and remove these shell scripts.
-    private async generateShellScriptsAndRunThemOnServer() {
+    private async generateShellScriptsAndRunThemOnServer(): Promise<number> {
         const { simpleGit } = this
         const { target, owidGrapherRootDir } = this.options
 
@@ -221,13 +223,13 @@ yarn testPrettierAll`
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
-            algolia: `cd ${rsyncTargetDirTmp} && node itsJustJavascript/baker/algolia/configureAlgolia.js`,
+            algolia: `cd ${rsyncTargetDirTmp} && node --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js`,
             createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
-            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
-            deployToNetlify: `cd ${finalTargetDir} && node itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
+            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
+            deployToNetlify: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
 
@@ -239,13 +241,17 @@ yarn testPrettierAll`
 
         await this.copyLocalRepoToServerTmpDirectory()
 
+        let exitCode: number = 0
         for await (const name of Object.keys(scripts)) {
-            await this.runAndStreamScriptOnRemoteServerViaSSH(
+            exitCode = await this.runAndStreamScriptOnRemoteServerViaSSH(
                 `${rsyncTargetDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             )
             const localPath = `${owidGrapherRootDir}/${TEMP_DEPLOY_SCRIPT_PREFIX}${name}.sh`
             fs.removeSync(localPath)
+            if (exitCode !== 0) break // halt the deploy sequence
         }
+
+        return exitCode
     }
 
     printAndExit(message: string) {
@@ -275,7 +281,9 @@ yarn testPrettierAll`
         })
     }
 
-    private async runAndStreamScriptOnRemoteServerViaSSH(path: string) {
+    private async runAndStreamScriptOnRemoteServerViaSSH(
+        path: string
+    ): Promise<number> {
         // eslint-disable-next-line no-console
         console.log(`📡 Running ${path} on ${this.sshHost}`)
         const bashTerminateIfAnyNonZero = "bash -e" // https://stackoverflow.com/questions/9952177/whats-the-meaning-of-the-parameter-e-for-bash-shell-command-line/9952249
@@ -302,17 +310,16 @@ yarn testPrettierAll`
             console.error(trimmed)
         })
 
-        const exitCode = await new Promise((resolve) => {
+        const exitCode: number = await new Promise((resolve) => {
             child.on("close", resolve)
         })
 
-        if (exitCode) {
-            // eslint-disable-next-line no-console
-            console.log(`Exit code: ${exitCode}`)
-        }
-
         this.progressBar.tick({
-            name: `✅ 📡 finished running ${path}`,
+            name: `📡${
+                exitCode ? "⛔️ failed" : "✅ finished"
+            } running ${path}${exitCode ? ` [exit code: ${exitCode}]` : ``}`,
         })
+
+        return exitCode
     }
 }
