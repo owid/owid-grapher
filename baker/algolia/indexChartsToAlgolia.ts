@@ -53,8 +53,6 @@ const getChartsRecords = async () => {
         })
     }
 
-    await db.closeTypeOrmAndKnexConnections()
-
     return records
 }
 
@@ -71,6 +69,8 @@ const indexChartsToAlgolia = async () => {
 
     const records = await getChartsRecords()
     await index.replaceAllObjects(records)
+
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 indexChartsToAlgolia()

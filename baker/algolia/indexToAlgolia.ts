@@ -83,9 +83,6 @@ const getPagesRecords = async () => {
         }
     }
 
-    await wpdb.singleton.end()
-    await db.closeTypeOrmAndKnexConnections()
-
     return records
 }
 
@@ -101,6 +98,9 @@ const indexToAlgolia = async () => {
 
     const records = await getPagesRecords()
     index.replaceAllObjects(records)
+
+    await wpdb.singleton.end()
+    await db.closeTypeOrmAndKnexConnections()
 }
 
 indexToAlgolia()
