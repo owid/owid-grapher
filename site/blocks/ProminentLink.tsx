@@ -1,5 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
+import * as ReactDOMServer from "react-dom/server"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import { union, getAttributesOfHTMLElement } from "../../clientUtils/Util"
@@ -11,6 +12,7 @@ import {
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { Url } from "../../clientUtils/urls/Url"
 import { EntityName } from "../../coreTable/OwidTableConstants"
+import { BAKED_BASE_URL } from "../../settings/clientSettings"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -53,7 +55,40 @@ class ProminentLink extends React.Component<{
     }
 }
 
-export const renderProminentLink = (globalEntitySelection?: SelectionArray) =>
+const isStandaloneInternalLink = (el: CheerioElement, $: CheerioStatic) => {
+    return (
+        // Relies on formatLinks URL standardisation
+        el.attribs.href.startsWith(BAKED_BASE_URL) &&
+        el.parent.tagName === "p" &&
+        !$(el).siblings().length
+    )
+}
+
+export const renderProminentLink = ($: CheerioStatic) => {
+    $("a").each((i, el) => {
+        // detect internal links
+        if (!isStandaloneInternalLink(el, $)) return
+
+        // replace internal links with prominent links
+        $(el).replaceWith(
+            ReactDOMServer.renderToStaticMarkup(
+                <div
+                    className="wp-block-owid-prominent-link is-style-thin"
+                    data-no-lightbox
+                >
+                    <a href={el.attribs.href}>
+                        <div className="content-wrapper">
+                            <div className="content">Test content</div>
+                            {el.attribs.href}
+                        </div>
+                    </a>
+                </div>
+            )
+        )
+    })
+}
+
+export const hydrateProminentLink = (globalEntitySelection?: SelectionArray) =>
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
         .forEach((el) => {
@@ -69,6 +104,5 @@ export const renderProminentLink = (globalEntitySelection?: SelectionArray) =>
                     globalEntitySelection={globalEntitySelection}
                 />
             )
-
-            ReactDOM.render(rendered, el)
+            ReactDOM.hydrate(rendered, el)
         })

@@ -12,7 +12,9 @@ import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder"
 export const renderBlocks = (cheerioEl: CheerioStatic) => {
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
+    renderProminentLink(cheerioEl)
 }
+
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
         // Used by Help blocks. Pierces encapsulation but considered not worth going through hydration / client side rendering for this.
