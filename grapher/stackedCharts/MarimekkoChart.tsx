@@ -820,6 +820,10 @@ export class MarimekkoChart
         return this.bounds.top
     }
 
+    @computed get legendOpacity(): number {
+        return 0.7
+    }
+
     @computed get legendWidth(): number {
         return this.bounds.width
     }
