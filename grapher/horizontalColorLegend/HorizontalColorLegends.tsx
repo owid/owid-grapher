@@ -68,6 +68,7 @@ export interface HorizontalColorLegendManager {
     numericLegendY?: number
     legendWidth?: number
     legendHeight?: number
+    legendOpacity?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     categoricalBinStroke?: Color
@@ -407,6 +408,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 width={positionedBin.width}
                                 height={rectHeight}
                                 fill={positionedBin.bin.color}
+                                opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 stroke={
                                     isFocus ? FOCUS_BORDER_COLOR : borderColor
                                 }
@@ -558,6 +560,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     fill={mark.bin.color}
                                     stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
+                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 />
                                 ,
                                 <text
