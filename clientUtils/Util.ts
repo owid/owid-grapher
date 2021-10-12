@@ -1113,6 +1113,18 @@ export function stringifyUnkownError(error: unknown): string | undefined {
         return error.toISOString()
     }
 
+    if (typeof error === "object" && !Array.isArray(error) && error !== null) {
+        if (error.hasOwnProperty("message")) {
+            // Within this branch, `error` is an object with the `message`
+            // property, so we can access the object's `message` property.
+            return (error as any).message
+        } else {
+            // Otherwise, `error` is an object with an unknown structure, so
+            // we stringify it.
+            return JSON.stringify(error)
+        }
+    }
+
     return String(error)
 }
 
