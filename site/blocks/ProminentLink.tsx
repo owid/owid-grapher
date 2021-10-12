@@ -12,7 +12,6 @@ import {
 import { SelectionArray } from "../../grapher/selection/SelectionArray"
 import { Url } from "../../clientUtils/urls/Url"
 import { EntityName } from "../../coreTable/OwidTableConstants"
-import { BAKED_BASE_URL } from "../../settings/clientSettings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
@@ -26,7 +25,7 @@ class ProminentLink extends React.Component<{
     style: string | null
     title: string | null
     content?: string | null
-    image: string | null
+    image?: string | null
     globalEntitySelection?: SelectionArray
 }> {
     @computed get originalUrl(): Url {
@@ -138,7 +137,7 @@ const isGrapher = (url: string): boolean => {
     return /\/grapher\//.test(url)
 }
 
-const renderAuthoredProminentLink = ($: CheerioStatic) => {
+export const renderAuthoredProminentLink = ($: CheerioStatic) => {
     $("block[type='prominent-link']").each((_, el: CheerioElement) => {
         const $block = $(el)
         const href = $block.find("link-url").text()
@@ -171,42 +170,22 @@ const renderAuthoredProminentLink = ($: CheerioStatic) => {
     })
 }
 
-const isStandaloneInternalLink = (el: CheerioElement, $: CheerioStatic) => {
-    return (
-        // Relies on formatLinks URL standardisation
-        el.attribs.href.startsWith(BAKED_BASE_URL) &&
-        el.parent.tagName === "p" &&
-        !$(el).siblings().length
+// replace standalone internal links with prominent links
+export const renderAutomaticProminentLink = (
+    href: string,
+    title: string,
+    image?: string
+) => {
+    return ReactDOMServer.renderToStaticMarkup(
+        <div className="block-wrapper">
+            <ProminentLink
+                href={href}
+                style={STYLE_THIN}
+                title={title}
+                image={image}
+            />
+        </div>
     )
-}
-
-export const renderProminentLink = ($: CheerioStatic) => {
-    $("a").each((i, el) => {
-        // detect internal links
-        if (!isStandaloneInternalLink(el, $)) return
-
-        // replace internal links with prominent links
-        $(el).replaceWith(
-            ReactDOMServer.renderToStaticMarkup(
-                <div
-                    className="wp-block-owid-prominent-link is-style-thin"
-                    data-no-lightbox
-                >
-                    <a href={el.attribs.href}>
-                        <div className="content-wrapper">
-                            <div className="content">Test content</div>
-                            {el.attribs.href}
-                        </div>
-                    </a>
-                </div>
-            )
-        )
-    })
-}
-
-export const renderProminentLink = ($: CheerioStatic) => {
-    renderAuthoredProminentLink($)
-    renderAutomaticProminentLink($)
 }
 
 export const hydrateProminentLink = (

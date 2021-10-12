@@ -3,7 +3,7 @@ import {
     render as renderAdditionalInformation,
 } from "./AdditionalInformation"
 import { renderHelp } from "./Help"
-import { renderProminentLink } from "./ProminentLink"
+import { renderAuthoredProminentLink } from "./ProminentLink"
 import { runSearchCountry } from "../../site/SearchCountry"
 import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock"
 import { runDataTokens } from "../../site/runDataTokens"
@@ -12,7 +12,7 @@ import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder"
 export const renderBlocks = (cheerioEl: CheerioStatic) => {
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
-    renderProminentLink(cheerioEl)
+    renderAuthoredProminentLink(cheerioEl)
 }
 
 export const runBlocks = () => {

@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { HTTPS_ONLY } from "../settings/serverSettings"
-import { getTables } from "../db/wpdb"
+import { getPostBySlug, getTables } from "../db/wpdb"
 import Tablepress from "../site/Tablepress"
 import { GrapherExports } from "../baker/GrapherBakingUtils"
 import * as path from "path"
@@ -22,7 +22,10 @@ import {
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
 import { Footnote } from "../site/Footnote"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
+import {
+    PROMINENT_LINK_CLASSNAME,
+    renderAutomaticProminentLink,
+} from "../site/blocks/ProminentLink"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { formatGlossaryTerms } from "../site/formatGlossary"
 import { getMutableGlossary, glossary } from "../site/glossary"
@@ -34,6 +37,7 @@ import {
     formatDataValue,
     formatLinks,
     getHtmlContentWithStyles,
+    isStandaloneInternalLink,
     parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
@@ -50,6 +54,9 @@ import {
     getLegacyVariableDisplayConfig,
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
+import { Url } from "../clientUtils/urls/Url"
+import { logErrorAndMaybeSendToSlack } from "./slackLog"
+import { formatWordpressEditLink } from "../site/LongFormPage"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -293,6 +300,49 @@ export const formatWordpressPost = async (
 
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks(cheerioEl)
+
+    const anchorElements = cheerioEl("a").toArray()
+    await Promise.all(
+        anchorElements.map(async (anchor) => {
+            if (!isStandaloneInternalLink(anchor, cheerioEl)) return
+            const slug = Url.fromURL(anchor.attribs.href).slug
+            if (!slug) return
+
+            let targetPost
+            try {
+                targetPost = await getPostBySlug(slug)
+            } catch (err) {
+                // not throwing here as this is not considered a critical error.
+                // Standalone links will just show up as such (and get
+                // netlify-redirected upon click if applicable).
+                logErrorAndMaybeSendToSlack(
+                    new Error(
+                        `${post.title} (${formatWordpressEditLink(
+                            post.id
+                        )}) wants to convert ${
+                            anchor.attribs.href
+                        } into a prominent link but this URL doesn't match any post. This might be because the URL of the target has been recently changed.`
+                    )
+                )
+            }
+
+            if (!targetPost) return
+
+            // todo
+            const image =
+                "<img src='https://ourworldindata.org/grapher/exports/child-mortality-complete-gapminder.svg' />"
+
+            const rendered = renderAutomaticProminentLink(
+                anchor.attribs.href,
+                targetPost.title,
+                image
+            )
+
+            const $anchorParent = cheerioEl(anchor.parent)
+            $anchorParent.after(rendered)
+            $anchorParent.remove()
+        })
+    )
 
     // Extract blog info content
     let info = null

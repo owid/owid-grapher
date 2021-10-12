@@ -79,6 +79,10 @@ export class Url {
         return this.props.pathname
     }
 
+    get slug(): string | undefined {
+        return this.props.pathname?.replace(/^\/+/, "")
+    }
+
     get originAndPath(): string | undefined {
         const strings = excludeUndefined([this.origin, this.pathname])
         if (strings.length === 0) return undefined
