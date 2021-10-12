@@ -8,6 +8,8 @@ import * as wpdb from "../db/wpdb"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
+    BAKED_BASE_URL,
+    ADMIN_BASE_URL,
 } from "../settings/serverSettings"
 import { expectInt, isValidSlug, absoluteUrl } from "../serverUtils/serverUtil"
 import { sendMail } from "./mail"
@@ -33,12 +35,12 @@ import { Post } from "../db/model/Post"
 import { camelCaseProperties } from "../clientUtils/string"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles"
-import { BAKED_BASE_URL } from "../settings/serverSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
 import { DeployQueueServer } from "../baker/DeployQueueServer"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
+import { Parser } from "json2csv"
 
 const apiRouter = new FunctionalRouter()
 
@@ -312,6 +314,65 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     await Chart.assignTagsForCharts(charts)
 
     return { charts }
+})
+
+apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
+    const limit =
+        req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
+
+    const charts = await db.queryMysql(
+        `
+        SELECT
+            charts.id,
+            charts.config->>"$.version" AS version,
+            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS slug,
+            CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.subtitle" AS subtitle,
+            charts.config->>"$.sourceDesc" AS sourceDesc,
+            charts.config->>"$.note" AS note,
+            charts.config->>"$.type" AS type,
+            charts.config->>"$.internalNotes" AS internalNotes,
+            charts.config->>"$.variantName" AS variantName,
+            charts.config->>"$.isPublished" AS isPublished,
+            charts.config->>"$.tab" AS tab,
+            JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
+            JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
+            charts.config->"$.originUrl" as originUrl,
+            charts.starred AS isStarred,
+            charts.lastEditedAt,
+            charts.lastEditedByUserId,
+            lastEditedByUser.fullName AS lastEditedBy,
+            charts.publishedAt,
+            charts.publishedByUserId,
+            publishedByUser.fullName AS publishedBy,
+            charts.isExplorable AS isExplorable,
+            charts.config->>"$.dimensions" AS dimensions,
+            charts.config->>"$.xAxis" AS xAxis,
+            charts.config->>"$.yAxis" AS yAxis
+        FROM charts
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        ORDER BY charts.lastEditedAt DESC 
+        LIMIT ?
+    `,
+        [limit]
+    )
+    // note: retrieving references is VERY slow.
+    // await Promise.all(
+    //     charts.map(async (chart: any) => {
+    //         const references = await getReferencesByChartId(chart.id)
+    //         chart.references = references.length
+    //             ? references.map((ref) => ref.url)
+    //             : ""
+    //     })
+    // )
+    // await Chart.assignTagsForCharts(charts)
+    res.setHeader("Content-disposition", "attachment; filename=charts.csv")
+    res.setHeader("content-type", "text/csv")
+    const json2csvParser = new Parser()
+    const csv = json2csvParser.parse(charts)
+    return csv
 })
 
 apiRouter.get(
