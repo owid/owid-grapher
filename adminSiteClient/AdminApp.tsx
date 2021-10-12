@@ -24,6 +24,7 @@ import { NewsletterPage } from "./NewsletterPage"
 import { DeployStatusPage } from "./DeployStatusPage"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage"
+import { BulkDownloadPage } from "./BulkDownloadPage"
 import {
     BrowserRouter as Router,
     Route,
@@ -308,6 +309,11 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
+                            />
+                            <Route
+                                exact
+                                path="/bulk-downloads"
+                                component={BulkDownloadPage}
                             />
                             <Route
                                 exact
