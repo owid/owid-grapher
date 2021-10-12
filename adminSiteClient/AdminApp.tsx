@@ -24,6 +24,7 @@ import { NewsletterPage } from "./NewsletterPage"
 import { DeployStatusPage } from "./DeployStatusPage"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage"
+import { SuggestedChartRevisionImportPage } from "./SuggestedChartRevisionImportPage"
 import { BulkDownloadPage } from "./BulkDownloadPage"
 import {
     BrowserRouter as Router,
@@ -292,6 +293,11 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/suggested-chart-revisions"
                                 component={SuggestedChartRevisionListPage}
+                            />
+                            <Route
+                                exact
+                                path="/suggested-chart-revisions/import"
+                                component={SuggestedChartRevisionImportPage}
                             />
                             <Route
                                 exact
