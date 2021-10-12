@@ -344,11 +344,18 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     <h3>
                         Approval tool for suggested chart revisions
                         <Link
-                            to="/suggested-chart-revisions"
                             className="btn btn-outline-primary"
-                            style={{ marginLeft: "20px" }}
+                            to="/suggested-chart-revisions"
+                            style={{ marginLeft: "10px" }}
                         >
-                            View all suggested revisions
+                            View all revisions
+                        </Link>
+                        <Link
+                            className="btn btn-outline-primary"
+                            to="/suggested-chart-revisions/import"
+                            style={{ marginLeft: "10px" }}
+                        >
+                            Upload revisions
                         </Link>
                     </h3>
                     <p>

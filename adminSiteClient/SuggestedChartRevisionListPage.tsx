@@ -133,6 +133,13 @@ export class SuggestedChartRevisionListPage extends React.Component {
                             >
                                 Go to approval tool
                             </Link>
+                            <Link
+                                className="btn btn-outline-primary"
+                                to="/suggested-chart-revisions/import"
+                                style={{ marginLeft: "10px" }}
+                            >
+                                Upload revisions
+                            </Link>
                         </div>
                         <TextField
                             placeholder="Search all suggested revisions..."
