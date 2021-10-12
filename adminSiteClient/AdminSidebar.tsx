@@ -16,6 +16,7 @@ import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDish"
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 
 export const AdminSidebar = (): JSX.Element => (
     <aside className="AdminSidebar">
@@ -60,6 +61,11 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/tags">
                     <FontAwesomeIcon icon={faTag} /> Tags
+                </Link>
+            </li>
+            <li>
+                <Link to="/bulk-downloads">
+                    <FontAwesomeIcon icon={faDownload} /> Bulk downloads
                 </Link>
             </li>
             <li>
