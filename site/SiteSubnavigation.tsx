@@ -195,6 +195,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "Biodiversity",
             href: "/biodiversity",
             id: "biodiversity",
+            highlight: true,
         },
         {
             label: "Biodiversity and Wildlife",
@@ -212,8 +213,8 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "birds",
         },
         {
-            label: "Fish",
-            href: "/fish",
+            label: "Fish and Overfishing",
+            href: "/fish-and-overfishing",
             id: "fish",
         },
         {
@@ -237,7 +238,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "threats-to-wildlife",
         },
         {
-            label: "Poaching and Wildlife Trade",
+            label: "Poaching",
             href: "/poaching-and-wildlife-trade",
             id: "poaching-and-wildlife-trade",
         },
