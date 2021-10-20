@@ -19106,10 +19106,10 @@ url-parse@^1.4.3, url-parse@^1.5.2:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
 
-url-slug@^3.0.0-beta.1:
-  version "3.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/url-slug/-/url-slug-3.0.0-beta.1.tgz#1568fd599658ebf1ff3aeeba7293bdc2e0a97e53"
-  integrity sha512-JTyV6F/RF56RCN+DKPEf2TP3Kk8l0E9QzPsX+c5CKlRs4o87UtO0bWfeOGk0IHrOqzQQPSXptXrITeGqt4htYQ==
+url-slug@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/url-slug/-/url-slug-3.0.2.tgz#b155b3d0b3e406ce486e16f3ded868c08add6902"
+  integrity sha512-puioWUGY+esk4kKW8L6fCZWb+xK1+0L/KH2miV6GEJdlCJRJ2lfRlvHkUikyEU1e1v4j1C1HBQKvuljFOxmnEA==
 
 url-to-options@^1.0.1:
   version "1.0.1"
