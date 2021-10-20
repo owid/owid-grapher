@@ -272,7 +272,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     return Promise.resolve([svg, svgRecord])
 }
 
-const replaceRegexes = [/id="react-select-[0-9]+-input"/g]
+const replaceRegexes = [/id="react-select-\d+-.+"/g]
 /** Some fragments of the svgs are non-deterministic. This function is used to
     delete all such fragments */
 function prepareSvgForComparision(svg: string): string {
