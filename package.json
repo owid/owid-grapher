@@ -225,7 +225,7 @@
         "http-server": "^0.12.3",
         "jest": "^27.3.1",
         "npm-run-all": "^4.1.5",
-        "opener": "^1.5.1",
+        "opener": "^1.5.2",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
         "storybook": "^6.3.8",
