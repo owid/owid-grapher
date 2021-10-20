@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy, first } from "../clientUtils/Util"
+import { groupBy, isString, sortBy } from "../clientUtils/Util"
 import {
     computed,
     action,
@@ -16,12 +16,11 @@ import {
     SearchWord,
 } from "../clientUtils/search"
 import { observer } from "mobx-react"
-import Select, { ValueType } from "react-select"
+import Select from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
-import { asArray } from "../clientUtils/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import { LegacyVariableId } from "../clientUtils/owidTypes"
@@ -392,9 +391,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(selected: ValueType<Namespace>) {
-        const value = first(asArray(selected))
-        if (value) this.chosenNamespace = value
+    @action.bound onNamespace(selected: Namespace | null) {
+        if (selected) this.chosenNamespace = selected
     }
 
     @action.bound onSearchInput(input: string) {

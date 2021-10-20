@@ -1,13 +1,9 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import Select, { ValueType } from "react-select"
-import { first } from "../../clientUtils/Util"
+import Select from "react-select"
 import { MapProjectionName, MapProjectionLabels } from "./MapProjections"
-import {
-    asArray,
-    getStylesForTargetHeight,
-} from "../../clientUtils/react-select"
+import { getStylesForTargetHeight } from "../../clientUtils/react-select"
 
 interface ProjectionChooserEntry {
     label: string
@@ -19,9 +15,8 @@ export class ProjectionChooser extends React.Component<{
     value: string
     onChange: (value: MapProjectionName) => void
 }> {
-    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>): void {
-        const selectedValue = first(asArray(selected))?.value
-        if (selectedValue) this.props.onChange(selectedValue)
+    @action.bound onChange(selected: ProjectionChooserEntry | null): void {
+        if (selected) this.props.onChange(selected.value)
     }
 
     @computed get options(): { value: MapProjectionName; label: string }[] {

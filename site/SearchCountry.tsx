@@ -1,8 +1,7 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
-import Select, { ValueType } from "react-select"
+import Select from "react-select"
 import { countries } from "../clientUtils/countries"
-import { asArray } from "../clientUtils/react-select"
 import { sortBy } from "../clientUtils/Util"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
 import { SiteAnalytics } from "./SiteAnalytics"
@@ -22,11 +21,12 @@ const SearchCountry = (props: { countryProfileRootPath: string }) => {
             options={sorted.map((c) => {
                 return { label: c.name, value: c.slug }
             })}
-            onChange={(selected: ValueType<CountrySelectOption>) => {
-                const country = asArray(selected)[0].value
-                analytics.logCovidCountryProfileSearch(country)
-                setIsLoading(true)
-                window.location.href = `${props.countryProfileRootPath}/${country}`
+            onChange={(selected: CountrySelectOption | null) => {
+                if (selected) {
+                    analytics.logCovidCountryProfileSearch(selected.value)
+                    setIsLoading(true)
+                    window.location.href = `${props.countryProfileRootPath}/${selected.value}`
+                }
             }}
             isLoading={isLoading}
             placeholder="Search for a country..."

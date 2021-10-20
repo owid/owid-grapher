@@ -1,7 +1,7 @@
 import * as React from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import Select, { ValueType } from "react-select"
+import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
@@ -13,7 +13,6 @@ import {
 } from "../grapher/color/ColorScaleBin"
 import { clone, noop, last } from "../clientUtils/Util"
 import { Color } from "../coreTable/CoreTableConstants"
-import { asArray } from "../clientUtils/react-select"
 import {
     Section,
     Toggle,
@@ -140,12 +139,12 @@ class ColorsSection extends React.Component<{
     }
 
     @action.bound onBinningStrategy(
-        binningStrategy: ValueType<{
+        binningStrategy: {
             label: string
             value: BinningStrategy
-        }>
+        } | null
     ) {
-        this.config.binningStrategy = asArray(binningStrategy)[0].value
+        if (binningStrategy) this.config.binningStrategy = binningStrategy.value
     }
 
     @computed get currentColorScheme() {

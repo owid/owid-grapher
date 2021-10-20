@@ -27,9 +27,8 @@ import {
     FacetAxisDomain,
     FacetStrategy,
 } from "../grapher/core/GrapherConstants"
-import Select, { ValueType } from "react-select"
+import Select from "react-select"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
-import { asArray } from "../clientUtils/react-select"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -130,10 +129,9 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
         ]
     }
 
-    @action.bound onSortByChange(selected: ValueType<SortOrderDropdownOption>) {
-        const value = asArray(selected)[0].value
-        this.grapher.sortBy = value.sortBy
-        this.grapher.sortColumnSlug = value.sortColumnSlug
+    @action.bound onSortByChange(selected: SortOrderDropdownOption | null) {
+        this.grapher.sortBy = selected?.value.sortBy
+        this.grapher.sortColumnSlug = selected?.value.sortColumnSlug
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
@@ -219,10 +217,12 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound onFacetSelectionChange(
-        selected: ValueType<{ label: string; value?: FacetStrategy }>
+        selected: {
+            label: string
+            value?: FacetStrategy
+        } | null
     ) {
-        const value = asArray(selected)[0].value
-        this.grapher.selectedFacetStrategy = value
+        this.grapher.selectedFacetStrategy = selected?.value
     }
 
     render() {
