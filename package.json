@@ -162,7 +162,7 @@
         "nodemailer": "^6.4.16",
         "normalize.css": "^8.0.1",
         "optimize-css-assets-webpack-plugin": "^5.0.4",
-        "prettier": "^2.1.2",
+        "prettier": "^2.4.1",
         "progress": "^2.0.3",
         "prompts": "^2.4.0",
         "prop-types": "^15.7.2",
