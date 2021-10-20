@@ -187,7 +187,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             true
                                         }
                                         onValue={(value) =>
-                                            (newVariable.display.yearIsDay = value)
+                                            (newVariable.display.yearIsDay =
+                                                value)
                                         }
                                         label="Treat year column as day series"
                                     />
@@ -213,7 +214,8 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                                 .includeInTable === true
                                         }
                                         onValue={(value) =>
-                                            (newVariable.display.includeInTable = value)
+                                            (newVariable.display.includeInTable =
+                                                value)
                                         }
                                         label="Include in table"
                                     />

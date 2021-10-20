@@ -47,7 +47,8 @@ export const ErrorValueTypes = {
     UndefinedButShouldBeString: new UndefinedButShouldBeString(),
     NullButShouldBeString: new NullButShouldBeString(),
     MissingValuePlaceholder: new MissingValuePlaceholder(),
-    NotAParseableNumberButShouldBeNumber: new NotAParseableNumberButShouldBeNumber(),
+    NotAParseableNumberButShouldBeNumber:
+        new NotAParseableNumberButShouldBeNumber(),
     DivideByZeroError: new DivideByZeroError(),
     NoValueWithinTolerance: new NoValueWithinTolerance(),
     NoMatchingValueAfterJoin: new NoMatchingValueAfterJoin(),

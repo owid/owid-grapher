@@ -21,13 +21,8 @@ export const GrapherPage = (props: {
     baseUrl: string
     baseGrapherUrl: string
 }) => {
-    const {
-        grapher,
-        relatedCharts,
-        relatedArticles,
-        baseGrapherUrl,
-        baseUrl,
-    } = props
+    const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
+        props
     const pageTitle = grapher.title
     const pageDesc =
         grapher.subtitle ||

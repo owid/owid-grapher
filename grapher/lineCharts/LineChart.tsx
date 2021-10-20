@@ -247,7 +247,8 @@ export class LineChart
         bounds?: Bounds
         manager: LineChartManager
     }>
-    implements ChartInterface, LineLegendManager, FontSizeManager {
+    implements ChartInterface, LineLegendManager, FontSizeManager
+{
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {

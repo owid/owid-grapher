@@ -138,12 +138,8 @@ if (args._[0]) {
                 (commitInformation) => commitInformation.serverName
             ),
             (commitInformation) => {
-                const {
-                    commitSha,
-                    commitDate,
-                    commitAuthor,
-                    commitMessage,
-                } = commitInformation
+                const { commitSha, commitDate, commitAuthor, commitMessage } =
+                    commitInformation
 
                 return {
                     commitSha,

@@ -103,7 +103,8 @@ export class StackedDiscreteBarChart
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
     }>
-    implements ChartInterface, HorizontalColorLegendManager {
+    implements ChartInterface, HorizontalColorLegendManager
+{
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {
@@ -480,9 +481,8 @@ export class StackedDiscreteBarChart
                                         item: data,
                                     }
 
-                                    const totalLabel = this.formatValueForLabel(
-                                        totalValue
-                                    )
+                                    const totalLabel =
+                                        this.formatValueForLabel(totalValue)
 
                                     return (
                                         <g
@@ -562,12 +562,8 @@ export class StackedDiscreteBarChart
         tooltipProps: TooltipProps
     }): JSX.Element {
         const { bar, chartContext, tooltipProps } = props
-        const {
-            yAxis,
-            formatValueForLabel,
-            focusSeriesName,
-            barHeight,
-        } = chartContext
+        const { yAxis, formatValueForLabel, focusSeriesName, barHeight } =
+            chartContext
 
         const isFaint =
             focusSeriesName !== undefined && focusSeriesName !== bar.seriesName

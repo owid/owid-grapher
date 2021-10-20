@@ -472,9 +472,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             if (minIndex === undefined || maxIndex === undefined) return
 
             const allValuePairsHaveDistinctTime = columns.every((col) => {
-                const originalTimes = this.columnStore[
-                    col.originalTimeColumnSlug
-                ]
+                const originalTimes =
+                    this.columnStore[col.originalTimeColumnSlug]
                 return originalTimes[minIndex] !== originalTimes[maxIndex]
             })
             if (allValuePairsHaveDistinctTime)
@@ -494,9 +493,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             return this
 
         const columns = columnSlugs.map((slug) => this.get(slug))
-        const entityNameToIndices = this.getAverageAnnualChangeIndicesByEntity(
-            columnSlugs
-        )
+        const entityNameToIndices =
+            this.getAverageAnnualChangeIndicesByEntity(columnSlugs)
 
         // Overwrite table rows
         const rows: OwidRow[] = []

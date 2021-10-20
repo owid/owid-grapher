@@ -104,7 +104,8 @@ export class Explorer
     implements
         SlideShowManager<ExplorerChoiceParams>,
         EntityPickerManager,
-        GrapherManager {
+        GrapherManager
+{
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
         program: ExplorerProps,
@@ -283,13 +284,8 @@ export class Explorer
         const grapher = this.grapher
         if (!grapher) return
         const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
-        const {
-            grapherId,
-            tableSlug,
-            yScaleToggle,
-            yAxisMin,
-            facetYDomain,
-        } = grapherConfigFromExplorer
+        const { grapherId, tableSlug, yScaleToggle, yAxisMin, facetYDomain } =
+            grapherConfigFromExplorer
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
@@ -451,7 +447,8 @@ export class Explorer
     }
 
     @observable
-    private grapherContainerRef: React.RefObject<HTMLDivElement> = React.createRef()
+    private grapherContainerRef: React.RefObject<HTMLDivElement> =
+        React.createRef()
 
     @observable.ref private grapherBounds = DEFAULT_BOUNDS
     @observable.ref

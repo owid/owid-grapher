@@ -108,7 +108,9 @@ class SuggestedChartRevisionRow extends React.Component<{
                         status={suggestedChartRevision.status}
                     />{" "}
                     {highlight(
-                        ((suggestedChartRevision.status as unknown) as string).toUpperCase()
+                        (
+                            suggestedChartRevision.status as unknown as string
+                        ).toUpperCase()
                     )}
                     {suggestedChartRevision.updatedByFullName &&
                         ` ${format(suggestedChartRevision.updatedAt)} by ${

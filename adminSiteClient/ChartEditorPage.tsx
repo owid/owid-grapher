@@ -86,7 +86,8 @@ export class ChartEditorPage
         newGrapherIndex?: number
         grapherConfig?: any
     }>
-    implements ChartEditorManager {
+    implements ChartEditorManager
+{
     @observable.ref grapher = new Grapher()
     @observable.ref database = new EditorDatabase({})
     @observable logs: Log[] = []

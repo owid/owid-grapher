@@ -232,12 +232,8 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 
     render(): JSX.Element {
-        const {
-            bounds,
-            axis,
-            showTickMarks,
-            preferredAxisPosition,
-        } = this.props
+        const { bounds, axis, showTickMarks, preferredAxisPosition } =
+            this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const horizontalAxisLabelsOnTop = orient === Position.top
         const textColor = "#666"

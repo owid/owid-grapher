@@ -179,13 +179,13 @@ export const formatWordpressPost = async (
 
         let formattedValue
         if (variableId && chartId) {
-            const legacyVariableDisplayConfig = await getLegacyVariableDisplayConfig(
-                variableId
-            )
-            const legacyChartDimension = await getLegacyChartDimensionConfigForVariable(
-                variableId,
-                chartId
-            )
+            const legacyVariableDisplayConfig =
+                await getLegacyVariableDisplayConfig(variableId)
+            const legacyChartDimension =
+                await getLegacyChartDimensionConfigForVariable(
+                    variableId,
+                    chartId
+                )
             formattedValue = formatDataValue(
                 value,
                 variableId,

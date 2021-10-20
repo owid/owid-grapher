@@ -672,9 +672,9 @@ export class BindAutoString<
     }
 
     @action.bound onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = (value
-            ? undefined
-            : this.props.auto) as any
+        this.props.store[this.props.field] = (
+            value ? undefined : this.props.auto
+        ) as any
     }
 
     render() {
@@ -795,9 +795,9 @@ export class BindAutoFloat<
     }
 
     @action.bound onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = (value
-            ? undefined
-            : this.props.auto) as any
+        this.props.store[this.props.field] = (
+            value ? undefined : this.props.auto
+        ) as any
     }
 
     render() {

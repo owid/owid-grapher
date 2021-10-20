@@ -361,13 +361,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     render(): JSX.Element {
-        const {
-            manager,
-            numericLabels,
-            rectHeight,
-            positionedBins,
-            height,
-        } = this
+        const { manager, numericLabels, rectHeight, positionedBins, height } =
+            this
         const { numericFocusBracket } = manager
         //Bounds.debug([this.bounds])
 

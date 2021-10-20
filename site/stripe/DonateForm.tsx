@@ -65,11 +65,12 @@ export class DonateForm extends React.Component {
 
     @action.bound setInterval(interval: Interval) {
         this.interval = interval
-        this.presetAmount = this.intervalAmounts[
-            interval === "monthly"
-                ? MONTHLY_DEFAULT_INDEX
-                : ONETIME_DEFAULT_INDEX
-        ]
+        this.presetAmount =
+            this.intervalAmounts[
+                interval === "monthly"
+                    ? MONTHLY_DEFAULT_INDEX
+                    : ONETIME_DEFAULT_INDEX
+            ]
     }
 
     @action.bound setPresetAmount(amount?: number) {

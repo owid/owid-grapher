@@ -31,7 +31,8 @@ class LegacyVariableDisplayConfigDefaults {
 
 export class LegacyVariableDisplayConfig
     extends LegacyVariableDisplayConfigDefaults
-    implements Persistable {
+    implements Persistable
+{
     updateFromObject(
         obj?: Partial<LegacyVariableDisplayConfigInterface>
     ): void {

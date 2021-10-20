@@ -287,7 +287,8 @@ class HotEditor extends React.Component<{
     }
 
     @action.bound private updateProgramFromHot() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
+        const newVersion =
+            this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
         if (!newVersion) return
 
         const newProgram = ExplorerProgram.fromMatrix(

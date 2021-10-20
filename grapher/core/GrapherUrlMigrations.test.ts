@@ -17,9 +17,8 @@ describe(legacyToCurrentGrapherQueryParams, () => {
     it("handles legacy query params containing '&'", () => {
         const legacyQueryStr = "?tab=chart&country=East%20Asia%20%26%20Pacific"
 
-        const currentQueryParams = legacyToCurrentGrapherQueryParams(
-            legacyQueryStr
-        )
+        const currentQueryParams =
+            legacyToCurrentGrapherQueryParams(legacyQueryStr)
 
         expect(currentQueryParams).toEqual({
             country: "~East Asia & Pacific",

@@ -547,14 +547,12 @@ export const stripHTML = (html: string): string => striptags(html)
 
 // Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
 // So we have our own *very* psuedo-RNG.
-export const getRandomNumberGenerator = (
-    min: Integer = 0,
-    max: Integer = 100,
-    seed = Date.now()
-) => (): Integer => {
-    const semiRand = Math.sin(seed++) * 10000
-    return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
-}
+export const getRandomNumberGenerator =
+    (min: Integer = 0, max: Integer = 100, seed = Date.now()) =>
+    (): Integer => {
+        const semiRand = Math.sin(seed++) * 10000
+        return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
+    }
 
 export const sampleFrom = <T>(
     collection: T[],
@@ -877,9 +875,9 @@ export function sortByUndefinedLast<T>(
     return order === SortOrder.asc ? sorted : sorted.reverse()
 }
 
-export function getAttributesOfHTMLElement(
-    el: HTMLElement
-): { [key: string]: string } {
+export function getAttributesOfHTMLElement(el: HTMLElement): {
+    [key: string]: string
+} {
     const attributes: { [key: string]: string } = {}
     for (let i = 0; i < el.attributes.length; i++) {
         const attr = el.attributes.item(i)

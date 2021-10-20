@@ -67,7 +67,8 @@ export class EntityPicker extends React.Component<{
 
     @observable private searchInput?: string
     @observable
-    private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef()
+    private searchInputRef: React.RefObject<HTMLInputElement> =
+        React.createRef()
 
     @observable private focusIndex?: number
     @observable
@@ -77,7 +78,8 @@ export class EntityPicker extends React.Component<{
     @observable private blockOptionHover = false
 
     @observable
-    private scrollContainerRef: React.RefObject<HTMLDivElement> = React.createRef()
+    private scrollContainerRef: React.RefObject<HTMLDivElement> =
+        React.createRef()
 
     @observable private isOpen = false
 
@@ -118,15 +120,19 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get metricOptions(): { label: string; value: string }[] {
-        return this.pickerColumnDefs.map((col): {
-            label: string
-            value: string
-        } => {
-            return {
-                label: col.name || col.slug,
-                value: col.slug,
+        return this.pickerColumnDefs.map(
+            (
+                col
+            ): {
+                label: string
+                value: string
+            } => {
+                return {
+                    label: col.name || col.slug,
+                    value: col.slug,
+                }
             }
-        })
+        )
     }
 
     @computed private get activePickerMetricColumn(): CoreColumn | undefined {

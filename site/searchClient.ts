@@ -127,7 +127,7 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
 
     return {
         pages: json.results[0].hits as PageHit[],
-        charts: (json.results[1].hits as unknown) as ChartHit[],
+        charts: json.results[1].hits as unknown as ChartHit[],
         countries: matchCountries,
     }
 }

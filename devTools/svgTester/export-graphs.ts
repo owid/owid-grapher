@@ -25,9 +25,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             }
         }
 
-        const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] = directories.map(
-            (dir) => ({ dir: join(inDir, dir), outDir })
-        )
+        const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
+            directories.map((dir) => ({ dir: join(inDir, dir), outDir }))
 
         // Parallelize the CPU heavy rendering using the multiprocessing library. This library stringifies the invocation to other processes
         // so this call uses the intermediate export-graphs-runner script. This call will then in parallel take the descriptions of the RenderSvgAndSaveJobDescription,

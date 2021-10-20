@@ -35,9 +35,9 @@ export function getLeastUsedColor(
 
     // If all colors are used, we want to count the times each color is used, and use the most
     // unused one.
-    const colorCounts = Object.entries(
-        groupBy(usedColors)
-    ).map(([color, arr]): any[] => [color, arr.length])
+    const colorCounts = Object.entries(groupBy(usedColors)).map(
+        ([color, arr]): any[] => [color, arr.length]
+    )
     const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
         string,
         number

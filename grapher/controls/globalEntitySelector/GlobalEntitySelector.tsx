@@ -196,9 +196,10 @@ export class GlobalEntitySelector extends React.Component<{
             optionGroups = optionGroups.concat([
                 {
                     label: "Selected",
-                    options: this.selection.selectedEntityNames.map(
-                        entityNameToOption
-                    ),
+                    options:
+                        this.selection.selectedEntityNames.map(
+                            entityNameToOption
+                        ),
                 },
             ])
         }

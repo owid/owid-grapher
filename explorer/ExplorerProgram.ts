@@ -208,8 +208,9 @@ export class ExplorerProgram extends GridProgram {
         return this.lines
             .filter((line) => line.startsWith(ExplorerGrammar.table.keyword))
             .filter((line) => {
-                const data = this.getTableDef(line.split(this.cellDelimiter)[1])
-                    ?.inlineData
+                const data = this.getTableDef(
+                    line.split(this.cellDelimiter)[1]
+                )?.inlineData
                 return data ? data.trim() : false
             }).length
     }
@@ -412,9 +413,9 @@ export class ExplorerProgram extends GridProgram {
 
         const columnDefinitions: CoreColumnDef[] | undefined =
             colDefsRow !== -1
-                ? columnDefinitionsFromDelimited(
-                      this.getBlock(colDefsRow)
-                  ).map((row) => trimAndParseObject(row, ColumnGrammar))
+                ? columnDefinitionsFromDelimited(this.getBlock(colDefsRow)).map(
+                      (row) => trimAndParseObject(row, ColumnGrammar)
+                  )
                 : undefined
 
         return {

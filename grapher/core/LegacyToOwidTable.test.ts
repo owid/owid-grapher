@@ -147,11 +147,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ).toBeTruthy()
             expect(table.columnSlugs).not.toContain(OwidTableSlugs.day)
             expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
-                2020,
-                2021,
-                2022,
-                2022,
-                2024,
+                2020, 2021, 2022, 2022, 2024,
             ])
         })
 
@@ -225,10 +221,7 @@ describe(legacyToOwidTableAndDimensions, () => {
             ).toBeTruthy()
             expect(table.columnSlugs).not.toContain(OwidTableSlugs.year)
             expect(table.get(OwidTableSlugs.time).valuesAscending).toEqual([
-                -6,
-                -5,
-                0,
-                1,
+                -6, -5, 0, 1,
             ])
         })
     })
@@ -288,9 +281,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
             ).toBeTruthy()
             expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
-                -5,
-                0,
-                1,
+                -5, 0, 1,
             ])
         })
 
@@ -328,8 +319,7 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
                 entities: [99, 45, 204],
                 values: [5.5, 4.2, 12.6],
                 id: 3512,
-                name:
-                    "Prevalence of wasting, weight for height (% of children under 5)",
+                name: "Prevalence of wasting, weight for height (% of children under 5)",
                 unit: "% of children under 5",
                 description: "Prevalence of...",
                 shortUnit: "%",
@@ -338,10 +328,8 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
                 },
                 source: {
                     id: 2174,
-                    name:
-                        "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
-                    link:
-                        "http://data.worldbank.org/data-catalog/world-development-indicators",
+                    name: "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+                    link: "http://data.worldbank.org/data-catalog/world-development-indicators",
                 } as any,
             },
         },

@@ -504,21 +504,9 @@ describe("linear interpolation", () => {
         expect(interpolatedTable.get("gdp").valuesIncludingErrorValues).toEqual(
             [
                 // France
-                10,
-                0,
-                2,
-                4,
-                6,
-                8,
-                8,
+                10, 0, 2, 4, 6, 8, 8,
                 // UK
-                2,
-                2.25,
-                2.5,
-                2.75,
-                3,
-                3,
-                3,
+                2, 2.25, 2.5, 2.75, 3, 3, 3,
             ]
         )
 

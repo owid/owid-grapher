@@ -349,10 +349,9 @@ abstract class AbstractAxis {
 
     @computed get tickLabels(): TickLabelPlacement[] {
         // Get ticks with coordinates, sorted by priority
-        const tickLabels = sortBy(
-            this.baseTicks,
-            (tick) => tick.priority
-        ).map((tick) => this.placeTickLabel(tick.value))
+        const tickLabels = sortBy(this.baseTicks, (tick) => tick.priority).map(
+            (tick) => this.placeTickLabel(tick.value)
+        )
         // Hide overlapping ticks
         for (let i = 0; i < tickLabels.length; i++) {
             for (let j = i + 1; j < tickLabels.length; j++) {

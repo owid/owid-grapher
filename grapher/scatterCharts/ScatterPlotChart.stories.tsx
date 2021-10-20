@@ -155,20 +155,21 @@ export const MultipleYearsWithConnectedLines = (): JSX.Element => (
     </svg>
 )
 
-export const MultipleYearsWithConnectedLinesAndBackgroundLines = (): JSX.Element => {
-    const table = SynthesizeGDPTable({ entityCount: 20 })
-    return (
-        <svg {...size}>
-            <ScatterPlotChart
-                manager={{
-                    ...basicSetup,
-                    table,
-                    selection: table.sampleEntityName(2),
-                }}
-            />
-        </svg>
-    )
-}
+export const MultipleYearsWithConnectedLinesAndBackgroundLines =
+    (): JSX.Element => {
+        const table = SynthesizeGDPTable({ entityCount: 20 })
+        return (
+            <svg {...size}>
+                <ScatterPlotChart
+                    manager={{
+                        ...basicSetup,
+                        table,
+                        selection: table.sampleEntityName(2),
+                    }}
+                />
+            </svg>
+        )
+    }
 
 // TODO
 export const OneYearWithSizeAndColorColumn = (): JSX.Element => {

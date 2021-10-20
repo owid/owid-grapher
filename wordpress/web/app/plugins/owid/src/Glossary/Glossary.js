@@ -23,9 +23,10 @@ const Glossary = ({ hasGlossary = false, setGlossary }) => {
 
 const mapSelectToProps = function (select, props) {
     return {
-        hasGlossary: select("core/editor").getEditedPostAttribute("meta")[
-            GLOSSARY_META_FIELD
-        ],
+        hasGlossary:
+            select("core/editor").getEditedPostAttribute("meta")[
+                GLOSSARY_META_FIELD
+            ],
     }
 }
 

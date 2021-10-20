@@ -47,13 +47,8 @@ const ExplorerContent = ({ content }: { content: string }) => {
 }
 
 export const ExplorerPage = (props: ExplorerPageSettings) => {
-    const {
-        wpContent,
-        program,
-        grapherConfigs,
-        baseUrl,
-        urlMigrationSpec,
-    } = props
+    const { wpContent, program, grapherConfigs, baseUrl, urlMigrationSpec } =
+        props
     const {
         subNavId,
         subNavCurrentId,

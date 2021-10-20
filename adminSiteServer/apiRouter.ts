@@ -640,18 +640,20 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-                    suggestedChartRevision
-                )
+                suggestedChartRevision.canApprove =
+                    SuggestedChartRevision.checkCanApprove(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canReject =
+                    SuggestedChartRevision.checkCanReject(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canFlag =
+                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
+                suggestedChartRevision.canPending =
+                    SuggestedChartRevision.checkCanPending(
+                        suggestedChartRevision
+                    )
             }
         )
 
@@ -705,18 +707,15 @@ apiRouter.get(
         suggestedChartRevision.existingConfig = JSON.parse(
             suggestedChartRevision.existingConfig
         )
-        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-            suggestedChartRevision
-        )
-        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canApprove =
+            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
+        suggestedChartRevision.canReject =
+            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
         suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
             suggestedChartRevision
         )
-        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canPending =
+            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
 
         return {
             suggestedChartRevision: suggestedChartRevision,

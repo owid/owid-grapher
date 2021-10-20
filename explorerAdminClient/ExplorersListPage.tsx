@@ -39,12 +39,8 @@ class ExplorerRow extends React.Component<{
     searchHighlight?: (text: string) => any
 }> {
     render() {
-        const {
-            explorer,
-            searchHighlight,
-            gitCmsBranchName,
-            indexPage,
-        } = this.props
+        const { explorer, searchHighlight, gitCmsBranchName, indexPage } =
+            this.props
         const {
             slug,
             lastCommit,

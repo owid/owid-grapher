@@ -30,12 +30,14 @@ const SynthesizeOwidTable = (
         ...options,
     }
     const { entityCount, columnDefs, timeRange, entityNames } = finalOptions
-    const colSlugs = ([
-        OwidTableSlugs.entityName,
-        OwidTableSlugs.entityCode,
-        OwidTableSlugs.entityId,
-        OwidTableSlugs.year,
-    ] as ColumnSlug[]).concat(columnDefs.map((col) => col.slug!))
+    const colSlugs = (
+        [
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.year,
+        ] as ColumnSlug[]
+    ).concat(columnDefs.map((col) => col.slug!))
 
     const entities = entityNames.length
         ? entityNames.map((name) => {
@@ -206,10 +208,7 @@ export const SynthesizeFruitTableWithNonPositives = (
     seed = Date.now()
 ): OwidTable => {
     const rand = getRandomNumberGenerator(-1000, 0)
-    return SynthesizeFruitTable(
-        options,
-        seed
-    ).replaceRandomCells(
+    return SynthesizeFruitTable(options, seed).replaceRandomCells(
         howManyNonPositives,
         [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
         undefined,

@@ -100,15 +100,13 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     }
 
     @action.bound onChangeScatterPointLabelStrategy(value: string) {
-        this.props.grapher.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
+        this.props.grapher.scatterPointLabelStrategy =
+            value as ScatterPointLabelStrategy
     }
 
     render() {
-        const {
-            hasHighlightToggle,
-            highlightToggle,
-            excludedEntityChoices,
-        } = this
+        const { hasHighlightToggle, highlightToggle, excludedEntityChoices } =
+            this
         const { grapher } = this.props
 
         return (

@@ -107,28 +107,26 @@ class EntitySelectorMulti extends React.Component<{
                                 }
                             />
                             <ul>
-                                {searchResults.map(
-                                    (result): JSX.Element => {
-                                        return (
-                                            <li key={result.name}>
-                                                <label className="clickable">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectionArray.selectedSet.has(
+                                {searchResults.map((result): JSX.Element => {
+                                    return (
+                                        <li key={result.name}>
+                                            <label className="clickable">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectionArray.selectedSet.has(
+                                                        result.name
+                                                    )}
+                                                    onChange={(): SelectionArray =>
+                                                        selectionArray.toggleSelection(
                                                             result.name
-                                                        )}
-                                                        onChange={(): SelectionArray =>
-                                                            selectionArray.toggleSelection(
-                                                                result.name
-                                                            )
-                                                        }
-                                                    />{" "}
-                                                    {result.name}
-                                                </label>
-                                            </li>
-                                        )
-                                    }
-                                )}
+                                                        )
+                                                    }
+                                                />{" "}
+                                                {result.name}
+                                            </label>
+                                        </li>
+                                    )
+                                })}
                             </ul>
                         </div>
                         <div className="selectedData">
@@ -267,21 +265,19 @@ class EntitySelectorSingle extends React.Component<{
                             }
                         />
                         <ul>
-                            {searchResults.map(
-                                (d): JSX.Element => {
-                                    return (
-                                        <li
-                                            key={d.id}
-                                            className="clickable"
-                                            onClick={(): void =>
-                                                this.onSelect(d.id)
-                                            }
-                                        >
-                                            {d.label}
-                                        </li>
-                                    )
-                                }
-                            )}
+                            {searchResults.map((d): JSX.Element => {
+                                return (
+                                    <li
+                                        key={d.id}
+                                        className="clickable"
+                                        onClick={(): void =>
+                                            this.onSelect(d.id)
+                                        }
+                                    >
+                                        {d.label}
+                                    </li>
+                                )
+                            })}
                         </ul>
                     </div>
                 </div>

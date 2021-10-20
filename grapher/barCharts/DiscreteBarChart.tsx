@@ -60,7 +60,8 @@ export class DiscreteBarChart
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>
-    implements ChartInterface, FontSizeManager {
+    implements ChartInterface, FontSizeManager
+{
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {
@@ -292,14 +293,8 @@ export class DiscreteBarChart
                 />
             )
 
-        const {
-            series,
-            bounds,
-            yAxis,
-            innerBounds,
-            barHeight,
-            barSpacing,
-        } = this
+        const { series, bounds, yAxis, innerBounds, barHeight, barSpacing } =
+            this
 
         let yOffset = innerBounds.top + barHeight / 2
 

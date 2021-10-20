@@ -418,8 +418,8 @@ export class DataTable extends React.Component<{
                 (value) => parseInt(value[0])
             )
 
-            const firstTimeWithSufficientData = numberOfEntitiesWithDataSortedByTime.find(
-                (time) => {
+            const firstTimeWithSufficientData =
+                numberOfEntitiesWithDataSortedByTime.find((time) => {
                     const numEntitiesWithData = time[1]
                     const percentEntitiesWithData =
                         numEntitiesWithData / numEntitiesInTable
@@ -427,8 +427,7 @@ export class DataTable extends React.Component<{
                         percentEntitiesWithData >=
                         this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
                     )
-                }
-            )?.[0]
+                })?.[0]
 
             if (firstTimeWithSufficientData) {
                 autoSelectedStartTime = parseInt(firstTimeWithSufficientData)
@@ -694,13 +693,8 @@ function ColumnHeader(props: {
     subdimensionType?: ColumnKey
     lastSubdimension?: boolean
 }): JSX.Element {
-    const {
-        sortable,
-        sortedCol,
-        colType,
-        subdimensionType,
-        lastSubdimension,
-    } = props
+    const { sortable, sortedCol, colType, subdimensionType, lastSubdimension } =
+        props
     return (
         <th
             className={classnames(colType, {

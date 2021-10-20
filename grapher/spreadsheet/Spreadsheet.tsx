@@ -18,7 +18,8 @@ export class Spreadsheet extends React.Component<{
     private hotTableComponent = React.createRef<HotTable>()
 
     @action.bound private updateFromHot(): void {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
+        const newVersion =
+            this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
         if (!newVersion || !this.isChanged(newVersion)) return
 
         this.manager.table = new OwidTable(newVersion)

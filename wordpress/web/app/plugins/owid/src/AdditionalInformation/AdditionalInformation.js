@@ -107,30 +107,29 @@ const AdditionalInformation = {
     //   https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/columns/edit.js
     // - https://plugins.trac.wordpress.org/changeset/2243801/nhsblocks (00-dashboard/index.js)
     edit: ({ clientId, name, attributes: { defaultOpen }, setAttributes }) => {
-        const {
-            blockType,
-            defaultVariation,
-            hasInnerBlocks,
-            variations,
-        } = useSelect(
-            (select) => {
-                const {
-                    getBlockVariations,
-                    getBlockType,
-                    getDefaultBlockVariation,
-                } = select("core/blocks")
+        const { blockType, defaultVariation, hasInnerBlocks, variations } =
+            useSelect(
+                (select) => {
+                    const {
+                        getBlockVariations,
+                        getBlockType,
+                        getDefaultBlockVariation,
+                    } = select("core/blocks")
 
-                return {
-                    blockType: getBlockType(name),
-                    defaultVariation: getDefaultBlockVariation(name, "block"),
-                    hasInnerBlocks:
-                        select("core/block-editor").getBlocks(clientId).length >
-                        0,
-                    variations: getBlockVariations(name, "block"),
-                }
-            },
-            [clientId, name]
-        )
+                    return {
+                        blockType: getBlockType(name),
+                        defaultVariation: getDefaultBlockVariation(
+                            name,
+                            "block"
+                        ),
+                        hasInnerBlocks:
+                            select("core/block-editor").getBlocks(clientId)
+                                .length > 0,
+                        variations: getBlockVariations(name, "block"),
+                    }
+                },
+                [clientId, name]
+            )
 
         const { replaceInnerBlocks } = useDispatch("core/block-editor")
 

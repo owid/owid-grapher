@@ -211,7 +211,8 @@ class DimensionSlotView extends React.Component<{
                                             ? undefined
                                             : action(
                                                   () =>
-                                                      (this.isSelectingVariables = true)
+                                                      (this.isSelectingVariables =
+                                                          true)
                                               )
                                     }
                                     onMouseDown={() =>

@@ -37,7 +37,7 @@ export class Deployer {
             {
                 total: 24 + testSteps,
                 renderThrottle: 0, // print on every tick
-                stream: (this.stream as unknown) as WriteStream,
+                stream: this.stream as unknown as WriteStream,
             }
         )
     }

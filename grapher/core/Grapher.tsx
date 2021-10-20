@@ -241,7 +241,8 @@ export class Grapher
         MarimekkoChartManager,
         FacetStrategyDropdownManager,
         FacetChartManager,
-        MapChartManager {
+        MapChartManager
+{
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -589,8 +590,8 @@ export class Grapher
 
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartInstanceExceptMap(): ChartInterface {
-        const chartTypeName = this
-            .typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        const chartTypeName =
+            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
         const ChartClass =
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
@@ -617,8 +618,9 @@ export class Grapher
     @computed
     private get tableAfterAllTransformsAndFilters(): OwidTable {
         const { startTime, endTime } = this
-        const table = this
-            .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
+        const table =
+            this
+                .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
 
         if (startTime === undefined || endTime === undefined) return table
 
@@ -1274,12 +1276,8 @@ export class Grapher
 
     // Columns that are used as a dimension in the currently active view
     @computed get activeColumnSlugs(): string[] {
-        const {
-            yColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
-        } = this
+        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
+            this
 
         return excludeUndefined([
             ...yColumnSlugs,
@@ -1290,12 +1288,8 @@ export class Grapher
     }
 
     @computed get columnsWithSources(): CoreColumn[] {
-        const {
-            yColumnSlugs,
-            xColumnSlug,
-            sizeColumnSlug,
-            colorColumnSlug,
-        } = this
+        const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
+            this
 
         const columnSlugs = [...yColumnSlugs]
 
@@ -1544,9 +1538,8 @@ export class Grapher
 
         let ErrorBoundary = React.Fragment // use React.Fragment as a sort of default error boundary if Bugsnag is not available
         if (Bugsnag && (Bugsnag as any)._client) {
-            ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(
-                React
-            )
+            ErrorBoundary =
+                Bugsnag.getPlugin("react").createErrorBoundary(React)
         }
 
         const setBoundsFromContainerAndRender = (): void => {
@@ -1952,9 +1945,10 @@ export class Grapher
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
-        const numNonProjectedColumns = this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
-            (c) => !c.display?.isProjection
-        ).length
+        const numNonProjectedColumns =
+            this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
+                (c) => !c.display?.isProjection
+            ).length
         if (
             // multiple metrics (excluding projections)
             numNonProjectedColumns > 1 &&
@@ -2404,9 +2398,8 @@ export class Grapher
 
         if (!this.hasUserChangedTimeHandles) return undefined
 
-        const [startTime, endTime] = this.timelineHandleTimeBounds.map(
-            formatTime
-        )
+        const [startTime, endTime] =
+            this.timelineHandleTimeBounds.map(formatTime)
         return startTime === endTime ? startTime : `${startTime}..${endTime}`
     }
 

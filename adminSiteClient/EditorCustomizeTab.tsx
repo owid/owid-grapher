@@ -38,9 +38,9 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.grapher.baseColorScheme = (selected.value === "default"
-            ? undefined
-            : selected.value) as ColorSchemeName
+        this.props.grapher.baseColorScheme = (
+            selected.value === "default" ? undefined : selected.value
+        ) as ColorSchemeName
 
         // clear out saved, pre-computed colors so the color scheme change is immediately visible
         this.props.grapher.seriesColorMap?.clear()

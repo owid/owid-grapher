@@ -857,7 +857,8 @@ it("migrates map.targetYear correctly", () => {
 })
 
 it("correctly identifies activeColumnSlugs", () => {
-    const table = new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
+    const table =
+        new OwidTable(`entityName,entityId,entityColor,year,gdp,gdp-annotations,child_mortality,population,continent,happiness
     Belgium,BEL,#f6f,2010,80000,pretty damn high,1.5,9000000,Europe,81.2
     `)
     const grapher = new Grapher({

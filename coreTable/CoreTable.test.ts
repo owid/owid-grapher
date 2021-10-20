@@ -39,10 +39,7 @@ population,Population in 2020,
 popTimes10,Pop times 10,multiplyBy population 10`
             )
             expect(table.get("popTimes10").valuesIncludingErrorValues).toEqual([
-                10,
-                500,
-                3000,
-                200,
+                10, 500, 3000, 200,
             ])
         })
 
@@ -471,9 +468,8 @@ hi,1,,2001`
         const table = new CoreTable(csv)
 
         const annotationsColumn = table.get("notes")
-        const entityNameMap = annotationsColumn.getUniqueValuesGroupedBy(
-            "entityName"
-        )
+        const entityNameMap =
+            annotationsColumn.getUniqueValuesGroupedBy("entityName")
 
         expect(entityNameMap.size).toEqual(2)
         expect(entityNameMap.get("hi")).toContain("in millions")
@@ -520,9 +516,7 @@ describe("filtering", () => {
     can,333
     ger,0.1`)
             expect(table.filterNegatives("pop").get("pop").values).toEqual([
-                0,
-                333,
-                0.1,
+                0, 333, 0.1,
             ])
         })
     })

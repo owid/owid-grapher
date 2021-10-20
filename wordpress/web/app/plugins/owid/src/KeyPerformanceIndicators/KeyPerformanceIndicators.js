@@ -38,9 +38,10 @@ const KeyPerformanceIndicators = ({
 
 const mapSelectToProps = function (select, props) {
     return {
-        keyPerformanceIndicators: select("core/editor").getEditedPostAttribute(
-            "meta"
-        )[KEY_PERFORMANCE_INDICATORS_META_FIELD],
+        keyPerformanceIndicators:
+            select("core/editor").getEditedPostAttribute("meta")[
+                KEY_PERFORMANCE_INDICATORS_META_FIELD
+            ],
     }
 }
 
