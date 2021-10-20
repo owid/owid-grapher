@@ -4268,10 +4268,10 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.0.tgz#7036640b4e21cc2f259ae826ce843d277dad8cff"
   integrity sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
 
-"@types/string-pixel-width@^1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@types/string-pixel-width/-/string-pixel-width-1.7.0.tgz#f9acef12f8189b63a48f3fbf5a0e3409551f5eb0"
-  integrity sha512-Q/Gs9iOe7Ch9aXkNXj1zGmmR7oZ00cxq1UAYkj/VC9dv+FQd3oqCkS9t+SgYVxfLRkN4vq8Zfj46m2szc9uB/g==
+"@types/string-pixel-width@^1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@types/string-pixel-width/-/string-pixel-width-1.7.2.tgz#76b73c4cf497e8dcd9542e9961731ed3f7eea275"
+  integrity sha512-E3geahr5MB1r1WPVEfpKMC7fCEO9XV3Hbt9CeUip2jNZgTtvzeQAVRmJagJnSeDx/uIsAbk+Ri/smq3yE3CYVw==
 
 "@types/svgo@^1.3.2":
   version "1.3.2"
@@ -17797,10 +17797,10 @@ string-length@^4.0.1:
     char-regex "^1.0.2"
     strip-ansi "^6.0.0"
 
-string-pixel-width@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/string-pixel-width/-/string-pixel-width-1.9.0.tgz#c913e482f2ca8c35bd21a59770ef1afcd911152f"
-  integrity sha512-PIT/uoWm50av0DtWXsNz7de4Our1xvMxZHiMi2CAK06dN8QJizdKlIOwSdhcRxVK30UvC3COv4/Dv5p9+oiwfA==
+string-pixel-width@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/string-pixel-width/-/string-pixel-width-1.10.0.tgz#aff215aaa7a65627f937d70fcc88d83ae1bc5657"
+  integrity sha512-cOMpkH+CpxWAnrPsWUvPWhZxh25CzUukweT+6WF+Kwx6+G2ksg8flvELZusLyWiZzfFCjj1+QRRGwcPWZlwVYA==
   dependencies:
     lodash.deburr "^4.1.0"
 
