@@ -11,3 +11,4 @@ coverage
 /wordpress/web/wp
 /wordpress/web/app/plugins/*
 !/wordpress/web/app/plugins/owid
+/wordpress/web/app/uploads
