@@ -189,9 +189,9 @@ export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDr
             deficiency,
         }))
         const grouped = groupBy(options, (option) => option.deficiency.group)
-        const selectGroups = Object.entries(
-            grouped
-        ).map(([label, options]) => ({ label, options }))
+        const selectGroups = Object.entries(grouped).map(
+            ([label, options]) => ({ label, options })
+        )
 
         return [
             {

@@ -45,7 +45,8 @@ class SomeThingWithAPicker
         pickerSlugs?: ColumnSlug[]
         selection?: EntityName[]
     }>
-    implements EntityPickerManager {
+    implements EntityPickerManager
+{
     entityPickerTable = SynthesizeGDPTable({ entityCount: 30 }, 1)
 
     @observable entityPickerMetric?: ColumnSlug

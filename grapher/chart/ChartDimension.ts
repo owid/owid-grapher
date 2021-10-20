@@ -40,7 +40,8 @@ export interface LegacyDimensionsManager {
 
 export class ChartDimension
     extends ChartDimensionDefaults
-    implements Persistable {
+    implements Persistable
+{
     private manager: LegacyDimensionsManager
 
     constructor(

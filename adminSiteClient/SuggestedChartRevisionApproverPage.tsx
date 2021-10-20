@@ -859,8 +859,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                         },
                                         {
                                             value: "updatedAt",
-                                            label:
-                                                "Date suggestion last updated",
+                                            label: "Date suggestion last updated",
                                         },
                                         {
                                             value: "createdAt",

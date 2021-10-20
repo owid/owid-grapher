@@ -57,7 +57,8 @@ export class SlopeChart
         bounds?: Bounds
         manager: ChartManager
     }>
-    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
+    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager
+{
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
@@ -635,7 +636,8 @@ class Slope extends React.Component<SlopeProps> {
 @observer
 class LabelledSlopes
     extends React.Component<LabelledSlopesProps>
-    implements FontSizeManager {
+    implements FontSizeManager
+{
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get data() {

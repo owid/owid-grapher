@@ -94,165 +94,180 @@ const casesDoubingBackgColorScale = scaleLinear<string>()
     .interpolate(interpolateLab)
     .clamp(true)
 
-const daysToDoubleGenerator = (
-    accessorDatum: IntAccessor,
-    accessorRange: RangeAccessor,
-    noun: NounGenerator,
-    doubingBackgColorScale: (n: number) => string,
-    doubingTextColorScale: (n: number) => string
-) => (props: CovidTableCellSpec) => {
-    const { datum, bars, isMobile } = props
-    const range = accessorRange(datum)
-    return (
-        <React.Fragment>
-            <td className="doubling-days" rowSpan={props.baseRowSpan}>
-                {range !== undefined ? (
-                    <>
-                        <span>
-                            <span className="label">doubled in</span> <br />
-                            <span
-                                className="days"
-                                style={{
-                                    backgroundColor: doubingBackgColorScale(
-                                        range.length
-                                    ),
-                                    color: doubingTextColorScale(range.length),
-                                }}
-                            >
-                                {range.length}
-                                &nbsp;
-                                {nouns.days(range.length)}&nbsp;
-                                <Tippy
-                                    content={
-                                        <CovidDoublingTooltip
-                                            doublingRange={range}
-                                            noun={noun}
-                                            accessor={accessorDatum}
-                                        />
-                                    }
-                                    maxWidth={260}
+const daysToDoubleGenerator =
+    (
+        accessorDatum: IntAccessor,
+        accessorRange: RangeAccessor,
+        noun: NounGenerator,
+        doubingBackgColorScale: (n: number) => string,
+        doubingTextColorScale: (n: number) => string
+    ) =>
+    (props: CovidTableCellSpec) => {
+        const { datum, bars, isMobile } = props
+        const range = accessorRange(datum)
+        return (
+            <React.Fragment>
+                <td className="doubling-days" rowSpan={props.baseRowSpan}>
+                    {range !== undefined ? (
+                        <>
+                            <span>
+                                <span className="label">doubled in</span> <br />
+                                <span
+                                    className="days"
+                                    style={{
+                                        backgroundColor: doubingBackgColorScale(
+                                            range.length
+                                        ),
+                                        color: doubingTextColorScale(
+                                            range.length
+                                        ),
+                                    }}
                                 >
-                                    <span className="info-icon">
-                                        <FontAwesomeIcon icon={faInfoCircle} />
-                                    </span>
-                                </Tippy>
+                                    {range.length}
+                                    &nbsp;
+                                    {nouns.days(range.length)}&nbsp;
+                                    <Tippy
+                                        content={
+                                            <CovidDoublingTooltip
+                                                doublingRange={range}
+                                                noun={noun}
+                                                accessor={accessorDatum}
+                                            />
+                                        }
+                                        maxWidth={260}
+                                    >
+                                        <span className="info-icon">
+                                            <FontAwesomeIcon
+                                                icon={faInfoCircle}
+                                            />
+                                        </span>
+                                    </Tippy>
+                                </span>
                             </span>
+                        </>
+                    ) : (
+                        <span className="no-data">
+                            Not enough data available
                         </span>
-                    </>
-                ) : (
-                    <span className="no-data">Not enough data available</span>
-                )}
-            </td>
-            {isMobile && (
-                <td
-                    className={`plot-cell measure--${noun()}`}
-                    rowSpan={props.baseRowSpan}
-                >
-                    <div className="trend">
-                        <div className="plot">
-                            <SparkBars<CovidDatum>
-                                className="spark-bars covid-bars"
-                                {...bars}
-                                y={accessorDatum}
-                                highlightedX={
-                                    range !== undefined
-                                        ? bars.x(range.halfDay)
-                                        : undefined
-                                }
-                            />
-                        </div>
-                    </div>
+                    )}
                 </td>
-            )}
-        </React.Fragment>
-    )
-}
-
-const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
-    props: CovidTableCellSpec
-) => {
-    const { bars, datum } = props
-    return (
-        <td
-            className={`plot-cell measure--${noun()}`}
-            rowSpan={props.baseRowSpan}
-        >
-            <div className="trend">
-                <div className="plot">
-                    <SparkBars<CovidDatum>
-                        className="spark-bars covid-bars"
-                        {...bars}
-                        y={accessor}
-                        renderValue={(d) =>
-                            d && accessor(d) !== undefined ? (
-                                <SparkBarTimeSeriesValue
-                                    className="highlighted"
-                                    value={formatInt(accessor(d))}
-                                    displayDate={formatDate(d.date)}
+                {isMobile && (
+                    <td
+                        className={`plot-cell measure--${noun()}`}
+                        rowSpan={props.baseRowSpan}
+                    >
+                        <div className="trend">
+                            <div className="plot">
+                                <SparkBars<CovidDatum>
+                                    className="spark-bars covid-bars"
+                                    {...bars}
+                                    y={accessorDatum}
+                                    highlightedX={
+                                        range !== undefined
+                                            ? bars.x(range.halfDay)
+                                            : undefined
+                                    }
                                 />
-                            ) : undefined
-                        }
-                    />
-                </div>
-                <div className="value">
-                    {datum.latest && accessor(datum.latest) !== undefined && (
-                        <SparkBarTimeSeriesValue
-                            className="current"
-                            value={`${formatInt(accessor(datum.latest))} total`}
-                            displayDate={formatDate(datum.latest.date)}
-                            latest={true}
-                        />
-                    )}
-                </div>
-            </div>
-        </td>
-    )
-}
+                            </div>
+                        </div>
+                    </td>
+                )}
+            </React.Fragment>
+        )
+    }
 
-const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
-    props: CovidTableCellSpec
-) => {
-    const { bars, datum } = props
-    return (
-        <td
-            className={`plot-cell measure--${noun()}`}
-            rowSpan={props.baseRowSpan}
-        >
-            <div className="trend">
-                <div className="plot">
-                    <SparkBars<CovidDatum>
-                        className="spark-bars covid-bars"
-                        {...bars}
-                        y={accessor}
-                        renderValue={(d) =>
-                            d && accessor(d) !== undefined ? (
+const totalGenerator =
+    (accessor: IntAccessor, noun: NounGenerator) =>
+    (props: CovidTableCellSpec) => {
+        const { bars, datum } = props
+        return (
+            <td
+                className={`plot-cell measure--${noun()}`}
+                rowSpan={props.baseRowSpan}
+            >
+                <div className="trend">
+                    <div className="plot">
+                        <SparkBars<CovidDatum>
+                            className="spark-bars covid-bars"
+                            {...bars}
+                            y={accessor}
+                            renderValue={(d) =>
+                                d && accessor(d) !== undefined ? (
+                                    <SparkBarTimeSeriesValue
+                                        className="highlighted"
+                                        value={formatInt(accessor(d))}
+                                        displayDate={formatDate(d.date)}
+                                    />
+                                ) : undefined
+                            }
+                        />
+                    </div>
+                    <div className="value">
+                        {datum.latest &&
+                            accessor(datum.latest) !== undefined && (
                                 <SparkBarTimeSeriesValue
-                                    className="highlighted"
-                                    value={formatInt(accessor(d), "", {
+                                    className="current"
+                                    value={`${formatInt(
+                                        accessor(datum.latest)
+                                    )} total`}
+                                    displayDate={formatDate(datum.latest.date)}
+                                    latest={true}
+                                />
+                            )}
+                    </div>
+                </div>
+            </td>
+        )
+    }
+
+const newGenerator =
+    (accessor: IntAccessor, noun: NounGenerator) =>
+    (props: CovidTableCellSpec) => {
+        const { bars, datum } = props
+        return (
+            <td
+                className={`plot-cell measure--${noun()}`}
+                rowSpan={props.baseRowSpan}
+            >
+                <div className="trend">
+                    <div className="plot">
+                        <SparkBars<CovidDatum>
+                            className="spark-bars covid-bars"
+                            {...bars}
+                            y={accessor}
+                            renderValue={(d) =>
+                                d && accessor(d) !== undefined ? (
+                                    <SparkBarTimeSeriesValue
+                                        className="highlighted"
+                                        value={formatInt(accessor(d), "", {
+                                            showPlus: true,
+                                        })}
+                                        displayDate={d && formatDate(d.date)}
+                                    />
+                                ) : undefined
+                            }
+                        />
+                    </div>
+                    <div className="value">
+                        {datum.latest && accessor(datum.latest) !== undefined && (
+                            <SparkBarTimeSeriesValue
+                                className="current"
+                                value={`${formatInt(
+                                    accessor(datum.latest),
+                                    "",
+                                    {
                                         showPlus: true,
-                                    })}
-                                    displayDate={d && formatDate(d.date)}
-                                />
-                            ) : undefined
-                        }
-                    />
+                                    }
+                                )} new`}
+                                displayDate={formatDate(datum.latest.date)}
+                                latest={true}
+                            />
+                        )}
+                    </div>
                 </div>
-                <div className="value">
-                    {datum.latest && accessor(datum.latest) !== undefined && (
-                        <SparkBarTimeSeriesValue
-                            className="current"
-                            value={`${formatInt(accessor(datum.latest), "", {
-                                showPlus: true,
-                            })} new`}
-                            displayDate={formatDate(datum.latest.date)}
-                            latest={true}
-                        />
-                    )}
-                </div>
-            </div>
-        </td>
-    )
-}
+            </td>
+        )
+    }
 
 // TODO
 // There can be columns you cannot sort by, therefore don't have accessors (accessors return undefined is best to implement)

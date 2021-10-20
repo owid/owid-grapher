@@ -50,11 +50,8 @@ export class ComparisonLine extends React.Component<{
         if (!label) return
 
         const { controlData } = this
-        const {
-            horizontalAxis,
-            verticalAxis,
-            innerBounds,
-        } = this.props.dualAxis
+        const { horizontalAxis, verticalAxis, innerBounds } =
+            this.props.dualAxis
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData

@@ -42,53 +42,57 @@ export const EntitiesAsSeries = (): JSX.Element => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRowsAndInterpolation = (): JSX.Element => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            manager={{
-                ...entitiesChart,
-                table: table.dropRandomRows(30, seed),
-            }}
-        />
-    </svg>
-)
+export const EntitiesAsSeriesWithMissingRowsAndInterpolation =
+    (): JSX.Element => (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                manager={{
+                    ...entitiesChart,
+                    table: table.dropRandomRows(30, seed),
+                }}
+            />
+        </svg>
+    )
 
-export const EntitiesAsSeriesWithMissingRowsNoInterpolation = (): JSX.Element => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            disableLinearInterpolation={true}
-            manager={{
-                ...entitiesChart,
-                table: table.dropRandomRows(30, seed),
-            }}
-        />
-    </svg>
-)
+export const EntitiesAsSeriesWithMissingRowsNoInterpolation =
+    (): JSX.Element => (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                disableLinearInterpolation={true}
+                manager={{
+                    ...entitiesChart,
+                    table: table.dropRandomRows(30, seed),
+                }}
+            />
+        </svg>
+    )
 
-export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative = (): JSX.Element => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            manager={{
-                ...entitiesChart,
-                table: table.dropRandomRows(30, seed),
-                isRelativeMode: true,
-            }}
-        />
-    </svg>
-)
+export const EntitiesAsSeriesWithMissingRowsAndInterpolationRelative =
+    (): JSX.Element => (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                manager={{
+                    ...entitiesChart,
+                    table: table.dropRandomRows(30, seed),
+                    isRelativeMode: true,
+                }}
+            />
+        </svg>
+    )
 
-export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative = (): JSX.Element => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            disableLinearInterpolation={true}
-            manager={{
-                ...entitiesChart,
-                table: table.dropRandomRows(30, seed),
-                isRelativeMode: true,
-            }}
-        />
-    </svg>
-)
+export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative =
+    (): JSX.Element => (
+        <svg width={600} height={600}>
+            <StackedAreaChart
+                disableLinearInterpolation={true}
+                manager={{
+                    ...entitiesChart,
+                    table: table.dropRandomRows(30, seed),
+                    isRelativeMode: true,
+                }}
+            />
+        </svg>
+    )
 
 const colTable = SynthesizeFruitTable()
 const columnsChart: ChartManager = {
@@ -124,25 +128,26 @@ export const ColumnsAsSeriesWithMissingCells = (): JSX.Element => {
     )
 }
 
-export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative = (): JSX.Element => {
-    let table = SynthesizeFruitTable().dropRandomRows(30, seed)
-    const firstCol = table.columnsAsArray[0]
-    const junkFoodColumn = {
-        ...firstCol.def,
-        slug: "junkFood",
-        name: "JunkFood",
-        values: firstCol.values.slice().reverse(),
+export const ColumnsAsSeriesWithMissingRowsAndInterpolationRelative =
+    (): JSX.Element => {
+        let table = SynthesizeFruitTable().dropRandomRows(30, seed)
+        const firstCol = table.columnsAsArray[0]
+        const junkFoodColumn = {
+            ...firstCol.def,
+            slug: "junkFood",
+            name: "JunkFood",
+            values: firstCol.values.slice().reverse(),
+        }
+        table = table.appendColumns([junkFoodColumn])
+        return (
+            <svg width={600} height={600}>
+                <StackedAreaChart
+                    manager={{
+                        selection: table.sampleEntityName(1),
+                        table,
+                        isRelativeMode: true,
+                    }}
+                />
+            </svg>
+        )
     }
-    table = table.appendColumns([junkFoodColumn])
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart
-                manager={{
-                    selection: table.sampleEntityName(1),
-                    table,
-                    isRelativeMode: true,
-                }}
-            />
-        </svg>
-    )
-}

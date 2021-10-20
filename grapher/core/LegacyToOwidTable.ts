@@ -107,10 +107,8 @@ export const legacyToOwidTableAndDimensions = (
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
         // Annotations column
-        const [
-            annotationMap,
-            annotationColumnDef,
-        ] = annotationMapAndDefFromLegacyVariable(variable)
+        const [annotationMap, annotationColumnDef] =
+            annotationMapAndDefFromLegacyVariable(variable)
 
         // Column values
 
@@ -137,9 +135,9 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         if (annotationColumnDef) {
-            columnStore[
-                annotationColumnDef.slug
-            ] = entityNames.map((entityName) => annotationMap!.get(entityName))
+            columnStore[annotationColumnDef.slug] = entityNames.map(
+                (entityName) => annotationMap!.get(entityName)
+            )
         }
 
         if (colorColumnSlug) {

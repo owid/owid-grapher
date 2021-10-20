@@ -149,41 +149,40 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers = async (
-    bakedSiteDir: string
-) => {
-    const rows: { id: number; config: any }[] = await db.queryMysql(
-        `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
-    )
-
-    const newSlugs = []
-    await fs.mkdirp(bakedSiteDir + "/grapher")
-    const progressBar = new ProgressBar(
-        "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :rate/s :etas :name\n",
-        {
-            width: 20,
-            total: rows.length + 1,
-        }
-    )
-    for (const row of rows) {
-        const grapher: GrapherInterface = JSON.parse(row.config)
-        grapher.id = row.id
-        newSlugs.push(grapher.slug)
-
-        // Avoid baking paths that have an Explorer redirect.
-        // Redirects take precedence.
-        if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
-            progressBar.tick({ name: `✅ ${grapher.slug}` })
-            continue
-        }
-
-        await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
-            bakedSiteDir,
-            grapher
+export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
+    async (bakedSiteDir: string) => {
+        const rows: { id: number; config: any }[] = await db.queryMysql(
+            `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
         )
-        progressBar.tick({ name: `✅ ${grapher.slug}` })
-    }
 
-    await deleteOldGraphers(bakedSiteDir, newSlugs.filter(isPresent))
-    progressBar.tick({ name: `✅ Deleted old graphers` })
-}
+        const newSlugs = []
+        await fs.mkdirp(bakedSiteDir + "/grapher")
+        const progressBar = new ProgressBar(
+            "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+            {
+                width: 20,
+                total: rows.length + 1,
+            }
+        )
+        for (const row of rows) {
+            const grapher: GrapherInterface = JSON.parse(row.config)
+            grapher.id = row.id
+            newSlugs.push(grapher.slug)
+
+            // Avoid baking paths that have an Explorer redirect.
+            // Redirects take precedence.
+            if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
+                progressBar.tick({ name: `✅ ${grapher.slug}` })
+                continue
+            }
+
+            await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
+                bakedSiteDir,
+                grapher
+            )
+            progressBar.tick({ name: `✅ ${grapher.slug}` })
+        }
+
+        await deleteOldGraphers(bakedSiteDir, newSlugs.filter(isPresent))
+        progressBar.tick({ name: `✅ Deleted old graphers` })
+    }

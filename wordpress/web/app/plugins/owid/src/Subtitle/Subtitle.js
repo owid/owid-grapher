@@ -16,9 +16,10 @@ const Subtitle = ({ subtitle = "", setSubtitle }) => {
 
 const mapSelectToProps = function (select, props) {
     return {
-        subtitle: select("core/editor").getEditedPostAttribute("meta")[
-            SUBTITLE_META_FIELD
-        ],
+        subtitle:
+            select("core/editor").getEditedPostAttribute("meta")[
+                SUBTITLE_META_FIELD
+            ],
     }
 }
 

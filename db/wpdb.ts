@@ -615,13 +615,11 @@ export const getFullPost = async (
     glossary: postApi.meta.owid_glossary_meta_field,
 })
 
-export const getBlogIndex = memoize(
-    async (): Promise<FullPost[]> => {
-        // TODO: do not get post content in the first place
-        const posts = await getPosts(["post"])
-        return Promise.all(posts.map((post) => getFullPost(post, true)))
-    }
-)
+export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
+    // TODO: do not get post content in the first place
+    const posts = await getPosts(["post"])
+    return Promise.all(posts.map((post) => getFullPost(post, true)))
+})
 
 interface TablepressTable {
     tableId: string

@@ -214,7 +214,8 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
             () => this.xOverrideTimeInputField,
             lodash.debounce(
                 () =>
-                    (this.props.grapher.xOverrideTime = this.xOverrideTimeInputField),
+                    (this.props.grapher.xOverrideTime =
+                        this.xOverrideTimeInputField),
                 800
             )
         )

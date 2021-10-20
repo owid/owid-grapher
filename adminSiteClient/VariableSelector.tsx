@@ -328,8 +328,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                         <span
                                                                             style={{
                                                                                 fontWeight: 500,
-                                                                                color:
-                                                                                    "#555",
+                                                                                color: "#555",
                                                                             }}
                                                                         >
                                                                             {v.usageCount
@@ -450,14 +449,15 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound private initChosenVariables() {
         const { variableUsageCounts } = this.database
-        this.chosenVariables = this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
-            (d) => ({
-                name: d.column.displayName,
-                id: d.variableId,
-                usageCount: variableUsageCounts.get(d.variableId) ?? 0,
-                datasetName: "",
-            })
-        )
+        this.chosenVariables =
+            this.props.slot.dimensionsOrderedAsInPersistedSelection.map(
+                (d) => ({
+                    name: d.column.displayName,
+                    id: d.variableId,
+                    usageCount: variableUsageCounts.get(d.variableId) ?? 0,
+                    datasetName: "",
+                })
+            )
     }
 
     componentWillUnmount() {

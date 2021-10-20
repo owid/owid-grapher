@@ -210,9 +210,9 @@ export class DecisionMatrix {
     @computed private get availableChoiceOptions(): ChoiceMap {
         const result: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
-            result[choiceName] = this.allChoiceOptions[
-                choiceName
-            ].filter((option) => this.isOptionAvailable(choiceName, option))
+            result[choiceName] = this.allChoiceOptions[choiceName].filter(
+                (option) => this.isOptionAvailable(choiceName, option)
+            )
         })
         return result
     }

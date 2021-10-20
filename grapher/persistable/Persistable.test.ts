@@ -55,7 +55,8 @@ class CharacterDefaults {
 
 class Character
     extends CharacterDefaults
-    implements CharacterInterface, Persistable {
+    implements CharacterInterface, Persistable
+{
     constructor(props?: CharacterInterface) {
         super()
         if (props) this.updateFromObject(props)

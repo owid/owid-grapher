@@ -105,11 +105,8 @@ export class SuggestedChartRevisionListPage extends React.Component {
     }
 
     render() {
-        const {
-            suggestedChartRevisionsToShow,
-            searchInput,
-            numTotalRows,
-        } = this
+        const { suggestedChartRevisionsToShow, searchInput, numTotalRows } =
+            this
 
         const highlight = (text: string) => {
             if (this.searchInput) {

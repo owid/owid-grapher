@@ -286,8 +286,8 @@ export class CovidTable extends React.Component<CovidTableProps> {
                                     columns={this.columns}
                                     transform={{
                                         dateRange: this.dateRange,
-                                        totalTestsBarScale: this
-                                            .totalTestsBarScale,
+                                        totalTestsBarScale:
+                                            this.totalTestsBarScale,
                                         countryColors: this.countryColors,
                                     }}
                                     extraRow={this.props.extraRow}

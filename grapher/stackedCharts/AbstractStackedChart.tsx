@@ -45,7 +45,8 @@ export interface AbstactStackedChartProps {
 @observer
 export class AbstactStackedChart<PositionType extends StackedPointPositionType>
     extends React.Component<AbstactStackedChartProps>
-    implements ChartInterface, FontSizeManager {
+    implements ChartInterface, FontSizeManager
+{
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames

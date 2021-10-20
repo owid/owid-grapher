@@ -112,16 +112,15 @@ export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable
 ): Promise<void> {
-    const variableQuery: Promise<
-        { id: number; name: string }[]
-    > = db.queryMysql(
-        `
+    const variableQuery: Promise<{ id: number; name: string }[]> =
+        db.queryMysql(
+            `
         SELECT id, name
         FROM variables
         WHERE id IN (?)
     `,
-        [variableIds]
-    )
+            [variableIds]
+        )
 
     const dataQuery: Promise<
         {

@@ -18,30 +18,30 @@ export interface CountryProfileSpec extends CountryProfileProjectConfiguration {
     rootPath: string
 }
 
-const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] = [
-    {
-        project: CountryProfileProject.coronavirus,
-        pageTitle: "Coronavirus Pandemic",
-        landingPageSlug: "coronavirus",
-    },
-    {
-        project: CountryProfileProject.co2,
-        pageTitle: "CO2",
-        landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
-    },
-    {
-        project: CountryProfileProject.energy,
-        pageTitle: "Energy",
-        landingPageSlug: "energy",
-    },
-]
+const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] =
+    [
+        {
+            project: CountryProfileProject.coronavirus,
+            pageTitle: "Coronavirus Pandemic",
+            landingPageSlug: "coronavirus",
+        },
+        {
+            project: CountryProfileProject.co2,
+            pageTitle: "CO2",
+            landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
+        },
+        {
+            project: CountryProfileProject.energy,
+            pageTitle: "Energy",
+            landingPageSlug: "energy",
+        },
+    ]
 
-export const countryProfileSpecs: CountryProfileSpec[] = countryProfileProjectConfigurations.map(
-    (config) => {
+export const countryProfileSpecs: CountryProfileSpec[] =
+    countryProfileProjectConfigurations.map((config) => {
         return {
             ...config,
             rootPath: `${config.project}/country`,
             genericProfileSlug: `${config.project}-country-profile`,
         }
-    }
-)
+    })

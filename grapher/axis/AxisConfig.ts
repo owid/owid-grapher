@@ -37,7 +37,8 @@ class AxisConfigDefaults implements AxisConfigInterface {
 
 export class AxisConfig
     extends AxisConfigDefaults
-    implements AxisConfigInterface, Persistable, ScaleSelectorManager {
+    implements AxisConfigInterface, Persistable, ScaleSelectorManager
+{
     constructor(
         props?: AxisConfigInterface,
         fontSizeManager?: FontSizeManager

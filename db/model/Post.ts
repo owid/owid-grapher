@@ -20,10 +20,8 @@ export namespace Post {
             JOIN tags t ON t.id=pt.tag_id
         `)
 
-        const tagsByPostId: Map<
-            number,
-            { id: number; name: string }[]
-        > = new Map()
+        const tagsByPostId: Map<number, { id: number; name: string }[]> =
+            new Map()
 
         for (const pt of postTags) {
             const tags = tagsByPostId.get(pt.postId) || []

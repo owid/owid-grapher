@@ -262,12 +262,8 @@ export class TimelineComponent extends React.Component<{
 
     render(): JSX.Element {
         const { manager, controller } = this
-        const {
-            startTimeProgress,
-            endTimeProgress,
-            minTime,
-            maxTime,
-        } = controller
+        const { startTimeProgress, endTimeProgress, minTime, maxTime } =
+            controller
         const { startHandleTimeBound, endHandleTimeBound } = manager
 
         const formattedStartTime = this.formatTime(

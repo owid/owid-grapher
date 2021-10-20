@@ -127,10 +127,9 @@ export class CoreTable<
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
         if (!parent)
-            autodetectColumnDefs(
-                this.inputColumnStore,
-                this._columns
-            ).forEach((def) => this.setColumn(def as COL_DEF_TYPE))
+            autodetectColumnDefs(this.inputColumnStore, this._columns).forEach(
+                (def) => this.setColumn(def as COL_DEF_TYPE)
+            )
 
         this.timeToLoad = Date.now() - start // Perf aid
     }

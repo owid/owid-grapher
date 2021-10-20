@@ -274,9 +274,9 @@ export class LineLegend extends React.Component<{
     @computed get standardPlacement(): PlacedSeries[] {
         const { yAxis } = this.manager
 
-        const groups: PlacedSeries[][] = cloneDeep(
-            this.initialSeries
-        ).map((mark) => [mark])
+        const groups: PlacedSeries[][] = cloneDeep(this.initialSeries).map(
+            (mark) => [mark]
+        )
 
         let hasOverlap
 

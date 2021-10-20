@@ -189,8 +189,7 @@ export const LongFormPage = (props: {
                                                 />
                                                 <span
                                                     dangerouslySetInnerHTML={{
-                                                        __html:
-                                                            post.lastUpdated,
+                                                        __html: post.lastUpdated,
                                                     }}
                                                 />
                                             </div>

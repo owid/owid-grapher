@@ -82,10 +82,12 @@ interface MapChartProps {
 }
 
 // Get the underlying geographical topology elements we're going to display
-const GeoFeatures: GeoFeature[] = (topojson.feature(
-    MapTopology as any,
-    MapTopology.objects.world as any
-) as any).features
+const GeoFeatures: GeoFeature[] = (
+    topojson.feature(
+        MapTopology as any,
+        MapTopology.objects.world as any
+    ) as any
+).features
 
 // Get the svg path specification string for every feature
 const geoPathCache = new Map<MapProjectionName, string[]>()
@@ -166,7 +168,8 @@ const renderFeaturesFor = (
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
+    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+{
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -184,9 +187,8 @@ export class MapChart
     }
 
     private dropNonMapEntities(table: OwidTable): OwidTable {
-        const entityNamesToSelect = table.availableEntityNames.filter(
-            isOnTheMap
-        )
+        const entityNamesToSelect =
+            table.availableEntityNames.filter(isOnTheMap)
         return table.filterByEntityNames(entityNamesToSelect)
     }
 
@@ -326,12 +328,8 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const {
-            mapColumn,
-            selectionArray,
-            targetTime,
-            formatTooltipValue,
-        } = this
+        const { mapColumn, selectionArray, targetTime, formatTooltipValue } =
+            this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
@@ -764,9 +762,9 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return features.filter(
             (feature) =>
                 projection ===
-                ((WorldRegionToProjection[
+                (WorldRegionToProjection[
                     feature.id as WorldRegionName
-                ] as any) as MapProjectionName)
+                ] as any as MapProjectionName)
         )
     }
 

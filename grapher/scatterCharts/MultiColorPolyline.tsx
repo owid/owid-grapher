@@ -80,12 +80,8 @@ export class MultiColorPolyline extends React.Component<MultiColorPolylineProps>
     }
 
     render(): JSX.Element {
-        const {
-            markerStart,
-            markerMid,
-            markerEnd,
-            ...polylineProps
-        } = this.props
+        const { markerStart, markerMid, markerEnd, ...polylineProps } =
+            this.props
         return (
             <>
                 {this.segments.map((group, index) => (

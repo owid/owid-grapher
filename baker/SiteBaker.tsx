@@ -334,8 +334,7 @@ export class SiteBaker {
             this.bakedSiteDir
         )
         this.progressBar.tick({
-            name:
-                "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
     }
 

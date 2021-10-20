@@ -103,7 +103,8 @@ interface AxesInfo {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface, HorizontalColorLegendManager {
+    implements ChartInterface, HorizontalColorLegendManager
+{
     transformTable(table: OwidTable): OwidTable {
         return table
     }

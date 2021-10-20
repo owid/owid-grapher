@@ -491,11 +491,8 @@ export class FooterControls extends React.Component<{
 
     render(): JSX.Element {
         const { manager } = this
-        const {
-            isShareMenuActive,
-            hasRelatedQuestion,
-            relatedQuestions,
-        } = manager
+        const { isShareMenuActive, hasRelatedQuestion, relatedQuestions } =
+            manager
         const tabsElement = (
             <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
@@ -504,20 +501,21 @@ export class FooterControls extends React.Component<{
             <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
         )
 
-        const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (
-            <div className="relatedQuestion">
-                Related:&nbsp;
-                <a
-                    href={relatedQuestions[0].url}
-                    target="_blank"
-                    rel="noopener"
-                    data-track-note="chart-click-related"
-                >
-                    {relatedQuestions[0].text}
-                    <FontAwesomeIcon icon={faExternalLinkAlt} />
-                </a>
-            </div>
-        )
+        const relatedQuestionElement = relatedQuestions &&
+            hasRelatedQuestion && (
+                <div className="relatedQuestion">
+                    Related:&nbsp;
+                    <a
+                        href={relatedQuestions[0].url}
+                        target="_blank"
+                        rel="noopener"
+                        data-track-note="chart-click-related"
+                    >
+                        {relatedQuestions[0].text}
+                        <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </a>
+                </div>
+            )
 
         const timeline = !manager.hasTimeline ? null : (
             <div className="footerRowSingle">

@@ -113,7 +113,8 @@ export const deployIfQueueIsNotEmpty = async () => {
         !(await deployQueueServer.queueIsEmpty()) &&
         failures < MAX_SUCCESSIVE_FAILURES
     ) {
-        const deployContent = await deployQueueServer.readQueuedAndPendingFiles()
+        const deployContent =
+            await deployQueueServer.readQueuedAndPendingFiles()
         // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
         // possible that another process writes to this file in the meantime...
         await deployQueueServer.clearQueueFile()

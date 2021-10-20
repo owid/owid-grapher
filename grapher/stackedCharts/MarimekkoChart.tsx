@@ -316,7 +316,8 @@ export class MarimekkoChart
         bounds?: Bounds
         manager: MarimekkoChartManager
     }>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager {
+    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+{
     base: React.RefObject<SVGGElement> = React.createRef()
 
     defaultBaseColorScheme = ColorSchemeName.continents
@@ -482,9 +483,10 @@ export class MarimekkoChart
     }
 
     @computed private get latestTime(): number | undefined {
-        const times = this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
-            this.yColumnSlugs
-        )
+        const times =
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
+                this.yColumnSlugs
+            )
 
         return times ? last(times) : undefined
     }
@@ -1148,8 +1150,8 @@ export class MarimekkoChart
             ])
         )
 
-        const labelCandidates: LabelCandidate[] = xColumnAtLastTimePoint.owidRows.map(
-            (row) =>
+        const labelCandidates: LabelCandidate[] =
+            xColumnAtLastTimePoint.owidRows.map((row) =>
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
@@ -1159,7 +1161,7 @@ export class MarimekkoChart
                     baseFontSize,
                     selectedItemsSet.has(row.entityName)
                 )
-        )
+            )
 
         labelCandidates.sort((a, b) => {
             const yRowsForA = a.item.ySortValue

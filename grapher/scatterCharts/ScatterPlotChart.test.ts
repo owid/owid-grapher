@@ -490,7 +490,8 @@ describe("colors & legend", () => {
         colorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
-        tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter: tableWithoutChina,
+        tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter:
+            tableWithoutChina,
     }
 
     const chart = new ScatterPlotChart({ manager })
@@ -601,9 +602,7 @@ describe("series transformations", () => {
     it("sorts points by time", () => {
         const ukSeries = chart.series.find((s) => s.seriesName === "UK")!
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([
-            2001,
-            2003,
-            2004,
+            2001, 2003, 2004,
         ])
     })
 
@@ -844,12 +843,7 @@ describe("x/y tolerance", () => {
 
     it("removes rows without X or Y value", () => {
         expect(transformedTable.get("year").values).toEqual([
-            2003,
-            2004,
-            2005,
-            2006,
-            2007,
-            2008,
+            2003, 2004, 2005, 2006, 2007, 2008,
         ])
     })
 

@@ -82,15 +82,15 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 
 export class ColorScaleConfig
     extends ColorScaleConfigDefaults
-    implements Persistable {
+    implements Persistable
+{
     updateFromObject(obj: any): void {
         extend(this, obj)
     }
 
     toObject(): ColorScaleConfigInterface {
-        const obj: ColorScaleConfigInterface = objectWithPersistablesToObject(
-            this
-        )
+        const obj: ColorScaleConfigInterface =
+            objectWithPersistablesToObject(this)
         deleteRuntimeAndUnchangedProps(obj, new ColorScaleConfigDefaults())
         return trimObject(obj)
     }

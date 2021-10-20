@@ -171,13 +171,7 @@ describe(DecisionMatrix, () => {
 
     it("can detect needed chart configs", () => {
         expect(decisionMatrix.requiredGrapherIds).toEqual([
-            21,
-            24,
-            26,
-            29,
-            33,
-            55,
-            56,
+            21, 24, 26, 29, 33, 55, 56,
         ])
     })
 
@@ -292,40 +286,34 @@ france,Life expectancy`
 
     describe("checkboxes", () => {
         it("supports checkboxes with available options", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},PerCapita Checkbox
 488,true
 4331,false`)
-            const {
-                available,
-                checked,
-            } = decisionMatrix.choicesWithAvailability[0].options[0]
+            const { available, checked } =
+                decisionMatrix.choicesWithAvailability[0].options[0]
 
             expect(available).toEqual(true)
             expect(checked).toEqual(true)
         })
 
         it("supports checkboxes with no available options", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},Other Radio,PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},Other Radio,PerCapita Checkbox
 488,A,true
 4331,A,true
 4331,B,false`)
             decisionMatrix.setValueCommand("Other", "A")
-            const {
-                available,
-                checked,
-                value,
-            } = decisionMatrix.choicesWithAvailability[1].options[0]
+            const { available, checked, value } =
+                decisionMatrix.choicesWithAvailability[1].options[0]
             expect(checked).toEqual(true)
             expect(value).toEqual("true")
             expect(available).toEqual(false)
 
             {
                 decisionMatrix.setValueCommand("PerCapita", "false")
-                const {
-                    available,
-                    checked,
-                    value,
-                } = decisionMatrix.choicesWithAvailability[1].options[0]
+                const { available, checked, value } =
+                    decisionMatrix.choicesWithAvailability[1].options[0]
                 expect(available).toEqual(false)
                 expect(checked).toEqual(true)
                 expect(value).toEqual("true")
@@ -333,17 +321,15 @@ france,Life expectancy`
         })
 
         it("handles illogical states", () => {
-            const decisionMatrix = new DecisionMatrix(`${grapherIdKeyword},Letter Radio,Number Radio,PerCapita Checkbox
+            const decisionMatrix =
+                new DecisionMatrix(`${grapherIdKeyword},Letter Radio,Number Radio,PerCapita Checkbox
 488,A,1,true
 4331,A,1,true
 4331,B,2,false`)
             decisionMatrix.setValueCommand("Letter", "A")
             decisionMatrix.setValueCommand("Number", "2")
-            const {
-                available,
-                checked,
-                value,
-            } = decisionMatrix.choicesWithAvailability[2].options[0]
+            const { available, checked, value } =
+                decisionMatrix.choicesWithAvailability[2].options[0]
             expect(checked).toEqual(true)
             expect(value).toEqual("true")
             expect(available).toEqual(false)

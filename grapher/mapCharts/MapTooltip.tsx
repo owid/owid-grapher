@@ -126,12 +126,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
-        const {
-            tooltipDatum,
-            isEntityClickable,
-            targetTime,
-            manager,
-        } = this.props
+        const { tooltipDatum, isEntityClickable, targetTime, manager } =
+            this.props
 
         const clickToSelectMessage =
             manager.type === ChartTypeName.LineChart

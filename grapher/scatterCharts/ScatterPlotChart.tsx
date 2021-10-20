@@ -81,18 +81,16 @@ export class ScatterPlotChart
         ConnectedScatterLegendManager,
         ChartInterface,
         VerticalColorLegendManager,
-        ColorScaleManager {
+        ColorScaleManager
+{
     // currently hovered individual series key
     @observable private hoveredSeries?: SeriesName
     // currently hovered legend color
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable): OwidTable {
-        const {
-            backgroundSeriesLimit,
-            excludedEntities,
-            addCountryMode,
-        } = this.manager
+        const { backgroundSeriesLimit, excludedEntities, addCountryMode } =
+            this.manager
 
         if (
             addCountryMode === EntitySelectionMode.Disabled ||
@@ -207,10 +205,8 @@ export class ScatterPlotChart
         // This means we can drop 2000 and 2010 from the timeline.
         // It might not make a huge difference here, but it makes a difference when there are more
         // entities covering different time periods.
-        const [
-            originalTimeDomainStart,
-            originalTimeDomainEnd,
-        ] = table.originalTimeDomainFor([this.xColumnSlug, this.yColumnSlug])
+        const [originalTimeDomainStart, originalTimeDomainEnd] =
+            table.originalTimeDomainFor([this.xColumnSlug, this.yColumnSlug])
         table = table.filterByTimeRange(
             originalTimeDomainStart ?? -Infinity,
             originalTimeDomainEnd ?? Infinity
@@ -951,9 +947,8 @@ export class ScatterPlotChart
         series: ScatterSeries
     ): void {
         if (series.points.length) {
-            const keyColor = this.transformedTable.getColorForEntityName(
-                entityName
-            )
+            const keyColor =
+                this.transformedTable.getColorForEntityName(entityName)
             if (keyColor !== undefined) series.color = keyColor
             else if (!this.colorColumn.isMissing) {
                 const colorValue = last(

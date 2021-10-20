@@ -98,7 +98,8 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart
     extends AbstactStackedChart<Time>
-    implements VerticalColorLegendManager, ColorScaleManager {
+    implements VerticalColorLegendManager, ColorScaleManager
+{
     readonly minBarSpacing = 4
 
     constructor(props: AbstactStackedChartProps) {
