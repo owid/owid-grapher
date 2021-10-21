@@ -1126,3 +1126,18 @@ export function stringifyUnkownError(error: unknown): string | undefined {
 
     return String(error)
 }
+
+/**
+ * Turns a 2D array that is not necessarily rectangular into a rectangular array
+ * by appending missing values and filling them with `fill`.
+ */
+export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
+    if (arr.length === 0) return []
+    const width = max(arr.map((row) => row.length)) as number
+
+    return arr.map((row) => {
+        if (row.length < width)
+            return [...row, ...Array(width - row.length).fill(fill)]
+        else return row
+    })
+}
