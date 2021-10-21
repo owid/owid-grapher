@@ -7,7 +7,6 @@ import urljoin from "url-join"
 export interface CountryProfileIndicator {
     name: string
     slug: string
-    value: string
     year: number
     variantName?: string
 }
@@ -88,7 +87,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                                         </a>
                                     </div>
                                     <div className="indicatorValue">
-                                        {indicator.value} ({indicator.year})
+                                        ({indicator.year})
                                     </div>
                                 </li>
                             ))}
