@@ -23,6 +23,7 @@ import {
     differenceObj,
     numberMagnitude,
     urlToSlug,
+    toRectangularMatrix,
 } from "./Util"
 import { SortOrder } from "./owidTypes"
 
@@ -487,5 +488,19 @@ describe(urlToSlug, () => {
     })
     it("gets slug from multi-level path", () => {
         expect(urlToSlug(`/coronavirus/${slug}`)).toEqual(`${slug}`)
+    })
+})
+
+describe(toRectangularMatrix, () => {
+    it("converts a non-rectangular array to a rectangular one", () => {
+        const arr = [
+            [1, 2],
+            [1, 2, 3, 4],
+        ]
+        const expected = [
+            [1, 2, undefined, undefined],
+            [1, 2, 3, 4],
+        ]
+        expect(toRectangularMatrix(arr, undefined)).toEqual(expected)
     })
 })

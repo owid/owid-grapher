@@ -11,7 +11,11 @@ import { GitCmsClient } from "../gitCms/GitCmsClient"
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
 import { CoreMatrix } from "../coreTable/CoreTableConstants"
-import { exposeInstanceOnWindow, slugify } from "../clientUtils/Util"
+import {
+    exposeInstanceOnWindow,
+    slugify,
+    toRectangularMatrix,
+} from "../clientUtils/Util"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import {
     DefaultNewExplorerSlug,
@@ -288,7 +292,7 @@ class HotEditor extends React.Component<{
 
     @action.bound private updateProgramFromHot() {
         const newVersion =
-            this.hotTableComponent.current?.hotInstance.getData() as CoreMatrix
+            this.hotTableComponent.current?.hotInstance?.getData() as CoreMatrix
         if (!newVersion) return
 
         const newProgram = ExplorerProgram.fromMatrix(
@@ -385,7 +389,7 @@ class HotEditor extends React.Component<{
                     cut: {},
                 },
             },
-            data,
+            data: toRectangularMatrix(data, undefined),
             height: "100%",
             manualColumnResize: true,
             manualRowMove: true,
