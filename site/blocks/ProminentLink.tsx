@@ -141,7 +141,9 @@ export const renderAuthoredProminentLink = ($: CheerioStatic) => {
         const image =
             $block.find("figure").html() ||
             (url.isGrapher
-                ? `<img src="/grapher/exports/${url.slug}.svg" />`
+                ? `<img src="/grapher/exports/${url.pathname
+                      ?.split("/")
+                      .pop()}.svg" />`
                 : null)
 
         const rendered = ReactDOMServer.renderToStaticMarkup(
