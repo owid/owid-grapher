@@ -174,8 +174,12 @@ export const renderAuthoredProminentLink = ($: CheerioStatic) => {
 export const renderAutomaticProminentLink = (
     href: string,
     title: string,
-    image?: string
+    imageUrl?: string
 ) => {
+    let image
+    if (imageUrl) {
+        image = ReactDOMServer.renderToStaticMarkup(<img src={imageUrl} />)
+    }
     return ReactDOMServer.renderToStaticMarkup(
         <div className="block-wrapper">
             <ProminentLink

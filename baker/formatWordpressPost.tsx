@@ -5,7 +5,7 @@ import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { HTTPS_ONLY } from "../settings/serverSettings"
-import { getPostBySlug, getTables } from "../db/wpdb"
+import { getMediaThumbnailUrl, getPostBySlug, getTables } from "../db/wpdb"
 import Tablepress from "../site/Tablepress"
 import { GrapherExports } from "../baker/GrapherBakingUtils"
 import * as path from "path"
@@ -301,6 +301,7 @@ export const formatWordpressPost = async (
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks(cheerioEl)
 
+    // render automatic prominent links
     const anchorElements = cheerioEl("a").toArray()
     await Promise.all(
         anchorElements.map(async (anchor) => {
@@ -328,14 +329,21 @@ export const formatWordpressPost = async (
 
             if (!targetPost) return
 
-            // todo
-            const image =
-                "<img src='https://ourworldindata.org/grapher/exports/child-mortality-complete-gapminder.svg' />"
+            let mediaThumbnailUrl
+
+            if (targetPost.imageId) {
+                mediaThumbnailUrl = await getMediaThumbnailUrl(
+                    targetPost.imageId
+                )
+                if (mediaThumbnailUrl) {
+                    mediaThumbnailUrl = formatLinks(mediaThumbnailUrl)
+                }
+            }
 
             const rendered = renderAutomaticProminentLink(
                 anchor.attribs.href,
                 targetPost.title,
-                image
+                mediaThumbnailUrl
             )
 
             const $anchorParent = cheerioEl(anchor.parent)
