@@ -119,6 +119,10 @@ export class Url {
         return strToQueryParams(this.queryStr, true)
     }
 
+    get isGrapher(): boolean {
+        return this.pathname ? /\/grapher\//.test(this.pathname) : false
+    }
+
     update(props: UrlProps) {
         return new Url({
             ...this.props,

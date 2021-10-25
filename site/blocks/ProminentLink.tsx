@@ -48,10 +48,6 @@ class ProminentLink extends React.Component<{
         return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
     }
 
-    @computed private get isGrapher(): boolean {
-        return isGrapher(this.updatedUrl.fullUrl)
-    }
-
     @computed private get style(): string {
         return this.props.style || STYLE_DEFAULT
     }
@@ -114,7 +110,7 @@ class ProminentLink extends React.Component<{
             )
         }
 
-        const target = this.isGrapher ? { target: "_blank" } : {}
+        const target = this.updatedUrl.isGrapher ? { target: "_blank" } : {}
 
         return (
             <div
@@ -133,24 +129,19 @@ class ProminentLink extends React.Component<{
     }
 }
 
-const isGrapher = (url: string): boolean => {
-    return /\/grapher\//.test(url)
-}
-
 export const renderAuthoredProminentLink = ($: CheerioStatic) => {
     $("block[type='prominent-link']").each((_, el: CheerioElement) => {
         const $block = $(el)
         const href = $block.find("link-url").text()
+        const url = Url.fromURL(href)
 
         const style = $block.attr("style")
         const title = $block.find("title").text()
         const content = $block.find("content").html()
         const image =
             $block.find("figure").html() ||
-            (isGrapher(href)
-                ? `<img src="/grapher/exports/${Url.fromURL(href)
-                      .pathname?.split("/")
-                      .pop()}.svg" />`
+            (url.isGrapher
+                ? `<img src="/grapher/exports/${url.slug}.svg" />`
                 : null)
 
         const rendered = ReactDOMServer.renderToStaticMarkup(

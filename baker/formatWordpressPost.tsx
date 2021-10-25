@@ -306,12 +306,12 @@ export const formatWordpressPost = async (
     await Promise.all(
         anchorElements.map(async (anchor) => {
             if (!isStandaloneInternalLink(anchor, cheerioEl)) return
-            const slug = Url.fromURL(anchor.attribs.href).slug
-            if (!slug) return
+            const url = Url.fromURL(anchor.attribs.href)
+            if (!url.slug) return
 
             let targetPost
             try {
-                targetPost = await getPostBySlug(slug)
+                targetPost = await getPostBySlug(url.slug)
             } catch (err) {
                 // not throwing here as this is not considered a critical error.
                 // Standalone links will just show up as such (and get
