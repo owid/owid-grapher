@@ -163,28 +163,6 @@ export const renderAuthoredProminentLink = ($: CheerioStatic) => {
     })
 }
 
-// replace standalone internal links with prominent links
-export const renderAutomaticProminentLink = (
-    href: string,
-    title: string,
-    imageUrl?: string
-) => {
-    let image
-    if (imageUrl) {
-        image = ReactDOMServer.renderToStaticMarkup(<img src={imageUrl} />)
-    }
-    return ReactDOMServer.renderToStaticMarkup(
-        <div className="block-wrapper">
-            <ProminentLink
-                href={href}
-                style={STYLE_THIN}
-                title={title}
-                image={image}
-            />
-        </div>
-    )
-}
-
 export const hydrateProminentLink = (
     globalEntitySelection?: SelectionArray
 ) => {
