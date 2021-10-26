@@ -59,7 +59,10 @@ import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 import { Url } from "../clientUtils/urls/Url"
 import { logErrorAndMaybeSendToSlack } from "./slackLog"
-import { ProminentLink, STYLE_THIN } from "../site/blocks/ProminentLink"
+import {
+    ProminentLink,
+    ProminentLinkStyles,
+} from "../site/blocks/ProminentLink"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -431,7 +434,6 @@ export const renderAutomaticProminentLinks = async (
                     )
                 )
             }
-
             if (!targetPost) return
 
             let image
@@ -450,7 +452,7 @@ export const renderAutomaticProminentLinks = async (
                 <div className="block-wrapper">
                     <ProminentLink
                         href={anchor.attribs.href}
-                        style={STYLE_THIN}
+                        style={ProminentLinkStyles.thin}
                         title={targetPost.title}
                         image={image}
                     />

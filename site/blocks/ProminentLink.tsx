@@ -14,13 +14,19 @@ import { Url } from "../../clientUtils/urls/Url"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { BAKED_BASE_URL } from "../../settings/clientSettings"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
-const STYLE_THIN = "is-style-thin"
-const STYLE_DEFAULT = "is-style-default"
+
+export enum ProminentLinkStyles {
+    thin = "is-style-thin",
+    default = "is-style-default",
+}
+
+export const WITH_IMAGE = "with-image"
 
 @observer
-class ProminentLink extends React.Component<{
+export class ProminentLink extends React.Component<{
     href: string
     style: string | null
     title: string | null
@@ -49,13 +55,13 @@ class ProminentLink extends React.Component<{
     }
 
     @computed private get style(): string {
-        return this.props.style || STYLE_DEFAULT
+        return this.props.style || ProminentLinkStyles.default
     }
 
     render() {
         const classes = [
             PROMINENT_LINK_CLASSNAME,
-            this.props.image ? "with-image" : null,
+            this.props.image ? WITH_IMAGE : null,
         ]
 
         const renderImage = () => {
@@ -120,7 +126,7 @@ class ProminentLink extends React.Component<{
                 data-title={this.props.title}
             >
                 <a href={this.updatedUrl.fullUrl} {...target}>
-                    {this.style === STYLE_THIN
+                    {this.style === ProminentLinkStyles.thin
                         ? renderThinStyle()
                         : renderDefaultStyle()}
                 </a>
@@ -129,7 +135,7 @@ class ProminentLink extends React.Component<{
     }
 }
 
-export const renderAuthoredProminentLink = ($: CheerioStatic) => {
+export const renderAuthoredProminentLinks = ($: CheerioStatic) => {
     $("block[type='prominent-link']").each((_, el: CheerioElement) => {
         const $block = $(el)
         const href = $block.find("link-url").text()
@@ -141,7 +147,7 @@ export const renderAuthoredProminentLink = ($: CheerioStatic) => {
         const image =
             $block.find("figure").html() ||
             (url.isGrapher
-                ? `<img src="/grapher/exports/${url.pathname
+                ? `<img src="${BAKED_BASE_URL}/grapher/exports/${url.pathname
                       ?.split("/")
                       .pop()}.svg" />`
                 : null)

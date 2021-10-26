@@ -9,6 +9,8 @@ function render($attributes, $content)
     }
 
     $linkUrl = esc_url($attributes["linkUrl"]);
+    $style = $attributes["className"] ?? "";
+    $title = $attributes["title"] ?? "";
 
     $image = null;
     if (!empty($attributes['mediaUrl'])) {
@@ -19,9 +21,9 @@ function render($attributes, $content)
     }
 
     $block = <<<EOD
-    <block type="prominent-link" style="$attributes[className]">
+    <block type="prominent-link" $style>
         <link-url>$linkUrl</link-url>
-        <title>$attributes[title]</title>
+        <title>$title</title>
         <content>$content</content>
         <figure>$image</figure>
     </block>
