@@ -11,7 +11,11 @@ export class SuggestedChartRevision extends BaseEntity {
     @Column() createdBy!: number
     @Column() updatedBy!: number
 
-    @Column({ type: "enum", default: SuggestedChartRevisionStatus.pending })
+    @Column({
+        type: "enum",
+        enum: SuggestedChartRevisionStatus,
+        default: SuggestedChartRevisionStatus.pending,
+    })
     status!: SuggestedChartRevisionStatus
 
     @Column({ default: "" }) suggestedReason!: string
