@@ -142,7 +142,7 @@
         "js-base64": "^3.4.5",
         "js-cookie": "^2.2.1",
         "jsonwebtoken": "^8.5.1",
-        "knex": "0.19.5",
+        "knex": "^0.95.12",
         "linkifyjs": "^2.1.9",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",

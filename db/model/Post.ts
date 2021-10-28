@@ -1,5 +1,5 @@
 import * as db from "../db"
-import { QueryBuilder } from "knex"
+import { Knex } from "knex"
 import { PostRow } from "../../clientUtils/owidTypes"
 
 export namespace Post {
@@ -7,8 +7,8 @@ export namespace Post {
 
     export const select = <K extends keyof PostRow>(
         ...args: K[]
-    ): { from: (query: QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
-        from: (query): any => query.select(...args) as any,
+    ): { from: (query: Knex.QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
+        from: (query) => query.select(...args) as any,
     })
 
     export const tagsByPostId = async (): Promise<
