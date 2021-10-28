@@ -15,7 +15,7 @@ import {
     BLOG_SLUG,
 } from "../settings/serverSettings"
 import * as db from "./db"
-import Knex from "knex"
+import { Knex, knex } from "knex"
 import fetch from "node-fetch"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
@@ -33,7 +33,7 @@ import {
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
 
-let knexInstance: Knex
+let _knexInstance: Knex
 
 export const isWordpressAPIEnabled = WORDPRESS_URL.length > 0
 export const isWordpressDBEnabled = WORDPRESS_DB_NAME.length > 0
@@ -41,24 +41,11 @@ export const isWordpressDBEnabled = WORDPRESS_DB_NAME.length > 0
 class WPDB {
     private conn?: DatabaseConnection
 
-    private knex(
+    private knexInstance(
         tableName?: string | Knex.Raw | Knex.QueryBuilder | undefined
-    ): Knex.QueryBuilder<
-        Record<string, unknown>,
-        {
-            _base: any
-            _hasSelection: false
-            _keys: never
-            _aliases: Record<string, unknown>
-
-            _single: false
-            _intersectProps: Record<string, unknown>
-
-            _unionProps: never
-        }[]
-    > {
-        if (!knexInstance) {
-            knexInstance = Knex({
+    ): Knex.QueryBuilder {
+        if (!_knexInstance) {
+            _knexInstance = knex({
                 client: "mysql",
                 connection: {
                     host: WORDPRESS_DB_HOST,
@@ -72,11 +59,11 @@ class WPDB {
             registerExitHandler(async () => this.destroyKnex())
         }
 
-        return knexInstance(tableName)
+        return _knexInstance(tableName)
     }
 
     private async destroyKnex(): Promise<void> {
-        if (knexInstance) await knexInstance.destroy()
+        if (_knexInstance) await _knexInstance.destroy()
     }
 
     async connect(): Promise<void> {

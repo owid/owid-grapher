@@ -16,7 +16,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
 
     const doesExistInWordpress = keyBy(rows, "ID")
     const existsInGrapher = await Post.select("id").from(
-        db.knex().from(Post.table)
+        db.knexInstance().from(Post.table)
     )
     const doesExistInGrapher = keyBy(existsInGrapher, "id")
 
@@ -42,7 +42,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
         }
     }) as PostRow[]
 
-    await db.knex().transaction(async (t) => {
+    await db.knexInstance().transaction(async (t) => {
         if (toDelete.length)
             await t.whereIn("id", toDelete).delete().from(Post.table)
 

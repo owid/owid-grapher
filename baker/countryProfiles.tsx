@@ -98,7 +98,7 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
         value: dv.value,
     }))
 
-    db.knex().transaction(async (t) => {
+    db.knexInstance().transaction(async (t) => {
         // Remove existing values
         await t
             .table("country_latest_data")

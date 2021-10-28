@@ -1,6 +1,6 @@
 import * as mysql from "mysql"
 import * as typeorm from "typeorm"
-import Knex from "knex"
+import { Knex, knex } from "knex"
 import {
     DB_HOST,
     DB_USER,
@@ -11,7 +11,7 @@ import {
 import { registerExitHandler } from "./cleanup"
 let typeormConnection: typeorm.Connection
 
-export const getConnection = async () => {
+export const getConnection = async (): Promise<typeorm.Connection> => {
     if (typeormConnection) return typeormConnection
 
     try {
@@ -76,15 +76,15 @@ export const mysqlFirst = async (
 
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
     if (typeormConnection) await typeormConnection.close()
-    if (knexInstance) await knexInstance.destroy()
+    if (_knexInstance) await _knexInstance.destroy()
 }
 
-let knexInstance: Knex
+let _knexInstance: Knex
 
-export const knex = (): Knex<any, any[]> => {
-    if (knexInstance) return knexInstance
+export const knexInstance = (): Knex<any, any[]> => {
+    if (_knexInstance) return _knexInstance
 
-    knexInstance = Knex({
+    _knexInstance = knex({
         client: "mysql",
         connection: {
             host: DB_HOST,
@@ -102,50 +102,13 @@ export const knex = (): Knex<any, any[]> => {
     })
 
     registerExitHandler(async () => {
-        if (knexInstance) await knexInstance.destroy()
+        if (_knexInstance) await _knexInstance.destroy()
     })
 
-    return knexInstance
+    return _knexInstance
 }
 
-export const knexTable = (
-    table: string
-): Knex.QueryBuilder<
-    Record<string, unknown>,
-    | {
-          _base: unknown
-          _hasSelection: false
-          _keys: never
-          _aliases: Record<string, unknown>
-          _single: false
-          _intersectProps: Record<string, unknown>
+export const knexTable = (table: string): Knex.QueryBuilder =>
+    knexInstance().table(table)
 
-          _unionProps: never
-      }[]
-    | (
-          | {
-                _base: unknown
-                _hasSelection: boolean
-                _keys: string
-                _aliases: Record<string, unknown>
-
-                _single: boolean
-                _intersectProps: Record<string, unknown>
-
-                _unionProps: unknown
-            }
-          | {
-                _base: unknown
-                _hasSelection: false
-                _keys: never
-                _aliases: Record<string, unknown>
-
-                _single: false
-                _intersectProps: Record<string, unknown>
-
-                _unionProps: never
-            }
-      )[]
-> => knex().table(table)
-
-export const knexRaw = (str: string): Knex.Raw<any> => knex().raw(str)
+export const knexRaw = (str: string): Knex.Raw => knexInstance().raw(str)

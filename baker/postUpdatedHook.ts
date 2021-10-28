@@ -44,7 +44,7 @@ const syncPostToGrapher = async (
           } as PostRow)
         : undefined
 
-    await db.knex().transaction(async (transaction) => {
+    await db.knexInstance().transaction(async (transaction) => {
         if (!postRow && existsInGrapher)
             // Delete from grapher
             await transaction.table(Post.table).where({ id: postId }).delete()
