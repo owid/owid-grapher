@@ -330,29 +330,40 @@ interface RadioGroupProps {
     options: RadioGroupOption[]
     value?: string
     onChange: (value: string) => void
+    label?: string
 }
 
 export class RadioGroup extends React.Component<RadioGroupProps> {
     render() {
         return (
-            <div className="RadioGroup">
-                {this.props.options.map((option) => {
-                    return (
-                        <div key={option.value} className="radioOption">
-                            <input
-                                type="radio"
-                                id={option.value}
-                                checked={option.value === this.props.value}
-                                onChange={() =>
-                                    this.props.onChange(option.value)
-                                }
-                            />
-                            <label htmlFor={option.value}>
-                                {option.label || option.value}
-                            </label>
-                        </div>
-                    )
-                })}
+            <div className="form-group">
+                {this.props.label && <label>{this.props.label}</label>}
+                <div>
+                    {this.props.options.map((option) => {
+                        return (
+                            <div
+                                key={option.value}
+                                className="form-check form-check-inline"
+                            >
+                                <input
+                                    type="radio"
+                                    className="form-check-input"
+                                    id={option.value}
+                                    checked={option.value === this.props.value}
+                                    onChange={() =>
+                                        this.props.onChange(option.value)
+                                    }
+                                />
+                                <label
+                                    className="form-check-label"
+                                    htmlFor={option.value}
+                                >
+                                    {option.label || option.value}
+                                </label>
+                            </div>
+                        )
+                    })}
+                </div>
             </div>
         )
     }

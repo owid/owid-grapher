@@ -783,24 +783,6 @@ main:not(.ChartEditorPage) {
     }
 }
 
-.RadioGroup {
-    padding: 5px 0;
-
-    .radioOption {
-        display: inline-block;
-        margin: 3px 15px 3px 0;
-    }
-
-    label {
-        padding-left: 4px;
-        cursor: pointer;
-    }
-
-    input {
-        cursor: pointer;
-    }
-}
-
 .redirect-prefix {
     color: #aaa;
     font-size: 13px;

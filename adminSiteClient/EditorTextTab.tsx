@@ -90,8 +90,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         textarea
                         softCharacterLimit={280}
                     />
-                    <h6>Logo</h6>
                     <RadioGroup
+                        label="Logo"
                         options={[
                             { label: "OWID", value: "owid" },
                             { label: "CORE+OWID", value: "core+owid" },
