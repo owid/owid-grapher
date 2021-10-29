@@ -25,7 +25,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings"
 
 const title = "The prominent link title"
 const content = "<p>Some text</p>"
-const imageSrc = "${BAKED_BASE_URL}/path/to/image.png"
+const imageSrc = `${BAKED_BASE_URL}/path/to/image.png`
 const imageId = 123
 const grapherSlug = "cancer-deaths-rate-and-age-standardized-rate-index"
 const grapherUrl = `${BAKED_BASE_URL}/grapher/${grapherSlug}?country=~OWID_WRL`
@@ -131,7 +131,7 @@ it("renders authored prominent link (grapher, thin, no image override)", () => {
 
 it("renders automatic prominent link (link to post, thin)", async () => {
     const slug = "child-mortality"
-    const htmlLink = `<p><a href="${BAKED_BASE_URL}/${slug}"></a>`
+    const htmlLink = `<p><a href="${BAKED_BASE_URL}/${slug}"></a></p>`
 
     const cheerioEl = cheerio.load(htmlLink)
 
