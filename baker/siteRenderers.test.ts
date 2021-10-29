@@ -27,6 +27,7 @@ const title = "The prominent link title"
 const content = "<p>Some text</p>"
 const imageSrc = `${BAKED_BASE_URL}/path/to/image.png`
 const imageId = 123
+const postSlug = "child-mortality"
 const grapherSlug = "cancer-deaths-rate-and-age-standardized-rate-index"
 const grapherUrl = `${BAKED_BASE_URL}/grapher/${grapherSlug}?country=~OWID_WRL`
 
@@ -130,8 +131,7 @@ it("renders authored prominent link (grapher, thin, no image override)", () => {
 })
 
 it("renders automatic prominent link (link to post, thin)", async () => {
-    const slug = "child-mortality"
-    const htmlLink = `<p><a href="${BAKED_BASE_URL}/${slug}"></a></p>`
+    const htmlLink = `<p><a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
 
     const cheerioEl = cheerio.load(htmlLink)
 
@@ -145,9 +145,24 @@ it("renders automatic prominent link (link to post, thin)", async () => {
     expect(prominentLinkEl.hasClass(WITH_IMAGE)).toBe(true)
     expect(prominentLinkEl.attr("data-style")).toEqual(ProminentLinkStyles.thin)
 
-    expect(cheerioEl(".title").text()).toEqual(getMockTitle(slug))
+    expect(cheerioEl(".title").text()).toEqual(getMockTitle(postSlug))
     expect(cheerioEl("figure > img").attr("src")).toEqual(
         getMockThumbnailUrl(imageId)
     )
     expect(cheerioEl(".content").html()).toBeNull()
+})
+
+it("does not convert links with surrounding text", async () => {
+    const htmlLink = `<p>this should not be converted <a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
+
+    const cheerioEl = cheerio.load(htmlLink)
+
+    await renderAutomaticProminentLinks(
+        cheerioEl,
+        getMockPostWithImage("current-post") // only for more descriptive error message
+    )
+
+    const prominentLinkEl = cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`)
+
+    expect(prominentLinkEl.length).toEqual(0)
 })

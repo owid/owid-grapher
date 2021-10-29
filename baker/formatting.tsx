@@ -71,8 +71,9 @@ export const extractDataValuesConfiguration = async (
     const dataValueMatches = html.matchAll(dataValueRegex)
     for (const match of dataValueMatches) {
         const dataValueConfigurationString = match[1]
-        const [queryArgsString, template] =
-            dataValueConfigurationString.split(dataValueSeparator)
+        const [queryArgsString, template] = dataValueConfigurationString.split(
+            dataValueSeparator
+        )
         const queryArgs = parseDataValueArgs(queryArgsString)
 
         dataValuesConfigurations.set(dataValueConfigurationString, {
@@ -185,6 +186,6 @@ export const isStandaloneInternalLink = (
     return (
         el.attribs.href.startsWith(BAKED_BASE_URL) &&
         el.parent.tagName === "p" &&
-        !$(el).siblings().length
+        $(el.parent).contents().length === 1
     )
 }
