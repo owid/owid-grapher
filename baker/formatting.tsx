@@ -71,9 +71,8 @@ export const extractDataValuesConfiguration = async (
     const dataValueMatches = html.matchAll(dataValueRegex)
     for (const match of dataValueMatches) {
         const dataValueConfigurationString = match[1]
-        const [queryArgsString, template] = dataValueConfigurationString.split(
-            dataValueSeparator
-        )
+        const [queryArgsString, template] =
+            dataValueConfigurationString.split(dataValueSeparator)
         const queryArgs = parseDataValueArgs(queryArgsString)
 
         dataValuesConfigurations.set(dataValueConfigurationString, {
