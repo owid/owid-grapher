@@ -9,7 +9,7 @@ function render($attributes, $content)
     }
 
     $linkUrl = esc_url($attributes["linkUrl"]);
-    $style = $attributes["className"] ?? "";
+    $style = $attributes["className"] ? "style=\"$attributes[className]\"" : "";
     $title = $attributes["title"] ?? "";
 
     $image = null;
