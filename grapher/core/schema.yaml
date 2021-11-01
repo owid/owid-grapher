@@ -1,0 +1,481 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+required:
+    - title
+    - version
+    - dimensions
+type: object
+properties:
+    id:
+        type: integer
+        minimum: 0
+    map:
+        type: object
+        properties:
+            projection:
+                type:
+                    - string
+                    - "null"
+                enum:
+                    - World
+                    - Europe
+                    - Africa
+                    - Asia
+                    - NortAmerica
+                    - SouthAmerica
+                    - Oceania
+                    - null
+            hideTimeline:
+                type: boolean
+            colorScale:
+                type: object
+                properties:
+                    customNumericLabels:
+                        type: array
+                        items:
+                            type:
+                                - string
+                                - "null"
+                    customCategoryColors:
+                        type:
+                            - object
+                            - array
+                        patternProperties:
+                            ".*":
+                                type: string
+                        items: {}
+                    baseColorScheme:
+                        type: string
+                    equalSizeBins:
+                        type: boolean
+                    customHiddenCategories:
+                        type:
+                            - object
+                            - array
+                        patternProperties:
+                            ".*":
+                                type: boolean
+                        items: {}
+                    binningStrategy:
+                        type: string
+                        enum:
+                            - equalInterval
+                            - quantiles
+                            - ckmeans
+                            - manual
+                    legendDescription:
+                        type: string
+                    customNumericColors:
+                        type: array
+                        items:
+                            type:
+                                - string
+                                - "null"
+                    binningStrategyBinCount:
+                        type: integer
+                        minimum: 0
+                    customNumericValues:
+                        type: array
+                        items:
+                            type: number
+                    customNumericColorsActive:
+                        type: boolean
+                    colorSchemeInvert:
+                        type: boolean
+                    customNumericMinValue:
+                        type: number
+                    customCategoryLabels:
+                        type:
+                            - object
+                            - array
+                        patternProperties:
+                            ".*":
+                                type: string
+                        items: {}
+                additionalProperties: false
+            timeTolerance:
+                type: integer
+                minimum: 0
+            targetYear:
+                oneOf:
+                    - type: string
+                      enum:
+                          - latest
+                    - type: number
+                      minimum: 0
+            tooltipUseCustomLabels:
+                type: boolean
+            time:
+                type:
+                    - string
+                    - integer
+                description: Select a specific time to be displayed.
+                maximum: 32767
+                minimum: 0
+            variableId:
+                type: integer
+                maximum: 2147483647
+                minimum: 0
+        additionalProperties: false
+    maxTime:
+        oneOf:
+            - type: string
+              enum:
+                  - latest
+            - type: number
+              minimum: 0
+    subtitle:
+        type: string
+    selectedEntityNames:
+        type: array
+        items:
+            type:
+                - string
+                - "null"
+    baseColorScheme:
+        type: string
+    yAxis:
+        type: object
+        properties:
+            removePointsOutsideDomain:
+                type: boolean
+            prefix:
+                type: string
+            label:
+                type: string
+            suffix:
+                type: string
+            min:
+                type: number
+            scaleType:
+                type: string
+                enum:
+                    - linear
+                    - log
+            max:
+                type: number
+                minimum: 0
+            canChangeScaleType:
+                type: boolean
+            facetDomain:
+                type: string
+            numDecimalPlaces:
+                type: integer
+                minimum: 0
+                description: "DEPRECATE: this field has not been used in 1y or more"
+        additionalProperties: false
+    tab:
+        type: string
+        enum:
+            - chart
+            - map
+            - sources
+            - download
+            - table
+    selectedData:
+        type: array
+        items:
+            type: object
+            properties:
+                color:
+                    type: string
+                index:
+                    type: integer
+                    minimum: 0
+                entityId:
+                    type: integer
+                    minimum: 0
+            additionalProperties: false
+    matchingEntitiesOnly:
+        type: boolean
+    hasChartTab:
+        type: boolean
+    data:
+        type: object
+        properties:
+            availableEntities:
+                type: array
+                items:
+                    type: string
+        additionalProperties: false
+    hideLegend:
+        type: boolean
+    hideLogo:
+        type: boolean
+    timelineMinTime:
+        type: integer
+    variantName:
+        type: string
+    hideTimeline:
+        type: boolean
+    originUrl:
+        type:
+            - string
+            - "null"
+    colorScale:
+        type: object
+        properties:
+            customNumericLabels:
+                type: array
+                items:
+                    type:
+                        - string
+                        - "null"
+            customCategoryColors:
+                type: object
+                patternProperties:
+                    ".*":
+                        type: string
+            baseColorScheme:
+                type: string
+            customHiddenCategories:
+                type: object
+                patternProperties:
+                    ".*":
+                        type: boolean
+            binningStrategy:
+                type: string
+                enum:
+                    - equalInterval
+                    - quantiles
+                    - ckmeans
+                    - manual
+            legendDescription:
+                type: string
+            customNumericColors:
+                type: array
+                items:
+                    type: string
+            customNumericValues:
+                type: array
+                items:
+                    type: number
+                    minimum: 0
+            customNumericColorsActive:
+                type: boolean
+            colorSchemeInvert:
+                type: boolean
+            customCategoryLabels:
+                type: object
+                properties:
+                    No data:
+                        type: string
+                additionalProperties: false
+        additionalProperties: false
+    scatterPointLabelStrategy:
+        type: string
+        enum:
+            - x
+            - "y"
+            - year
+    selectedFacetStrategy:
+        type: string
+        enum:
+            - none
+            - entity
+            - metric
+    sourceDesc:
+        type: string
+    isPublished:
+        type:
+            - boolean
+            - "null"
+    invertColorScheme:
+        type: boolean
+    hideRelativeToggle:
+        type: boolean
+    comparisonLines:
+        type: array
+        items:
+            type: object
+            properties:
+                label:
+                    type: string
+                yEquals:
+                    type: string
+            additionalProperties: false
+    slug:
+        type: string
+    internalNotes:
+        type: string
+    version:
+        type: integer
+        minimum: 0
+    logo:
+        type: string
+        enum:
+            - owid
+            - core+owid
+            - gv+owid
+    entityType:
+        type: string
+    note:
+        type: string
+    dimensions:
+        type: array
+        items:
+            type: object
+            properties:
+                targetYear:
+                    type:
+                        - integer
+                        - "null"
+                    minimum: 0
+                id:
+                    type: integer
+                    minimum: 0
+                order:
+                    type: integer
+                    minimum: 0
+                chartId:
+                    type: integer
+                    minimum: 0
+                property:
+                    type: string
+                numDecimalPlaces:
+                    type: integer
+                    minimum: 0
+                display:
+                    type: object
+                    properties:
+                        isProjection:
+                            type: boolean
+                        name:
+                            type: string
+                        tableDisplay:
+                            type: object
+                            properties:
+                                hideAbsoluteChange:
+                                    type: boolean
+                                hideRelativeChange:
+                                    type: boolean
+                            additionalProperties: false
+                        tolerance:
+                            type: integer
+                            minimum: 0
+                        entityAnnotationsMap:
+                            type: string
+                        yearIsDay:
+                            type: boolean
+                        color:
+                            type: string
+                        includeInTable:
+                            type: boolean
+                        shortUnit:
+                            type: string
+                        conversionFactor:
+                            type: number
+                        unit:
+                            type: string
+                        numDecimalPlaces:
+                            type: integer
+                            minimum: 0
+                        zeroDay:
+                            type: string
+                    additionalProperties: false
+                variableId:
+                    type: integer
+                    minimum: 0
+            additionalProperties: false
+    selectedEntityIds:
+        type: array
+        items:
+            type: integer
+            minimum: 0
+    addCountryMode:
+        type: string
+        enum:
+            - add-country
+            - change-country
+            - disabled
+    compareEndPointsOnly:
+        type: boolean
+    selectedEntityColors:
+        type: object
+        patternProperties:
+            ".*":
+                type: string
+    relatedQuestions:
+        type: array
+        items:
+            type: object
+            properties:
+                url:
+                    type: string
+                text:
+                    type: string
+            additionalProperties: false
+    title:
+        type: string
+    type:
+        type: string
+        enum:
+            - LineChart
+            - ScatterPlot
+            - TimeScatter
+            - StackedArea
+            - DiscreteBar
+            - StackedDiscreteBar
+            - SlopeChart
+            - StackedBar
+            - WorldMap
+            - Marimekko
+    hasMapTab:
+        type: boolean
+    stackMode:
+        type:
+            - string
+            - "null"
+        enum:
+            - absolute
+            - relative
+            - grouped
+            - stacked
+            - null
+    minTime:
+        oneOf:
+            - type: string
+              enum:
+                  - latest
+                  - earliest
+            - type: number
+    hideTitleAnnotation:
+        type: boolean
+    excludedEntities:
+        type: array
+        items:
+            type: integer
+            minimum: 0
+    xAxis:
+        type: object
+        properties:
+            removePointsOutsideDomain:
+                type: boolean
+            prefix:
+                type: string
+            label:
+                type: string
+            suffix:
+                type: string
+            min:
+                type: number
+            scaleType:
+                type: string
+                enum:
+                    - linear
+                    - log
+            max:
+                type: number
+                minimum: 0
+            canChangeScaleType:
+                type: boolean
+            numDecimalPlaces:
+                type: integer
+                minimum: 0
+                description: "DEPRECATE: this field has not been used in 1y or more"
+        additionalProperties: false
+    timelineMaxTime:
+        type: integer
+        minimum: 0
+    hideConnectedScatterLines:
+        type: boolean
+additionalProperties: true
