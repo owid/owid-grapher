@@ -28,6 +28,7 @@ include 'src/Card/card.php';
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 const SUBTITLE_META_FIELD = "owid_subtitle_meta_field";
+const LENGTH_META_FIELD = "owid_length_meta_field";
 
 function setup()
 {
@@ -105,6 +106,14 @@ function register()
     // Add support for subtitles. This is used by the editor (see also the
     // GraphQL registration of that field below)
     register_post_meta('', SUBTITLE_META_FIELD, [
+        'single' => true,
+        'type' => 'string',
+        'show_in_rest' => true,
+    ]);
+
+    // Add support for multiple post lengths ("short", "standard", etc.)
+    // Add GraphQL registration below when necessary
+    register_post_meta('', LENGTH_META_FIELD, [
         'single' => true,
         'type' => 'string',
         'show_in_rest' => true,
