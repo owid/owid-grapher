@@ -222,14 +222,25 @@ export class ExplorerProgram extends GridProgram {
     }
 
     get columnDefsByTableSlug(): Map<TableSlug | undefined, CoreColumnDef[]> {
-        const result = new Map<TableSlug | undefined, CoreColumnDef[]>()
-        this.tableSlugs.forEach((tableSlug) => {
-            const tableDef = this.getTableDef(tableSlug)
-            if (tableDef && tableDef.columnDefinitions) {
-                result.set(tableSlug, tableDef.columnDefinitions)
-            }
-        })
-        return result
+        const columnDefs = new Map<TableSlug | undefined, CoreColumnDef[]>()
+        const colDefsRows = this.getAllRowsMatchingWords(
+            ExplorerGrammar.columns.keyword
+        )
+
+        for (const row of colDefsRows) {
+            const tableSlugs = this.asArrays[row].slice(1)
+            const columnDefinitions: CoreColumnDef[] =
+                columnDefinitionsFromDelimited(this.getBlock(row)).map((row) =>
+                    trimAndParseObject(row, ColumnGrammar)
+                )
+            if (tableSlugs.length === 0)
+                columnDefs.set(undefined, columnDefinitions)
+            else
+                tableSlugs.forEach((tableSlug) => {
+                    columnDefs.set(tableSlug, columnDefinitions)
+                })
+        }
+        return columnDefs
     }
 
     async replaceTableWithInlineDataAndAutofilledColumnDefsCommand(
@@ -406,17 +417,8 @@ export class ExplorerProgram extends GridProgram {
             url = `https://raw.githubusercontent.com/owid/owid-datasets/master/datasets/${owidDatasetSlug}/${owidDatasetSlug}.csv`
         }
 
-        const colDefsRow = this.getRowMatchingWords(
-            ExplorerGrammar.columns.keyword,
-            tableSlug
-        )
-
         const columnDefinitions: CoreColumnDef[] | undefined =
-            colDefsRow !== -1
-                ? columnDefinitionsFromDelimited(this.getBlock(colDefsRow)).map(
-                      (row) => trimAndParseObject(row, ColumnGrammar)
-                  )
-                : undefined
+            this.columnDefsByTableSlug.get(tableSlug)
 
         return {
             url,
