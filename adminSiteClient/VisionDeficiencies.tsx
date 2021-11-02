@@ -1,15 +1,10 @@
 import React from "react"
-import Select, {
-    components,
-    OptionProps,
-    GroupedOptionsType,
-    ValueType,
-} from "react-select"
+import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { groupBy, first } from "../clientUtils/Util"
-import { asArray, getStylesForTargetHeight } from "../clientUtils/react-select"
+import { groupBy } from "../clientUtils/Util"
+import { getStylesForTargetHeight } from "../clientUtils/react-select"
 
 // Transformation matrices taken from https://github.com/hail2u/color-blindness-emulation/blob/master/filters.svg?short_path=5708e81
 // "Affected" numbers from https://en.wikipedia.org/wiki/Color_blindness#Epidemiology
@@ -160,7 +155,9 @@ export interface VisionDeficiencyEntity {
     deficiency?: VisionDeficiency
 }
 
-const VisionDeficiencyOption = (props: OptionProps<VisionDeficiencyEntity>) => (
+const VisionDeficiencyOption = (
+    props: OptionProps<VisionDeficiencyEntity, false, any>
+) => (
     <div style={{ fontSize: ".9em", lineHeight: 1 }}>
         <components.Option {...props}>
             <label>{props.label}</label>
@@ -182,7 +179,7 @@ export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDr
         value: "none",
     }
 
-    @computed get options(): GroupedOptionsType<VisionDeficiencyEntity> {
+    @computed get options(): GroupBase<VisionDeficiencyEntity>[] {
         const options = visionDeficiencies.map((deficiency) => ({
             label: `${deficiency.name} (${deficiency.alternativeName})`,
             value: deficiency.id,
@@ -202,9 +199,8 @@ export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDr
         ]
     }
 
-    @action.bound onChange(selected: ValueType<VisionDeficiencyEntity>) {
-        const value = first(asArray(selected))
-        if (value) this.props.onChange(value)
+    @action.bound onChange(selected: VisionDeficiencyEntity | null) {
+        if (selected) this.props.onChange(selected)
     }
 
     render() {

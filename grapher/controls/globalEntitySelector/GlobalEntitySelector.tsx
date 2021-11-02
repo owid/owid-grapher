@@ -4,9 +4,10 @@ import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
 import { observer } from "mobx-react"
 import Select, {
     components,
-    GroupedOptionsType,
+    CSSObjectWithLabel,
+    GroupBase,
+    OptionProps,
     Props,
-    ValueType,
 } from "react-select"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -37,6 +38,11 @@ enum GlobalEntitySelectionModes {
     override = "override",
 }
 
+interface DropdownEntity {
+    label: string
+    value: string
+}
+
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
     .concat([
@@ -47,7 +53,7 @@ const allEntities = sortBy(countries, (c) => c.name)
         },
     ])
 
-const Option = (props: any): JSX.Element => {
+const Option = (props: OptionProps<DropdownEntity, true, any>): JSX.Element => {
     return (
         <div>
             <components.Option {...props}>
@@ -58,7 +64,7 @@ const Option = (props: any): JSX.Element => {
     )
 }
 
-const SelectOptions: Props = {
+const SelectOptions: Props<DropdownEntity, true, any> = {
     components: {
         IndicatorSeparator: null,
         Option,
@@ -73,14 +79,23 @@ const SelectOptions: Props = {
     hideSelectedOptions: false,
     placeholder: "Add a country to all charts...",
     styles: {
-        placeholder: (base: any): any => ({ ...base, whiteSpace: "nowrap" }),
-        valueContainer: (base: any): any => ({
+        placeholder: (base: CSSObjectWithLabel): CSSObjectWithLabel => ({
+            ...base,
+            whiteSpace: "nowrap",
+        }),
+        valueContainer: (base: CSSObjectWithLabel): CSSObjectWithLabel => ({
             ...base,
             paddingTop: 0,
             paddingBottom: 0,
         }),
-        control: (base: any): any => ({ ...base, minHeight: "initial" }),
-        dropdownIndicator: (base: any): any => ({ ...base, padding: "0 5px" }),
+        control: (base: CSSObjectWithLabel): CSSObjectWithLabel => ({
+            ...base,
+            minHeight: "initial",
+        }),
+        dropdownIndicator: (base: CSSObjectWithLabel): CSSObjectWithLabel => ({
+            ...base,
+            padding: "0 5px",
+        }),
     },
 }
 
@@ -140,7 +155,7 @@ export class GlobalEntitySelector extends React.Component<{
 
     selection = this.props.selection
 
-    @observable.ref private optionGroups: GroupedOptionsType<any> = []
+    @observable.ref private optionGroups: GroupBase<DropdownEntity>[] = []
 
     componentDidMount(): void {
         this.onResize()
@@ -177,8 +192,8 @@ export class GlobalEntitySelector extends React.Component<{
         } catch (err) {}
     }
 
-    @action.bound private prepareOptionGroups(): GroupedOptionsType<any> {
-        let optionGroups: GroupedOptionsType<any> = []
+    @action.bound private prepareOptionGroups(): GroupBase<DropdownEntity>[] {
+        let optionGroups: GroupBase<DropdownEntity>[] = []
         // We want to include the local country, but not if it's already selected, it adds
         // unnecessary duplication.
         if (
@@ -234,8 +249,10 @@ export class GlobalEntitySelector extends React.Component<{
         this.updateURL()
     }
 
-    @action.bound private onChange(options: ValueType<any>): void {
-        this.updateSelection(options.map((option: any) => option.label))
+    @action.bound private onChange(options: readonly DropdownEntity[]): void {
+        this.updateSelection(
+            options.map((option: DropdownEntity) => option.label)
+        )
 
         this.analytics.logGlobalEntitySelector(
             "change",
@@ -286,10 +303,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.onMenuClose()
     }
 
-    @computed private get selectedOptions(): {
-        label: string
-        value: string
-    }[] {
+    @computed private get selectedOptions(): DropdownEntity[] {
         return this.selection.selectedEntityNames.map(entityNameToOption)
     }
 
@@ -406,9 +420,7 @@ export const hydrateGlobalEntitySelectorIfAny = (
     )
 }
 
-const entityNameToOption = (
-    label: EntityName
-): { label: string; value: string } => ({
+const entityNameToOption = (label: EntityName): DropdownEntity => ({
     label,
     value: label,
 })

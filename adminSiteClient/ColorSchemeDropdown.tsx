@@ -1,12 +1,9 @@
 import * as React from "react"
 import { computed, action } from "mobx"
-import Select, { ValueType } from "react-select"
+import Select from "react-select"
 import { ColorSchemes } from "../grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { bind } from "decko"
-
-import { asArray } from "../clientUtils/react-select"
-import { first } from "../clientUtils/Util"
 import { ColorScheme } from "../grapher/color/ColorScheme"
 
 export interface ColorSchemeOption {
@@ -73,8 +70,7 @@ export class ColorSchemeDropdown extends React.Component<ColorSchemeDropdownProp
         return `linear-gradient(90deg, ${gradientEntries.join(", ")})`
     }
 
-    @action.bound onChange(selected: ValueType<ColorSchemeOption>) {
-        const value = first(asArray(selected))
+    @action.bound onChange(value: ColorSchemeOption | null) {
         if (value) this.props.onChange(value)
     }
 

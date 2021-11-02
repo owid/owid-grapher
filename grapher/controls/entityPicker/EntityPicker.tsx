@@ -17,15 +17,11 @@ import {
     max,
     isNumber,
     sortByUndefinedLast,
-    first,
 } from "../../../clientUtils/Util"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import { SortOrder } from "../../../coreTable/CoreTableConstants"
-import {
-    getStylesForTargetHeight,
-    asArray,
-} from "../../../clientUtils/react-select"
+import { getStylesForTargetHeight } from "../../../clientUtils/react-select"
 import { ColumnTypeMap, CoreColumn } from "../../../coreTable/CoreTableColumns"
 import {
     EntityName,
@@ -428,8 +424,7 @@ export class EntityPicker extends React.Component<{
                         (option) => option.value === this.metric
                     )}
                     onChange={(option): void => {
-                        const value = first(asArray(option))?.value
-                        if (value) this.updateMetric(value)
+                        if (option) this.updateMetric(option.value)
                     }}
                     menuPlacement="bottom"
                     components={{

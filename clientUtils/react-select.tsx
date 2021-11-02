@@ -1,70 +1,36 @@
-import { ValueType, OptionsType, StylesConfig } from "react-select"
-
-const isMultiValue = <T,>(value: ValueType<T>): value is OptionsType<T> =>
-    Array.isArray(value)
-
-export const asArray = <T,>(value: ValueType<T>): T[] => {
-    if (value == null) return []
-    if (isMultiValue(value)) return Array.from(value)
-    return [value]
-}
+import { CSSObjectWithLabel, StylesConfig } from "react-select"
 
 export const getStylesForTargetHeight = (
-    targetHeight: number,
-    props: any = {}
-): StylesConfig => {
+    targetHeight: number
+): StylesConfig<any, any, any> => {
     // Taken from https://github.com/JedWatson/react-select/issues/1322#issuecomment-591189551
-    const {
-        control,
-        valueContainer,
-        singleValue,
-        clearIndicator,
-        container,
-        dropdownIndicator,
-        option,
-        menu,
-    } = props
     return {
-        container: (base: React.CSSProperties): any => ({
-            ...base,
-            ...container,
-        }),
-        control: (base: React.CSSProperties): any => ({
-            ...base,
+        control: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             minHeight: "initial",
-            ...control,
         }),
-        valueContainer: (base: React.CSSProperties): any => ({
-            ...base,
+        valueContainer: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             height: `${targetHeight - 1 - 1}px`,
             padding: "0 4px",
             flexWrap: "nowrap",
-            ...valueContainer,
         }),
-        singleValue: (base: React.CSSProperties): any => ({
-            ...base,
-            ...singleValue,
-        }),
-        clearIndicator: (base: React.CSSProperties): any => ({
-            ...base,
+        clearIndicator: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
-            ...clearIndicator,
         }),
-        dropdownIndicator: (base: React.CSSProperties): any => ({
-            ...base,
+        dropdownIndicator: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
-            ...dropdownIndicator,
         }),
-        option: (base: React.CSSProperties): any => ({
-            ...base,
+        option: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             paddingTop: "5px",
             paddingBottom: "5px",
-            ...option,
         }),
-        menu: (base: React.CSSProperties): any => ({
-            ...base,
+        menu: (provided: CSSObjectWithLabel): any => ({
+            ...provided,
             zIndex: 10000,
-            ...menu,
         }),
     }
 }
