@@ -35,7 +35,9 @@ describe(GridProgram, () => {
             "test",
             `table
 \tslug
-\tcountry`
+\tcountry
+columns\ta
+columns\tb`
         )
 
         it("can get blocks", () => {
@@ -47,6 +49,10 @@ describe(GridProgram, () => {
             expect(program.getRowMatchingWords(undefined, "nada")).toEqual(-1)
         })
 
+        it("can search for all occurences", () => {
+            expect(program.getAllRowsMatchingWords("columns")).toEqual([3, 4])
+        })
+
         it("can update blocks", () => {
             const newBlock = `slug\tname
 country\tCountry`
@@ -55,7 +61,9 @@ country\tCountry`
         })
 
         it("can delete blocks", () => {
-            expect(program.deleteBlock(0).toString()).toEqual(`table`)
+            expect(program.deleteBlock(0).toString()).toEqual(`table
+columns\ta
+columns\tb`)
 
             const program2 = new GridProgram(
                 "test",
