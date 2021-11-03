@@ -26,6 +26,30 @@ function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
 
+export const shortenForTargetWidth = (
+    text: string,
+    targetWidth: number,
+    fontSettings: {
+        fontSize?: number
+        fontWeight?: number
+        fontFamily?: string
+    } = {}
+): string => {
+    // use binary search to find the largest substring that fits within the target width
+    let low = 0
+    let high = text.length
+    while (low <= high) {
+        const mid = (high + low) >> 1
+        const bounds = Bounds.forText(text.slice(0, mid), fontSettings)
+        if (bounds.width < targetWidth) {
+            low = mid + 1
+        } else {
+            high = mid - 1
+        }
+    }
+    return text.slice(0, low - 1)
+}
+
 export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {

@@ -52,6 +52,7 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { shortenForTargetWidth } from "../text/TextWrap"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 
@@ -553,6 +554,47 @@ export class FacetChart
         return new HorizontalCategoricalColorLegend({ manager: this })
     }
 
+    /**
+     * In order to display a potentially long facet label in the potentially tight space, we
+     * shrink and shorten the label as follows to prevent overlap between neighbouring labels:
+     * - If the label already fits, we're happy :)
+     * - Otherwise, we calculate the ideal font size where it would fit perfectly.
+     *   However, in order to not make the label tiny, we cap the font size at 0.7 * baseFontSize
+     * - If the label still doesn't fit, we shorten it to the number of characters that fit and append an ellispsis (…)
+     * -@MarcelGerber, 2021-10-28
+     */
+    private shrinkAndShortenFacetLabel(
+        label: string,
+        availableWidth: number,
+        baseFontSize: number // font size to use when we're not shrinking
+    ): { fontSize: number; shortenedLabel: string } {
+        // How much width would we need if we were to render the text at font size 1?
+        // We calculate this to compute the ideal font size from the available width.
+        const textBounds = Bounds.forText(label, {
+            fontSize: 1,
+        })
+        const idealFontSize = availableWidth / textBounds.width
+
+        // Clamp the ideal font size: 0.7 * baseFontSize <= fontSize <= baseFontSize
+        const fontSize = Math.min(
+            baseFontSize,
+            Math.max(0.7 * baseFontSize, idealFontSize)
+        )
+
+        if (fontSize > idealFontSize) {
+            const ellipsisWidth = Bounds.forText("…", {
+                fontSize,
+            }).width
+
+            label = `${shortenForTargetWidth(
+                label,
+                availableWidth - ellipsisWidth,
+                { fontSize }
+            )}…`
+        }
+        return { fontSize, shortenedLabel: label }
+    }
+
     render(): JSX.Element {
         const { facetFontSize } = this
         const showLegend = this.categoricalLegendData.length > 0
@@ -567,16 +609,25 @@ export class FacetChart
                         DefaultChartClass
                     const { bounds, contentBounds, seriesName } = facetChart
                     const shiftTop = facetFontSize * 0.9
+
+                    const { fontSize, shortenedLabel } =
+                        this.shrinkAndShortenFacetLabel(
+                            seriesName,
+                            contentBounds.width,
+                            facetFontSize
+                        )
+
                     return (
                         <React.Fragment key={index}>
                             <text
                                 x={contentBounds.x}
                                 y={contentBounds.top - shiftTop}
                                 fill={"#1d3d63"}
-                                fontSize={facetFontSize}
+                                fontSize={fontSize}
                                 style={{ fontWeight: 700 }}
                             >
-                                {seriesName}
+                                {shortenedLabel}
+                                <title>{seriesName}</title>
                             </text>
                             <ChartClass
                                 bounds={bounds}

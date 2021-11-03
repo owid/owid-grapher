@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { TextWrap } from "./TextWrap"
+import { TextWrap, shortenForTargetWidth } from "./TextWrap"
 import { Bounds } from "../../clientUtils/Bounds"
 
 const FONT_SIZE = 14
@@ -61,5 +61,17 @@ describe("height()", () => {
     it("calculates a height of zero for an empty string", () => {
         const text = ""
         expect(renderedHeight(text)).toEqual(0)
+    })
+})
+
+describe(shortenForTargetWidth, () => {
+    it("should not shorten if text fits", () => {
+        const text = "a short string"
+        expect(shortenForTargetWidth(text, 10000)).toEqual(text)
+    })
+
+    it("should return empty string if there's no space at all", () => {
+        const text = "a short string"
+        expect(shortenForTargetWidth(text, 1)).toEqual("")
     })
 })
