@@ -1,15 +1,16 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
 import Glossary from "./Glossary/Glossary"
 import Subtitle from "./Subtitle/Subtitle"
-import Length from "./Length/Length"
+import PublicationContext from "./PublicationContext/PublicationContext"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
 const { select } = wp.data
+import { Notice } from "@wordpress/components"
 
 const OWID_KEY_PERFORMANCE_INDICATORS = "owid-key-performance-indicators"
 const OWID_GLOSSARY = "owid-glossary"
 const OWID_SUBTITLE = "owid-subtitle"
-const OWID_LENGTH = "owid-length"
+const OWID_PUBLICATION_CONTEXT = "owid-publication-context"
 
 registerPlugin(OWID_KEY_PERFORMANCE_INDICATORS, {
     render: () => {
@@ -65,17 +66,22 @@ registerPlugin(OWID_SUBTITLE, {
     icon: false,
 })
 
-registerPlugin(OWID_LENGTH, {
+registerPlugin(OWID_PUBLICATION_CONTEXT, {
     render: () => {
         const postType = select("core/editor").getCurrentPostType()
         return (
             postType === "post" && (
                 <PluginDocumentSettingPanel
-                    name={OWID_LENGTH}
-                    title="Length"
-                    className={OWID_LENGTH}
+                    name={OWID_PUBLICATION_CONTEXT}
+                    title="Publication context"
+                    className={OWID_PUBLICATION_CONTEXT}
                 >
-                    <Length />
+                    <Notice isDismissible={false}>
+                        Currently, publication in the article index cannot be
+                        dissociated from publication in the immediate
+                        newsletter.
+                    </Notice>
+                    <PublicationContext />
                 </PluginDocumentSettingPanel>
             )
         )
