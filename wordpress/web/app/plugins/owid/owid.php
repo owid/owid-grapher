@@ -123,7 +123,10 @@ function register()
                     'immediate_newsletter' => [
                         'type' => 'boolean',
                     ],
-                    'article_index' => [
+                    'homepage' => [
+                        'type' => 'boolean',
+                    ],
+                    'latest' => [
                         'type' => 'boolean',
                     ],
                 ],

@@ -2,7 +2,6 @@ import { CheckboxControl } from "@wordpress/components"
 const { useSelect, useDispatch } = wp.data
 
 const PUBLICATION_CONTEXT_META_FIELD = "owid_publication_context_meta_field"
-const DEFAULT = "short"
 
 const PublicationContext = () => {
     const context = useSelect((select) => {
@@ -18,7 +17,8 @@ const PublicationContext = () => {
             meta: {
                 [PUBLICATION_CONTEXT_META_FIELD]: {
                     immediate_newsletter: !context.immediate_newsletter,
-                    article_index: !context.article_index,
+                    homepage: !context.homepage,
+                    latest: !context.latest,
                 },
             },
         })
@@ -32,9 +32,15 @@ const PublicationContext = () => {
                 onChange={onChangeHandler}
             />
             <CheckboxControl
-                label="Article index"
-                help="Will be shown in the article index (front page and /blog)"
-                checked={context.article_index}
+                label="Homepage"
+                help="Will be shown on the homepage"
+                checked={context.homepage}
+                onChange={onChangeHandler}
+            />
+            <CheckboxControl
+                label="Latest"
+                help='Will be shown in the list of articles (currently "/blog")'
+                checked={context.latest}
                 onChange={onChangeHandler}
             />
         </>

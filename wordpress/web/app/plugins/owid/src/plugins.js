@@ -77,9 +77,9 @@ registerPlugin(OWID_PUBLICATION_CONTEXT, {
                     className={OWID_PUBLICATION_CONTEXT}
                 >
                     <Notice isDismissible={false}>
-                        Currently, publication in the article index cannot be
-                        dissociated from publication in the immediate
-                        newsletter.
+                        Currently, publication on the homepage, blog and
+                        immediate newsletter cannot be dissociated from each
+                        other.
                     </Notice>
                     <PublicationContext />
                 </PluginDocumentSettingPanel>
