@@ -24,7 +24,7 @@
         @include cancel-link-styles;
     }
 
-    &.is-style-default {
+    &[data-style="is-style-default"] {
         @include left-media-columns;
         margin-bottom: 2rem;
         a {
@@ -41,7 +41,7 @@
         }
     }
 
-    &.is-style-thin {
+    &[data-style="is-style-thin"] {
         background-color: transparent;
         margin-bottom: $vertical-spacing;
         .content-wrapper {

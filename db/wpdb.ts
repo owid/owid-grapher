@@ -29,9 +29,11 @@ import {
     PostReference,
     JsonError,
     CategoryNode,
+    WP_MediaSizes,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
+import { Url } from "../clientUtils/urls/Url"
 
 let _knexInstance: Knex
 
@@ -109,8 +111,8 @@ export const ENTRIES_CATEGORY_ID = 44
 
 /* Wordpress GraphQL API query
  *
- * Note: in contrast to the REST API query, the GQL query does not throw when a
- * resource is not found, as GQL returns a 200, with a shape that is different between
+ * Note: in contrast to the REST API query, the GraphQL query does not throw when a
+ * resource is not found, as GraphQL returns a 200, with a shape that is different between
  * every query. So it is the caller's responsibility to throw (if necessary) on
  * "faux 404".
  */
@@ -595,6 +597,7 @@ export const getFullPost = async (
     imageUrl: `${BAKED_BASE_URL}${
         postApi.featured_media_path ?? "/default-thumbnail.jpg"
     }`,
+    imageId: postApi.featured_media,
     relatedCharts:
         postApi.type === "page"
             ? await getRelatedCharts(postApi.id)
@@ -607,6 +610,32 @@ export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
     const posts = await getPosts(["post"])
     return Promise.all(posts.map((post) => getFullPost(post, true)))
 })
+
+export const getMediaThumbnailUrl = async (
+    id: number
+): Promise<string | undefined> => {
+    const query = `
+    query getMediaSizes($id: ID!) {
+        mediaItem(id: $id, idType: DATABASE_ID) {
+          mediaDetails {
+            sizes {
+              name
+              sourceUrl
+            }
+          }
+        }
+      }
+    `
+
+    const mediaSizes = await graphqlQuery(query, { id })
+
+    const thumbnail = mediaSizes?.data?.mediaItem?.mediaDetails?.sizes?.find(
+        (mediaSize: { name: WP_MediaSizes; sourceUrl: string }) =>
+            mediaSize.name === WP_MediaSizes.Thumbnail
+    )
+
+    return thumbnail?.sourceUrl
+}
 
 interface TablepressTable {
     tableId: string

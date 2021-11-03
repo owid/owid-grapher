@@ -2,7 +2,6 @@ import * as cheerio from "cheerio"
 import {
     DataValueConfiguration,
     DataValueQueryArgs,
-    DimensionProperty,
     FormattedPost,
     FormattingOptions,
     KeyValueProps,
@@ -176,4 +175,16 @@ export const formatCountryProfile = (
     })
 
     return { ...post, html: getHtmlContentWithStyles(cheerioEl) }
+}
+
+// Relies on formatLinks URL standardisation
+export const isStandaloneInternalLink = (
+    el: CheerioElement,
+    $: CheerioStatic
+) => {
+    return (
+        el.attribs.href.startsWith(BAKED_BASE_URL) &&
+        el.parent.tagName === "p" &&
+        $(el.parent).contents().length === 1
+    )
 }

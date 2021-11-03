@@ -1,4 +1,8 @@
-import { LongFormPage, PageOverrides } from "../site/LongFormPage"
+import {
+    formatWordpressEditLink,
+    LongFormPage,
+    PageOverrides,
+} from "../site/LongFormPage"
 import { BlogIndexPage } from "../site/BlogIndexPage"
 import { FrontPage } from "../site/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage"
@@ -9,7 +13,12 @@ import { DonatePage } from "../site/DonatePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import * as lodash from "lodash"
-import { extractFormattingOptions, formatCountryProfile } from "./formatting"
+import {
+    extractFormattingOptions,
+    formatCountryProfile,
+    formatLinks,
+    isStandaloneInternalLink,
+} from "./formatting"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
@@ -41,12 +50,19 @@ import {
     getEntriesByCategory,
     getFullPost,
     getLatestPostRevision,
+    getMediaThumbnailUrl,
     getPostBySlug,
     getPosts,
     isPostCitable,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
+import { Url } from "../clientUtils/urls/Url"
+import { logErrorAndMaybeSendToSlack } from "./slackLog"
+import {
+    ProminentLink,
+    ProminentLinkStyles,
+} from "../site/blocks/ProminentLink"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -389,3 +405,63 @@ export const countryProfileCountryPage = async (
 }
 
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
+
+export const renderAutomaticProminentLinks = async (
+    cheerioEl: CheerioStatic,
+    currentPost: FullPost
+) => {
+    const anchorElements = cheerioEl("a").toArray()
+    await Promise.all(
+        anchorElements.map(async (anchor) => {
+            if (!isStandaloneInternalLink(anchor, cheerioEl)) return
+            const url = Url.fromURL(anchor.attribs.href)
+            if (!url.slug) return
+
+            let targetPost
+            try {
+                targetPost = await getPostBySlug(url.slug)
+            } catch (err) {
+                // not throwing here as this is not considered a critical error.
+                // Standalone links will just show up as such (and get
+                // netlify-redirected upon click if applicable).
+                logErrorAndMaybeSendToSlack(
+                    new Error(
+                        `${currentPost.title} (${formatWordpressEditLink(
+                            currentPost.id
+                        )}) wants to convert ${
+                            anchor.attribs.href
+                        } into a prominent link but this URL doesn't match any post. This might be because the URL of the target has been recently changed.`
+                    )
+                )
+            }
+            if (!targetPost) return
+
+            let image
+            if (targetPost.imageId) {
+                const mediaThumbnailUrl = await getMediaThumbnailUrl(
+                    targetPost.imageId
+                )
+                if (mediaThumbnailUrl) {
+                    image = ReactDOMServer.renderToStaticMarkup(
+                        <img src={formatLinks(mediaThumbnailUrl)} />
+                    )
+                }
+            }
+
+            const rendered = ReactDOMServer.renderToStaticMarkup(
+                <div className="block-wrapper">
+                    <ProminentLink
+                        href={anchor.attribs.href}
+                        style={ProminentLinkStyles.thin}
+                        title={targetPost.title}
+                        image={image}
+                    />
+                </div>
+            )
+
+            const $anchorParent = cheerioEl(anchor.parent)
+            $anchorParent.after(rendered)
+            $anchorParent.remove()
+        })
+    )
+}
