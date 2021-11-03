@@ -28,7 +28,8 @@ export const BAKED_GRAPHER_URL: string =
 export const ADMIN_BASE_URL: string =
     process.env.ADMIN_BASE_URL ??
     `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
-export const WORDPRESS_URL: string = process.env.WORDPRESS_URL ?? ""
+export const WORDPRESS_URL: string =
+    process.env.WORDPRESS_URL ?? "http://owid.lndo.site"
 
 export const ALGOLIA_ID: string = process.env.ALGOLIA_ID ?? ""
 export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""

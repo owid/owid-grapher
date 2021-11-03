@@ -182,6 +182,10 @@ export enum WP_PostType {
     Page = "page",
 }
 
+export enum WP_MediaSizes {
+    Thumbnail = "thumbnail",
+}
+
 export interface EntryNode {
     slug: string
     title: string
@@ -236,6 +240,7 @@ export interface FullPost {
     content: string
     excerpt?: string
     imageUrl?: string
+    imageId?: number
     postId?: number
     relatedCharts?: RelatedChart[]
     glossary: boolean

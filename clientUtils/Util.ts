@@ -875,17 +875,6 @@ export function sortByUndefinedLast<T>(
     return order === SortOrder.asc ? sorted : sorted.reverse()
 }
 
-export function getAttributesOfHTMLElement(el: HTMLElement): {
-    [key: string]: string
-} {
-    const attributes: { [key: string]: string } = {}
-    for (let i = 0; i < el.attributes.length; i++) {
-        const attr = el.attributes.item(i)
-        if (attr) attributes[attr.name] = attr.value
-    }
-    return attributes
-}
-
 export const mapNullToUndefined = <T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] => array.map((v) => (v === null ? undefined : v))
