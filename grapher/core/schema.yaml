@@ -1,4 +1,99 @@
 $schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://ourworldindata.org/schemas/grapher.v001"
+$defs:
+    axis:
+        type: object
+        properties:
+            removePointsOutsideDomain:
+                type: boolean
+            prefix:
+                type: string
+            label:
+                type: string
+            suffix:
+                type: string
+            min:
+                type: number
+            scaleType:
+                type: string
+                enum:
+                    - linear
+                    - log
+            max:
+                type: number
+                minimum: 0
+            canChangeScaleType:
+                type: boolean
+            facetDomain:
+                type: string
+                enum:
+                    - independent
+                    - shared
+            numDecimalPlaces:
+                type: integer
+                minimum: 0
+                description: "DEPRECATE: this field has not been used in 1y or more"
+        additionalProperties: false
+    colorScale:
+        type: object
+        properties:
+            customNumericLabels:
+                type: array
+                items:
+                    type:
+                        - string
+                        - "null"
+            customCategoryColors:
+                type:
+                    - object
+                patternProperties:
+                    ".*":
+                        type: string
+            baseColorScheme:
+                type: string
+            equalSizeBins:
+                type: boolean
+            customHiddenCategories:
+                type:
+                    - object
+                patternProperties:
+                    ".*":
+                        type: boolean
+            binningStrategy:
+                type: string
+                enum:
+                    - equalInterval
+                    - quantiles
+                    - ckmeans
+                    - manual
+            legendDescription:
+                type: string
+            customNumericColors:
+                type: array
+                items:
+                    type:
+                        - string
+                        - "null"
+            customNumericValues:
+                type: array
+                items:
+                    type: number
+            customNumericColorsActive:
+                type: boolean
+            colorSchemeInvert:
+                type: boolean
+            customCategoryLabels:
+                type:
+                    - object
+                patternProperties:
+                    ".*":
+                        type: string
+            binningStrategyBinCount:
+                type: integer
+                minimum: 0
+            customNumericMinValue:
+                type: number
+        additionalProperties: false
 required:
     - title
     - version
@@ -27,71 +122,7 @@ properties:
             hideTimeline:
                 type: boolean
             colorScale:
-                type: object
-                properties:
-                    customNumericLabels:
-                        type: array
-                        items:
-                            type:
-                                - string
-                                - "null"
-                    customCategoryColors:
-                        type:
-                            - object
-                            - array
-                        patternProperties:
-                            ".*":
-                                type: string
-                        items: {}
-                    baseColorScheme:
-                        type: string
-                    equalSizeBins:
-                        type: boolean
-                    customHiddenCategories:
-                        type:
-                            - object
-                            - array
-                        patternProperties:
-                            ".*":
-                                type: boolean
-                        items: {}
-                    binningStrategy:
-                        type: string
-                        enum:
-                            - equalInterval
-                            - quantiles
-                            - ckmeans
-                            - manual
-                    legendDescription:
-                        type: string
-                    customNumericColors:
-                        type: array
-                        items:
-                            type:
-                                - string
-                                - "null"
-                    binningStrategyBinCount:
-                        type: integer
-                        minimum: 0
-                    customNumericValues:
-                        type: array
-                        items:
-                            type: number
-                    customNumericColorsActive:
-                        type: boolean
-                    colorSchemeInvert:
-                        type: boolean
-                    customNumericMinValue:
-                        type: number
-                    customCategoryLabels:
-                        type:
-                            - object
-                            - array
-                        patternProperties:
-                            ".*":
-                                type: string
-                        items: {}
-                additionalProperties: false
+                $ref: "#/$defs/colorScale"
             timeTolerance:
                 type: integer
                 minimum: 0
@@ -101,7 +132,6 @@ properties:
                       enum:
                           - latest
                     - type: number
-                      minimum: 0
             tooltipUseCustomLabels:
                 type: boolean
             time:
@@ -110,7 +140,6 @@ properties:
                     - integer
                 description: Select a specific time to be displayed.
                 maximum: 32767
-                minimum: 0
             variableId:
                 type: integer
                 maximum: 2147483647
@@ -122,7 +151,6 @@ properties:
               enum:
                   - latest
             - type: number
-              minimum: 0
     subtitle:
         type: string
     selectedEntityNames:
@@ -134,35 +162,7 @@ properties:
     baseColorScheme:
         type: string
     yAxis:
-        type: object
-        properties:
-            removePointsOutsideDomain:
-                type: boolean
-            prefix:
-                type: string
-            label:
-                type: string
-            suffix:
-                type: string
-            min:
-                type: number
-            scaleType:
-                type: string
-                enum:
-                    - linear
-                    - log
-            max:
-                type: number
-                minimum: 0
-            canChangeScaleType:
-                type: boolean
-            facetDomain:
-                type: string
-            numDecimalPlaces:
-                type: integer
-                minimum: 0
-                description: "DEPRECATE: this field has not been used in 1y or more"
-        additionalProperties: false
+        $ref: "#/$defs/axis"
     tab:
         type: string
         enum:
@@ -212,55 +212,7 @@ properties:
             - string
             - "null"
     colorScale:
-        type: object
-        properties:
-            customNumericLabels:
-                type: array
-                items:
-                    type:
-                        - string
-                        - "null"
-            customCategoryColors:
-                type: object
-                patternProperties:
-                    ".*":
-                        type: string
-            baseColorScheme:
-                type: string
-            customHiddenCategories:
-                type: object
-                patternProperties:
-                    ".*":
-                        type: boolean
-            binningStrategy:
-                type: string
-                enum:
-                    - equalInterval
-                    - quantiles
-                    - ckmeans
-                    - manual
-            legendDescription:
-                type: string
-            customNumericColors:
-                type: array
-                items:
-                    type: string
-            customNumericValues:
-                type: array
-                items:
-                    type: number
-                    minimum: 0
-            customNumericColorsActive:
-                type: boolean
-            colorSchemeInvert:
-                type: boolean
-            customCategoryLabels:
-                type: object
-                properties:
-                    No data:
-                        type: string
-                additionalProperties: false
-        additionalProperties: false
+        $ref: "#/$defs/colorScale"
     scatterPointLabelStrategy:
         type: string
         enum:
@@ -446,36 +398,52 @@ properties:
             type: integer
             minimum: 0
     xAxis:
-        type: object
-        properties:
-            removePointsOutsideDomain:
-                type: boolean
-            prefix:
-                type: string
-            label:
-                type: string
-            suffix:
-                type: string
-            min:
-                type: number
-            scaleType:
-                type: string
-                enum:
-                    - linear
-                    - log
-            max:
-                type: number
-                minimum: 0
-            canChangeScaleType:
-                type: boolean
-            numDecimalPlaces:
-                type: integer
-                minimum: 0
-                description: "DEPRECATE: this field has not been used in 1y or more"
-        additionalProperties: false
+        $ref: "#/$defs/axis"
     timelineMaxTime:
         type: integer
         minimum: 0
     hideConnectedScatterLines:
         type: boolean
-additionalProperties: true
+    showNoDataArea:
+        type: boolean
+    zoomToSelection:
+        type: boolean
+    minPopulationFilter:
+        type: integer
+        minimum: 0
+    showYearLabels:
+        type: boolean
+    hideLinesOutsideTolerance:
+        type: boolean
+    hideTotalValueLabel:
+        type: boolean
+    sortBy:
+        type: string
+        enum:
+            - column
+            - total
+            - entityName
+    sortOrder:
+        type: string
+        enum:
+            - desc
+            - asc
+    sortColumnSlug:
+        type: string
+    hideFacetControl:
+        type: boolean
+    includedEntities:
+        type: array
+        items:
+            type: number
+    highlightToggle:
+        type: object
+        properties:
+            description:
+                type: string
+            paramString:
+                type: string
+        additionalProperties: false
+    entityTypePlural:
+        type: string
+additionalProperties: false
