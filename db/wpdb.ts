@@ -29,6 +29,8 @@ import {
     PostReference,
     JsonError,
     CategoryNode,
+    FilterFnPostRestApi,
+    PostRestApi,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
@@ -416,18 +418,22 @@ export const getFeaturedImages = async (): Promise<Map<number, string>> => {
 // page => pages, post => posts
 const getEndpointSlugFromType = (type: string): string => `${type}s`
 
+export const includeHomepagePosts: FilterFnPostRestApi = (post) =>
+    post.meta?.owid_publication_context_meta_field?.homepage === true
+
 // Limit not supported with multiple post types:
 // When passing multiple post types, the limit is applied to the resulting array
 // of sequentially sorted posts (all blog posts, then all pages, ...), so there
 // will be a predominance of a certain post type.
 export const getPosts = async (
     postTypes: string[] = [WP_PostType.Post, WP_PostType.Page],
+    filterFunc?: FilterFnPostRestApi,
     limit?: number
 ): Promise<any[]> => {
     if (!isWordpressAPIEnabled) return []
 
     const perPage = 50
-    let posts: any[] = []
+    const posts: PostRestApi[] = []
 
     for (const postType of postTypes) {
         const endpoint = `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
@@ -455,13 +461,18 @@ export const getPosts = async (
 
     // Published pages excluded from public views
     const excludedSlugs = [BLOG_SLUG]
-    posts = posts.filter(
-        (post) =>
-            !excludedSlugs.includes(post.slug) &&
-            !post.slug.endsWith("-country-profile")
+
+    const includeConditions: Array<FilterFnPostRestApi> = [
+        (post): boolean => !excludedSlugs.includes(post.slug),
+        (post): boolean => !post.slug.endsWith("-country-profile"),
+    ]
+    if (filterFunc) includeConditions.push(filterFunc)
+
+    const filteredPosts = posts.filter((post) =>
+        includeConditions.every((c) => c(post))
     )
 
-    return limit ? posts.slice(0, limit) : posts
+    return limit ? filteredPosts.slice(0, limit) : filteredPosts
 }
 
 export const getPostType = async (search: number | string): Promise<string> => {
@@ -604,7 +615,7 @@ export const getFullPost = async (
 
 export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
     // TODO: do not get post content in the first place
-    const posts = await getPosts(["post"])
+    const posts = await getPosts([WP_PostType.Post], includeHomepagePosts)
     return Promise.all(posts.map((post) => getFullPost(post, true)))
 })
 

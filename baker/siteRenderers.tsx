@@ -34,6 +34,7 @@ import {
     FullPost,
     JsonError,
     PostRow,
+    WP_PostType,
 } from "../clientUtils/owidTypes"
 import { formatPost } from "./formatWordpressPost"
 import {
@@ -43,6 +44,7 @@ import {
     getLatestPostRevision,
     getPostBySlug,
     getPosts,
+    includeHomepagePosts,
     isPostCitable,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
@@ -203,7 +205,11 @@ export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed() {
-    const postsApi = await getPosts(["post"], 10)
+    const postsApi = await getPosts(
+        [WP_PostType.Post],
+        includeHomepagePosts,
+        10
+    )
     const posts = await Promise.all(
         postsApi.map((postApi) => getFullPost(postApi, true))
     )
