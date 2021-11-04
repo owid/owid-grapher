@@ -183,7 +183,7 @@ export const isStandaloneInternalLink = (
     $: CheerioStatic
 ) => {
     return (
-        el.attribs.href.startsWith(BAKED_BASE_URL) &&
+        el.attribs.href?.startsWith(BAKED_BASE_URL) &&
         el.parent.tagName === "p" &&
         $(el.parent).contents().length === 1
     )
