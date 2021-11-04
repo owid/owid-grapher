@@ -419,6 +419,19 @@ export const renderAutomaticProminentLinks = async (
             const url = Url.fromURL(anchor.attribs.href)
             if (!url.slug) return
 
+            if (url.isGrapher) {
+                logErrorAndMaybeSendToSlack(
+                    new Error(
+                        `Automatic prominent link conversion failed for ${
+                            anchor.attribs.href
+                        } in ${formatWordpressEditLink(
+                            currentPost.id
+                        )}. Grapher link are not yet supported.`
+                    )
+                )
+                return
+            }
+
             let targetPost
             try {
                 targetPost = await getPostBySlug(url.slug)
@@ -428,11 +441,11 @@ export const renderAutomaticProminentLinks = async (
                 // netlify-redirected upon click if applicable).
                 logErrorAndMaybeSendToSlack(
                     new Error(
-                        `${currentPost.title} (${formatWordpressEditLink(
-                            currentPost.id
-                        )}) wants to convert ${
+                        `Automatic prominent link convertion failed: no post found at ${
                             anchor.attribs.href
-                        } into a prominent link but this URL doesn't match any post. This might be because the URL of the target has been recently changed.`
+                        } in ${formatWordpressEditLink(
+                            currentPost.id
+                        )}. This might be because the URL of the target has been recently changed.`
                     )
                 )
             }
