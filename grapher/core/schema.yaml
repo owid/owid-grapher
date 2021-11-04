@@ -6,26 +6,27 @@ $defs:
         properties:
             removePointsOutsideDomain:
                 type: boolean
-            prefix:
-                type: string
             label:
                 type: string
-            suffix:
-                type: string
+                description: Axis label
             min:
                 type: number
+                description: Minimum domain value of the axis
             scaleType:
                 type: string
+                description: Toggle linear/logarithmic
                 enum:
                     - linear
                     - log
             max:
                 type: number
-                minimum: 0
+                description: Maximum domain value of the axis
             canChangeScaleType:
                 type: boolean
+                description: Allow user to change lin/log
             facetDomain:
                 type: string
+                description: Whether the axis domain should be the same across faceted charts (if possible)
                 enum:
                     - independent
                     - shared
@@ -36,31 +37,83 @@ $defs:
         additionalProperties: false
     colorScale:
         type: object
+        description: Color scale definition
         properties:
             customNumericLabels:
                 type: array
+                description: |
+                    Custom labels for each numeric bin. Only applied when strategy is `manual`.
+                    `null` falls back to default label.
                 items:
                     type:
                         - string
                         - "null"
             customCategoryColors:
-                type:
-                    - object
+                type: object
+                description: Map of categorical values to colors. Colors are CSS colors, usually in the form `#aa9944`
                 patternProperties:
                     ".*":
                         type: string
             baseColorScheme:
                 type: string
+                description: One of the predefined base color schemes
+                enum:
+                    - YlGn
+                    - YlGnBu
+                    - GnBu
+                    - BuGn
+                    - PuBuGn
+                    - BuPu
+                    - RdPu
+                    - PuRd
+                    - OrRd
+                    - YlOrRd
+                    - YlOrBr
+                    - Purples
+                    - Blues
+                    - Greens
+                    - Oranges
+                    - Reds
+                    - Greys
+                    - PuOr
+                    - BrBG
+                    - PRGn
+                    - PiYG
+                    - RdBu
+                    - RdGy
+                    - RdYlBu
+                    - Spectral
+                    - RdYlGn
+                    - Accent
+                    - Dark2
+                    - Paired
+                    - Pastel1
+                    - Pastel2
+                    - Set1
+                    - Set2
+                    - Set3
+                    - PuBu
+                    - hsv-RdBu
+                    - hsv-CyMg
+                    - Magma
+                    - Inferno
+                    - Plasma
+                    - Viridis
+                    - continents
+                    - stackedAreaDefault
+                    - owid-distinct
             equalSizeBins:
                 type: boolean
+                description: Whether the visual scaling for the color legend is disabled.
             customHiddenCategories:
-                type:
-                    - object
+                type: object
+                description: Allow hiding categories from the legend
                 patternProperties:
                     ".*":
                         type: boolean
             binningStrategy:
                 type: string
+                description: The strategy for generating the bin boundaries
                 enum:
                     - equalInterval
                     - quantiles
@@ -68,31 +121,41 @@ $defs:
                     - manual
             legendDescription:
                 type: string
+                description: A custom legend description. Only used in ScatterPlot legend titles for now.
             customNumericColors:
                 type: array
+                description: |
+                    Override some or all colors for the numerical color legend.
+                    Colors are CSS colors, usually in the form `#aa9944`
+                    `null` falls back the color scheme color.
                 items:
                     type:
                         - string
                         - "null"
             customNumericValues:
                 type: array
+                description: Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`
                 items:
                     type: number
             customNumericColorsActive:
                 type: boolean
+                description: Whether `customNumericColors` are used to override the color scheme
             colorSchemeInvert:
                 type: boolean
+                description: Reverse the order of colors in the color scheme
             customCategoryLabels:
-                type:
-                    - object
+                type: object
+                description: Map of category values to color legend labels.
                 patternProperties:
                     ".*":
                         type: string
             binningStrategyBinCount:
                 type: integer
+                description: The *suggested* number of bins for the automatic binning algorithm
                 minimum: 0
             customNumericMinValue:
                 type: number
+                description: The minimum bracket of the first bin
         additionalProperties: false
 required:
     - title
@@ -102,14 +165,15 @@ type: object
 properties:
     id:
         type: integer
+        description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
         minimum: 0
     map:
         type: object
+        description: Configuration of the world map chart
         properties:
             projection:
-                type:
-                    - string
-                    - "null"
+                type: string
+                description: Slightly misnamed - this does not change the map projection but instead specifies which world area to focus on.
                 enum:
                     - World
                     - Europe
@@ -118,53 +182,63 @@ properties:
                     - NortAmerica
                     - SouthAmerica
                     - Oceania
-                    - null
+                default: World
             hideTimeline:
                 type: boolean
+                description: Whether the timeline should be hidden in the map view and thus the user not be able to change the year
             colorScale:
                 $ref: "#/$defs/colorScale"
             timeTolerance:
                 type: integer
+                description: |
+                    Tolerance to use. If data points are missing for a time point, a match is accepted if it lies
+                    within the specified time period. The unit is the dominating time unit, usually years but can be days for
+                    daily time series.
                 minimum: 0
-            targetYear:
+            tooltipUseCustomLabels:
+                type: boolean
+                description: Show the label from colorSchemeLabels in the tooltip instead of the numeric value
+            time:
                 oneOf:
                     - type: string
+                      description: Select a specific time to be displayed.
                       enum:
                           - latest
                     - type: number
-            tooltipUseCustomLabels:
-                type: boolean
-            time:
-                type:
-                    - string
-                    - integer
-                description: Select a specific time to be displayed.
-                maximum: 32767
+                      description: Select a specific time to be displayed.
             variableId:
                 type: integer
+                description: "Variable ID to show. TODO: remove this and use dimensions instead"
                 maximum: 2147483647
                 minimum: 0
         additionalProperties: false
     maxTime:
+        description: End point of the initially selected time span.
+        default: latest
         oneOf:
             - type: string
               enum:
                   - latest
+                  - earliest
             - type: number
     subtitle:
         type: string
+        description: The longer subtitle text to show beneath the title
     selectedEntityNames:
         type: array
+        description: The initial selection of entities
         items:
             type:
                 - string
                 - "null"
     baseColorScheme:
         type: string
+        description: The default color scheme if no color overrides are specified
     yAxis:
         $ref: "#/$defs/axis"
     tab:
         type: string
+        description: The tab that is shown initially
         enum:
             - chart
             - map
@@ -187,13 +261,17 @@ properties:
             additionalProperties: false
     matchingEntitiesOnly:
         type: boolean
+        description: Exclude entities that do not belong in any color group
     hasChartTab:
         type: boolean
+        description: Whether to show the (non-map) chart tab
     data:
         type: object
+        description: Obsolete name - used only to store the available entities
         properties:
             availableEntities:
                 type: array
+                description: List of available entities
                 items:
                     type: string
         additionalProperties: false
@@ -203,39 +281,51 @@ properties:
         type: boolean
     timelineMinTime:
         type: integer
+        description: |
+            The lowest year to show in the timeline. If this is set then the user is not able to see
+            any data before this year
     variantName:
         type: string
+        description: "Optional internal variant name for distinguishing charts with the same title"
     hideTimeline:
         type: boolean
+        description: "Whether to hide the timeline from the user. If it is hidden then the user can't change the time"
     originUrl:
-        type:
-            - string
-            - "null"
+        type: string
+        description: The page containing this chart where more context can be found
     colorScale:
         $ref: "#/$defs/colorScale"
     scatterPointLabelStrategy:
         type: string
+        description: |
+            When a user hovers over a connected series line in a ScatterPlot we show
+            a label for each point. By default that value will be from the "year" column
+            but by changing this option the column used for the x or y axis could be used instead.
         enum:
             - x
             - "y"
             - year
     selectedFacetStrategy:
         type: string
+        description: The desired facetting strategy (none for no facetting)
         enum:
             - none
             - entity
             - metric
     sourceDesc:
         type: string
+        description: Short comma-separated list of source names
     isPublished:
-        type:
-            - boolean
-            - "null"
+        type: boolean
+        description: Indicates if the chart is published on Our World In Data or still in draft
     invertColorScheme:
         type: boolean
+        description: Reverse the order of colors in the color scheme
     hideRelativeToggle:
         type: boolean
+        description: Whether to hide the relative mode UI toggle
     comparisonLines:
+        description: List of vertical comparison lines to draw
         type: array
         items:
             type: object
@@ -247,6 +337,7 @@ properties:
             additionalProperties: false
     slug:
         type: string
+        description: Slug of the chart on Our World In Data
     internalNotes:
         type: string
     version:
@@ -254,16 +345,20 @@ properties:
         minimum: 0
     logo:
         type: string
+        description: Which logo to show on the upper right side
         enum:
             - owid
             - core+owid
             - gv+owid
     entityType:
         type: string
+        description: Display string for naming the primary entities of the data. Default is 'country', but you can specify a different one such as 'state' or 'region'
     note:
         type: string
+        description: Note displayed in the footer of the chart. To be used for clarifications etc about the data.
     dimensions:
         type: array
+        description: List of dimensions and their mapping to variables
         items:
             type: object
             properties:
@@ -271,30 +366,49 @@ properties:
                     type:
                         - integer
                         - "null"
-                    minimum: 0
+                    description: |
+                        Charts that can display more than one primary dimensions (i.e. scatter and marimekko)
+                        sometimes need to "hardcode" one dimension to a specific year. This happens e.g. when
+                        mixing a daily X variable in a scatter plot with a yearly one, e.g. population.
                 id:
                     type: integer
                     minimum: 0
+                    description: DEPRECATE - drop this at some point
                 order:
                     type: integer
                     minimum: 0
+                    description: DEPRECATE - drop this at some point
                 chartId:
                     type: integer
                     minimum: 0
+                    description: DEPRECATE - drop this at some point
                 property:
                     type: string
+                    description: Which dimension this property maps to
+                    enum:
+                        - "y"
+                        - "x"
+                        - "size"
+                        - "color"
+                        - "table"
                 numDecimalPlaces:
                     type: integer
+                    description: DEPRECATE - drop this at some point
                     minimum: 0
                 display:
                     type: object
                     properties:
                         isProjection:
                             type: boolean
+                            description: |
+                                Indicates if this time series is a forward projection (if yes then this is rendered
+                                differently in e.g. line charts)
                         name:
                             type: string
+                            description: The display string for this variable
                         tableDisplay:
                             type: object
+                            description: Configuration for the table sheet for this variable
                             properties:
                                 hideAbsoluteChange:
                                     type: boolean
@@ -303,51 +417,69 @@ properties:
                             additionalProperties: false
                         tolerance:
                             type: integer
+                            description: |
+                                Tolerance to use. If data points are missing for a time point, a match is accepted if it lies
+                                within the specified time period. The unit is the dominating time unit, either years or days.
                             minimum: 0
                         entityAnnotationsMap:
                             type: string
+                            description: Entity annotations
                         yearIsDay:
                             type: boolean
+                            description: Switch to indicate if the number in the year column represents a day (since zeroDay) or not i.e. a year
                         color:
                             type: string
+                            description: Default color for this time series
                         includeInTable:
                             type: boolean
+                            description: Whether to render this time series in the table sheet
                         shortUnit:
                             type: string
+                            description: Short unit symbol - This is used in tight UI spaces when the value is shown
                         conversionFactor:
                             type: number
+                            description: Conversion factor to apply before showing values
                         unit:
                             type: string
+                            description: Long unit text - This is shown in the UI when there is more space (e.g. tooltips) after values
                         numDecimalPlaces:
                             type: integer
+                            description: Number of decimal places to show
                             minimum: 0
                         zeroDay:
                             type: string
+                            description: Iso date day string for the starting date if yearIsDay is used
                     additionalProperties: false
                 variableId:
                     type: integer
+                    description: The variable id to get the values for this time series
                     minimum: 0
             additionalProperties: false
     selectedEntityIds:
         type: array
+        description: The selected entities
         items:
             type: integer
             minimum: 0
     addCountryMode:
         type: string
+        description: Whether the user can change countries, add additional ones or neither
         enum:
             - add-country
             - change-country
             - disabled
     compareEndPointsOnly:
         type: boolean
+        description: Drops in between points in scatter plots
     selectedEntityColors:
         type: object
+        description: Colors for selected entities
         patternProperties:
             ".*":
                 type: string
     relatedQuestions:
         type: array
+        description: Links to related questions
         items:
             type: object
             properties:
@@ -358,8 +490,10 @@ properties:
             additionalProperties: false
     title:
         type: string
+        description: Big title text of the chart
     type:
         type: string
+        description: Which type of chart should be shown (hasMapChart can be used to always also show a map chart)
         enum:
             - LineChart
             - ScatterPlot
@@ -373,10 +507,12 @@ properties:
             - Marimekko
     hasMapTab:
         type: boolean
+        description: Indicates if the map tab should be shown
     stackMode:
         type:
             - string
             - "null"
+        description: Stack mode. Only absolute and relative are actively used.
         enum:
             - absolute
             - relative
@@ -386,14 +522,18 @@ properties:
     minTime:
         oneOf:
             - type: string
+
               enum:
                   - latest
                   - earliest
             - type: number
+        description: Start point of the initially selected time span.
     hideTitleAnnotation:
         type: boolean
+        description: Whether to hide any automatically added title annotations like the selected year
     excludedEntities:
         type: array
+        description: Entities that should be excluded from the chart
         items:
             type: integer
             minimum: 0
@@ -401,43 +541,58 @@ properties:
         $ref: "#/$defs/axis"
     timelineMaxTime:
         type: integer
-        minimum: 0
+        description: |
+            The highest year to show in the timeline. If this is set then the user is not able to see
+            any data after this year
     hideConnectedScatterLines:
         type: boolean
+        description: Whether to hide connecting lines on scatter plots when a time range is selected
     showNoDataArea:
         type: boolean
+        description: Whether to show an area for entities that have no data (currently only used in marimekko charts)
     zoomToSelection:
         type: boolean
+        description: Whether to zoom to the selected data points
     minPopulationFilter:
         type: integer
+        description: Cutoff for the minimum population filter that users can toggle on some charts
         minimum: 0
     showYearLabels:
         type: boolean
+        description: Whether to show year labels in bar charts
     hideLinesOutsideTolerance:
         type: boolean
+        description: Hide entities without data for full time span (within tolerance)
     hideTotalValueLabel:
         type: boolean
+        description: Whether to hide the total value label (used on stacked discrete bar charts)
     sortBy:
         type: string
+        description: Sort criterium (used by stacked bar charts and marimekko)
         enum:
             - column
             - total
             - entityName
     sortOrder:
         type: string
+        description: Sort order (used by stacked bar charts and marimekko)
         enum:
             - desc
             - asc
     sortColumnSlug:
+        description: Sort column if sortBy is column (used by stacked bar charts and marimekko)
         type: string
     hideFacetControl:
         type: boolean
+        description: Whether to hide the faceting control
     includedEntities:
         type: array
+        description: Entities to include. Opposite of excludedEntities. If this is set then all entities not specified here are excluded.
         items:
             type: number
     highlightToggle:
         type: object
+        description: Enable highlight toggle on scatter plots
         properties:
             description:
                 type: string
@@ -445,5 +600,6 @@ properties:
                 type: string
         additionalProperties: false
     entityTypePlural:
+        description: Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')
         type: string
 additionalProperties: false

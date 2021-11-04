@@ -190,3 +190,40 @@ update charts
 set config = JSON_REMOVE(config, '$.map.colorScale.customCategoryLabels')
 where JSON_CONTAINS_PATH(config, 'one', '$.map.colorScale.customCategoryLabels') = 1
 and JSON_TYPE(JSON_EXTRACT(config, '$.map.colorScale.customCategoryLabels')) = 'ARRAY'
+
+
+-- fourth batch
+-- fields that are used quite a lot but are no longer parsed
+
+update charts
+set config = JSON_REMOVE(config, '$."xAxis"."suffix"')
+where JSON_CONTAINS_PATH(config, 'one', '$."xAxis"."suffix"') = 1;
+
+update charts
+set config = JSON_REMOVE(config, '$."xAxis"."prefix"')
+where JSON_CONTAINS_PATH(config, 'one', '$."xAxis"."prefix"') = 1;
+
+update charts
+set config = JSON_REMOVE(config, '$."yAxis"."suffix"')
+where JSON_CONTAINS_PATH(config, 'one', '$."yAxis"."suffix"') = 1;
+
+update charts
+set config = JSON_REMOVE(config, '$."yAxis"."prefix"')
+where JSON_CONTAINS_PATH(config, 'one', '$."yAxis"."prefix"') = 1;
+
+
+update charts
+set config = JSON_SET(config, '$.map.time', config->>'$.map.targetYear')
+where JSON_CONTAINS_PATH(config, 'one', '$.map.targetYear')
+
+update charts
+set config = JSON_REMOVE(config, '$.map.targetYear')
+where JSON_CONTAINS_PATH(config, 'one', '$.map.targetYear')
+
+update charts
+set config = JSON_REMOVE(config, '$.originUrl')
+where JSON_CONTAINS_PATH(config, 'one', '$.originUrl') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.originUrl')) = 'NULL'
+
+update charts
+set config = JSON_REMOVE(config, '$.isPublished')
+where JSON_CONTAINS_PATH(config, 'one', '$.isPublished') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.isPublished')) = 'NULL'
