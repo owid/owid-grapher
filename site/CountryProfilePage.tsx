@@ -60,6 +60,10 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                         <span>Population, persons:</span> {keyStats.population.value} ({keyStats.population.year})
                     </li>
                 </ul> */}
+                    <p>
+                        Below are all indicators in our database for which this
+                        country has a value.
+                    </p>
                     <div>
                         <input
                             type="search"
