@@ -180,7 +180,6 @@ export const countryProfilePage = async (
 
             indicators.push({
                 year: latestValue.year,
-                value: column.formatValueShort(value),
                 name: grapher.title as string,
                 slug: `/grapher/${grapher.slug}?tab=chart&country=${country.code}`,
                 variantName: grapher.variantName,
