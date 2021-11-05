@@ -355,7 +355,6 @@ class HotEditor extends React.Component<{
             afterChange: () => this.updateProgramFromHot(),
             afterRemoveRow: () => this.updateProgramFromHot(),
             afterRemoveCol: () => this.updateProgramFromHot(),
-            allowInsertColumn: false,
             allowInsertRow: true,
             autoRowSize: false,
             autoColumnSize: false,
