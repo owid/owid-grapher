@@ -418,7 +418,7 @@ export const getFeaturedImages = async (): Promise<Map<number, string>> => {
 // page => pages, post => posts
 const getEndpointSlugFromType = (type: string): string => `${type}s`
 
-export const includeHomepagePosts: FilterFnPostRestApi = (post) =>
+export const selectHomepagePosts: FilterFnPostRestApi = (post) =>
     post.meta?.owid_publication_context_meta_field?.homepage === true
 
 // Limit not supported with multiple post types:
@@ -462,14 +462,14 @@ export const getPosts = async (
     // Published pages excluded from public views
     const excludedSlugs = [BLOG_SLUG]
 
-    const includeConditions: Array<FilterFnPostRestApi> = [
+    const filterConditions: Array<FilterFnPostRestApi> = [
         (post): boolean => !excludedSlugs.includes(post.slug),
         (post): boolean => !post.slug.endsWith("-country-profile"),
     ]
-    if (filterFunc) includeConditions.push(filterFunc)
+    if (filterFunc) filterConditions.push(filterFunc)
 
     const filteredPosts = posts.filter((post) =>
-        includeConditions.every((c) => c(post))
+        filterConditions.every((c) => c(post))
     )
 
     return limit ? filteredPosts.slice(0, limit) : filteredPosts
@@ -615,7 +615,7 @@ export const getFullPost = async (
 
 export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
     // TODO: do not get post content in the first place
-    const posts = await getPosts([WP_PostType.Post], includeHomepagePosts)
+    const posts = await getPosts([WP_PostType.Post], selectHomepagePosts)
     return Promise.all(posts.map((post) => getFullPost(post, true)))
 })
 
