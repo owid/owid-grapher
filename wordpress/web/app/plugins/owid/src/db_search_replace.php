@@ -23,38 +23,25 @@ function get_post_admin_links($post)
 }
 
 $posts = get_posts([
-    'post_type' => ['post', 'page', 'wp_block'],
+    'post_type' => ['post'],
     'numberposts' => -1,
 ]); //, 'include' => array(26199, 596)));
 
 foreach ($posts as $post) {
     $content = $post->post_content;
 
-    // Add regex here (e.g. "/dog/")
-    $patterns = [];
-
-    // Add replacement strings here (e.g. "cat")
-    $replacements = [];
-
-    $nb_replacements = 0;
-    $content = preg_replace(
-        $patterns,
-        $replacements,
-        $content,
-        -1,
-        $nb_replacements
+    $status = update_post_meta(
+        $post->ID,
+        "owid_publication_context_meta_field",
+        [
+            "immediate_newsletter" => true,
+            "homepage" => true,
+            "latest" => true,
+        ]
     );
 
-    if ($nb_replacements !== 0) {
+    if ($status == true) {
         echo get_post_admin_links($post) . "\n";
-
-        $my_post = [
-            'ID' => $post->ID,
-            // necessary to prevent "un-slashing" attributes JSON encoded by setAttributes (see ProminentLink.js, RichText)
-            // https://github.com/WordPress/gutenberg/blob/master/packages/escape-html/src/index.js#L60
-            // Without this unicode characters \u003c ("<"), \u003e (">"), \u0026 ("&") get stripped of their backslash and "u003c" is shown on the front-end.
-            'post_content' => wp_slash($content),
-        ];
 
         // IMPORTANT: comment out post_updated hook in owid.php before uncommenting this (DB will crash otherwise)
         // wp_update_post($my_post);

@@ -1,19 +1,26 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
 import Glossary from "./Glossary/Glossary"
 import Subtitle from "./Subtitle/Subtitle"
+import PublicationContext from "./PublicationContext/PublicationContext"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
 const { select } = wp.data
+import { Notice } from "@wordpress/components"
 
-registerPlugin("owid-key-performance-indicators", {
+const OWID_KEY_PERFORMANCE_INDICATORS = "owid-key-performance-indicators"
+const OWID_GLOSSARY = "owid-glossary"
+const OWID_SUBTITLE = "owid-subtitle"
+const OWID_PUBLICATION_CONTEXT = "owid-publication-context"
+
+registerPlugin(OWID_KEY_PERFORMANCE_INDICATORS, {
     render: () => {
         const postType = select("core/editor").getCurrentPostType()
         return (
             postType === "page" && (
                 <PluginDocumentSettingPanel
-                    name="owid-key-performance-indicators"
+                    name={OWID_KEY_PERFORMANCE_INDICATORS}
                     title="Key Performance Indicators (KPI)"
-                    className="owid-key-performance-indicators"
+                    className={OWID_KEY_PERFORMANCE_INDICATORS}
                 >
                     <KeyPerformanceIndicators />
                 </PluginDocumentSettingPanel>
@@ -23,15 +30,15 @@ registerPlugin("owid-key-performance-indicators", {
     icon: false,
 })
 
-registerPlugin("owid-glossary", {
+registerPlugin(OWID_GLOSSARY, {
     render: () => {
         const postType = select("core/editor").getCurrentPostType()
         return (
             (postType === "page" || postType === "post") && (
                 <PluginDocumentSettingPanel
-                    name="owid-glossary"
+                    name={OWID_GLOSSARY}
                     title="Glossary"
-                    className="owid-glossary"
+                    className={OWID_GLOSSARY}
                 >
                     <Glossary />
                 </PluginDocumentSettingPanel>
@@ -41,17 +48,40 @@ registerPlugin("owid-glossary", {
     icon: false,
 })
 
-registerPlugin("owid-subtitle", {
+registerPlugin(OWID_SUBTITLE, {
     render: () => {
         const postType = select("core/editor").getCurrentPostType()
         return (
             postType === "post" && (
                 <PluginDocumentSettingPanel
-                    name="owid-subtitle"
+                    name={OWID_SUBTITLE}
                     title="Subtitle"
-                    className="owid-subtitle"
+                    className={OWID_SUBTITLE}
                 >
                     <Subtitle />
+                </PluginDocumentSettingPanel>
+            )
+        )
+    },
+    icon: false,
+})
+
+registerPlugin(OWID_PUBLICATION_CONTEXT, {
+    render: () => {
+        const postType = select("core/editor").getCurrentPostType()
+        return (
+            postType === "post" && (
+                <PluginDocumentSettingPanel
+                    name={OWID_PUBLICATION_CONTEXT}
+                    title="Publication context"
+                    className={OWID_PUBLICATION_CONTEXT}
+                >
+                    <Notice isDismissible={false}>
+                        Currently, publication on the homepage, blog and
+                        immediate newsletter cannot be dissociated from each
+                        other.
+                    </Notice>
+                    <PublicationContext />
                 </PluginDocumentSettingPanel>
             )
         )

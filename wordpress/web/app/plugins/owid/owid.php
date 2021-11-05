@@ -28,6 +28,7 @@ include 'src/Card/card.php';
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
 const SUBTITLE_META_FIELD = "owid_subtitle_meta_field";
+const PUBLICATION_CONTEXT_META_FIELD = "owid_publication_context_meta_field";
 
 function setup()
 {
@@ -108,6 +109,29 @@ function register()
         'single' => true,
         'type' => 'string',
         'show_in_rest' => true,
+    ]);
+
+    // Add support for publication context.
+    // Add GraphQL registration below when necessary
+    register_post_meta('', PUBLICATION_CONTEXT_META_FIELD, [
+        'single' => true,
+        'type' => 'object',
+        'show_in_rest' => [
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'immediate_newsletter' => [
+                        'type' => 'boolean',
+                    ],
+                    'homepage' => [
+                        'type' => 'boolean',
+                    ],
+                    'latest' => [
+                        'type' => 'boolean',
+                    ],
+                ],
+            ],
+        ],
     ]);
 
     wp_register_script(

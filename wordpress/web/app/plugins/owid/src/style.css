@@ -14,3 +14,7 @@
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 1rem;
 }
+
+.owid-publication-context .components-notice {
+    margin: 0 0 1rem;
+}

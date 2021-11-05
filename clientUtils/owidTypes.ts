@@ -211,6 +211,18 @@ export interface PostReference {
     slug: string
 }
 
+export type FilterFnPostRestApi = (post: PostRestApi) => boolean
+
+export interface PostRestApi {
+    slug: string
+    meta: {
+        owid_publication_context_meta_field?: {
+            immediate_newsletter?: boolean
+            homepage?: boolean
+            latest?: boolean
+        }
+    }
+}
 export interface FullPost {
     id: number
     type: WP_PostType
