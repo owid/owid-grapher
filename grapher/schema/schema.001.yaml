@@ -172,7 +172,9 @@ required:
     - version
     - dimensions
 type: object
-description: Our World In Data grapher configuration. This object contains everything
+description: |
+    Our World In Data grapher configuration. Most of the fields can be left empty and will be
+    filled with reasonable default values.
 properties:
     id:
         type: integer
