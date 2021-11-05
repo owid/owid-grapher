@@ -227,3 +227,8 @@ where JSON_CONTAINS_PATH(config, 'one', '$.originUrl') = 1 and JSON_TYPE(JSON_EX
 update charts
 set config = JSON_REMOVE(config, '$.isPublished')
 where JSON_CONTAINS_PATH(config, 'one', '$.isPublished') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.isPublished')) = 'NULL'
+
+
+update charts
+set config = JSON_SET(config, '$.map.time', convert(JSON_EXTRACT(config, '$.map.time'), UNSIGNED INTEGER))
+where JSON_CONTAINS_PATH(config, 'one', '$.map.time') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.map.time')) = 'STRING' and JSON_EXTRACT(config, '$.map.time') <> 'latest'
