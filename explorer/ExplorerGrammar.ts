@@ -63,11 +63,12 @@ export const ExplorerGrammar: Grammar = {
         ...SlugDeclarationCellDef,
         keyword: "columns",
         description:
-            "Include all your column definitions for a table here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (sometimes incorrectly).",
+            "Include all your column definitions for one or multiple tables here. If you do not provide a column definition for every column in your table one will be generated for you by the machine (sometimes incorrectly).",
         headerCellDef: {
             ...SubTableHeaderCellDef,
             grammar: ColumnGrammar,
         },
+        isHorizontalList: true,
     },
     graphers: {
         ...SlugDeclarationCellDef,
