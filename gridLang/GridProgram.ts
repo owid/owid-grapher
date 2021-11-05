@@ -285,15 +285,27 @@ export class GridProgram {
             .filter(isPresent)
     }
 
-    getRowMatchingWords(...words: (string | undefined)[]) {
-        const matches = (line: string[]) =>
-            words.every(
-                (word, index) => word === undefined || line[index] === word
-            )
-        return this.asArrays.findIndex(matches)
+    private static lineMatchesWords = (
+        line: string[],
+        words: (string | undefined)[]
+    ): boolean =>
+        words.every((word, index) => word === undefined || line[index] === word)
+
+    getRowMatchingWords(...words: (string | undefined)[]): number {
+        return this.asArrays.findIndex((line) =>
+            GridProgram.lineMatchesWords(line, words)
+        )
     }
 
-    get asArrays() {
+    getAllRowsMatchingWords(...words: (string | undefined)[]): number[] {
+        const rows: number[] = []
+        this.asArrays.forEach((line: string[], rowIndex: number) => {
+            if (GridProgram.lineMatchesWords(line, words)) rows.push(rowIndex)
+        })
+        return rows
+    }
+
+    get asArrays(): string[][] {
         return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 

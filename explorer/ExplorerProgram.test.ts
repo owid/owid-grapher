@@ -57,6 +57,33 @@ ${ExplorerGrammar.graphers.keyword}
         )
     })
 
+    it("properly assigns column defs to table slugs", () => {
+        const program = new ExplorerProgram(
+            "test",
+            `columns
+\tslug\tname
+\tgdp\tGDP
+columns\ttable1\ttable2\ttable3
+\tslug\tname
+\tbanana\tBananas`
+        )
+
+        expect([...program.columnDefsByTableSlug.keys()]).toEqual([
+            undefined,
+            "table1",
+            "table2",
+            "table3",
+        ])
+
+        const columnDef1 = [{ slug: "gdp", name: "GDP" }]
+        const columnDef2 = [{ slug: "banana", name: "Bananas" }]
+
+        expect(program.columnDefsByTableSlug.get(undefined)).toEqual(columnDef1)
+        expect(program.columnDefsByTableSlug.get("table1")).toEqual(columnDef2)
+        expect(program.columnDefsByTableSlug.get("table2")).toEqual(columnDef2)
+        expect(program.columnDefsByTableSlug.get("table3")).toEqual(columnDef2)
+    })
+
     it("can detect errors", () => {
         const results = new ExplorerProgram("test", `titleTypo Foo`).getCell({
             row: 0,
