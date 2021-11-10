@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://ourworldindata.org/schemas/grapher.v001"
+$id: "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json"
 $defs:
     axis:
         type: object
@@ -33,10 +33,6 @@ $defs:
                 enum:
                     - independent
                     - shared
-            numDecimalPlaces:
-                type: integer
-                minimum: 0
-                description: "DEPRECATE: this field has not been used in 1y or more"
         additionalProperties: false
     colorScale:
         type: object
@@ -176,6 +172,11 @@ description: |
     Our World In Data grapher configuration. Most of the fields can be left empty and will be
     filled with reasonable default values.
 properties:
+    $schema:
+        type: string
+        description: Url of the concrete schema version to use to validate this document
+        format: uri
+        default: "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -403,18 +404,6 @@ properties:
                         Charts that can display more than one primary dimensions (i.e. scatter and marimekko)
                         sometimes need to "hardcode" one dimension to a specific year. This happens e.g. when
                         mixing a daily X variable in a scatter plot with a yearly one, e.g. population.
-                id:
-                    type: integer
-                    minimum: 0
-                    description: DEPRECATE - drop this at some point
-                order:
-                    type: integer
-                    minimum: 0
-                    description: DEPRECATE - drop this at some point
-                chartId:
-                    type: integer
-                    minimum: 0
-                    description: DEPRECATE - drop this at some point
                 property:
                     type: string
                     description: Which dimension this property maps to
@@ -424,10 +413,6 @@ properties:
                         - "size"
                         - "color"
                         - "table"
-                numDecimalPlaces:
-                    type: integer
-                    description: DEPRECATE - drop this at some point
-                    minimum: 0
                 display:
                     type: object
                     properties:
@@ -440,6 +425,10 @@ properties:
                         name:
                             type: string
                             description: The display string for this variable
+                        description:
+                            type: string
+                            description: Variable description
+                            $comment: This is a new field that did not exist prior to November 2021 in the DB. It overrides the description on the variable DB table.
                         tableDisplay:
                             type: object
                             description: Configuration for the table sheet for this variable

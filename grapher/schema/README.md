@@ -1,6 +1,6 @@
 This folder contains the JSON schema for the configuration of Grapher. Most of the fields can be left empty and will be filled with reasonable default values. Inside OWID we use the admin interface to construct these configs with a UI, but other projects might want to create them programmatically.
 
-## How do evolve the schema
+## How to evolve the schema
 
 The schema is versioned. Nonbreaking changes (e.g. additions of optional fields) can be added to the existing schema as is. It is preferred
 to edit the yaml file and then generate the json from yaml (using an editor plugin or similar).

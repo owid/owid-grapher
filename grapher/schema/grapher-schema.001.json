@@ -187,6 +187,12 @@
     "type": "object",
     "description": "Our World In Data grapher configuration. Most of the fields can be left empty and will be\nfilled with reasonable default values.\n",
     "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Url of the concrete schema version to use to validate this document",
+            "format": "uri",
+            "default": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json"
+        },
         "id": {
             "type": "integer",
             "description": "Internal DB id. Useful internally for OWID but not required if just using grapher directly.",

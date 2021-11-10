@@ -232,3 +232,12 @@ where JSON_CONTAINS_PATH(config, 'one', '$.isPublished') = 1 and JSON_TYPE(JSON_
 update charts
 set config = JSON_SET(config, '$.map.time', convert(JSON_EXTRACT(config, '$.map.time'), UNSIGNED INTEGER))
 where JSON_CONTAINS_PATH(config, 'one', '$.map.time') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.map.time')) = 'STRING' and JSON_EXTRACT(config, '$.map.time') <> 'latest'
+
+
+update charts
+set config = JSON_REMOVE(config, '$."xAxis"."numDecimalPlaces"')
+where JSON_CONTAINS_PATH(config, 'one', '$."xAxis"."numDecimalPlaces"') = 1;
+
+update charts
+set config = JSON_REMOVE(config, '$."yAxis"."numDecimalPlaces"')
+where JSON_CONTAINS_PATH(config, 'one', '$."yAxis"."numDecimalPlaces"') = 1;
