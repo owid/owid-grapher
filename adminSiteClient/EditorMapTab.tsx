@@ -15,7 +15,7 @@ import {
     Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { OwidVariableId } from "../clientUtils/owidTypes"
 import { MapConfig } from "../grapher/mapCharts/MapConfig"
 import { ChartDimension } from "../grapher/chart/ChartDimension"
 import { ColorScale } from "../grapher/color/ColorScale"
@@ -26,7 +26,7 @@ class VariableSection extends React.Component<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
 }> {
-    @action.bound onVariableId(variableId: LegacyVariableId) {
+    @action.bound onVariableId(variableId: OwidVariableId) {
         this.props.mapConfig.columnSlug = variableId.toString()
     }
 

@@ -30,7 +30,7 @@ import { imemo } from "./CoreTableUtils"
 import moment from "moment"
 import { OwidSource } from "../clientUtils/OwidSource"
 import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { ColumnSlug } from "../clientUtils/owidTypes"
 
 interface ColumnSummary {
@@ -162,7 +162,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return [this.minValue, this.maxValue]
     }
 
-    @imemo get display(): LegacyVariableDisplayConfigInterface | undefined {
+    @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
     }
 

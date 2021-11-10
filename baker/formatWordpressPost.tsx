@@ -46,8 +46,8 @@ import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExp
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import {
     getDataValue,
-    getLegacyChartDimensionConfigForVariable,
-    getLegacyVariableDisplayConfig,
+    getOwidChartDimensionConfigForVariable,
+    getOwidVariableDisplayConfig,
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 import { renderAutomaticProminentLinks } from "./siteRenderers"
@@ -181,9 +181,9 @@ export const formatWordpressPost = async (
         let formattedValue
         if (variableId && chartId) {
             const legacyVariableDisplayConfig =
-                await getLegacyVariableDisplayConfig(variableId)
+                await getOwidVariableDisplayConfig(variableId)
             const legacyChartDimension =
-                await getLegacyChartDimensionConfigForVariable(
+                await getOwidChartDimensionConfigForVariable(
                     variableId,
                     chartId
                 )

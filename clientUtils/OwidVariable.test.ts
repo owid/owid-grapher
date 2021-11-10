@@ -1,9 +1,9 @@
 #! /usr/bin/env jest
 
-import { LegacyVariableDisplayConfig } from "./OwidVariable"
+import { OwidVariableDisplayConfig } from "./OwidVariable"
 
 it("can create and save display settings", () => {
-    const settings = new LegacyVariableDisplayConfig()
+    const settings = new OwidVariableDisplayConfig()
     expect(settings.toObject()).toEqual({})
 
     settings.shortUnit = "kwh"

@@ -14,7 +14,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { LegacyVariableDisplayConfig } from "../clientUtils/OwidVariable"
+import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable"
 import { OwidSource } from "../clientUtils/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
@@ -38,7 +38,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 class VariableEditable {
@@ -47,7 +47,7 @@ class VariableEditable {
     @observable shortUnit: string = ""
     @observable description: string = ""
     @observable
-    display: LegacyVariableDisplayConfig = new LegacyVariableDisplayConfig()
+    display: OwidVariableDisplayConfig = new OwidVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {
@@ -307,7 +307,7 @@ interface VariableEditListItem {
     unit: string
     shortUnit: string
     description: string
-    display: LegacyVariableDisplayConfigInterface
+    display: OwidVariableDisplayConfigInterface
 }
 
 interface DatasetPageData {

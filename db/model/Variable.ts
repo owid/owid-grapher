@@ -2,14 +2,14 @@ import * as lodash from "lodash"
 import { Writable } from "stream"
 import * as db from "../db"
 import {
-    LegacyChartDimensionInterface,
-    LegacyVariableDisplayConfigInterface,
-} from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+    OwidChartDimensionInterface,
+    OwidVariableDisplayConfigInterface,
+} from "../../clientUtils/OwidVariableDisplayConfigInterface"
 import { arrToCsvRow } from "../../clientUtils/Util"
 import {
     DataValueQueryArgs,
     DataValueResult,
-    LegacyVariableId,
+    OwidVariableId,
 } from "../../clientUtils/owidTypes"
 
 export namespace Variable {
@@ -19,7 +19,7 @@ export namespace Variable {
         unit: string
         description: string
         columnOrder: number
-        display: LegacyVariableDisplayConfigInterface
+        display: OwidVariableDisplayConfigInterface
     }
 
     export type Field = keyof Row
@@ -233,10 +233,10 @@ export const getDataValue = async ({
     }
 }
 
-export const getLegacyChartDimensionConfigForVariable = async (
-    variableId: LegacyVariableId,
+export const getOwidChartDimensionConfigForVariable = async (
+    variableId: OwidVariableId,
     chartId: number
-): Promise<LegacyChartDimensionInterface | undefined> => {
+): Promise<OwidChartDimensionInterface | undefined> => {
     const row = await db.mysqlFirst(
         `SELECT config->"$.dimensions" as dimensions from charts WHERE id=?`,
         [chartId]
@@ -244,14 +244,14 @@ export const getLegacyChartDimensionConfigForVariable = async (
     if (!row.dimensions) return
     const dimensions = JSON.parse(row.dimensions)
     return dimensions.find(
-        (dimension: LegacyChartDimensionInterface) =>
+        (dimension: OwidChartDimensionInterface) =>
             dimension.variableId === variableId
     )
 }
 
-export const getLegacyVariableDisplayConfig = async (
-    variableId: LegacyVariableId
-): Promise<LegacyVariableDisplayConfigInterface | undefined> => {
+export const getOwidVariableDisplayConfig = async (
+    variableId: OwidVariableId
+): Promise<OwidVariableDisplayConfigInterface | undefined> => {
     const row = await db.mysqlFirst(
         `SELECT display from variables WHERE id=?`,
         [variableId]

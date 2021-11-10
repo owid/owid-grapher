@@ -9,11 +9,11 @@ import {
 } from "./persistable/Persistable"
 import { OwidSource } from "./OwidSource"
 import {
-    LegacyVariableDataTableConfigInteface,
-    LegacyVariableDisplayConfigInterface,
-} from "./LegacyVariableDisplayConfigInterface"
+    OwidVariableDataTableConfigInteface,
+    OwidVariableDisplayConfigInterface,
+} from "./OwidVariableDisplayConfigInterface"
 
-class LegacyVariableDisplayConfigDefaults {
+class OwidVariableDisplayConfigDefaults {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
@@ -25,39 +25,37 @@ class LegacyVariableDisplayConfigDefaults {
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable? = true
-    @observable tableDisplay?: LegacyVariableDataTableConfigInteface
+    @observable tableDisplay?: OwidVariableDataTableConfigInteface
     @observable color?: string = undefined
 }
 
-export class LegacyVariableDisplayConfig
-    extends LegacyVariableDisplayConfigDefaults
+export class OwidVariableDisplayConfig
+    extends OwidVariableDisplayConfigDefaults
     implements Persistable
 {
-    updateFromObject(
-        obj?: Partial<LegacyVariableDisplayConfigInterface>
-    ): void {
+    updateFromObject(obj?: Partial<OwidVariableDisplayConfigInterface>): void {
         if (obj) updatePersistables(this, obj)
     }
 
-    toObject(): LegacyVariableDisplayConfigDefaults {
+    toObject(): OwidVariableDisplayConfigDefaults {
         return deleteRuntimeAndUnchangedProps(
             objectWithPersistablesToObject(this),
-            new LegacyVariableDisplayConfigDefaults()
+            new OwidVariableDisplayConfigDefaults()
         )
     }
 
-    constructor(obj?: Partial<LegacyVariableDisplayConfigInterface>) {
+    constructor(obj?: Partial<OwidVariableDisplayConfigInterface>) {
         super()
         if (obj) this.updateFromObject(obj)
     }
 }
 
-export interface LegacyVariableConfig {
+export interface OwidVariableConfig {
     id: number
     name?: string
     description?: string
     unit?: string
-    display?: LegacyVariableDisplayConfigInterface
+    display?: OwidVariableDisplayConfigInterface
     shortUnit?: string
     datasetName?: string
     datasetId?: string
@@ -68,19 +66,19 @@ export interface LegacyVariableConfig {
     values?: (string | number)[]
 }
 
-export interface LegacyEntityMeta {
+export interface OwidEntityMeta {
     id: number
     name: string
     code: string
 }
 
-declare interface LegacyEntityKey {
-    [id: string]: LegacyEntityMeta
+declare interface OwidEntityKey {
+    [id: string]: OwidEntityMeta
 }
 
-export interface LegacyVariablesAndEntityKey {
+export interface OwidVariablesAndEntityKey {
     variables: {
-        [id: string]: LegacyVariableConfig
+        [id: string]: OwidVariableConfig
     }
-    entityKey: LegacyEntityKey
+    entityKey: OwidEntityKey
 }

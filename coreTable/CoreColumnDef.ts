@@ -1,4 +1,4 @@
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { ColumnSlug } from "../clientUtils/owidTypes"
 import { CoreValueType, Color } from "./CoreTableConstants"
 
@@ -76,5 +76,5 @@ export interface CoreColumnDef extends ColumnColorScale {
     // DEPRECATED
     unit?: string // DEPRECATED: use an existing column type or create a new one instead.
     shortUnit?: string // DEPRECATED: use an existing column type or create a new one instead.
-    display?: LegacyVariableDisplayConfigInterface // DEPRECATED: use an existing column type or create a new one instead, or migrate any properties you need onto this interface.
+    display?: OwidVariableDisplayConfigInterface // DEPRECATED: use an existing column type or create a new one instead, or migrate any properties you need onto this interface.
 }

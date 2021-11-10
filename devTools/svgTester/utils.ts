@@ -8,7 +8,7 @@ import {
 import { createGunzip, createGzip } from "zlib"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
-import { LegacyVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
 import md5 from "md5"
 
@@ -260,7 +260,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
         height
     )
 
-    grapher.receiveLegacyData(data as LegacyVariablesAndEntityKey)
+    grapher.receiveLegacyData(data as OwidVariablesAndEntityKey)
     const svg = grapher.staticSVG
     const svgRecord = {
         chartId: config.id!,

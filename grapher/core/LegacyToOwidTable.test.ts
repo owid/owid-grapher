@@ -5,7 +5,7 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { LegacyVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
@@ -13,7 +13,7 @@ import {
 import { DimensionProperty } from "../../clientUtils/owidTypes"
 
 describe(legacyToOwidTableAndDimensions, () => {
-    const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+    const legacyVariableConfig: OwidVariablesAndEntityKey = {
         entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
         variables: {
             "2": {
@@ -83,7 +83,7 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with years", () => {
-        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+        const legacyVariableConfig: OwidVariablesAndEntityKey = {
             entityKey: {
                 "1": { name: "World", code: "OWID_WRL", id: 1 },
                 "2": { name: "High-income", code: null as any, id: 2 },
@@ -161,7 +161,7 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with days", () => {
-        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+        const legacyVariableConfig: OwidVariablesAndEntityKey = {
             entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
             variables: {
                 "2": {
@@ -227,7 +227,7 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with mixed days & years", () => {
-        const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+        const legacyVariableConfig: OwidVariablesAndEntityKey = {
             entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
             variables: {
                 "2": {
@@ -311,7 +311,7 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 })
 
-const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
+const getOwidVarSet = (): OwidVariablesAndEntityKey => {
     return {
         variables: {
             "3512": {
@@ -353,7 +353,7 @@ const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
 }
 
 describe("creating a table from legacy", () => {
-    const table = legacyToOwidTableAndDimensions(getLegacyVarSet(), {
+    const table = legacyToOwidTableAndDimensions(getOwidVarSet(), {
         ...getLegacyGrapherConfig(),
         selectedData: [{ entityId: 45, index: 0, color: "blue" }],
     }).table
@@ -386,7 +386,7 @@ describe("creating a table from legacy", () => {
     })
 
     it("can apply legacy unit conversion factors", () => {
-        const varSet = getLegacyVarSet()
+        const varSet = getOwidVarSet()
         varSet.variables["3512"].display!.conversionFactor = 100
         expect(
             legacyToOwidTableAndDimensions(

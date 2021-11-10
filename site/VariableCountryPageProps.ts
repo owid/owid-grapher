@@ -1,10 +1,10 @@
-import { LegacyVariableConfig } from "../clientUtils/OwidVariable"
+import { OwidVariableConfig } from "../clientUtils/OwidVariable"
 
 export interface VariableCountryPageProps {
     country: {
         id: number
         name: string
     }
-    variable: LegacyVariableConfig
+    variable: OwidVariableConfig
     baseUrl: string
 }

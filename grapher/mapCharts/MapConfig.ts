@@ -1,7 +1,7 @@
 import { observable } from "mobx"
 import { MapProjectionName } from "./MapProjections"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { ColumnSlug, LegacyVariableId } from "../../clientUtils/owidTypes"
+import { ColumnSlug, OwidVariableId } from "../../clientUtils/owidTypes"
 import {
     Persistable,
     updatePersistables,
@@ -32,7 +32,7 @@ class MapConfigDefaults {
 export type MapConfigInterface = MapConfigDefaults
 
 interface MapConfigWithLegacyInterface extends MapConfigInterface {
-    variableId?: LegacyVariableId
+    variableId?: OwidVariableId
     targetYear?: number
 }
 

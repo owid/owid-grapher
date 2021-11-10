@@ -23,14 +23,14 @@ import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
-import { LegacyVariableId } from "../clientUtils/owidTypes"
+import { OwidVariableId } from "../clientUtils/owidTypes"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 
 interface VariableSelectorProps {
     editor: ChartEditor
     slot: DimensionSlot
     onDismiss: () => void
-    onComplete: (variableIds: LegacyVariableId[]) => void
+    onComplete: (variableIds: OwidVariableId[]) => void
 }
 
 interface Variable {

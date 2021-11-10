@@ -6,7 +6,7 @@ import {
 import { countries } from "../clientUtils/countries"
 import { TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { OwidTable } from "./OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 import { ColumnSlug } from "../clientUtils/owidTypes"
@@ -106,7 +106,7 @@ export enum SampleColumnSlugs {
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now(),
-    display?: LegacyVariableDisplayConfigInterface
+    display?: OwidVariableDisplayConfigInterface
 ): OwidTable =>
     SynthesizeOwidTable(
         {

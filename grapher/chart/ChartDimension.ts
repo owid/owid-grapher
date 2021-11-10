@@ -4,11 +4,11 @@
 import { observable, computed } from "mobx"
 import { trimObject } from "../../clientUtils/Util"
 import { OwidTable } from "../../coreTable/OwidTable"
-import { LegacyVariableDisplayConfig } from "../../clientUtils/OwidVariable"
+import { OwidVariableDisplayConfig } from "../../clientUtils/OwidVariable"
 import {
     ColumnSlug,
     DimensionProperty,
-    LegacyVariableId,
+    OwidVariableId,
 } from "../../clientUtils/owidTypes"
 import { Time } from "../../coreTable/CoreTableConstants"
 import {
@@ -17,17 +17,17 @@ import {
     updatePersistables,
 } from "../../clientUtils/persistable/Persistable"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-class ChartDimensionDefaults implements LegacyChartDimensionInterface {
+class ChartDimensionDefaults implements OwidChartDimensionInterface {
     @observable property!: DimensionProperty
-    @observable variableId!: LegacyVariableId
+    @observable variableId!: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display = new LegacyVariableDisplayConfig() // todo: make persistable
+    @observable display = new OwidVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
     @observable targetYear?: Time = undefined
@@ -45,7 +45,7 @@ export class ChartDimension
     private manager: LegacyDimensionsManager
 
     constructor(
-        obj: LegacyChartDimensionInterface,
+        obj: OwidChartDimensionInterface,
         manager: LegacyDimensionsManager
     ) {
         super()
@@ -57,7 +57,7 @@ export class ChartDimension
         return this.manager.table
     }
 
-    updateFromObject(obj: LegacyChartDimensionInterface): void {
+    updateFromObject(obj: OwidChartDimensionInterface): void {
         if (obj.display) updatePersistables(this, { display: obj.display })
 
         this.targetYear = obj.targetYear
@@ -66,7 +66,7 @@ export class ChartDimension
         this.slug = obj.slug
     }
 
-    toObject(): LegacyChartDimensionInterface {
+    toObject(): OwidChartDimensionInterface {
         return trimObject(
             deleteRuntimeAndUnchangedProps(
                 {
