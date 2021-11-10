@@ -9,7 +9,7 @@ import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
 import { ScaleSelectorManager } from "../controls/ScaleSelector"
 import { Position } from "../../clientUtils/owidTypes"

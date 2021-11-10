@@ -5,7 +5,7 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import {
     OwidTableSlugs,
     StandardOwidColumnDefs,

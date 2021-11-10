@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
+import { LegacyVariableDisplayConfig } from "./OwidVariable"
 
 it("can create and save display settings", () => {
     const settings = new LegacyVariableDisplayConfig()

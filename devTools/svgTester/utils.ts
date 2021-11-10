@@ -8,7 +8,7 @@ import {
 import { createGunzip, createGzip } from "zlib"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
-import { LegacyVariablesAndEntityKey } from "../../grapher/core/LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants"
 import md5 from "md5"
 

@@ -1,4 +1,4 @@
-import { LegacyVariableConfig } from "../grapher/core/LegacyVariableCode"
+import { LegacyVariableConfig } from "../clientUtils/OwidVariable"
 
 export interface VariableCountryPageProps {
     country: {

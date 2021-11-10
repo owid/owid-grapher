@@ -15,7 +15,7 @@ import {
     LegacyVariablesAndEntityKey,
     LegacyEntityMeta,
     LegacyVariableConfig,
-} from "./LegacyVariableCode"
+} from "../../clientUtils/OwidVariable"
 import {
     StandardOwidColumnDefs,
     OwidTableSlugs,

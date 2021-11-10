@@ -11,7 +11,7 @@ import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { DATA_VALUE } from "../site/DataValue"
-import { LegacyVariablesAndEntityKey } from "../grapher/core/LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "../clientUtils/OwidVariable"
 import {
     LegacyChartDimensionInterface,
     LegacyVariableDisplayConfigInterface,

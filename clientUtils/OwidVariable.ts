@@ -6,12 +6,12 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-} from "../persistable/Persistable"
-import { OwidSource } from "../../coreTable/OwidSource"
+} from "./persistable/Persistable"
+import { OwidSource } from "./OwidSource"
 import {
     LegacyVariableDataTableConfigInteface,
     LegacyVariableDisplayConfigInterface,
-} from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+} from "./LegacyVariableDisplayConfigInterface"
 
 class LegacyVariableDisplayConfigDefaults {
     @observable name?: string = undefined

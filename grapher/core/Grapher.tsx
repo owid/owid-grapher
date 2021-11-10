@@ -49,7 +49,7 @@ import {
     SeriesColorMap,
     FacetAxisDomain,
 } from "../core/GrapherConstants"
-import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -94,7 +94,7 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"

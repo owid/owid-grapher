@@ -4,7 +4,7 @@
 import { observable, computed } from "mobx"
 import { trimObject } from "../../clientUtils/Util"
 import { OwidTable } from "../../coreTable/OwidTable"
-import { LegacyVariableDisplayConfig } from "../core/LegacyVariableCode"
+import { LegacyVariableDisplayConfig } from "../../clientUtils/OwidVariable"
 import {
     ColumnSlug,
     DimensionProperty,
@@ -15,7 +15,7 @@ import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
 

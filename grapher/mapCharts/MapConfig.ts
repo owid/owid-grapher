@@ -7,7 +7,7 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import {
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,

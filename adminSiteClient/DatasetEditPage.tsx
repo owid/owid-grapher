@@ -14,8 +14,8 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { LegacyVariableDisplayConfig } from "../grapher/core/LegacyVariableCode"
-import { OwidSource } from "../coreTable/OwidSource"
+import { LegacyVariableDisplayConfig } from "../clientUtils/OwidVariable"
+import { OwidSource } from "../clientUtils/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"

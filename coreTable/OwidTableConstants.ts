@@ -6,7 +6,7 @@ import {
     Year,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { OwidSource } from "./OwidSource"
+import { OwidSource } from "../clientUtils/OwidSource"
 import { ColumnSlug } from "../clientUtils/owidTypes"
 
 export enum OwidTableSlugs {
