@@ -50,7 +50,9 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export interface OwidVariableConfig {
+export interface OwidVariable {}
+
+export interface OwidVariableWithDataAndSource {
     id: number
     name?: string
     description?: string
@@ -78,7 +80,7 @@ declare interface OwidEntityKey {
 
 export interface OwidVariablesAndEntityKey {
     variables: {
-        [id: string]: OwidVariableConfig
+        [id: string]: OwidVariableWithDataAndSource
     }
     entityKey: OwidEntityKey
 }

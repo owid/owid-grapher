@@ -13,7 +13,7 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import {
-    OwidVariableConfig,
+    OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
 } from "../clientUtils/OwidVariable"
 import { Grapher } from "../grapher/core/Grapher"
@@ -25,13 +25,14 @@ import { GrapherTabOption } from "../grapher/core/GrapherConstants"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { DimensionProperty, EPOCH_DATE } from "../clientUtils/owidTypes"
 
-interface VariablePageData extends Omit<OwidVariableConfig, "source"> {
+interface VariablePageData
+    extends Omit<OwidVariableWithDataAndSource, "source"> {
     datasetNamespace: string
     charts: ChartListItem[]
     source: { id: number; name: string }
 }
 
-class VariableEditable implements Omit<OwidVariableConfig, "id"> {
+class VariableEditable implements Omit<OwidVariableWithDataAndSource, "id"> {
     @observable name = ""
     @observable unit = ""
     @observable shortUnit = ""

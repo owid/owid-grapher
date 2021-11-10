@@ -14,7 +14,7 @@ import {
 import {
     OwidVariablesAndEntityKey,
     OwidEntityMeta,
-    OwidVariableConfig,
+    OwidVariableWithDataAndSource,
 } from "../../clientUtils/OwidVariable"
 import {
     StandardOwidColumnDefs,
@@ -215,7 +215,7 @@ const fullJoinTables = (tables: OwidTable[]): OwidTable =>
     tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
 const columnDefFromOwidVariable = (
-    variable: OwidVariableConfig
+    variable: OwidVariableWithDataAndSource
 ): OwidColumnDef => {
     const slug = variable.id.toString() // For now, the variableId will be the column slug
     const {
@@ -251,7 +251,7 @@ const columnDefFromOwidVariable = (
 }
 
 const timeColumnDefFromOwidVariable = (
-    variable: OwidVariableConfig
+    variable: OwidVariableWithDataAndSource
 ): OwidColumnDef => {
     return variable.display?.yearIsDay
         ? {
@@ -267,7 +267,7 @@ const timeColumnDefFromOwidVariable = (
 }
 
 const timeColumnValuesFromOwidVariable = (
-    variable: OwidVariableConfig
+    variable: OwidVariableWithDataAndSource
 ): number[] => {
     const { display, years } = variable
     const yearsNeedTransform =
@@ -292,7 +292,7 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
 }
 
 const annotationMapAndDefFromOwidVariable = (
-    variable: OwidVariableConfig
+    variable: OwidVariableWithDataAndSource
 ): [Map<string, string>, OwidColumnDef] | [] => {
     if (variable.display?.entityAnnotationsMap) {
         const slug = makeAnnotationsSlug(variable.id.toString())
