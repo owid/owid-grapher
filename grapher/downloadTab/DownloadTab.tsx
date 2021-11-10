@@ -5,6 +5,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import {
     triggerDownloadFromBlob,
@@ -258,6 +259,28 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
                 <div className="grouped-menu-section">
                     <h2>Data</h2>
+                    <div className="grouped-menu-callout danger">
+                        <div className="grouped-menu-callout-icon">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </div>
+                        <div className="grouped-menu-callout-content">
+                            <h3 className="title">
+                                The data in this chart is not available to
+                                download
+                            </h3>
+                            <p>
+                                The data is published under a license that
+                                doesn't allow us to redistribute it.
+                            </p>
+                            <p>
+                                Please visit the{" "}
+                                <a href="#">
+                                    <strong>data publisher's website</strong>
+                                </a>{" "}
+                                for more details.
+                            </p>
+                        </div>
+                    </div>
                     <div className="grouped-menu-list">
                         <button
                             className="grouped-menu-item"
