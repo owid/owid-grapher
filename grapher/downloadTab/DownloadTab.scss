@@ -1,106 +1,98 @@
-.DownloadTab .download-csv {
-    align-items: center;
-    text-align: center;
+.DownloadTab {
+    padding: 2em;
+    color: #444;
+    line-height: 1.4;
+    display: flex; // allows vertical centering when using margin:auto
+    overflow: auto; // we want to be able to scroll if contents overflow
 
-    .btn {
-        color: #fff;
-        background-color: #0275d8;
-        border-color: #0275d8;
-        display: inline-block;
-        font-weight: 400;
-        text-align: center;
-        vertical-align: middle;
-        cursor: pointer;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        border: 1px solid transparent;
-        padding: 0.375rem 1rem;
-        font-size: 1em;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        text-decoration: none;
+    .grouped-menu {
+        width: 100%;
+        max-width: 35em;
+        margin: auto;
+    }
 
-        :hover {
-            color: #fff;
-            background-color: #025aa5;
-            border-color: #01549b;
+    .grouped-menu-section {
+        h2 {
+            font-size: 1.125em;
+            font-weight: 700;
         }
     }
-}
 
-.DownloadTab {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    padding: 2em;
-
-    p {
-        font-size: 0.9rem;
+    .grouped-menu-section + .grouped-menu-section {
+        margin-top: 3em;
     }
 
-    > a > div {
-        display: flex;
-    }
-
-    .img-downloads {
+    .grouped-menu-item {
         display: flex;
         flex-direction: row;
-        justify-content: center;
+        align-items: center;
+        color: #444;
+        background-color: #fafafa;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        position: relative;
+        width: 100%;
+        margin-top: -1px;
+        padding: 0;
+        overflow: hidden;
+        text-align: left;
 
-        a {
-            color: #333;
-            text-decoration: none;
-            margin: 0 1rem 1rem;
-            margin-bottom: 1rem;
-
-            div {
-                display: flex;
-                flex-flow: column;
-                align-items: center;
-            }
-
-            img {
-                margin: 1rem 1rem 0.5rem 1rem;
-            }
-
-            aside {
-                margin: 0 2rem 0;
-
-                h2 {
-                    margin-bottom: 0;
-                    text-align: center;
-                    font-size: 1.5rem;
-                }
-            }
+        &:first-child {
+            margin-top: 0;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
         }
 
-        > a:hover > div {
-            text-decoration: underline;
+        &:last-child {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        &:hover {
+            z-index: 1;
+            background-color: #f3f3f3;
+            border-color: rgba(0, 0, 0, 0.25);
+            color: #222;
         }
     }
 
-    &.mobile {
-        .img-downloads {
-            margin-bottom: 2rem;
+    .grouped-menu-icon {
+        flex: 0;
+
+        img {
+            display: block;
+            margin: 10px;
+            margin-right: 3px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15),
+                0 2px 4px 1px rgba(0, 0, 0, 0.09);
+        }
+    }
+
+    .grouped-menu-content {
+        flex: 1;
+        padding: 0.85em 1em;
+
+        .title {
+            font-size: 1em;
+            margin: 0 0 0.35em;
         }
 
-        a {
+        .description {
+            font-size: 0.9375em;
             margin: 0;
-
-            aside {
-                margin: 0;
-
-                h2 {
-                    font-size: 1.2rem;
-                }
-            }
+            opacity: 0.9;
         }
 
-        p {
-            font-size: 0.7rem;
+        .faint {
+            font-weight: normal;
         }
+    }
+
+    .download-icon {
+        opacity: 0.5;
+        padding-left: 0.5em;
+        padding-right: 1.5em;
+    }
+    .grouped-menu-item:hover .download-icon {
+        opacity: 1;
     }
 }

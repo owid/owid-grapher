@@ -1141,3 +1141,23 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
         else return row
     })
 }
+
+// Wrapped because JSDOM does not support this method yet:
+// https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
+export const createObjectURL = (obj: any): string =>
+    URL.createObjectURL ? URL.createObjectURL(obj) : ""
+export const revokeObjectURL = (obj: any): void =>
+    URL.revokeObjectURL ? URL.revokeObjectURL(obj) : undefined
+
+export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
+    const objectUrl = createObjectURL(blob)
+    triggerDownloadFromUrl(filename, objectUrl)
+    revokeObjectURL(objectUrl)
+}
+
+export const triggerDownloadFromUrl = (filename: string, url: string): void => {
+    const downloadLink = document.createElement("a")
+    downloadLink.setAttribute("href", url)
+    downloadLink.setAttribute("download", filename)
+    downloadLink.click()
+}
