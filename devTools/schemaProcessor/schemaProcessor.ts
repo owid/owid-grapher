@@ -4,11 +4,22 @@ import * as path from "path"
 import parseArgs from "minimist"
 import _ from "lodash"
 
+enum EditorOption {
+    textfield = "textfield",
+    textarea = "textarea",
+    dropdown = "dropdown",
+    numeric = "numeric",
+    checkbox = "checkbox",
+    colorEditor = "colorEditor",
+    mappingEditor = "mappingEditor",
+    primitiveListEditor = "primitiveListEditor",
+}
+
 interface FieldDescription {
-    path: string
+    pointer: string // JSON Pointer to this field
     type: string
     default?: string
-    needsSpecialEditor: boolean
+    editor: EditorOption
     enumOptions?: string[]
 }
 
@@ -21,8 +32,26 @@ function isPlainTypeString(item: string) {
     )
 }
 
+function isPlainTypeOrArrayOfPlainType(type: any) {
+    return (
+        isPlainTypeString(type) ||
+        (_.isArray(type) && _.every(type, isPlainTypeStringOrNull))
+    )
+}
 function isPlainTypeStringOrNull(item: string) {
     return isPlainTypeString(item) || item === "null"
+}
+
+function getEditorOptionForType(
+    type: string,
+    enumOptions: string[] | undefined
+): EditorOption {
+    if (type === "number") return EditorOption.numeric
+    else if (type === "string" && enumOptions) return EditorOption.dropdown
+    else if (type === "string") return EditorOption.textfield
+    else if (type === "boolean") return EditorOption.checkbox
+    else if (type === "integer") return EditorOption.numeric
+    else return EditorOption.textfield
 }
 
 /** This function takes a json schema that has been read and converted from json to a
@@ -43,7 +72,7 @@ function isPlainTypeStringOrNull(item: string) {
  */
 function extractSchema(
     schema: any,
-    path: string,
+    pointer: string,
     items: FieldDescription[]
 ): void {
     // We shouldn't encounter primitives in the schema itself (since we recurse
@@ -56,7 +85,7 @@ function extractSchema(
         _.isBoolean(schema) ||
         _.isArray(schema)
     ) {
-        console.log("shouldn't come here?", path)
+        console.log("shouldn't come here?", pointer)
         return
     } else if (_.isPlainObject(schema)) {
         // If the current schema fragment describes a normal object
@@ -68,7 +97,7 @@ function extractSchema(
             schema.hasOwnProperty("properties")
         ) {
             for (const key of _.keys(schema.properties)) {
-                const newPath = `${path}.${key}`
+                const newPath = `${pointer}/${key}`
                 extractSchema(schema.properties[key], newPath, items)
             }
         } else if (
@@ -93,31 +122,42 @@ function extractSchema(
         ) {
             items.push({
                 type: schema.type,
-                path: path,
+                pointer: pointer,
                 default: schema.default,
-                needsSpecialEditor: true,
+                editor: EditorOption.mappingEditor,
                 enumOptions: schema.enum,
             })
         } else if (schema.type === "array") {
-            // For now if we have an array we add "[*]" to the path
-            // and recurse on the items. Since we want to write arrays
-            // as one go we will probably change this soon
-            const newPath = `${path}[*]`
-            extractSchema(schema.items, newPath, items)
-        } else if (
-            isPlainTypeString(schema.type) ||
-            (_.isArray(schema.type) &&
-                _.every(schema.type, isPlainTypeStringOrNull))
-        ) {
+            // If an array contains only primitive values then we want to
+            // edit this in one editor session and then replace the entire
+            // array
+            if (isPlainTypeOrArrayOfPlainType(schema.items.type)) {
+                items.push({
+                    type: schema.type,
+                    pointer: pointer,
+                    default: schema.default,
+                    editor: EditorOption.primitiveListEditor,
+                    enumOptions: schema.enum,
+                })
+            }
+            // If the array contains an object then things are more complicated -
+            // for dimension we have a special case where it only makes sense to
+            // talk about a single dimension. For now if we have an object we
+            // set the json pointer to the first element and
+            else {
+                const newPath = `${pointer}/0`
+                extractSchema(schema.items, newPath, items)
+            }
+        } else if (isPlainTypeOrArrayOfPlainType(schema.type)) {
             // If the object describes a primitive type or is
             // an array of only primitive types or null (e.g.
             // because the type is ["string", "null"]) then
             // we yield a single element
             items.push({
                 type: schema.type,
-                path: path,
+                pointer: pointer,
                 default: schema.default,
-                needsSpecialEditor: false,
+                editor: getEditorOptionForType(schema.type, schema.enum),
                 enumOptions: schema.enum,
             })
         } else if (
@@ -136,15 +176,15 @@ function extractSchema(
             const types = schema.oneOf.map((item: any) => item.type)
             items.push({
                 type: types,
-                path: path,
+                pointer: pointer,
                 default: schema.default,
-                needsSpecialEditor: false,
+                editor: EditorOption.textfield,
             })
         } else {
-            console.log("Unexpected type/object1", [schema, path])
+            console.log("Unexpected type/object1", [schema, pointer])
         }
     } else {
-        console.log("Unexpected type/object2", path)
+        console.log("Unexpected type/object2", pointer)
     }
 }
 
@@ -190,8 +230,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     const schema = await fs.readJson("schema.json")
     const dereferenced = dereference(schema)
     const fields: FieldDescription[] = []
-    extractSchema(dereferenced, "$", fields)
-    for (const field of fields) console.log(JSON.stringify(field, undefined, 0))
+    extractSchema(dereferenced, "", fields)
+    console.log(JSON.stringify(fields, undefined, 2))
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
