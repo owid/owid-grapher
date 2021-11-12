@@ -1,0 +1,832 @@
+[
+    {
+        "type": "string",
+        "pointer": "/$schema",
+        "default": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/id",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/map/projection",
+        "default": "World",
+        "editor": "dropdown",
+        "enumOptions": [
+            "World",
+            "Europe",
+            "Africa",
+            "Asia",
+            "NortAmerica",
+            "SouthAmerica",
+            "Oceania"
+        ]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/map/hideTimeline",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "array",
+        "pointer": "/map/colorScale/customNumericLabels",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "object",
+        "pointer": "/map/colorScale/customCategoryColors",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/map/colorScale/baseColorScheme",
+        "default": "default",
+        "editor": "dropdown",
+        "enumOptions": [
+            "YlGn",
+            "YlGnBu",
+            "GnBu",
+            "BuGn",
+            "PuBuGn",
+            "BuPu",
+            "RdPu",
+            "PuRd",
+            "OrRd",
+            "YlOrRd",
+            "YlOrBr",
+            "Purples",
+            "Blues",
+            "Greens",
+            "Oranges",
+            "Reds",
+            "Greys",
+            "PuOr",
+            "BrBG",
+            "PRGn",
+            "PiYG",
+            "RdBu",
+            "RdGy",
+            "RdYlBu",
+            "Spectral",
+            "RdYlGn",
+            "Accent",
+            "Dark2",
+            "Paired",
+            "Pastel1",
+            "Pastel2",
+            "Set1",
+            "Set2",
+            "Set3",
+            "PuBu",
+            "hsv-RdBu",
+            "hsv-CyMg",
+            "Magma",
+            "Inferno",
+            "Plasma",
+            "Viridis",
+            "continents",
+            "stackedAreaDefault",
+            "owid-distinct",
+            "default"
+        ]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/map/colorScale/equalSizeBins",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "object",
+        "pointer": "/map/colorScale/customHiddenCategories",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/map/colorScale/binningStrategy",
+        "default": "ckmeans",
+        "editor": "dropdown",
+        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+    },
+    {
+        "type": "string",
+        "pointer": "/map/colorScale/legendDescription",
+        "editor": "textfield"
+    },
+    {
+        "type": "array",
+        "pointer": "/map/colorScale/customNumericColors",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "array",
+        "pointer": "/map/colorScale/customNumericValues",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/map/colorScale/customNumericColorsActive",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/map/colorScale/colorSchemeInvert",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "object",
+        "pointer": "/map/colorScale/customCategoryLabels",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "integer",
+        "pointer": "/map/colorScale/binningStrategyBinCount",
+        "default": 5,
+        "editor": "numeric"
+    },
+    {
+        "type": "number",
+        "pointer": "/map/colorScale/customNumericMinValue",
+        "editor": "numeric"
+    },
+    {
+        "type": "integer",
+        "pointer": "/map/timeTolerance",
+        "default": 0,
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/map/tooltipUseCustomLabels",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": ["string", "number"],
+        "pointer": "/map/time",
+        "default": "latest",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/map/variableId",
+        "editor": "numeric"
+    },
+    {
+        "type": ["string", "number"],
+        "pointer": "/maxTime",
+        "default": "latest",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/subtitle",
+        "editor": "textfield"
+    },
+    {
+        "type": "array",
+        "pointer": "/selectedEntityNames",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/baseColorScheme",
+        "default": "default",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/yAxis/removePointsOutsideDomain",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/yAxis/label",
+        "editor": "textfield"
+    },
+    {
+        "type": "number",
+        "pointer": "/yAxis/min",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/yAxis/scaleType",
+        "default": "linear",
+        "editor": "dropdown",
+        "enumOptions": ["linear", "log"]
+    },
+    {
+        "type": "number",
+        "pointer": "/yAxis/max",
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/yAxis/canChangeScaleType",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/yAxis/facetDomain",
+        "editor": "dropdown",
+        "enumOptions": ["independent", "shared"]
+    },
+    {
+        "type": "string",
+        "pointer": "/tab",
+        "default": "chart",
+        "editor": "dropdown",
+        "enumOptions": ["chart", "map", "sources", "download", "table"]
+    },
+    {
+        "type": "string",
+        "pointer": "/selectedData/0/color",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/selectedData/0/index",
+        "editor": "numeric"
+    },
+    {
+        "type": "integer",
+        "pointer": "/selectedData/0/entityId",
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/matchingEntitiesOnly",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hasChartTab",
+        "default": true,
+        "editor": "checkbox"
+    },
+    {
+        "type": "array",
+        "pointer": "/data/availableEntities",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideLegend",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideLogo",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "integer",
+        "pointer": "/timelineMinTime",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/variantName",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideTimeline",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/originUrl",
+        "editor": "textfield"
+    },
+    {
+        "type": "array",
+        "pointer": "/colorScale/customNumericLabels",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "object",
+        "pointer": "/colorScale/customCategoryColors",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/colorScale/baseColorScheme",
+        "default": "default",
+        "editor": "dropdown",
+        "enumOptions": [
+            "YlGn",
+            "YlGnBu",
+            "GnBu",
+            "BuGn",
+            "PuBuGn",
+            "BuPu",
+            "RdPu",
+            "PuRd",
+            "OrRd",
+            "YlOrRd",
+            "YlOrBr",
+            "Purples",
+            "Blues",
+            "Greens",
+            "Oranges",
+            "Reds",
+            "Greys",
+            "PuOr",
+            "BrBG",
+            "PRGn",
+            "PiYG",
+            "RdBu",
+            "RdGy",
+            "RdYlBu",
+            "Spectral",
+            "RdYlGn",
+            "Accent",
+            "Dark2",
+            "Paired",
+            "Pastel1",
+            "Pastel2",
+            "Set1",
+            "Set2",
+            "Set3",
+            "PuBu",
+            "hsv-RdBu",
+            "hsv-CyMg",
+            "Magma",
+            "Inferno",
+            "Plasma",
+            "Viridis",
+            "continents",
+            "stackedAreaDefault",
+            "owid-distinct",
+            "default"
+        ]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/colorScale/equalSizeBins",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "object",
+        "pointer": "/colorScale/customHiddenCategories",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/colorScale/binningStrategy",
+        "default": "ckmeans",
+        "editor": "dropdown",
+        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+    },
+    {
+        "type": "string",
+        "pointer": "/colorScale/legendDescription",
+        "editor": "textfield"
+    },
+    {
+        "type": "array",
+        "pointer": "/colorScale/customNumericColors",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "array",
+        "pointer": "/colorScale/customNumericValues",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/colorScale/customNumericColorsActive",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/colorScale/colorSchemeInvert",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "object",
+        "pointer": "/colorScale/customCategoryLabels",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "integer",
+        "pointer": "/colorScale/binningStrategyBinCount",
+        "default": 5,
+        "editor": "numeric"
+    },
+    {
+        "type": "number",
+        "pointer": "/colorScale/customNumericMinValue",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/scatterPointLabelStrategy",
+        "default": "year",
+        "editor": "dropdown",
+        "enumOptions": ["x", "y", "year"]
+    },
+    {
+        "type": "string",
+        "pointer": "/selectedFacetStrategy",
+        "default": "none",
+        "editor": "dropdown",
+        "enumOptions": ["none", "entity", "metric"]
+    },
+    {
+        "type": "string",
+        "pointer": "/sourceDesc",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/isPublished",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/invertColorScheme",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideRelativeToggle",
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/comparisonLines/0/label",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/comparisonLines/0/yEquals",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/slug",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/internalNotes",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/version",
+        "default": 1,
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/logo",
+        "default": "owid",
+        "editor": "dropdown",
+        "enumOptions": ["owid", "core+owid", "gv+owid"]
+    },
+    {
+        "type": "string",
+        "pointer": "/entityType",
+        "default": "country",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/note",
+        "editor": "textfield"
+    },
+    {
+        "type": ["integer", "null"],
+        "pointer": "/dimensions/0/targetYear",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/property",
+        "editor": "dropdown",
+        "enumOptions": ["y", "x", "size", "color", "table"]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/dimensions/0/display/isProjection",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/name",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/description",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/dimensions/0/display/tableDisplay/hideAbsoluteChange",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/dimensions/0/display/tableDisplay/hideRelativeChange",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "integer",
+        "pointer": "/dimensions/0/display/tolerance",
+        "default": 0,
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/entityAnnotationsMap",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/dimensions/0/display/yearIsDay",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/color",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/dimensions/0/display/includeInTable",
+        "default": true,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/shortUnit",
+        "editor": "textfield"
+    },
+    {
+        "type": "number",
+        "pointer": "/dimensions/0/display/conversionFactor",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/unit",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/dimensions/0/display/numDecimalPlaces",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/dimensions/0/display/zeroDay",
+        "editor": "textfield"
+    },
+    {
+        "type": "integer",
+        "pointer": "/dimensions/0/variableId",
+        "editor": "numeric"
+    },
+    {
+        "type": "array",
+        "pointer": "/selectedEntityIds",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/addCountryMode",
+        "default": "add-country",
+        "editor": "dropdown",
+        "enumOptions": ["add-country", "change-country", "disabled"]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/compareEndPointsOnly",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "object",
+        "pointer": "/selectedEntityColors",
+        "editor": "mappingEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/relatedQuestions/0/url",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/relatedQuestions/0/text",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/title",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/type",
+        "default": "LineChart",
+        "editor": "dropdown",
+        "enumOptions": [
+            "LineChart",
+            "ScatterPlot",
+            "TimeScatter",
+            "StackedArea",
+            "DiscreteBar",
+            "StackedDiscreteBar",
+            "SlopeChart",
+            "StackedBar",
+            "WorldMap",
+            "Marimekko"
+        ]
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hasMapTab",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": ["string", "null"],
+        "pointer": "/stackMode",
+        "editor": "textfield",
+        "enumOptions": ["absolute", "relative", "grouped", "stacked", null]
+    },
+    {
+        "type": ["string", "number"],
+        "pointer": "/minTime",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideTitleAnnotation",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "array",
+        "pointer": "/excludedEntities",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/xAxis/removePointsOutsideDomain",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/xAxis/label",
+        "editor": "textfield"
+    },
+    {
+        "type": "number",
+        "pointer": "/xAxis/min",
+        "editor": "numeric"
+    },
+    {
+        "type": "string",
+        "pointer": "/xAxis/scaleType",
+        "default": "linear",
+        "editor": "dropdown",
+        "enumOptions": ["linear", "log"]
+    },
+    {
+        "type": "number",
+        "pointer": "/xAxis/max",
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/xAxis/canChangeScaleType",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/xAxis/facetDomain",
+        "editor": "dropdown",
+        "enumOptions": ["independent", "shared"]
+    },
+    {
+        "type": "integer",
+        "pointer": "/timelineMaxTime",
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideConnectedScatterLines",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/showNoDataArea",
+        "default": true,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/zoomToSelection",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "integer",
+        "pointer": "/minPopulationFilter",
+        "editor": "numeric"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/showYearLabels",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideLinesOutsideTolerance",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideTotalValueLabel",
+        "default": false,
+        "editor": "checkbox"
+    },
+    {
+        "type": "string",
+        "pointer": "/sortBy",
+        "default": "total",
+        "editor": "dropdown",
+        "enumOptions": ["column", "total", "entityName"]
+    },
+    {
+        "type": "string",
+        "pointer": "/sortOrder",
+        "default": "desc",
+        "editor": "dropdown",
+        "enumOptions": ["desc", "asc"]
+    },
+    {
+        "type": "string",
+        "pointer": "/sortColumnSlug",
+        "editor": "textfield"
+    },
+    {
+        "type": "boolean",
+        "pointer": "/hideFacetControl",
+        "default": true,
+        "editor": "checkbox"
+    },
+    {
+        "type": "array",
+        "pointer": "/includedEntities",
+        "editor": "primitiveListEditor"
+    },
+    {
+        "type": "string",
+        "pointer": "/highlightToggle/description",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/highlightToggle/paramString",
+        "editor": "textfield"
+    },
+    {
+        "type": "string",
+        "pointer": "/entityTypePlural",
+        "default": "countries",
+        "editor": "textfield"
+    }
+]
