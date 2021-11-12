@@ -17,11 +17,13 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData } from "../db/model/Variable"
+import { OpPatch } from "../clientUtils/jsonPatchUtils"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface"
 import { SuggestedChartRevisionStatus } from "../adminSiteClient/SuggestedChartRevision"
+
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -42,6 +44,7 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
+import jiff = require("jiff")
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -714,20 +717,18 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-                suggestedChartRevision.canApprove =
-                    SuggestedChartRevision.checkCanApprove(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canReject =
-                    SuggestedChartRevision.checkCanReject(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canFlag =
-                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
-                suggestedChartRevision.canPending =
-                    SuggestedChartRevision.checkCanPending(
-                        suggestedChartRevision
-                    )
+                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+                    suggestedChartRevision
+                )
             }
         )
 
@@ -1085,15 +1086,18 @@ apiRouter.get(
         suggestedChartRevision.existingConfig = JSON.parse(
             suggestedChartRevision.existingConfig
         )
-        suggestedChartRevision.canApprove =
-            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
-        suggestedChartRevision.canReject =
-            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
+        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+            suggestedChartRevision
+        )
+        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+            suggestedChartRevision
+        )
         suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
             suggestedChartRevision
         )
-        suggestedChartRevision.canPending =
-            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
+        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+            suggestedChartRevision
+        )
 
         return {
             suggestedChartRevision: suggestedChartRevision,
@@ -1331,6 +1335,51 @@ apiRouter.get("/variables.json", async (req) => {
     )[0].count
 
     return { variables: rows, numTotalRows: numTotalRows }
+})
+
+interface VariableAnnotationPatch {
+    variableId: number
+    operations: OpPatch[]
+}
+
+apiRouter.patch("/variable-annotations", async (req) => {
+    const patchesList = req.body as VariableAnnotationPatch[]
+    const variableIds = new Set(patchesList.map((patch) => patch.variableId))
+
+    await db.transaction(async (manager) => {
+        const configsAndIds = await manager.query(
+            `SELECT id, grapherConfig FROM variables where id IN (?)`,
+            [[...variableIds.values()]]
+        )
+        const configMap = new Map(
+            // TODO: where should an empty grapherConfig be initialized? Here? Empty?
+            configsAndIds.map((item: any) => [item.id, item.grapherConfig])
+        )
+        // console.log("ids", configsAndIds.map((item : any) => item.id))
+        for (const patchSet of patchesList) {
+            const config = configMap.get(patchSet.variableId)
+            const newConfig = jiff.patch(patchSet.operations, config)
+            configMap.set(patchSet.variableId, newConfig)
+        }
+
+        for (const [variableId, newConfig] of configMap.entries()) {
+            await manager.execute(
+                `UPDATE variables SET grapherConfig = ? where id = ?`,
+                [newConfig, variableId]
+            )
+        }
+
+        // `UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
+        // [
+        //     variable.name,
+        //     variable.description,
+        //     new Date(),
+        //     JSON.stringify(variable.display),
+        //     variableId,
+        // ]
+    })
+
+    return { success: true }
 })
 
 apiRouter.get("/variables.usages.json", async (req) => {
