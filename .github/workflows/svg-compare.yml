@@ -8,8 +8,6 @@ jobs:
         steps:
             - name: Clone repository
               uses: actions/checkout@v2
-              with:
-                  ref: ${{ github.head_ref }}
 
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
