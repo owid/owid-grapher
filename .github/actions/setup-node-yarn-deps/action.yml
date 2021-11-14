@@ -1,0 +1,28 @@
+name: Set up node and dependencies
+description: Runs all the setup steps required to have the proper Node version and all dependencies installed
+runs:
+    using: composite
+    steps:
+        # Use Node version specified in .nvmrc
+        # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
+        - name: Read .nvmrc
+          id: nvm
+          run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+          shell: bash
+
+        - name: Use Node.js (.nvmrc)
+          uses: actions/setup-node@v2
+          with:
+              node-version: "${{ steps.nvm.outputs.NVMRC }}"
+              cache: "yarn"
+
+        - name: List versions
+          run: |
+              echo "Versions:"
+              echo "Node `node --version`"
+              echo "yarn `yarn --version`"
+          shell: bash
+
+        - name: Install dependencies
+          run: yarn --frozen-lockfile --network-concurrency 1
+          shell: bash

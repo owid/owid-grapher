@@ -9,27 +9,22 @@ jobs:
         steps:
             - name: Clone repository
               uses: actions/checkout@v2
-
-            # Use Node version specified in .nvmrc
-            # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
-            - name: Read .nvmrc
-              id: nvm
-              run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
-
-            - name: Use Node.js (.nvmrc)
-              uses: actions/setup-node@v2
               with:
-                  node-version: "${{ steps.nvm.outputs.NVMRC }}"
-                  cache: "yarn"
+                  ref: ${{ github.head_ref }}
 
-            - name: Install dependencies
-              run: yarn --frozen-lockfile --network-concurrency 1
+            - uses: ./.github/actions/setup-node-yarn-deps
 
             - name: Register Problem Matcher
               run: echo "##[add-matcher].github/problemMatchers/tsc.json"
 
-            - name: Run tests & checks
-              run: yarn testPrettierAll && yarn buildTsc && yarn testJest
+            - name: Run prettier
+              run: yarn testPrettierAll
+
+            - name: Run tsc build
+              run: yarn buildTsc
+
+            - name: Run jest
+              run: yarn testJest
 
     # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
     bundlewatch:
@@ -38,24 +33,11 @@ jobs:
         steps:
             - name: Clone repository
               uses: actions/checkout@v2
-
-            # Use Node version specified in .nvmrc
-            # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
-            - name: Read .nvmrc
-              id: nvm
-              run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
-
-            - name: Use Node.js (.nvmrc)
-              uses: actions/setup-node@v2
               with:
-                  node-version: "${{ steps.nvm.outputs.NVMRC }}"
-                  cache: "yarn"
+                  ref: ${{ github.head_ref }}
 
-            - name: Install dependencies
-              run: yarn --frozen-lockfile --network-concurrency 1
-
-            - name: Run tsc
-              run: yarn buildTsc
+            - uses: ./.github/actions/setup-node-yarn-deps
+            - uses: ./.github/actions/build-tsc
 
             - name: Run bundlewatch
               run: yarn testBundlewatch

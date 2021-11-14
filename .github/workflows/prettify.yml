@@ -18,20 +18,7 @@ jobs:
               with:
                   ref: ${{ github.head_ref }}
 
-            # Use Node version specified in .nvmrc
-            # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
-            - name: Read .nvmrc
-              id: nvm
-              run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
-
-            - name: Use Node.js (.nvmrc)
-              uses: actions/setup-node@v2
-              with:
-                  node-version: "${{ steps.nvm.outputs.NVMRC }}"
-                  cache: "yarn"
-
-            - name: Install dependencies
-              run: yarn --frozen-lockfile --network-concurrency 1
+            - uses: ./.github/actions/setup-node-yarn-deps
 
             - name: Run prettier
               run: yarn fixPrettierAll
