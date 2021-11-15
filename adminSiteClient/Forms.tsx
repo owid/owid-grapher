@@ -896,8 +896,6 @@ export class Timeago extends React.Component<{ time: Date }> {
 
 import { TagBadge, Tag } from "./TagBadge"
 
-// NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
-// Better UX for case when you aren't adding new tags, only selecting from list.
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "../grapher/chart/Tippy"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
@@ -936,8 +934,8 @@ class EditTags extends React.Component<{
                 <ReactTags
                     tags={tags}
                     suggestions={suggestions}
-                    handleAddition={this.props.onAdd}
-                    handleDelete={this.props.onDelete}
+                    onAddition={this.props.onAdd}
+                    onDelete={this.props.onDelete}
                     minQueryLength={1}
                 />
             </div>
