@@ -120,7 +120,8 @@ export class Url {
     }
 
     get isGrapher(): boolean {
-        return this.pathname ? /\/grapher\//.test(this.pathname) : false
+        return this.pathname ? /^\/grapher\//.test(this.pathname) : false
+    }
     }
 
     update(props: UrlProps) {
