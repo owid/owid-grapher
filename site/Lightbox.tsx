@@ -44,8 +44,11 @@ const Lightbox = ({
             {!isLoaded && (
                 <LoadingIndicator backgroundColor="#000" color="#ccc" />
             )}
-            <TransformWrapper doubleClick={{ mode: "reset" }}>
-                {({ zoomIn, zoomOut, resetTransform }: any) => (
+            <TransformWrapper
+                doubleClick={{ mode: "reset" }}
+                limitToBounds={false}
+            >
+                {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
                         <div
                             className="content"
@@ -65,19 +68,19 @@ const Lightbox = ({
                                 <>
                                     <button
                                         aria-label="Zoom in"
-                                        onClick={zoomIn}
+                                        onClick={() => zoomIn()}
                                     >
                                         <FontAwesomeIcon icon={faSearchPlus} />
                                     </button>
                                     <button
                                         aria-label="Zoom out"
-                                        onClick={zoomOut}
+                                        onClick={() => zoomOut()}
                                     >
                                         <FontAwesomeIcon icon={faSearchMinus} />
                                     </button>
                                     <button
                                         aria-label="Reset zoom"
-                                        onClick={resetTransform}
+                                        onClick={() => resetTransform()}
                                     >
                                         <FontAwesomeIcon icon={faCompress} />
                                     </button>
