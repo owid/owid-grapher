@@ -419,6 +419,11 @@ export const renderAutomaticProminentLinks = async (
             const url = Url.fromURL(anchor.attribs.href)
             if (!url.slug) return
 
+            // todo: remove early return when "/uploads" standalone links removed from content
+            // conversion failing silently on purpose
+            // see https://www.notion.so/owid/Automatic-prominent-links-1eafcce85953483d912b6e5f20b928ec#55ca3ed4f72e41b8bd477f2eba2455b6
+            if (url.isUpload) return
+
             if (url.isGrapher) {
                 logErrorAndMaybeSendToSlack(
                     new Error(
@@ -441,7 +446,7 @@ export const renderAutomaticProminentLinks = async (
                 // netlify-redirected upon click if applicable).
                 logErrorAndMaybeSendToSlack(
                     new Error(
-                        `Automatic prominent link convertion failed: no post found at ${
+                        `Automatic prominent link conversion failed: no post found at ${
                             anchor.attribs.href
                         } in ${formatWordpressEditLink(
                             currentPost.id
