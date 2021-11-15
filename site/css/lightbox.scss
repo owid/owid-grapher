@@ -24,7 +24,7 @@
         }
     }
 
-    .react-transform-element {
+    .react-transform-component {
         display: block; // prevent stretching large images on Safari
         & > * {
             max-height: 100vh; // prevent tall images from overflowing
