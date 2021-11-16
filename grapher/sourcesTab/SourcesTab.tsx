@@ -139,7 +139,7 @@ export class SourcesTab extends React.Component<{
 
     render(): JSX.Element {
         const { bounds } = this
-        const cols = this.manager.columnsWithSources.filter((col) => col.source)
+        const cols = this.manager.columnsWithSources
 
         return (
             <div

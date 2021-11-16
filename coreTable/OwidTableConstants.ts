@@ -35,9 +35,9 @@ export interface OwidColumnDef extends CoreColumnDef {
     coverage?: string
     datasetId?: number
     datasetName?: string
-    source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
+    nonRedistributable?: boolean
 }
 
 export const OwidEntityNameColumnDef = {

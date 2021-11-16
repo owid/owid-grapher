@@ -227,6 +227,7 @@ const columnDefFromOwidVariable = (
         datasetName,
         source,
         display,
+        nonRedistributable,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -244,7 +245,13 @@ const columnDefFromOwidVariable = (
         datasetId,
         datasetName,
         display,
-        source,
+        nonRedistributable,
+        sourceLink: source?.link,
+        sourceName: source?.name,
+        dataPublishedBy: source?.dataPublishedBy,
+        dataPublisherSource: source?.dataPublisherSource,
+        retrievedDate: source?.retrievedDate,
+        additionalInfo: source?.additionalInfo,
         owidVariableId: variable.id,
         type: isContinent ? ColumnTypeNames.Continent : ColumnTypeNames.Numeric,
     }

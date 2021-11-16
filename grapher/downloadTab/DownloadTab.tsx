@@ -11,6 +11,8 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "../../clientUtils/Util"
+import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -154,6 +156,23 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.manager.table ?? BlankOwidTable()
     }
 
+    @computed private get nonRedistributableColumn(): CoreColumn | undefined {
+        return this.inputTable.columnsAsArray.find(
+            (col) => (col.def as OwidColumnDef).nonRedistributable
+        )
+    }
+
+    @computed private get nonRedistributable(): boolean {
+        return this.nonRedistributableColumn !== undefined
+    }
+
+    @computed private get nonRedistributableSourceLink(): string | undefined {
+        const def = this.nonRedistributableColumn?.def as
+            | OwidColumnDef
+            | undefined
+        return def?.sourceLink
+    }
+
     @action.bound private onPngDownload(): void {
         const filename = this.baseFilename + ".png"
         if (this.pngBlob) {
@@ -259,50 +278,62 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
                 <div className="grouped-menu-section">
                     <h2>Data</h2>
-                    <div className="grouped-menu-callout danger">
-                        <div className="grouped-menu-callout-icon">
-                            <FontAwesomeIcon icon={faInfoCircle} />
-                        </div>
-                        <div className="grouped-menu-callout-content">
-                            <h3 className="title">
-                                The data in this chart is not available to
-                                download
-                            </h3>
-                            <p>
-                                The data is published under a license that
-                                doesn't allow us to redistribute it.
-                            </p>
-                            <p>
-                                Please visit the{" "}
-                                <a href="#">
-                                    <strong>data publisher's website</strong>
-                                </a>{" "}
-                                for more details.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="grouped-menu-list">
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onCsvDownload}
-                            data-track-note="chart-download-csv"
-                        >
-                            <div className="grouped-menu-content">
+                    {this.nonRedistributable ? (
+                        <div className="grouped-menu-callout danger">
+                            <div className="grouped-menu-callout-icon">
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                            </div>
+                            <div className="grouped-menu-callout-content">
                                 <h3 className="title">
-                                    Full data{" "}
-                                    <span className="faint">(CSV)</span>
+                                    The data in this chart is not available to
+                                    download
                                 </h3>
-                                <p className="description">
-                                    The full dataset used in this chart.
+                                <p>
+                                    The data is published under a license that
+                                    doesn't allow us to redistribute it.
                                 </p>
+                                {this.nonRedistributableSourceLink && (
+                                    <p>
+                                        Please visit the{" "}
+                                        <a
+                                            href={
+                                                this
+                                                    .nonRedistributableSourceLink
+                                            }
+                                        >
+                                            <strong>
+                                                data publisher's website
+                                            </strong>
+                                        </a>{" "}
+                                        for more details.
+                                    </p>
+                                )}
                             </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="grouped-menu-list">
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onCsvDownload}
+                                data-track-note="chart-download-csv"
+                            >
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">
+                                        Full data{" "}
+                                        <span className="faint">(CSV)</span>
+                                    </h3>
+                                    <p className="description">
+                                        The full dataset used in this chart.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         )

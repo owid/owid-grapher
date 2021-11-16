@@ -381,14 +381,8 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.jsType === "string" ? values.sort() : sortNumeric(values)
     }
 
-    // todo: cleanup this method. figure out what source properties should be on CoreTable vs OwidTable.
     get source(): OwidSource {
         const { def } = this
-
-        // todo: flatten out source onto column def in Grapher backend, then can remove this.
-        const { source } = def as any
-        if (source) return source as OwidSource
-
         return {
             name: def.sourceName,
             link: def.sourceLink,
@@ -396,7 +390,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             dataPublisherSource: def.dataPublisherSource,
             retrievedDate: def.retrievedDate,
             additionalInfo: def.additionalInfo,
-        } as OwidSource
+        }
     }
 
     // todo: remove. should not be on coretable
