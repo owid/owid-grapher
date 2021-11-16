@@ -17,6 +17,6 @@ module.exports = {
     migrations: ["itsJustJavascript/db/migration/**/*.js"],
     cli: {
         entitiesDir: "db/model",
-        migrationsDir: ["db/migration"],
+        migrationsDir: "db/migration",
     },
 }
