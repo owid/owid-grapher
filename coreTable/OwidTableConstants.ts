@@ -74,7 +74,7 @@ export interface OwidRow extends CoreRow {
     date?: string
 }
 
-export interface LegacyOwidRow<ValueType extends PrimitiveType> {
+export interface OwidVariableRow<ValueType extends PrimitiveType> {
     entityName: EntityName
     time: Time
     value: ValueType

@@ -37,7 +37,7 @@ import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import {
     EntityName,
-    LegacyOwidRow,
+    OwidVariableRow,
     OwidTableSlugs,
 } from "../../coreTable/OwidTableConstants"
 import {
@@ -446,7 +446,7 @@ export class MarimekkoChart
 
     @computed get xSeries(): SimpleChartSeries {
         const createStackedXPoints = (
-            rows: LegacyOwidRow<any>[]
+            rows: OwidVariableRow<any>[]
         ): SimplePoint[] => {
             const points: SimplePoint[] = []
             for (const row of rows) {

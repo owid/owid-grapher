@@ -23,7 +23,7 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { EntityName, LegacyOwidRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { EntityName, OwidVariableRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
@@ -434,7 +434,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     // assumes table is sorted by time
-    @imemo get owidRows(): LegacyOwidRow<JS_TYPE>[] {
+    @imemo get owidRows(): OwidVariableRow<JS_TYPE>[] {
         const times = this.originalTimes
         const values = this.values
         const entities = this.allEntityNames
@@ -449,7 +449,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @imemo get owidRowsByEntityName(): Map<EntityName, CoreRow[]> {
-        const map = new Map<EntityName, LegacyOwidRow<JS_TYPE>[]>()
+        const map = new Map<EntityName, OwidVariableRow<JS_TYPE>[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
             map.get(row.entityName)!.push(row)
