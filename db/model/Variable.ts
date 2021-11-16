@@ -37,7 +37,7 @@ export namespace Variable {
 
 export async function getVariableData(variableIds: number[]): Promise<any> {
     variableIds = lodash.uniq(variableIds)
-    const data: any = { variables: {}, entityKey: {} }
+    const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
 
     const variableQuery = db.queryMysql(
         `
@@ -175,7 +175,7 @@ export async function writeVariableCSV(
 
     const data = await dataQuery
 
-    let row: any[] = []
+    let row: unknown[] = []
     for (const datum of data) {
         if (datum.entity !== row[0] || datum.year !== row[1]) {
             // New row

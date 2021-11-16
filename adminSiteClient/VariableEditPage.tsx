@@ -32,7 +32,13 @@ interface VariablePageData
     source: { id: number; name: string }
 }
 
-class VariableEditable implements Omit<OwidVariableWithDataAndSource, "id"> {
+class VariableEditable
+    implements
+        Omit<
+            OwidVariableWithDataAndSource,
+            "id" | "values" | "years" | "entities"
+        >
+{
     @observable name = ""
     @observable unit = ""
     @observable shortUnit = ""

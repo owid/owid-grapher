@@ -13,8 +13,8 @@ import {
 } from "../../clientUtils/Util"
 import {
     OwidVariablesAndEntityKey,
-    OwidEntityMeta,
     OwidVariableWithDataAndSource,
+    OwidEntityKey,
 } from "../../clientUtils/OwidVariable"
 import {
     StandardOwidColumnDefs,
@@ -32,7 +32,7 @@ export const legacyToOwidTableAndDimensions = (
 ): { dimensions: OwidChartDimensionInterface[]; table: OwidTable } => {
     // Entity meta map
 
-    const entityMetaById: { [id: string]: OwidEntityMeta } = json.entityKey
+    const entityMetaById: OwidEntityKey = json.entityKey
 
     // Color maps
 

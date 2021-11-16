@@ -131,6 +131,8 @@ export const formatDataValue = (
                 id: variableId,
                 display: legacyVariableDisplayConfig,
                 values: [value],
+                years: [],
+                entities: [],
             },
         },
     }

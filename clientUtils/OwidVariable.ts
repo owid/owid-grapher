@@ -12,6 +12,7 @@ import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
 } from "./OwidVariableDisplayConfigInterface"
+import { PartialBy } from "./Util"
 
 class OwidVariableDisplayConfigDefaults {
     @observable name?: string = undefined
@@ -61,9 +62,9 @@ export interface OwidVariableWithDataAndSource {
     datasetId?: string
     coverage?: string
     source?: OwidSource
-    years?: number[]
-    entities?: number[]
-    values?: (string | number)[]
+    years: number[]
+    entities: number[]
+    values: (string | number)[]
 }
 
 export interface OwidEntityMeta {
@@ -72,8 +73,8 @@ export interface OwidEntityMeta {
     code: string
 }
 
-declare interface OwidEntityKey {
-    [id: string]: OwidEntityMeta
+export interface OwidEntityKey {
+    [id: string]: PartialBy<OwidEntityMeta, "id">
 }
 
 export interface OwidVariablesAndEntityKey {
