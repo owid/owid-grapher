@@ -2272,6 +2272,7 @@ export class Grapher
         this.hideRelativeToggle = grapher.hideRelativeToggle
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
+        this.hideTitleAnnotation = grapher.hideTitleAnnotation
     }
 
     debounceMode = false
