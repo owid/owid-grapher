@@ -162,10 +162,19 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         )
     }
 
+    // Data downloads are fully disabled if _any_ variable used is non-redistributable.
+    // In the future, we would probably like to drop only the columns that are
+    // non-redistributable, and allow downloading the rest in the CSV.
+    // -@danielgavrilov, 2021-11-16
     @computed private get nonRedistributable(): boolean {
         return this.nonRedistributableColumn !== undefined
     }
 
+    // There could be multiple non-redistributable variables in the chart.
+    // For now, we only pick the first one to populate the link.
+    // In the future, we may need to change the phrasing of the download
+    // notice and provide links to all publishers.
+    // -@danielgavrilov, 2021-11-16
     @computed private get nonRedistributableSourceLink(): string | undefined {
         const def = this.nonRedistributableColumn?.def as
             | OwidColumnDef
