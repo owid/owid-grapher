@@ -260,7 +260,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
         height
     )
 
-    grapher.receiveLegacyData(data as OwidVariablesAndEntityKey)
+    grapher.receiveOwidData(data as OwidVariablesAndEntityKey)
     const svg = grapher.staticSVG
     const svgRecord = {
         chartId: config.id!,

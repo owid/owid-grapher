@@ -20,7 +20,7 @@ export async function bakeGraphersToPngs(
 ) {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingtoSvgOrPng = true
-    grapher.receiveLegacyData(vardata)
+    grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
 
     let svgCode = grapher.staticSVG
@@ -105,7 +105,7 @@ export async function bakeGrapherToSvg(
     if (fs.existsSync(outPath) && !overwriteExisting) return
     const variableIds = grapher.dimensions.map((d) => d.variableId)
     const vardata = await getVariableData(variableIds)
-    grapher.receiveLegacyData(vardata)
+    grapher.receiveOwidData(vardata)
 
     let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
@@ -209,6 +209,6 @@ export async function grapherToSVG(
 ): Promise<string> {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingtoSvgOrPng = true
-    grapher.receiveLegacyData(vardata)
+    grapher.receiveOwidData(vardata)
     return grapher.staticSVG
 }

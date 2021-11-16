@@ -5,6 +5,7 @@ import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
 } from "../../clientUtils/OwidVariableDisplayConfigInterface"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import { arrToCsvRow } from "../../clientUtils/Util"
 import {
     DataValueQueryArgs,

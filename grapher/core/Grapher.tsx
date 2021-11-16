@@ -420,7 +420,7 @@ export class Grapher
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
         } else if (this.owidDataset)
-            this._receiveLegacyDataAndApplySelection(this.owidDataset)
+            this._receiveOwidDataAndApplySelection(this.owidDataset)
         else this.downloadLegacyDataFromOwidVariableIds()
     }
 
@@ -719,12 +719,12 @@ export class Grapher
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
-                this._receiveLegacyDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(json)
             } else {
                 const response = await fetch(this.dataUrl)
                 if (!response.ok) throw new Error(response.statusText)
                 const json = await response.json()
-                this._receiveLegacyDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(json)
             }
         } catch (err) {
             console.log(`Error fetching '${this.dataUrl}'`)
@@ -732,8 +732,8 @@ export class Grapher
         }
     }
 
-    @action.bound receiveLegacyData(json: OwidVariablesAndEntityKey): void {
-        this._receiveLegacyDataAndApplySelection(json)
+    @action.bound receiveOwidData(json: OwidVariablesAndEntityKey): void {
+        this._receiveOwidDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
@@ -769,7 +769,7 @@ export class Grapher
 
     @observable private legacyVariableDataJson?: OwidVariablesAndEntityKey
 
-    @action.bound private _receiveLegacyDataAndApplySelection(
+    @action.bound private _receiveOwidDataAndApplySelection(
         json: OwidVariablesAndEntityKey
     ): void {
         this.legacyVariableDataJson = json
