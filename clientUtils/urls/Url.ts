@@ -79,10 +79,6 @@ export class Url {
         return this.props.pathname
     }
 
-    get slug(): string | undefined {
-        return this.props.pathname?.replace(/^\/+/, "")
-    }
-
     get originAndPath(): string | undefined {
         const strings = excludeUndefined([this.origin, this.pathname])
         if (strings.length === 0) return undefined
@@ -117,14 +113,6 @@ export class Url {
 
     get encodedQueryParams(): QueryParams {
         return strToQueryParams(this.queryStr, true)
-    }
-
-    get isGrapher(): boolean {
-        return this.pathname ? /^\/grapher\//.test(this.pathname) : false
-    }
-
-    get isUpload(): boolean {
-        return this.pathname ? /^\/uploads\//.test(this.pathname) : false
     }
 
     update(props: UrlProps) {

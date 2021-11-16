@@ -36,7 +36,7 @@ import { Grapher } from "../grapher/core/Grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder"
 import { CoreTable } from "../coreTable/CoreTable"
 import { SiteAnalytics } from "./SiteAnalytics"
-import { hydrateProminentLink } from "./blocks/ProminentLink"
+import { renderProminentLink } from "./blocks/ProminentLink"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks"
@@ -68,9 +68,9 @@ window.runSiteFooterScripts = () => {
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
         MultiEmbedderSingleton.embedAll()
-        hydrateProminentLink(MultiEmbedderSingleton.selection)
+        renderProminentLink(MultiEmbedderSingleton.selection)
     } else {
-        hydrateProminentLink()
+        renderProminentLink()
     }
 }
 
