@@ -332,7 +332,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                         >
                                                                             {v.usageCount
                                                                                 ? ` (used ${v.usageCount} times)`
-                                                                                : " (ununsed)"}
+                                                                                : " (unused)"}
                                                                         </span>
                                                                     </React.Fragment>
                                                                 }
