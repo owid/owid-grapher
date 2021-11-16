@@ -50,6 +50,7 @@ import {
     getLegacyVariableDisplayConfig,
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
+import { renderAutomaticProminentLinks } from "./siteRenderers"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -293,6 +294,7 @@ export const formatWordpressPost = async (
 
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks(cheerioEl)
+    await renderAutomaticProminentLinks(cheerioEl, post)
 
     // Extract blog info content
     let info = null
