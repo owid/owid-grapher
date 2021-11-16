@@ -33,7 +33,7 @@ export type EntityId = number
 export interface OwidColumnDef extends CoreColumnDef {
     owidVariableId?: number // todo: remove after data 2.0
     coverage?: string
-    datasetId?: string
+    datasetId?: number
     datasetName?: string
     source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor

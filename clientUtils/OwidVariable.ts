@@ -59,7 +59,7 @@ export interface OwidVariableWithDataAndSource {
     display?: OwidVariableDisplayConfigInterface
     shortUnit?: string
     datasetName?: string
-    datasetId?: string
+    datasetId?: number
     coverage?: string
     source?: OwidSource
     years: number[]
