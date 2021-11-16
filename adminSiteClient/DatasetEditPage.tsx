@@ -625,16 +625,20 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                         onValue={(v) =>
                                             (newDataset.isPrivate = !v)
                                         }
-                                        disabled={isBulkImport}
+                                        disabled={
+                                            isBulkImport ||
+                                            newDataset.nonRedistributable
+                                        }
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
                                     <Toggle
-                                        label="Redistribution is prohibited"
+                                        label="Redistribution is prohibited (disable chart data download)"
                                         value={newDataset.nonRedistributable}
-                                        onValue={(v) =>
-                                            (newDataset.nonRedistributable = v)
-                                        }
+                                        onValue={(v) => {
+                                            newDataset.nonRedistributable = v
+                                            if (v) newDataset.isPrivate = true
+                                        }}
                                         disabled={isBulkImport}
                                     />
                                 </FieldsRow>
