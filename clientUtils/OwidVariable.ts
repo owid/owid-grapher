@@ -50,8 +50,6 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export interface OwidVariable {}
-
 export interface OwidVariableWithDataAndSource {
     id: number
     name?: string
