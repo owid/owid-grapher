@@ -68,4 +68,23 @@ describe(Url, () => {
             "/grapher/123"
         )
     })
+
+    it("detects grapher pages restrictively", () => {
+        expect(url.isGrapher).toBe(true)
+        expect(
+            Url.fromURL("https://ourworldindata.org/not/a/grapher/page")
+                .isGrapher
+        ).toBe(false)
+    })
+
+    it("detects uploads restrictively", () => {
+        expect(
+            Url.fromURL("https://ourworldindata.org/uploads/file.png").isUpload
+        ).toBe(true)
+        expect(
+            Url.fromURL(
+                "https://ourworldindata.org/not/supported/uploads/file.png"
+            ).isUpload
+        ).toBe(false)
+    })
 })

@@ -124,7 +124,7 @@ export class Url {
     }
 
     get isUpload(): boolean {
-        return this.pathname ? /\/uploads\//.test(this.pathname) : false
+        return this.pathname ? /^\/uploads\//.test(this.pathname) : false
     }
 
     update(props: UrlProps) {
