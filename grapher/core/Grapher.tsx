@@ -1132,7 +1132,11 @@ export class Grapher
             if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
-        if (showTitleAnnotation && this.isLineChart && this.isRelativeMode)
+        if (
+            this.isLineChart &&
+            this.isRelativeMode &&
+            (showTitleAnnotation || this.canToggleRelativeMode)
+        )
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
