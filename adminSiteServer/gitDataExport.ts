@@ -73,7 +73,7 @@ export async function syncDatasetToGitRepo(
     const dataset = await datasetRepo.findOne({ id: datasetId })
     if (!dataset) throw new JsonError(`No such dataset ${datasetId}`, 404)
 
-    if (dataset.isPrivate)
+    if (dataset.isPrivate || dataset.nonRedistributable)
         // Private dataset doesn't go in git repo
         return removeDatasetFromGitRepo(
             oldDatasetName || dataset.name,

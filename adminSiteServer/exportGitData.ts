@@ -5,7 +5,7 @@ import { Dataset } from "../db/model/Dataset"
 const main = async () => {
     await db.getConnection()
     for (const dataset of await Dataset.find({ namespace: "owid" })) {
-        if (!dataset.isPrivate)
+        if (!dataset.isPrivate && !dataset.nonRedistributable)
             await syncDatasetToGitRepo(dataset.id, { commitOnly: true })
     }
     await db.closeTypeOrmAndKnexConnections()

@@ -54,6 +54,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         Variable.UnparsedRow & {
             display: string
             datasetName: string
+            nonRedistributable: number
             sourceName: string
             sourceDescription: string
         }
@@ -64,6 +65,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         SELECT
             variables.*,
             datasets.name AS datasetName,
+            datasets.nonRedistributable AS nonRedistributable,
             sources.name AS sourceName,
             sources.description AS sourceDescription
         FROM variables
@@ -100,6 +102,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
             sourceId,
             sourceName,
             sourceDescription,
+            nonRedistributable,
             display: displayJson,
             ...variable
         } = row
@@ -107,6 +110,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         const partialSource: OwidSource = JSON.parse(sourceDescription)
         data.variables[variable.id] = {
             ...omitNullableValues(variable),
+            nonRedistributable: Boolean(nonRedistributable),
             display,
             source: {
                 id: sourceId,

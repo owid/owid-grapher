@@ -285,7 +285,12 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                                 {highlight(
                                                                     dataset.name
                                                                 )}
-                                                                {dataset.isPrivate ? (
+                                                                {dataset.nonRedistributable ? (
+                                                                    <span className="text-danger">
+                                                                        {" "}
+                                                                        (non-redistributable)
+                                                                    </span>
+                                                                ) : dataset.isPrivate ? (
                                                                     <span className="text-danger">
                                                                         {" "}
                                                                         (unpublished)

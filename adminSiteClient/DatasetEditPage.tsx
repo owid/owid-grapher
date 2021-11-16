@@ -316,6 +316,7 @@ interface DatasetPageData {
     description: string
     namespace: string
     isPrivate: boolean
+    nonRedistributable: boolean
 
     dataEditedAt: Date
     dataEditedByUserId: number
@@ -337,6 +338,7 @@ class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
     @observable isPrivate: boolean = false
+    @observable nonRedistributable: boolean = false
 
     @observable source: OwidSource = {
         id: -1,
@@ -616,12 +618,26 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     availableTags={dataset.availableTags}
                                     isBulkImport={isBulkImport}
                                 />
-                                <Toggle
-                                    label="Is publishable (include in exported OWID collection)"
-                                    value={!newDataset.isPrivate}
-                                    onValue={(v) => (newDataset.isPrivate = !v)}
-                                    disabled={isBulkImport}
-                                />
+                                <FieldsRow>
+                                    <Toggle
+                                        label="Is publishable (include in exported OWID collection)"
+                                        value={!newDataset.isPrivate}
+                                        onValue={(v) =>
+                                            (newDataset.isPrivate = !v)
+                                        }
+                                        disabled={isBulkImport}
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <Toggle
+                                        label="Redistribution is prohibited"
+                                        value={newDataset.nonRedistributable}
+                                        onValue={(v) =>
+                                            (newDataset.nonRedistributable = v)
+                                        }
+                                        disabled={isBulkImport}
+                                    />
+                                </FieldsRow>
                             </div>
 
                             <div className="col">

@@ -61,6 +61,7 @@ export interface OwidVariableWithDataAndSource {
     datasetName?: string
     datasetId?: number
     coverage?: string
+    nonRedistributable?: boolean
     source?: OwidSource
     years: number[]
     entities: number[]
