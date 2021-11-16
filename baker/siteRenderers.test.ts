@@ -30,6 +30,7 @@ const imageId = 123
 const postSlug = "child-mortality"
 const grapherSlug = "cancer-deaths-rate-and-age-standardized-rate-index"
 const grapherUrl = `${BAKED_BASE_URL}/grapher/${grapherSlug}?country=~OWID_WRL`
+const uploadPath = `/uploads/2021/10/Fish-thumbnail-768x404.png`
 
 const getMockBlock = (
     url: string,
@@ -152,17 +153,57 @@ it("renders automatic prominent link (link to post, thin)", async () => {
     expect(cheerioEl(".content").html()).toBeNull()
 })
 
-it("does not convert links with surrounding text", async () => {
-    const htmlLink = `<p>this should not be converted <a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
+describe("does not render automatic prominent link", () => {
+    let consoleErrorSpy: any
+    beforeAll(() => {
+        consoleErrorSpy = jest
+            .spyOn(console, "error")
+            .mockImplementation(() => {})
+    })
+    afterEach(() => {
+        consoleErrorSpy.mockClear()
+    })
 
-    const cheerioEl = cheerio.load(htmlLink)
+    it("with surrounding text)", async () => {
+        const htmlLink = `<p>this should not be converted <a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
 
-    await renderAutomaticProminentLinks(
-        cheerioEl,
-        getMockPostWithImage("current-post") // only for more descriptive error message
-    )
+        const cheerioEl = cheerio.load(htmlLink)
 
-    const prominentLinkEl = cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`)
+        await renderAutomaticProminentLinks(
+            cheerioEl,
+            getMockPostWithImage("current-post") // only for more descriptive error message
+        )
 
-    expect(prominentLinkEl.length).toEqual(0)
+        expect(cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`).length).toEqual(0)
+        expect(console.error).toHaveBeenCalledTimes(0)
+    })
+
+    it("to grapher pages and logs error", async () => {
+        const htmlLink = `<p><a href="${grapherUrl}"></a></p>`
+        console.log(htmlLink)
+
+        const cheerioEl = cheerio.load(htmlLink)
+
+        await renderAutomaticProminentLinks(
+            cheerioEl,
+            getMockPostWithImage("current-post") // only for more descriptive error message
+        )
+
+        expect(cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`).length).toEqual(0)
+        expect(console.error).toHaveBeenCalledTimes(1)
+    })
+
+    it("to uploads (silent fail)", async () => {
+        const htmlLink = `<p><a href="${BAKED_BASE_URL}${uploadPath}"></a></p>`
+
+        const cheerioEl = cheerio.load(htmlLink)
+
+        await renderAutomaticProminentLinks(
+            cheerioEl,
+            getMockPostWithImage("current-post") // only for more descriptive error message
+        )
+
+        expect(cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`).length).toEqual(0)
+        expect(console.error).toHaveBeenCalledTimes(0)
+    })
 })
