@@ -127,11 +127,16 @@ export class ExplorerCreatePage extends React.Component<{
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
         this.program.slug = slug
-        await this.gitCmsClient.writeRemoteFile({
+        const res = await this.gitCmsClient.writeRemoteFile({
             filepath: this.program.fullPath,
             content: this.program.toString(),
             commitMessage,
         })
+        if (!res.success) {
+            alert(`Saving the explorer failed!\n\n${res.error}`)
+            return
+        }
+
         this.loadingModalOff()
         this.programOnDisk = new ExplorerProgram("", this.program.toString())
         this.setProgram(this.programOnDisk.toString())
