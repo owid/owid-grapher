@@ -24,6 +24,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings"
 // coverage while keeping the maitenance burden in check.
 
 const title = "The prominent link title"
+const titleWithHtml = "The CO<sub>2</sub> prominent link title"
 const content = "<p>Some text</p>"
 const imageSrc = `${BAKED_BASE_URL}/path/to/image.png`
 const imageId = 123
@@ -128,6 +129,24 @@ it("renders authored prominent link (grapher, thin, no image override)", () => {
     expect(cheerioEl("figure > img").attr("src")).toEqual(
         getMockGrapherThumbnailUrl(grapherSlug)
     )
+    expect(cheerioEl(".content").html()).toEqual(content)
+})
+
+it("renders authored prominent link (post, thin, with html title)", () => {
+    const block = getMockBlock(
+        `${BAKED_BASE_URL}/${postSlug}`,
+        titleWithHtml,
+        null,
+        content,
+        ProminentLinkStyles.thin
+    )
+    const cheerioEl = cheerio.load(block)
+    renderAuthoredProminentLinks(cheerioEl)
+    const prominentLinkEl = cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`)
+
+    expect(prominentLinkEl.hasClass(WITH_IMAGE)).toBe(false)
+    expect(prominentLinkEl.attr("data-style")).toEqual(ProminentLinkStyles.thin)
+    expect(cheerioEl(".title span").html()).toEqual(titleWithHtml)
     expect(cheerioEl(".content").html()).toEqual(content)
 })
 
