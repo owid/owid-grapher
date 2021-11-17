@@ -1,5 +1,7 @@
+import * as cheerio from "cheerio"
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
+import { renderAuthoredProminentLinks } from "./blocks/ProminentLink"
 
 // Standardize urls
 const formatLinks = (html: string) =>
@@ -8,7 +10,15 @@ const formatLinks = (html: string) =>
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
-export const formatReusableBlock = (html: string) => formatLinks(html)
+export const formatReusableBlock = (html: string): string => {
+    const cheerioEl = cheerio.load(html)
+    renderAuthoredProminentLinks(cheerioEl)
+    const rendered = cheerioEl("body").html()
+    if (!rendered) return ""
+
+    const formatted = formatLinks(rendered)
+    return formatted
+}
 
 export const formatAuthors = (authors: string[], requireMax?: boolean) => {
     if (requireMax && authors.indexOf("Max Roser") === -1)
