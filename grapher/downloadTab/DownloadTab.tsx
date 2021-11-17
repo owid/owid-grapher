@@ -1,4 +1,3 @@
-import { isMobile } from "../../clientUtils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -6,8 +5,11 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import classNames from "classnames"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
+import {
+    triggerDownloadFromBlob,
+    triggerDownloadFromUrl,
+} from "../../clientUtils/Util"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -23,8 +25,6 @@ interface DownloadTabProps {
     bounds?: Bounds
     manager: DownloadTabManager
 }
-
-declare let Blob: any
 
 const polyfillToBlob = (): void => {
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
@@ -51,11 +51,6 @@ const polyfillToBlob = (): void => {
     })
 }
 
-// Wrapped because JSDOM does not support this method yet:
-// https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
-const createObjectURL = (obj: any): string =>
-    URL.createObjectURL ? URL.createObjectURL(obj) : ""
-
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed private get idealBounds(): Bounds {
@@ -78,12 +73,13 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @observable private svgBlob?: Blob
-    @observable private svgDownloadUrl?: string
     @observable private svgPreviewUrl?: string
+
     @observable private pngBlob?: Blob
-    @observable private pngDownloadUrl?: string
     @observable private pngPreviewUrl?: string
+
     @observable private isReady: boolean = false
+
     @action.bound private export(): void {
         if (!HTMLCanvasElement.prototype.toBlob) polyfillToBlob()
         this.createSvg()
@@ -100,7 +96,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
         })
-        this.svgDownloadUrl = createObjectURL(this.svgBlob)
     }
 
     @action.bound private tryCreatePng(svgPreviewUrl: string): void {
@@ -121,8 +116,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 ctx.drawImage(img, 0, 0)
                 this.pngPreviewUrl = canvas.toDataURL("image/png")
                 canvas.toBlob((blob) => {
-                    this.pngBlob = blob as Blob
-                    this.pngDownloadUrl = createObjectURL(blob)
+                    this.pngBlob = blob ?? undefined
                     this.markAsReady()
                 })
             } catch (e) {
@@ -135,6 +129,13 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             this.markAsReady()
         }
         img.src = svgPreviewUrl
+    }
+
+    @computed private get csvBlob(): Blob {
+        const csv = this.inputTable.toPrettyCsv()
+        return new Blob([csv], {
+            type: "text/csv;charset=utf-8",
+        })
     }
 
     @action.bound private markAsReady(): void {
@@ -152,69 +153,40 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.manager.table ?? BlankOwidTable()
     }
 
-    private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>): void {
-        const { manager, inputTable } = this
-        const csvFilename = manager.displaySlug + ".csv"
-        const csv = inputTable.toPrettyCsv() || ""
-
-        // IE11 compatibility
-
-        const downloadLink = document.createElement("a")
-        downloadLink.setAttribute(
-            "href",
-            `data:text/csv,` + encodeURIComponent(csv)
-        )
-        downloadLink.setAttribute("download", csvFilename)
-        downloadLink.click()
+    @action.bound private onPngDownload(): void {
+        const filename = this.baseFilename + ".png"
+        if (this.pngBlob) {
+            triggerDownloadFromBlob(filename, this.pngBlob)
+        } else {
+            triggerDownloadFromUrl(filename, this.fallbackPngUrl)
+        }
     }
 
-    @computed private get csvButton(): JSX.Element {
-        const { manager } = this
-        const externalCsvLink = manager.externalCsvLink
-        const csvFilename = manager.displaySlug + ".csv"
-        const props = externalCsvLink
-            ? {
-                  href: externalCsvLink,
-                  download: csvFilename,
-              }
-            : {
-                  onClick: (ev: React.MouseEvent<HTMLAnchorElement>): void =>
-                      this.onCsvDownload(ev),
-              }
+    @action.bound private onSvgDownload(): void {
+        const filename = this.baseFilename + ".svg"
+        if (this.svgBlob) {
+            triggerDownloadFromBlob(filename, this.svgBlob)
+        }
+    }
 
-        return (
-            <div className="download-csv" style={{ maxWidth: "100%" }}>
-                <p>
-                    Download a CSV file containing all data used in this
-                    visualization:
-                </p>
-                <a
-                    className="btn btn-primary"
-                    data-track-note="chart-download-csv"
-                    {...props}
-                >
-                    <FontAwesomeIcon icon={faDownload} /> {csvFilename}
-                </a>
-            </div>
-        )
+    @action.bound private onCsvDownload(): void {
+        const { manager, baseFilename } = this
+        const filename = baseFilename + ".csv"
+        if (manager.externalCsvLink) {
+            triggerDownloadFromUrl(filename, manager.externalCsvLink)
+        } else {
+            triggerDownloadFromBlob(filename, this.csvBlob)
+        }
     }
 
     private renderReady(): JSX.Element {
-        const {
-            targetWidth,
-            targetHeight,
-            svgPreviewUrl,
-            svgDownloadUrl,
-            baseFilename,
-            bounds,
-        } = this
+        const { targetWidth, targetHeight, svgPreviewUrl, bounds } = this
 
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
-        const pngDownloadUrl = this.pngDownloadUrl || pngPreviewUrl
 
         let previewWidth: number
         let previewHeight: number
-        const boundScalar = 0.4
+        const boundScalar = 0.17
         if (bounds.width / bounds.height > targetWidth / targetHeight) {
             previewHeight = bounds.height * boundScalar
             previewWidth = (targetWidth / targetHeight) * previewHeight
@@ -228,55 +200,88 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             minHeight: previewHeight,
             maxWidth: previewWidth,
             maxHeight: previewHeight,
-            border: "1px solid #ccc",
-        }
-
-        const asideStyle = {
-            maxWidth: previewWidth,
         }
 
         return (
-            <React.Fragment>
-                <div className="img-downloads">
-                    <a
-                        key="png"
-                        href={pngDownloadUrl}
-                        download={baseFilename + ".png"}
-                        data-track-note="chart-download-png"
-                    >
-                        <div>
-                            <img src={pngPreviewUrl} style={imgStyle} />
-                            <aside style={asideStyle}>
-                                <h2>Save as .png</h2>
-                                <p>
-                                    A standard image of the visualization that
-                                    can be used in presentations or other
-                                    documents.
+            <div className="grouped-menu">
+                <div className="grouped-menu-section">
+                    <h2>Chart</h2>
+                    <div className="grouped-menu-list">
+                        <button
+                            className="grouped-menu-item"
+                            onClick={this.onPngDownload}
+                            data-track-note="chart-download-png"
+                        >
+                            <div className="grouped-menu-icon">
+                                <img src={pngPreviewUrl} style={imgStyle} />
+                            </div>
+                            <div className="grouped-menu-content">
+                                <h3 className="title">
+                                    Image <span className="faint">(PNG)</span>
+                                </h3>
+                                <p className="description">
+                                    Suitable for most uses, widely compatible.
                                 </p>
-                            </aside>
-                        </div>
-                    </a>
-                    <a
-                        key="svg"
-                        href={svgDownloadUrl}
-                        download={baseFilename + ".svg"}
-                        data-track-note="chart-download-svg"
-                    >
-                        <div>
-                            <img src={svgPreviewUrl} style={imgStyle} />
-                            <aside style={asideStyle}>
-                                <h2>Save as .svg</h2>
-                                <p>
-                                    A vector format image useful for further
-                                    redesigning the visualization with vector
-                                    graphic software.
+                            </div>
+                            <div className="grouped-menu-icon">
+                                <span className="download-icon">
+                                    <FontAwesomeIcon icon={faDownload} />
+                                </span>
+                            </div>
+                        </button>
+                        <button
+                            className="grouped-menu-item"
+                            onClick={this.onSvgDownload}
+                            data-track-note="chart-download-svg"
+                        >
+                            <div className="grouped-menu-icon">
+                                <img src={svgPreviewUrl} style={imgStyle} />
+                            </div>
+                            <div className="grouped-menu-content">
+                                <h3 className="title">
+                                    Vector graphic{" "}
+                                    <span className="faint">(SVG)</span>
+                                </h3>
+                                <p className="description">
+                                    For high quality prints, or further editing
+                                    the chart in graphics software.
                                 </p>
-                            </aside>
-                        </div>
-                    </a>
+                            </div>
+                            <div className="grouped-menu-icon">
+                                <span className="download-icon">
+                                    <FontAwesomeIcon icon={faDownload} />
+                                </span>
+                            </div>
+                        </button>
+                    </div>
                 </div>
-                {this.csvButton}
-            </React.Fragment>
+
+                <div className="grouped-menu-section">
+                    <h2>Data</h2>
+                    <div className="grouped-menu-list">
+                        <button
+                            className="grouped-menu-item"
+                            onClick={this.onCsvDownload}
+                            data-track-note="chart-download-csv"
+                        >
+                            <div className="grouped-menu-content">
+                                <h3 className="title">
+                                    Full data{" "}
+                                    <span className="faint">(CSV)</span>
+                                </h3>
+                                <p className="description">
+                                    The full dataset used in this chart.
+                                </p>
+                            </div>
+                            <div className="grouped-menu-icon">
+                                <span className="download-icon">
+                                    <FontAwesomeIcon icon={faDownload} />
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
         )
     }
 
@@ -284,19 +289,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         this.export()
     }
 
-    componentWillUnmount(): void {
-        if (this.pngDownloadUrl !== undefined)
-            URL.revokeObjectURL(this.pngDownloadUrl)
-        if (this.svgDownloadUrl !== undefined)
-            URL.revokeObjectURL(this.svgDownloadUrl)
-    }
-
     render(): JSX.Element {
         return (
             <div
-                className={classNames("DownloadTab", {
-                    mobile: isMobile(),
-                })}
+                className="DownloadTab"
                 style={{ ...this.bounds.toCSS(), position: "absolute" }}
             >
                 {this.isReady ? (

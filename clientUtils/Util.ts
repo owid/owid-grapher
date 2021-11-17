@@ -1130,3 +1130,16 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
         else return row
     })
 }
+
+export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
+    const objectUrl = URL.createObjectURL(blob)
+    triggerDownloadFromUrl(filename, objectUrl)
+    URL.revokeObjectURL(objectUrl)
+}
+
+export const triggerDownloadFromUrl = (filename: string, url: string): void => {
+    const downloadLink = document.createElement("a")
+    downloadLink.setAttribute("href", url)
+    downloadLink.setAttribute("download", filename)
+    downloadLink.click()
+}
