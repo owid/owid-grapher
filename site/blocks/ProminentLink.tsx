@@ -92,12 +92,14 @@ export class ProminentLink extends React.Component<{
                     <div className="content-wrapper">
                         {renderContent()}
                         {this.props.title ? (
-                            <div
-                                className="title"
-                                dangerouslySetInnerHTML={{
-                                    __html: this.props.title,
-                                }}
-                            />
+                            <div className="title">
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: this.props.title,
+                                    }}
+                                />
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </div>
                         ) : null}
                     </div>
                 </>
