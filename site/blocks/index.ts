@@ -3,7 +3,7 @@ import {
     render as renderAdditionalInformation,
 } from "./AdditionalInformation"
 import { renderHelp } from "./Help"
-import { renderProminentLink } from "./ProminentLink"
+import { renderAuthoredProminentLinks } from "./ProminentLink"
 import { runSearchCountry } from "../../site/SearchCountry"
 import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock"
 import { runDataTokens } from "../../site/runDataTokens"
@@ -12,7 +12,9 @@ import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder"
 export const renderBlocks = (cheerioEl: CheerioStatic) => {
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
+    renderAuthoredProminentLinks(cheerioEl)
 }
+
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
         // Used by Help blocks. Pierces encapsulation but considered not worth going through hydration / client side rendering for this.
