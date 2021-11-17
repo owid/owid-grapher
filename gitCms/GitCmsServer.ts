@@ -28,6 +28,7 @@ import {
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants"
 import { sync } from "glob"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {
@@ -195,7 +196,7 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            if (this.verbose) console.log(error)
+            logErrorAndMaybeSendToSlack(error)
             return { success: false, error }
         }
     }
@@ -229,7 +230,7 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            if (this.verbose) console.log(error)
+            logErrorAndMaybeSendToSlack(error)
             return { success: false, error }
         }
     }
