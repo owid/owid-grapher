@@ -131,7 +131,7 @@ it("renders authored prominent link (grapher, thin, no image override)", () => {
     expect(cheerioEl(".content").html()).toEqual(content)
 })
 
-it("renders automatic prominent link (link to post, thin)", async () => {
+it.skip("renders automatic prominent link (link to post, thin)", async () => {
     const htmlLink = `<p><a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
 
     const cheerioEl = cheerio.load(htmlLink)
