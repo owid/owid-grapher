@@ -7,6 +7,7 @@ import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import {
+    OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
 } from "../../coreTable/OwidTableConstants"
@@ -407,5 +408,15 @@ Cape Verde,CPV,1985,4.2
 Kiribati,KIR,1985,12.6
 Papua New Guinea,PNG,1983,5.5`
         expect(table.toPrettyCsv()).toEqual(expected)
+    })
+
+    it("passes on the non-redistributable flag", () => {
+        const varSet = getOwidVarSet()
+        varSet.variables["3512"].nonRedistributable = true
+        const columnDef = legacyToOwidTableAndDimensions(
+            varSet,
+            getLegacyGrapherConfig()
+        ).table.get("3512").def as OwidColumnDef
+        expect(columnDef.nonRedistributable).toEqual(true)
     })
 })
