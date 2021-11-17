@@ -26,7 +26,7 @@ import {
 } from "../settings/serverSettings"
 
 import * as db from "../db/db"
-import { expectInt, renderToHtmlPage } from "./serverUtil"
+import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil"
 import {
     countryProfilePage,
     countriesIndexPage,

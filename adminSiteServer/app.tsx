@@ -19,7 +19,7 @@ import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
 import { apiRouter } from "./apiRouter"
 import { testPageRouter } from "./testPageRouter"
 import { adminRouter } from "./adminRouter"
-import { renderToHtmlPage } from "./serverUtil"
+import { renderToHtmlPage } from "../serverUtils/serverUtil"
 
 import { publicApiRouter } from "./publicApiRouter"
 import { mockSiteRouter } from "./mockSiteRouter"
