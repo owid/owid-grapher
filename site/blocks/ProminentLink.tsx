@@ -109,7 +109,11 @@ export class ProminentLink extends React.Component<{
                 <>
                     {this.props.title ? (
                         <h3>
-                            {this.props.title}
+                            <span
+                                dangerouslySetInnerHTML={{
+                                    __html: this.props.title,
+                                }}
+                            />
                             <FontAwesomeIcon icon={faArrowRight} />
                         </h3>
                     ) : null}
