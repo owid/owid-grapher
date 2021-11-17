@@ -106,8 +106,9 @@ export class GitCmsServer {
                 stdout: JSON.stringify(res.summary, null, 2),
             } as GitPullResponse
         } catch (error) {
-            if (verbose ?? this.verbose) console.log(error)
-            return { success: false, error }
+            const err = error as Error
+            if (verbose ?? this.verbose) console.log(err)
+            return { success: false, error: err.toString() }
         }
     }
 
@@ -116,12 +117,12 @@ export class GitCmsServer {
         const res = await this.pullCommand(false)
 
         if (!res.success) {
-            const err = res.error as Error | undefined
+            const err = res.error as string | undefined
             if (
-                err?.message.includes(
+                err?.includes(
                     "There is no tracking information for the current branch." // local-only branch
                 ) ||
-                err?.message.includes("You are not currently on a branch.") // detached HEAD
+                err?.includes("You are not currently on a branch.") // detached HEAD
             )
                 return { success: true }
         }
@@ -140,10 +141,11 @@ export class GitCmsServer {
             const content = await readFile(absolutePath, "utf8")
             return { success: true, content }
         } catch (error) {
-            if (this.verbose) console.log(error)
+            const err = error as Error
+            if (this.verbose) console.log(err)
             return {
                 success: false,
-                error,
+                error: err.toString(),
                 content: "",
             }
         }
@@ -196,8 +198,9 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            logErrorAndMaybeSendToSlack(error)
-            return { success: false, error }
+            const err = error as Error
+            logErrorAndMaybeSendToSlack(err)
+            return { success: false, error: err.toString() }
         }
     }
 
@@ -230,8 +233,9 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            logErrorAndMaybeSendToSlack(error)
-            return { success: false, error }
+            const err = error as Error
+            logErrorAndMaybeSendToSlack(err)
+            return { success: false, error: err.toString() }
         }
     }
 
