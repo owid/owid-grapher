@@ -97,7 +97,7 @@ export class GitCmsServer {
         if (this.options.shouldAutoPush) this.git.push()
     }
 
-    private async pullCommand() {
+    private async pullCommand(verbose: boolean | undefined = undefined) {
         try {
             const res = await this.git.pull()
             return {
@@ -105,9 +105,26 @@ export class GitCmsServer {
                 stdout: JSON.stringify(res.summary, null, 2),
             } as GitPullResponse
         } catch (error) {
-            if (this.verbose) console.log(error)
+            if (verbose ?? this.verbose) console.log(error)
             return { success: false, error }
         }
+    }
+
+    // Pull changes before making changes. However, only pull if an upstream branch is set up.
+    private async autopull() {
+        const res = await this.pullCommand(false)
+
+        if (!res.success) {
+            const err = res.error as Error | undefined
+            if (
+                err?.message.includes(
+                    "There is no tracking information for the current branch." // local-only branch
+                ) ||
+                err?.message.includes("You are not currently on a branch.") // detached HEAD
+            )
+                return { success: true }
+        }
+        return res
     }
 
     private async readFileCommand(
@@ -162,6 +179,12 @@ export class GitCmsServer {
 
             const absolutePath = this.baseDir + filepath
             await unlink(absolutePath)
+
+            // Do a pull _after_ the file delete. This ensures that, if we intend to delete
+            // a file that has been changed on the server, we'll end up with an intentional failure.
+            const pull = await this.autopull()
+            if (!pull.success) throw pull.error
+
             await this.commitFile(
                 filepath,
                 `Deleted ${filepath}`,
@@ -189,6 +212,12 @@ export class GitCmsServer {
 
             const absolutePath = this.baseDir + filename
             await writeFile(absolutePath, content, "utf8")
+
+            // Do a pull _after_ the write. This ensures that, if we intend to overwrite a file
+            // that has been changed on the server, we'll end up with an intentional merge conflict.
+            await this.autopull()
+            const pull = await this.autopull()
+            if (!pull.success) throw pull.error
 
             const commitMsg = commitMessage
                 ? commitMessage
