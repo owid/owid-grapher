@@ -92,7 +92,12 @@ export class ProminentLink extends React.Component<{
                     <div className="content-wrapper">
                         {renderContent()}
                         {this.props.title ? (
-                            <div className="title">{this.props.title}</div>
+                            <div
+                                className="title"
+                                dangerouslySetInnerHTML={{
+                                    __html: this.props.title,
+                                }}
+                            />
                         ) : null}
                     </div>
                 </>
