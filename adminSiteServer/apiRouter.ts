@@ -9,7 +9,7 @@ import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
 } from "../settings/serverSettings"
-import { expectInt, isValidSlug, absoluteUrl } from "./serverUtil"
+import { expectInt, isValidSlug, absoluteUrl } from "../serverUtils/serverUtil"
 import { sendMail } from "./mail"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
 import { UserInvitation } from "../db/model/UserInvitation"
@@ -27,7 +27,7 @@ import { ChartRevision } from "../db/model/ChartRevision"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision"
 import { Post } from "../db/model/Post"
 import { camelCaseProperties } from "../clientUtils/string"
-import { logErrorAndMaybeSendToSlack } from "../baker/slackLog"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles"
 import { BAKED_BASE_URL } from "../settings/serverSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"

@@ -9,7 +9,7 @@ import {
 
 import * as db from "../db/db"
 import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"
-import { warn } from "./slackLog"
+import { warn } from "../serverUtils/slackLog"
 import { Chart } from "../db/model/Chart"
 import md5 from "md5"
 import { Url } from "../clientUtils/urls/Url"

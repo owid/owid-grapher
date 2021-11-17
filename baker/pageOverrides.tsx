@@ -4,7 +4,7 @@ import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util"
 import { FormattingOptions, FullPost } from "../clientUtils/owidTypes"
 import { getPostBySlug, isPostCitable } from "../db/wpdb"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
-import { logErrorAndMaybeSendToSlack } from "./slackLog"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post

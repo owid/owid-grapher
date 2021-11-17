@@ -60,7 +60,7 @@ import {
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 import { Url } from "../clientUtils/urls/Url"
-import { logErrorAndMaybeSendToSlack } from "./slackLog"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import {
     ProminentLink,
     ProminentLinkStyles,

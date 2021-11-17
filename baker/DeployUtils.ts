@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import { SiteBaker } from "../baker/SiteBaker"
-import { warn, logErrorAndMaybeSendToSlack } from "./slackLog"
+import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { DeployQueueServer } from "./DeployQueueServer"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings"
 import { DeployChange } from "../clientUtils/owidTypes"

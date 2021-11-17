@@ -3,7 +3,7 @@
 import { Router } from "express"
 import * as React from "react"
 
-import { renderToHtmlPage, expectInt } from "./serverUtil"
+import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil"
 import { OldChart, Chart } from "../db/model/Chart"
 import { Head } from "../site/Head"
 import * as db from "../db/db"
