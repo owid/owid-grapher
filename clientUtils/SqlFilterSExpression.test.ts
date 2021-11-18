@@ -14,6 +14,8 @@ import {
     allBinaryLogicOperators,
     allComparisionOperators,
     BinaryLogicOperators,
+    EqualityComparision,
+    EqualityOperator,
 } from "./SqlFilterSExpression"
 function checkIsomorphism(operation: Operation): void {
     return expect(parseToOperation(operation.toSExpr())).toEqual(operation)
@@ -90,7 +92,7 @@ describe("parse simple filters expressions", () => {
         const compCreator = (op: BinaryLogicOperators): BinaryLogicOperation =>
             new BinaryLogicOperation(op, [
                 new BooleanAtom(true),
-                new NumericComparision(ComparisonOperator.unequal, [
+                new EqualityComparision(EqualityOperator.unequal, [
                     new NumberAtom(5),
                     new NumberAtom(42),
                 ]),
@@ -114,12 +116,12 @@ describe("transpile to expected SQL", () => {
         checkSql("(- 4 1 2)", "(4-1-2)")
         checkSql("(* 4 1 2)", "(4*1*2)")
         checkSql("(/ 4 1 2)", "(4/1/2)")
-        checkSql("(= 4 3)", "4 = 3")
-        checkSql("(<> 4 1)", "4 <> 1")
-        checkSql("(< 4 3)", "4 < 3")
-        checkSql("(<= 4 1)", "4 <= 1")
-        checkSql("(> 4 3)", "4 > 3")
-        checkSql("(>= 4 1)", "4 >= 1")
+        checkSql("(= 4 3)", "(4 = 3)")
+        checkSql("(<> 4 1)", "(4 <> 1)")
+        checkSql("(< 4 3)", "(4 < 3)")
+        checkSql("(<= 4 1)", "(4 <= 1)")
+        checkSql("(> 4 3)", "(4 > 3)")
+        checkSql("(>= 4 1)", "(4 >= 1)")
         checkSql("(AND true false false)", "(true AND false AND false)")
         checkSql("(OR true false false)", "(true OR false OR false)")
         checkSql("(NOT true)", "(NOT true)")
@@ -128,7 +130,7 @@ describe("transpile to expected SQL", () => {
     it("should transpile some more complicated expressions correctly to SQL", async () => {
         checkSql(
             "(AND (NOT (< 1 2)) (= /firstYear /map/lastYear) (<> (/ 1 2) (/ 2 (+ 1 1))))",
-            `((NOT 1 < 2) AND JSON_EXTRACT(grapherConfig, "$.firstYear") = JSON_EXTRACT(grapherConfig, "$.map.lastYear") AND (1/2) <> (2/(1+1)))`
+            `((NOT (1 < 2)) AND (JSON_EXTRACT(grapherConfig, "$.firstYear") = JSON_EXTRACT(grapherConfig, "$.map.lastYear")) AND ((1/2) <> (2/(1+1))))`
         )
     })
 })

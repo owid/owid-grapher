@@ -44,7 +44,17 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
+import {
+    BinaryLogicOperation,
+    BinaryLogicOperators,
+    EqualityComparision,
+    EqualityOperator,
+    parseToOperation,
+    SqlColumnName,
+    StringAtom,
+} from "../clientUtils/SqlFilterSExpression"
 import jiff = require("jiff")
+//import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -355,7 +365,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
         FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC 
+        ORDER BY charts.lastEditedAt DESC
         LIMIT ?
     `,
         [limit]
@@ -717,18 +727,20 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-                    suggestedChartRevision
-                )
+                suggestedChartRevision.canApprove =
+                    SuggestedChartRevision.checkCanApprove(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canReject =
+                    SuggestedChartRevision.checkCanReject(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canFlag =
+                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
+                suggestedChartRevision.canPending =
+                    SuggestedChartRevision.checkCanPending(
+                        suggestedChartRevision
+                    )
             }
         )
 
@@ -881,11 +893,11 @@ apiRouter.post(
             let rows: any[] = await t.query(
                 `
                 SELECT id, config, 1 as priority
-                FROM charts 
+                FROM charts
                 WHERE ${whereCond1}
-                
+
                 UNION
-                
+
                 SELECT chartId as id, config, 2 as priority
                 FROM chart_revisions
                 WHERE ${whereCond2}
@@ -1086,18 +1098,15 @@ apiRouter.get(
         suggestedChartRevision.existingConfig = JSON.parse(
             suggestedChartRevision.existingConfig
         )
-        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-            suggestedChartRevision
-        )
-        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canApprove =
+            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
+        suggestedChartRevision.canReject =
+            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
         suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
             suggestedChartRevision
         )
-        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canPending =
+            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
 
         return {
             suggestedChartRevision: suggestedChartRevision,
@@ -1337,6 +1346,42 @@ apiRouter.get("/variables.json", async (req) => {
     return { variables: rows, numTotalRows: numTotalRows }
 })
 
+apiRouter.get("/variable-annotations", async (req) => {
+    const filterSExpr =
+        req.query.filter !== undefined
+            ? parseToOperation(req.query.filter)
+            : undefined
+    const userFilter = filterSExpr !== undefined ? [filterSExpr] : []
+
+    // TODO: for now we hardcode a filter here for testing
+    const fullFilter = new BinaryLogicOperation(BinaryLogicOperators.and, [
+        new EqualityComparision(EqualityOperator.equal, [
+            new SqlColumnName("datasets.name"),
+            new StringAtom("Natural disasters (EMDAT – decadal)"),
+        ]),
+        ...userFilter,
+    ])
+    // Note that our DSL generates sql here that we splice directly into the SQL as text
+    // This is a potential for a SQL injection attack but we control the DSL and are
+    // careful there to only allow carefully guarded vocabularies from being used, not
+    // arbitrary user input
+    const whereClause = fullFilter.toSql()
+    const results =
+        await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+FROM variables
+LEFT JOIN datasets on variables.datasetId = datasets.id
+LEFT JOIN namespaces on datasets.namespace = namespaces.name
+WHERE ${whereClause}
+LIMIT 50`)
+    const resultCount = await db.execute(`SELECT count(*) as count
+FROM variables
+LEFT JOIN datasets on variables.datasetId = datasets.id
+LEFT JOIN namespaces on datasets.namespace = namespaces.name
+WHERE ${whereClause}
+LIMIT 50`)
+    return { variables: results, numTotalRows: resultCount.count }
+})
+
 interface VariableAnnotationPatch {
     variableId: number
     operations: OpPatch[]
@@ -1352,8 +1397,10 @@ apiRouter.patch("/variable-annotations", async (req) => {
             [[...variableIds.values()]]
         )
         const configMap = new Map(
-            // TODO: where should an empty grapherConfig be initialized? Here? Empty?
-            configsAndIds.map((item: any) => [item.id, item.grapherConfig])
+            configsAndIds.map((item: any) => [
+                item.id,
+                item.grapherConfig ?? {},
+            ])
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
         for (const patchSet of patchesList) {
@@ -1368,15 +1415,6 @@ apiRouter.patch("/variable-annotations", async (req) => {
                 [newConfig, variableId]
             )
         }
-
-        // `UPDATE variables SET name=?, description=?, updatedAt=?, display=? WHERE id = ?`,
-        // [
-        //     variable.name,
-        //     variable.description,
-        //     new Date(),
-        //     JSON.stringify(variable.display),
-        //     variableId,
-        // ]
     })
 
     return { success: true }

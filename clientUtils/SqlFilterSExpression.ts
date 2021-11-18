@@ -86,7 +86,7 @@ export class StringAtom extends StringOperation {
     expressionType = ExpressionType.string
     value: string
     toSql(): string {
-        return `'${this.value.toString()}'`
+        return `'${this.value.toString().replace("'", "''")}'` // escape single quotes to avoid SQL injection attacks :)
     }
 
     toSExpr(): string {
@@ -109,10 +109,16 @@ export class JsonPointerSymbol implements Operation {
     // Json pointer is actually less restrictive and allows pretty much all unicode
     // code points but for the foreseeable future we will only have \w and \d, _ and -
     // characters in actual use. Tilde is from json pointer to escape / inside field names
-    static jsonPointerRegex: RegExp = /^[\w\d/-~]+$/
+    // We also disallow empty jsonPointer for now even though they are legal (if you)
+    // want to enable them then make sure that the parsing decisions outside of here
+    // all correctly allow this)
+    static jsonPointerRegex: RegExp = /^\/[\w\d/-~]+$/
     static columnName: string = "grapherConfig" // TODO: this should come from context
+    static isValidJsonPointer(str: string): boolean {
+        return JsonPointerSymbol.jsonPointerRegex.test(str)
+    }
     constructor(v: string) {
-        if (!JsonPointerSymbol.jsonPointerRegex.test(v))
+        if (!JsonPointerSymbol.isValidJsonPointer(v))
             throw Error(`Invalid Json Pointer: ${v} - did not match regex`)
         this.value = v
     }
@@ -123,6 +129,37 @@ export class JsonPointerSymbol implements Operation {
         return `JSON_EXTRACT(${
             JsonPointerSymbol.columnName
         }, "${jsonPointerToJsonPath(this.value.toString())}")`
+    }
+
+    toSExpr(): string {
+        return this.value.toString()
+    }
+}
+
+export class SqlColumnName implements Operation {
+    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
+        ["variables.name", ExpressionType.string],
+        ["datasets.name", ExpressionType.string],
+        ["namespaces.name", ExpressionType.string],
+    ])
+    static isValidSqlColumnName(str: string): boolean {
+        return SqlColumnName.allowedColumnNamesAndTypes.has(str)
+    }
+    constructor(v: string) {
+        if (!SqlColumnName.isValidSqlColumnName(v))
+            throw Error(
+                `Invalid column name: ${v} - did not match the set of allowed columns`
+            )
+        this.value = v
+        this.expressionType = SqlColumnName.allowedColumnNamesAndTypes.get(
+            this.value
+        )!
+    }
+    arity = Arity.nullary
+    expressionType: ExpressionType
+    value: string
+    toSql(): string {
+        return `${this.value}`
     }
 
     toSExpr(): string {
@@ -165,9 +202,38 @@ export class ArithmeticOperation extends NumericOperation {
     }
 }
 
-export enum ComparisonOperator {
+export enum EqualityOperator {
     equal = "=",
     unequal = "<>",
+}
+
+export const allEqualityOperators = [
+    EqualityOperator.equal,
+    EqualityOperator.unequal,
+]
+
+export class EqualityComparision extends BooleanOperation {
+    constructor(operator: EqualityOperator, operands: Operation[]) {
+        super()
+        this.operator = operator
+        this.operands = operands
+    }
+
+    operator: EqualityOperator
+    operands: Operation[]
+    toSql(): string {
+        return `(${this.operands
+            .map((operand) => operand.toSql())
+            .join(" " + this.operator + " ")})` // we emit too many parenthesis here but don't want to deal with precedence rn
+    }
+
+    toSExpr(): string {
+        const operands = this.operands.map((op) => op.toSExpr()).join(" ")
+        return `(${this.operator} ${operands})`
+    }
+}
+
+export enum ComparisonOperator {
     less = "<",
     lessOrEqual = "<=",
     more = ">",
@@ -175,8 +241,6 @@ export enum ComparisonOperator {
 }
 
 export const allComparisionOperators = [
-    ComparisonOperator.equal,
-    ComparisonOperator.unequal,
     ComparisonOperator.less,
     ComparisonOperator.lessOrEqual,
     ComparisonOperator.more,
@@ -196,9 +260,9 @@ export class NumericComparision extends BooleanOperation {
     operator: ComparisonOperator
     operands: [NumericOperation, NumericOperation]
     toSql(): string {
-        return `${this.operands[0].toSql()} ${
+        return `(${this.operands[0].toSql()} ${
             this.operator
-        } ${this.operands[1].toSql()}` // we emit too many parenthesis here but don't want to deal with precedence rn
+        } ${this.operands[1].toSql()})` // we emit too many parenthesis here but don't want to deal with precedence rn
     }
 
     toSExpr(): string {
@@ -272,6 +336,18 @@ const arithmeticOperatorInfos = allArithmeticOperators.map(
             },
         ] as const
 )
+const equalityOperatorInfos = allEqualityOperators.map(
+    (op) =>
+        [
+            op.toString(),
+            {
+                arity: Arity.nary,
+                operandsType: ExpressionType.any,
+                ctor: (args: Operation[]): Operation =>
+                    new EqualityComparision(op, args),
+            },
+        ] as const
+)
 const comparisionOperatorInfos = allComparisionOperators.map(
     (op) =>
         [
@@ -302,6 +378,7 @@ const binaryLogicOperatorInfos = allBinaryLogicOperators.map(
 const operationFactoryMap = new Map<string, OperationInfo>([
     //...(allArithmeticOperators.map(op => [op, {arity: Arity.nary, operandsType: ExpressionType.numeric, ctor: arithMeticCtor}])
     ...arithmeticOperatorInfos,
+    ...equalityOperatorInfos,
     ...comparisionOperatorInfos,
     ...binaryLogicOperatorInfos,
     [
@@ -347,8 +424,9 @@ export function parseOperationRecursive(
                     `Function ${firstElement} expected ${expectedArgs} arguments but got ${parsedArgs.length}`
                 )
 
-            // Check if the types of the arguments match the expected type for this operation
+            // Check if the types of the arguments match the expected type for this operation unless the operation accepts type "any"
             if (
+                op.operandsType !== ExpressionType.any &&
                 !parsedArgs.every(
                     (item) =>
                         item.expressionType === op.operandsType ||
@@ -376,6 +454,8 @@ export function parseOperationRecursive(
         // Handling NaN correctly throught the entire DSL is hard - let's see if we can just drop it
         else if (sExpr === "NaN") return undefined
         else if ((num = Number.parseFloat(sExpr))) return new NumberAtom(num)
+        else if (SqlColumnName.isValidSqlColumnName(sExpr))
+            return new SqlColumnName(sExpr)
         else return new JsonPointerSymbol(sExpr) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of
     } else throw Error(`Unexpected type in parseToOperation: ${sExpr}!`)
 }
