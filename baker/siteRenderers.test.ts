@@ -33,6 +33,11 @@ const grapherSlug = "cancer-deaths-rate-and-age-standardized-rate-index"
 const grapherUrl = `${BAKED_BASE_URL}/grapher/${grapherSlug}?country=~OWID_WRL`
 const uploadPath = `/uploads/2021/10/Fish-thumbnail-768x404.png`
 
+jest.mock("../settings/clientSettings.js", () => ({
+    WORDPRESS_URL: "http://owid.lndo.site",
+    BAKED_BASE_URL: "http://localhost:3030",
+}))
+
 const getMockBlock = (
     url: string,
     title: string,
@@ -150,7 +155,7 @@ it("renders authored prominent link (post, thin, with html title)", () => {
     expect(cheerioEl(".content").html()).toEqual(content)
 })
 
-it.skip("renders automatic prominent link (link to post, thin)", async () => {
+it("renders automatic prominent link (link to post, thin)", async () => {
     const htmlLink = `<p><a href="${BAKED_BASE_URL}/${postSlug}"></a></p>`
 
     const cheerioEl = cheerio.load(htmlLink)
@@ -199,7 +204,6 @@ describe("does not render automatic prominent link", () => {
 
     it("to grapher pages and logs error", async () => {
         const htmlLink = `<p><a href="${grapherUrl}"></a></p>`
-        console.log(htmlLink)
 
         const cheerioEl = cheerio.load(htmlLink)
 
