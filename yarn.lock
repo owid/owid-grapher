@@ -12223,6 +12223,11 @@ json5@^2.1.2, json5@^2.1.3:
   dependencies:
     minimist "^1.2.5"
 
+json8-pointer@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/json8-pointer/-/json8-pointer-1.0.6.tgz#f3f711750c5d19045943b6469877b0399a80e2e7"
+  integrity sha512-NjuxOsoxD8kidrifqywJYbCpBBMoT+4mruCVSh/BiInhBqSFnuqrJ+BnfBq0o0DxWOsAcn1J011t2JmHtA796Q==
+
 jsonfile@^2.1.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-2.4.0.tgz#3736a2b428b87bbda0cc83b53fa3d633a35c2ae8"
@@ -16694,6 +16699,11 @@ rxjs@^6.3.3, rxjs@^6.4.0:
   integrity sha512-WfQI+1gohdf0Dai/Bbmk5L5ItH5tYqm3ki2c5GdWhKjalzjg93N3avFjVStyZZz+A2Em+ZxKH5bNghw9UeylGQ==
   dependencies:
     tslib "^1.9.0"
+
+s-expression@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/s-expression/-/s-expression-3.1.1.tgz#1b385367bb4332acdfb951d4675fb75e8358c945"
+  integrity sha512-VMsW7sIvixXfIDmDll7XCePMYYY52UlUtA7OlFQUovqj3XtQ2UkZkjjAvnSFW8o+SbswzUEeCBMmpAx9LS3qrg==
 
 safe-buffer@5.1.1:
   version "5.1.1"
