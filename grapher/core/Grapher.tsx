@@ -510,6 +510,8 @@ export class Grapher
         }
         if (params.uniformYAxis === "0") {
             this.yAxis.facetDomain = FacetAxisDomain.independent
+        } else if (params.uniformYAxis === "1") {
+            this.yAxis.facetDomain = FacetAxisDomain.shared
         }
     }
 
