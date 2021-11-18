@@ -5,6 +5,7 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faFile } from "@fortawesome/free-solid-svg-icons/faFile"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
+import { faPen } from "@fortawesome/free-solid-svg-icons/faPen"
 import { faDatabase } from "@fortawesome/free-solid-svg-icons/faDatabase"
 import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe"
 import { faTag } from "@fortawesome/free-solid-svg-icons/faTag"
@@ -51,6 +52,11 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/variables">
                     <FontAwesomeIcon icon={faDatabase} /> Variables
+                </Link>
+            </li>
+            <li>
+                <Link to="/variable-annotations">
+                    <FontAwesomeIcon icon={faPen} /> Data annotation
                 </Link>
             </li>
             <li>
