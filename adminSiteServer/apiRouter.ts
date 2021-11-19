@@ -902,16 +902,14 @@ apiRouter.post(
                     "Retrieved more chart configs than expected. This may be due to a bug on the server."
                 )
             }
-            const originalConfigs: Record<
-                string,
-                GrapherInterface
-            > = rows.reduce(
-                (obj: any, row: any) => ({
-                    ...obj,
-                    [row.id]: JSON.parse(row.config),
-                }),
-                {}
-            )
+            const originalConfigs: Record<string, GrapherInterface> =
+                rows.reduce(
+                    (obj: any, row: any) => ({
+                        ...obj,
+                        [row.id]: JSON.parse(row.config),
+                    }),
+                    {}
+                )
 
             // some chart configs do not have an `id` field, so we check for it
             // and insert the id here as needed. This is important for the
