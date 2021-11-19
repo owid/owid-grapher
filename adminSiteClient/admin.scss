@@ -1024,7 +1024,7 @@ main:not(.ChartEditorPage) {
     }
 }
 
-.SuggestedChartRevisionImporterPage {
+.SuggestedChartRevisionImportPage {
     section,
     .collapsible {
         background-color: #f9f9f9;
@@ -1052,6 +1052,12 @@ main:not(.ChartEditorPage) {
 
         li {
             padding-bottom: 5px;
+        }
+
+        .snippet {
+            background-color: #e8e8e8;
+            padding: 10px;
+            border-radius: 0.4rem;
         }
     }
 

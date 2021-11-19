@@ -85,7 +85,7 @@ export class SuggestedChartRevisionImportPage extends React.Component {
     render() {
         return (
             <AdminLayout>
-                <main className="SuggestedChartRevisionImporterPage">
+                <main className="SuggestedChartRevisionImportPage">
                     <h2>
                         Import tool for bulk chart revisions
                         <Link
@@ -231,19 +231,48 @@ class Readme extends React.Component {
                         timelineMinTime, ...).
                     </p>
                     <p>Example csv file:</p>
-                    <pre>
-                        <code>
-                            # example.csv
-                            <br />
-                            id,version,title,subtitle,sourceDesc,note,timelineMinTime,timelineMaxTime
-                            <br />
-                            4765,7,New title,New subtitle,New source
-                            description,New footnote,1950,2019
-                            <br />
-                            4766,7,,null,another new source description,another
-                            new footnote,,
-                        </code>
-                    </pre>
+                    <p>
+                        <pre className="snippet">
+                            <code>
+                                # example.csv
+                                <br />
+                                id,version,title,subtitle,sourceDesc,note,timelineMinTime,timelineMaxTime
+                                <br />
+                                4765,9,New title,New subtitle,New source
+                                description,New footnote,1950,2019
+                                <br />
+                                4766,9,,null,another new source
+                                description,another new footnote,,
+                            </code>
+                        </pre>
+                    </p>
+                    <p>
+                        <b>Need help getting started? Folow these steps:</b>
+                        <ol>
+                            <li>
+                                Visit{" "}
+                                <Link to="/bulk-downloads">bulk downloads</Link>{" "}
+                                to download all charts in csv format;
+                            </li>
+                            <li>
+                                Delete all of the rows and columns in the
+                                downloaded csv file that you will NOT be
+                                editing;
+                            </li>
+                            <li>
+                                Make all of your edits in the remaining cells;
+                            </li>
+                            <li>Upload the resulting csv using this tool.</li>
+                            <li>
+                                Go to the{" "}
+                                <Link to="/suggested-chart-revisions/review">
+                                    chart approval tool
+                                </Link>{" "}
+                                to review and approve/reject your chart
+                                revisions.
+                            </li>
+                        </ol>
+                    </p>
                     <h5>Important things to know</h5>
                     <ul>
                         <li>
@@ -333,6 +362,28 @@ class Readme extends React.Component {
                             <code>timelineMinTime</code> and{" "}
                             <code>timelineMaxTime</code> fields will not be
                             changed.
+                        </li>
+                        <li>
+                            <b>Common problems:</b>
+                            <ul>
+                                <li>
+                                    You will receive an error message if you try
+                                    to upload a revision for a chart that
+                                    already has a "pending" or "flagged"
+                                    revision in the{" "}
+                                    <Link to="/suggested-chart-revisions/review">
+                                        chart approval tool
+                                    </Link>
+                                    . These revisions will need to first be
+                                    approved or rejected before you upload your
+                                    new revisions.
+                                </li>
+                                <li>
+                                    You will receive an error message if 2 or
+                                    more rows in the uploaded csv file contain
+                                    the same chart id.
+                                </li>
+                            </ul>
                         </li>
                     </ul>
 
@@ -518,7 +569,21 @@ class ResponseMessages extends React.Component<{
                 divs.push(
                     <div key={i} className={`message bg-${m.type}`}>
                         <h5>{capitalize(m.type)}</h5>
-                        <p>{m.text}</p>
+                        <p>
+                            {m.text}
+                            {m.type == "success" && (
+                                <React.Fragment>
+                                    <br />
+                                    <span>
+                                        Visit the{" "}
+                                        <Link to="/suggested-chart-revisions/review">
+                                            chart approval tool
+                                        </Link>{" "}
+                                        to review your chart revisions.
+                                    </span>
+                                </React.Fragment>
+                            )}
+                        </p>
                     </div>
                 )
             })
