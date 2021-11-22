@@ -1,5 +1,5 @@
 import { toJS } from "mobx"
-import { isEqual } from "../../clientUtils/Util"
+import { isEqual } from "../Util"
 
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {

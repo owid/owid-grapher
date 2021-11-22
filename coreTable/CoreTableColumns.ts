@@ -23,14 +23,14 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { EntityName, LegacyOwidRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { EntityName, OwidVariableRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
-import { OwidSource } from "./OwidSource"
+import { OwidSource } from "../clientUtils/OwidSource"
 import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { ColumnSlug } from "../clientUtils/owidTypes"
 
 interface ColumnSummary {
@@ -162,7 +162,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return [this.minValue, this.maxValue]
     }
 
-    @imemo get display(): LegacyVariableDisplayConfigInterface | undefined {
+    @imemo get display(): OwidVariableDisplayConfigInterface | undefined {
         return this.def.display
     }
 
@@ -381,14 +381,8 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.jsType === "string" ? values.sort() : sortNumeric(values)
     }
 
-    // todo: cleanup this method. figure out what source properties should be on CoreTable vs OwidTable.
     get source(): OwidSource {
         const { def } = this
-
-        // todo: flatten out source onto column def in Grapher backend, then can remove this.
-        const { source } = def as any
-        if (source) return source as OwidSource
-
         return {
             name: def.sourceName,
             link: def.sourceLink,
@@ -396,7 +390,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             dataPublisherSource: def.dataPublisherSource,
             retrievedDate: def.retrievedDate,
             additionalInfo: def.additionalInfo,
-        } as OwidSource
+        }
     }
 
     // todo: remove. should not be on coretable
@@ -434,7 +428,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     // assumes table is sorted by time
-    @imemo get owidRows(): LegacyOwidRow<JS_TYPE>[] {
+    @imemo get owidRows(): OwidVariableRow<JS_TYPE>[] {
         const times = this.originalTimes
         const values = this.values
         const entities = this.allEntityNames
@@ -449,7 +443,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @imemo get owidRowsByEntityName(): Map<EntityName, CoreRow[]> {
-        const map = new Map<EntityName, LegacyOwidRow<JS_TYPE>[]>()
+        const map = new Map<EntityName, OwidVariableRow<JS_TYPE>[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
             map.get(row.entityName)!.push(row)

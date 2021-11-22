@@ -12,10 +12,10 @@ import {
     uniqBy,
 } from "../../clientUtils/Util"
 import {
-    LegacyVariablesAndEntityKey,
-    LegacyEntityMeta,
-    LegacyVariableConfig,
-} from "./LegacyVariableCode"
+    OwidVariablesAndEntityKey,
+    OwidVariableWithDataAndSource,
+    OwidEntityKey,
+} from "../../clientUtils/OwidVariable"
 import {
     StandardOwidColumnDefs,
     OwidTableSlugs,
@@ -24,15 +24,15 @@ import {
 } from "../../coreTable/OwidTableConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes"
-import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
 
 export const legacyToOwidTableAndDimensions = (
-    json: LegacyVariablesAndEntityKey,
+    json: OwidVariablesAndEntityKey,
     grapherConfig: Partial<LegacyGrapherInterface>
-): { dimensions: LegacyChartDimensionInterface[]; table: OwidTable } => {
+): { dimensions: OwidChartDimensionInterface[]; table: OwidTable } => {
     // Entity meta map
 
-    const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
+    const entityMetaById: OwidEntityKey = json.entityKey
 
     // Color maps
 
@@ -84,11 +84,11 @@ export const legacyToOwidTableAndDimensions = (
         const columnDefs = new Map(baseColumnDefs)
 
         // Time column
-        const timeColumnDef = timeColumnDefFromLegacyVariable(variable)
+        const timeColumnDef = timeColumnDefFromOwidVariable(variable)
         columnDefs.set(timeColumnDef.slug, timeColumnDef)
 
         // Value column
-        const valueColumnDef = columnDefFromLegacyVariable(variable)
+        const valueColumnDef = columnDefFromOwidVariable(variable)
         const valueColumnColor =
             dimension.display?.color ??
             columnColorMap.get(dimension.variableId.toString())
@@ -108,11 +108,11 @@ export const legacyToOwidTableAndDimensions = (
 
         // Annotations column
         const [annotationMap, annotationColumnDef] =
-            annotationMapAndDefFromLegacyVariable(variable)
+            annotationMapAndDefFromOwidVariable(variable)
 
         // Column values
 
-        const times = timeColumnValuesFromLegacyVariable(variable)
+        const times = timeColumnValuesFromOwidVariable(variable)
         const entityIds = variable.entities ?? []
         const entityNames = entityIds.map((id) => entityMetaById[id].name)
         const entityCodes = entityIds.map((id) => entityMetaById[id].code)
@@ -214,8 +214,8 @@ export const legacyToOwidTableAndDimensions = (
 const fullJoinTables = (tables: OwidTable[]): OwidTable =>
     tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
-const columnDefFromLegacyVariable = (
-    variable: LegacyVariableConfig
+const columnDefFromOwidVariable = (
+    variable: OwidVariableWithDataAndSource
 ): OwidColumnDef => {
     const slug = variable.id.toString() // For now, the variableId will be the column slug
     const {
@@ -227,6 +227,7 @@ const columnDefFromLegacyVariable = (
         datasetName,
         source,
         display,
+        nonRedistributable,
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
@@ -244,14 +245,20 @@ const columnDefFromLegacyVariable = (
         datasetId,
         datasetName,
         display,
-        source,
+        nonRedistributable,
+        sourceLink: source?.link,
+        sourceName: source?.name,
+        dataPublishedBy: source?.dataPublishedBy,
+        dataPublisherSource: source?.dataPublisherSource,
+        retrievedDate: source?.retrievedDate,
+        additionalInfo: source?.additionalInfo,
         owidVariableId: variable.id,
         type: isContinent ? ColumnTypeNames.Continent : ColumnTypeNames.Numeric,
     }
 }
 
-const timeColumnDefFromLegacyVariable = (
-    variable: LegacyVariableConfig
+const timeColumnDefFromOwidVariable = (
+    variable: OwidVariableWithDataAndSource
 ): OwidColumnDef => {
     return variable.display?.yearIsDay
         ? {
@@ -266,8 +273,8 @@ const timeColumnDefFromLegacyVariable = (
           }
 }
 
-const timeColumnValuesFromLegacyVariable = (
-    variable: LegacyVariableConfig
+const timeColumnValuesFromOwidVariable = (
+    variable: OwidVariableWithDataAndSource
 ): number[] => {
     const { display, years } = variable
     const yearsNeedTransform =
@@ -291,8 +298,8 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
     return years.map((y) => y + diff)
 }
 
-const annotationMapAndDefFromLegacyVariable = (
-    variable: LegacyVariableConfig
+const annotationMapAndDefFromOwidVariable = (
+    variable: OwidVariableWithDataAndSource
 ): [Map<string, string>, OwidColumnDef] | [] => {
     if (variable.display?.entityAnnotationsMap) {
         const slug = makeAnnotationsSlug(variable.id.toString())

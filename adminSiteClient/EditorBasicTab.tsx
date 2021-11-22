@@ -23,7 +23,7 @@ import { DimensionSlot } from "../grapher/chart/DimensionSlot"
 import {
     ColumnSlug,
     DimensionProperty,
-    LegacyVariableId,
+    OwidVariableId,
 } from "../clientUtils/owidTypes"
 import { ChartDimension } from "../grapher/chart/ChartDimension"
 
@@ -40,7 +40,7 @@ class DimensionSlotView extends React.Component<{
         return this.props.editor.grapher
     }
 
-    @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
+    @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
         const { slot } = this.props
         const { grapher } = this.props.editor
 
@@ -66,7 +66,7 @@ class DimensionSlotView extends React.Component<{
         this.updateDefaults()
     }
 
-    @action.bound private onRemoveDimension(variableId: LegacyVariableId) {
+    @action.bound private onRemoveDimension(variableId: OwidVariableId) {
         const { slot } = this.props
         const { grapher } = this.props.editor
 

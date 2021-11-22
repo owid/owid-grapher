@@ -21,6 +21,7 @@ export interface DatasetListItem {
     metadataEditedByUserName: string
     tags: Tag[]
     isPrivate: boolean
+    nonRedistributable: boolean
 }
 
 @observer
@@ -57,7 +58,11 @@ class DatasetRow extends React.Component<{
             <tr>
                 <td>{dataset.namespace}</td>
                 <td>
-                    {dataset.isPrivate ? (
+                    {dataset.nonRedistributable ? (
+                        <span className="text-secondary">
+                            Non-redistributable:{" "}
+                        </span>
+                    ) : dataset.isPrivate ? (
                         <span className="text-secondary">Unpublished: </span>
                     ) : (
                         ""

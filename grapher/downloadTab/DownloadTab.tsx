@@ -5,11 +5,14 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
 import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "../../clientUtils/Util"
+import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -153,6 +156,32 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.manager.table ?? BlankOwidTable()
     }
 
+    @computed private get nonRedistributableColumn(): CoreColumn | undefined {
+        return this.inputTable.columnsAsArray.find(
+            (col) => (col.def as OwidColumnDef).nonRedistributable
+        )
+    }
+
+    // Data downloads are fully disabled if _any_ variable used is non-redistributable.
+    // In the future, we would probably like to drop only the columns that are
+    // non-redistributable, and allow downloading the rest in the CSV.
+    // -@danielgavrilov, 2021-11-16
+    @computed private get nonRedistributable(): boolean {
+        return this.nonRedistributableColumn !== undefined
+    }
+
+    // There could be multiple non-redistributable variables in the chart.
+    // For now, we only pick the first one to populate the link.
+    // In the future, we may need to change the phrasing of the download
+    // notice and provide links to all publishers.
+    // -@danielgavrilov, 2021-11-16
+    @computed private get nonRedistributableSourceLink(): string | undefined {
+        const def = this.nonRedistributableColumn?.def as
+            | OwidColumnDef
+            | undefined
+        return def?.sourceLink
+    }
+
     @action.bound private onPngDownload(): void {
         const filename = this.baseFilename + ".png"
         if (this.pngBlob) {
@@ -258,28 +287,62 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
                 <div className="grouped-menu-section">
                     <h2>Data</h2>
-                    <div className="grouped-menu-list">
-                        <button
-                            className="grouped-menu-item"
-                            onClick={this.onCsvDownload}
-                            data-track-note="chart-download-csv"
-                        >
-                            <div className="grouped-menu-content">
+                    {this.nonRedistributable ? (
+                        <div className="grouped-menu-callout danger">
+                            <div className="grouped-menu-callout-icon">
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                            </div>
+                            <div className="grouped-menu-callout-content">
                                 <h3 className="title">
-                                    Full data{" "}
-                                    <span className="faint">(CSV)</span>
+                                    The data in this chart is not available to
+                                    download
                                 </h3>
-                                <p className="description">
-                                    The full dataset used in this chart.
+                                <p>
+                                    The data is published under a license that
+                                    doesn't allow us to redistribute it.
                                 </p>
+                                {this.nonRedistributableSourceLink && (
+                                    <p>
+                                        Please visit the{" "}
+                                        <a
+                                            href={
+                                                this
+                                                    .nonRedistributableSourceLink
+                                            }
+                                        >
+                                            <strong>
+                                                data publisher's website
+                                            </strong>
+                                        </a>{" "}
+                                        for more details.
+                                    </p>
+                                )}
                             </div>
-                            <div className="grouped-menu-icon">
-                                <span className="download-icon">
-                                    <FontAwesomeIcon icon={faDownload} />
-                                </span>
-                            </div>
-                        </button>
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="grouped-menu-list">
+                            <button
+                                className="grouped-menu-item"
+                                onClick={this.onCsvDownload}
+                                data-track-note="chart-download-csv"
+                            >
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">
+                                        Full data{" "}
+                                        <span className="faint">(CSV)</span>
+                                    </h3>
+                                    <p className="description">
+                                        The full dataset used in this chart.
+                                    </p>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="download-icon">
+                                        <FontAwesomeIcon icon={faDownload} />
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         )

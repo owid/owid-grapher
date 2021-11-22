@@ -6,7 +6,7 @@ import {
     objectWithPersistablesToObject,
     Persistable,
     updatePersistables,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import { extend, isEmpty, trimObject } from "../../clientUtils/Util"
 import { ColorSchemeName } from "./ColorConstants"
 import { BinningStrategy } from "./BinningStrategy"

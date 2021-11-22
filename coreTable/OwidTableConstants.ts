@@ -6,7 +6,7 @@ import {
     Year,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { OwidSource } from "./OwidSource"
+import { OwidSource } from "../clientUtils/OwidSource"
 import { ColumnSlug } from "../clientUtils/owidTypes"
 
 export enum OwidTableSlugs {
@@ -33,11 +33,11 @@ export type EntityId = number
 export interface OwidColumnDef extends CoreColumnDef {
     owidVariableId?: number // todo: remove after data 2.0
     coverage?: string
-    datasetId?: string
+    datasetId?: number
     datasetName?: string
-    source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
+    nonRedistributable?: boolean
 }
 
 export const OwidEntityNameColumnDef = {
@@ -74,7 +74,7 @@ export interface OwidRow extends CoreRow {
     date?: string
 }
 
-export interface LegacyOwidRow<ValueType extends PrimitiveType> {
+export interface OwidVariableRow<ValueType extends PrimitiveType> {
     entityName: EntityName
     time: Time
     value: ValueType

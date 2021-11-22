@@ -43,14 +43,14 @@ import {
     SortBy,
     SortConfig,
 } from "../../clientUtils/owidTypes"
-import { LegacyOwidRow } from "../../coreTable/OwidTableConstants"
+import { OwidVariableRow } from "../../coreTable/OwidTableConstants"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
 
 interface DiscreteBarItem {
     seriesName: string
-    row: LegacyOwidRow<any>
+    row: OwidVariableRow<any>
     color?: string
 }
 

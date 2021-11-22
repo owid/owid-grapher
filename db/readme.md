@@ -37,6 +37,8 @@ And then populate the file with the SQL statements to alter the tables, using [p
 
 Make sure you write a **down** migration in case there is any chance things can go wrong we'd need to revert it.
 
+You can find examples of older migrations here: https://github.com/owid/owid-grapher/tree/2dd7f0661ba6fe7fdfb1ad2a59b9ef7ed7a2ad9f/db/migration
+
 ### Reverting a migration
 
 To revert the last migration on **your local development server**, use `yarn typeorm migration:revert`. Running that repeatedly will revert additional migrations. This is useful when working with migrations locally – when you make a change to an existing migration, you need to revert and re-run it.

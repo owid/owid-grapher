@@ -5,17 +5,17 @@ import {
     FormattedPost,
     FormattingOptions,
     KeyValueProps,
-    LegacyVariableId,
+    OwidVariableId,
 } from "../clientUtils/owidTypes"
 import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { DATA_VALUE } from "../site/DataValue"
-import { LegacyVariablesAndEntityKey } from "../grapher/core/LegacyVariableCode"
+import { OwidVariablesAndEntityKey } from "../clientUtils/OwidVariable"
 import {
-    LegacyChartDimensionInterface,
-    LegacyVariableDisplayConfigInterface,
-} from "../clientUtils/LegacyVariableDisplayConfigInterface"
+    OwidChartDimensionInterface,
+    OwidVariableDisplayConfigInterface,
+} from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable"
 
 export const DEEP_LINK_CLASS = "deep-link"
@@ -119,18 +119,20 @@ export const parseKeyValueArgs = (text: string): KeyValueProps => {
 
 export const formatDataValue = (
     value: number,
-    variableId: LegacyVariableId,
-    legacyVariableDisplayConfig: LegacyVariableDisplayConfigInterface = {},
-    legacyChartDimension: LegacyChartDimensionInterface | undefined
+    variableId: OwidVariableId,
+    legacyVariableDisplayConfig: OwidVariableDisplayConfigInterface = {},
+    legacyChartDimension: OwidChartDimensionInterface | undefined
 ) => {
     if (!legacyChartDimension) return
-    const legacyVariableConfig: LegacyVariablesAndEntityKey = {
+    const legacyVariableConfig: OwidVariablesAndEntityKey = {
         entityKey: {},
         variables: {
             [variableId]: {
                 id: variableId,
                 display: legacyVariableDisplayConfig,
                 values: [value],
+                years: [],
+                entities: [],
             },
         },
     }

@@ -49,7 +49,7 @@ import {
     SeriesColorMap,
     FacetAxisDomain,
 } from "../core/GrapherConstants"
-import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -94,7 +94,7 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable"
 import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -165,7 +165,7 @@ import {
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
-import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
 import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
@@ -190,7 +190,7 @@ const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    owidDataset?: OwidVariablesAndEntityKey // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
     queryStr?: string
@@ -324,7 +324,7 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
-    owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData? = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
@@ -420,7 +420,7 @@ export class Grapher
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
         } else if (this.owidDataset)
-            this._receiveLegacyDataAndApplySelection(this.owidDataset)
+            this._receiveOwidDataAndApplySelection(this.owidDataset)
         else this.downloadLegacyDataFromOwidVariableIds()
     }
 
@@ -721,12 +721,12 @@ export class Grapher
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
-                this._receiveLegacyDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(json)
             } else {
                 const response = await fetch(this.dataUrl)
                 if (!response.ok) throw new Error(response.statusText)
                 const json = await response.json()
-                this._receiveLegacyDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(json)
             }
         } catch (err) {
             console.log(`Error fetching '${this.dataUrl}'`)
@@ -734,12 +734,12 @@ export class Grapher
         }
     }
 
-    @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey): void {
-        this._receiveLegacyDataAndApplySelection(json)
+    @action.bound receiveOwidData(json: OwidVariablesAndEntityKey): void {
+        this._receiveOwidDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
-        json: LegacyVariablesAndEntityKey,
+        json: OwidVariablesAndEntityKey,
         legacyConfig: Partial<LegacyGrapherInterface>
     ): void {
         const { dimensions, table } = legacyToOwidTableAndDimensions(
@@ -769,10 +769,10 @@ export class Grapher
         )
     }
 
-    @observable private legacyVariableDataJson?: LegacyVariablesAndEntityKey
+    @observable private legacyVariableDataJson?: OwidVariablesAndEntityKey
 
-    @action.bound private _receiveLegacyDataAndApplySelection(
-        json: LegacyVariablesAndEntityKey
+    @action.bound private _receiveOwidDataAndApplySelection(
+        json: OwidVariablesAndEntityKey
     ): void {
         this.legacyVariableDataJson = json
 
@@ -996,8 +996,8 @@ export class Grapher
                 validDimensions = uniqWith(
                     validDimensions,
                     (
-                        a: LegacyChartDimensionInterface,
-                        b: LegacyChartDimensionInterface
+                        a: OwidChartDimensionInterface,
+                        b: OwidChartDimensionInterface
                     ) =>
                         a.property === slot.property &&
                         a.property === b.property
@@ -1078,13 +1078,13 @@ export class Grapher
         return this.isReady ? this.dimensions : []
     }
 
-    @action.bound addDimension(config: LegacyChartDimensionInterface): void {
+    @action.bound addDimension(config: OwidChartDimensionInterface): void {
         this.dimensions.push(new ChartDimension(config, this))
     }
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
-        newConfigs: LegacyChartDimensionInterface[]
+        newConfigs: OwidChartDimensionInterface[]
     ): void {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
@@ -1098,7 +1098,7 @@ export class Grapher
     }
 
     @action.bound setDimensionsFromConfigs(
-        configs: LegacyChartDimensionInterface[]
+        configs: OwidChartDimensionInterface[]
     ): void {
         this.dimensions = configs.map(
             (config) => new ChartDimension(config, this)

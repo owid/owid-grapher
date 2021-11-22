@@ -129,6 +129,8 @@ export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
 }
 
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
@@ -481,7 +483,7 @@ export const csvEscape = (value: unknown): string => {
         : valueStr
 }
 
-export const arrToCsvRow = (arr: string[]): string =>
+export const arrToCsvRow = (arr: unknown[]): string =>
     arr.map((x) => csvEscape(x)).join(",") + "\n"
 
 export const urlToSlug = (url: string): string =>
@@ -1028,6 +1030,16 @@ export const omitUndefinedValues = <T>(object: T): NoUndefinedValues<T> => {
     const result: any = {}
     for (const key in object) {
         if (object[key] !== undefined) result[key] = object[key]
+    }
+    return result
+}
+
+export const omitNullableValues = <T>(object: T): NoUndefinedValues<T> => {
+    const result: any = {}
+    for (const key in object) {
+        if (object[key] !== undefined && object[key] !== null) {
+            result[key] = object[key]
+        }
     }
     return result
 }

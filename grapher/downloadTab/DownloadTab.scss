@@ -95,4 +95,42 @@
     .grouped-menu-item:hover .download-icon {
         opacity: 1;
     }
+
+    .grouped-menu-callout {
+        display: flex;
+        flex-direction: row;
+        // align-items: center;
+        color: #444;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 3px;
+        margin-bottom: 1.25em;
+
+        &.danger {
+            background-color: #fbf3f3;
+            border-color: #bb7a76;
+            color: #851811;
+        }
+
+        .title {
+            font-size: 1em;
+            margin: 0;
+        }
+
+        p {
+            font-size: 0.9375em;
+            margin: 0.5em 0 0;
+            opacity: 0.9;
+        }
+    }
+
+    .grouped-menu-callout-icon {
+        flex: 0;
+        margin: 1em;
+        margin-right: 0;
+    }
+
+    .grouped-menu-callout-content {
+        flex: 1;
+        padding: 0.85em 1em;
+    }
 }

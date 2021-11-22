@@ -1,10 +1,10 @@
-import { LegacyVariableConfig } from "../grapher/core/LegacyVariableCode"
+import { OwidVariableWithDataAndSource } from "../clientUtils/OwidVariable"
 
 export interface VariableCountryPageProps {
     country: {
         id: number
         name: string
     }
-    variable: LegacyVariableConfig
+    variable: OwidVariableWithDataAndSource
     baseUrl: string
 }

@@ -6,7 +6,7 @@ import {
 import { countries } from "../clientUtils/countries"
 import { TimeRange } from "./CoreTableConstants"
 import { ColumnTypeNames } from "./CoreColumnDef"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { OwidTable } from "./OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 import { ColumnSlug } from "../clientUtils/owidTypes"
@@ -106,23 +106,23 @@ export enum SampleColumnSlugs {
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now(),
-    display?: LegacyVariableDisplayConfigInterface
+    display?: OwidVariableDisplayConfigInterface
 ): OwidTable =>
     SynthesizeOwidTable(
         {
             columnDefs: [
                 {
+                    ...SynthSource(SampleColumnSlugs.Population),
                     slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
-                    source: SynthSource(SampleColumnSlugs.Population),
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
                     growthRateGenerator: getRandomNumberGenerator(-5, 5, seed),
                     display,
                 },
                 {
+                    ...SynthSource(SampleColumnSlugs.GDP),
                     slug: SampleColumnSlugs.GDP,
                     type: ColumnTypeNames.Currency,
-                    source: SynthSource(SampleColumnSlugs.GDP),
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -15,
@@ -132,9 +132,9 @@ export const SynthesizeGDPTable = (
                     display,
                 },
                 {
+                    ...SynthSource(SampleColumnSlugs.LifeExpectancy),
                     slug: SampleColumnSlugs.LifeExpectancy,
                     type: ColumnTypeNames.Age,
-                    source: SynthSource(SampleColumnSlugs.LifeExpectancy),
                     generator: getRandomNumberGenerator(60, 90, seed),
                     growthRateGenerator: getRandomNumberGenerator(-2, 2, seed),
                     display,
@@ -148,20 +148,19 @@ export const SynthesizeGDPTable = (
 const SynthSource = (
     name: string
 ): {
-    id: number
-    name: string
+    sourceName: string
+    sourceLink: string
     dataPublishedBy: string
     dataPublisherSource: string
-    link: string
     retrievedDate: string
     additionalInfo: string
 } => {
     return {
-        id: name.charCodeAt(0) + name.charCodeAt(1) + name.charCodeAt(2),
-        name: `${name} Almanac`,
+        // id: name.charCodeAt(0) + name.charCodeAt(1) + name.charCodeAt(2),
+        sourceName: `${name} Almanac`,
+        sourceLink: "http://foo.example",
         dataPublishedBy: `${name} Synthetic Data Team`,
         dataPublisherSource: `${name} Institute`,
-        link: "http://foo.example",
         retrievedDate: "1/1/2000",
         additionalInfo: `Downloaded via FTP`,
     }
@@ -175,9 +174,9 @@ export const SynthesizeFruitTable = (
         {
             columnDefs: [
                 {
+                    ...SynthSource(SampleColumnSlugs.Fruit),
                     slug: SampleColumnSlugs.Fruit,
                     type: ColumnTypeNames.Numeric,
-                    source: SynthSource(SampleColumnSlugs.Fruit),
                     generator: getRandomNumberGenerator(500, 1000, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -10,
@@ -186,9 +185,9 @@ export const SynthesizeFruitTable = (
                     ),
                 },
                 {
+                    ...SynthSource(SampleColumnSlugs.Vegetables),
                     slug: SampleColumnSlugs.Vegetables,
                     type: ColumnTypeNames.Numeric,
-                    source: SynthSource(SampleColumnSlugs.Vegetables),
                     generator: getRandomNumberGenerator(400, 1000, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -10,

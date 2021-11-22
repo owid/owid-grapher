@@ -2,31 +2,43 @@ import * as lodash from "lodash"
 import { Writable } from "stream"
 import * as db from "../db"
 import {
-    LegacyChartDimensionInterface,
-    LegacyVariableDisplayConfigInterface,
-} from "../../clientUtils/LegacyVariableDisplayConfigInterface"
-import { arrToCsvRow } from "../../clientUtils/Util"
+    OwidChartDimensionInterface,
+    OwidVariableDisplayConfigInterface,
+} from "../../clientUtils/OwidVariableDisplayConfigInterface"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
+import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util"
 import {
     DataValueQueryArgs,
     DataValueResult,
-    LegacyVariableId,
+    OwidVariableId,
 } from "../../clientUtils/owidTypes"
+import { OwidSource } from "../../clientUtils/OwidSource"
 
 export namespace Variable {
     export interface Row {
         id: number
         name: string
+        code: string | null
         unit: string
-        description: string
-        columnOrder: number
-        display: LegacyVariableDisplayConfigInterface
+        shortUnit: string | null
+        description: string | null
+        createdAt: Date
+        updatedAt: Date
+        datasetId: number
+        sourceId: number
+        display: OwidVariableDisplayConfigInterface
+        coverage?: string
+        timespan?: string
+        columnOrder?: number
     }
+
+    export type UnparsedRow = Row & { display: string }
 
     export type Field = keyof Row
 
     export const table = "variables"
 
-    export function rows(plainRows: any): Variable.Row[] {
+    export function rows(plainRows: UnparsedRow[]): Row[] {
         for (const row of plainRows) {
             row.display = row.display ? JSON.parse(row.display) : undefined
         }
@@ -36,53 +48,83 @@ export namespace Variable {
 
 export async function getVariableData(variableIds: number[]): Promise<any> {
     variableIds = lodash.uniq(variableIds)
-    const data: any = { variables: {}, entityKey: {} }
+    const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
 
-    const variableQuery = db.queryMysql(
+    type VariableQueryRow = Readonly<
+        Variable.UnparsedRow & {
+            display: string
+            datasetName: string
+            nonRedistributable: number
+            sourceName: string
+            sourceDescription: string
+        }
+    >
+
+    const variableQuery: Promise<VariableQueryRow[]> = db.queryMysql(
         `
-        SELECT v.*, v.shortUnit, d.name as datasetName, d.id as datasetId, s.id as s_id, s.name as s_name, s.description as s_description FROM variables as v
-            JOIN datasets as d ON v.datasetId = d.id
-            JOIN sources as s on v.sourceId = s.id
-            WHERE v.id IN (?)
-    `,
+        SELECT
+            variables.*,
+            datasets.name AS datasetName,
+            datasets.nonRedistributable AS nonRedistributable,
+            sources.name AS sourceName,
+            sources.description AS sourceDescription
+        FROM variables
+        JOIN datasets ON variables.datasetId = datasets.id
+        JOIN sources ON variables.sourceId = sources.id
+        WHERE variables.id IN (?)
+        `,
         [variableIds]
     )
 
     const dataQuery = db.queryMysql(
         `
-            SELECT value, year, variableId as variableId, entities.id as entityId,
-            entities.name as entityName, entities.code as entityCode
-            FROM data_values
-            LEFT JOIN entities ON data_values.entityId = entities.id
-            WHERE data_values.variableId IN (?)
-            ORDER BY variableId ASC, year ASC
-    `,
+        SELECT
+            value,
+            year,
+            variableId,
+            entities.id AS entityId,
+            entities.name AS entityName,
+            entities.code AS entityCode
+        FROM data_values
+        LEFT JOIN entities ON data_values.entityId = entities.id
+        WHERE data_values.variableId IN (?)
+        ORDER BY
+            variableId ASC,
+            year ASC
+        `,
         [variableIds]
     )
 
     const variables = await variableQuery
 
     for (const row of variables) {
-        row.display = JSON.parse(row.display)
-        const sourceDescription = JSON.parse(row.s_description)
-        delete row.s_description
-        row.source = {
-            id: row.s_id,
-            name: row.s_name,
-            dataPublishedBy: sourceDescription.dataPublishedBy || "",
-            dataPublisherSource: sourceDescription.dataPublisherSource || "",
-            link: sourceDescription.link || "",
-            retrievedData: sourceDescription.retrievedData || "",
-            additionalInfo: sourceDescription.additionalInfo || "",
-        }
-        data.variables[row.id] = lodash.extend(
-            {
-                years: [],
-                entities: [],
-                values: [],
+        const {
+            sourceId,
+            sourceName,
+            sourceDescription,
+            nonRedistributable,
+            display: displayJson,
+            ...variable
+        } = row
+        const display = JSON.parse(displayJson)
+        const partialSource: OwidSource = JSON.parse(sourceDescription)
+        data.variables[variable.id] = {
+            ...omitNullableValues(variable),
+            nonRedistributable: Boolean(nonRedistributable),
+            display,
+            source: {
+                id: sourceId,
+                name: sourceName,
+                dataPublishedBy: partialSource.dataPublishedBy || "",
+                dataPublisherSource: partialSource.dataPublisherSource || "",
+                link: partialSource.link || "",
+                retrievedDate: partialSource.retrievedDate || "",
+                additionalInfo: partialSource.additionalInfo || "",
             },
-            row
-        )
+            years: [],
+            entities: [],
+            values: [],
+        }
     }
 
     const results = await dataQuery
@@ -115,10 +157,10 @@ export async function writeVariableCSV(
     const variableQuery: Promise<{ id: number; name: string }[]> =
         db.queryMysql(
             `
-        SELECT id, name
-        FROM variables
-        WHERE id IN (?)
-    `,
+            SELECT id, name
+            FROM variables
+            WHERE id IN (?)
+            `,
             [variableIds]
         )
 
@@ -145,7 +187,7 @@ export async function writeVariableCSV(
         ORDER BY
             data_values.entityId ASC,
             data_values.year ASC
-    `,
+        `,
         [variableIds]
     )
 
@@ -174,7 +216,7 @@ export async function writeVariableCSV(
 
     const data = await dataQuery
 
-    let row: any[] = []
+    let row: unknown[] = []
     for (const datum of data) {
         if (datum.entity !== row[0] || datum.year !== row[1]) {
             // New row
@@ -198,11 +240,16 @@ export const getDataValue = async ({
     if (!variableId || !entityId) return
 
     const queryStart = `
-        SELECT value, year, variables.unit as unit, entities.name as entityName FROM data_values
+        SELECT
+            value,
+            year,
+            variables.unit AS unit,
+            entities.name AS entityName
+        FROM data_values
         JOIN entities on entities.id = data_values.entityId
         JOIN variables on variables.id = data_values.variableId
         WHERE entities.id = ?
-        AND variables.id= ?`
+        AND variables.id = ?`
 
     const queryStartVariables = [entityId, variableId]
 
@@ -233,27 +280,31 @@ export const getDataValue = async ({
     }
 }
 
-export const getLegacyChartDimensionConfigForVariable = async (
-    variableId: LegacyVariableId,
+export const getOwidChartDimensionConfigForVariable = async (
+    variableId: OwidVariableId,
     chartId: number
-): Promise<LegacyChartDimensionInterface | undefined> => {
+): Promise<OwidChartDimensionInterface | undefined> => {
     const row = await db.mysqlFirst(
-        `SELECT config->"$.dimensions" as dimensions from charts WHERE id=?`,
+        `
+        SELECT config->"$.dimensions" AS dimensions
+        FROM charts
+        WHERE id = ?
+        `,
         [chartId]
     )
     if (!row.dimensions) return
     const dimensions = JSON.parse(row.dimensions)
     return dimensions.find(
-        (dimension: LegacyChartDimensionInterface) =>
+        (dimension: OwidChartDimensionInterface) =>
             dimension.variableId === variableId
     )
 }
 
-export const getLegacyVariableDisplayConfig = async (
-    variableId: LegacyVariableId
-): Promise<LegacyVariableDisplayConfigInterface | undefined> => {
+export const getOwidVariableDisplayConfig = async (
+    variableId: OwidVariableId
+): Promise<OwidVariableDisplayConfigInterface | undefined> => {
     const row = await db.mysqlFirst(
-        `SELECT display from variables WHERE id=?`,
+        `SELECT display FROM variables WHERE id = ?`,
         [variableId]
     )
     if (!row.display) return

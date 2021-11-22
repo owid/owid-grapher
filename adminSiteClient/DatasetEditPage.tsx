@@ -14,8 +14,8 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { LegacyVariableDisplayConfig } from "../grapher/core/LegacyVariableCode"
-import { OwidSource } from "../coreTable/OwidSource"
+import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable"
+import { OwidSource } from "../clientUtils/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
@@ -38,7 +38,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { LegacyVariableDisplayConfigInterface } from "../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { EPOCH_DATE } from "../clientUtils/owidTypes"
 
 class VariableEditable {
@@ -47,7 +47,7 @@ class VariableEditable {
     @observable shortUnit: string = ""
     @observable description: string = ""
     @observable
-    display: LegacyVariableDisplayConfig = new LegacyVariableDisplayConfig()
+    display: OwidVariableDisplayConfig = new OwidVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {
@@ -307,7 +307,7 @@ interface VariableEditListItem {
     unit: string
     shortUnit: string
     description: string
-    display: LegacyVariableDisplayConfigInterface
+    display: OwidVariableDisplayConfigInterface
 }
 
 interface DatasetPageData {
@@ -316,6 +316,7 @@ interface DatasetPageData {
     description: string
     namespace: string
     isPrivate: boolean
+    nonRedistributable: boolean
 
     dataEditedAt: Date
     dataEditedByUserId: number
@@ -337,6 +338,7 @@ class DatasetEditable {
     @observable name: string = ""
     @observable description: string = ""
     @observable isPrivate: boolean = false
+    @observable nonRedistributable: boolean = false
 
     @observable source: OwidSource = {
         id: -1,
@@ -616,12 +618,30 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     availableTags={dataset.availableTags}
                                     isBulkImport={isBulkImport}
                                 />
-                                <Toggle
-                                    label="Is publishable (include in exported OWID collection)"
-                                    value={!newDataset.isPrivate}
-                                    onValue={(v) => (newDataset.isPrivate = !v)}
-                                    disabled={isBulkImport}
-                                />
+                                <FieldsRow>
+                                    <Toggle
+                                        label="Is publishable (include in exported OWID collection)"
+                                        value={!newDataset.isPrivate}
+                                        onValue={(v) =>
+                                            (newDataset.isPrivate = !v)
+                                        }
+                                        disabled={
+                                            isBulkImport ||
+                                            newDataset.nonRedistributable
+                                        }
+                                    />
+                                </FieldsRow>
+                                <FieldsRow>
+                                    <Toggle
+                                        label="Redistribution is prohibited (disable chart data download)"
+                                        value={newDataset.nonRedistributable}
+                                        onValue={(v) => {
+                                            newDataset.nonRedistributable = v
+                                            if (v) newDataset.isPrivate = true
+                                        }}
+                                        disabled={isBulkImport}
+                                    />
+                                </FieldsRow>
                             </div>
 
                             <div className="col">

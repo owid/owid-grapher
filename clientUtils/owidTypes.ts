@@ -54,7 +54,7 @@ export interface RelatedChart {
     variantName?: string | null
 }
 
-export type LegacyVariableId = Integer // remove.
+export type OwidVariableId = Integer // remove.
 
 export interface FormattedPost {
     id: number

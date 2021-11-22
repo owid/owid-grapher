@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
-import _, * as lodash from "lodash"
+import * as lodash from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
 import * as db from "../db/db"
@@ -430,9 +430,17 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const datasets = []
         const rows = await db.queryMysql(
-            `SELECT v.name, v.id, d.name as datasetName, d.namespace, d.isPrivate
-         FROM variables as v JOIN datasets as d ON v.datasetId = d.id
-         WHERE namespace=? ORDER BY d.updatedAt DESC`,
+            `SELECT
+                v.name,
+                v.id,
+                d.name as datasetName,
+                d.namespace,
+                d.isPrivate,
+                d.nonRedistributable
+            FROM variables as v JOIN datasets as d ON v.datasetId = d.id
+            WHERE namespace=?
+            ORDER BY d.updatedAt DESC
+            `,
             [req.params.namespace]
         )
 
@@ -441,6 +449,7 @@ apiRouter.get(
                   name: string
                   namespace: string
                   isPrivate: boolean
+                  nonRedistributable: boolean
                   variables: { id: number; name: string }[]
               }
             | undefined
@@ -452,6 +461,7 @@ apiRouter.get(
                     name: row.datasetName,
                     namespace: row.namespace,
                     isPrivate: row.isPrivate,
+                    nonRedistributable: row.nonRedistributable,
                     variables: [],
                 }
             }
@@ -926,7 +936,15 @@ apiRouter.get("/variables.json", async (req) => {
     const searchStr = req.query.search
 
     const query = `
-        SELECT v.id, v.name, d.id AS datasetId, d.name AS datasetName, d.isPrivate AS isPrivate, d.dataEditedAt AS uploadedAt, u.fullName AS uploadedBy
+        SELECT
+            v.id,
+            v.name,
+            d.id AS datasetId,
+            d.name AS datasetName,
+            d.isPrivate AS isPrivate,
+            d.nonRedistributable AS nonRedistributable,
+            d.dataEditedAt AS uploadedAt,
+            u.fullName AS uploadedBy
         FROM variables AS v
         JOIN datasets d ON d.id=v.datasetId
         JOIN users u ON u.id=d.dataEditedByUserId
@@ -973,6 +991,7 @@ interface VariableSingleMeta {
     display: any
 }
 
+// TODO where is this used? can we get rid of VariableSingleMeta type?
 apiRouter.get(
     "/variables/:variableId.json",
     async (req: Request, res: Response) => {
@@ -1066,7 +1085,17 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
 
 apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.queryMysql(`
-        SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName, d.isPrivate
+        SELECT
+            d.id,
+            d.namespace,
+            d.name,
+            d.description,
+            d.dataEditedAt,
+            du.fullName AS dataEditedByUserName,
+            d.metadataEditedAt,
+            mu.fullName AS metadataEditedByUserName,
+            d.isPrivate,
+            d.nonRedistributable
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -1094,7 +1123,19 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
     const dataset = await db.mysqlFirst(
         `
-        SELECT d.id, d.namespace, d.name, d.description, d.updatedAt, d.isPrivate, d.dataEditedAt, d.dataEditedByUserId, du.fullName AS dataEditedByUserName, d.metadataEditedAt, d.metadataEditedByUserId, mu.fullName AS metadataEditedByUserName, d.isPrivate
+        SELECT d.id,
+            d.namespace,
+            d.name,
+            d.description,
+            d.updatedAt,
+            d.dataEditedAt,
+            d.dataEditedByUserId,
+            du.fullName AS dataEditedByUserName,
+            d.metadataEditedAt,
+            d.metadataEditedByUserId,
+            mu.fullName AS metadataEditedByUserName,
+            d.isPrivate,
+            d.nonRedistributable
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
@@ -1190,11 +1231,22 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     await db.transaction(async (t) => {
         const newDataset = (req.body as { dataset: any }).dataset
         await t.execute(
-            `UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`,
+            `
+            UPDATE datasets
+            SET
+                name=?,
+                description=?,
+                isPrivate=?,
+                nonRedistributable=?,
+                metadataEditedAt=?,
+                metadataEditedByUserId=?
+            WHERE id=?
+            `,
             [
                 newDataset.name,
                 newDataset.description || "",
                 newDataset.isPrivate,
+                newDataset.nonRedistributable,
                 new Date(),
                 res.locals.user.id,
                 datasetId,
@@ -1372,7 +1424,17 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     // Datasets tagged with this tag
     const datasets = await db.queryMysql(
         `
-        SELECT d.id, d.namespace, d.name, d.description, d.createdAt, d.updatedAt, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.isPrivate
+        SELECT
+            d.id,
+            d.namespace,
+            d.name,
+            d.description,
+            d.createdAt,
+            d.updatedAt,
+            d.dataEditedAt,
+            du.fullName AS dataEditedByUserName,
+            d.isPrivate,
+            d.nonRedistributable
         FROM datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         LEFT JOIN dataset_tags dt ON dt.datasetId = d.id

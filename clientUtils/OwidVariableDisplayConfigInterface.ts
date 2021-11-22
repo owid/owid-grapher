@@ -1,13 +1,11 @@
-// DEPRECATED. DO NOT USE.
-
 import {
     ColumnSlug,
     DimensionProperty,
-    LegacyVariableId,
+    OwidVariableId,
     Time,
 } from "./owidTypes"
 
-export interface LegacyVariableDisplayConfigInterface {
+export interface OwidVariableDisplayConfigInterface {
     name?: string
     unit?: string
     shortUnit?: string
@@ -19,20 +17,20 @@ export interface LegacyVariableDisplayConfigInterface {
     zeroDay?: string
     entityAnnotationsMap?: string
     includeInTable?: boolean
-    tableDisplay?: LegacyVariableDataTableConfigInteface
+    tableDisplay?: OwidVariableDataTableConfigInteface
     color?: string
 }
 
 // todo: flatten onto the above
-export interface LegacyVariableDataTableConfigInteface {
+export interface OwidVariableDataTableConfigInteface {
     hideAbsoluteChange?: boolean
     hideRelativeChange?: boolean
 }
 
-export interface LegacyChartDimensionInterface {
+export interface OwidChartDimensionInterface {
     property: DimensionProperty
     targetYear?: Time
-    display?: LegacyVariableDisplayConfigInterface
-    variableId: LegacyVariableId
+    display?: OwidVariableDisplayConfigInterface
+    variableId: OwidVariableId
     slug?: ColumnSlug
 }

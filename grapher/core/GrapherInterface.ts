@@ -19,7 +19,7 @@ import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
 import { ColorSchemeName } from "../color/ColorConstants"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils"
-import { LegacyChartDimensionInterface } from "../../clientUtils/LegacyVariableDisplayConfigInterface"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
 import { ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 
 // This configuration represents the entire persistent state of a grapher
@@ -39,7 +39,7 @@ export interface GrapherInterface extends SortConfig {
     maxTime?: TimeBound
     timelineMinTime?: Time
     timelineMaxTime?: Time
-    dimensions?: LegacyChartDimensionInterface[]
+    dimensions?: OwidChartDimensionInterface[]
     addCountryMode?: EntitySelectionMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig

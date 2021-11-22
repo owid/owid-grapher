@@ -13,9 +13,9 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import {
-    LegacyVariableConfig,
-    LegacyVariableDisplayConfig,
-} from "../grapher/core/LegacyVariableCode"
+    OwidVariableWithDataAndSource,
+    OwidVariableDisplayConfig,
+} from "../clientUtils/OwidVariable"
 import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "../site/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
@@ -25,19 +25,26 @@ import { GrapherTabOption } from "../grapher/core/GrapherConstants"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { DimensionProperty, EPOCH_DATE } from "../clientUtils/owidTypes"
 
-interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
+interface VariablePageData
+    extends Omit<OwidVariableWithDataAndSource, "source"> {
     datasetNamespace: string
     charts: ChartListItem[]
     source: { id: number; name: string }
 }
 
-class VariableEditable implements Omit<LegacyVariableConfig, "id"> {
+class VariableEditable
+    implements
+        Omit<
+            OwidVariableWithDataAndSource,
+            "id" | "values" | "years" | "entities"
+        >
+{
     @observable name = ""
     @observable unit = ""
     @observable shortUnit = ""
     @observable description = ""
     @observable entityAnnotationsMap = ""
-    @observable display = new LegacyVariableDisplayConfig()
+    @observable display = new OwidVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {

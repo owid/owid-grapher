@@ -11,6 +11,7 @@ export interface VariableListItem {
     uploadedAt?: Date
     uploadedBy?: string
     isPrivate?: boolean
+    nonRedistributable?: boolean
 }
 
 @observer
@@ -27,7 +28,11 @@ class VariableRow extends React.Component<{
         return (
             <tr>
                 <td>
-                    {variable.isPrivate ? (
+                    {variable.nonRedistributable ? (
+                        <span className="text-secondary">
+                            Non-redistributable:{" "}
+                        </span>
+                    ) : variable.isPrivate ? (
                         <span className="text-secondary">Unpublished: </span>
                     ) : (
                         ""

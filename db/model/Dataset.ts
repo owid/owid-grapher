@@ -29,6 +29,7 @@ export class Dataset extends BaseEntity {
     @Column() dataEditedAt!: Date
     @Column() dataEditedByUserId!: number
     @Column({ default: false }) isPrivate!: boolean
+    @Column({ default: false }) nonRedistributable!: boolean
 
     @ManyToOne(() => User, (user) => user.createdDatasets)
     createdByUser!: User

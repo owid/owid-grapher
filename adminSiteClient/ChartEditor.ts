@@ -24,6 +24,7 @@ export interface Dataset {
     namespace: string
     variables: Variable[]
     isPrivate: boolean
+    nonRedistributable: boolean
 }
 
 export interface Log {
