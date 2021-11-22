@@ -57,12 +57,10 @@ interface VariableAnnotationsResponse {
 class VariablesAnnotationComponent extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
-    @observable.ref fieldDescriptions:
-        | FieldDescription[]
-        | undefined = undefined
-    @observable.ref richDataRows:
-        | VariableAnnotationsRow[]
-        | undefined = undefined
+    @observable.ref fieldDescriptions: FieldDescription[] | undefined =
+        undefined
+    @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
+        undefined
     @computed get flattenedDataRows(): unknown[] | undefined {
         const { richDataRows, fieldDescriptions } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
@@ -73,9 +71,11 @@ class VariablesAnnotationComponent extends React.Component {
                 (fieldDesc) =>
                     [
                         fieldDesc.pointer,
-                        fieldDesc.getter(
-                            row.grapherConfig as Record<string, unknown>
-                        ),
+                        row.grapherConfig != undefined
+                            ? fieldDesc.getter(
+                                  row.grapherConfig as Record<string, unknown>
+                              )
+                            : undefined,
                     ] as const
             )
             const fields = zipObject(fieldsArray as any)
@@ -194,7 +194,7 @@ class VariablesAnnotationComponent extends React.Component {
 
     async getData() {
         const json = (await this.context.admin.getJSON(
-            "/admin/api/variable-annotations"
+            "/api/variable-annotations"
         )) as VariableAnnotationsResponse
         runInAction(() => {
             this.richDataRows = json.variables.map(parseVariableAnnotationsRow)
@@ -203,9 +203,9 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     async getFieldDefinitions() {
-        const json = await this.context.admin.getJSON(
-            "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json"
-        )
+        const json = await fetch(
+            "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.001.json"
+        ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             this.fieldDescriptions = fieldDescriptions
