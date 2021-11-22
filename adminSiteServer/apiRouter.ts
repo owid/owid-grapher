@@ -727,20 +727,18 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-                suggestedChartRevision.canApprove =
-                    SuggestedChartRevision.checkCanApprove(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canReject =
-                    SuggestedChartRevision.checkCanReject(
-                        suggestedChartRevision
-                    )
-                suggestedChartRevision.canFlag =
-                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
-                suggestedChartRevision.canPending =
-                    SuggestedChartRevision.checkCanPending(
-                        suggestedChartRevision
-                    )
+                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
+                    suggestedChartRevision
+                )
+                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+                    suggestedChartRevision
+                )
             }
         )
 
@@ -1098,15 +1096,18 @@ apiRouter.get(
         suggestedChartRevision.existingConfig = JSON.parse(
             suggestedChartRevision.existingConfig
         )
-        suggestedChartRevision.canApprove =
-            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
-        suggestedChartRevision.canReject =
-            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
+        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
+            suggestedChartRevision
+        )
+        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
+            suggestedChartRevision
+        )
         suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
             suggestedChartRevision
         )
-        suggestedChartRevision.canPending =
-            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
+        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
+            suggestedChartRevision
+        )
 
         return {
             suggestedChartRevision: suggestedChartRevision,
@@ -1346,6 +1347,19 @@ apiRouter.get("/variables.json", async (req) => {
     return { variables: rows, numTotalRows: numTotalRows }
 })
 
+interface VariableAnnotationsResponseRow {
+    id: number
+    name: string
+    grapherConfig: string
+    datasetname: string
+    namespacename: string
+}
+
+interface VariableAnnotationsResponse {
+    numTotalRows: number
+    variables: VariableAnnotationsResponseRow[]
+}
+
 apiRouter.get("/variable-annotations", async (req) => {
     const filterSExpr =
         req.query.filter !== undefined
@@ -1366,8 +1380,7 @@ apiRouter.get("/variable-annotations", async (req) => {
     // careful there to only allow carefully guarded vocabularies from being used, not
     // arbitrary user input
     const whereClause = fullFilter.toSql()
-    const results =
-        await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+    const results = await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name

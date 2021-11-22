@@ -15,12 +15,18 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import identity from "lodash/identity"
 import invert from "lodash/invert"
+import isArray from "lodash/isArray"
+import isBoolean from "lodash/isBoolean"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 import isNumber from "lodash/isNumber"
+import isNull from "lodash/isNull"
 import isObject from "lodash/isObject"
+import isPlainObject from "lodash/isPlainObject"
 import isString from "lodash/isString"
+import isUndefined from "lodash/isUndefined"
 import keyBy from "lodash/keyBy"
+import keys from "lodash/keys"
 import mapValues from "lodash/mapValues"
 import max from "lodash/max"
 import maxBy from "lodash/maxBy"
@@ -69,11 +75,16 @@ export {
     groupBy,
     identity,
     invert,
+    isArray,
+    isBoolean,
     isEmpty,
     isEqual,
+    isNull,
     isNumber,
     isString,
+    isUndefined,
     keyBy,
+    keys,
     mapValues,
     max,
     maxBy,
@@ -548,12 +559,14 @@ export const stripHTML = (html: string): string => striptags(html)
 
 // Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
 // So we have our own *very* psuedo-RNG.
-export const getRandomNumberGenerator =
-    (min: Integer = 0, max: Integer = 100, seed = Date.now()) =>
-    (): Integer => {
-        const semiRand = Math.sin(seed++) * 10000
-        return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
-    }
+export const getRandomNumberGenerator = (
+    min: Integer = 0,
+    max: Integer = 100,
+    seed = Date.now()
+) => (): Integer => {
+    const semiRand = Math.sin(seed++) * 10000
+    return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
+}
 
 export const sampleFrom = <T>(
     collection: T[],
@@ -1173,6 +1186,12 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
             return [...row, ...Array(width - row.length).fill(fill)]
         else return row
     })
+}
+
+export function isPlainObjectWithGuard(
+    x: unknown
+): x is Record<string, unknown> {
+    return isPlainObject(x)
 }
 
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
