@@ -1535,10 +1535,10 @@
   dependencies:
     prop-types "^15.7.2"
 
-"@handsontable/react@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-10.0.0.tgz#07ecdcd65692cbe05e8c14e53c5ce40615d5f725"
-  integrity sha512-4qVLD0wSh0diUqVubt+xw7uNGup6P71vf9gfujOVq+lWpb3Vu6p22Db5urFcsMJKD1WsdAgX3BK+ubRtdjQjIA==
+"@handsontable/react@^11.0.1":
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-11.0.1.tgz#3aa7e497db4b2f457c975a4ec6f880a5c64f2173"
+  integrity sha512-E50YhdtapoHGhDJdNagZ088dsO0O6KtqbcPDdl2yVYRyJzLVGkeP1YBFjt3eC9rs50qjApKnAd7vUnzez6zawg==
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -10195,10 +10195,10 @@ handle-thing@^2.0.0:
   resolved "https://registry.yarnpkg.com/handle-thing/-/handle-thing-2.0.0.tgz#0e039695ff50c93fc288557d696f3c1dc6776754"
   integrity sha512-d4sze1JNC454Wdo2fkuyzCr6aHcbL6PGGuFAz0Li/NcOm1tCHGnWDRmJP85dh9IhQErTc2svWFEX5xHIOo//kQ==
 
-handsontable@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-10.0.0.tgz#f9607d23a8f532d647c433c05793863125df1af1"
-  integrity sha512-h59wvFTzF7Qkc+KVE6MaZTa4Ww+jAnkhIiQFGsE2OcQa/u2Rd1ly2K1gPA82dqZhWDGGRrJAo8jLBQixJbHxPQ==
+handsontable@^11.0.1:
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-11.0.1.tgz#6ca449005c86d02395fcf1872110bd8c4c84c6c3"
+  integrity sha512-xg6/YVPpQ/1UZonatXehDi67vvGqKnBE9944R10HUnpcHmJ08btD505JaH86Mh0p8S/HwUNBvyuoEesHhUPM+w==
   dependencies:
     "@types/pikaday" "1.7.4"
     core-js "^3.0.0"
