@@ -9,19 +9,21 @@ import {
     IReactionDisposer,
 } from "mobx"
 //import * as lodash from "lodash"
-import { zipObject } from "lodash"
+import { isArray, zipObject } from "lodash"
 
-import { HotTable } from "@handsontable/react"
+import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
+    FieldType,
 } from "../clientUtils/schemaProcessing"
 
 import Handsontable from "handsontable"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { Bounds } from "../clientUtils/Bounds"
 
 interface VariableAnnotationsResponseRow {
     id: number
@@ -87,6 +89,64 @@ class VariablesAnnotationComponent extends React.Component {
                 ...fields, // TODO add
             }
         })
+    }
+
+    static decideHotType(desc: FieldDescription): string {
+        if (isArray(desc.type)) {
+            // Types can be union of e.g. string and null. Ignore these for now but we'll have to handle them soon
+            return "text"
+        } else {
+            switch (desc.type) {
+                case FieldType.string:
+                    return "text"
+                case FieldType.boolean:
+                    return "checkbox"
+                case FieldType.integer:
+                case FieldType.number:
+                    return "numeric"
+            }
+        }
+    }
+    static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
+        const name = desc.pointer.substring(1)
+        return (
+            <HotColumn
+                settings={{
+                    title: name,
+                    readOnly: false,
+                    type: VariablesAnnotationComponent.decideHotType(desc),
+                    width: Bounds.forText(name).width,
+                }}
+            />
+        )
+    }
+
+    @computed get columnDefinitions(): JSX.Element[] {
+        const { fieldDescriptions } = this
+        if (fieldDescriptions === undefined) return []
+        else {
+            const readOnlyColumnNamesFields = [
+                ["Id", "id"],
+                ["Variable name", "name"],
+                ["Dataset name", "datasetname"],
+                ["Namespace", "namespacename"],
+            ] as const
+            const readOnlyColumns: JSX.Element[] =
+                readOnlyColumnNamesFields.map((nameAndField) => (
+                    <HotColumn
+                        settings={{
+                            title: nameAndField[0],
+                            readOnly: true,
+                            data: nameAndField[1],
+                            width: Bounds.forText(nameAndField[0]).width,
+                        }}
+                    />
+                ))
+            const grapherColumns = fieldDescriptions.map(
+                VariablesAnnotationComponent.fieldDescriptionToColumn
+            )
+            return [...readOnlyColumns, ...grapherColumns]
+        }
     }
     numTotalRows: number | undefined = undefined
     //private hotTableComponent = React.createRef<HotTable>()
@@ -213,7 +273,7 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     render() {
-        const { hotSettings } = this
+        const { hotSettings, columnDefinitions } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
@@ -221,7 +281,9 @@ class VariablesAnnotationComponent extends React.Component {
                     settings={this.hotSettings}
                     //ref={this.hotTableComponent as any}
                     licenseKey={"non-commercial-and-evaluation"}
-                />
+                >
+                    {columnDefinitions}
+                </HotTable>
             )
     }
 
@@ -241,7 +303,6 @@ class VariablesAnnotationComponent extends React.Component {
     }
 }
 
-@observer
 export class VariablesAnnotationPage extends React.Component {
     render() {
         return (

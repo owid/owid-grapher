@@ -22,16 +22,23 @@ export enum EditorOption {
     primitiveListEditor = "primitiveListEditor",
 }
 
+export enum FieldType {
+    number = "number",
+    string = "string",
+    boolean = "boolean",
+    integer = "integer",
+}
+
 export interface FieldDescription {
     pointer: string // JSON Pointer to this field
     getter: (target: Record<string, unknown>) => any
-    type: string | string[]
+    type: FieldType | FieldType[]
     default?: string
     editor: EditorOption
     enumOptions?: string[]
 }
 
-function isPlainTypeString(item: string): boolean {
+function isPlainTypeString(item: string): item is FieldType {
     return (
         item === "number" ||
         item === "string" ||
@@ -134,7 +141,7 @@ function extractSchemaRecursive(
             )
         ) {
             items.push({
-                type: schema.type,
+                type: schema.type as FieldType,
                 getter: jsonpointer.compile(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
@@ -147,7 +154,7 @@ function extractSchemaRecursive(
             // array
             if (isPlainTypeOrArrayOfPlainType((schema as any).items.type)) {
                 items.push({
-                    type: schema.type,
+                    type: schema.type as FieldType | FieldType[],
                     getter: jsonpointer.compile(pointer),
                     pointer: pointer,
                     default: schema.default as string | undefined,
@@ -169,7 +176,7 @@ function extractSchemaRecursive(
             // because the type is ["string", "null"]) then
             // we yield a single element
             items.push({
-                type: schema.type as string | string[],
+                type: schema.type as FieldType | FieldType[],
                 getter: jsonpointer.compile(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
@@ -191,7 +198,7 @@ function extractSchemaRecursive(
         ) {
             const types = schema.oneOf.map((item: any) => item.type)
             items.push({
-                type: types as string[],
+                type: types as FieldType | FieldType[],
                 getter: jsonpointer.compile(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
