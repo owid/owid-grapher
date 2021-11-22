@@ -6,6 +6,10 @@ import { exposeInstanceOnWindow } from "../../clientUtils/Util"
 import Handsontable from "handsontable"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { CoreMatrix } from "../../coreTable/CoreTableConstants"
+import { registerAllModules } from "handsontable/registry"
+
+// Register all Handsontable modules
+registerAllModules()
 
 interface SpreadsheetManager {
     table: OwidTable

@@ -2,6 +2,7 @@ import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { CellPosition } from "../gridLang/GridLangConstants"
 import Handsontable from "handsontable"
+import HotContextMenu from "handsontable/plugins/contextMenu"
 
 abstract class HotCommand {
     protected program: ExplorerProgram
@@ -36,7 +37,7 @@ abstract class HotCommand {
     }
 
     // handles the "this" binding needed by HOT
-    toHotCommand(): Handsontable.contextMenu.MenuItemConfig {
+    toHotCommand(): HotContextMenu.MenuItemConfig {
         const baseCommand = this
         return {
             name: function () {

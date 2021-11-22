@@ -33,8 +33,12 @@ import { isEmpty } from "../gridLang/GrammarUtils"
 import classNames from "classnames"
 import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants"
 import { AdminManager } from "./AdminManager"
+import { registerAllModules } from "handsontable/registry"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
+
+// Register all Handsontable modules
+registerAllModules()
 
 @observer
 export class ExplorerCreatePage extends React.Component<{
