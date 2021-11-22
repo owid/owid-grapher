@@ -4,5 +4,5 @@
         "outDir": "../itsJustJavascript/gitCms",
         "rootDir": "."
     },
-    "references": [{ "path": "../settings" }]
+    "references": [{ "path": "../settings" }, { "path": "../serverUtils" }]
 }

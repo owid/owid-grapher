@@ -28,6 +28,7 @@ import {
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants"
 import { sync } from "glob"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {
@@ -63,6 +64,12 @@ export class GitCmsServer {
                 baseDir: this.baseDir,
                 binary: "git",
                 maxConcurrentProcesses: 1,
+                // Needed since git won't let you commit if there's no user name config present (i.e. CI), even if you always
+                // specify `author=` in every command. See https://stackoverflow.com/q/29685337/10670163 for example.
+                config: [
+                    `user.name='${GIT_DEFAULT_USERNAME}'`,
+                    `user.email='${GIT_DEFAULT_EMAIL}'`,
+                ],
             })
         return this._git
     }
@@ -72,10 +79,6 @@ export class GitCmsServer {
         if (!existsSync(baseDir)) mkdirSync(baseDir)
         await this.git.init()
 
-        // Needed since git won't let you commit if there's no user name config present (i.e. CI), even if you always
-        // specify `author=` in every command. See https://stackoverflow.com/q/29685337/10670163 for example.
-        await this.git.addConfig("user.name", GIT_DEFAULT_USERNAME)
-        await this.git.addConfig("user.email", GIT_DEFAULT_EMAIL)
         return this
     }
 
@@ -95,7 +98,7 @@ export class GitCmsServer {
         if (this.options.shouldAutoPush) this.git.push()
     }
 
-    private async pullCommand() {
+    private async pullCommand(verbose: boolean | undefined = undefined) {
         try {
             const res = await this.git.pull()
             return {
@@ -103,9 +106,27 @@ export class GitCmsServer {
                 stdout: JSON.stringify(res.summary, null, 2),
             } as GitPullResponse
         } catch (error) {
-            if (this.verbose) console.log(error)
-            return { success: false, error }
+            const err = error as Error
+            if (verbose ?? this.verbose) console.log(err)
+            return { success: false, error: err.toString() }
         }
+    }
+
+    // Pull changes before making changes. However, only pull if an upstream branch is set up.
+    private async autopull() {
+        const res = await this.pullCommand(false)
+
+        if (!res.success) {
+            const err = res.error as string | undefined
+            if (
+                err?.includes(
+                    "There is no tracking information for the current branch." // local-only branch
+                ) ||
+                err?.includes("You are not currently on a branch.") // detached HEAD
+            )
+                return { success: true }
+        }
+        return res
     }
 
     private async readFileCommand(
@@ -120,10 +141,11 @@ export class GitCmsServer {
             const content = await readFile(absolutePath, "utf8")
             return { success: true, content }
         } catch (error) {
-            if (this.verbose) console.log(error)
+            const err = error as Error
+            if (this.verbose) console.log(err)
             return {
                 success: false,
-                error,
+                error: err.toString(),
                 content: "",
             }
         }
@@ -160,6 +182,12 @@ export class GitCmsServer {
 
             const absolutePath = this.baseDir + filepath
             await unlink(absolutePath)
+
+            // Do a pull _after_ the file delete. This ensures that, if we intend to delete
+            // a file that has been changed on the server, we'll end up with an intentional failure.
+            const pull = await this.autopull()
+            if (!pull.success) throw pull.error
+
             await this.commitFile(
                 filepath,
                 `Deleted ${filepath}`,
@@ -170,8 +198,9 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            if (this.verbose) console.log(error)
-            return { success: false, error }
+            const err = error as Error
+            logErrorAndMaybeSendToSlack(err)
+            return { success: false, error: err.toString() }
         }
     }
 
@@ -188,6 +217,12 @@ export class GitCmsServer {
             const absolutePath = this.baseDir + filename
             await writeFile(absolutePath, content, "utf8")
 
+            // Do a pull _after_ the write. This ensures that, if we intend to overwrite a file
+            // that has been changed on the server, we'll end up with an intentional merge conflict.
+            await this.autopull()
+            const pull = await this.autopull()
+            if (!pull.success) throw pull.error
+
             const commitMsg = commitMessage
                 ? commitMessage
                 : existsSync(absolutePath)
@@ -198,8 +233,9 @@ export class GitCmsServer {
             await this.autopush()
             return { success: true }
         } catch (error) {
-            if (this.verbose) console.log(error)
-            return { success: false, error }
+            const err = error as Error
+            logErrorAndMaybeSendToSlack(err)
+            return { success: false, error: err.toString() }
         }
     }
 
