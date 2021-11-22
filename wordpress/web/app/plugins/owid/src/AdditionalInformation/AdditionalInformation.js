@@ -22,7 +22,7 @@ const blockStyle = {
 const variationsTemplates = [
     {
         name: "left-column-media",
-        title: "Left column, with optional media",
+        title: "Left column, with image",
         icon: (
             <SVG
                 width="48"
@@ -60,7 +60,7 @@ const variationsTemplates = [
     },
     {
         name: "full-width-sticky-right",
-        title: "Full width, sticky right",
+        title: "Full width, with chart",
         icon: (
             <SVG
                 width="48"
