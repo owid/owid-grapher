@@ -734,7 +734,9 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const messages: any[] = []
         const status = SuggestedChartRevisionStatus.pending
-        const suggestedReason = String(req.body.suggestedReason)
+        const suggestedReason = req.body.suggestedReason
+            ? String(req.body.suggestedReason)
+            : null
         const convertStringsToNull =
             typeof req.body.convertStringsToNull == "boolean"
                 ? req.body.convertStringsToNull
