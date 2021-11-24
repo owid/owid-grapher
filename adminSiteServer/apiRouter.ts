@@ -937,11 +937,11 @@ apiRouter.post(
             // some chart configs do not have an `id` field, so we check for it
             // and insert the id here as needed. This is important for the
             // lodash.isEqual condition later on.
-            // for (const [id, config] of Object.entries(originalConfigs)) {
-            //     if (config.id === null || config.id === undefined) {
-            //         config.id = id
-            //     }
-            // }
+            for (const [id, config] of Object.entries(originalConfigs)) {
+                if (config.id === null || config.id === undefined) {
+                    config.id = parseInt(id)
+                }
+            }
 
             // sanity check that each original config also has the required keys.
             Object.values(originalConfigs).map((config) => {
