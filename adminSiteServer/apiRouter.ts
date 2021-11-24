@@ -340,7 +340,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
             charts.config->>"$.tab" AS tab,
             JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
             JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
-            charts.config->"$.originUrl" as originUrl,
+            charts.config->>"$.originUrl" AS originUrl,
             charts.starred AS isStarred,
             charts.lastEditedAt,
             charts.lastEditedByUserId,
