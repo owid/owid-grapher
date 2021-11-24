@@ -303,7 +303,7 @@ class Readme extends React.Component {
                             field unchanged. e.g. in example.csv, the{" "}
                             <code>title</code>, <code>timelineMinTime</code>,
                             and <code>timelineMaxTime</code> fields will be left
-                            unchanged.
+                            unchanged for chart <code>4766</code>.
                         </li>
                         <li>
                             <b>Null cells:</b> The following csv values will be
