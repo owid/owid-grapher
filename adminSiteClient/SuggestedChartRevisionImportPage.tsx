@@ -25,7 +25,6 @@ export class SuggestedChartRevisionImportPage extends React.Component {
     @observable submitted: boolean = false
 
     @action.bound onCSV(csv: CSV) {
-        console.log(csv.rows.length)
         this.csv = csv
         this.messages = []
     }
