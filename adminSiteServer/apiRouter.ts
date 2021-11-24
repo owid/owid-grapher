@@ -320,13 +320,15 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
     const limit =
         req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
 
+    // note: this query is extended from OldChart.listFields.
     const charts = await db.queryMysql(
         `
         SELECT
             charts.id,
             charts.config->>"$.version" AS version,
-            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS slug,
+            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS url,
             CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
+            charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,
             charts.config->>"$.subtitle" AS subtitle,
             charts.config->>"$.sourceDesc" AS sourceDesc,
