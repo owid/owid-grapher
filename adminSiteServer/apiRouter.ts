@@ -346,10 +346,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
             charts.publishedAt,
             charts.publishedByUserId,
             publishedByUser.fullName AS publishedBy,
-            charts.isExplorable AS isExplorable,
-            charts.config->>"$.dimensions" AS dimensions,
-            charts.config->>"$.xAxis" AS xAxis,
-            charts.config->>"$.yAxis" AS yAxis
+            charts.isExplorable AS isExplorable
         FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
