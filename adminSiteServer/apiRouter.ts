@@ -882,6 +882,10 @@ apiRouter.post(
                 `
             )
 
+            rows.map((row) => {
+                row.config = JSON.parse(row.config)
+            })
+
             // drops duplicate id-version rows (keeping the row from the
             // `charts` table when available).
             rows = rows.filter(
@@ -893,8 +897,28 @@ apiRouter.post(
                     ) === i
             )
             if (rows.length < suggestedConfigs.length) {
+                // identifies which particular chartId-version combinations have
+                // not been found in the DB
+                const missingConfigs = suggestedConfigs.filter((config) => {
+                    const i = rows.findIndex((row) => {
+                        return (
+                            row.id === config.id &&
+                            row.config.version === config.version
+                        )
+                    })
+                    return i === -1
+                })
                 throw new JsonError(
-                    "Failed to retrieve one or more chart ids. Are you certain that all chart id-version combinations are valid?"
+                    `Failed to retrieve the following chartId-version combinations:\n${missingConfigs
+                        .map((c) => {
+                            return JSON.stringify({
+                                id: c.id,
+                                version: c.version,
+                            })
+                        })
+                        .join(
+                            "\n"
+                        )}\nPlease check that each chartId and version exists.`
                 )
             } else if (rows.length > suggestedConfigs.length) {
                 throw new JsonError(
@@ -905,7 +929,7 @@ apiRouter.post(
                 rows.reduce(
                     (obj: any, row: any) => ({
                         ...obj,
-                        [row.id]: JSON.parse(row.config),
+                        [row.id]: row.config,
                     }),
                     {}
                 )

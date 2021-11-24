@@ -367,9 +367,13 @@ class Readme extends React.Component {
                             <b>Common problems:</b>
                             <ul>
                                 <li>
-                                    You will receive an error message if you try
-                                    to upload a revision for a chart that
-                                    already has a "pending" or "flagged"
+                                    You will receive the error message{" "}
+                                    <code>
+                                        QueryFailedError: ER_DUP_ENTRY:
+                                        Duplicate entry...
+                                    </code>{" "}
+                                    if you try to upload a revision for a chart
+                                    that already has a "pending" or "flagged"
                                     revision in the{" "}
                                     <Link to="/suggested-chart-revisions/review">
                                         chart approval tool
