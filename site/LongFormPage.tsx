@@ -4,7 +4,11 @@ import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "../site/formatting"
+import {
+    formatAuthors,
+    formatDate,
+    splitContentIntoColumns,
+} from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -236,7 +240,9 @@ export const LongFormPage = (props: {
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{
-                                            __html: post.html,
+                                            __html: splitContentIntoColumns(
+                                                post.html
+                                            ),
                                         }}
                                     />
                                     <footer className="article-footer">
