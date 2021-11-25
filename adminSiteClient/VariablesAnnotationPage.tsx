@@ -8,8 +8,9 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
+import { match, __, not, select, when } from "ts-pattern"
 //import * as lodash from "lodash"
-import { isArray, zipObject } from "lodash"
+import { fromPairs, isArray, isNil, omitBy, zipObject } from "lodash"
 
 import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
@@ -19,6 +20,7 @@ import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
     FieldType,
+    EditorOption,
 } from "../clientUtils/schemaProcessing"
 
 import Handsontable from "handsontable"
@@ -63,85 +65,107 @@ class VariablesAnnotationComponent extends React.Component {
         undefined
     @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
         undefined
+
+    @computed get defaultValues(): Record<string, any> {
+        const { fieldDescriptions } = this
+        if (fieldDescriptions === undefined) return {}
+        else {
+            const fields = fieldDescriptions
+                .filter((field) => field.default !== undefined)
+                .map((field) => [field.pointer, field.default!] as const)
+            const asObject = fromPairs(fields as any)
+            return asObject
+        }
+    }
     @computed get flattenedDataRows(): unknown[] | undefined {
-        const { richDataRows, fieldDescriptions } = this
+        const { richDataRows, fieldDescriptions, defaultValues } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
             return undefined
-
+        console.log("default", defaultValues)
         return this.richDataRows?.map((row) => {
-            const fieldsArray = fieldDescriptions.map(
-                (fieldDesc) =>
-                    [
-                        fieldDesc.pointer,
-                        row.grapherConfig != undefined
-                            ? fieldDesc.getter(
-                                  row.grapherConfig as Record<string, unknown>
-                              )
-                            : undefined,
-                    ] as const
-            )
-            const fields = zipObject(fieldsArray as any)
+            const fieldsArray = fieldDescriptions
+                .map(
+                    (fieldDesc) =>
+                        [
+                            fieldDesc.pointer,
+                            row.grapherConfig != undefined
+                                ? fieldDesc.getter(
+                                      row.grapherConfig as Record<
+                                          string,
+                                          unknown
+                                      >
+                                  )
+                                : undefined,
+                        ] as const
+                )
+                .filter(([name, val]) => !isNil(val))
+            const fields = fromPairs(fieldsArray as any)
+            console.log("fields values", fields)
             return {
                 id: row.id,
                 name: row.name,
                 datasetname: row.datasetname,
                 namespacename: row.namespacename,
-                ...fields, // TODO add
+                ...defaultValues,
+                ...fields,
             }
         })
     }
 
     static decideHotType(desc: FieldDescription): string {
-        if (isArray(desc.type)) {
-            // Types can be union of e.g. string and null. Ignore these for now but we'll have to handle them soon
-            return "text"
-        } else {
-            switch (desc.type) {
-                case FieldType.string:
-                    return "text"
-                case FieldType.boolean:
-                    return "checkbox"
-                case FieldType.integer:
-                case FieldType.number:
-                    return "numeric"
-            }
-        }
+        return match(desc.editor)
+            .with(EditorOption.checkbox, (_) => "checkbox")
+            .with(EditorOption.dropdown, (_) => "dropdown")
+            .with(EditorOption.numeric, (_) => "numeric")
+            .with(EditorOption.textfield, (_) => "text")
+            .with(EditorOption.textarea, (_) => "text")
+            .with(EditorOption.colorEditor, (_) => "text")
+            .with(EditorOption.mappingEditor, (_) => "text")
+            .with(EditorOption.primitiveListEditor, (_) => "text")
+            .exhaustive()
     }
     static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
-        const name = desc.pointer.substring(1)
+        const name = desc.pointer //.substring(1)
         return (
             <HotColumn
+                key={desc.pointer}
                 settings={{
                     title: name,
                     readOnly: false,
                     type: VariablesAnnotationComponent.decideHotType(desc),
+                    source: desc.enumOptions,
+                    data: desc.pointer,
                     width: Bounds.forText(name).width,
                 }}
             />
         )
     }
+    static readOnlyColumnNamesFields = [
+        ["Id", "id"],
+        ["Variable name", "name"],
+        ["Dataset name", "datasetname"],
+        ["Namespace", "namespacename"],
+    ] as const
 
-    @computed get columnDefinitions(): JSX.Element[] {
+    @computed get hotColumns(): JSX.Element[] {
         const { fieldDescriptions } = this
+
         if (fieldDescriptions === undefined) return []
         else {
-            const readOnlyColumnNamesFields = [
-                ["Id", "id"],
-                ["Variable name", "name"],
-                ["Dataset name", "datasetname"],
-                ["Namespace", "namespacename"],
-            ] as const
             const readOnlyColumns: JSX.Element[] =
-                readOnlyColumnNamesFields.map((nameAndField) => (
-                    <HotColumn
-                        settings={{
-                            title: nameAndField[0],
-                            readOnly: true,
-                            data: nameAndField[1],
-                            width: Bounds.forText(nameAndField[0]).width,
-                        }}
-                    />
-                ))
+                VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
+                    (nameAndField) => (
+                        <HotColumn
+                            key={nameAndField[0]}
+                            settings={{
+                                title: nameAndField[0],
+                                readOnly: true,
+                                data: nameAndField[1],
+                                width: Bounds.forText(nameAndField[0]).width,
+                            }}
+                        />
+                    )
+                )
             const grapherColumns = fieldDescriptions.map(
                 VariablesAnnotationComponent.fieldDescriptionToColumn
             )
@@ -197,9 +221,10 @@ class VariablesAnnotationComponent extends React.Component {
         // }
 
         const hotSettings: Handsontable.GridSettings = {
-            // afterChange: () => this.updateProgramFromHot(),
-            // afterRemoveRow: () => this.updateProgramFromHot(),
-            // afterRemoveCol: () => this.updateProgramFromHot(),
+            afterChange: (changes, source) =>
+                this.processChangedCells(changes, source),
+            beforeChange: (changes, source) =>
+                this.validateCellChanges(changes, source),
             allowInsertColumn: false,
             allowInsertRow: false,
             autoRowSize: false,
@@ -207,33 +232,6 @@ class VariablesAnnotationComponent extends React.Component {
             // cells,
             colHeaders: true,
             comments: true,
-            // contextMenu: {
-            //     items: {
-            //         AutofillColDefCommand: new AutofillColDefCommand(
-            //             program,
-            //             (newProgram: string) => this.props.onChange(newProgram)
-            //         ).toHotCommand(),
-            //         InlineDataCommand: new InlineDataCommand(
-            //             program,
-            //             (newProgram: string) => this.props.onChange(newProgram)
-            //         ).toHotCommand(),
-            //         SelectAllHitsCommand: new SelectAllHitsCommand(
-            //             program
-            //         ).toHotCommand(),
-            //         sp0: { name: "---------" },
-            //         row_above: {},
-            //         row_below: {},
-            //         sp1: { name: "---------" },
-            //         remove_row: {},
-            //         remove_col: {},
-            //         sp2: { name: "---------" },
-            //         undo: {},
-            //         redo: {},
-            //         sp3: { name: "---------" },
-            //         copy: {},
-            //         cut: {},
-            //     },
-            // },
             data: flattenedDataRows as Handsontable.RowObject[],
             height: "100%",
             manualColumnResize: true,
@@ -250,6 +248,58 @@ class VariablesAnnotationComponent extends React.Component {
         }
 
         return hotSettings
+    }
+
+    validateCellChanges(
+        changes: Handsontable.CellChange[] | null,
+        source: Handsontable.ChangeSource
+    ): boolean | void {
+        const { fieldDescriptions } = this
+        console.log("validating", fieldDescriptions)
+        if (source === "loadData" || changes === null) return // Changes due to loading are always ok
+        // cancel editing if multiple columns are changed at the same time
+        const differentColumns = new Set(changes.map((change) => change[1]))
+        if (differentColumns.size > 1) return false
+        const targetColumn = [...differentColumns][0] as number
+        if (
+            targetColumn <
+            VariablesAnnotationComponent.readOnlyColumnNamesFields.length
+        ) {
+            console.error("Attempt to write a readonly columns?")
+            return false
+        }
+        const columnDefinition =
+            fieldDescriptions![
+                targetColumn -
+                    VariablesAnnotationComponent.readOnlyColumnNamesFields
+                        .length
+            ]
+
+        console.log("Types", [columnDefinition.type, typeof changes[0][3]])
+        const invalidTypeAssignment = match<
+            [FieldType | FieldType[], string],
+            boolean
+        >([columnDefinition.type, typeof changes[0][3]])
+            .with([FieldType.string, "string"], (_) => false)
+            .with([FieldType.number, "number"], (_) => false)
+            .with([FieldType.integer, "number"], (_) => false)
+            .with([FieldType.boolean, "boolean"], (_) => false)
+            .with([[__], "object"], (_) => false) // typeof Array is object!
+
+            .otherwise((_) => true)
+        if (invalidTypeAssignment) return false
+        console.log("validation ok")
+        return
+    }
+
+    processChangedCells(
+        changes: Handsontable.CellChange[] | null,
+        source: Handsontable.ChangeSource
+    ): void {
+        // We don't want to persist changes due to loading data
+        if (source === "loadData" || changes === null) return
+
+        for (const change of changes) console.log("Cell changed", change)
     }
 
     async getData() {
@@ -269,11 +319,12 @@ class VariablesAnnotationComponent extends React.Component {
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             this.fieldDescriptions = fieldDescriptions
+            console.log("fielddescription set", this.fieldDescriptions)
         })
     }
 
     render() {
-        const { hotSettings, columnDefinitions } = this
+        const { hotSettings, hotColumns } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
@@ -282,7 +333,7 @@ class VariablesAnnotationComponent extends React.Component {
                     //ref={this.hotTableComponent as any}
                     licenseKey={"non-commercial-and-evaluation"}
                 >
-                    {columnDefinitions}
+                    {hotColumns}
                 </HotTable>
             )
     }
