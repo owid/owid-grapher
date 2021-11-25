@@ -595,12 +595,11 @@ export const formatPost = async (
         }
 
     // Override formattingOptions if specified in the post (as an HTML comment)
-    const options: FormattingOptions = Object.assign(
-        {
-            toc: post.type === "page",
-            footnotes: true,
-        },
-        formattingOptions
-    )
+    const options: FormattingOptions = {
+        toc: post.type === "page",
+        footnotes: true,
+        ...formattingOptions,
+    }
+
     return formatWordpressPost(post, html, options, grapherExports)
 }
