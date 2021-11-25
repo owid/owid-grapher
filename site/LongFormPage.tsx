@@ -8,7 +8,6 @@ import {
     addContentFeatures,
     formatAuthors,
     formatDate,
-    splitContentIntoColumns,
 } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -242,9 +241,7 @@ export const LongFormPage = (props: {
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{
-                                            __html: addContentFeatures(
-                                                post.html
-                                            ),
+                                            __html: addContentFeatures(post),
                                         }}
                                     />
                                     <footer className="article-footer">

@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio"
+import { FormattedPost } from "../clientUtils/owidTypes"
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
@@ -6,6 +7,8 @@ import {
     PROMINENT_LINK_CLASSNAME,
     renderAuthoredProminentLinks,
 } from "./blocks/ProminentLink"
+import { formatGlossaryTerms } from "./formatGlossary"
+import { getMutableGlossary, glossary } from "./glossary"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 
@@ -44,7 +47,9 @@ export const formatDate = (date: Date) =>
         day: "2-digit",
     })
 
-export const splitContentIntoColumns = (cheerioEl: CheerioStatic) => {
+export const splitContentIntoSectionsAndColumns = (
+    cheerioEl: CheerioStatic
+) => {
     interface Columns {
         wrapper: Cheerio
         first: Cheerio
@@ -88,14 +93,6 @@ export const splitContentIntoColumns = (cheerioEl: CheerioStatic) => {
         const $contents = $tempWrapper
             .append($start.clone(), $start.nextUntil(cheerioEl("h2")))
             .contents()
-
-        // if (post.glossary) {
-        //     formatGlossaryTerms(
-        //         cheerioEl,
-        //         $contents,
-        //         getMutableGlossary(glossary)
-        //     )
-        // }
 
         $contents.each((i, el) => {
             const $el = cheerioEl(el)
@@ -189,20 +186,43 @@ export const splitContentIntoColumns = (cheerioEl: CheerioStatic) => {
         }
         $start.replaceWith($section)
     }
-
-    return cheerioEl
 }
 
 export const getBodyHtml = (cheerioEl: CheerioStatic): string => {
     return cheerioEl("body").html() || ""
 }
 
-export const addContentFeatures = (html: string): string => {
-    const cheerioEl = cheerio.load(html)
+const addGlossaryToSections = (cheerioEl: CheerioStatic) => {
+    const $sections = cheerioEl("section")
+    $sections.each((i, el) => {
+        const $el = cheerioEl(el)
+        const $contents = $el.contents()
 
-    // Render global country selection component.
-    // Injects a <section>, which is why it executes last.
-    return getBodyHtml(
-        bakeGlobalEntitySelector(splitContentIntoColumns(cheerioEl))
-    )
+        formatGlossaryTerms(cheerioEl, $contents, getMutableGlossary(glossary))
+    })
+}
+
+export const addContentFeatures = (post: FormattedPost): string => {
+    const cheerioEl = cheerio.load(post.html)
+
+    const contentFeatureFunctions = [
+        {
+            func: splitContentIntoSectionsAndColumns,
+            active: true,
+        },
+        {
+            func: bakeGlobalEntitySelector,
+            active: true,
+        },
+        {
+            func: addGlossaryToSections,
+            active: !!post.glossary,
+        },
+    ]
+
+    contentFeatureFunctions
+        .filter((feature) => feature.active)
+        .forEach((feature) => feature.func(cheerioEl))
+
+    return getBodyHtml(cheerioEl)
 }

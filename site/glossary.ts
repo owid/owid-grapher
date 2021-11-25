@@ -13,7 +13,7 @@ export interface GlossaryGroup {
 
 export const getMutableGlossary = (glossary: GlossaryGroup[]) => {
     const preparedGlossary = prepareGlossary(glossary)
-    // Individual glossary items won't mutated, only deleted so we don't need to
+    // Individual glossary items won't be mutated, only deleted so we don't need to
     // deep clone the array.
     return [...preparedGlossary]
 }

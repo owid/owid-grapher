@@ -8,9 +8,7 @@ import {
 } from "../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
 import { SelectionArray } from "../grapher/selection/SelectionArray"
 
-export const bakeGlobalEntitySelector = (
-    cheerioEl: CheerioStatic
-): CheerioStatic => {
+export const bakeGlobalEntitySelector = (cheerioEl: CheerioStatic) => {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
     // But we should still support the old attribute.
     cheerioEl(`*[data-entity-select], ${GLOBAL_ENTITY_SELECTOR_ELEMENT}`).each(
@@ -33,6 +31,4 @@ export const bakeGlobalEntitySelector = (
             $el.html(rendered).insertAfter($section)
         }
     )
-
-    return cheerioEl
 }
