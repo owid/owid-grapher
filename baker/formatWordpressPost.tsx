@@ -46,7 +46,11 @@ import {
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 import { renderAutomaticProminentLinks } from "./siteRenderers"
-import { getBodyHtml, GRAPHER_PREVIEW_CLASS } from "../site/formatting"
+import {
+    getBodyHtml,
+    GRAPHER_PREVIEW_CLASS,
+    SUMMARY_CLASSNAME,
+} from "../site/formatting"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -278,7 +282,7 @@ export const formatWordpressPost = async (
             </content>
         </block>
         `
-        const $summary = cheerioEl(".wp-block-owid-summary")
+        const $summary = cheerioEl(`.${SUMMARY_CLASSNAME}`)
         if ($summary.length !== 0) {
             $summary.after(allCharts)
         } else {

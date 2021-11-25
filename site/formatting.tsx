@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio"
-import { FormattedPost } from "../clientUtils/owidTypes"
+import React from "react"
+import ReactDOMServer from "react-dom/server"
+import { FormattedPost, TocHeading } from "../clientUtils/owidTypes"
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
@@ -9,8 +11,10 @@ import {
 } from "./blocks/ProminentLink"
 import { formatGlossaryTerms } from "./formatGlossary"
 import { getMutableGlossary, glossary } from "./glossary"
+import { SectionHeading } from "./SectionHeading"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
+export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 
 // Standardize urls
 const formatLinks = (html: string) =>
@@ -96,23 +100,8 @@ export const splitContentIntoSectionsAndColumns = (
 
         $contents.each((i, el) => {
             const $el = cheerioEl(el)
-            // Leave h2 at the section level, do not move into columns
-            if (el.name === "h2") {
-                // $section.append(
-                //     ReactDOMServer.renderToStaticMarkup(
-                //         <SectionHeading
-                //             title={$el.text()}
-                //             tocHeadings={tocHeadings}
-                //         >
-                //             <div
-                //                 dangerouslySetInnerHTML={{
-                //                     __html: cheerioEl.html($el),
-                //                 }}
-                //             />
-                //         </SectionHeading>
-                //     )
-                // )
-            } else if (
+            if (
+                el.name === "h2" ||
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
@@ -202,27 +191,41 @@ const addGlossaryToSections = (cheerioEl: CheerioStatic) => {
     })
 }
 
+const addTocToSections = (
+    cheerioEl: CheerioStatic,
+    tocHeadings: TocHeading[]
+) => {
+    cheerioEl("h2")
+        .toArray()
+        .map((el) => cheerioEl(el))
+        .filter(($el) => {
+            return $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0
+        })
+        .forEach(($el) => {
+            $el.replaceWith(
+                ReactDOMServer.renderToStaticMarkup(
+                    <SectionHeading
+                        title={$el.text()}
+                        tocHeadings={tocHeadings}
+                    >
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: cheerioEl.html($el),
+                            }}
+                        />
+                    </SectionHeading>
+                )
+            )
+        })
+}
+
 export const addContentFeatures = (post: FormattedPost): string => {
     const cheerioEl = cheerio.load(post.html)
 
-    const contentFeatureFunctions = [
-        {
-            func: splitContentIntoSectionsAndColumns,
-            active: true,
-        },
-        {
-            func: bakeGlobalEntitySelector,
-            active: true,
-        },
-        {
-            func: addGlossaryToSections,
-            active: !!post.glossary,
-        },
-    ]
-
-    contentFeatureFunctions
-        .filter((feature) => feature.active)
-        .forEach((feature) => feature.func(cheerioEl))
+    splitContentIntoSectionsAndColumns(cheerioEl)
+    bakeGlobalEntitySelector(cheerioEl)
+    addTocToSections(cheerioEl, post.tocHeadings)
+    if (post.glossary) addGlossaryToSections(cheerioEl)
 
     return getBodyHtml(cheerioEl)
 }
