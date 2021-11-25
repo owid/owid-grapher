@@ -32,7 +32,6 @@ import {
     extractDataValuesConfiguration,
     formatDataValue,
     formatLinks,
-    getHtmlContentWithStyles,
     parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
@@ -50,6 +49,7 @@ import {
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 import { renderAutomaticProminentLinks } from "./siteRenderers"
+import { getBodyHtml, GRAPHER_PREVIEW_CLASS } from "../site/formatting"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -294,6 +294,17 @@ export const formatWordpressPost = async (
     // SSR rendering of Gutenberg blocks, before hydration on client
     renderBlocks(cheerioEl)
     await renderAutomaticProminentLinks(cheerioEl, post)
+
+    // Extract inline styling
+    let style
+    const $style = cheerioEl("style")
+    if ($style.length) {
+        style = $style
+            .toArray()
+            .map((el) => cheerioEl(el).html() || "")
+            .reduce((prev, curr) => prev + curr)
+        $style.remove()
+    }
 
     // Extract blog info content
     let info = null
@@ -571,7 +582,8 @@ export const formatWordpressPost = async (
         authors: post.authors,
         byline: byline,
         info: info,
-        html: getHtmlContentWithStyles(cheerioEl),
+        html: getBodyHtml(cheerioEl),
+        style: style,
         footnotes: footnotes,
         references: references,
         excerpt: post.excerpt || cheerioEl("p").first().text(),

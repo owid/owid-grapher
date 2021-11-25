@@ -72,6 +72,7 @@ export interface FormattedPost {
     byline?: string | null
     info?: string | null
     html: string
+    style?: string | null
     footnotes: string[]
     references: Record<string, unknown>[]
     excerpt: string

@@ -120,6 +120,7 @@ export const LongFormPage = (props: {
                         canonicalUrl={citationCanonicalUrl}
                     />
                 )}
+                {post.style && <style>{post.style}</style>}
             </Head>
             <body className={bodyClasses.join(" ")}>
                 <SiteHeader baseUrl={baseUrl} />
