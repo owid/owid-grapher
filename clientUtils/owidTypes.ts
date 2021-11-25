@@ -56,29 +56,16 @@ export interface RelatedChart {
 
 export type LegacyVariableId = Integer // remove.
 
-export interface FormattedPost {
-    id: number
-    postId?: number
-    type: WP_PostType
-    slug: string
-    path: string
-    title: string
-    subtitle?: string | null
+export interface FormattedPost extends FullPost {
     supertitle?: string | null
-    date: Date
-    modifiedDate: Date
     lastUpdated?: string | null
-    authors: string[]
     byline?: string | null
     info?: string | null
     html: string
     style?: string | null
-    footnotes: string[]
     references: Record<string, unknown>[]
-    excerpt: string
-    imageUrl?: string
+    footnotes: string[]
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
-    relatedCharts?: RelatedChart[]
 }
 
 export enum SubNavId {

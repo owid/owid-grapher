@@ -18,13 +18,10 @@ import {
     JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes"
-import { bakeGlobalEntitySelector } from "../site/bakeGlobalEntitySelector"
 import { Footnote } from "../site/Footnote"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { formatGlossaryTerms } from "../site/formatGlossary"
-import { getMutableGlossary, glossary } from "../site/glossary"
 import { DataToken } from "../site/DataToken"
 import {
     dataValueRegex,
@@ -565,27 +562,17 @@ export const formatWordpressPost = async (
     })
 
     return {
-        id: post.id,
-        type: post.type,
-        slug: post.slug,
-        path: post.path,
-        title: post.title,
-        subtitle: post.subtitle,
-        supertitle: supertitle,
-        date: post.date,
-        modifiedDate: post.modifiedDate,
-        lastUpdated: lastUpdated,
-        authors: post.authors,
-        byline: byline,
-        info: info,
-        html: getBodyHtml(cheerioEl),
-        style: style,
+        ...post,
+        supertitle,
+        lastUpdated,
+        byline,
+        info,
+        style,
         footnotes: footnotes,
         references: references,
-        excerpt: post.excerpt || cheerioEl("p").first().text(),
-        imageUrl: post.imageUrl,
         tocHeadings: tocHeadings,
-        relatedCharts: post.relatedCharts,
+        excerpt: post.excerpt || cheerioEl("p").first().text(),
+        html: getBodyHtml(cheerioEl),
     }
 }
 
