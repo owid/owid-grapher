@@ -5,6 +5,7 @@ import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import {
+    addContentFeatures,
     formatAuthors,
     formatDate,
     splitContentIntoColumns,
@@ -241,7 +242,7 @@ export const LongFormPage = (props: {
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{
-                                            __html: splitContentIntoColumns(
+                                            __html: addContentFeatures(
                                                 post.html
                                             ),
                                         }}

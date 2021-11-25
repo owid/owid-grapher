@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio"
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
+import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
 import {
     PROMINENT_LINK_CLASSNAME,
     renderAuthoredProminentLinks,
@@ -43,7 +44,7 @@ export const formatDate = (date: Date) =>
         day: "2-digit",
     })
 
-export const splitContentIntoColumns = (html: string): string => {
+export const splitContentIntoColumns = (cheerioEl: CheerioStatic) => {
     interface Columns {
         wrapper: Cheerio
         first: Cheerio
@@ -72,8 +73,6 @@ export const splitContentIntoColumns = (html: string): string => {
         $section.append(columns.wrapper)
         return getColumns()
     }
-
-    const cheerioEl = cheerio.load(html)
 
     // Wrap content demarcated by headings into section blocks
     // and automatically divide content into columns
@@ -191,9 +190,19 @@ export const splitContentIntoColumns = (html: string): string => {
         $start.replaceWith($section)
     }
 
-    return getBodyHtml(cheerioEl)
+    return cheerioEl
 }
 
 export const getBodyHtml = (cheerioEl: CheerioStatic): string => {
     return cheerioEl("body").html() || ""
+}
+
+export const addContentFeatures = (html: string): string => {
+    const cheerioEl = cheerio.load(html)
+
+    // Render global country selection component.
+    // Injects a <section>, which is why it executes last.
+    return getBodyHtml(
+        bakeGlobalEntitySelector(splitContentIntoColumns(cheerioEl))
+    )
 }
