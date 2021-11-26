@@ -1,7 +1,11 @@
 import * as cheerio from "cheerio"
 import React from "react"
 import ReactDOMServer from "react-dom/server"
-import { FormattedPost, TocHeading } from "../clientUtils/owidTypes"
+import {
+    FormattedPost,
+    TocHeading,
+    WP_PostType,
+} from "../clientUtils/owidTypes"
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
@@ -9,6 +13,7 @@ import {
     PROMINENT_LINK_CLASSNAME,
     renderAuthoredProminentLinks,
 } from "./blocks/ProminentLink"
+import { Byline } from "./Byline"
 import { formatGlossaryTerms } from "./formatGlossary"
 import { getMutableGlossary, glossary } from "./glossary"
 import { SectionHeading } from "./SectionHeading"
@@ -219,9 +224,22 @@ const addTocToSections = (
         })
 }
 
+const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
+    cheerioEl("body").prepend(
+        ReactDOMServer.renderToStaticMarkup(
+            <Byline
+                authors={post.authors}
+                withMax={false}
+                override={post.byline}
+            />
+        )
+    )
+}
+
 export const addContentFeatures = (post: FormattedPost): string => {
     const cheerioEl = cheerio.load(post.html)
 
+    if (post.type === WP_PostType.Post) addPostHeader(cheerioEl, post)
     splitContentIntoSectionsAndColumns(cheerioEl)
     bakeGlobalEntitySelector(cheerioEl)
     addTocToSections(cheerioEl, post.tocHeadings)

@@ -21,6 +21,7 @@ import {
     TocHeading,
 } from "../clientUtils/owidTypes"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
+import { Byline } from "./Byline"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -155,23 +156,12 @@ export const LongFormPage = (props: {
                                         />
                                     )}
                                 </div>
-                                {!formattingOptions.hideAuthors && (
-                                    <div className="authors-byline">
-                                        {post.byline ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.byline,
-                                                }}
-                                            ></div>
-                                        ) : (
-                                            <a href="/team">
-                                                {`by ${formatAuthors(
-                                                    post.authors,
-                                                    withCitation
-                                                )}`}
-                                            </a>
-                                        )}
-                                    </div>
+                                {!formattingOptions.hideAuthors && !isPost && (
+                                    <Byline
+                                        authors={post.authors}
+                                        withMax={withCitation}
+                                        override={post.byline}
+                                    />
                                 )}
                                 {isPost && <time>{formatDate(post.date)}</time>}
                                 {post.info && (
