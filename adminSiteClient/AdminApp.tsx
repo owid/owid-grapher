@@ -24,6 +24,8 @@ import { NewsletterPage } from "./NewsletterPage"
 import { DeployStatusPage } from "./DeployStatusPage"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage"
+import { SuggestedChartRevisionImportPage } from "./SuggestedChartRevisionImportPage"
+import { BulkDownloadPage } from "./BulkDownloadPage"
 import {
     BrowserRouter as Router,
     Route,
@@ -294,6 +296,11 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
+                                path="/suggested-chart-revisions/import"
+                                component={SuggestedChartRevisionImportPage}
+                            />
+                            <Route
+                                exact
                                 path="/suggested-chart-revisions/review"
                                 component={SuggestedChartRevisionApproverPage}
                             />
@@ -308,6 +315,11 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
+                            />
+                            <Route
+                                exact
+                                path="/bulk-downloads"
+                                component={BulkDownloadPage}
                             />
                             <Route
                                 exact

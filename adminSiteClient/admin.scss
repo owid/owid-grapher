@@ -1023,3 +1023,64 @@ main:not(.ChartEditorPage) {
         margin-right: 10px;
     }
 }
+
+.SuggestedChartRevisionImportPage {
+    section,
+    .collapsible {
+        background-color: #f9f9f9;
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin: 0.4em 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+    .import-form {
+        input {
+            max-width: 1000px;
+        }
+
+        label {
+            font-size: 1.2rem;
+        }
+    }
+
+    .readme {
+        ul,
+        ol {
+            margin-left: 1.2em;
+            padding-top: 5px;
+        }
+
+        li {
+            padding-bottom: 5px;
+        }
+
+        .snippet {
+            background-color: #e8e8e8;
+            padding: 10px;
+            border-radius: 0.4rem;
+        }
+    }
+
+    .message {
+        margin: 1rem 0;
+        padding: 1rem;
+        border-radius: 0.4rem;
+        opacity: 0.87;
+        color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+
+    .message.bg-warning {
+        color: #000;
+    }
+}
+
+.BulkDownloadPage {
+    section {
+        background-color: #f9f9f9;
+        padding: 1.2em;
+        border-radius: 0.4em;
+        margin: 0.4em 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+}

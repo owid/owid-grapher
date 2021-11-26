@@ -8,6 +8,8 @@ import * as wpdb from "../db/wpdb"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
+    BAKED_BASE_URL,
+    ADMIN_BASE_URL,
 } from "../settings/serverSettings"
 import { expectInt, isValidSlug, absoluteUrl } from "../serverUtils/serverUtil"
 import { sendMail } from "./mail"
@@ -15,7 +17,11 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData } from "../db/model/Variable"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    grapherKeysToSerialize,
+} from "../grapher/core/GrapherInterface"
+import { SuggestedChartRevisionStatus } from "../adminSiteClient/SuggestedChartRevision"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -29,11 +35,12 @@ import { Post } from "../db/model/Post"
 import { camelCaseProperties } from "../clientUtils/string"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles"
-import { BAKED_BASE_URL } from "../settings/serverSettings"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
 import { DeployQueueServer } from "../baker/DeployQueueServer"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
+import { escape } from "mysql"
+import { Parser } from "json2csv"
 
 const apiRouter = new FunctionalRouter()
 
@@ -307,6 +314,64 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     await Chart.assignTagsForCharts(charts)
 
     return { charts }
+})
+
+apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
+    const limit =
+        req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
+
+    // note: this query is extended from OldChart.listFields.
+    const charts = await db.queryMysql(
+        `
+        SELECT
+            charts.id,
+            charts.config->>"$.version" AS version,
+            CONCAT("${BAKED_BASE_URL}/grapher/", charts.config->>"$.slug") AS url,
+            CONCAT("${ADMIN_BASE_URL}", "/admin/charts/", charts.id, "/edit") AS editUrl,
+            charts.config->>"$.slug" AS slug,
+            charts.config->>"$.title" AS title,
+            charts.config->>"$.subtitle" AS subtitle,
+            charts.config->>"$.sourceDesc" AS sourceDesc,
+            charts.config->>"$.note" AS note,
+            charts.config->>"$.type" AS type,
+            charts.config->>"$.internalNotes" AS internalNotes,
+            charts.config->>"$.variantName" AS variantName,
+            charts.config->>"$.isPublished" AS isPublished,
+            charts.config->>"$.tab" AS tab,
+            JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
+            JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
+            charts.config->>"$.originUrl" AS originUrl,
+            charts.starred AS isStarred,
+            charts.lastEditedAt,
+            charts.lastEditedByUserId,
+            lastEditedByUser.fullName AS lastEditedBy,
+            charts.publishedAt,
+            charts.publishedByUserId,
+            publishedByUser.fullName AS publishedBy,
+            charts.isExplorable AS isExplorable
+        FROM charts
+        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+        ORDER BY charts.lastEditedAt DESC 
+        LIMIT ?
+    `,
+        [limit]
+    )
+    // note: retrieving references is VERY slow.
+    // await Promise.all(
+    //     charts.map(async (chart: any) => {
+    //         const references = await getReferencesByChartId(chart.id)
+    //         chart.references = references.length
+    //             ? references.map((ref) => ref.url)
+    //             : ""
+    //     })
+    // )
+    // await Chart.assignTagsForCharts(charts)
+    res.setHeader("Content-disposition", "attachment; filename=charts.csv")
+    res.setHeader("content-type", "text/csv")
+    const json2csvParser = new Parser()
+    const csv = json2csvParser.parse(charts)
+    return csv
 })
 
 apiRouter.get(
@@ -671,6 +736,310 @@ apiRouter.get(
             suggestedChartRevisions: suggestedChartRevisions,
             numTotalRows: numTotalRows,
         }
+    }
+)
+
+apiRouter.post(
+    "/suggested-chart-revisions",
+    async (req: Request, res: Response) => {
+        const messages: any[] = []
+        const status = SuggestedChartRevisionStatus.pending
+        const suggestedReason = req.body.suggestedReason
+            ? String(req.body.suggestedReason)
+            : null
+        const convertStringsToNull =
+            typeof req.body.convertStringsToNull == "boolean"
+                ? req.body.convertStringsToNull
+                : true
+        const suggestedConfigs = req.body.suggestedConfigs as any[]
+
+        // suggestedConfigs must be an array of length > 0
+        if (!(Array.isArray(suggestedConfigs) && suggestedConfigs.length > 0)) {
+            throw new JsonError(
+                "POST body must contain a `suggestedConfigs` property, which must be an Array with length > 0."
+            )
+        }
+
+        // tries to convert each config field to json (e.g. the `map` field
+        // should be converted to json if it is present).
+        suggestedConfigs.map((config) => {
+            Object.keys(config).map((k) => {
+                try {
+                    const json = JSON.parse(config[k])
+                    config[k] = json
+                } catch (error) {
+                    // do nothing.
+                }
+            })
+        })
+
+        // checks for required keys
+        const requiredKeys = ["id", "version"]
+        suggestedConfigs.map((config) => {
+            requiredKeys.map((k) => {
+                if (!config.hasOwnProperty(k)) {
+                    throw new JsonError(
+                        `The "${k}" field is required, but one or more chart configs in the POST body does not contain it.`
+                    )
+                }
+            })
+        })
+
+        // safely sets types of keys that are used in db queries below.
+        const typeConversions = [
+            { key: "id", expectedType: "number", f: expectInt },
+            { key: "version", expectedType: "number", f: expectInt },
+        ]
+        suggestedConfigs.map((config) => {
+            typeConversions.map((obj) => {
+                config[obj.key] = obj.f(config[obj.key])
+                if (
+                    config[obj.key] !== null &&
+                    config[obj.key] !== undefined &&
+                    typeof config[obj.key] !== obj.expectedType
+                ) {
+                    throw new JsonError(
+                        `Expected all "${obj.key}" values to be non-null and of ` +
+                            `type "${obj.expectedType}", but one or more chart ` +
+                            `configs contains a "${obj.key}" value that does ` +
+                            `not meet this criteria.`
+                    )
+                }
+            })
+        })
+
+        // checks for invalid keys
+        const uniqKeys = new Set()
+        suggestedConfigs.map((config) => {
+            Object.keys(config).forEach((item) => {
+                uniqKeys.add(item)
+            })
+        })
+        const invalidKeys = [...uniqKeys].filter(
+            (v) => !grapherKeysToSerialize.includes(v as string)
+        )
+        if (invalidKeys.length > 0) {
+            throw new JsonError(
+                `The following fields are not valid chart config fields: ${invalidKeys}`
+            )
+        }
+
+        // checks that no duplicate chart ids are present.
+        const chartIds = suggestedConfigs.map((config) => config.id)
+        if (new Set(chartIds).size !== chartIds.length) {
+            throw new JsonError(
+                `Found one or more duplicate chart ids in POST body.`
+            )
+        }
+
+        // converts some strings to null
+        if (convertStringsToNull) {
+            const isNullString = (value: string): boolean => {
+                const nullStrings = ["nan", "na"]
+                return nullStrings.includes(value.toLowerCase())
+            }
+            suggestedConfigs.map((config) => {
+                for (const key of Object.keys(config)) {
+                    if (
+                        typeof config[key] == "string" &&
+                        isNullString(config[key])
+                    ) {
+                        config[key] = null
+                    }
+                }
+            })
+        }
+
+        // empty strings mean that the field should NOT be overwritten, so we
+        // remove key-value pairs where value === ""
+        suggestedConfigs.map((config) => {
+            for (const key of Object.keys(config)) {
+                if (config[key] === "") {
+                    delete config[key]
+                }
+            }
+        })
+
+        await db.transaction(async (t) => {
+            const whereCond1 = suggestedConfigs
+                .map(
+                    (config) =>
+                        `(id = ${escape(
+                            config.id
+                        )} AND config->"$.version" = ${escape(config.version)})`
+                )
+                .join(" OR ")
+            const whereCond2 = suggestedConfigs
+                .map(
+                    (config) =>
+                        `(chartId = ${escape(
+                            config.id
+                        )} AND config->"$.version" = ${escape(config.version)})`
+                )
+                .join(" OR ")
+            // retrieves original chart configs
+            let rows: any[] = await t.query(
+                `
+                SELECT id, config, 1 as priority
+                FROM charts 
+                WHERE ${whereCond1}
+                
+                UNION
+                
+                SELECT chartId as id, config, 2 as priority
+                FROM chart_revisions
+                WHERE ${whereCond2}
+
+                ORDER BY priority
+                `
+            )
+
+            rows.map((row) => {
+                row.config = JSON.parse(row.config)
+            })
+
+            // drops duplicate id-version rows (keeping the row from the
+            // `charts` table when available).
+            rows = rows.filter(
+                (v, i, a) =>
+                    a.findIndex(
+                        (el) =>
+                            el.id === v.id &&
+                            el.config.version === v.config.version
+                    ) === i
+            )
+            if (rows.length < suggestedConfigs.length) {
+                // identifies which particular chartId-version combinations have
+                // not been found in the DB
+                const missingConfigs = suggestedConfigs.filter((config) => {
+                    const i = rows.findIndex((row) => {
+                        return (
+                            row.id === config.id &&
+                            row.config.version === config.version
+                        )
+                    })
+                    return i === -1
+                })
+                throw new JsonError(
+                    `Failed to retrieve the following chartId-version combinations:\n${missingConfigs
+                        .map((c) => {
+                            return JSON.stringify({
+                                id: c.id,
+                                version: c.version,
+                            })
+                        })
+                        .join(
+                            "\n"
+                        )}\nPlease check that each chartId and version exists.`
+                )
+            } else if (rows.length > suggestedConfigs.length) {
+                throw new JsonError(
+                    "Retrieved more chart configs than expected. This may be due to a bug on the server."
+                )
+            }
+            const originalConfigs: Record<string, GrapherInterface> =
+                rows.reduce(
+                    (obj: any, row: any) => ({
+                        ...obj,
+                        [row.id]: row.config,
+                    }),
+                    {}
+                )
+
+            // some chart configs do not have an `id` field, so we check for it
+            // and insert the id here as needed. This is important for the
+            // lodash.isEqual condition later on.
+            for (const [id, config] of Object.entries(originalConfigs)) {
+                if (config.id === null || config.id === undefined) {
+                    config.id = parseInt(id)
+                }
+            }
+
+            // sanity check that each original config also has the required keys.
+            Object.values(originalConfigs).map((config) => {
+                requiredKeys.map((k) => {
+                    if (!config.hasOwnProperty(k)) {
+                        throw new JsonError(
+                            `The "${k}" field is required, but one or more ` +
+                                `chart configs in the database does not ` +
+                                `contain it. Please report this issue to a ` +
+                                `developer.`
+                        )
+                    }
+                })
+            })
+
+            // if a field is null in the suggested config and the field does not
+            // exist in the original config, then we can delete the field from
+            // the suggested config b/c the non-existence of the field on the
+            // original config is equivalent to null.
+            suggestedConfigs.map((config: any) => {
+                const chartId = config.id as number
+                const originalConfig = originalConfigs[chartId]
+                for (const key of Object.keys(config)) {
+                    if (
+                        config[key] === null &&
+                        !originalConfig.hasOwnProperty(key)
+                    ) {
+                        delete config[key]
+                    }
+                }
+            })
+
+            // constructs array of suggested chart revisions to insert.
+            const values: any[] = []
+            suggestedConfigs.map((config) => {
+                const chartId = config.id as number
+                const originalConfig = originalConfigs[chartId]
+                const suggestedConfig: GrapherInterface = Object.assign(
+                    {},
+                    JSON.parse(JSON.stringify(originalConfig)),
+                    config
+                )
+                if (!lodash.isEqual(suggestedConfig, originalConfig)) {
+                    if (suggestedConfig.version) {
+                        suggestedConfig.version += 1
+                    }
+                    values.push([
+                        chartId,
+                        JSON.stringify(suggestedConfig),
+                        JSON.stringify(originalConfig),
+                        suggestedReason,
+                        status,
+                        res.locals.user.id,
+                        new Date(),
+                        new Date(),
+                    ])
+                }
+            })
+
+            // inserts suggested chart revisions
+            const result = await t.execute(
+                `
+                INSERT INTO suggested_chart_revisions
+                (chartId, suggestedConfig, originalConfig, suggestedReason, status, createdBy, createdAt, updatedAt)
+                VALUES
+                ?
+                `,
+                [values]
+            )
+            if (result.affectedRows > 0) {
+                messages.push({
+                    type: "success",
+                    text: `${result.affectedRows} chart revisions have been queued for approval.`,
+                })
+            }
+            if (suggestedConfigs.length - result.affectedRows > 0) {
+                messages.push({
+                    type: "warning",
+                    text: `${
+                        suggestedConfigs.length - result.affectedRows
+                    } chart revisions have not been queued for approval (e.g. because the chart revision does not contain any changes).`,
+                })
+            }
+        })
+
+        return { success: true, messages }
     }
 )
 
