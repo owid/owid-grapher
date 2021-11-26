@@ -163,7 +163,6 @@ export const LongFormPage = (props: {
                                         override={post.byline}
                                     />
                                 )}
-                                {isPost && <time>{formatDate(post.date)}</time>}
                                 {post.info && (
                                     <div
                                         className="blog-info"

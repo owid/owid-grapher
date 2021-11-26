@@ -227,11 +227,14 @@ const addTocToSections = (
 const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     cheerioEl("body").prepend(
         ReactDOMServer.renderToStaticMarkup(
-            <Byline
-                authors={post.authors}
-                withMax={false}
-                override={post.byline}
-            />
+            <>
+                <Byline
+                    authors={post.authors}
+                    withMax={false}
+                    override={post.byline}
+                />
+                <time>{formatDate(post.date)}</time>
+            </>
         )
     )
 }
