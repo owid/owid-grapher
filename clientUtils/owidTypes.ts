@@ -57,12 +57,12 @@ export interface RelatedChart {
 export type LegacyVariableId = Integer // remove.
 
 export interface FormattedPost extends FullPost {
-    supertitle?: string | null
-    lastUpdated?: string | null
-    byline?: string | null
-    info?: string | null
+    supertitle?: string
+    lastUpdated?: string
+    byline?: string
+    info?: string
     html: string
-    style?: string | null
+    style?: string
     references: Record<string, unknown>[]
     footnotes: string[]
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]

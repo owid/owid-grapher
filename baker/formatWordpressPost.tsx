@@ -308,10 +308,10 @@ export const formatWordpressPost = async (
     }
 
     // Extract blog info content
-    let info = null
+    let info
     const $info = cheerioEl(".blog-info")
     if ($info.length) {
-        info = $info.html()
+        info = $info.html() ?? undefined
         $info.remove()
     }
 
@@ -319,7 +319,7 @@ export const formatWordpressPost = async (
     let lastUpdated
     const $lastUpdated = cheerioEl(".wp-block-last-updated")
     if ($lastUpdated.length) {
-        lastUpdated = $lastUpdated.find("p").first().html()
+        lastUpdated = $lastUpdated.find("p").first().html() ?? undefined
         $lastUpdated.remove()
     }
 
@@ -335,7 +335,7 @@ export const formatWordpressPost = async (
     let byline
     const $byline = cheerioEl(".wp-block-owid-byline")
     if ($byline.length) {
-        byline = $byline.html()
+        byline = $byline.html() ?? undefined
         $byline.remove()
     }
 
