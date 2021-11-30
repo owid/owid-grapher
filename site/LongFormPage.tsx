@@ -156,55 +156,59 @@ export const LongFormPage = (props: {
                                         />
                                     )}
                                 </div>
-                                {!formattingOptions.hideAuthors && !isPost && (
-                                    <Byline
-                                        authors={post.authors}
-                                        withMax={withCitation}
-                                        override={post.byline}
-                                    />
-                                )}
-                                {post.info && (
-                                    <div
-                                        className="blog-info"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.info,
-                                        }}
-                                    />
-                                )}
+                                {!isPost && (
+                                    <>
+                                        {!formattingOptions.hideAuthors && (
+                                            <Byline
+                                                authors={post.authors}
+                                                withMax={withCitation}
+                                                override={post.byline}
+                                            />
+                                        )}
+                                        {post.info && (
+                                            <div
+                                                className="blog-info"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: post.info,
+                                                }}
+                                            />
+                                        )}
 
-                                {(isPost ||
-                                    withCitation ||
-                                    post.lastUpdated) && (
-                                    <div className="tools">
-                                        {post.lastUpdated && (
-                                            <div className="last-updated">
-                                                <FontAwesomeIcon
-                                                    icon={faSync}
-                                                />
-                                                <span
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: post.lastUpdated,
-                                                    }}
-                                                />
+                                        {(withCitation || post.lastUpdated) && (
+                                            <div className="tools">
+                                                {post.lastUpdated && (
+                                                    <div className="last-updated">
+                                                        <FontAwesomeIcon
+                                                            icon={faSync}
+                                                        />
+                                                        <span
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: post.lastUpdated,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {withCitation && (
+                                                    <a href="#licence">
+                                                        <FontAwesomeIcon
+                                                            icon={
+                                                                faCreativeCommons
+                                                            }
+                                                        />
+                                                        Reuse our work freely
+                                                    </a>
+                                                )}
+                                                {withCitation && (
+                                                    <a href="#citation">
+                                                        <FontAwesomeIcon
+                                                            icon={faBook}
+                                                        />
+                                                        Cite this research
+                                                    </a>
+                                                )}
                                             </div>
                                         )}
-                                        {(isPost || withCitation) && (
-                                            <a href="#licence">
-                                                <FontAwesomeIcon
-                                                    icon={faCreativeCommons}
-                                                />
-                                                Reuse our work freely
-                                            </a>
-                                        )}
-                                        {withCitation && (
-                                            <a href="#citation">
-                                                <FontAwesomeIcon
-                                                    icon={faBook}
-                                                />
-                                                Cite this research
-                                            </a>
-                                        )}
-                                    </div>
+                                    </>
                                 )}
                             </header>
                         </div>
