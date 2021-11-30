@@ -231,6 +231,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     cheerioEl("body").prepend(
         ReactDOMServer.renderToStaticMarkup(
             <>
+                {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
                 <Byline
                     authors={post.authors}
                     withMax={false}
