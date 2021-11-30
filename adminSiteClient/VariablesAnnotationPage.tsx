@@ -265,7 +265,6 @@ class VariablesAnnotationComponent extends React.Component {
     ): boolean | void {
         const { fieldDescriptionsMap } = this
         if (source === "loadData" || changes === null) return // Changes due to loading are always ok
-        console.log("change", changes[0])
         // cancel editing if multiple columns are changed at the same time
         const differentColumns = new Set(changes.map((change) => change[1]))
         if (differentColumns.size > 1) return false
@@ -279,20 +278,36 @@ class VariablesAnnotationComponent extends React.Component {
             return
         }
 
-        console.log("Types", [columnDefinition.type, typeof changes[0][3]])
+        const allChangesSameType = changes.every(
+            (change) => typeof change[3] === typeof changes[0][3]
+        )
+        if (!allChangesSameType) {
+            console.error("Not all changes were of the same type?")
+            return
+        }
+
+        const firstNewValue = changes[0][3]
         const invalidTypeAssignment = match<
             [FieldType | FieldType[], string],
             boolean
-        >([columnDefinition.type, typeof changes[0][3]])
+        >([columnDefinition.type, typeof firstNewValue])
             .with([FieldType.string, "string"], (_) => false)
-            .with([FieldType.number, "number"], (_) => false)
-            .with([FieldType.integer, "number"], (_) => false)
+            .with([FieldType.number, "string"], (_) =>
+                Number.isNaN(Number.parseFloat(firstNewValue))
+            )
+            .with([FieldType.integer, "string"], (_) =>
+                Number.isNaN(Number.parseFloat(firstNewValue))
+            )
             .with([FieldType.boolean, "boolean"], (_) => false)
             .with([[__], "object"], (_) => false) // typeof Array is object!
 
             .otherwise((_) => true)
         if (invalidTypeAssignment) return false
-        console.log("validation ok")
+
+        // TODO: locally apply values here and see if they parse the schema? Might be an easy
+        // highlevel way to verify that enums are obeyed etc. But might also be tricky to debug
+        // if validation fails for nonobvious reasons
+
         return
     }
 

@@ -57,15 +57,26 @@ function isPlainTypeStringOrNull(item: string): boolean {
     return isPlainTypeString(item) || item === "null"
 }
 
+function typeIsGivenOrNull(
+    typeToTest: string | string[],
+    type: string
+): boolean {
+    // We often have a type that is an array of a given type and null. This helper
+    // function returns true if the type is exactly the given type or an array of this and null
+    if (typeof typeToTest === "string") return typeToTest === type
+    return typeToTest.every((item) => item === type || item === "null")
+}
+
 function getEditorOptionForType(
-    type: string,
+    type: string | string[],
     enumOptions: string[] | undefined
 ): EditorOption {
-    if (type === "number") return EditorOption.numeric
-    else if (type === "string" && enumOptions) return EditorOption.dropdown
-    else if (type === "string") return EditorOption.textfield
-    else if (type === "boolean") return EditorOption.checkbox
-    else if (type === "integer") return EditorOption.numeric
+    if (typeIsGivenOrNull(type, "number")) return EditorOption.numeric
+    else if (typeIsGivenOrNull(type, "string") && enumOptions)
+        return EditorOption.dropdown
+    else if (typeIsGivenOrNull(type, "string")) return EditorOption.textfield
+    else if (typeIsGivenOrNull(type, "boolean")) return EditorOption.checkbox
+    else if (typeIsGivenOrNull(type, "integer")) return EditorOption.numeric
     else return EditorOption.textfield
 }
 
@@ -181,7 +192,7 @@ function extractSchemaRecursive(
                 pointer: pointer,
                 default: schema.default as string | undefined,
                 editor: getEditorOptionForType(
-                    schema.type as string,
+                    schema.type as string | string[],
                     schema.enum as string[] | undefined
                 ),
                 enumOptions: schema.enum as string[] | undefined,
