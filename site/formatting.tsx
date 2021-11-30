@@ -225,6 +225,9 @@ const addTocToSections = (
 }
 
 const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
+    const publishedDate = formatDate(post.date)
+    const modifiedDate = formatDate(post.modifiedDate)
+
     cheerioEl("body").prepend(
         ReactDOMServer.renderToStaticMarkup(
             <>
@@ -233,7 +236,16 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
                     withMax={false}
                     override={post.byline}
                 />
-                <time>{formatDate(post.date)}</time>
+
+                <>
+                    <time>{publishedDate}</time>
+                </>
+                {modifiedDate !== publishedDate && (
+                    <>
+                        <span> - Last updated on </span>
+                        <time>{modifiedDate}</time>
+                    </>
+                )}
             </>
         )
     )
