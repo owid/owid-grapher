@@ -66,6 +66,15 @@ class VariablesAnnotationComponent extends React.Component {
     @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
         undefined
 
+    @computed get fieldDescriptionsMap(): Map<string, FieldDescription> {
+        const { fieldDescriptions } = this
+        const map = new Map<string, FieldDescription>()
+        if (fieldDescriptions === undefined) return map
+        for (const fieldDescription of fieldDescriptions)
+            map.set(fieldDescription.pointer, fieldDescription)
+        return map
+    }
+
     @computed get defaultValues(): Record<string, any> {
         const { fieldDescriptions } = this
         if (fieldDescriptions === undefined) return {}
@@ -254,26 +263,21 @@ class VariablesAnnotationComponent extends React.Component {
         changes: Handsontable.CellChange[] | null,
         source: Handsontable.ChangeSource
     ): boolean | void {
-        const { fieldDescriptions } = this
-        console.log("validating", fieldDescriptions)
+        const { fieldDescriptionsMap } = this
         if (source === "loadData" || changes === null) return // Changes due to loading are always ok
+        console.log("change", changes[0])
         // cancel editing if multiple columns are changed at the same time
         const differentColumns = new Set(changes.map((change) => change[1]))
         if (differentColumns.size > 1) return false
-        const targetColumn = [...differentColumns][0] as number
-        if (
-            targetColumn <
-            VariablesAnnotationComponent.readOnlyColumnNamesFields.length
-        ) {
-            console.error("Attempt to write a readonly columns?")
-            return false
+        const targetColumn = [...differentColumns][0] as string
+
+        const columnDefinition = fieldDescriptionsMap.get(targetColumn)
+        if (columnDefinition === undefined) {
+            console.error(
+                "Could not find column definition when trying to verify"
+            )
+            return
         }
-        const columnDefinition =
-            fieldDescriptions![
-                targetColumn -
-                    VariablesAnnotationComponent.readOnlyColumnNamesFields
-                        .length
-            ]
 
         console.log("Types", [columnDefinition.type, typeof changes[0][3]])
         const invalidTypeAssignment = match<
