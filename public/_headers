@@ -10,3 +10,6 @@
 
 /grapher/*
   Access-Control-Allow-Origin: *
+
+/explorers/*
+  Access-Control-Allow-Origin: *
