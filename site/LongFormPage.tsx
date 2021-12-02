@@ -18,6 +18,7 @@ import {
 } from "../clientUtils/owidTypes"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 import { Byline } from "./Byline"
+import { PageInfo } from "./PageInfo"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -162,12 +163,7 @@ export const LongFormPage = (props: {
                                             />
                                         )}
                                         {post.info && (
-                                            <div
-                                                className="blog-info"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.info,
-                                                }}
-                                            />
+                                            <PageInfo info={post.info} />
                                         )}
 
                                         {(withCitation || post.lastUpdated) && (
@@ -265,6 +261,11 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
+                                                {isPost && post.info && (
+                                                    <PageInfo
+                                                        info={post.info}
+                                                    />
+                                                )}
                                                 {(isPost || withCitation) && (
                                                     <>
                                                         <h3 id="licence">

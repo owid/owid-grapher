@@ -75,15 +75,6 @@
         }
     }
 
-    .blog-info {
-        @include info;
-        font-style: italic;
-        color: $secondary-text-color;
-        p {
-            margin-bottom: 0.5rem;
-        }
-    }
-
     // Cite this research and other potential tools located at the top of entries
     .tools {
         margin-top: 3rem;
@@ -140,6 +131,15 @@
                 padding-top: 6rem;
                 padding-bottom: 3 * $vertical-spacing;
                 @include titling(5rem);
+            }
+        }
+
+        .blog-info {
+            @include info;
+            font-style: italic;
+            color: $secondary-text-color;
+            p {
+                margin-bottom: 0.5rem;
             }
         }
     }
