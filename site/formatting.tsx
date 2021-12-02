@@ -238,15 +238,15 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
                     override={post.byline}
                 />
 
-                <>
+                <div className="published-updated">
                     <time>{publishedDate}</time>
-                </>
-                {modifiedDate !== publishedDate && (
-                    <>
-                        <span> - Last updated on </span>
-                        <time>{modifiedDate}</time>
-                    </>
-                )}
+                    {modifiedDate !== publishedDate && (
+                        <>
+                            <span> - Last updated on </span>
+                            <time>{modifiedDate}</time>
+                        </>
+                    )}
+                </div>
             </div>
         )
     )
