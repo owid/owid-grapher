@@ -22,13 +22,13 @@ import { PageInfo } from "./PageInfo"
 
 export interface PageOverrides {
     pageTitle?: string
+    pageDesc?: string
+    canonicalUrl?: string
     citationTitle?: string
     citationSlug?: string
     citationCanonicalUrl?: string
     citationAuthors?: string[]
     citationPublicationDate?: Date
-    canonicalUrl?: string
-    excerpt?: string
 }
 
 export const LongFormPage = (props: {
@@ -46,7 +46,7 @@ export const LongFormPage = (props: {
     const pageTitleSEO = `${pageTitle}${
         post.supertitle ? ` - ${post.supertitle}` : ""
     }`
-    const pageDesc = overrides?.excerpt ?? post.excerpt
+    const pageDesc = overrides?.pageDesc ?? post.pageDesc
     const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
 
     const citationTitle = overrides?.citationTitle ?? pageTitle

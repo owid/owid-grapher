@@ -376,13 +376,13 @@ export const renderCountryProfile = async (
 
     const overrides: PageOverrides = {
         pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
+        pageDesc: `${country.name}: ${formattedCountryProfile.pageDesc}`,
+        canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
         citationTitle: landing.title,
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
         citationPublicationDate: landing.date,
-        canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
-        excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`,
     }
     return renderToHtmlPage(
         <LongFormPage

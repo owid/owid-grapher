@@ -575,7 +575,7 @@ export const formatWordpressPost = async (
         footnotes: footnotes,
         references: references,
         tocHeadings: tocHeadings,
-        excerpt: post.excerpt || cheerioEl("p").first().text(),
+        pageDesc: post.excerpt || cheerioEl("p").first().text(),
         html: getBodyHtml(cheerioEl),
     }
 }
@@ -595,7 +595,7 @@ export const formatPost = async (
             footnotes: [],
             references: [],
             tocHeadings: [],
-            excerpt: post.excerpt || "",
+            pageDesc: post.excerpt || "",
         }
 
     // Override formattingOptions if specified in the post (as an HTML comment)

@@ -66,6 +66,7 @@ export interface FormattedPost extends FullPost {
     references: Record<string, unknown>[]
     footnotes: string[]
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    pageDesc: string
 }
 
 export enum SubNavId {
