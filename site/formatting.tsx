@@ -230,7 +230,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
 
     cheerioEl("body").prepend(
         ReactDOMServer.renderToStaticMarkup(
-            <>
+            <div className="article-meta">
                 {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
                 <Byline
                     authors={post.authors}
@@ -247,7 +247,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
                         <time>{modifiedDate}</time>
                     </>
                 )}
-            </>
+            </div>
         )
     )
 }

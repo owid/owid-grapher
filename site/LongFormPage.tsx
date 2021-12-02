@@ -4,11 +4,7 @@ import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import {
-    addContentFeatures,
-    formatAuthors,
-    formatDate,
-} from "../site/formatting"
+import { addContentFeatures, formatAuthors } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"

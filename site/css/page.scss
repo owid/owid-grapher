@@ -43,11 +43,6 @@
         }
     }
 
-    .article-titles {
-        margin-top: $vertical-spacing;
-        margin-bottom: $vertical-spacing * 2;
-    }
-
     .supertitle {
         font-family: $sans-serif-font-stack;
         color: $secondary-text-color;
@@ -121,6 +116,12 @@
         .offset-header {
             background-color: $primary-color-100;
         }
+
+        .article-titles {
+            margin-top: $vertical-spacing;
+            margin-bottom: $vertical-spacing * 2;
+        }
+
         .article-header {
             padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
@@ -144,25 +145,30 @@
     }
 
     &.thin-banner {
-        .offset-header {
-        }
         .article-header {
             padding-top: 2 * $vertical-spacing;
-            padding-bottom: 2 * $vertical-spacing;
+        }
+        h1 {
+            font-size: 3rem;
+        }
 
-            h1 {
-                font-size: 3rem;
-            }
+        .article-meta {
+            color: $secondary-text-color;
+            margin-bottom: 2 * $vertical-spacing;
+        }
 
-            time {
-                display: block;
-                font-size: 0.875rem;
-                color: $secondary-text-color;
-            }
+        .excerpt {
+            font-size: 1.5rem;
+            line-height: normal;
+            margin-bottom: 2 * $vertical-spacing;
+        }
 
-            .blog-info {
-                margin-top: $vertical-spacing;
-            }
+        .authors-byline {
+            font-weight: bold;
+        }
+
+        .blog-info {
+            margin-top: $vertical-spacing;
         }
     }
 }
