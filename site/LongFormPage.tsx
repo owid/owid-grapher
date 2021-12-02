@@ -148,7 +148,7 @@ export const LongFormPage = (props: {
                                             {post.subtitle}
                                         </div>
                                     )}
-                                    {formattingOptions.subnavId && (
+                                    {!isPost && formattingOptions.subnavId && (
                                         <Breadcrumb
                                             subnavId={
                                                 formattingOptions.subnavId
@@ -211,7 +211,7 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
-                        {formattingOptions.subnavId && (
+                        {!isPost && formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
                                 subnavCurrentId={
