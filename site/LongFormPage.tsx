@@ -19,6 +19,7 @@ import {
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
 import { Byline } from "./Byline"
 import { PageInfo } from "./PageInfo"
+import { BackToTopic } from "./BackToTopic"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -130,6 +131,11 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
+                                {isPost && formattingOptions.subnavId && (
+                                    <BackToTopic
+                                        subnavId={formattingOptions.subnavId}
+                                    />
+                                )}
                                 <div className="article-titles">
                                     {post.supertitle && (
                                         <div className="supertitle">

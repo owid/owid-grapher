@@ -145,6 +145,15 @@
     }
 
     &.thin-banner {
+        .back-to-topic {
+            font-size: 0.875rem;
+            &:hover {
+                text-decoration: underline;
+            }
+            svg {
+                margin-right: 0.5rem;
+            }
+        }
         .article-header {
             padding-top: 2 * $vertical-spacing;
         }
