@@ -63,7 +63,6 @@
 
     .authors-byline {
         margin-right: 1rem;
-        font-size: 1.125rem;
         color: $secondary-text-color;
 
         a {
@@ -132,6 +131,10 @@
                 padding-bottom: 3 * $vertical-spacing;
                 @include titling(5rem);
             }
+        }
+
+        .authors-byline {
+            font-size: 1.125rem;
         }
 
         .blog-info {
