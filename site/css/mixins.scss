@@ -48,10 +48,6 @@
     // resizing "slower" than it should during resizes
     flex: 1 1 $text-min-content-width;
     max-width: $text-max-content-width;
-
-    > *:first-child {
-        margin-top: $vertical-spacing;
-    }
 }
 
 @mixin media-column {
@@ -61,7 +57,6 @@
     position: sticky;
 
     > *:first-child {
-        margin-top: $vertical-spacing;
         padding-top: 0;
     }
 }

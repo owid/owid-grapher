@@ -159,6 +159,7 @@
         }
         .article-header {
             padding-top: 2 * $vertical-spacing;
+            padding-bottom: $vertical-spacing;
         }
         h1 {
             font-size: clamp(2rem, 5vw, 3rem);
