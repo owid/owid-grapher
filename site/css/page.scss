@@ -161,7 +161,7 @@
             padding-top: 2 * $vertical-spacing;
         }
         h1 {
-            font-size: 3rem;
+            font-size: clamp(2rem, 5vw, 3rem);
         }
 
         .article-meta {
@@ -170,7 +170,7 @@
         }
 
         .excerpt {
-            font-size: 1.5rem;
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
             line-height: normal;
             margin-bottom: 2 * $vertical-spacing;
         }
