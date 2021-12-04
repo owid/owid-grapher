@@ -1361,7 +1361,7 @@ apiRouter.get(
         const fullFilter = new BinaryLogicOperation(BinaryLogicOperators.and, [
             new EqualityComparision(EqualityOperator.equal, [
                 new SqlColumnName("datasets.name"),
-                new StringAtom("Natural disasters (EMDAT – decadal)"),
+                new StringAtom("Population (Gapminder, HYDE & UN)"),
             ]),
             ...userFilter,
         ])

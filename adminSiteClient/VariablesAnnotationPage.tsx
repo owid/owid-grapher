@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
-import { cloneDeep, fromPairs, isArray, isNil } from "lodash"
+import { cloneDeep, fromPairs, isArray, isNil, merge } from "lodash"
 
 import jsonpointer from "json8-pointer"
 import { HotColumn, HotTable } from "@handsontable/react"
@@ -25,6 +25,7 @@ import {
     VariableAnnotationsResponse,
     VariableAnnotationPatch,
 } from "../clientUtils/AdminSessionTypes"
+import { Grapher } from "../grapher/core/Grapher"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -50,6 +51,10 @@ interface UndoStep {
 @observer
 class VariablesAnnotationComponent extends React.Component {
     static contextType = AdminAppContext
+
+    @observable.ref grapher = new Grapher()
+    @observable.ref grapherElement?: JSX.Element
+
     context!: AdminAppContextType
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
         undefined
@@ -58,6 +63,34 @@ class VariablesAnnotationComponent extends React.Component {
 
     @observable undoSteps: UndoStep[] = []
     @observable redoSteps: UndoStep[] = []
+    @action.bound private loadGrapherJson(json: any): void {
+        this.grapherElement = (
+            <Grapher
+                {...{
+                    ...json,
+                    bounds:
+                        //this.editor?.previewMode === "mobile"
+                        //? new Bounds(0, 0, 360, 500)
+                        new Bounds(0, 0, 800, 600),
+                    getGrapherInstance: (grapher) => {
+                        this.grapher = grapher
+                    },
+                }}
+            />
+        )
+    }
+
+    @action private updatePreviewToRow(row: number): void {
+        const { richDataRows } = this
+        if (richDataRows === undefined) return
+        const config = richDataRows[row].grapherConfig
+        const finalConfigLayer = getFinalConfigLayerForVariable(
+            richDataRows[row].id
+        )
+        const mergedConfig = merge(config, finalConfigLayer)
+        mergedConfig.title = "test"
+        this.loadGrapherJson(mergedConfig)
+    }
 
     async sendPatches(patches: VariableAnnotationPatch[]): Promise<void> {
         await this.context.admin.rawRequest(
@@ -258,6 +291,8 @@ class VariablesAnnotationComponent extends React.Component {
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
+            afterSelectionEnd: (row, column, row2, column2, layer) =>
+                this.updatePreviewToRow(row),
             allowInsertColumn: false,
             allowInsertRow: false,
             autoRowSize: false,
@@ -428,17 +463,38 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     render() {
-        const { hotSettings, hotColumns } = this
+        const { hotSettings, hotColumns, grapherElement } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
-                <HotTable
-                    settings={this.hotSettings}
-                    //ref={this.hotTableComponent as any}
-                    licenseKey={"non-commercial-and-evaluation"}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "stretch",
+                        height: "100%",
+                    }}
                 >
-                    {hotColumns}
-                </HotTable>
+                    <div
+                        style={{
+                            flex: "1 1 20%",
+                        }}
+                    >
+                        {grapherElement ? grapherElement : <h1>Loading</h1>}
+                    </div>
+                    <div
+                        style={{
+                            flex: "1 1 auto",
+                        }}
+                    >
+                        <HotTable
+                            settings={this.hotSettings}
+                            //ref={this.hotTableComponent as any}
+                            licenseKey={"non-commercial-and-evaluation"}
+                        >
+                            {hotColumns}
+                        </HotTable>
+                    </div>
+                </div>
             )
     }
 
@@ -470,4 +526,13 @@ export class VariablesAnnotationPage extends React.Component {
     }
 
     //dispose!: IReactionDisposer
+}
+function getFinalConfigLayerForVariable(id: number) {
+    return {
+        version: 1,
+        dimensions: [{ property: "y", variableId: id }],
+        map: {
+            variableId: id,
+        },
+    }
 }
