@@ -10,6 +10,7 @@ import {
     isNumber,
 } from "./Util"
 import jsonpointer from "json8-pointer"
+import { compileGetValueFunction } from "./patchHelper"
 
 export enum EditorOption {
     textfield = "textfield",
@@ -153,7 +154,7 @@ function extractSchemaRecursive(
         ) {
             items.push({
                 type: schema.type as FieldType,
-                getter: jsonpointer.compile(pointer),
+                getter: compileGetValueFunction(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
                 editor: EditorOption.mappingEditor,
@@ -166,7 +167,7 @@ function extractSchemaRecursive(
             if (isPlainTypeOrArrayOfPlainType((schema as any).items.type)) {
                 items.push({
                     type: schema.type as FieldType | FieldType[],
-                    getter: jsonpointer.compile(pointer),
+                    getter: compileGetValueFunction(pointer),
                     pointer: pointer,
                     default: schema.default as string | undefined,
                     editor: EditorOption.primitiveListEditor,
@@ -188,7 +189,7 @@ function extractSchemaRecursive(
             // we yield a single element
             items.push({
                 type: schema.type as FieldType | FieldType[],
-                getter: jsonpointer.compile(pointer),
+                getter: compileGetValueFunction(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
                 editor: getEditorOptionForType(
@@ -210,7 +211,7 @@ function extractSchemaRecursive(
             const types = schema.oneOf.map((item: any) => item.type)
             items.push({
                 type: types as FieldType | FieldType[],
-                getter: jsonpointer.compile(pointer),
+                getter: compileGetValueFunction(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
                 editor: EditorOption.textfield,

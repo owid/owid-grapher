@@ -17,13 +17,16 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData } from "../db/model/Variable"
-import { OpPatch } from "../clientUtils/jsonPatchUtils"
+import { applyPatch } from "../clientUtils/patchHelper"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface"
 import { SuggestedChartRevisionStatus } from "../adminSiteClient/SuggestedChartRevision"
-
+import {
+    VariableAnnotationsResponse,
+    VariableAnnotationPatch,
+} from "../clientUtils/AdminSessionTypes"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -53,7 +56,6 @@ import {
     SqlColumnName,
     StringAtom,
 } from "../clientUtils/SqlFilterSExpression"
-import jiff = require("jiff")
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -727,18 +729,20 @@ apiRouter.get(
                 suggestedChartRevision.originalConfig = JSON.parse(
                     suggestedChartRevision.originalConfig
                 )
-                suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
-                    suggestedChartRevision
-                )
-                suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-                    suggestedChartRevision
-                )
+                suggestedChartRevision.canApprove =
+                    SuggestedChartRevision.checkCanApprove(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canReject =
+                    SuggestedChartRevision.checkCanReject(
+                        suggestedChartRevision
+                    )
+                suggestedChartRevision.canFlag =
+                    SuggestedChartRevision.checkCanFlag(suggestedChartRevision)
+                suggestedChartRevision.canPending =
+                    SuggestedChartRevision.checkCanPending(
+                        suggestedChartRevision
+                    )
             }
         )
 
@@ -1096,18 +1100,15 @@ apiRouter.get(
         suggestedChartRevision.existingConfig = JSON.parse(
             suggestedChartRevision.existingConfig
         )
-        suggestedChartRevision.canApprove = SuggestedChartRevision.checkCanApprove(
-            suggestedChartRevision
-        )
-        suggestedChartRevision.canReject = SuggestedChartRevision.checkCanReject(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canApprove =
+            SuggestedChartRevision.checkCanApprove(suggestedChartRevision)
+        suggestedChartRevision.canReject =
+            SuggestedChartRevision.checkCanReject(suggestedChartRevision)
         suggestedChartRevision.canFlag = SuggestedChartRevision.checkCanFlag(
             suggestedChartRevision
         )
-        suggestedChartRevision.canPending = SuggestedChartRevision.checkCanPending(
-            suggestedChartRevision
-        )
+        suggestedChartRevision.canPending =
+            SuggestedChartRevision.checkCanPending(suggestedChartRevision)
 
         return {
             suggestedChartRevision: suggestedChartRevision,
@@ -1347,58 +1348,44 @@ apiRouter.get("/variables.json", async (req) => {
     return { variables: rows, numTotalRows: numTotalRows }
 })
 
-interface VariableAnnotationsResponseRow {
-    id: number
-    name: string
-    grapherConfig: string
-    datasetname: string
-    namespacename: string
-}
+apiRouter.get(
+    "/variable-annotations",
+    async (req): Promise<VariableAnnotationsResponse> => {
+        const filterSExpr =
+            req.query.filter !== undefined
+                ? parseToOperation(req.query.filter)
+                : undefined
+        const userFilter = filterSExpr !== undefined ? [filterSExpr] : []
 
-interface VariableAnnotationsResponse {
-    numTotalRows: number
-    variables: VariableAnnotationsResponseRow[]
-}
-
-apiRouter.get("/variable-annotations", async (req) => {
-    const filterSExpr =
-        req.query.filter !== undefined
-            ? parseToOperation(req.query.filter)
-            : undefined
-    const userFilter = filterSExpr !== undefined ? [filterSExpr] : []
-
-    // TODO: for now we hardcode a filter here for testing
-    const fullFilter = new BinaryLogicOperation(BinaryLogicOperators.and, [
-        new EqualityComparision(EqualityOperator.equal, [
-            new SqlColumnName("datasets.name"),
-            new StringAtom("Natural disasters (EMDAT – decadal)"),
-        ]),
-        ...userFilter,
-    ])
-    // Note that our DSL generates sql here that we splice directly into the SQL as text
-    // This is a potential for a SQL injection attack but we control the DSL and are
-    // careful there to only allow carefully guarded vocabularies from being used, not
-    // arbitrary user input
-    const whereClause = fullFilter.toSql()
-    const results = await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+        // TODO: for now we hardcode a filter here for testing
+        const fullFilter = new BinaryLogicOperation(BinaryLogicOperators.and, [
+            new EqualityComparision(EqualityOperator.equal, [
+                new SqlColumnName("datasets.name"),
+                new StringAtom("Natural disasters (EMDAT – decadal)"),
+            ]),
+            ...userFilter,
+        ])
+        // Note that our DSL generates sql here that we splice directly into the SQL as text
+        // This is a potential for a SQL injection attack but we control the DSL and are
+        // careful there to only allow carefully guarded vocabularies from being used, not
+        // arbitrary user input
+        const whereClause = fullFilter.toSql()
+        const results =
+            await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
 WHERE ${whereClause}
 LIMIT 50`)
-    const resultCount = await db.execute(`SELECT count(*) as count
+        const resultCount = await db.execute(`SELECT count(*) as count
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
 WHERE ${whereClause}
 LIMIT 50`)
-    return { variables: results, numTotalRows: resultCount.count }
-})
-
-interface VariableAnnotationPatch {
-    variableId: number
-    operations: OpPatch[]
-}
+        return { variables: results, numTotalRows: resultCount.count }
+    }
+)
 
 apiRouter.patch("/variable-annotations", async (req) => {
     const patchesList = req.body as VariableAnnotationPatch[]
@@ -1412,20 +1399,19 @@ apiRouter.patch("/variable-annotations", async (req) => {
         const configMap = new Map(
             configsAndIds.map((item: any) => [
                 item.id,
-                item.grapherConfig ?? {},
+                item.grapherConfig ? JSON.parse(item.grapherConfig) : {},
             ])
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
         for (const patchSet of patchesList) {
             const config = configMap.get(patchSet.variableId)
-            const newConfig = jiff.patch(patchSet.operations, config)
-            configMap.set(patchSet.variableId, newConfig)
+            configMap.set(patchSet.variableId, applyPatch(patchSet, config))
         }
 
         for (const [variableId, newConfig] of configMap.entries()) {
             await manager.execute(
                 `UPDATE variables SET grapherConfig = ? where id = ?`,
-                [newConfig, variableId]
+                [JSON.stringify(newConfig), variableId]
             )
         }
     })

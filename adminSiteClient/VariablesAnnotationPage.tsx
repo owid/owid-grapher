@@ -1,21 +1,15 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    action,
-    runInAction,
-    reaction,
-    IReactionDisposer,
-} from "mobx"
-import { match, __, not, select, when } from "ts-pattern"
+import { observable, computed, action, runInAction } from "mobx"
+import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
-import { fromPairs, isArray, isNil, omitBy, zipObject } from "lodash"
+import { cloneDeep, fromPairs, isArray, isNil } from "lodash"
 
+import jsonpointer from "json8-pointer"
 import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
-import { SearchField, FieldsRow } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { applyPatch } from "../clientUtils/patchHelper"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
@@ -26,22 +20,11 @@ import {
 import Handsontable from "handsontable"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Bounds } from "../clientUtils/Bounds"
-
-interface VariableAnnotationsResponseRow {
-    id: number
-    name: string
-    grapherConfig: string
-    datasetname: string
-    namespacename: string
-}
-
-interface VariableAnnotationsRow {
-    id: number
-    name: string
-    grapherConfig: GrapherInterface
-    datasetname: string
-    namespacename: string
-}
+import {
+    VariableAnnotationsResponseRow,
+    VariableAnnotationsResponse,
+    VariableAnnotationPatch,
+} from "../clientUtils/AdminSessionTypes"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -52,9 +35,16 @@ function parseVariableAnnotationsRow(
     }
 }
 
-interface VariableAnnotationsResponse {
-    numTotalRows: number
-    variables: VariableAnnotationsResponseRow[]
+interface VariableAnnotationsRow {
+    id: number
+    name: string
+    grapherConfig: GrapherInterface
+    datasetname: string
+    namespacename: string
+}
+
+interface UndoStep {
+    patches: VariableAnnotationPatch[]
 }
 
 @observer
@@ -65,6 +55,77 @@ class VariablesAnnotationComponent extends React.Component {
         undefined
     @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
         undefined
+
+    @observable undoSteps: UndoStep[] = []
+    @observable redoSteps: UndoStep[] = []
+
+    async sendPatches(patches: VariableAnnotationPatch[]): Promise<void> {
+        await this.context.admin.rawRequest(
+            "/api/variable-annotations",
+            JSON.stringify(patches),
+            "PATCH"
+        )
+    }
+
+    /** Used to send the inverse of a patch to undo a change that has previously been performed
+     */
+    async sendReversedPatches(
+        patches: VariableAnnotationPatch[]
+    ): Promise<void> {
+        const reversedPatches = patches.map((patch) => ({
+            ...patch,
+            newValue: patch.oldValue,
+            oldValue: patch.newValue,
+        }))
+        await this.sendPatches(reversedPatches)
+    }
+
+    @action
+    async do(step: UndoStep): Promise<void> {
+        const { richDataRows } = this
+        if (richDataRows === undefined) return
+
+        this.undoSteps.push(step)
+
+        for (const patch of step.patches) {
+            const rowId = richDataRows.findIndex(
+                (row) => row.id === patch.variableId
+            )
+            if (rowId === -1)
+                console.error("Could not find row id in do step!", rowId)
+            else {
+                // apply the change to the richDataRows json structure
+
+                richDataRows[rowId].grapherConfig = applyPatch(
+                    patch,
+                    richDataRows[rowId].grapherConfig
+                )
+            }
+        }
+        await this.sendPatches(step.patches)
+    }
+
+    @action
+    async undo(): Promise<void> {
+        const { undoSteps, redoSteps } = this
+        if (undoSteps.length == 0) return
+        // TODO: not yet properly implemented - figure out how to update the flat data rows and
+        // set them here. Also change the rich data row entries
+        const lastStep = undoSteps.pop()
+        redoSteps.push(lastStep!)
+        await this.sendReversedPatches(lastStep!.patches)
+    }
+
+    @action
+    async redo(): Promise<void> {
+        const { redoSteps } = this
+        if (redoSteps.length == 0) return
+        // TODO: not yet properly implemented - figure out how to update the flat data rows and
+        // set them here. Also change the rich data row entries
+        const lastStep = redoSteps.pop()
+        this.undoSteps.push(lastStep!)
+        await this.sendPatches(lastStep!.patches)
+    }
 
     @computed get fieldDescriptionsMap(): Map<string, FieldDescription> {
         const { fieldDescriptions } = this
@@ -90,26 +151,29 @@ class VariablesAnnotationComponent extends React.Component {
         const { richDataRows, fieldDescriptions, defaultValues } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
             return undefined
-        console.log("default", defaultValues)
         return this.richDataRows?.map((row) => {
+            // for every field description try to get the value at this fields json pointer location
+            // we cloneDeep it so that the value is independent in any case, even array or (in the future) objects
+            // so that the grid will not change these values directly
             const fieldsArray = fieldDescriptions
                 .map(
                     (fieldDesc) =>
                         [
                             fieldDesc.pointer,
                             row.grapherConfig != undefined
-                                ? fieldDesc.getter(
-                                      row.grapherConfig as Record<
-                                          string,
-                                          unknown
-                                      >
+                                ? cloneDeep(
+                                      fieldDesc.getter(
+                                          row.grapherConfig as Record<
+                                              string,
+                                              unknown
+                                          >
+                                      )
                                   )
                                 : undefined,
                         ] as const
                 )
                 .filter(([name, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
-            console.log("fields values", fields)
             return {
                 id: row.id,
                 name: row.name,
@@ -161,6 +225,7 @@ class VariablesAnnotationComponent extends React.Component {
 
         if (fieldDescriptions === undefined) return []
         else {
+            // First the 4 readonly columns
             const readOnlyColumns: JSX.Element[] =
                 VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
                     (nameAndField) => (
@@ -175,6 +240,7 @@ class VariablesAnnotationComponent extends React.Component {
                         />
                     )
                 )
+            // then all the others coming from the fieldDescriptions
             const grapherColumns = fieldDescriptions.map(
                 VariablesAnnotationComponent.fieldDescriptionToColumn
             )
@@ -182,52 +248,10 @@ class VariablesAnnotationComponent extends React.Component {
         }
     }
     numTotalRows: number | undefined = undefined
-    //private hotTableComponent = React.createRef<HotTable>()
     @computed
     private get hotSettings() {
         const { flattenedDataRows } = this
         if (flattenedDataRows === undefined) return undefined
-        // const cells = function (row: number, column: number) {
-        //     const {
-        //         comment,
-        //         cssClasses,
-        //         optionKeywords,
-        //         placeholder,
-        //         contents,
-        //     } = program.getCell({ row, column })
-
-        //     const cellContentsOnDisk = programOnDisk.getCellContents({
-        //         row,
-        //         column,
-        //     })
-
-        //     const cellProperties: Partial<Handsontable.CellProperties> = {}
-
-        //     const allClasses = cssClasses?.slice() ?? []
-
-        //     if (cellContentsOnDisk !== contents) {
-        //         if (contents === "" && cellContentsOnDisk === undefined)
-        //             allClasses.push("cellCreated")
-        //         else if (isEmpty(contents)) allClasses.push("cellDeleted")
-        //         else if (isEmpty(cellContentsOnDisk))
-        //             allClasses.push("cellCreated")
-        //         else allClasses.push("cellChanged")
-        //     }
-
-        //     if (currentlySelectedGrapherRow === row && column)
-        //         allClasses.push(`currentlySelectedGrapherRow`)
-
-        //     cellProperties.className = allClasses.join(" ")
-        //     cellProperties.comment = comment ? { value: comment } : undefined
-        //     cellProperties.placeholder = placeholder
-
-        //     if (optionKeywords && optionKeywords.length) {
-        //         cellProperties.type = "autocomplete"
-        //         cellProperties.source = optionKeywords
-        //     }
-
-        //     return cellProperties
-        // }
 
         const hotSettings: Handsontable.GridSettings = {
             afterChange: (changes, source) =>
@@ -264,8 +288,11 @@ class VariablesAnnotationComponent extends React.Component {
         source: Handsontable.ChangeSource
     ): boolean | void {
         const { fieldDescriptionsMap } = this
-        if (source === "loadData" || changes === null) return // Changes due to loading are always ok
-        // cancel editing if multiple columns are changed at the same time
+        // Changes due to loading are always ok (return flags all as ok)
+        if (source === "loadData" || changes === null) return
+
+        // cancel editing if multiple columns are changed at the same time - we
+        // currently only support changes to a single column at a time
         const differentColumns = new Set(changes.map((change) => change[1]))
         if (differentColumns.size > 1) return false
         const targetColumn = [...differentColumns][0] as string
@@ -278,6 +305,9 @@ class VariablesAnnotationComponent extends React.Component {
             return
         }
 
+        // Since we are editing only values in one column, we strongly assume
+        // that all values are of the same type (actually supposed to be the same value)
+        // -> verify this
         const allChangesSameType = changes.every(
             (change) => typeof change[3] === typeof changes[0][3]
         )
@@ -286,6 +316,9 @@ class VariablesAnnotationComponent extends React.Component {
             return
         }
 
+        // Check if the type matches the target (e.g. to avoid a string value ending
+        // up in a text field). This is hard to nail down fully but we try to avoid
+        // such mistakes where possible
         const firstNewValue = changes[0][3]
         const invalidTypeAssignment = match<
             [FieldType | FieldType[], string],
@@ -299,7 +332,7 @@ class VariablesAnnotationComponent extends React.Component {
                 Number.isNaN(Number.parseFloat(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], (_) => false)
-            .with([[__], "object"], (_) => false) // typeof Array is object!
+            .with([[__], "string"], (_) => false)
 
             .otherwise((_) => true)
         if (invalidTypeAssignment) return false
@@ -308,6 +341,7 @@ class VariablesAnnotationComponent extends React.Component {
         // highlevel way to verify that enums are obeyed etc. But might also be tricky to debug
         // if validation fails for nonobvious reasons
 
+        // If we got here then everything seems to be ok
         return
     }
 
@@ -316,9 +350,60 @@ class VariablesAnnotationComponent extends React.Component {
         source: Handsontable.ChangeSource
     ): void {
         // We don't want to persist changes due to loading data
-        if (source === "loadData" || changes === null) return
+        const { fieldDescriptionsMap, richDataRows } = this
+        if (
+            source === "loadData" ||
+            changes === null ||
+            richDataRows === undefined
+        )
+            return
 
-        for (const change of changes) console.log("Cell changed", change)
+        const patches = []
+        // Collect the patches, which is a data structure of row, column, oldValue, newValue
+        for (const change of changes) {
+            let [rowIndex, column, prevVal, newVal] = change
+
+            const targetPath = jsonpointer.parse(column) as string[]
+            const fieldDesc = fieldDescriptionsMap.get(column as string)
+            const row = richDataRows[rowIndex]
+
+            // we normalize the default values to null (we don't want to store them and null leads to removing the key)
+            if (
+                fieldDesc?.default !== undefined &&
+                prevVal === fieldDesc?.default
+            )
+                prevVal = null
+            if (
+                fieldDesc?.default !== undefined &&
+                newVal === fieldDesc?.default
+            )
+                newVal = null
+
+            // Type conversion
+            // If we have an array of both strings and number then the value we get here will always
+            // be a string. Check if we can coerce it to number and do so if possible
+            if (
+                isArray(fieldDesc?.type) &&
+                fieldDesc?.type.find(
+                    (type) =>
+                        type === FieldType.number || type === FieldType.integer
+                ) &&
+                !Number.isNaN(Number.parseFloat(newVal))
+            )
+                newVal = Number.parseFloat(newVal)
+
+            // Now construct the patch and store it
+            const patch: VariableAnnotationPatch = {
+                variableId: row.id,
+                oldValue: prevVal,
+                newValue: newVal,
+                jsonPointer: column as string,
+            }
+            patches.push(patch)
+        }
+        // Perform a do operation that will add this to the undo stack and immediately
+        // post this as a PATCH request to the server
+        this.do({ patches })
     }
 
     async getData() {

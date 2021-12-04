@@ -8,7 +8,7 @@ import { AdminApp } from "./AdminApp"
 import { Json, stringifyUnkownError } from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
-type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
+type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
 interface ClientSettings {
     ENV: "development" | "production"
