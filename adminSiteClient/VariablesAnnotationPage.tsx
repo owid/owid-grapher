@@ -25,7 +25,7 @@ import {
     VariableAnnotationsResponse,
     VariableAnnotationPatch,
 } from "../clientUtils/AdminSessionTypes"
-import { Grapher } from "../grapher/core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -64,31 +64,35 @@ class VariablesAnnotationComponent extends React.Component {
     @observable undoSteps: UndoStep[] = []
     @observable redoSteps: UndoStep[] = []
     @action.bound private loadGrapherJson(json: any): void {
-        this.grapherElement = (
-            <Grapher
-                {...{
-                    ...json,
-                    bounds:
-                        //this.editor?.previewMode === "mobile"
-                        //? new Bounds(0, 0, 360, 500)
-                        new Bounds(0, 0, 800, 600),
-                    getGrapherInstance: (grapher) => {
-                        this.grapher = grapher
-                    },
-                }}
-            />
-        )
+        const newConfig: GrapherProgrammaticInterface = {
+            ...json,
+            bounds:
+                //this.editor?.previewMode === "mobile"
+                //? new Bounds(0, 0, 360, 500)
+                new Bounds(0, 0, 800, 600),
+            getGrapherInstance: (grapher: Grapher) => {
+                this.grapher = grapher
+            },
+        }
+        if (this.grapherElement) {
+            {
+                this.grapher.setAuthoredVersion(newConfig)
+                this.grapher.reset()
+                this.grapher.updateFromObject(newConfig)
+                this.grapher.downloadData()
+            }
+        } else this.grapherElement = <Grapher {...newConfig} />
     }
 
     @action private updatePreviewToRow(row: number): void {
         const { richDataRows } = this
+        console.log("updating preview to row", row)
         if (richDataRows === undefined) return
         const config = richDataRows[row].grapherConfig
         const finalConfigLayer = getFinalConfigLayerForVariable(
             richDataRows[row].id
         )
         const mergedConfig = merge(config, finalConfigLayer)
-        mergedConfig.title = "test"
         this.loadGrapherJson(mergedConfig)
     }
 
@@ -135,6 +139,7 @@ class VariablesAnnotationComponent extends React.Component {
                 )
             }
         }
+        if (this.selectedRow) this.updatePreviewToRow(this.selectedRow)
         await this.sendPatches(step.patches)
     }
 
@@ -281,9 +286,10 @@ class VariablesAnnotationComponent extends React.Component {
         }
     }
     numTotalRows: number | undefined = undefined
+    selectedRow: number | undefined = undefined
     @computed
     private get hotSettings() {
-        const { flattenedDataRows } = this
+        const { flattenedDataRows, selectedRow } = this
         if (flattenedDataRows === undefined) return undefined
 
         const hotSettings: Handsontable.GridSettings = {
@@ -291,8 +297,12 @@ class VariablesAnnotationComponent extends React.Component {
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row, column, row2, column2, layer) =>
-                this.updatePreviewToRow(row),
+            afterSelectionEnd: (row, column, row2, column2, layer) => {
+                if (row !== this.selectedRow) {
+                    this.selectedRow = row
+                    this.updatePreviewToRow(row)
+                }
+            },
             allowInsertColumn: false,
             allowInsertRow: false,
             autoRowSize: false,
