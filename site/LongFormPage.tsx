@@ -239,6 +239,11 @@ export const LongFormPage = (props: {
                                     <footer className="article-footer">
                                         <div className="wp-block-columns">
                                             <div className="wp-block-column">
+                                                {isPost && post.info && (
+                                                    <PageInfo
+                                                        info={post.info}
+                                                    />
+                                                )}
                                                 {post.footnotes.length ? (
                                                     <React.Fragment>
                                                         <h3 id={endNotes.slug}>
@@ -268,11 +273,7 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
-                                                {isPost && post.info && (
-                                                    <PageInfo
-                                                        info={post.info}
-                                                    />
-                                                )}
+
                                                 {(isPost || withCitation) && (
                                                     <>
                                                         <h3 id="licence">
