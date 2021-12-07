@@ -73,7 +73,6 @@ export const ALGOLIA_SECRET_KEY: string =
     serverSettings.ALGOLIA_SECRET_KEY ?? ""
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true" ?? false
-export const STRIPE_SECRET_KEY: string = serverSettings.STRIPE_SECRET_KEY ?? ""
 
 // Settings for automated email sending, e.g. for admin invite
 export const EMAIL_HOST: string = serverSettings.EMAIL_HOST ?? "smtp.mail.com"
