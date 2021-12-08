@@ -186,4 +186,16 @@ export const GrapherGrammar: Grammar = {
         description:
             "Hide the total value that is normally displayed to the right of the bars in a stacked bar chart.",
     },
+    timelineMinTime: {
+        ...NumericCellDef,
+        keyword: "timelineMinTime",
+        description:
+            "Set the minimum time for the timeline. Must be an integer. For days, use days since 21 Jan 2020, e.g. 24 Jan 2020 is '3'.",
+    },
+    timelineMaxTime: {
+        ...NumericCellDef,
+        keyword: "timelineMaxTime",
+        description:
+            "Set the maximum time for the timeline. Must be an integer. For days, use days since 21 Jan 2020, e.g. 24 Jan 2020 is '3'.",
+    },
 } as const
