@@ -222,7 +222,6 @@ export interface FullPost {
     slug: string
     path: string
     title: string
-    subtitle?: string
     date: Date
     modifiedDate: Date
     authors: string[]

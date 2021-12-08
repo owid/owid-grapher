@@ -1,6 +1,5 @@
 import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
 import Glossary from "./Glossary/Glossary"
-import Subtitle from "./Subtitle/Subtitle"
 import PublicationContext from "./PublicationContext/PublicationContext"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
@@ -9,7 +8,6 @@ import { Notice } from "@wordpress/components"
 
 const OWID_KEY_PERFORMANCE_INDICATORS = "owid-key-performance-indicators"
 const OWID_GLOSSARY = "owid-glossary"
-const OWID_SUBTITLE = "owid-subtitle"
 const OWID_PUBLICATION_CONTEXT = "owid-publication-context"
 
 registerPlugin(OWID_KEY_PERFORMANCE_INDICATORS, {
@@ -41,24 +39,6 @@ registerPlugin(OWID_GLOSSARY, {
                     className={OWID_GLOSSARY}
                 >
                     <Glossary />
-                </PluginDocumentSettingPanel>
-            )
-        )
-    },
-    icon: false,
-})
-
-registerPlugin(OWID_SUBTITLE, {
-    render: () => {
-        const postType = select("core/editor").getCurrentPostType()
-        return (
-            postType === "post" && (
-                <PluginDocumentSettingPanel
-                    name={OWID_SUBTITLE}
-                    title="Subtitle"
-                    className={OWID_SUBTITLE}
-                >
-                    <Subtitle />
                 </PluginDocumentSettingPanel>
             )
         )

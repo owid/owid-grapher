@@ -143,11 +143,6 @@ export const LongFormPage = (props: {
                                         </div>
                                     )}
                                     <h1 className="entry-title">{pageTitle}</h1>
-                                    {post.subtitle && (
-                                        <div className="subtitle">
-                                            {post.subtitle}
-                                        </div>
-                                    )}
                                     {!isPost && formattingOptions.subnavId && (
                                         <Breadcrumb
                                             subnavId={

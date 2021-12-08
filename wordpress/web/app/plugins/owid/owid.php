@@ -27,7 +27,6 @@ include 'src/Card/card.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
-const SUBTITLE_META_FIELD = "owid_subtitle_meta_field";
 const PUBLICATION_CONTEXT_META_FIELD = "owid_publication_context_meta_field";
 
 function setup()
@@ -100,14 +99,6 @@ function register()
     register_post_meta('', GLOSSARY_META_FIELD, [
         'single' => true,
         'type' => 'boolean',
-        'show_in_rest' => true,
-    ]);
-
-    // Add support for subtitles. This is used by the editor (see also the
-    // GraphQL registration of that field below)
-    register_post_meta('', SUBTITLE_META_FIELD, [
-        'single' => true,
-        'type' => 'string',
         'show_in_rest' => true,
     ]);
 
@@ -216,20 +207,6 @@ function graphql_register_types()
     //             true
     //         );
     //         return !!$glossary_post_meta;
-    //     },
-    // ]);
-
-    // Not needed for now, subtitles are only queried through the REST API.
-    // register_graphql_field('Post', 'subtitle', [
-    //     'type' => 'String',
-    //     'description' => 'Subtitle',
-    //     'resolve' => function ($post) {
-    //         $subtitle_post_meta = get_post_meta(
-    //             $post->ID,
-    //             SUBTITLE_META_FIELD,
-    //             true
-    //         );
-    //         return $subtitle_post_meta;
     //     },
     // ]);
 }
