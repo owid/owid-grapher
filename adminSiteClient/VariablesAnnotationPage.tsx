@@ -58,6 +58,14 @@ interface UndoStep {
     patches: VariableAnnotationPatch[]
 }
 
+const enum Tabs {
+    PreviewTab = "PreviewTab",
+    EditorTab = "EditorTab",
+    FilterTab = "FilterTab",
+}
+
+const ALL_TABS = [Tabs.PreviewTab, Tabs.EditorTab, Tabs.FilterTab]
+
 @observer
 class VariablesAnnotationComponent extends React.Component<
     Record<string, never>,
@@ -70,6 +78,7 @@ class VariablesAnnotationComponent extends React.Component<
     @observable.ref grapherElement?: JSX.Element
     numTotalRows: number | undefined = undefined
     selectedRow: number | undefined = undefined
+    @observable activeTab = Tabs.FilterTab
 
     context!: AdminAppContextType
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
@@ -517,57 +526,49 @@ class VariablesAnnotationComponent extends React.Component<
     }
 
     render() {
-        const { hotSettings, hotColumns, grapherElement, numTotalRows } = this
+        const {
+            hotSettings,
+            hotColumns,
+            grapherElement,
+            numTotalRows,
+            activeTab,
+        } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "stretch",
-                        height: "100%",
-                    }}
-                >
-                    <div
-                        style={{
-                            flex: "1 1 20%",
-                        }}
-                    >
-                        <div>
-                            <div className="row">
-                                <div className="col">
-                                    <form
-                                        onSubmit={(e) => {
-                                            e.preventDefault()
-                                            //this.save()
-                                        }}
-                                    >
-                                        <section>
-                                            <h3>Variable filters</h3>
-                                            <p>
-                                                Total variable count matching
-                                                the active filter:{" "}
-                                                {numTotalRows}
-                                            </p>
-
-                                            <BindString
-                                                field="variableNameFilter"
-                                                store={this}
-                                                label="Variable name"
-                                            />
-                                        </section>
-                                    </form>
-                                </div>
-                            </div>
+                <div className="VariablesAnnotationPage">
+                    <div className="sidebar">
+                        <div className="p-2">
+                            <ul className="nav nav-tabs">
+                                {ALL_TABS.map((tab) => (
+                                    <li key={tab} className="nav-item">
+                                        <a
+                                            className={
+                                                "nav-link" +
+                                                (tab === activeTab
+                                                    ? " active"
+                                                    : "")
+                                            }
+                                            onClick={action(
+                                                () => (this.activeTab = tab)
+                                            )}
+                                        >
+                                            {tab}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <h3>Interactive grapher preview</h3>
-                        {grapherElement ? grapherElement : null}
+                        <div>
+                            {activeTab === Tabs.FilterTab
+                                ? this.renderFilterTab()
+                                : null}
+                            {activeTab === Tabs.PreviewTab
+                                ? this.renderPreviewTab()
+                                : null}
+                        </div>
                     </div>
-                    <div
-                        style={{
-                            flex: "1 1 auto",
-                        }}
-                    >
+                    <div className="editor-view">
                         <HotTable
                             settings={this.hotSettings}
                             //ref={this.hotTableComponent as any}
@@ -578,6 +579,35 @@ class VariablesAnnotationComponent extends React.Component<
                     </div>
                 </div>
             )
+    }
+
+    renderFilterTab(): JSX.Element {
+        const { numTotalRows } = this
+        return (
+            <section>
+                <h3>Variable filters</h3>
+                <p>
+                    Total variable count matching the active filter:{" "}
+                    {numTotalRows}
+                </p>
+
+                <BindString
+                    field="variableNameFilter"
+                    store={this}
+                    label="Variable name"
+                />
+            </section>
+        )
+    }
+
+    renderPreviewTab(): JSX.Element {
+        const { grapherElement } = this
+        return (
+            <React.Fragment>
+                <h3>Interactive grapher preview</h3>
+                {grapherElement ? grapherElement : null}
+            </React.Fragment>
+        )
     }
 
     async componentDidMount() {
