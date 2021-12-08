@@ -16,6 +16,7 @@ import {
     BinaryLogicOperators,
     EqualityComparision,
     EqualityOperator,
+    StringContainsOperation,
 } from "./SqlFilterSExpression"
 function checkIsomorphism(operation: Operation): void {
     return expect(parseToOperation(operation.toSExpr())).toEqual(operation)
@@ -89,6 +90,14 @@ describe("parse simple filters expressions", () => {
         )
     })
     it("shoud round trip binary logic operations correctly", async () => {
+        checkIsomorphism(
+            new StringContainsOperation(
+                new JsonPointerSymbol("/map/projection"),
+                new StringAtom("Europe")
+            )
+        )
+    })
+    it("should round trip string contains operations correclty", async () => {
         const compCreator = (op: BinaryLogicOperators): BinaryLogicOperation =>
             new BinaryLogicOperation(op, [
                 new BooleanAtom(true),
@@ -125,6 +134,10 @@ describe("transpile to expected SQL", () => {
         checkSql("(AND true false false)", "(true AND false AND false)")
         checkSql("(OR true false false)", "(true OR false OR false)")
         checkSql("(NOT true)", "(NOT true)")
+        checkSql(
+            '(CONTAINS /map/projection "Europe")',
+            "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") LIKE '%Europe%')"
+        )
     })
 
     it("should transpile some more complicated expressions correctly to SQL", async () => {

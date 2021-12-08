@@ -1,6 +1,6 @@
 import * as React from "react"
-import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { Disposer, observer } from "mobx-react"
+import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import { cloneDeep, fromPairs, isArray, isNil, merge } from "lodash"
@@ -10,6 +10,12 @@ import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { applyPatch } from "../clientUtils/patchHelper"
+import {
+    SqlColumnName,
+    SQL_COLUMN_NAME_VARIABLE_NAME,
+    StringAtom,
+    StringContainsOperation,
+} from "../clientUtils/SqlFilterSExpression"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
@@ -26,6 +32,10 @@ import {
     VariableAnnotationPatch,
 } from "../clientUtils/AdminSessionTypes"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { BindString } from "./Forms"
+import { from } from "rxjs"
+import { debounceTime, distinctUntilChanged } from "rxjs/operators"
+import { toStream, fromStream, IStreamListener } from "mobx-utils"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -49,11 +59,17 @@ interface UndoStep {
 }
 
 @observer
-class VariablesAnnotationComponent extends React.Component {
+class VariablesAnnotationComponent extends React.Component<
+    Record<string, never>,
+    Record<string, never>,
+    Record<string, never>
+> {
     static contextType = AdminAppContext
 
     @observable.ref grapher = new Grapher()
     @observable.ref grapherElement?: JSX.Element
+    numTotalRows: number | undefined = undefined
+    selectedRow: number | undefined = undefined
 
     context!: AdminAppContextType
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
@@ -63,6 +79,25 @@ class VariablesAnnotationComponent extends React.Component {
 
     @observable undoSteps: UndoStep[] = []
     @observable redoSteps: UndoStep[] = []
+    @observable variableNameFilter: string = ""
+    @observable currentPagingOffset: number = 0
+    disposers: Disposer[] = []
+    //debouncedVariableNameFilterListener: IStreamListener<string | undefined>
+    // @computed get debouncedVariableNameFilter(): string | undefined {
+    //     return this.debouncedVariableNameFilterListener.current
+    // }
+
+    constructor(props: Record<string, never>) {
+        super(props)
+
+        //this.debouncedVariableNameFilterListener = fromStream(observable)
+    }
+    @action.bound private resetViewStateAfterFetch(): void {
+        this.undoSteps = []
+        this.redoSteps = []
+        this.selectedRow = undefined
+        this.grapherElement = undefined
+    }
     @action.bound private loadGrapherJson(json: any): void {
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
@@ -285,11 +320,10 @@ class VariablesAnnotationComponent extends React.Component {
             return [...readOnlyColumns, ...grapherColumns]
         }
     }
-    numTotalRows: number | undefined = undefined
-    selectedRow: number | undefined = undefined
+
     @computed
     private get hotSettings() {
-        const { flattenedDataRows, selectedRow } = this
+        const { flattenedDataRows } = this
         if (flattenedDataRows === undefined) return undefined
 
         const hotSettings: Handsontable.GridSettings = {
@@ -451,12 +485,22 @@ class VariablesAnnotationComponent extends React.Component {
         this.do({ patches })
     }
 
-    async getData() {
+    async getData(variableFilter: string, offset: number) {
+        const filter =
+            variableFilter !== ""
+                ? new StringContainsOperation(
+                      new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME),
+                      new StringAtom(variableFilter)
+                  ).toSExpr()
+                : undefined
         const json = (await this.context.admin.getJSON(
-            "/api/variable-annotations"
+            "/api/variable-annotations",
+            { filter, offset }
         )) as VariableAnnotationsResponse
         runInAction(() => {
+            this.resetViewStateAfterFetch()
             this.richDataRows = json.variables.map(parseVariableAnnotationsRow)
+            this.currentPagingOffset = offset
             this.numTotalRows = json.numTotalRows
         })
     }
@@ -473,7 +517,7 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     render() {
-        const { hotSettings, hotColumns, grapherElement } = this
+        const { hotSettings, hotColumns, grapherElement, numTotalRows } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
@@ -489,7 +533,35 @@ class VariablesAnnotationComponent extends React.Component {
                             flex: "1 1 20%",
                         }}
                     >
-                        {grapherElement ? grapherElement : <h1>Loading</h1>}
+                        <div>
+                            <div className="row">
+                                <div className="col">
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault()
+                                            //this.save()
+                                        }}
+                                    >
+                                        <section>
+                                            <h3>Variable filters</h3>
+                                            <p>
+                                                Total variable count matching
+                                                the active filter:{" "}
+                                                {numTotalRows}
+                                            </p>
+
+                                            <BindString
+                                                field="variableNameFilter"
+                                                store={this}
+                                                label="Variable name"
+                                            />
+                                        </section>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <h3>Interactive grapher preview</h3>
+                        {grapherElement ? grapherElement : null}
                     </div>
                     <div
                         style={{
@@ -510,7 +582,20 @@ class VariablesAnnotationComponent extends React.Component {
 
     async componentDidMount() {
         // TODO: run these in parallel but await them and handle errors
-        this.getData()
+        //this.getData("", 0)
+        const varStream = toStream(() => this.variableNameFilter)
+        const observable = from(varStream).pipe(
+            debounceTime(200),
+            distinctUntilChanged()
+            // TODO: Usually in RxJS we would do a switchMap here with a fromFetch for the data fetching
+            // and get automatic cancelling of obsolete HTTP requests. This would mean changing the entire error
+            // handling a bit for the getData function so I'm not doing this now but it might be a nice
+            // change in the future
+        )
+        const mobxValue = fromStream(observable)
+        const disposer = autorun(() => this.getData(mobxValue.current ?? "", 0))
+        this.disposers.push(disposer)
+
         this.getFieldDefinitions()
         // this.dispose = reaction(
         //     () => this.searchInput || this.maxVisibleRows,
@@ -520,7 +605,10 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     componentWillUnmount() {
-        //this.dispose()
+        for (const disposer of this.disposers) {
+            disposer()
+        }
+        this.disposers = []
     }
 }
 

@@ -1,6 +1,7 @@
 import parse = require("s-expression")
 import pointer from "json8-pointer"
 import { isArray, subtract, tail, without } from "lodash"
+import { string } from "prop-types"
 export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/ban-types
 
 export enum Arity {
@@ -85,8 +86,11 @@ export class StringAtom extends StringOperation {
     }
     expressionType = ExpressionType.string
     value: string
+    escapedValue(): string {
+        return this.value.toString().replace("'", "''")
+    }
     toSql(): string {
-        return `'${this.value.toString().replace("'", "''")}'` // escape single quotes to avoid SQL injection attacks :)
+        return `'${this.escapedValue()}'` // escape single quotes to avoid SQL injection attacks :)
     }
 
     toSExpr(): string {
@@ -136,11 +140,15 @@ export class JsonPointerSymbol implements Operation {
     }
 }
 
+export const SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name"
+export const SQL_COLUMN_NAME_DATASET_NAME = "datasets.name"
+export const SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name"
+
 export class SqlColumnName implements Operation {
     static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
-        ["variables.name", ExpressionType.string],
-        ["datasets.name", ExpressionType.string],
-        ["namespaces.name", ExpressionType.string],
+        [SQL_COLUMN_NAME_VARIABLE_NAME, ExpressionType.string],
+        [SQL_COLUMN_NAME_DATASET_NAME, ExpressionType.string],
+        [SQL_COLUMN_NAME_NAMESPACE_NAME, ExpressionType.string],
     ])
     static isValidSqlColumnName(str: string): boolean {
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
@@ -230,6 +238,25 @@ export class EqualityComparision extends BooleanOperation {
     toSExpr(): string {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
+    }
+}
+
+export class StringContainsOperation extends BooleanOperation {
+    constructor(container: StringOperation, searchString: StringAtom) {
+        super()
+        this.container = container
+        this.searchString = searchString
+    }
+
+    container: StringOperation
+    searchString: StringAtom
+
+    toSql(): string {
+        return `(${this.container.toSql()} LIKE '%${this.searchString.escapedValue()}%')`
+    }
+
+    toSExpr(): string {
+        return `(CONTAINS ${this.container.toSExpr()} ${this.searchString.toSExpr()})`
     }
 }
 
@@ -387,6 +414,15 @@ const operationFactoryMap = new Map<string, OperationInfo>([
             arity: Arity.unary,
             operandsType: ExpressionType.boolean,
             ctor: (args: Operation[]): Operation => new Negation(args[0]),
+        },
+    ],
+    [
+        "CONTAINS",
+        {
+            arity: Arity.binary,
+            operandsType: ExpressionType.string,
+            ctor: (args: Operation[]): Operation =>
+                new StringContainsOperation(args[0], args[1] as StringAtom),
         },
     ],
 ])

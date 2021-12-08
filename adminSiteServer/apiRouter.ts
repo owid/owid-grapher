@@ -1355,35 +1355,29 @@ apiRouter.get(
             req.query.filter !== undefined
                 ? parseToOperation(req.query.filter)
                 : undefined
-        const userFilter = filterSExpr !== undefined ? [filterSExpr] : []
 
-        // TODO: for now we hardcode a filter here for testing
-        const fullFilter = new BinaryLogicOperation(BinaryLogicOperators.and, [
-            new EqualityComparision(EqualityOperator.equal, [
-                new SqlColumnName("datasets.name"),
-                new StringAtom("Population (Gapminder, HYDE & UN)"),
-            ]),
-            ...userFilter,
-        ])
+        let offset = req.query.offset ? Number.parseInt(req.query.offset) : 0
+        if (Number.isNaN(offset) || offset === undefined) offset = 0
+
         // Note that our DSL generates sql here that we splice directly into the SQL as text
         // This is a potential for a SQL injection attack but we control the DSL and are
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
-        const whereClause = fullFilter.toSql()
+        const whereClause = filterSExpr?.toSql() ?? "true"
         const results =
             await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
 WHERE ${whereClause}
-LIMIT 50`)
+LIMIT 50
+OFFSET ${offset.toString()}`)
         const resultCount = await db.execute(`SELECT count(*) as count
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
-WHERE ${whereClause}
-LIMIT 50`)
-        return { variables: results, numTotalRows: resultCount.count }
+WHERE ${whereClause}`)
+        return { variables: results, numTotalRows: resultCount[0].count }
     }
 )
 
