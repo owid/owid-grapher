@@ -198,4 +198,9 @@ export const GrapherGrammar: Grammar = {
         description:
             "Set the maximum time for the timeline. Must be an integer. For days, use days since 21 Jan 2020, e.g. 24 Jan 2020 is '3'.",
     },
+    defaultView: {
+        ...BooleanCellDef,
+        keyword: "defaultView",
+        description: "Whether this view is used as the default view.",
+    },
 } as const
