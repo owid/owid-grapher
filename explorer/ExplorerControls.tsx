@@ -97,7 +97,7 @@ const ExplorerDropdown = (props: {
                 SingleValue: ExplorerSingleValue,
             }}
             styles={styles}
-            isSearchable={isMobile ? options.length > 50 : options.length > 10}
+            isSearchable={!isMobile && options.length > 10}
             maxMenuHeight={350}
         />
     )
