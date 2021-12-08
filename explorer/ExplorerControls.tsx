@@ -86,7 +86,7 @@ const ExplorerDropdown = (props: {
             isDisabled={options.length < 2}
             // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
             menuPlacement={isMobile ? "top" : "auto"}
-            menuPosition={isMobile ? "fixed" : "absolute"}
+            menuPosition="absolute"
             options={options}
             value={value}
             onChange={(option: ExplorerDropdownOption) =>
