@@ -415,7 +415,8 @@ export class CountryStandardizerPage extends React.Component {
     }
 
     @computed get csvDataUri(): string {
-        return window.URL.createObjectURL(this.outputCSV)
+        if (this.outputCSV) return window.URL.createObjectURL(this.outputCSV)
+        else return ""
     }
 
     @computed get csvFilename(): string {
