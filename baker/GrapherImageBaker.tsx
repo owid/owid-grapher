@@ -1,4 +1,3 @@
-import * as lodash from "lodash"
 import * as db from "../db/db"
 import { getVariableData } from "../db/model/Variable"
 import * as fs from "fs-extra"
@@ -186,20 +185,25 @@ export async function bakeGraphersToSvgs(
     )
 }
 
-const svgoConfig: svgo.Options = {
+const svgoConfig: svgo.OptimizeOptions = {
     floatPrecision: 2,
     plugins: [
-        { collapseGroups: false }, // breaks the "Our World in Data" logo in the upper right
-        { removeUnknownsAndDefaults: false }, // would remove hrefs from links (<a>)
-        { removeViewBox: false },
-        { removeXMLNS: false },
+        {
+            name: "preset-default",
+            params: {
+                overrides: {
+                    // disable certain plugins
+                    collapseGroups: false, // breaks the "Our World in Data" logo in the upper right
+                    removeUnknownsAndDefaults: false, // would remove hrefs from links (<a>)
+                    removeViewBox: false,
+                },
+            },
+        },
     ],
 }
 
-const svgoInstance = new svgo(svgoConfig)
-
 async function optimizeSvg(svgString: string): Promise<string> {
-    const optimizedSvg = await svgoInstance.optimize(svgString)
+    const optimizedSvg = await svgo.optimize(svgString, svgoConfig)
     return optimizedSvg.data
 }
 
