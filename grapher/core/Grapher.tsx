@@ -2279,6 +2279,8 @@ export class Grapher
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
         this.hideTitleAnnotation = grapher.hideTitleAnnotation
+        this.timelineMinTime = grapher.timelineMinTime
+        this.timelineMaxTime = grapher.timelineMaxTime
     }
 
     debounceMode = false
