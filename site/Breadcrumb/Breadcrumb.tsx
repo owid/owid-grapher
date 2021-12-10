@@ -1,18 +1,8 @@
 import React from "react"
 import { SubNavId } from "../../clientUtils/owidTypes"
-import { SubnavItem, subnavs } from "../SiteSubnavigation"
+import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
-
-export const getSubnavItem = (
-    id: string | undefined,
-    subnavItems: SubnavItem[]
-) => {
-    // We want to avoid matching elements with potentially undefined id.
-    // Static typing prevents id from being undefined but this might not be
-    // the case in a future API powered version.
-    return id ? subnavItems.find((item) => item.id === id) : undefined
-}
 
 export const getSubnavParent = (
     currentItem: SubnavItem | undefined,

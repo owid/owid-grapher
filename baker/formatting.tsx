@@ -17,6 +17,7 @@ import {
     OwidVariableDisplayConfigInterface,
 } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable"
+import { getBodyHtml } from "../site/formatting"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
@@ -26,21 +27,6 @@ export const formatLinks = (html: string) =>
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
-
-export const getHtmlContentWithStyles = (cheerEl: CheerioStatic) => {
-    // Inline styling
-    // Get the first root level <style> tag within the content as it gets
-    // stripped out by $("body").html() below. Voluntarily limits to 1 as there
-    // should not be a need for more.
-    const style =
-        cheerEl("style").length === 1
-            ? `<style>${cheerEl("style").html()}</style>`
-            : ""
-
-    // This is effectively a hack within a hack, as style tags are technically
-    // not allowed in the body (of the main article)
-    return `${style}${cheerEl("body").html()}`
-}
 
 export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(
@@ -176,7 +162,7 @@ export const formatCountryProfile = (
         $deepLinkAnchor.after(`${country.name}: `)
     })
 
-    return { ...post, html: getHtmlContentWithStyles(cheerioEl) }
+    return { ...post, html: getBodyHtml(cheerioEl) }
 }
 
 // Relies on formatLinks URL standardisation

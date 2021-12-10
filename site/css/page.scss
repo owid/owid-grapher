@@ -43,11 +43,6 @@
         }
     }
 
-    .article-titles {
-        margin-top: $vertical-spacing;
-        margin-bottom: $vertical-spacing * 2;
-    }
-
     .supertitle {
         font-family: $sans-serif-font-stack;
         color: $secondary-text-color;
@@ -68,7 +63,6 @@
 
     .authors-byline {
         margin-right: 1rem;
-        font-size: 1.125rem;
         color: $secondary-text-color;
 
         a {
@@ -77,15 +71,6 @@
             &:hover {
                 color: #c0023e;
             }
-        }
-    }
-
-    .blog-info {
-        @include info;
-        font-style: italic;
-        color: $secondary-text-color;
-        p {
-            margin-bottom: 0.5rem;
         }
     }
 
@@ -121,6 +106,12 @@
         .offset-header {
             background-color: $primary-color-100;
         }
+
+        .article-titles {
+            margin-top: $vertical-spacing;
+            margin-bottom: $vertical-spacing * 2;
+        }
+
         .article-header {
             padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
@@ -141,30 +132,61 @@
                 @include titling(5rem);
             }
         }
+
+        .authors-byline {
+            font-size: 1.125rem;
+        }
+
+        .blog-info {
+            @include info;
+            font-style: italic;
+            color: $secondary-text-color;
+            p {
+                margin-bottom: 0.5rem;
+            }
+        }
     }
 
     &.thin-banner {
-        .offset-header {
-            background-color: $tertiary-color-100;
+        .back-to-topic {
+            font-size: 0.875rem;
+            &:hover {
+                text-decoration: underline;
+            }
+            svg {
+                margin-right: 0.5rem;
+            }
         }
         .article-header {
             padding-top: 2 * $vertical-spacing;
-            padding-bottom: 2 * $vertical-spacing;
-
-            h1 {
-                max-width: $content-max-width;
-                font-size: 2rem;
+            @include md-up {
+                padding-bottom: $vertical-spacing;
             }
+        }
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+        }
 
-            time {
-                display: block;
-                font-size: 0.875rem;
-                color: $secondary-text-color;
-            }
+        .article-meta {
+            color: $secondary-text-color;
+            margin-bottom: 2 * $vertical-spacing;
+        }
 
-            .blog-info {
-                margin-top: $vertical-spacing;
-            }
+        .excerpt {
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            line-height: normal;
+            margin-bottom: 2 * $vertical-spacing;
+        }
+
+        .authors-byline {
+            font-weight: bold;
+        }
+        .published-updated {
+            font-size: 0.875rem;
+        }
+
+        .blog-info {
+            margin-top: $vertical-spacing;
         }
     }
 }

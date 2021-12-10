@@ -56,28 +56,17 @@ export interface RelatedChart {
 
 export type OwidVariableId = Integer // remove.
 
-export interface FormattedPost {
-    id: number
-    postId?: number
-    type: WP_PostType
-    slug: string
-    path: string
-    title: string
-    subtitle?: string | null
-    supertitle?: string | null
-    date: Date
-    modifiedDate: Date
-    lastUpdated?: string | null
-    authors: string[]
-    byline?: string | null
-    info?: string | null
+export interface FormattedPost extends FullPost {
+    supertitle?: string
+    lastUpdated?: string
+    byline?: string
+    info?: string
     html: string
-    footnotes: string[]
+    style?: string
     references: Record<string, unknown>[]
-    excerpt: string
-    imageUrl?: string
+    footnotes: string[]
     tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
-    relatedCharts?: RelatedChart[]
+    pageDesc: string
 }
 
 export enum SubNavId {
@@ -233,7 +222,6 @@ export interface FullPost {
     slug: string
     path: string
     title: string
-    subtitle?: string
     date: Date
     modifiedDate: Date
     authors: string[]

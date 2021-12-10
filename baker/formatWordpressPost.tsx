@@ -1,4 +1,3 @@
-import { SectionHeading } from "../site/SectionHeading"
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as lodash from "lodash"
@@ -19,13 +18,10 @@ import {
     JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes"
-import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
 import { Footnote } from "../site/Footnote"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { formatGlossaryTerms } from "../site/formatGlossary"
-import { getMutableGlossary, glossary } from "../site/glossary"
 import { DataToken } from "../site/DataToken"
 import {
     dataValueRegex,
@@ -33,7 +29,6 @@ import {
     extractDataValuesConfiguration,
     formatDataValue,
     formatLinks,
-    getHtmlContentWithStyles,
     parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
@@ -51,6 +46,11 @@ import {
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 import { renderAutomaticProminentLinks } from "./siteRenderers"
+import {
+    getBodyHtml,
+    GRAPHER_PREVIEW_CLASS,
+    SUMMARY_CLASSNAME,
+} from "../site/formatting"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -282,7 +282,7 @@ export const formatWordpressPost = async (
             </content>
         </block>
         `
-        const $summary = cheerioEl(".wp-block-owid-summary")
+        const $summary = cheerioEl(`.${SUMMARY_CLASSNAME}`)
         if ($summary.length !== 0) {
             $summary.after(allCharts)
         } else {
@@ -296,19 +296,30 @@ export const formatWordpressPost = async (
     renderBlocks(cheerioEl)
     await renderAutomaticProminentLinks(cheerioEl, post)
 
+    // Extract inline styling
+    let style
+    const $style = cheerioEl("style")
+    if ($style.length) {
+        style = $style
+            .toArray()
+            .map((el) => cheerioEl(el).html() || "")
+            .reduce((prev, curr) => prev + curr)
+        $style.remove()
+    }
+
     // Extract blog info content
-    let info = null
+    let info
     const $info = cheerioEl(".blog-info")
     if ($info.length) {
-        info = $info.html()
+        info = $info.html() ?? undefined
         $info.remove()
     }
 
     // Extract last updated
     let lastUpdated
-    const $lastUpdated = cheerioEl(".wp-block-last-updated p")
+    const $lastUpdated = cheerioEl(".wp-block-last-updated")
     if ($lastUpdated.length) {
-        lastUpdated = $lastUpdated.html()
+        lastUpdated = $lastUpdated.find("p").first().html() ?? undefined
         $lastUpdated.remove()
     }
 
@@ -324,7 +335,7 @@ export const formatWordpressPost = async (
     let byline
     const $byline = cheerioEl(".wp-block-owid-byline")
     if ($byline.length) {
-        byline = $byline.html()
+        byline = $byline.html() ?? undefined
         $byline.remove()
     }
 
@@ -332,7 +343,6 @@ export const formatWordpressPost = async (
     replaceIframesWithExplorerRedirectsInWordPressPost(cheerioEl)
 
     // Replace grapher iframes with static previews
-    const GRAPHER_PREVIEW_CLASS = "grapherPreview"
     if (grapherExports) {
         const grapherIframes = cheerioEl("iframe")
             .toArray()
@@ -555,175 +565,18 @@ export const formatWordpressPost = async (
         }
     })
 
-    interface Columns {
-        wrapper: Cheerio
-        first: Cheerio
-        last: Cheerio
-    }
-
-    const getColumns = (style: string = "sticky-right"): Columns => {
-        const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
-        const $columns = cheerioEl(emptyColumns)
-        return {
-            wrapper: $columns,
-            first: $columns.children().first(),
-            last: $columns.children().last(),
-        }
-    }
-
-    const isColumnsEmpty = (columns: Columns) => {
-        return columns.first.children().length === 0 &&
-            columns.last.children().length === 0
-            ? true
-            : false
-    }
-
-    const flushColumns = (columns: Columns, $section: Cheerio): Columns => {
-        $section.append(columns.wrapper)
-        return getColumns()
-    }
-
-    // Wrap content demarcated by headings into section blocks
-    // and automatically divide content into columns
-    const sectionStarts = [cheerioEl("body").children().get(0)].concat(
-        cheerioEl("body > h2").toArray()
-    )
-    for (const start of sectionStarts) {
-        const $start = cheerioEl(start)
-        const $section = cheerioEl("<section>")
-        let columns = getColumns()
-        let sideBySideColumns = getColumns("side-by-side")
-        const $tempWrapper = cheerioEl("<div>")
-        const $contents = $tempWrapper
-            .append($start.clone(), $start.nextUntil(cheerioEl("h2")))
-            .contents()
-
-        if (post.glossary) {
-            formatGlossaryTerms(
-                cheerioEl,
-                $contents,
-                getMutableGlossary(glossary)
-            )
-        }
-
-        $contents.each((i, el) => {
-            const $el = cheerioEl(el)
-            // Leave h2 at the section level, do not move into columns
-            if (el.name === "h2") {
-                $section.append(
-                    ReactDOMServer.renderToStaticMarkup(
-                        <SectionHeading
-                            title={$el.text()}
-                            tocHeadings={tocHeadings}
-                        >
-                            <div
-                                dangerouslySetInnerHTML={{
-                                    __html: cheerioEl.html($el),
-                                }}
-                            />
-                        </SectionHeading>
-                    )
-                )
-            } else if (
-                el.name === "h3" ||
-                $el.hasClass("wp-block-columns") ||
-                $el.hasClass("wp-block-owid-grid") ||
-                $el.hasClass("wp-block-full-content-width") ||
-                $el.find(
-                    '.wp-block-owid-additional-information[data-variation="full-width"]'
-                ).length !== 0
-            ) {
-                if (!isColumnsEmpty(columns)) {
-                    columns = flushColumns(columns, $section)
-                }
-                $section.append($el)
-            } else if (el.name === "h4") {
-                if (!isColumnsEmpty(columns)) {
-                    columns = flushColumns(columns, $section)
-                }
-                columns.first.append($el)
-                columns = flushColumns(columns, $section)
-            } else {
-                if (
-                    el.name === "figure" &&
-                    $el.hasClass(GRAPHER_PREVIEW_CLASS)
-                ) {
-                    if (isColumnsEmpty(sideBySideColumns)) {
-                        // Only fill the side by side buffer if there is an upcoming chart for a potential comparison.
-                        // Otherwise let the standard process (sticky right) take over.
-                        if (
-                            $contents[i].nextSibling?.attribs?.class ===
-                            GRAPHER_PREVIEW_CLASS
-                        ) {
-                            columns = flushColumns(columns, $section)
-                            sideBySideColumns.first.append($el)
-                        } else {
-                            columns.last.append($el)
-                        }
-                    } else {
-                        sideBySideColumns.last.append($el)
-                        $section.append(sideBySideColumns.wrapper)
-                        sideBySideColumns = getColumns("side-by-side")
-                    }
-                }
-
-                // Move images to the right column
-                else if (
-                    el.name === "figure" ||
-                    el.name === "iframe" ||
-                    // Temporary support for old chart iframes
-                    el.name === "address" ||
-                    $el.hasClass("wp-block-image") ||
-                    $el.hasClass("tableContainer") ||
-                    // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
-                    // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
-                    $el.find("iframe").length !== 0 ||
-                    // TODO: remove temporary support for pre-Gutenberg images and associated captions
-                    el.name === "h6" ||
-                    ($el.find("img").length !== 0 &&
-                        !$el.hasClass(PROMINENT_LINK_CLASSNAME) &&
-                        !$el.find(
-                            ".wp-block-owid-additional-information[data-variation='merge-left']"
-                        ))
-                ) {
-                    columns.last.append($el)
-                } else {
-                    // Move non-heading, non-image content to the left column
-                    columns.first.append($el)
-                }
-            }
-        })
-        if (!isColumnsEmpty(columns)) {
-            $section.append(columns.wrapper)
-        }
-        $start.replaceWith($section)
-    }
-
-    // Render global country selection component.
-    // Injects a <section>, which is why it executes last.
-    bakeGlobalEntitySelector(cheerioEl)
-
     return {
-        id: post.id,
-        type: post.type,
-        slug: post.slug,
-        path: post.path,
-        title: post.title,
-        subtitle: post.subtitle,
-        supertitle: supertitle,
-        date: post.date,
-        modifiedDate: post.modifiedDate,
-        lastUpdated: lastUpdated,
-        authors: post.authors,
-        byline: byline,
-        info: info,
-        html: getHtmlContentWithStyles(cheerioEl),
+        ...post,
+        supertitle,
+        lastUpdated,
+        byline,
+        info,
+        style,
         footnotes: footnotes,
         references: references,
-        excerpt: post.excerpt || cheerioEl("p").first().text(),
-        imageUrl: post.imageUrl,
         tocHeadings: tocHeadings,
-        relatedCharts: post.relatedCharts,
+        pageDesc: post.excerpt || cheerioEl("p").first().text(),
+        html: getBodyHtml(cheerioEl),
     }
 }
 
@@ -742,16 +595,15 @@ export const formatPost = async (
             footnotes: [],
             references: [],
             tocHeadings: [],
-            excerpt: post.excerpt || "",
+            pageDesc: post.excerpt || "",
         }
 
     // Override formattingOptions if specified in the post (as an HTML comment)
-    const options: FormattingOptions = Object.assign(
-        {
-            toc: post.type === "page",
-            footnotes: true,
-        },
-        formattingOptions
-    )
+    const options: FormattingOptions = {
+        toc: post.type === "page",
+        footnotes: true,
+        ...formattingOptions,
+    }
+
     return formatWordpressPost(post, html, options, grapherExports)
 }

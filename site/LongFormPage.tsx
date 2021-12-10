@@ -4,7 +4,7 @@ import { Head } from "./Head"
 import { CitationMeta } from "./CitationMeta"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "../site/formatting"
+import { addContentFeatures, formatAuthors } from "../site/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -17,16 +17,19 @@ import {
     TocHeading,
 } from "../clientUtils/owidTypes"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
+import { Byline } from "./Byline"
+import { PageInfo } from "./PageInfo"
+import { BackToTopic } from "./BackToTopic"
 
 export interface PageOverrides {
     pageTitle?: string
+    pageDesc?: string
+    canonicalUrl?: string
     citationTitle?: string
     citationSlug?: string
     citationCanonicalUrl?: string
     citationAuthors?: string[]
     citationPublicationDate?: Date
-    canonicalUrl?: string
-    excerpt?: string
 }
 
 export const LongFormPage = (props: {
@@ -44,7 +47,7 @@ export const LongFormPage = (props: {
     const pageTitleSEO = `${pageTitle}${
         post.supertitle ? ` - ${post.supertitle}` : ""
     }`
-    const pageDesc = overrides?.excerpt ?? post.excerpt
+    const pageDesc = overrides?.pageDesc ?? post.pageDesc
     const canonicalUrl = overrides?.canonicalUrl ?? `${baseUrl}/${post.slug}`
 
     const citationTitle = overrides?.citationTitle ?? pageTitle
@@ -116,6 +119,7 @@ export const LongFormPage = (props: {
                         canonicalUrl={citationCanonicalUrl}
                     />
                 )}
+                {post.style && <style>{post.style}</style>}
             </Head>
             <body className={bodyClasses.join(" ")}>
                 <SiteHeader baseUrl={baseUrl} />
@@ -127,6 +131,11 @@ export const LongFormPage = (props: {
                     >
                         <div className="offset-header">
                             <header className="article-header">
+                                {isPost && formattingOptions.subnavId && (
+                                    <BackToTopic
+                                        subnavId={formattingOptions.subnavId}
+                                    />
+                                )}
                                 <div className="article-titles">
                                     {post.supertitle && (
                                         <div className="supertitle">
@@ -134,12 +143,7 @@ export const LongFormPage = (props: {
                                         </div>
                                     )}
                                     <h1 className="entry-title">{pageTitle}</h1>
-                                    {post.subtitle && (
-                                        <div className="subtitle">
-                                            {post.subtitle}
-                                        </div>
-                                    )}
-                                    {formattingOptions.subnavId && (
+                                    {!isPost && formattingOptions.subnavId && (
                                         <Breadcrumb
                                             subnavId={
                                                 formattingOptions.subnavId
@@ -150,71 +154,59 @@ export const LongFormPage = (props: {
                                         />
                                     )}
                                 </div>
-                                {!formattingOptions.hideAuthors && (
-                                    <div className="authors-byline">
-                                        {post.byline ? (
-                                            <div
-                                                dangerouslySetInnerHTML={{
-                                                    __html: post.byline,
-                                                }}
-                                            ></div>
-                                        ) : (
-                                            <a href="/team">
-                                                {`by ${formatAuthors(
-                                                    post.authors,
-                                                    withCitation
-                                                )}`}
-                                            </a>
+                                {!isPost && (
+                                    <>
+                                        {!formattingOptions.hideAuthors && (
+                                            <Byline
+                                                authors={post.authors}
+                                                withMax={withCitation}
+                                                override={post.byline}
+                                            />
                                         )}
-                                    </div>
-                                )}
-                                {isPost && <time>{formatDate(post.date)}</time>}
-                                {post.info && (
-                                    <div
-                                        className="blog-info"
-                                        dangerouslySetInnerHTML={{
-                                            __html: post.info,
-                                        }}
-                                    />
-                                )}
+                                        {post.info && (
+                                            <PageInfo info={post.info} />
+                                        )}
 
-                                {(isPost ||
-                                    withCitation ||
-                                    post.lastUpdated) && (
-                                    <div className="tools">
-                                        {post.lastUpdated && (
-                                            <div className="last-updated">
-                                                <FontAwesomeIcon
-                                                    icon={faSync}
-                                                />
-                                                <span
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: post.lastUpdated,
-                                                    }}
-                                                />
+                                        {(withCitation || post.lastUpdated) && (
+                                            <div className="tools">
+                                                {post.lastUpdated && (
+                                                    <div className="last-updated">
+                                                        <FontAwesomeIcon
+                                                            icon={faSync}
+                                                        />
+                                                        <span
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: post.lastUpdated,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {withCitation && (
+                                                    <>
+                                                        <a href="#licence">
+                                                            <FontAwesomeIcon
+                                                                icon={
+                                                                    faCreativeCommons
+                                                                }
+                                                            />
+                                                            Reuse our work
+                                                            freely
+                                                        </a>
+                                                        <a href="#citation">
+                                                            <FontAwesomeIcon
+                                                                icon={faBook}
+                                                            />
+                                                            Cite this research
+                                                        </a>
+                                                    </>
+                                                )}
                                             </div>
                                         )}
-                                        {(isPost || withCitation) && (
-                                            <a href="#licence">
-                                                <FontAwesomeIcon
-                                                    icon={faCreativeCommons}
-                                                />
-                                                Reuse our work freely
-                                            </a>
-                                        )}
-                                        {withCitation && (
-                                            <a href="#citation">
-                                                <FontAwesomeIcon
-                                                    icon={faBook}
-                                                />
-                                                Cite this research
-                                            </a>
-                                        )}
-                                    </div>
+                                    </>
                                 )}
                             </header>
                         </div>
-                        {formattingOptions.subnavId && (
+                        {!isPost && formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
                                 subnavCurrentId={
@@ -236,12 +228,17 @@ export const LongFormPage = (props: {
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{
-                                            __html: post.html,
+                                            __html: addContentFeatures(post),
                                         }}
                                     />
                                     <footer className="article-footer">
                                         <div className="wp-block-columns">
                                             <div className="wp-block-column">
+                                                {isPost && post.info && (
+                                                    <PageInfo
+                                                        info={post.info}
+                                                    />
+                                                )}
                                                 {post.footnotes.length ? (
                                                     <React.Fragment>
                                                         <h3 id={endNotes.slug}>
@@ -271,6 +268,7 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
+
                                                 {(isPost || withCitation) && (
                                                     <>
                                                         <h3 id="licence">
