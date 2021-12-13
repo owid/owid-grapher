@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
-import Select from "react-select"
+import Select, { components, SingleValueProps } from "react-select"
 import { getStylesForTargetHeight } from "../clientUtils/react-select"
 import {
     ExplorerControlType,
@@ -51,6 +51,56 @@ export class ExplorerControlBar extends React.Component<{
             </form>
         )
     }
+}
+
+interface ExplorerDropdownOption {
+    label: string
+    value: string
+}
+
+const ExplorerSingleValue = (props: SingleValueProps) => {
+    if (props.selectProps.isSearchable && props.selectProps.menuIsOpen)
+        return (
+            <components.SingleValue {...props}>
+                <span style={{ fontStyle: "italic", opacity: 0.75 }}>
+                    Type to search&hellip;
+                </span>
+            </components.SingleValue>
+        )
+    else return <components.SingleValue {...props} />
+}
+
+const ExplorerDropdown = (props: {
+    options: ExplorerDropdownOption[]
+    value: ExplorerDropdownOption
+    isMobile: boolean
+    onChange: (option: string) => void
+}) => {
+    const { options, value, isMobile, onChange } = props
+    const styles = getStylesForTargetHeight(30)
+
+    return (
+        <Select
+            className={EXPLORER_DROPDOWN_CLASS}
+            classNamePrefix={EXPLORER_DROPDOWN_CLASS}
+            isDisabled={options.length < 2}
+            // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
+            menuPlacement={isMobile ? "top" : "auto"}
+            menuPosition="absolute"
+            options={options}
+            value={value}
+            onChange={(option: ExplorerDropdownOption) =>
+                onChange(option.value)
+            }
+            components={{
+                IndicatorSeparator: null,
+                SingleValue: ExplorerSingleValue,
+            }}
+            styles={styles}
+            isSearchable={!isMobile && options.length > 10}
+            maxMenuHeight={350}
+        />
+    )
 }
 
 @observer
@@ -122,25 +172,12 @@ export class ExplorerControlPanel extends React.Component<{
             (option) => option.value === this.props.choice.value
         ) ?? { label: "-", value: "-" }
 
-        const styles = getStylesForTargetHeight(30)
-
         return (
-            <Select
-                className={EXPLORER_DROPDOWN_CLASS}
-                classNamePrefix={EXPLORER_DROPDOWN_CLASS}
-                isDisabled={options.length < 2}
-                // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
-                menuPlacement={this.props.isMobile ? "top" : "auto"}
-                menuPosition={this.props.isMobile ? "fixed" : "absolute"}
+            <ExplorerDropdown
                 options={options}
                 value={value}
-                onChange={(option: any) => this.customOnChange(option.value)}
-                components={{
-                    IndicatorSeparator: null,
-                }}
-                styles={styles}
-                isSearchable={!this.props.isMobile && options.length > 10}
-                maxMenuHeight={350}
+                isMobile={this.props.isMobile}
+                onChange={this.customOnChange}
             />
         )
     }
