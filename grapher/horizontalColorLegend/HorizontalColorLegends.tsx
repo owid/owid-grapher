@@ -247,8 +247,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         for (const bin of positionedBins) {
             if (bin.bin.text) labels.push(makeRangeLabel(bin))
             else if (bin.bin instanceof NumericBin) {
-                labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
-                if (bin === last(positionedBins))
+                if (bin.bin.minText)
+                    labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
+                if (bin === last(positionedBins) && bin.bin.maxText)
                     labels.push(makeBoundaryLabel(bin, "max", bin.bin.maxText))
             }
         }
@@ -396,7 +397,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                             numericFocusBracket &&
                             positionedBin.bin.equals(numericFocusBracket)
                         return (
-                            <rect
+                            <NumericBinRect
                                 key={index}
                                 x={this.legendX + positionedBin.x}
                                 y={bottomY - rectHeight}
@@ -430,6 +431,16 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             </g>
         )
     }
+}
+
+interface NumericBinRectProps extends React.SVGProps<SVGRectElement> {
+    isOpenLeft?: boolean
+    isOpenRight?: boolean
+}
+
+const NumericBinRect = (props: NumericBinRectProps) => {
+    const { isOpenLeft, isOpenRight, ...rectProps } = props
+    return <rect {...rectProps} />
 }
 
 @observer
