@@ -363,7 +363,7 @@ france,Life expectancy`
         })
     })
 
-    it("marks a radio as checked if its the only option", () => {
+    it("marks a radio as checked if it's the only option", () => {
         const decisionMatrix = new DecisionMatrix(
             `${grapherIdKeyword},Gas Radio,Accounting Radio
 488,CO₂,Production-based
@@ -460,6 +460,67 @@ france,Life expectancy`
                 `columns\tBag slug`
             ).getCell({ row: 0, column: 1 })
             expect(cell.errorMessage).not.toEqual(``)
+        })
+    })
+
+    describe("defaultView", () => {
+        const matrix = `${grapherIdKeyword},Metric Dropdown,Interval Dropdown,Relative to population Checkbox,defaultView
+1,Cases,Daily,true,
+2,Cases,Weekly,true,
+3,Cases,Cumulative,true,
+4,Cases,Cumulative,false,
+5,Tests,Cumulative,true,true
+6,Tests,Cumulative,false,
+7,Deaths,Biweekly,false,`
+
+        it("can set a default view", () => {
+            const decisionMatrix = new DecisionMatrix(matrix)
+
+            expect(decisionMatrix.selectedRow.grapherId).toEqual(5)
+        })
+
+        describe("can override defaults", () => {
+            it("case 1: Change the first param: Metric", () => {
+                const decisionMatrix = new DecisionMatrix(matrix)
+
+                decisionMatrix.setValuesFromChoiceParams({ Metric: "Cases" })
+                expect(decisionMatrix.selectedRow.grapherId).toEqual(3)
+            })
+
+            it("case 2: Change the last param: Relative to population", () => {
+                const decisionMatrix = new DecisionMatrix(matrix)
+
+                decisionMatrix.setValuesFromChoiceParams({
+                    "Relative to population": "false",
+                })
+                expect(decisionMatrix.selectedRow.grapherId).toEqual(6)
+            })
+
+            it("case 3: Change Metric in such a way that Interval and Relative also need to be implicitly changed", () => {
+                const decisionMatrix = new DecisionMatrix(matrix)
+
+                decisionMatrix.setValuesFromChoiceParams({ Metric: "Deaths" })
+                expect(decisionMatrix.selectedRow.grapherId).toEqual(7)
+
+                expect(decisionMatrix.toConstrainedOptions()).toEqual({
+                    Metric: "Deaths",
+                    Interval: "Biweekly",
+                    "Relative to population": "false",
+                })
+            })
+        })
+
+        it("falls back to the defaultView", () => {
+            const decisionMatrix = new DecisionMatrix(matrix)
+
+            decisionMatrix.setValuesFromChoiceParams({ Metric: "Nonexistent" })
+            expect(decisionMatrix.selectedRow.grapherId).toEqual(5)
+
+            decisionMatrix.setValuesFromChoiceParams({
+                Metric: "Nonexistent",
+                "Relative to population": "false",
+            })
+            expect(decisionMatrix.selectedRow.grapherId).toEqual(6)
         })
     })
 })

@@ -117,13 +117,29 @@ export class DecisionMatrix {
     toConstrainedOptions(): ExplorerChoiceParams {
         const settings = { ...this.currentParams }
         this.choiceNames.forEach((choiceName) => {
+            // check if the current choice is valid with the current settings
             if (
-                !this.isOptionAvailable(
+                this.isOptionAvailable(
                     choiceName,
                     settings[choiceName],
                     settings
                 )
             ) {
+                // do nothing - we can use settings[choiceName] as-is
+            }
+            // check if the default choice is valid with the current settings
+            else if (
+                this.defaultSettings[choiceName] !== undefined &&
+                this.isOptionAvailable(
+                    choiceName,
+                    this.defaultSettings[choiceName],
+                    settings
+                )
+            ) {
+                settings[choiceName] = this.defaultSettings[choiceName]
+            }
+            // if both are not valid, find the first valid option
+            else {
                 settings[choiceName] = this.firstAvailableOptionForChoice(
                     choiceName,
                     settings
@@ -183,12 +199,15 @@ export class DecisionMatrix {
         choiceParams: ExplorerChoiceParams = {}
     ) {
         this.choiceNames.forEach((choiceName) => {
-            if (choiceParams[choiceName] === undefined)
+            const choiceValue =
+                choiceParams[choiceName] ?? this.defaultSettings[choiceName]
+
+            if (choiceValue === undefined)
                 this._setValue(
                     choiceName,
                     this.firstAvailableOptionForChoice(choiceName)!
                 )
-            else this._setValue(choiceName, choiceParams[choiceName]!)
+            else this._setValue(choiceName, choiceValue)
         })
         return this
     }
@@ -265,6 +284,14 @@ export class DecisionMatrix {
             else modifiedQuery[queryColumn] = query[queryColumn]
         })
         return this.table.findRows(modifiedQuery)
+    }
+
+    // The first row with defaultView column value of "true" determines the default view to use
+    private get defaultSettings() {
+        const hits = this.rowsWith({
+            [GrapherGrammar.defaultView.keyword]: "true",
+        })
+        return hits[0] ?? {}
     }
 
     private get firstMatch() {
