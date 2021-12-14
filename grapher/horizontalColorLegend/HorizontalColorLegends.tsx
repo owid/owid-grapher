@@ -393,9 +393,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ))}
                 {sortBy(
                     positionedBins.map((positionedBin, index) => {
+                        const bin = positionedBin.bin
                         const isFocus =
                             numericFocusBracket &&
-                            positionedBin.bin.equals(numericFocusBracket)
+                            bin.equals(numericFocusBracket)
                         return (
                             <NumericBinRect
                                 key={index}
@@ -403,12 +404,22 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 y={bottomY - rectHeight}
                                 width={positionedBin.width}
                                 height={rectHeight}
-                                fill={positionedBin.bin.color}
+                                fill={bin.color}
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 stroke={
                                     isFocus ? FOCUS_BORDER_COLOR : borderColor
                                 }
                                 strokeWidth={isFocus ? 2 : 0.3}
+                                isOpenLeft={
+                                    bin instanceof NumericBin
+                                        ? bin.props.isOpenLeft
+                                        : false
+                                }
+                                isOpenRight={
+                                    bin instanceof NumericBin
+                                        ? bin.props.isOpenRight
+                                        : false
+                                }
                             />
                         )
                     }),
@@ -434,13 +445,46 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 }
 
 interface NumericBinRectProps extends React.SVGProps<SVGRectElement> {
+    x: number
+    y: number
+    width: number
+    height: number
     isOpenLeft?: boolean
     isOpenRight?: boolean
 }
 
+/** The width of the arrowhead for open-ended bins (left or right) */
+const ARROW_SIZE = 5
+
 const NumericBinRect = (props: NumericBinRectProps) => {
-    const { isOpenLeft, isOpenRight, ...rectProps } = props
-    return <rect {...rectProps} />
+    const { isOpenLeft, isOpenRight, x, y, width, height, ...restProps } = props
+    if (isOpenRight) {
+        const a = ARROW_SIZE
+        const w = width - a
+        const d = `
+            M ${x}, ${y}
+            l ${w}, 0
+            l ${a}, ${height / 2}
+            l ${-a}, ${height / 2}
+            l ${-w}, 0
+            z
+        `
+        return <path d={d} {...restProps} />
+    } else if (isOpenLeft) {
+        const a = ARROW_SIZE
+        const w = width - a
+        const d = `
+            M ${x + a}, ${y}
+            l ${w}, 0
+            l 0, ${height}
+            l ${-w}, 0
+            l ${-a}, ${-height / 2}
+            z
+        `
+        return <path d={d} {...restProps} />
+    } else {
+        return <rect x={x} y={y} width={width} height={height} {...restProps} />
+    }
 }
 
 @observer
