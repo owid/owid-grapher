@@ -58,10 +58,17 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
     contains(value: string | number | undefined): boolean {
         if (value === undefined) return false
 
+        // In looking at this code, it is important to realise that `isOpenLeft`, `isOpenRight`,
+        // and `isFirst` are _not_ mutually exclusive.
+        // For example, if both `isOpenRight` and `isFirst` are set, then we effectively want `value >= min`.
+
+        // If the bin is left-open, we just need to check the right side
         if (this.props.isOpenLeft && value <= this.max) return true
 
+        // If the bin is right-open, we just need to check the left side
         if (this.props.isOpenRight && value > this.min) return true
 
+        // If this is the first bin of the chart, we want to include the `min` value and thus use greater-equals
         if (this.props.isFirst) {
             return value >= this.min && value <= this.max
         } else {
