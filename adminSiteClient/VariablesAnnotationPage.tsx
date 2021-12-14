@@ -11,6 +11,7 @@ import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { applyPatch } from "../clientUtils/patchHelper"
 import {
+    Operation,
     SqlColumnName,
     SQL_COLUMN_NAME_VARIABLE_NAME,
     StringAtom,
@@ -33,9 +34,17 @@ import {
 } from "../clientUtils/AdminSessionTypes"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { BindString } from "./Forms"
-import { from } from "rxjs"
-import { debounceTime, distinctUntilChanged } from "rxjs/operators"
+import { from, Observable, ObservableInput } from "rxjs"
+import {
+    catchError,
+    debounceTime,
+    distinctUntilChanged,
+    switchMap,
+} from "rxjs/operators"
+import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream, IStreamListener } from "mobx-utils"
+import { stringifyUnkownError } from "../clientUtils/Util"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -59,12 +68,11 @@ interface UndoStep {
 }
 
 const enum Tabs {
-    PreviewTab = "PreviewTab",
     EditorTab = "EditorTab",
     FilterTab = "FilterTab",
 }
 
-const ALL_TABS = [Tabs.PreviewTab, Tabs.EditorTab, Tabs.FilterTab]
+const ALL_TABS = [Tabs.FilterTab, Tabs.EditorTab]
 
 @observer
 class VariablesAnnotationComponent extends React.Component<
@@ -88,7 +96,7 @@ class VariablesAnnotationComponent extends React.Component<
 
     @observable undoSteps: UndoStep[] = []
     @observable redoSteps: UndoStep[] = []
-    @observable variableNameFilter: string = ""
+    @observable variableNameFilter: string | undefined = undefined
     @observable currentPagingOffset: number = 0
     disposers: Disposer[] = []
     //debouncedVariableNameFilterListener: IStreamListener<string | undefined>
@@ -113,7 +121,7 @@ class VariablesAnnotationComponent extends React.Component<
             bounds:
                 //this.editor?.previewMode === "mobile"
                 //? new Bounds(0, 0, 360, 500)
-                new Bounds(0, 0, 800, 600),
+                new Bounds(0, 0, 500, 400),
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
@@ -493,25 +501,13 @@ class VariablesAnnotationComponent extends React.Component<
         // post this as a PATCH request to the server
         this.do({ patches })
     }
-
-    async getData(variableFilter: string, offset: number) {
-        const filter =
-            variableFilter !== ""
-                ? new StringContainsOperation(
-                      new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME),
-                      new StringAtom(variableFilter)
-                  ).toSExpr()
-                : undefined
-        const json = (await this.context.admin.getJSON(
-            "/api/variable-annotations",
-            { filter, offset }
-        )) as VariableAnnotationsResponse
-        runInAction(() => {
-            this.resetViewStateAfterFetch()
-            this.richDataRows = json.variables.map(parseVariableAnnotationsRow)
-            this.currentPagingOffset = offset
-            this.numTotalRows = json.numTotalRows
-        })
+    constructFilter(variableFilter: string | undefined): string | undefined {
+        return variableFilter !== "" && variableFilter !== undefined
+            ? new StringContainsOperation(
+                  new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME),
+                  new StringAtom(variableFilter)
+              ).toSExpr()
+            : undefined
     }
 
     async getFieldDefinitions() {
@@ -526,6 +522,8 @@ class VariablesAnnotationComponent extends React.Component<
     }
 
     render() {
+        // TODO: Move preview into always visible area of sidebar, try to use
+        // DataTab Selection editor by handing over grapher and updating on blur?
         const {
             hotSettings,
             hotColumns,
@@ -559,13 +557,11 @@ class VariablesAnnotationComponent extends React.Component<
                                 ))}
                             </ul>
                         </div>
-                        <div>
+                        <div className="sidebar-content">
                             {activeTab === Tabs.FilterTab
                                 ? this.renderFilterTab()
                                 : null}
-                            {activeTab === Tabs.PreviewTab
-                                ? this.renderPreviewTab()
-                                : null}
+                            {this.renderPreviewArea()}
                         </div>
                     </div>
                     <div className="editor-view">
@@ -585,29 +581,36 @@ class VariablesAnnotationComponent extends React.Component<
         const { numTotalRows } = this
         return (
             <section>
-                <h3>Variable filters</h3>
-                <p>
-                    Total variable count matching the active filter:{" "}
-                    {numTotalRows}
-                </p>
-
-                <BindString
-                    field="variableNameFilter"
-                    store={this}
-                    label="Variable name"
-                />
+                <div className="container">
+                    <h3>Variable filters</h3>
+                    <p>
+                        Total variable count matching the active filter:{" "}
+                        {numTotalRows}
+                    </p>
+                    <BindString
+                        field="variableNameFilter"
+                        store={this}
+                        label="Variable name"
+                    />
+                </div>
             </section>
         )
     }
 
-    renderPreviewTab(): JSX.Element {
+    renderPreviewArea(): JSX.Element {
         const { grapherElement } = this
         return (
-            <React.Fragment>
+            <div className="preview">
                 <h3>Interactive grapher preview</h3>
                 {grapherElement ? grapherElement : null}
-            </React.Fragment>
+            </div>
         )
+    }
+
+    buildDataFetchUrl(variableNameFilter: string, offset: number): string {
+        const filter = this.constructFilter(variableNameFilter)
+        const baseUrl = "/admin/api/variable-annotations"
+        return baseUrl + queryParamsToStr({ filter, offset: offset.toString() })
     }
 
     async componentDidMount() {
@@ -616,15 +619,60 @@ class VariablesAnnotationComponent extends React.Component<
         const varStream = toStream(() => this.variableNameFilter)
         const observable = from(varStream).pipe(
             debounceTime(200),
-            distinctUntilChanged()
+            distinctUntilChanged(
+                (x, y) =>
+                    (x === undefined && y === undefined) ||
+                    (x === "" && y === "") ||
+                    (x !== undefined &&
+                        y !== undefined &&
+                        x.trim() === y.trim())
+            ),
+            switchMap((variableNameFilter) =>
+                fromFetch(
+                    this.buildDataFetchUrl(
+                        variableNameFilter ?? "",
+                        this.currentPagingOffset
+                    ),
+                    {
+                        headers: { Accept: "application/json" },
+                        credentials: "same-origin",
+                        selector: (response) => response.json(),
+                    }
+                ).pipe(
+                    catchError((err: any, caught: Observable<any>) => {
+                        this.context.admin.setErrorMessage({
+                            title: `Failed to fetch variable annotations`,
+                            content:
+                                stringifyUnkownError(err) ??
+                                "unexpected error value in setErrorMessage",
+                            isFatal: false,
+                        })
+                        return [undefined]
+                    })
+                )
+            )
             // TODO: Usually in RxJS we would do a switchMap here with a fromFetch for the data fetching
             // and get automatic cancelling of obsolete HTTP requests. This would mean changing the entire error
             // handling a bit for the getData function so I'm not doing this now but it might be a nice
             // change in the future
         )
         const mobxValue = fromStream(observable)
-        const disposer = autorun(() => this.getData(mobxValue.current ?? "", 0))
+        const disposer = autorun(() => {
+            const currentData = mobxValue.current
+
+            if (currentData !== undefined) {
+                runInAction(() => {
+                    console.log("Data fetched", currentData)
+                    this.resetViewStateAfterFetch()
+                    this.richDataRows = currentData.variables.map(
+                        parseVariableAnnotationsRow
+                    )
+                    this.numTotalRows = currentData.numTotalRows
+                })
+            }
+        })
         this.disposers.push(disposer)
+        this.variableNameFilter = ""
 
         this.getFieldDefinitions()
         // this.dispose = reaction(

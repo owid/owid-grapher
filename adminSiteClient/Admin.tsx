@@ -141,7 +141,7 @@ export class Admin {
         return json
     }
 
-    @action.bound private setErrorMessage(message: ErrorMessage): void {
+    @action.bound setErrorMessage(message: ErrorMessage): void {
         this.errorMessage = message
     }
 
