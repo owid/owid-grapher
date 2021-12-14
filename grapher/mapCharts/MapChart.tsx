@@ -72,6 +72,7 @@ const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
 
 const DEFAULT_STROKE_COLOR = "#333"
+const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
@@ -379,7 +380,7 @@ export class MapChart
 
     componentDidMount(): void {
         select(this.base.current)
-            .selectAll("path")
+            .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
             .attr("data-fill", function () {
                 return (this as SVGPathElement).getAttribute("fill")
             })
@@ -865,7 +866,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return (
             <g
                 ref={this.base}
-                className="ChoroplethMap"
+                className={CHOROPLETH_MAP_CLASSNAME}
                 clipPath={clipPath.id}
                 onMouseDown={
                     (ev: SVGMouseEvent): void =>
