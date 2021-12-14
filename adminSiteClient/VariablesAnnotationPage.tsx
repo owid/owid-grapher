@@ -43,7 +43,7 @@ import {
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream, IStreamListener } from "mobx-utils"
-import { stringifyUnkownError } from "../clientUtils/Util"
+import { stringifyUnkownError, differenceOfSets } from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 function parseVariableAnnotationsRow(
@@ -73,6 +73,27 @@ const enum Tabs {
 }
 
 const ALL_TABS = [Tabs.FilterTab, Tabs.EditorTab]
+
+const HIDDEN_COLUMNS = [
+    "/$schema",
+    "/id",
+    "/map/variableId",
+    "/version",
+    "/dimensions/0/variableId",
+    "/dimensions/0/property",
+    "/slug",
+    "/data",
+]
+
+const IMPORTANT_COLUMNS = [
+    "/type",
+    "/hasMapTab",
+    "/title",
+    "/subtitle",
+    "/note",
+    "/dimensions/0/unit",
+    "/dimensions/0/shortUnit",
+]
 
 @observer
 class VariablesAnnotationComponent extends React.Component<
@@ -298,7 +319,7 @@ class VariablesAnnotationComponent extends React.Component<
                     type: VariablesAnnotationComponent.decideHotType(desc),
                     source: desc.enumOptions,
                     data: desc.pointer,
-                    width: Bounds.forText(name).width,
+                    width: Math.max(Bounds.forText(name).width, 50),
                 }}
             />
         )
@@ -325,15 +346,49 @@ class VariablesAnnotationComponent extends React.Component<
                                 title: nameAndField[0],
                                 readOnly: true,
                                 data: nameAndField[1],
-                                width: Bounds.forText(nameAndField[0]).width,
+                                width: Math.max(
+                                    Bounds.forText(nameAndField[0]).width,
+                                    50
+                                ),
                             }}
                         />
                     )
                 )
             // then all the others coming from the fieldDescriptions
-            const grapherColumns = fieldDescriptions.map(
-                VariablesAnnotationComponent.fieldDescriptionToColumn
+            const fieldDescsFiltered = fieldDescriptions.filter(
+                (desc) =>
+                    HIDDEN_COLUMNS.find((item) => item === desc.pointer) ===
+                    undefined
             )
+            const fieldDescsMap = new Map(
+                fieldDescsFiltered.map((desc) => [desc.pointer, desc])
+            )
+            const importantDescs = IMPORTANT_COLUMNS.map((pointer) =>
+                fieldDescsMap.get(pointer)
+            )
+            const remainingDescs = differenceOfSets([
+                new Set(fieldDescsMap.keys()),
+                new Set(IMPORTANT_COLUMNS),
+            ])
+            const fieldDescsFilteredAndPrioritized = [
+                ...importantDescs,
+                ...fieldDescsFiltered.filter((item) =>
+                    remainingDescs.has(item.pointer)
+                ),
+            ]
+            if (
+                fieldDescsFilteredAndPrioritized.some(
+                    (item) => item === undefined
+                )
+            )
+                console.error(
+                    "Some fields were undefined! Check if all IMPORTANT_COLUMNS actually appear in the schema."
+                )
+            const grapherColumns = fieldDescsFilteredAndPrioritized
+                .filter((item) => item !== undefined)
+                .map((item) =>
+                    VariablesAnnotationComponent.fieldDescriptionToColumn(item!)
+                )
             return [...readOnlyColumns, ...grapherColumns]
         }
     }

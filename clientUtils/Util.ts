@@ -559,14 +559,12 @@ export const stripHTML = (html: string): string => striptags(html)
 
 // Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
 // So we have our own *very* psuedo-RNG.
-export const getRandomNumberGenerator = (
-    min: Integer = 0,
-    max: Integer = 100,
-    seed = Date.now()
-) => (): Integer => {
-    const semiRand = Math.sin(seed++) * 10000
-    return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
-}
+export const getRandomNumberGenerator =
+    (min: Integer = 0, max: Integer = 100, seed = Date.now()) =>
+    (): Integer => {
+        const semiRand = Math.sin(seed++) * 10000
+        return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
+    }
 
 export const sampleFrom = <T>(
     collection: T[],
@@ -882,6 +880,18 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
         }
     })
     return intersection
+}
+
+export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const diff = new Set<T>(sets[0])
+
+    sets.slice(1).forEach((set) => {
+        for (const elem of set) {
+            diff.delete(elem)
+        }
+    })
+    return diff
 }
 
 // ES6 is now significantly faster than lodash's intersection
