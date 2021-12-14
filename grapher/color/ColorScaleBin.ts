@@ -58,13 +58,15 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
     contains(value: string | number | undefined): boolean {
         if (value === undefined) return false
 
-        if (this.props.isOpenLeft) return value <= this.max
+        if (this.props.isOpenLeft && value <= this.max) return true
 
-        if (this.props.isOpenRight) return value > this.min
+        if (this.props.isOpenRight && value > this.min) return true
 
-        if (this.props.isFirst) return value >= this.min && value <= this.max
-
-        return value > this.min && value <= this.max
+        if (this.props.isFirst) {
+            return value >= this.min && value <= this.max
+        } else {
+            return value > this.min && value <= this.max
+        }
     }
 
     equals(other: ColorScaleBin): boolean {
