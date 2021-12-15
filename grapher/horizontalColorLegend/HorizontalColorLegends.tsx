@@ -10,6 +10,7 @@ import {
     flatten,
     sum,
     dyFromAlign,
+    removeAllWhitespace,
 } from "../../clientUtils/Util"
 import { Bounds } from "../../clientUtils/Bounds"
 import {
@@ -461,26 +462,26 @@ const NumericBinRect = (props: NumericBinRectProps) => {
     if (isOpenRight) {
         const a = ARROW_SIZE
         const w = width - a
-        const d = `
+        const d = removeAllWhitespace(`
             M ${x}, ${y}
             l ${w}, 0
             l ${a}, ${height / 2}
             l ${-a}, ${height / 2}
             l ${-w}, 0
             z
-        `
+        `)
         return <path d={d} {...restProps} />
     } else if (isOpenLeft) {
         const a = ARROW_SIZE
         const w = width - a
-        const d = `
+        const d = removeAllWhitespace(`
             M ${x + a}, ${y}
             l ${w}, 0
             l 0, ${height}
             l ${-w}, 0
             l ${-a}, ${-height / 2}
             z
-        `
+        `)
         return <path d={d} {...restProps} />
     } else {
         return <rect x={x} y={y} width={width} height={height} {...restProps} />
