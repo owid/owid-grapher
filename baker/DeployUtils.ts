@@ -43,12 +43,14 @@ const bakeAndDeploy = async (
     }
 }
 
-export const tryBake = async () => {
+export const bake = async () => {
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
     try {
         await baker.bakeAll()
     } catch (err) {
+        baker.endDbConnections()
         logErrorAndMaybeSendToSlack(err)
+        throw err
     } finally {
         baker.endDbConnections()
     }
