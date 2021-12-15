@@ -1656,14 +1656,18 @@ export class Grapher
     // These are the final render dimensions
     // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth(): number {
-        return this.useIdealBounds
-            ? this.widthForDeviceOrientation * this.scaleToFitIdeal
-            : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
+        return Math.floor(
+            this.useIdealBounds
+                ? this.widthForDeviceOrientation * this.scaleToFitIdeal
+                : this.bounds.width - (this.isExportingtoSvgOrPng ? 0 : 5)
+        )
     }
     @computed private get renderHeight(): number {
-        return this.useIdealBounds
-            ? this.heightForDeviceOrientation * this.scaleToFitIdeal
-            : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
+        return Math.floor(
+            this.useIdealBounds
+                ? this.heightForDeviceOrientation * this.scaleToFitIdeal
+                : this.bounds.height - (this.isExportingtoSvgOrPng ? 0 : 5)
+        )
     }
 
     @computed get tabBounds(): Bounds {
