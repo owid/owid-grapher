@@ -190,7 +190,6 @@ export class Explorer
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
-        this.updateEntityPickerTable()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -205,6 +204,7 @@ export class Explorer
 
         exposeInstanceOnWindow(this, "explorer")
         this.onResize() // call resize for the first time to initialize chart
+        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
 
         this.attachEventListeners()
     }
@@ -218,10 +218,13 @@ export class Explorer
         })
 
         // We always prefer the entity picker metric to be sourced from the currently displayed table.
-        // To properly do that, we need to also react to that table changing.
+        // To do this properly, we need to also react to the table changing.
         this.disposers.push(
             reaction(
-                () => this.explorerProgram.grapherConfig.tableSlug,
+                () => [
+                    this.entityPickerMetric,
+                    this.explorerProgram.grapherConfig.tableSlug,
+                ],
                 () => this.updateEntityPickerTable()
             )
         )
@@ -649,7 +652,6 @@ export class Explorer
     }: { metric?: string; sort?: SortOrder } = {}) {
         if (metric) this.entityPickerMetric = metric
         if (sort) this.entityPickerSort = sort
-        this.updateEntityPickerTable()
     }
 
     private tableSlugHasColumnSlug(
