@@ -186,6 +186,7 @@ export class Explorer
         return grapherConfigsMap
     }
 
+    disposers: (() => void)[] = []
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
@@ -203,23 +204,33 @@ export class Explorer
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
+        this.onResize() // call resize for the first time to initialize chart
+
+        this.attachEventListeners()
+    }
+
+    private attachEventListeners() {
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
-        this.onResize() // call resize for the first time to initialize chart
+        this.disposers.push(() => {
+            if (this.onResizeThrottled !== undefined)
+                window.removeEventListener("resize", this.onResizeThrottled)
+        })
 
         // We always prefer the entity picker metric to be sourced from the currently displayed table.
         // To properly do that, we need to also react to that table changing.
-        reaction(
-            () => this.explorerProgram.grapherConfig.tableSlug,
-            () => this.updateEntityPickerTable()
+        this.disposers.push(
+            reaction(
+                () => this.explorerProgram.grapherConfig.tableSlug,
+                () => this.updateEntityPickerTable()
+            )
         )
 
         if (this.props.isInStandalonePage) this.bindToWindow()
     }
 
     componentWillUnmount() {
-        if (this.onResizeThrottled)
-            window.removeEventListener("resize", this.onResizeThrottled)
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private initSlideshow() {
@@ -387,12 +398,14 @@ export class Explorer
         const pushParams = () => setWindowUrl(this.currentUrl)
         const debouncedPushParams = debounce(pushParams, 100)
 
-        reaction(
-            () => this.queryParams,
-            () =>
-                this.grapher?.debounceMode
-                    ? debouncedPushParams()
-                    : pushParams()
+        this.disposers.push(
+            reaction(
+                () => this.queryParams,
+                () =>
+                    this.grapher?.debounceMode
+                        ? debouncedPushParams()
+                        : pushParams()
+            )
         )
     }
 
