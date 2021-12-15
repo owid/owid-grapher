@@ -207,6 +207,13 @@ export class Explorer
         window.addEventListener("resize", this.onResizeThrottled)
         this.onResize() // call resize for the first time to initialize chart
 
+        // We always prefer the entity picker metric to be sourced from the currently displayed table.
+        // To properly do that, we need to also react to that table changing.
+        reaction(
+            () => this.explorerProgram.grapherConfig.tableSlug,
+            () => this.updateEntityPickerTable()
+        )
+
         if (this.props.isInStandalonePage) this.bindToWindow()
     }
 
