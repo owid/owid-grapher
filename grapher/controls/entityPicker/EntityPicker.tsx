@@ -22,7 +22,11 @@ import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import { SortOrder } from "../../../coreTable/CoreTableConstants"
 import { getStylesForTargetHeight } from "../../../clientUtils/react-select"
-import { ColumnTypeMap, CoreColumn } from "../../../coreTable/CoreTableColumns"
+import {
+    ColumnTypeMap,
+    CoreColumn,
+    MissingColumn,
+} from "../../../coreTable/CoreTableColumns"
 import {
     EntityName,
     OwidTableSlugs,
@@ -131,9 +135,15 @@ export class EntityPicker extends React.Component<{
         )
     }
 
+    private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
+        if (slug === undefined) return undefined
+        const col = this.manager.entityPickerTable?.getColumns([slug])[0]
+        if (col instanceof MissingColumn) return undefined
+        return col
+    }
+
     @computed private get activePickerMetricColumn(): CoreColumn | undefined {
-        if (!this.metric) return undefined
-        return this.manager.entityPickerTable?.getColumns([this.metric])[0]
+        return this.getColumn(this.metric)
     }
 
     @computed private get availableEntitiesForCurrentView(): Set<string> {
@@ -390,11 +400,16 @@ export class EntityPicker extends React.Component<{
     }
 
     @action private updateMetric(columnSlug: ColumnSlug): void {
+        const col = this.getColumn(columnSlug)
+
         this.manager.setEntityPicker?.({
             metric: columnSlug,
-            sort: this.isActivePickerColumnTypeNumeric
-                ? SortOrder.desc
-                : SortOrder.asc,
+            sort:
+                // Use different default sort orders for numeric and alphabetic variables.
+                // If the column is currently missing (not loaded yet), assume it is numeric.
+                col === undefined || col instanceof ColumnTypeMap.Numeric
+                    ? SortOrder.desc
+                    : SortOrder.asc,
         })
         this.manager.analytics?.logEntityPickerEvent(
             this.analyticsNamespace,
