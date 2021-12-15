@@ -121,12 +121,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     @computed protected get chartHeight(): number {
         const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
-        return (
+        return Math.floor(
             this.bounds.height -
-            this.header.height -
-            controlsRowHeight -
-            this.footer.height -
-            PADDING_ABOVE_FOOTER
+                this.header.height -
+                controlsRowHeight -
+                this.footer.height -
+                PADDING_ABOVE_FOOTER
         )
     }
 
