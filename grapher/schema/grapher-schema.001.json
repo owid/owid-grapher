@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json",
+    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
     "$defs": {
         "axis": {
             "type": "object",
@@ -732,6 +732,12 @@
             "description": "Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')",
             "default": "countries",
             "type": "string"
+        },
+        "isExplorable": {
+            "type": "boolean",
+            "default": false,
+            "description": "Legacy flag, should be removed",
+            "$comment": "Remove this flag once the codepaths that use it are deleted"
         }
     },
     "additionalProperties": false

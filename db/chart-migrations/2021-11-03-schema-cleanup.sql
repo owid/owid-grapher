@@ -62,9 +62,9 @@ update charts
 set config = JSON_REMOVE(config, '$."/charts/29"')
 where JSON_CONTAINS_PATH(config, 'one', '$."/charts/29"') = 1;
 
-update charts
-set config = JSON_REMOVE(config, '$."isExplorable"')
-where JSON_CONTAINS_PATH(config, 'one', '$."isExplorable"') = 1;
+-- update charts
+-- set config = JSON_REMOVE(config, '$."isExplorable"')
+-- where JSON_CONTAINS_PATH(config, 'one', '$."isExplorable"') = 1;
 
 update charts
 set config = JSON_REMOVE(config, '$."lastEditedAt"')
@@ -165,8 +165,9 @@ JSON_EXTRACT(config, '$.map.targetYear') <> "latest"
 
 
 update charts
-set config = JSON_SET(config, '$.stackMode', null)
-where JSON_EXTRACT(config, '$.stackMode') = ''
+set config = JSON_REMOVE(config, '$.stackMode')
+where JSON_EXTRACT(config, '$.stackMode') = '' or JSON_EXTRACT(config, '$.stackMode') = 'null' or JSON_EXTRACT(config, '$.stackMode') = 'grouped' or JSON_EXTRACT(config, '$.stackMode') = 'stacked' or JSON_EXTRACT(config, '$.stackMode') = '
+undefined'
 
 update charts
 set config = JSON_REMOVE(config, '$."highlightToggle"')
@@ -230,7 +231,7 @@ where JSON_CONTAINS_PATH(config, 'one', '$.isPublished') = 1 and JSON_TYPE(JSON_
 
 
 update charts
-set config = JSON_SET(config, '$.map.time', convert(JSON_EXTRACT(config, '$.map.time'), UNSIGNED INTEGER))
+set config = JSON_SET(config, '$.map.time', convert(JSON_EXTRACT(config, '$.map.time'), INTEGER))
 where JSON_CONTAINS_PATH(config, 'one', '$.map.time') = 1 and JSON_TYPE(JSON_EXTRACT(config, '$.map.time')) = 'STRING' and JSON_EXTRACT(config, '$.map.time') <> 'latest'
 
 
