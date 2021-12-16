@@ -483,21 +483,26 @@ export class Explorer
     }
 
     @action.bound private onResize() {
+        const oldIsNarrow = this.isNarrow
         this.isNarrow = isNarrow()
-        this.grapherBounds = this.getGrapherBounds() || this.grapherBounds
+        this.updateGrapherBounds()
+
+        // If we changed between narrow and wide mode, we need to wait for CSS changes to kick in
+        // to properly calculate the new grapher bounds
+        if (this.isNarrow !== oldIsNarrow)
+            window.setTimeout(() => this.updateGrapherBounds(), 0)
     }
 
     // Todo: add better logic to maximize the size of the Grapher
-    private getGrapherBounds() {
+    private updateGrapherBounds() {
         const grapherContainer = this.grapherContainerRef.current
-        return grapherContainer
-            ? new Bounds(
-                  0,
-                  0,
-                  grapherContainer.clientWidth,
-                  grapherContainer.clientHeight
-              )
-            : undefined
+        if (grapherContainer)
+            this.grapherBounds = new Bounds(
+                0,
+                0,
+                grapherContainer.clientWidth,
+                grapherContainer.clientHeight
+            )
     }
 
     @observable private showMobileControlsPopup = false
