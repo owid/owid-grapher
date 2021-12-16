@@ -1,0 +1,132 @@
+@import "normalize.css";
+
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  color: #111;
+}
+
+#container {
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
+
+#files {
+  text-align: center;
+  padding: 30px;
+}
+
+ul {
+  display: none;
+}
+
+.open > ul,
+.list > li > ul {
+  display: block;
+}
+
+li {
+  position: relative;
+  border-left: 1px dotted #ddd;
+}
+
+.content {
+  line-height: 28px;
+  position: relative;
+  border-bottom: 1px solid rgba(0,0,0,.1);
+  display: block;
+  padding: 0 12px;
+}
+
+.occurs {
+  font-size: 12px;
+  line-height: 28px;
+  font-weight: normal;
+  color: rgba(0,0,0,.25);
+  background-color: rgba(0,0,0,.05);
+  text-align: right;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: block;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.keys, .list, .values {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.expandable:before {
+  content: '';
+  border-width: 5px;
+  border-color: transparent transparent transparent rgba(0,0,0,.25);
+  border-style: solid;
+  top: 9px;
+  left: 0;
+  position: absolute;
+  display: block;
+}
+
+li.open:before {
+  border-color: rgba(0,0,0,.25) transparent transparent transparent;
+  top: 11px;
+}
+
+.too_many_values {
+  font-style: italic;
+  color: #999 !important;
+}
+
+.keys > li > .content {
+  font-weight: bold;
+  color: #111;
+  padding-left: 13px;
+  cursor: pointer;
+}
+
+.list > li > .content {
+  color: green;
+}
+
+.values > li > .content {
+  color: steelblue;
+}
+
+.keys > li > .content:hover {
+  border-bottom-color: rgba(0,0,0,.15);
+}
+
+.keys > li > .content:hover .occurs {
+  background-color: rgba(0,0,0,.08);
+  color: rgba(0,0,0,.3);
+}
+
+.list:before {
+  content: '[';
+}
+
+.list:after {
+  content: ']';
+}
+
+.list:before,
+.list:after {
+  font-size: 16px;
+  font-weight: bold;
+  color: steelblue;
+}

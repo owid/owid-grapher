@@ -1,0 +1,33 @@
+<html>
+
+<head>
+    <title>JSON analyser</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="files">
+            <select name="file" id="select_file">
+                <option selected>Please select</option>
+                <option value="2021-12-15-grapher-configs.json">2021-12-15-grapher-configs.json</option>
+            </select>
+        </div>
+        <div id="view"></div>
+    </div>
+
+    <script src="jspm_packages/system.js"></script>
+    <script src="config.js"></script>
+    <script>
+
+        if (window.System) {
+            System.import('src/main');
+        } else {
+            document.write("<script src='build.js'><\/script>");
+        }
+
+    </script>
+</body>
+
+</html>
