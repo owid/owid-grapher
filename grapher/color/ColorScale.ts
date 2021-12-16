@@ -273,13 +273,13 @@ export class ColorScale {
                 this.colorScaleColumn?.formatValueShort(max) ?? max.toString()
 
             const currentMin = min
+            const isFirst = index === 0
+            const isLast = index === bucketMaximums.length - 1
             min = max
             return new NumericBin({
-                isFirst: index === 0,
-                isOpenLeft: index === 0 && currentMin > minPossibleValue,
-                isOpenRight:
-                    index === bucketMaximums.length - 1 &&
-                    max < maxPossibleValue,
+                isFirst,
+                isOpenLeft: isFirst && currentMin > minPossibleValue,
+                isOpenRight: isLast && max < maxPossibleValue,
                 min: currentMin,
                 max,
                 color,

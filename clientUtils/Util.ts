@@ -1167,3 +1167,7 @@ export const triggerDownloadFromUrl = (filename: string, url: string): void => {
     downloadLink.setAttribute("download", filename)
     downloadLink.click()
 }
+
+export const removeAllWhitespace = (text: string): string => {
+    return text.replace(/\s+|\n/g, "")
+}

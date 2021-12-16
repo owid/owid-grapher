@@ -10,6 +10,7 @@ import {
     flatten,
     sum,
     dyFromAlign,
+    removeAllWhitespace,
 } from "../../clientUtils/Util"
 import { Bounds } from "../../clientUtils/Bounds"
 import {
@@ -247,8 +248,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         for (const bin of positionedBins) {
             if (bin.bin.text) labels.push(makeRangeLabel(bin))
             else if (bin.bin instanceof NumericBin) {
-                labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
-                if (bin === last(positionedBins))
+                if (bin.bin.minText)
+                    labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
+                if (bin === last(positionedBins) && bin.bin.maxText)
                     labels.push(makeBoundaryLabel(bin, "max", bin.bin.maxText))
             }
         }
@@ -392,22 +394,33 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ))}
                 {sortBy(
                     positionedBins.map((positionedBin, index) => {
+                        const bin = positionedBin.bin
                         const isFocus =
                             numericFocusBracket &&
-                            positionedBin.bin.equals(numericFocusBracket)
+                            bin.equals(numericFocusBracket)
                         return (
-                            <rect
+                            <NumericBinRect
                                 key={index}
                                 x={this.legendX + positionedBin.x}
                                 y={bottomY - rectHeight}
                                 width={positionedBin.width}
                                 height={rectHeight}
-                                fill={positionedBin.bin.color}
+                                fill={bin.color}
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 stroke={
                                     isFocus ? FOCUS_BORDER_COLOR : borderColor
                                 }
                                 strokeWidth={isFocus ? 2 : 0.3}
+                                isOpenLeft={
+                                    bin instanceof NumericBin
+                                        ? bin.props.isOpenLeft
+                                        : false
+                                }
+                                isOpenRight={
+                                    bin instanceof NumericBin
+                                        ? bin.props.isOpenRight
+                                        : false
+                                }
                             />
                         )
                     }),
@@ -429,6 +442,49 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ))}
             </g>
         )
+    }
+}
+
+interface NumericBinRectProps extends React.SVGProps<SVGRectElement> {
+    x: number
+    y: number
+    width: number
+    height: number
+    isOpenLeft?: boolean
+    isOpenRight?: boolean
+}
+
+/** The width of the arrowhead for open-ended bins (left or right) */
+const ARROW_SIZE = 5
+
+const NumericBinRect = (props: NumericBinRectProps) => {
+    const { isOpenLeft, isOpenRight, x, y, width, height, ...restProps } = props
+    if (isOpenRight) {
+        const a = ARROW_SIZE
+        const w = width - a
+        const d = removeAllWhitespace(`
+            M ${x}, ${y}
+            l ${w}, 0
+            l ${a}, ${height / 2}
+            l ${-a}, ${height / 2}
+            l ${-w}, 0
+            z
+        `)
+        return <path d={d} {...restProps} />
+    } else if (isOpenLeft) {
+        const a = ARROW_SIZE
+        const w = width - a
+        const d = removeAllWhitespace(`
+            M ${x + a}, ${y}
+            l ${w}, 0
+            l 0, ${height}
+            l ${-w}, 0
+            l ${-a}, ${-height / 2}
+            z
+        `)
+        return <path d={d} {...restProps} />
+    } else {
+        return <rect x={x} y={y} width={width} height={height} {...restProps} />
     }
 }
 
