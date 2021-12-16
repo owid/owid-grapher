@@ -315,7 +315,10 @@ class VariablesAnnotationComponent extends React.Component<
                 key={desc.pointer}
                 settings={{
                     title: name,
-                    readOnly: false,
+                    readOnly:
+                        desc.editor === EditorOption.primitiveListEditor ||
+                        desc.editor === EditorOption.mappingEditor ||
+                        desc.editor === EditorOption.colorEditor,
                     type: VariablesAnnotationComponent.decideHotType(desc),
                     source: desc.enumOptions,
                     data: desc.pointer,

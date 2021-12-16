@@ -1370,6 +1370,7 @@ FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
 WHERE ${whereClause}
+ORDER BY variables.id DESC
 LIMIT 50
 OFFSET ${offset.toString()}`)
         const resultCount = await db.execute(`SELECT count(*) as count
