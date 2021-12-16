@@ -137,9 +137,7 @@ export class EntityPicker extends React.Component<{
 
     private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
         if (slug === undefined) return undefined
-        const col = this.manager.entityPickerTable?.getColumns([slug])[0]
-        if (col instanceof MissingColumn) return undefined
-        return col
+        return this.manager.entityPickerTable?.get(slug)
     }
 
     @computed private get activePickerMetricColumn(): CoreColumn | undefined {
@@ -404,12 +402,9 @@ export class EntityPicker extends React.Component<{
 
         this.manager.setEntityPicker?.({
             metric: columnSlug,
-            sort:
-                // Use different default sort orders for numeric and alphabetic variables.
-                // If the column is currently missing (not loaded yet), assume it is numeric.
-                col === undefined || col instanceof ColumnTypeMap.Numeric
-                    ? SortOrder.desc
-                    : SortOrder.asc,
+            sort: this.isColumnTypeNumeric(col)
+                ? SortOrder.desc
+                : SortOrder.asc,
         })
         this.manager.analytics?.logEntityPickerEvent(
             this.analyticsNamespace,
@@ -418,8 +413,13 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get isActivePickerColumnTypeNumeric(): boolean {
-        return this.activePickerMetricColumn instanceof ColumnTypeMap.Numeric
+    private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
+        // If the column is currently missing (not loaded yet), assume it is numeric.
+        return (
+            col === undefined ||
+            col.isMissing ||
+            col instanceof ColumnTypeMap.Numeric
+        )
     }
 
     private get pickerMenu(): JSX.Element | null {
@@ -463,7 +463,9 @@ export class EntityPicker extends React.Component<{
                 >
                     <SortIcon
                         type={
-                            this.isActivePickerColumnTypeNumeric
+                            this.isColumnTypeNumeric(
+                                this.activePickerMetricColumn
+                            )
                                 ? "numeric"
                                 : "text"
                         }
