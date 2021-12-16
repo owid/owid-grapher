@@ -9,9 +9,8 @@ import parseArgs from "minimist"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const schema = await fs.readJson("schema.json")
 
-    const fields: FieldDescription[] = extractFieldDescriptionsFromSchema(
-        schema
-    )
+    const fields: FieldDescription[] =
+        extractFieldDescriptionsFromSchema(schema)
     console.log(JSON.stringify(fields, undefined, 2))
 }
 
