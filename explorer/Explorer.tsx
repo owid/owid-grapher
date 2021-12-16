@@ -186,10 +186,10 @@ export class Explorer
         return grapherConfigsMap
     }
 
+    disposers: (() => void)[] = []
     componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
-        this.updateEntityPickerTable()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -203,16 +203,37 @@ export class Explorer
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
+        this.onResize() // call resize for the first time to initialize chart
+        this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
+
+        this.attachEventListeners()
+    }
+
+    private attachEventListeners() {
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
-        this.onResize() // call resize for the first time to initialize chart
+        this.disposers.push(() => {
+            if (this.onResizeThrottled !== undefined)
+                window.removeEventListener("resize", this.onResizeThrottled)
+        })
+
+        // We always prefer the entity picker metric to be sourced from the currently displayed table.
+        // To do this properly, we need to also react to the table changing.
+        this.disposers.push(
+            reaction(
+                () => [
+                    this.entityPickerMetric,
+                    this.explorerProgram.grapherConfig.tableSlug,
+                ],
+                () => this.updateEntityPickerTable()
+            )
+        )
 
         if (this.props.isInStandalonePage) this.bindToWindow()
     }
 
     componentWillUnmount() {
-        if (this.onResizeThrottled)
-            window.removeEventListener("resize", this.onResizeThrottled)
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private initSlideshow() {
@@ -380,12 +401,14 @@ export class Explorer
         const pushParams = () => setWindowUrl(this.currentUrl)
         const debouncedPushParams = debounce(pushParams, 100)
 
-        reaction(
-            () => this.queryParams,
-            () =>
-                this.grapher?.debounceMode
-                    ? debouncedPushParams()
-                    : pushParams()
+        this.disposers.push(
+            reaction(
+                () => this.queryParams,
+                () =>
+                    this.grapher?.debounceMode
+                        ? debouncedPushParams()
+                        : pushParams()
+            )
         )
     }
 
@@ -634,7 +657,6 @@ export class Explorer
     }: { metric?: string; sort?: SortOrder } = {}) {
         if (metric) this.entityPickerMetric = metric
         if (sort) this.entityPickerSort = sort
-        this.updateEntityPickerTable()
     }
 
     private tableSlugHasColumnSlug(

@@ -22,7 +22,11 @@ import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import { SortOrder } from "../../../coreTable/CoreTableConstants"
 import { getStylesForTargetHeight } from "../../../clientUtils/react-select"
-import { ColumnTypeMap, CoreColumn } from "../../../coreTable/CoreTableColumns"
+import {
+    ColumnTypeMap,
+    CoreColumn,
+    MissingColumn,
+} from "../../../coreTable/CoreTableColumns"
 import {
     EntityName,
     OwidTableSlugs,
@@ -131,9 +135,13 @@ export class EntityPicker extends React.Component<{
         )
     }
 
+    private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
+        if (slug === undefined) return undefined
+        return this.manager.entityPickerTable?.get(slug)
+    }
+
     @computed private get activePickerMetricColumn(): CoreColumn | undefined {
-        if (!this.metric) return undefined
-        return this.manager.entityPickerTable?.getColumns([this.metric])[0]
+        return this.getColumn(this.metric)
     }
 
     @computed private get availableEntitiesForCurrentView(): Set<string> {
@@ -390,9 +398,11 @@ export class EntityPicker extends React.Component<{
     }
 
     @action private updateMetric(columnSlug: ColumnSlug): void {
+        const col = this.getColumn(columnSlug)
+
         this.manager.setEntityPicker?.({
             metric: columnSlug,
-            sort: this.isActivePickerColumnTypeNumeric
+            sort: this.isColumnTypeNumeric(col)
                 ? SortOrder.desc
                 : SortOrder.asc,
         })
@@ -403,8 +413,13 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get isActivePickerColumnTypeNumeric(): boolean {
-        return this.activePickerMetricColumn instanceof ColumnTypeMap.Numeric
+    private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
+        // If the column is currently missing (not loaded yet), assume it is numeric.
+        return (
+            col === undefined ||
+            col.isMissing ||
+            col instanceof ColumnTypeMap.Numeric
+        )
     }
 
     private get pickerMenu(): JSX.Element | null {
@@ -448,7 +463,9 @@ export class EntityPicker extends React.Component<{
                 >
                     <SortIcon
                         type={
-                            this.isActivePickerColumnTypeNumeric
+                            this.isColumnTypeNumeric(
+                                this.activePickerMetricColumn
+                            )
                                 ? "numeric"
                                 : "text"
                         }
