@@ -209,6 +209,9 @@ $footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
     bottom: 0;
     z-index: $zindex-ControlsFooter;
     color: #777;
+    display: flex;
+    flex-direction: column;
+    justify-content: end; // align rows in the footer to the bottom
 
     .footerRowSingle,
     .footerRowMulti {

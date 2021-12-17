@@ -394,7 +394,7 @@ export interface FooterControlsManager extends ShareMenuManager {
     currentTab?: GrapherTabOption
     isInIFrame?: boolean
     canonicalUrl?: string
-    hasTimeline?: boolean
+    showTimeline?: boolean
     hasRelatedQuestion?: boolean
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
@@ -517,13 +517,13 @@ export class FooterControls extends React.Component<{
                 </div>
             )
 
-        const timeline = !manager.hasTimeline ? null : (
+        const timeline = manager.showTimeline ? (
             <div className="footerRowSingle">
                 <TimelineComponent
                     timelineController={this.manager.timelineController!}
                 />
             </div>
-        )
+        ) : null
 
         return (
             <div
