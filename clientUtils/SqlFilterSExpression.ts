@@ -24,19 +24,19 @@ export interface Operation {
     expressionType: ExpressionType
 }
 
-abstract class NumericOperation implements Operation {
+export abstract class NumericOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
     expressionType: ExpressionType = ExpressionType.numeric
 }
 
-abstract class BooleanOperation implements Operation {
+export abstract class BooleanOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
     expressionType: ExpressionType = ExpressionType.boolean
 }
 
-abstract class StringOperation implements Operation {
+export abstract class StringOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
     expressionType: ExpressionType = ExpressionType.string

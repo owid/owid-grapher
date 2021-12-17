@@ -3,7 +3,7 @@ import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
-import { cloneDeep, fromPairs, isArray, isNil, merge } from "lodash"
+import _, { cloneDeep, fromPairs, isArray, isEqual, isNil, merge } from "lodash"
 
 import jsonpointer from "json8-pointer"
 import { HotColumn, HotTable } from "@handsontable/react"
@@ -11,11 +11,17 @@ import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { applyPatch } from "../clientUtils/patchHelper"
 import {
+    BinaryLogicOperation,
+    BinaryLogicOperators,
+    BooleanAtom,
+    BooleanOperation,
     Operation,
     SqlColumnName,
+    SQL_COLUMN_NAME_DATASET_NAME,
     SQL_COLUMN_NAME_VARIABLE_NAME,
     StringAtom,
     StringContainsOperation,
+    StringOperation,
 } from "../clientUtils/SqlFilterSExpression"
 import {
     FieldDescription,
@@ -37,6 +43,7 @@ import { BindString } from "./Forms"
 import { from, Observable, ObservableInput } from "rxjs"
 import {
     catchError,
+    combineAll,
     debounceTime,
     distinctUntilChanged,
     switchMap,
@@ -95,6 +102,42 @@ const IMPORTANT_COLUMNS = [
     "/dimensions/0/shortUnit",
 ]
 
+interface FetchVariablesParameters {
+    pagingOffset: number
+    filterQuery: Operation
+    sortByColumn: string
+    sortByAscending: boolean
+}
+
+function fetchVariablesParametersToQueryParametersString(
+    params: FetchVariablesParameters
+): string {
+    return queryParamsToStr({
+        filter: params.filterQuery.toSExpr(),
+        offset: params.pagingOffset.toString(),
+    })
+}
+
+function searchFieldStringToFilterOperations(
+    searchString: string,
+    target: StringOperation
+): BooleanOperation | undefined {
+    const fragments = searchString
+        .split(" ")
+        .map((item) => item.trim())
+        .filter((item) => item !== "")
+    const wordContainsParts = fragments.map(
+        (fragment) =>
+            new StringContainsOperation(target, new StringAtom(fragment))
+    )
+    if (fragments.length > 0)
+        return new BinaryLogicOperation(
+            BinaryLogicOperators.and,
+            wordContainsParts
+        )
+    else return undefined
+}
+
 @observer
 class VariablesAnnotationComponent extends React.Component<
     Record<string, never>,
@@ -118,7 +161,43 @@ class VariablesAnnotationComponent extends React.Component<
     @observable undoSteps: UndoStep[] = []
     @observable redoSteps: UndoStep[] = []
     @observable variableNameFilter: string | undefined = undefined
+    @observable datasetNameFilter: string = ""
     @observable currentPagingOffset: number = 0
+    @observable desiredPagingOffset: number = 0
+    @observable sortByColumn: string = "id"
+    @observable sortByAscending: boolean = false
+    @computed get dataFetchParameters(): FetchVariablesParameters {
+        const {
+            variableNameFilter,
+            datasetNameFilter,
+            desiredPagingOffset,
+            sortByAscending,
+            sortByColumn,
+        } = this
+        const filterOperations = [
+            searchFieldStringToFilterOperations(
+                variableNameFilter ?? "",
+                new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME)
+            ),
+            searchFieldStringToFilterOperations(
+                datasetNameFilter ?? "",
+                new SqlColumnName(SQL_COLUMN_NAME_DATASET_NAME)
+            ),
+        ].filter((item): item is Operation => item !== undefined)
+        const filterQuery =
+            filterOperations.length === 0
+                ? new BooleanAtom(true)
+                : new BinaryLogicOperation(
+                      BinaryLogicOperators.and,
+                      filterOperations
+                  )
+        return {
+            pagingOffset: desiredPagingOffset,
+            filterQuery,
+            sortByColumn,
+            sortByAscending,
+        }
+    }
     disposers: Disposer[] = []
     //debouncedVariableNameFilterListener: IStreamListener<string | undefined>
     // @computed get debouncedVariableNameFilter(): string | undefined {
@@ -559,14 +638,6 @@ class VariablesAnnotationComponent extends React.Component<
         // post this as a PATCH request to the server
         this.do({ patches })
     }
-    constructFilter(variableFilter: string | undefined): string | undefined {
-        return variableFilter !== "" && variableFilter !== undefined
-            ? new StringContainsOperation(
-                  new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME),
-                  new StringAtom(variableFilter)
-              ).toSExpr()
-            : undefined
-    }
 
     async getFieldDefinitions() {
         const json = await fetch(
@@ -635,16 +706,86 @@ class VariablesAnnotationComponent extends React.Component<
             )
     }
 
+    @action.bound
+    pageToPreviousPage(): void {
+        if ((this.numTotalRows ?? 0) > 50 && this.desiredPagingOffset >= 50)
+            this.desiredPagingOffset = this.desiredPagingOffset - 50
+    }
+
+    @action.bound
+    pageToNextPage(): void {
+        if (
+            (this.numTotalRows ?? 0) > 50 &&
+            this.desiredPagingOffset + 50 < (this.numTotalRows ?? 0)
+        ) {
+            console.log("increasing desired paging offset")
+            this.desiredPagingOffset = this.desiredPagingOffset + 50
+        }
+    }
+
+    renderPagination(): JSX.Element {
+        const { numTotalRows, currentPagingOffset } = this
+        const currentStartLabe = currentPagingOffset + 1
+        const currentEndLabel = Math.min(
+            currentPagingOffset + 50,
+            numTotalRows ?? 0
+        )
+
+        return (
+            <nav aria-label="Variable annotation pagination controls">
+                <ul className="pagination">
+                    <li className="page-item">
+                        <a
+                            className="page-link"
+                            href="#"
+                            aria-label="Previous"
+                            onClick={this.pageToPreviousPage}
+                        >
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li className="page-item">
+                        <a className="page-link" href="#">
+                            {currentStartLabe} to {currentEndLabel} of{" "}
+                            {numTotalRows}
+                        </a>
+                    </li>
+                    {/* <li className="page-item">
+                        <a className="page-link" href="#">
+                            1
+                        </a>
+                    </li>
+                    <li className="page-item">
+                        <a className="page-link" href="#">
+                            2
+                        </a>
+                    </li>
+                    <li className="page-item">
+                        <a className="page-link" href="#">
+                            3
+                        </a>
+                    </li> */}
+                    <li className="page-item">
+                        <a
+                            className="page-link"
+                            href="#"
+                            aria-label="Next"
+                            onClick={this.pageToNextPage}
+                        >
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        )
+    }
+
     renderFilterTab(): JSX.Element {
-        const { numTotalRows } = this
         return (
             <section>
                 <div className="container">
                     <h3>Variable filters</h3>
-                    <p>
-                        Total variable count matching the active filter:{" "}
-                        {numTotalRows}
-                    </p>
+                    {this.renderPagination()}
                     <BindString
                         field="variableNameFilter"
                         store={this}
@@ -665,38 +806,27 @@ class VariablesAnnotationComponent extends React.Component<
         )
     }
 
-    buildDataFetchUrl(variableNameFilter: string, offset: number): string {
-        const filter = this.constructFilter(variableNameFilter)
+    buildDataFetchUrl(fetchParameters: FetchVariablesParameters): string {
+        const filter =
+            fetchVariablesParametersToQueryParametersString(fetchParameters)
         const baseUrl = "/admin/api/variable-annotations"
-        return baseUrl + queryParamsToStr({ filter, offset: offset.toString() })
+        return baseUrl + filter
     }
 
     async componentDidMount() {
-        // TODO: run these in parallel but await them and handle errors
-        //this.getData("", 0)
-        const varStream = toStream(() => this.variableNameFilter)
+        const varStream = toStream(() => this.dataFetchParameters, true)
+
         const observable = from(varStream).pipe(
             debounceTime(200),
-            distinctUntilChanged(
-                (x, y) =>
-                    (x === undefined && y === undefined) ||
-                    (x === "" && y === "") ||
-                    (x !== undefined &&
-                        y !== undefined &&
-                        x.trim() === y.trim())
-            ),
-            switchMap((variableNameFilter) =>
-                fromFetch(
-                    this.buildDataFetchUrl(
-                        variableNameFilter ?? "",
-                        this.currentPagingOffset
-                    ),
-                    {
-                        headers: { Accept: "application/json" },
-                        credentials: "same-origin",
-                        selector: (response) => response.json(),
-                    }
-                ).pipe(
+            distinctUntilChanged(isEqual),
+            switchMap((params) => {
+                console.log("props", params)
+                console.log("sql", params.filterQuery.toSql())
+                return fromFetch(this.buildDataFetchUrl(params), {
+                    headers: { Accept: "application/json" },
+                    credentials: "same-origin",
+                    selector: (response) => response.json(),
+                }).pipe(
                     catchError((err: any, caught: Observable<any>) => {
                         this.context.admin.setErrorMessage({
                             title: `Failed to fetch variable annotations`,
@@ -708,11 +838,7 @@ class VariablesAnnotationComponent extends React.Component<
                         return [undefined]
                     })
                 )
-            )
-            // TODO: Usually in RxJS we would do a switchMap here with a fromFetch for the data fetching
-            // and get automatic cancelling of obsolete HTTP requests. This would mean changing the entire error
-            // handling a bit for the getData function so I'm not doing this now but it might be a nice
-            // change in the future
+            })
         )
         const mobxValue = fromStream(observable)
         const disposer = autorun(() => {
@@ -722,6 +848,7 @@ class VariablesAnnotationComponent extends React.Component<
                 runInAction(() => {
                     console.log("Data fetched", currentData)
                     this.resetViewStateAfterFetch()
+                    this.currentPagingOffset = this.desiredPagingOffset
                     this.richDataRows = currentData.variables.map(
                         parseVariableAnnotationsRow
                     )
@@ -730,7 +857,7 @@ class VariablesAnnotationComponent extends React.Component<
             }
         })
         this.disposers.push(disposer)
-        this.variableNameFilter = ""
+        //this.variableNameFilter = ""
 
         this.getFieldDefinitions()
         // this.dispose = reaction(
