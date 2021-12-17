@@ -74,6 +74,7 @@ interface UndoStep {
     patches: VariableAnnotationPatch[]
 }
 
+const PAGEING_SIZE: number = 50
 const enum Tabs {
     EditorTab = "EditorTab",
     FilterTab = "FilterTab",
@@ -102,6 +103,8 @@ const IMPORTANT_COLUMNS = [
     "/dimensions/0/shortUnit",
 ]
 
+/** All the parameters we need for making a fully specified request to the /variable-annotations
+    endpoint. When any of these fields change we need to trigger a new request */
 interface FetchVariablesParameters {
     pagingOffset: number
     filterQuery: Operation
@@ -118,6 +121,9 @@ function fetchVariablesParametersToQueryParametersString(
     })
 }
 
+/** Turns a search string like "nuclear share" into a BooleanOperation
+    that AND connects a CONTAINS query for every word - i.e. it would result in
+    (AND (CONTAINS target "nuclear") (CONTAINS target "share"))  */
 function searchFieldStringToFilterOperations(
     searchString: string,
     target: StringOperation
@@ -139,33 +145,47 @@ function searchFieldStringToFilterOperations(
 }
 
 @observer
-class VariablesAnnotationComponent extends React.Component<
-    Record<string, never>,
-    Record<string, never>,
-    Record<string, never>
-> {
+class VariablesAnnotationComponent extends React.Component {
     static contextType = AdminAppContext
 
-    @observable.ref grapher = new Grapher()
-    @observable.ref grapherElement?: JSX.Element
+    @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
+    @observable.ref grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
     numTotalRows: number | undefined = undefined
     selectedRow: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
 
     context!: AdminAppContextType
+    /** This array contains a description for every column, information like which field
+        to display, what editor control should be used, ... */
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
         undefined
+
+    /** Rows of the query result to the /variable-annotations endpoint that include a parsed
+        grapher object for the grapherConfig field */
     @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
         undefined
 
+    /** Undo step stack - not yet used - TODO: implement Undo/redo */
     @observable undoSteps: UndoStep[] = []
+    /** Redo step stack - not yet used */
     @observable redoSteps: UndoStep[] = []
+    // Filter fields and paging offset
     @observable variableNameFilter: string | undefined = undefined
     @observable datasetNameFilter: string = ""
+    /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
+    /** This field stores the offset that the user requested. E.g. if the user clicks
+        the "Next page" quickly twice then this field will be 2 paging offsets higher
+        than currentPagingOffset until the request to retrieve that data is complete
+        at which point they will be the same */
     @observable desiredPagingOffset: number = 0
+    // Sorting fields - not yet used - TODO: implement sorting
     @observable sortByColumn: string = "id"
     @observable sortByAscending: boolean = false
+    disposers: Disposer[] = []
+    /** Computed property that combines all relevant filter, paging and offset
+        properties into a FetcHVariablesParameter object that is used to construct
+        the query */
     @computed get dataFetchParameters(): FetchVariablesParameters {
         const {
             variableNameFilter,
@@ -198,17 +218,66 @@ class VariablesAnnotationComponent extends React.Component<
             sortByAscending,
         }
     }
-    disposers: Disposer[] = []
-    //debouncedVariableNameFilterListener: IStreamListener<string | undefined>
-    // @computed get debouncedVariableNameFilter(): string | undefined {
-    //     return this.debouncedVariableNameFilterListener.current
-    // }
+    /** Here is some of the most important code in this component - the
+        setup that puts in place the fetch logic to retrieve variable annotations
+        whenever any of the dataFetchParameters change */
+    async componentDidMount() {
+        // Here we chain together a mobx property (dataFetchParameters) to
+        // an rxJS observable pipeline to debounce the signal and then
+        // use switchMap to create new fetch requests and cancel outstanding ones
+        // to finally turn this into a local mobx value again that we subscribe to
+        // with an autorun to finally update the dependent properties on this class.
+        const varStream = toStream(() => this.dataFetchParameters, true)
 
-    constructor(props: Record<string, never>) {
-        super(props)
+        const observable = from(varStream).pipe(
+            debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
+            distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
+            switchMap((params) => {
+                // use switchmap to create a new fetch (as an observable) and
+                // automatically cancel stale fetch requests
+                return fromFetch(this.buildDataFetchUrl(params), {
+                    headers: { Accept: "application/json" },
+                    credentials: "same-origin",
+                    selector: (response) => response.json(),
+                }).pipe(
+                    // catch errors and report them the way the admin UI expects it
+                    catchError((err: any, caught: Observable<any>) => {
+                        this.context.admin.setErrorMessage({
+                            title: `Failed to fetch variable annotations`,
+                            content:
+                                stringifyUnkownError(err) ??
+                                "unexpected error value in setErrorMessage",
+                            isFatal: false,
+                        })
+                        return [undefined]
+                    })
+                )
+            })
+        )
+        // Turn the rxJs observable stream into a mobx value
+        const mobxValue = fromStream(observable)
+        // Set up the autorun to run an action to update the dependendencies
+        const disposer = autorun(() => {
+            const currentData = mobxValue.current
 
-        //this.debouncedVariableNameFilterListener = fromStream(observable)
+            if (currentData !== undefined) {
+                runInAction(() => {
+                    console.log("Data fetched", currentData)
+                    this.resetViewStateAfterFetch()
+                    this.currentPagingOffset = this.desiredPagingOffset
+                    this.richDataRows = currentData.variables.map(
+                        parseVariableAnnotationsRow
+                    )
+                    this.numTotalRows = currentData.numTotalRows
+                })
+            }
+        })
+        // Add the disposer to the list of things we need to clean up on unmount
+        this.disposers.push(disposer)
+
+        this.getFieldDefinitions()
     }
+
     @action.bound private resetViewStateAfterFetch(): void {
         this.undoSteps = []
         this.redoSteps = []
@@ -218,10 +287,7 @@ class VariablesAnnotationComponent extends React.Component<
     @action.bound private loadGrapherJson(json: any): void {
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
-            bounds:
-                //this.editor?.previewMode === "mobile"
-                //? new Bounds(0, 0, 360, 500)
-                new Bounds(0, 0, 500, 400),
+            bounds: new Bounds(0, 0, 500, 400),
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
@@ -240,6 +306,10 @@ class VariablesAnnotationComponent extends React.Component<
         const { richDataRows } = this
         console.log("updating preview to row", row)
         if (richDataRows === undefined) return
+
+        // Get the grapherConfig of the currently selected row and then
+        // merge it with the necessary partial information (e.g. variableId field)
+        // to get a config that actually works in all cases
         const config = richDataRows[row].grapherConfig
         const finalConfigLayer = getFinalConfigLayerForVariable(
             richDataRows[row].id
@@ -269,6 +339,8 @@ class VariablesAnnotationComponent extends React.Component<
         await this.sendPatches(reversedPatches)
     }
 
+    /** Performs an undo step - i.e. applies it to the richDataRows object,
+        sends an HTTP patch request and puts the step onto the undo stack */
     @action
     async do(step: UndoStep): Promise<void> {
         const { richDataRows } = this
@@ -337,6 +409,25 @@ class VariablesAnnotationComponent extends React.Component<
             return asObject
         }
     }
+    /** This is an array of data values that is derived from the richDataRows
+        property. It represents roughly the same logical structure but flattened out
+        into an array of records where each key is the id of a column (= the json pointer
+        to the place in the grapherConfig this column represents).
+
+        What this function also does is set the default values where we have them in the schema
+        (which is basically for boolean values and enums) so that the correct defaults are shown.
+
+        For example, an entry in this array would have some fields like this:
+        {
+            id: ...,
+            name: ...,
+            datasetname: ...,
+            namespacename: ...,
+            /title: ...,
+            /subtitle: ...,
+            /map/projection: ...,
+            ...
+        } */
     @computed get flattenedDataRows(): unknown[] | undefined {
         const { richDataRows, fieldDescriptions, defaultValues } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
@@ -376,6 +467,9 @@ class VariablesAnnotationComponent extends React.Component<
     }
 
     static decideHotType(desc: FieldDescription): string {
+        // Map the field description editor choice to a handsontable editor.
+        // We currently map several special types to text when we don't have anything
+        // fancy implemented
         return match(desc.editor)
             .with(EditorOption.checkbox, (_) => "checkbox")
             .with(EditorOption.dropdown, (_) => "dropdown")
@@ -437,6 +531,8 @@ class VariablesAnnotationComponent extends React.Component<
                     )
                 )
             // then all the others coming from the fieldDescriptions
+            // for these we want to suppress the HIDDEN_COLUMNS and
+            // move the IMPORTANT_COLUMNS to the front
             const fieldDescsFiltered = fieldDescriptions.filter(
                 (desc) =>
                     HIDDEN_COLUMNS.find((item) => item === desc.pointer) ===
@@ -640,6 +736,8 @@ class VariablesAnnotationComponent extends React.Component<
     }
 
     async getFieldDefinitions() {
+        // TODO: this should switch to files.ourwordindata.org but if I do this I get a CORS error -
+        // areh HEAD requests not forwarded?
         const json = await fetch(
             "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.001.json"
         ).then((response) => response.json())
@@ -651,15 +749,7 @@ class VariablesAnnotationComponent extends React.Component<
     }
 
     render() {
-        // TODO: Move preview into always visible area of sidebar, try to use
-        // DataTab Selection editor by handing over grapher and updating on blur?
-        const {
-            hotSettings,
-            hotColumns,
-            grapherElement,
-            numTotalRows,
-            activeTab,
-        } = this
+        const { hotSettings, hotColumns, activeTab } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
             return (
@@ -708,18 +798,21 @@ class VariablesAnnotationComponent extends React.Component<
 
     @action.bound
     pageToPreviousPage(): void {
-        if ((this.numTotalRows ?? 0) > 50 && this.desiredPagingOffset >= 50)
-            this.desiredPagingOffset = this.desiredPagingOffset - 50
+        if (
+            (this.numTotalRows ?? 0) > PAGEING_SIZE &&
+            this.desiredPagingOffset >= PAGEING_SIZE
+        )
+            this.desiredPagingOffset = this.desiredPagingOffset - PAGEING_SIZE
     }
 
     @action.bound
     pageToNextPage(): void {
         if (
-            (this.numTotalRows ?? 0) > 50 &&
-            this.desiredPagingOffset + 50 < (this.numTotalRows ?? 0)
+            (this.numTotalRows ?? 0) > PAGEING_SIZE &&
+            this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
         ) {
             console.log("increasing desired paging offset")
-            this.desiredPagingOffset = this.desiredPagingOffset + 50
+            this.desiredPagingOffset = this.desiredPagingOffset + PAGEING_SIZE
         }
     }
 
@@ -727,7 +820,7 @@ class VariablesAnnotationComponent extends React.Component<
         const { numTotalRows, currentPagingOffset } = this
         const currentStartLabe = currentPagingOffset + 1
         const currentEndLabel = Math.min(
-            currentPagingOffset + 50,
+            currentPagingOffset + PAGEING_SIZE,
             numTotalRows ?? 0
         )
 
@@ -750,21 +843,6 @@ class VariablesAnnotationComponent extends React.Component<
                             {numTotalRows}
                         </a>
                     </li>
-                    {/* <li className="page-item">
-                        <a className="page-link" href="#">
-                            1
-                        </a>
-                    </li>
-                    <li className="page-item">
-                        <a className="page-link" href="#">
-                            2
-                        </a>
-                    </li>
-                    <li className="page-item">
-                        <a className="page-link" href="#">
-                            3
-                        </a>
-                    </li> */}
                     <li className="page-item">
                         <a
                             className="page-link"
@@ -816,60 +894,6 @@ class VariablesAnnotationComponent extends React.Component<
             fetchVariablesParametersToQueryParametersString(fetchParameters)
         const baseUrl = "/admin/api/variable-annotations"
         return baseUrl + filter
-    }
-
-    async componentDidMount() {
-        const varStream = toStream(() => this.dataFetchParameters, true)
-
-        const observable = from(varStream).pipe(
-            debounceTime(200),
-            distinctUntilChanged(isEqual),
-            switchMap((params) => {
-                console.log("props", params)
-                console.log("sql", params.filterQuery.toSql())
-                return fromFetch(this.buildDataFetchUrl(params), {
-                    headers: { Accept: "application/json" },
-                    credentials: "same-origin",
-                    selector: (response) => response.json(),
-                }).pipe(
-                    catchError((err: any, caught: Observable<any>) => {
-                        this.context.admin.setErrorMessage({
-                            title: `Failed to fetch variable annotations`,
-                            content:
-                                stringifyUnkownError(err) ??
-                                "unexpected error value in setErrorMessage",
-                            isFatal: false,
-                        })
-                        return [undefined]
-                    })
-                )
-            })
-        )
-        const mobxValue = fromStream(observable)
-        const disposer = autorun(() => {
-            const currentData = mobxValue.current
-
-            if (currentData !== undefined) {
-                runInAction(() => {
-                    console.log("Data fetched", currentData)
-                    this.resetViewStateAfterFetch()
-                    this.currentPagingOffset = this.desiredPagingOffset
-                    this.richDataRows = currentData.variables.map(
-                        parseVariableAnnotationsRow
-                    )
-                    this.numTotalRows = currentData.numTotalRows
-                })
-            }
-        })
-        this.disposers.push(disposer)
-        //this.variableNameFilter = ""
-
-        this.getFieldDefinitions()
-        // this.dispose = reaction(
-        //     () => this.searchInput || this.maxVisibleRows,
-        //     lodash.debounce(() => this.getData(), 200)
-        // )
-        // this.getData()
     }
 
     componentWillUnmount() {
