@@ -105,8 +105,8 @@ const IMPORTANT_COLUMNS = [
 interface FetchVariablesParameters {
     pagingOffset: number
     filterQuery: Operation
-    sortByColumn: string
-    sortByAscending: boolean
+    sortByColumn: string // sort is currently ignored but here for future use
+    sortByAscending: boolean // sort is currently ignored but here for future use
 }
 
 function fetchVariablesParametersToQueryParametersString(
@@ -790,6 +790,11 @@ class VariablesAnnotationComponent extends React.Component<
                         field="variableNameFilter"
                         store={this}
                         label="Variable name"
+                    />
+                    <BindString
+                        field="datasetNameFilter"
+                        store={this}
+                        label="Dataset name"
                     />
                 </div>
             </section>
