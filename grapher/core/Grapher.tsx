@@ -1153,6 +1153,13 @@ export class Grapher
         return text.trim()
     }
 
+    /**
+     * Uses some explicit and implicit information to decide whether a timeline is shown.
+     * Note the difference between `hasTimeline` and `showTimeline`:
+     * - `hasTimeline` indicates whether the current _normal_ (non-overlay) tab has a timeline.
+     * - `showTimeline` takes into account whether we are on an overlay tab, and thus indicates
+     *    whether we should currently show the timeline.
+     */
     @computed get hasTimeline(): boolean {
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
