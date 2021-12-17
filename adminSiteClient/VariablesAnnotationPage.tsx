@@ -745,7 +745,7 @@ class VariablesAnnotationComponent extends React.Component<
                         </a>
                     </li>
                     <li className="page-item">
-                        <a className="page-link" href="#">
+                        <a className="page-link">
                             {currentStartLabe} to {currentEndLabel} of{" "}
                             {numTotalRows}
                         </a>
