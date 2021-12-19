@@ -75,6 +75,7 @@ export interface RelatedQuestionsConfig {
     text: string
     url: string
 }
+export type Topic = string
 
 export const WorldEntityName = "World"
 

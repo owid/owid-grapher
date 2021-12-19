@@ -403,26 +403,25 @@ body {
     }
 }
 
-.EditorDataTab {
-    .EditableListItem {
-        @extend .draggable;
+.EditorDataTab .EditableListItem,
+.EditorTextTab .EditableListItem {
+    @extend .draggable;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+    }
 
-        > div {
-            display: flex;
-            align-items: center;
-        }
+    i {
+        font-size: 1.2rem;
+        color: #666;
+    }
 
-        i {
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        > div:first-child > * {
-            margin-right: 12px;
-        }
+    > div:first-child > * {
+        margin-right: 12px;
     }
 }
 

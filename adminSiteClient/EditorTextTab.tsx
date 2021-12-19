@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import {
@@ -11,14 +11,21 @@ import {
     RadioGroup,
     TextField,
     Button,
+    SelectField,
+    EditableList,
+    EditableListItem,
 } from "./Forms"
 import { LogoOption } from "../grapher/captionedChart/Logos"
 import slugify from "slugify"
-import { RelatedQuestionsConfig } from "../grapher/core/GrapherConstants"
-import { getErrorMessageRelatedQuestionUrl } from "../grapher/core/Grapher" // fix.
+import { RelatedQuestionsConfig, Topic } from "../grapher/core/GrapherConstants"
+import {
+    getErrorMessageRelatedQuestionUrl,
+    Grapher,
+} from "../grapher/core/Grapher" // fix.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -53,7 +60,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         const { relatedQuestions } = grapher
 
         return (
-            <div>
+            <div className="EditorTextTab">
                 <Section name="Header">
                     <BindAutoString
                         field="title"
@@ -120,6 +127,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
+                    <TopicsSection grapher={grapher} />
                     {references && references.length > 0 && (
                         <div className="originSuggestions">
                             <p>Origin url suggestions</p>
@@ -201,6 +209,79 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
             </div>
+        )
+    }
+}
+
+type TopicName = string
+@observer
+class TopicsSection extends React.Component<{ grapher: Grapher }> {
+    @observable.ref draggedTopic?: TopicName
+
+    @action.bound onAddTopic(topic: Topic) {
+        this.props.grapher.topics.push(topic)
+    }
+
+    @action.bound onRemoveTopic(topic: Topic) {
+        const topicIdx = this.props.grapher.topics.findIndex((t) => t === topic)
+        this.props.grapher.topics.splice(topicIdx, 1)
+    }
+
+    @action.bound onStartDrag(topic: TopicName) {
+        this.draggedTopic = topic
+
+        const onDrag = action(() => {
+            this.draggedTopic = undefined
+            window.removeEventListener("mouseup", onDrag)
+        })
+
+        window.addEventListener("mouseup", onDrag)
+    }
+
+    @action.bound onMouseEnter(topic: TopicName) {
+        if (!this.draggedTopic || topic === this.draggedTopic) return
+
+        const { topics } = this.props.grapher
+
+        const dragIndex = topics.indexOf(this.draggedTopic)
+        const targetIndex = topics.indexOf(topic)
+        topics.splice(dragIndex, 1)
+        topics.splice(targetIndex, 0, this.draggedTopic)
+    }
+
+    render() {
+        const { grapher } = this.props
+
+        const allTopics = ["1", "2", "3"]
+
+        return (
+            <>
+                <h5>Topics</h5>
+                <SelectField
+                    onValue={this.onAddTopic}
+                    value="Select data"
+                    options={["Select data"].concat(allTopics)}
+                    optionLabels={["Select data"].concat(allTopics)}
+                />
+                <EditableList>
+                    {grapher.topics.map((topicName) => (
+                        <EditableListItem
+                            key={topicName}
+                            onMouseDown={() => this.onStartDrag(topicName)}
+                            onMouseEnter={() => this.onMouseEnter(topicName)}
+                            className="EditableListItem"
+                        >
+                            <div>{topicName}</div>
+                            <div
+                                className="clickable"
+                                onClick={() => this.onRemoveTopic(topicName)}
+                            >
+                                <FontAwesomeIcon icon={faTimes} />
+                            </div>
+                        </EditableListItem>
+                    ))}
+                </EditableList>
+            </>
         )
     }
 }
