@@ -1153,11 +1153,18 @@ export class Grapher
         return text.trim()
     }
 
+    /**
+     * Uses some explicit and implicit information to decide whether a timeline is shown.
+     * Note the difference between `hasTimeline` and `showTimeline`:
+     * - `hasTimeline` indicates whether the current _normal_ (non-overlay) tab has a timeline.
+     * - `showTimeline` takes into account whether we are on an overlay tab, and thus indicates
+     *    whether we should currently show the timeline.
+     */
     @computed get hasTimeline(): boolean {
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.currentTab) {
+        switch (this.tab) {
             // the map tab has its own `hideTimeline` option
             case GrapherTabOption.map:
                 return !this.map.hideTimeline
@@ -1177,11 +1184,14 @@ export class Grapher
                     )
                 )
 
-            // never show a timeline while we're showing one of these two overlays
-            case GrapherTabOption.download:
-            case GrapherTabOption.sources:
+            default:
                 return false
         }
+    }
+
+    @computed get showTimeline(): boolean {
+        // don't show the timeline when on an overlay tab
+        return this.hasTimeline && this.overlay === undefined
     }
 
     @computed private get areHandlesOnSameTime(): boolean {
