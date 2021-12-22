@@ -357,7 +357,7 @@ export class SlopeChart
 
         const colorByEntity = new Map<SeriesName, Color | undefined>()
 
-        colorColumn.valueByEntityNameAndTime.forEach(
+        colorColumn.valueByEntityNameAndOriginalTime.forEach(
             (timeToColorMap, seriesName) => {
                 const values = Array.from(timeToColorMap.values())
                 const key = last(values)
@@ -380,7 +380,7 @@ export class SlopeChart
         const sizeByEntity = new Map<string, any>()
 
         if (sizeCol)
-            sizeCol.valueByEntityNameAndTime.forEach(
+            sizeCol.valueByEntityNameAndOriginalTime.forEach(
                 (timeToSizeMap, entity) => {
                     const values = Array.from(timeToSizeMap.values())
                     sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first time
@@ -408,7 +408,8 @@ export class SlopeChart
                 const values: SlopeChartValue[] = []
 
                 const yValues =
-                    column.valueByEntityNameAndTime.get(seriesName)! || []
+                    column.valueByEntityNameAndOriginalTime.get(seriesName)! ||
+                    []
 
                 yValues.forEach((value, time) => {
                     if (time !== minTime && time !== maxTime) return

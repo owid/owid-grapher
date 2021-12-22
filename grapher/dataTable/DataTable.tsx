@@ -520,13 +520,13 @@ export class DataTable extends React.Component<{
                       // getStartEndValues() extracts these two values.
                       es6mapValues(
                           valuesByEntityWithinTimes(
-                              sourceColumn.valueByEntityNameAndTime,
+                              sourceColumn.valueByEntityNameAndOriginalTime,
                               targetTimes
                           ),
                           getStartEndValues
                       )
                     : valuesByEntityAtTimes(
-                          sourceColumn.valueByEntityNameAndTime,
+                          sourceColumn.valueByEntityNameAndOriginalTime,
                           targetTimes,
                           sourceColumn.tolerance
                       )

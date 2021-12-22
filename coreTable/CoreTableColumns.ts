@@ -456,7 +456,11 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @imemo get valueByEntityNameAndTime(): Map<EntityName, Map<Time, JS_TYPE>> {
+    // NOTE: this uses the original times, so any tolerance is effectively unapplied.
+    @imemo get valueByEntityNameAndOriginalTime(): Map<
+        EntityName,
+        Map<Time, JS_TYPE>
+    > {
         const valueByEntityNameAndTime = new Map<
             EntityName,
             Map<Time, JS_TYPE>

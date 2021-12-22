@@ -824,7 +824,7 @@ export class LineChart
                             }
                             if (hasColorScale) {
                                 point.colorValue =
-                                    this.colorColumn.valueByEntityNameAndTime
+                                    this.colorColumn.valueByEntityNameAndOriginalTime
                                         .get(entityName)
                                         ?.get(row.time)
                             }
