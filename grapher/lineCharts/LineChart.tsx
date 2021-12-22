@@ -157,22 +157,30 @@ class Lines extends React.Component<LinesProps> {
 
             return (
                 <g key={index}>
-                    <MultiColorPolyline
-                        points={series.placedPoints}
+                    <path
+                        stroke={series.color}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d={pointsToPath(
+                            series.placedPoints.map((value) => [
+                                value.x,
+                                value.y,
+                            ]) as [number, number][]
+                        )}
+                        fill="none"
                         strokeWidth={this.strokeWidth}
                         strokeDasharray={
                             series.isProjection ? "1,4" : undefined
                         }
                     />
                     {showMarkers && (
-                        <g>
+                        <g fill={series.color}>
                             {series.placedPoints.map((value, index) => (
                                 <circle
                                     key={index}
                                     cx={value.x}
                                     cy={value.y}
                                     r={2}
-                                    fill={value.color}
                                 />
                             ))}
                         </g>
