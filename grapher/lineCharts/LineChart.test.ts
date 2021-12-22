@@ -13,6 +13,8 @@ import { ScaleType, SeriesStrategy } from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
+import { LineChartManager } from "./LineChartConstants"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -178,6 +180,39 @@ describe("colors", () => {
         const newSeries = chart.series
         expect(newSeries).toHaveLength(1)
         expect(newSeries[0].color).toEqual(series[1].color)
+    })
+
+    it("doesn't use variable colors if 2 variables have single entities which are different", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "canada"],
+                year: [2000, 2001, 2000],
+                gdp: [100, 200, ErrorValueTypes.MissingValuePlaceholder],
+                pop: [
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    100,
+                ],
+            },
+            [
+                { slug: "gdp", color: "green", type: ColumnTypeNames.Numeric },
+                { slug: "pop", color: "orange", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const manager: LineChartManager = {
+            yColumnSlugs: ["gdp", "pop"],
+            table: table,
+            selection: ["usa", "canada"],
+            seriesStrategy: SeriesStrategy.column,
+            canSelectMultipleEntities: true,
+        }
+        const chart = new LineChart({ manager })
+        const series = chart.series
+
+        expect(series).toHaveLength(2)
+        expect(series[0].color).not.toEqual("green")
+        expect(series[1].color).not.toEqual("orange")
     })
 })
 

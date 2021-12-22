@@ -802,15 +802,18 @@ export class LineChart
 
     @computed get series(): readonly LineChartSeries[] {
         const { hasColorScale } = this
+        const totalEntityCount =
+            this.transformedTable.availableEntityNames.length
         return flatten(
             this.yColumns.map((col) => {
                 const { isProjection, owidRowsByEntityName } = col
-                const entityNames = Array.from(owidRowsByEntityName.keys())
-                return entityNames.map((entityName) => {
+                const colEntityNames = Array.from(owidRowsByEntityName.keys())
+
+                return colEntityNames.map((entityName) => {
                     const seriesName = this.getSeriesName(
                         entityName,
                         col.displayName,
-                        entityNames.length
+                        totalEntityCount
                     )
                     const points = owidRowsByEntityName
                         .get(entityName)!
@@ -836,7 +839,7 @@ export class LineChart
                             this.getColorKey(
                                 entityName,
                                 col.displayName,
-                                entityNames.length
+                                totalEntityCount
                             )
                         )
                     }
