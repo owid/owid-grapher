@@ -64,6 +64,11 @@ export const ErrorValueTypes = {
 export const isNotErrorValue = <TYPE>(item: TYPE | ErrorValue): item is TYPE =>
     !(item instanceof ErrorValue)
 
+export const isNotErrorValueOrEmptyCell = <K>(
+    value: K
+): value is Exclude<K, ErrorValue | undefined> =>
+    value !== undefined && isNotErrorValue(value)
+
 export const defaultIfErrorValue = <TYPE>(
     item: TYPE | ErrorValue,
     defaultValue?: TYPE

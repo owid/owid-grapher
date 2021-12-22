@@ -17,7 +17,11 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
+import {
+    ErrorValue,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+} from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
@@ -180,12 +184,6 @@ export const makeRowFromColumnStore = (
         row[slug] = columns[colIndex][rowIndex]
     })
     return row
-}
-
-function isNotErrorValueOrEmptyCell<K>(
-    value: K
-): value is Exclude<K, ErrorValue | undefined> {
-    return value !== undefined && !(value instanceof ErrorValue)
 }
 
 export interface InterpolationContext {}
