@@ -1,12 +1,9 @@
 import { Color } from "../../coreTable/CoreTableConstants"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { ChartSeries } from "../chart/ChartInterface"
-import { SeriesColorMap, SeriesName } from "../core/GrapherConstants"
 import { lastOfNonEmptyArray, clone } from "../../clientUtils/Util"
-import { isPresent } from "../../clientUtils/isPresent"
 import { ColorSchemeInterface } from "./ColorConstants"
-import { getLeastUsedColor, interpolateArray } from "./ColorUtils"
+import { interpolateArray } from "./ColorUtils"
 
 export class ColorScheme implements ColorSchemeInterface {
     name: string
@@ -117,46 +114,6 @@ export class ColorScheme implements ColorSchemeInterface {
             colorByValue.set(value, colors[index])
         )
         return colorByValue
-    }
-
-    assignColors(
-        seriesArr: ChartSeries[],
-        invertColorScheme = false,
-        customColorMap: Map<SeriesName, Color> = new Map(),
-        seriesColorMap: SeriesColorMap = new Map()
-    ): void {
-        seriesArr.forEach((series) => {
-            const customColor = customColorMap.get(series.seriesName)
-            if (customColor) seriesColorMap.set(series.seriesName, customColor)
-        })
-        this.updateColorMap(seriesArr, seriesColorMap, invertColorScheme)
-        seriesArr.forEach((series) => {
-            series.color = seriesColorMap.get(series.seriesName)!
-        })
-    }
-
-    private updateColorMap(
-        seriesArr: ChartSeries[],
-        seriesColorMap: SeriesColorMap,
-        invertColorScheme = false
-    ): void {
-        // For names that don't have a color, assign one.
-        seriesArr
-            .map((series) => series.seriesName)
-            .filter((name) => !seriesColorMap.has(name))
-            .forEach((name) => {
-                const availableColors = lastOfNonEmptyArray(
-                    this.colorSets
-                ).slice()
-                if (invertColorScheme) availableColors.reverse()
-                const usedColors = Array.from(seriesColorMap.values()).filter(
-                    isPresent
-                )
-                seriesColorMap.set(
-                    name,
-                    getLeastUsedColor(availableColors, usedColors)
-                )
-            })
     }
 
     static fromObject(

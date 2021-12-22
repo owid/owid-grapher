@@ -28,7 +28,7 @@ export const interpolateArray = (
 export function getLeastUsedColor(
     availableColors: Color[],
     usedColors: Color[]
-): any {
+): Color | undefined {
     // If there are unused colors, return the first available
     const unusedColors = difference(availableColors, usedColors)
     if (unusedColors.length > 0) return unusedColors[0]

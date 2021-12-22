@@ -230,6 +230,7 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
+            colorScale,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -271,6 +272,7 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
+                colorScale,
                 seriesColorMap,
                 ...series.manager,
                 xAxisConfig: {
@@ -408,6 +410,9 @@ export class FacetChart
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
+                // In order to produce consistent color scales across facets, we need to pass
+                // all possible color values, before they are filtered by faceting logic.
+                colorScaleOverride: chartInstance.colorScale,
             }
             const contentBounds = getContentBounds(
                 bounds,

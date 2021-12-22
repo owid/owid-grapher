@@ -44,8 +44,8 @@ import {
     LineChartManager,
     LinePoint,
     PlacedLineChartSeries,
+    PlacedPoint,
 } from "./LineChartConstants"
-import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "../../coreTable/OwidTable"
 import {
     autoDetectSeriesStrategy,
@@ -58,10 +58,25 @@ import {
 import { ColorScheme } from "../color/ColorScheme"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { PrimitiveType } from "../../coreTable/CoreTableConstants"
+import {
+    CoreValueType,
+    PrimitiveType,
+} from "../../coreTable/CoreTableConstants"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import {
+    ColorScaleConfig,
+    ColorScaleConfigInterface,
+} from "../color/ColorScaleConfig"
+import { isNotErrorValue } from "../../coreTable/ErrorValues"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
+import { EntityName } from "../../coreTable/OwidTableConstants"
+import { Color } from "../../clientUtils/owidTypes"
 
 const BLUR_COLOR = "#eee"
+const DEFAULT_LINE_COLOR = "#000"
 
 @observer
 class Lines extends React.Component<LinesProps> {
@@ -142,30 +157,22 @@ class Lines extends React.Component<LinesProps> {
 
             return (
                 <g key={index}>
-                    <path
-                        stroke={series.color}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d={pointsToPath(
-                            series.placedPoints.map((value) => [
-                                value.x,
-                                value.y,
-                            ]) as [number, number][]
-                        )}
-                        fill="none"
+                    <MultiColorPolyline
+                        points={series.placedPoints}
                         strokeWidth={this.strokeWidth}
                         strokeDasharray={
                             series.isProjection ? "1,4" : undefined
                         }
                     />
                     {showMarkers && (
-                        <g fill={series.color}>
+                        <g>
                             {series.placedPoints.map((value, index) => (
                                 <circle
                                     key={index}
                                     cx={value.x}
                                     cy={value.y}
                                     r={2}
+                                    fill={value.color}
                                 />
                             ))}
                         </g>
@@ -247,7 +254,11 @@ export class LineChart
         bounds?: Bounds
         manager: LineChartManager
     }>
-    implements ChartInterface, LineLegendManager, FontSizeManager
+    implements
+        ChartInterface,
+        LineLegendManager,
+        FontSizeManager,
+        ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -257,12 +268,19 @@ export class LineChart
         )
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
+        // Currently we set skipParsing=true on these columns to be backwards-compatible
         table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
 
         if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(
-                this.manager.yColumnSlugs
-            )
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
+        if (this.colorColumnSlug) {
+            table = table
+                // TODO: remove this filter once we don't have mixed type columns in datasets
+                // Currently we set skipParsing=true on these columns to be backwards-compatible
+                .replaceNonNumericCellsWithErrorValues([this.colorColumnSlug])
+                .interpolateColumnWithTolerance(this.colorColumnSlug)
+        }
 
         return table
     }
@@ -312,6 +330,10 @@ export class LineChart
 
     @computed get maxLegendWidth(): number {
         return this.bounds.width / 3
+    }
+
+    @computed get lineStrokeWidth(): number {
+        return this.manager.lineStrokeWidth ?? this.hasColorScale ? 2 : 1.5
     }
 
     @computed get selectionArray(): SelectionArray {
@@ -396,6 +418,8 @@ export class LineChart
                             const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
                                 ? BLUR_COLOR
+                                : this.hasColorScale
+                                ? this.getColorScaleColor(value.colorValue)
                                 : series.color
                             return (
                                 <tr
@@ -583,7 +607,7 @@ export class LineChart
                         hidePoints={manager.hidePoints}
                         onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
-                        lineStrokeWidth={manager.lineStrokeWidth}
+                        lineStrokeWidth={this.lineStrokeWidth}
                     />
                 </g>
                 {hoverX !== undefined && (
@@ -601,7 +625,13 @@ export class LineChart
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
                                     r={4}
-                                    fill={series.color}
+                                    fill={
+                                        this.hasColorScale
+                                            ? this.getColorScaleColor(
+                                                  value.colorValue
+                                              )
+                                            : series.color
+                                    }
                                 />
                             )
                         })}
@@ -635,9 +665,59 @@ export class LineChart
         return autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed private get colorColumnSlug(): string | undefined {
+        return this.manager.colorColumnSlug
+    }
+
+    @computed private get colorColumn(): CoreColumn {
+        return this.transformedTable.get(this.colorColumnSlug)
+    }
+
     @computed private get formatColumn(): CoreColumn {
         return this.yColumns[0]
     }
+
+    // Color scale props
+
+    @computed get colorScaleColumn(): CoreColumn {
+        return (
+            // For faceted charts, we have to get the values of inputTable before it's filtered by
+            // the faceting logic.
+            this.manager.colorScaleColumnOverride ??
+            // We need to use inputTable in order to get consistent coloring for a variable across
+            // charts, e.g. each continent being assigned to the same color.
+            // inputTable is unfiltered, so it contains every value that exists in the variable.
+            this.inputTable.get(this.colorColumnSlug)
+        )
+    }
+
+    @computed get hasColorScale(): boolean {
+        return !this.colorColumn.isMissing
+    }
+
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
+        return (
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
+        )
+    }
+
+    @computed get hasNoDataBin(): boolean {
+        if (!this.hasColorScale) return false
+        return this.colorColumn.valuesIncludingErrorValues.some(
+            (value) => !isNotErrorValue(value)
+        )
+    }
+
+    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultNoDataColor = "#959595"
+    colorScale = new ColorScale(this)
+
+    private getColorScaleColor(value: CoreValueType | undefined): Color {
+        return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
+    }
+
+    // End of color scale props
 
     // todo: for now just works with 1 y column
     @computed private get annotationsMap(): Map<
@@ -675,33 +755,108 @@ export class LineChart
         return this.yAxisConfig.scaleType === ScaleType.log
     }
 
-    @computed get series(): readonly LineChartSeries[] {
-        const arrOfSeries: LineChartSeries[] = flatten(
-            this.yColumns.map((col) =>
-                columnToLineChartSeriesArray(
-                    col,
-                    this.seriesStrategy,
-                    !!this.manager.canSelectMultipleEntities
-                )
-            )
-        )
-
-        this.colorScheme.assignColors(
-            arrOfSeries,
-            this.manager.invertColorScheme,
-            this.seriesStrategy === SeriesStrategy.entity
-                ? this.inputTable.entityNameColorIndex
-                : this.inputTable.columnDisplayNameToColorMap,
-            this.manager.seriesColorMap
-        )
-        return arrOfSeries
+    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
+        return new CategoricalColorAssigner({
+            colorScheme: this.colorScheme,
+            invertColorScheme: this.manager.invertColorScheme,
+            colorMap:
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? this.inputTable.entityNameColorIndex
+                    : this.inputTable.columnDisplayNameToColorMap,
+            autoColorMapCache: this.manager.seriesColorMap,
+        })
     }
 
+    private getSeriesName(
+        entityName: EntityName,
+        columnName: string,
+        entityCount: number
+    ): SeriesName {
+        if (this.seriesStrategy === SeriesStrategy.entity) {
+            return entityName
+        }
+        if (entityCount > 1 || this.manager.canSelectMultipleEntities) {
+            return `${entityName} - ${columnName}`
+        } else {
+            return columnName
+        }
+    }
+
+    private getColorKey(
+        entityName: EntityName,
+        columnName: string,
+        entityCount: number
+    ): SeriesName {
+        if (this.seriesStrategy === SeriesStrategy.entity) {
+            return entityName
+        }
+        // If only one entity is plotted, we want to use the column colors.
+        // Unlike in `getSeriesName`, we don't care whether the user can select
+        // multiple entities, only whether more than one is plotted.
+        if (entityCount > 1) {
+            return `${entityName} - ${columnName}`
+        } else {
+            return columnName
+        }
+    }
+
+    @computed get series(): readonly LineChartSeries[] {
+        const { hasColorScale } = this
+        return flatten(
+            this.yColumns.map((col) => {
+                const { isProjection, owidRowsByEntityName } = col
+                const entityNames = Array.from(owidRowsByEntityName.keys())
+                return entityNames.map((entityName) => {
+                    const seriesName = this.getSeriesName(
+                        entityName,
+                        col.displayName,
+                        entityNames.length
+                    )
+                    const points = owidRowsByEntityName
+                        .get(entityName)!
+                        .map((row) => {
+                            const point: LinePoint = {
+                                x: row.time,
+                                y: row.value,
+                            }
+                            if (hasColorScale) {
+                                point.colorValue =
+                                    this.colorColumn.valueByEntityNameAndTime
+                                        .get(entityName)
+                                        ?.get(row.time)
+                            }
+                            return point
+                        })
+                    let seriesColor: Color
+                    if (hasColorScale) {
+                        const colorValue = last(points)?.colorValue
+                        seriesColor = this.getColorScaleColor(colorValue)
+                    } else {
+                        seriesColor = this.categoricalColorAssigner.assign(
+                            this.getColorKey(
+                                entityName,
+                                col.displayName,
+                                entityNames.length
+                            )
+                        )
+                    }
+                    return {
+                        points,
+                        seriesName,
+                        isProjection,
+                        color: seriesColor,
+                    }
+                })
+            })
+        )
+    }
+
+    // TODO: remove, seems unused
     @computed get allPoints(): LinePoint[] {
         return flatten(this.series.map((series) => series.points))
     }
 
-    @computed get placedSeries() {
+    @computed get placedSeries(): PlacedLineChartSeries[] {
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -712,11 +867,13 @@ export class LineChart
                 return {
                     ...series,
                     placedPoints: series.points.map(
-                        (point) =>
-                            new PointVector(
-                                round(horizontalAxis.place(point.x), 1),
-                                round(verticalAxis.place(point.y), 1)
-                            )
+                        (point): PlacedPoint => ({
+                            x: round(horizontalAxis.place(point.x), 1),
+                            y: round(verticalAxis.place(point.y), 1),
+                            color: this.hasColorScale
+                                ? this.getColorScaleColor(point.colorValue)
+                                : series.color,
+                        })
                     ),
                 }
             })
@@ -803,17 +960,32 @@ export class LineChart
         return this.dualAxis.horizontalAxis
     }
 
+    // TODO: implement legends on line chart
+    // This is just for demo purposes
     @computed get externalLegendBins(): CategoricalBin[] {
         if (this.manager.hideLegend) {
-            return this.series.map(
-                (series, index) =>
-                    new CategoricalBin({
-                        index,
-                        value: series.seriesName,
-                        label: series.seriesName,
-                        color: series.color,
-                    })
-            )
+            if (this.hasColorScale) {
+                return this.colorScale.legendBins.map((bin, index) =>
+                    bin instanceof CategoricalBin
+                        ? bin
+                        : new CategoricalBin({
+                              index,
+                              value: `${bin.minText}–${bin.maxText}`,
+                              label: `${bin.minText}–${bin.maxText}`,
+                              color: bin.color,
+                          })
+                )
+            } else {
+                return this.series.map(
+                    (series, index) =>
+                        new CategoricalBin({
+                            index,
+                            value: series.seriesName,
+                            label: series.seriesName,
+                            color: series.color,
+                        })
+                )
+            }
         }
         return []
     }
