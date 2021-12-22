@@ -44,6 +44,7 @@ import {
     SortConfig,
 } from "../../clientUtils/owidTypes"
 import { OwidVariableRow } from "../../coreTable/OwidTableConstants"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -515,8 +516,24 @@ export class DiscreteBarChart
         )
     }
 
+    // Only used if it's a LineChart turned into DiscreteBar due to single-point timeline
+    @computed private get categoricalColorAssigner():
+        | CategoricalColorAssigner
+        | undefined {
+        if (!this.colorScheme) return undefined
+        return new CategoricalColorAssigner({
+            colorScheme: this.colorScheme,
+            invertColorScheme: this.manager.invertColorScheme,
+            colorMap:
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? this.inputTable.entityNameColorIndex
+                    : this.inputTable.columnDisplayNameToColorMap,
+            autoColorMapCache: this.manager.seriesColorMap,
+        })
+    }
+
     @computed get series(): DiscreteBarSeries[] {
-        const { manager, colorScheme } = this
+        const { manager } = this
 
         const series = this.sortedRawSeries.map((rawSeries) => {
             const { row, seriesName, color } = rawSeries
@@ -531,17 +548,12 @@ export class DiscreteBarChart
             return series
         })
 
-        if (manager.isLineChart) {
+        if (manager.isLineChart && this.categoricalColorAssigner) {
             // For LineChart-based bar charts, we want to assign colors from the color scheme.
             // This way we get consistent between the DiscreteBarChart and the LineChart (by using the same logic).
-            colorScheme?.assignColors(
-                series,
-                manager.invertColorScheme,
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? this.inputTable.entityNameColorIndex
-                    : this.inputTable.columnDisplayNameToColorMap,
-                manager.seriesColorMap
-            )
+            series.forEach((s) => {
+                s.color = this.categoricalColorAssigner!.assign(s.seriesName)
+            })
         }
         return series
     }

@@ -1,4 +1,4 @@
-import { Color } from "../../coreTable/CoreTableConstants"
+import { Color, CoreValueType } from "../../coreTable/CoreTableConstants"
 
 interface BinProps {
     color: Color
@@ -57,7 +57,7 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
         return false
     }
 
-    contains(value: string | number | undefined): boolean {
+    contains(value: CoreValueType | undefined): boolean {
         if (value === undefined) return false
 
         // In looking at this code, it is important to realise that `isOpenLeft`, `isOpenRight`,
@@ -102,7 +102,7 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
         return this.props.label || this.props.value
     }
 
-    contains(value: string | number | undefined): boolean {
+    contains(value: CoreValueType | undefined): boolean {
         return (
             (value === undefined && this.props.value === "No data") ||
             (value !== undefined && value === this.props.value)

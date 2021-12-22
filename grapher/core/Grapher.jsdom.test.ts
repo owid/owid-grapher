@@ -63,7 +63,7 @@ it("regression fix: container options are not serialized", () => {
 
 it("can get dimension slots", () => {
     const grapher = new Grapher()
-    expect(grapher.dimensionSlots.length).toBe(1)
+    expect(grapher.dimensionSlots.length).toBe(2)
 
     grapher.type = ChartTypeName.ScatterPlot
     expect(grapher.dimensionSlots.length).toBe(4)

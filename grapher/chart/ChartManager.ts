@@ -14,6 +14,7 @@ import { EntityName } from "../../coreTable/OwidTableConstants"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Annotation, ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { CoreColumn } from "../../coreTable/CoreTableColumns"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -38,6 +39,8 @@ export interface ChartManager {
     matchingEntitiesOnly?: boolean
 
     colorScale?: Readonly<ColorScaleConfigInterface>
+    // for consistent automatic color scales across facets
+    colorScaleColumnOverride?: CoreColumn
 
     yAxisConfig?: Readonly<AxisConfigInterface>
     xAxisConfig?: Readonly<AxisConfigInterface>

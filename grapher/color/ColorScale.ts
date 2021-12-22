@@ -13,7 +13,7 @@ import {
     roundSigFig,
     mapNullToUndefined,
 } from "../../clientUtils/Util"
-import { Color } from "../../coreTable/CoreTableConstants"
+import { Color, CoreValueType } from "../../coreTable/CoreTableConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
@@ -343,14 +343,14 @@ export class ColorScale {
     }
 
     getBinForValue(
-        value: number | string | undefined
+        value: CoreValueType | undefined
     ): ColorScaleBin | undefined {
         return value === undefined
             ? undefined
             : this.legendBins.find((bin) => bin.contains(value))
     }
 
-    getColor(value: number | string | undefined): string | undefined {
+    getColor(value: CoreValueType | undefined): string | undefined {
         if (value === undefined) return this.noDataColor
         return this.getBinForValue(value)?.color
     }
