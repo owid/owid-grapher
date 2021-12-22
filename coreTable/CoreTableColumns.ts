@@ -24,7 +24,7 @@ import {
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
 import { EntityName, OwidVariableRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
-import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 import { imemo } from "./CoreTableUtils"
 import moment from "moment"
@@ -284,6 +284,9 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // We approximate whether a column is parsed simply by looking at the first row.
     needsParsing(value: any): boolean {
+        // Skip parsing if explicit flag is set
+        if (this.def.skipParsing) return false
+
         // Never parse computeds. The computed should return the correct JS type. Ideally we can provide some error messaging around this.
         if (this.def.transform) return false
 
@@ -319,9 +322,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get validRowIndices(): number[] {
         return this.valuesIncludingErrorValues
-            .map((value, index) =>
-                (value as any) instanceof ErrorValue ? null : index
-            )
+            .map((value, index) => (isNotErrorValue(value) ? index : undefined))
             .filter(isPresent)
     }
 
