@@ -366,6 +366,45 @@ describe(concatColumnStores, () => {
         })
     })
 
+    it("fills empty values", () => {
+        expect(
+            concatColumnStores([
+                {
+                    a: [1],
+                    b: [2],
+                },
+                { a: [3], b: [] },
+            ])
+        ).toEqual({
+            a: [1, 3],
+            b: [2, ErrorValueTypes.MissingValuePlaceholder],
+        })
+        expect(
+            concatColumnStores([
+                {
+                    a: [1],
+                    b: [2],
+                },
+                { a: [3] },
+            ])
+        ).toEqual({
+            a: [1, 3],
+            b: [2, ErrorValueTypes.MissingValuePlaceholder],
+        })
+        expect(
+            concatColumnStores([
+                {
+                    a: [],
+                    b: [2],
+                },
+                { a: [3] },
+            ])
+        ).toEqual({
+            a: [ErrorValueTypes.MissingValuePlaceholder, 3],
+            b: [2, ErrorValueTypes.MissingValuePlaceholder],
+        })
+    })
+
     it("respects slugsToKeep param", () => {
         expect(
             concatColumnStores(
