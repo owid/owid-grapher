@@ -34,6 +34,8 @@ export interface LinesProps {
     onHover: (hoverX: number | undefined) => void
     hidePoints?: boolean
     lineStrokeWidth?: number
+    lineOutlineWidth?: number
+    markerRadius?: number
 }
 
 export interface LineChartManager extends ChartManager {

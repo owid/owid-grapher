@@ -75,9 +75,20 @@ import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { Color } from "../../clientUtils/owidTypes"
 
-const BLUR_COLOR = "#eee"
-const DEFAULT_LINE_COLOR = "#000"
+// background
 const BACKGROUND_COLOR = "#fff"
+// line color
+const BLUR_LINE_COLOR = "#eee"
+const DEFAULT_LINE_COLOR = "#000"
+// stroke width
+const DEFAULT_STROKE_WIDTH = 1.5
+const VARIABLE_COLOR_STROKE_WIDTH = 2.5
+// marker radius
+const DEFAULT_MARKER_RADIUS = 1.8
+const VARIABLE_COLOR_MARKER_RADIUS = 2.2
+// line outline
+const DEFAULT_LINE_OUTLINE_WIDTH = 0.65
+const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
 
 @observer
 class Lines extends React.Component<LinesProps> {
@@ -144,8 +155,16 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
+    @computed private get markerRadius(): number {
+        return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
+    }
+
     @computed private get strokeWidth(): number {
-        return this.props.lineStrokeWidth ?? 1.5
+        return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
+    }
+
+    @computed private get lineOutlineWidth(): number {
+        return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
     }
 
     private renderFocusGroups(): JSX.Element[] {
@@ -167,7 +186,9 @@ class Lines extends React.Component<LinesProps> {
                         strokeLinecap="butt"
                         strokeLinejoin="round"
                         stroke={BACKGROUND_COLOR}
-                        strokeWidth={this.strokeWidth + 1}
+                        strokeWidth={
+                            this.strokeWidth + this.lineOutlineWidth * 2
+                        }
                         strokeDasharray={
                             series.isProjection ? "1,4" : undefined
                         }
@@ -193,7 +214,7 @@ class Lines extends React.Component<LinesProps> {
                                     key={index}
                                     cx={value.x}
                                     cy={value.y}
-                                    r={2}
+                                    r={this.markerRadius}
                                     fill={value.color}
                                 />
                             ))}
@@ -354,8 +375,22 @@ export class LineChart
         return this.bounds.width / 3
     }
 
-    @computed get lineStrokeWidth(): number {
-        return this.manager.lineStrokeWidth ?? this.hasColorScale ? 2.5 : 1.5
+    @computed private get lineStrokeWidth(): number {
+        return this.manager.lineStrokeWidth ?? this.hasColorScale
+            ? VARIABLE_COLOR_STROKE_WIDTH
+            : DEFAULT_STROKE_WIDTH
+    }
+
+    @computed private get lineOutlineWidth(): number {
+        return this.hasColorScale
+            ? VARIABLE_COLOR_LINE_OUTLINE_WIDTH
+            : DEFAULT_LINE_OUTLINE_WIDTH
+    }
+
+    @computed private get markerRadius(): number {
+        return this.hasColorScale
+            ? VARIABLE_COLOR_MARKER_RADIUS
+            : DEFAULT_MARKER_RADIUS
     }
 
     @computed get selectionArray(): SelectionArray {
@@ -439,7 +474,7 @@ export class LineChart
                             const textColor = isBlur ? "#ddd" : "#333"
                             const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
-                                ? BLUR_COLOR
+                                ? BLUR_LINE_COLOR
                                 : this.hasColorScale
                                 ? this.getColorScaleColor(value.colorValue)
                                 : series.color
@@ -630,6 +665,8 @@ export class LineChart
                         onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
                         lineStrokeWidth={this.lineStrokeWidth}
+                        lineOutlineWidth={this.lineOutlineWidth}
+                        markerRadius={this.markerRadius}
                     />
                 </g>
                 {hoverX !== undefined && (
