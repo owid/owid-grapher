@@ -17,6 +17,7 @@ import { Bounds } from "../../clientUtils/Bounds"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
+import { darkenColorForText } from "../color/ColorUtils"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -97,7 +98,7 @@ class Label extends React.Component<{
         const step = (markerX2 - markerX1) / (series.totalLevels + 1)
         const markerXMid = markerX1 + step + series.level * step
         const lineColor = isFocus ? "#999" : "#eee"
-        const textColor = isFocus ? series.color : "#ddd"
+        const textColor = isFocus ? darkenColorForText(series.color) : "#ddd"
         const annotationColor = isFocus ? "#333" : "#ddd"
         return (
             <g
