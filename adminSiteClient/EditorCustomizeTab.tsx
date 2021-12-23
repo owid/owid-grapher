@@ -568,9 +568,9 @@ export class EditorCustomizeTab extends React.Component<{
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />
                 )}
-                {grapher.activeColorScaleExceptMap && (
+                {grapher.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
-                        scale={grapher.activeColorScaleExceptMap}
+                        scale={grapher.chartInstanceExceptMap.colorScale}
                         features={{
                             visualScaling: false,
                             legendDescription:
