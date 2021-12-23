@@ -597,6 +597,10 @@ export class LineChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed get fontWeight(): number {
+        return this.hasColorScale ? 700 : 400
+    }
+
     @computed get legendX(): number {
         return this.bounds.right - (this.legendDimensions?.width || 0)
     }

@@ -25,6 +25,8 @@ const MARKER_MARGIN = 4
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 
+const DEFAULT_FONT_WEIGHT = 400
+
 export interface LineLabelSeries extends ChartSeries {
     label: string
     yValue: number
@@ -150,6 +152,7 @@ export interface LineLegendManager {
     labelSeries: LineLabelSeries[]
     maxLegendWidth?: number
     fontSize?: number
+    fontWeight?: number
     onLegendMouseOver?: (key: EntityName) => void
     onLegendClick?: (key: EntityName) => void
     onLegendMouseLeave?: () => void
@@ -162,17 +165,22 @@ export interface LineLegendManager {
 export class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
+    leftPadding = 35
+
     @computed private get fontSize(): number {
         return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    leftPadding = 35
+
+    @computed private get fontWeight(): number {
+        return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
+    }
 
     @computed private get maxWidth(): number {
         return this.manager.maxLegendWidth ?? 300
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, leftPadding, maxWidth } = this
+        const { fontSize, fontWeight, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
@@ -188,6 +196,7 @@ export class LineLegend extends React.Component<{
                 text: label.label,
                 maxWidth: maxTextWidth,
                 fontSize,
+                fontWeight,
             })
             return {
                 ...label,
