@@ -74,6 +74,7 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { Color } from "../../clientUtils/owidTypes"
+import { darkenColorForLine } from "../color/ColorUtils"
 
 // background
 const BACKGROUND_COLOR = "#fff"
@@ -736,6 +737,10 @@ export class LineChart
         return this.yColumns[0]
     }
 
+    @computed private get hasColorScale(): boolean {
+        return !this.colorColumn.isMissing
+    }
+
     // Color scale props
 
     @computed get colorScaleColumn(): CoreColumn {
@@ -748,10 +753,6 @@ export class LineChart
             // inputTable is unfiltered, so it contains every value that exists in the variable.
             this.inputTable.get(this.colorColumnSlug)
         )
-    }
-
-    @computed get hasColorScale(): boolean {
-        return !this.colorColumn.isMissing
     }
 
     @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
@@ -770,6 +771,7 @@ export class LineChart
 
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
     defaultNoDataColor = "#959595"
+    transformColor = darkenColorForLine
     colorScale = new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {

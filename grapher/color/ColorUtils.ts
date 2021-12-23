@@ -1,5 +1,5 @@
 import { Color } from "../../coreTable/CoreTableConstants"
-import { rgb, color } from "d3-color"
+import { rgb, color, RGBColor } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { difference, groupBy, minBy } from "../../clientUtils/Util"
 
@@ -46,10 +46,30 @@ export function getLeastUsedColor(
 }
 
 // Taken from https://github.com/Qix-/color/blob/594a9af778f9a89541510bd1ae24061c82f24693/index.js#L287-L292
-export function isDarkColor(colorSpecifier: string): boolean | undefined {
+function getYiq(rgb: RGBColor): number {
     // YIQ equation from http://24ways.org/2010/calculating-color-contrast
+    return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+}
+
+export function isDarkColor(colorSpecifier: string): boolean | undefined {
     const rgb = color(colorSpecifier)?.rgb()
     if (!rgb) return undefined
-    const yiq = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
-    return yiq < 128
+    return getYiq(rgb) < 128
+}
+
+// See https://observablehq.com/@danielgavrilov/darken-colors-to-meet-a-target-contrast-ratio
+function darkenColorToTargetYiq(colorHex: Color, targetYiq: number): Color {
+    const c = color(colorHex)?.rgb()
+    if (!c) return colorHex
+    const darkenCoeff = getYiq(c) / targetYiq - 1.0
+    if (darkenCoeff > 0) return c.darker(darkenCoeff).hex()
+    return c.hex()
+}
+
+export function darkenColorForLine(colorHex: Color): Color {
+    return darkenColorToTargetYiq(colorHex, 170)
+}
+
+export function darkenColorForText(colorHex: Color): Color {
+    return darkenColorToTargetYiq(colorHex, 125)
 }
