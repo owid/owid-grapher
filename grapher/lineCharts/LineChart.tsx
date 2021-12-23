@@ -77,6 +77,7 @@ import { Color } from "../../clientUtils/owidTypes"
 
 const BLUR_COLOR = "#eee"
 const DEFAULT_LINE_COLOR = "#000"
+const BACKGROUND_COLOR = "#fff"
 
 @observer
 class Lines extends React.Component<LinesProps> {
@@ -157,8 +158,29 @@ class Lines extends React.Component<LinesProps> {
 
             return (
                 <g key={index}>
+                    {/*
+                        Create a white outline around the lines so they're
+                        easier to follow when they overlap.
+                    */}
+                    <path
+                        fill="none"
+                        strokeLinecap="butt"
+                        strokeLinejoin="round"
+                        stroke={BACKGROUND_COLOR}
+                        strokeWidth={this.strokeWidth + 1}
+                        strokeDasharray={
+                            series.isProjection ? "1,4" : undefined
+                        }
+                        d={pointsToPath(
+                            series.placedPoints.map((value) => [
+                                value.x,
+                                value.y,
+                            ]) as [number, number][]
+                        )}
+                    />
                     <MultiColorPolyline
                         points={series.placedPoints}
+                        strokeLinejoin="round"
                         strokeWidth={this.strokeWidth}
                         strokeDasharray={
                             series.isProjection ? "1,4" : undefined
@@ -333,7 +355,7 @@ export class LineChart
     }
 
     @computed get lineStrokeWidth(): number {
-        return this.manager.lineStrokeWidth ?? this.hasColorScale ? 2 : 1.5
+        return this.manager.lineStrokeWidth ?? this.hasColorScale ? 2.5 : 1.5
     }
 
     @computed get selectionArray(): SelectionArray {
@@ -807,6 +829,7 @@ export class LineChart
         return flatten(
             this.yColumns.map((col) => {
                 const { isProjection, owidRowsByEntityName } = col
+                // const rows = this.transformedTable.rowIndex
                 const colEntityNames = Array.from(owidRowsByEntityName.keys())
 
                 return colEntityNames.map((entityName) => {
