@@ -11,6 +11,7 @@ import {
     exposeInstanceOnWindow,
     round,
     excludeUndefined,
+    isNumber,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -865,58 +866,76 @@ export class LineChart
         }
     }
 
-    @computed get series(): readonly LineChartSeries[] {
-        const { hasColorScale } = this
-        const totalEntityCount =
-            this.transformedTable.availableEntityNames.length
-        return flatten(
-            this.yColumns.map((col) => {
-                const { isProjection, owidRowsByEntityName } = col
-                // const rows = this.transformedTable.rowIndex
-                const colEntityNames = Array.from(owidRowsByEntityName.keys())
+    // cache value for performance
+    @computed private get rowIndicesByEntityName(): Map<string, number[]> {
+        return this.transformedTable.rowIndex([
+            this.transformedTable.entityNameSlug,
+        ])
+    }
 
-                return colEntityNames.map((entityName) => {
-                    const seriesName = this.getSeriesName(
-                        entityName,
-                        col.displayName,
-                        totalEntityCount
-                    )
-                    const points = owidRowsByEntityName
-                        .get(entityName)!
-                        .map((row) => {
-                            const point: LinePoint = {
-                                x: row.time,
-                                y: row.value,
-                            }
-                            if (hasColorScale) {
-                                point.colorValue =
-                                    this.colorColumn.valueByEntityNameAndOriginalTime
-                                        .get(entityName)
-                                        ?.get(row.time)
-                            }
-                            return point
-                        })
-                    let seriesColor: Color
-                    if (hasColorScale) {
-                        const colorValue = last(points)?.colorValue
-                        seriesColor = this.getColorScaleColor(colorValue)
-                    } else {
-                        seriesColor = this.categoricalColorAssigner.assign(
-                            this.getColorKey(
-                                entityName,
-                                col.displayName,
-                                totalEntityCount
-                            )
-                        )
-                    }
-                    return {
-                        points,
-                        seriesName,
-                        isProjection,
-                        color: seriesColor,
-                    }
-                })
+    private constructSingleSeries(
+        entityName: string,
+        col: CoreColumn
+    ): LineChartSeries {
+        const { hasColorScale, transformedTable } = this
+
+        // Construct the points
+        const timeValues =
+            transformedTable.timeColumn.valuesIncludingErrorValues
+        const colorValues = transformedTable.get(
+            this.colorColumnSlug
+        ).valuesIncludingErrorValues
+        const values = col.valuesIncludingErrorValues
+        const points = this.rowIndicesByEntityName
+            .get(entityName)!
+            .filter((index) => isNumber(values[index]))
+            .map((index) => {
+                const point: LinePoint = {
+                    x: timeValues[index] as number,
+                    y: values[index] as number,
+                }
+                if (hasColorScale) {
+                    const colorValue = colorValues[index]
+                    point.colorValue = isNotErrorValue(colorValue)
+                        ? colorValue
+                        : undefined
+                }
+                return point
             })
+
+        // Construct series properties
+        const totalEntityCount = transformedTable.availableEntityNames.length
+        const seriesName = this.getSeriesName(
+            entityName,
+            col.displayName,
+            totalEntityCount
+        )
+        let seriesColor: Color
+        if (hasColorScale) {
+            const colorValue = last(points)?.colorValue
+            seriesColor = this.getColorScaleColor(colorValue)
+        } else {
+            seriesColor = this.categoricalColorAssigner.assign(
+                this.getColorKey(entityName, col.displayName, totalEntityCount)
+            )
+        }
+
+        return {
+            points,
+            seriesName,
+            isProjection: col.isProjection,
+            color: seriesColor,
+        }
+    }
+
+    @computed get series(): readonly LineChartSeries[] {
+        return flatten(
+            this.yColumns.map((col) =>
+                col.uniqEntityNames.map(
+                    (entityName): LineChartSeries =>
+                        this.constructSingleSeries(entityName, col)
+                )
+            )
         )
     }
 

@@ -19,6 +19,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
 import { LineChartManager } from "./LineChartConstants"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues"
+import { BinningStrategy } from "../color/BinningStrategy"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -299,5 +300,80 @@ describe("externalLegendBins", () => {
             manager: { ...baseManager, hideLegend: true },
         })
         expect(chart["externalLegendBins"].length).toEqual(2)
+    })
+})
+
+describe("color scale", () => {
+    it("correctly colors series, with tolerance", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa", "usa", "usa", "usa"],
+                entityColor: ["#fff", "#fff", "#fff", "#fff", "#fff", "#fff"],
+                time: [2000, 2001, 2002, 2003, 2004, 2005],
+                y: [100, 200, 300, 400, 500, 600],
+                color: [
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    1,
+                    2,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                ],
+            },
+            [
+                {
+                    slug: "y",
+                    color: "green",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 0,
+                },
+                {
+                    slug: "color",
+                    color: "red",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 1,
+                },
+            ]
+        )
+
+        const manager: LineChartManager = {
+            yColumnSlugs: ["y"],
+            colorColumnSlug: "color",
+            table: table,
+            selection: ["usa"],
+            seriesStrategy: SeriesStrategy.column,
+            colorScale: {
+                binningStrategy: BinningStrategy.manual,
+                customCategoryColors: {},
+                customCategoryLabels: {},
+                customHiddenCategories: {},
+                customNumericMinValue: 0,
+                customNumericColors: ["#111111", "#222222"],
+                customNumericColorsActive: true,
+                customNumericLabels: [],
+                customNumericValues: [1.5, 2.5],
+            },
+        }
+        const chart = new LineChart({ manager })
+        const noDataColor = "#959595"
+
+        expect(chart.series).toHaveLength(1)
+        expect(chart.series[0].color).toEqual(noDataColor)
+        expect(chart.series[0].points.map((p) => p.colorValue)).toEqual([
+            undefined,
+            1,
+            1,
+            2,
+            2,
+            undefined,
+        ])
+        expect(chart.placedSeries[0].placedPoints.map((p) => p.color)).toEqual([
+            noDataColor,
+            "#111111",
+            "#111111",
+            "#222222",
+            "#222222",
+            noDataColor,
+        ])
     })
 })
