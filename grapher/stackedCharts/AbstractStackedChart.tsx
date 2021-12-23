@@ -19,7 +19,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import {
     StackedPoint,
-    StackedPointPositionType,
+    StackedRawSeries,
     StackedSeries,
 } from "./StackedConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
@@ -43,7 +43,7 @@ export interface AbstactStackedChartProps {
 }
 
 @observer
-export class AbstactStackedChart<PositionType extends StackedPointPositionType>
+export class AbstactStackedChart
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager
 {
@@ -209,7 +209,8 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return axis
     }
 
-    @computed private get columnsAsSeries() {
+    @computed
+    private get columnsAsSeries(): readonly StackedRawSeries<number>[] {
         return this.yColumns
             .map((col) => {
                 return {
@@ -221,7 +222,8 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
             .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
-    @computed private get entitiesAsSeries() {
+    @computed
+    private get entitiesAsSeries(): readonly StackedRawSeries<number>[] {
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
         return this.selectionArray.selectedEntityNames
             .map((seriesName) => {
@@ -234,13 +236,15 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
             .reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
     }
 
-    @computed protected get rawSeries() {
+    @computed
+    protected get rawSeries(): readonly StackedRawSeries<number>[] {
         return this.isEntitySeries
             ? this.entitiesAsSeries
             : this.columnsAsSeries
     }
 
-    @computed protected get allStackedPoints(): StackedPoint<PositionType>[] {
+    @computed
+    protected get allStackedPoints(): readonly StackedPoint<number>[] {
         return flatten(this.series.map((series) => series.points))
     }
 
@@ -290,7 +294,7 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
         return true
     }
 
-    @computed get unstackedSeries(): readonly StackedSeries<PositionType>[] {
+    @computed get unstackedSeries(): readonly StackedSeries<number>[] {
         return this.rawSeries
             .filter(
                 (series) =>
@@ -306,16 +310,17 @@ export class AbstactStackedChart<PositionType extends StackedPointPositionType>
                     points: rows.map((row) => {
                         return {
                             position: row.time,
+                            time: row.time,
                             value: row.value,
                             valueOffset: 0,
                         }
                     }),
                     color: this.getColorForSeries(seriesName),
-                } as StackedSeries<PositionType>
-            })
+                }
+            }) as StackedSeries<number>[]
     }
 
-    @computed get series(): readonly StackedSeries<PositionType>[] {
+    @computed get series(): readonly StackedSeries<number>[] {
         return this.unstackedSeries
     }
 

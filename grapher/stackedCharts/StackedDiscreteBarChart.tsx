@@ -272,7 +272,7 @@ export class StackedDiscreteBarChart
                         totalValue += point.value
                         return {
                             point,
-                            columnSlug: series.columnSlug,
+                            columnSlug: series.columnSlug!,
                             color: series.color,
                             seriesName: series.seriesName,
                         }

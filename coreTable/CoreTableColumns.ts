@@ -443,7 +443,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @imemo get owidRowsByEntityName(): Map<EntityName, CoreRow[]> {
+    @imemo get owidRowsByEntityName(): Map<
+        EntityName,
+        OwidVariableRow<JS_TYPE>[]
+    > {
         const map = new Map<EntityName, OwidVariableRow<JS_TYPE>[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])

@@ -216,7 +216,7 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends AbstactStackedChart<Time>
+    extends AbstactStackedChart
     implements LineLegendManager
 {
     constructor(props: AbstactStackedChartProps) {
