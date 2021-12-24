@@ -486,12 +486,8 @@ export class MapChart
         return DEFAULT_STROKE_COLOR
     }
 
-    @computed get legendBounds(): Bounds {
-        return this.bounds.padBottom(15)
-    }
-
     @computed get legendWidth(): number {
-        return this.legendBounds.width * 0.8
+        return this.bounds.width * 0.8
     }
 
     @computed get legendHeight(): number {
