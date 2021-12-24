@@ -248,7 +248,7 @@ export class StackedAreaChart
             .reverse()
     }
 
-    @computed get maxLegendWidth(): number {
+    @computed get maxLineLegendWidth(): number {
         return Math.min(150, this.bounds.width / 3)
     }
 
@@ -263,7 +263,7 @@ export class StackedAreaChart
     }
 
     @observable hoverSeriesName?: SeriesName
-    @action.bound onLegendClick(): void {
+    @action.bound onLineLegendClick(): void {
         if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
@@ -273,11 +273,11 @@ export class StackedAreaChart
         return legendDimensions ? legendDimensions.width : 20
     }
 
-    @action.bound onLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         this.hoverSeriesName = seriesName
     }
 
-    @action.bound onLegendMouseLeave(): void {
+    @action.bound onLineLegendMouseLeave(): void {
         this.hoverSeriesName = undefined
     }
 
@@ -466,7 +466,7 @@ export class StackedAreaChart
         return false
     }
 
-    @computed get legendX(): number {
+    @computed get lineLegendX(): number {
         return this.legendDimensions
             ? this.bounds.right - this.legendDimensions.width
             : 0

@@ -151,15 +151,15 @@ export interface LineLegendManager {
     isSelectingData?: boolean
     entityType?: string
     labelSeries: LineLabelSeries[]
-    maxLegendWidth?: number
+    maxLineLegendWidth?: number
     fontSize?: number
     fontWeight?: number
-    onLegendMouseOver?: (key: EntityName) => void
-    onLegendClick?: (key: EntityName) => void
-    onLegendMouseLeave?: () => void
+    onLineLegendMouseOver?: (key: EntityName) => void
+    onLineLegendClick?: (key: EntityName) => void
+    onLineLegendMouseLeave?: () => void
     focusedSeriesNames: EntityName[]
     yAxis: VerticalAxis
-    legendX?: number
+    lineLegendX?: number
 }
 
 @observer
@@ -177,7 +177,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get maxWidth(): number {
-        return this.manager.maxLegendWidth ?? 300
+        return this.manager.maxLineLegendWidth ?? 300
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
@@ -222,13 +222,13 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get onMouseOver(): any {
-        return this.manager.onLegendMouseOver ?? noop
+        return this.manager.onLineLegendMouseOver ?? noop
     }
     @computed get onMouseLeave(): any {
-        return this.manager.onLegendMouseLeave ?? noop
+        return this.manager.onLineLegendMouseLeave ?? noop
     }
     @computed get onClick(): any {
-        return this.manager.onLegendClick ?? noop
+        return this.manager.onLineLegendClick ?? noop
     }
 
     @computed get isFocusMode(): boolean {
@@ -238,7 +238,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get legendX(): number {
-        return this.manager.legendX ?? 0
+        return this.manager.lineLegendX ?? 0
     }
 
     // Naive initial placement of each mark at the target height, before collision detection

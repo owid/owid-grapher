@@ -77,6 +77,7 @@ import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { Color } from "../../clientUtils/owidTypes"
 import { darkenColorForLine } from "../color/ColorUtils"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 
 // background
 const BACKGROUND_COLOR = "#fff"
@@ -304,7 +305,8 @@ export class LineChart
         ChartInterface,
         LineLegendManager,
         FontSizeManager,
-        ColorScaleManager
+        ColorScaleManager,
+        HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -374,7 +376,7 @@ export class LineChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get maxLegendWidth(): number {
+    @computed get maxLineLegendWidth(): number {
         return this.bounds.width / 3
     }
 
@@ -543,16 +545,16 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable hoveredSeriesName?: SeriesName
-    @action.bound onLegendClick(): void {
+    @action.bound onLineLegendClick(): void {
         if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 
-    @action.bound onLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         this.hoveredSeriesName = seriesName
     }
 
-    @action.bound onLegendMouseLeave(): void {
+    @action.bound onLineLegendMouseLeave(): void {
         this.hoveredSeriesName = undefined
     }
 
@@ -603,7 +605,7 @@ export class LineChart
         return this.hasColorScale ? 700 : 400
     }
 
-    @computed get legendX(): number {
+    @computed get lineLegendX(): number {
         return this.bounds.right - (this.legendDimensions?.width || 0)
     }
 

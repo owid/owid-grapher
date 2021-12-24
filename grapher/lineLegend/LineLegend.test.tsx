@@ -20,7 +20,7 @@ const manager: LineLegendManager = {
             annotation: "Below Canada",
         },
     ],
-    legendX: 200,
+    lineLegendX: 200,
     focusedSeriesNames: [],
     yAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
