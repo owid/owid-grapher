@@ -12,6 +12,7 @@ import {
     round,
     excludeUndefined,
     isNumber,
+    sortedUniqBy,
 } from "../../clientUtils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -880,28 +881,32 @@ export class LineChart
         const { hasColorScale, transformedTable } = this
 
         // Construct the points
-        const timeValues =
-            transformedTable.timeColumn.valuesIncludingErrorValues
+        const timeValues = col.originalTimeColumn.valuesIncludingErrorValues
+        const values = col.valuesIncludingErrorValues
         const colorValues = transformedTable.get(
             this.colorColumnSlug
         ).valuesIncludingErrorValues
-        const values = col.valuesIncludingErrorValues
-        const points = this.rowIndicesByEntityName
-            .get(entityName)!
-            .filter((index) => isNumber(values[index]))
-            .map((index) => {
-                const point: LinePoint = {
-                    x: timeValues[index] as number,
-                    y: values[index] as number,
-                }
-                if (hasColorScale) {
-                    const colorValue = colorValues[index]
-                    point.colorValue = isNotErrorValue(colorValue)
-                        ? colorValue
-                        : undefined
-                }
-                return point
-            })
+        // If Y and Color are the same column, we need to get rid of any duplicate rows.
+        // Duplicates occur because Y doesn't have tolerance applied, but Color does.
+        const rowIndexes = sortedUniqBy(
+            this.rowIndicesByEntityName
+                .get(entityName)!
+                .filter((index) => isNumber(values[index])),
+            (index) => timeValues[index]
+        )
+        const points = rowIndexes.map((index) => {
+            const point: LinePoint = {
+                x: timeValues[index] as number,
+                y: values[index] as number,
+            }
+            if (hasColorScale) {
+                const colorValue = colorValues[index]
+                point.colorValue = isNotErrorValue(colorValue)
+                    ? colorValue
+                    : undefined
+            }
+            return point
+        })
 
         // Construct series properties
         const totalEntityCount = transformedTable.availableEntityNames.length

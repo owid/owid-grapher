@@ -39,6 +39,7 @@ import round from "lodash/round"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
 import sortBy from "lodash/sortBy"
+import sortedUniqBy from "lodash/sortedUniqBy"
 import startCase from "lodash/startCase"
 import sum from "lodash/sum"
 import sumBy from "lodash/sumBy"
@@ -91,6 +92,7 @@ export {
     sample,
     sampleSize,
     sortBy,
+    sortedUniqBy,
     startCase,
     sum,
     sumBy,

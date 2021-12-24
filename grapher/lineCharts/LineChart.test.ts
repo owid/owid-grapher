@@ -376,4 +376,44 @@ describe("color scale", () => {
             noDataColor,
         ])
     })
+
+    it("handles y and color being the same column", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa", "usa", "usa", "usa"],
+                time: [2000, 2001, 2002, 2003, 2004, 2005],
+                y: [
+                    100,
+                    200,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    500,
+                    600,
+                ],
+            },
+            [
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 1,
+                },
+            ]
+        )
+        const manager: LineChartManager = {
+            yColumnSlugs: ["y"],
+            colorColumnSlug: "y",
+            table: table,
+            selection: ["usa"],
+            seriesStrategy: SeriesStrategy.column,
+        }
+        const chart = new LineChart({ manager })
+
+        expect(chart.series).toHaveLength(1)
+        expect(chart.series[0].points).toHaveLength(4)
+        expect(chart.series[0].points[2]).toEqual({
+            x: 2004,
+            y: 500,
+            colorValue: 500,
+        })
+    })
 })
