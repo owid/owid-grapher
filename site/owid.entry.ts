@@ -40,6 +40,7 @@ import { hydrateProminentLink } from "./blocks/ProminentLink"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks"
+import { registerSlideshowShortcut } from "./slideshowify"
 
 declare let window: any
 window.Grapher = Grapher
@@ -107,5 +108,7 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     durationMin: 100,
     popstate: false,
 })
+
+registerSlideshowShortcut()
 
 analytics.startClickTracking()
