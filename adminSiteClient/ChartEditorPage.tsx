@@ -44,6 +44,7 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab"
+import { Topic } from "../grapher/core/GrapherConstants"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -93,6 +94,7 @@ export class ChartEditorPage
     @observable logs: Log[] = []
     @observable references: PostReference[] = []
     @observable redirects: ChartRedirect[] = []
+    @observable allTopics: Topic[] = []
 
     @observable.ref grapherElement?: JSX.Element
 
@@ -178,6 +180,12 @@ export class ChartEditorPage
         runInAction(() => (this.redirects = json.redirects))
     }
 
+    async fetchTopics(): Promise<void> {
+        const { admin } = this.context
+        const json = await admin.getJSON(`/api/topics.json`)
+        runInAction(() => (this.allTopics = json.topics))
+    }
+
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -194,6 +202,7 @@ export class ChartEditorPage
         this.fetchLogs()
         this.fetchRefs()
         this.fetchRedirects()
+        this.fetchTopics()
     }
 
     dispose!: IReactionDisposer

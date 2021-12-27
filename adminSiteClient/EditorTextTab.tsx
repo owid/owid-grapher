@@ -127,7 +127,10 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
-                    <TopicsSection grapher={grapher} />
+                    <TopicsSection
+                        allTopics={this.props.editor.allTopics}
+                        grapher={grapher}
+                    />
                     {references && references.length > 0 && (
                         <div className="originSuggestions">
                             <p>Origin url suggestions</p>
@@ -212,11 +215,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         )
     }
 }
-
-type TopicName = string
 @observer
-class TopicsSection extends React.Component<{ grapher: Grapher }> {
-    @observable.ref draggedTopic?: TopicName
+class TopicsSection extends React.Component<{
+    allTopics: Topic[]
+    grapher: Grapher
+}> {
+    @observable.ref draggedTopic?: Topic
 
     @action.bound onAddTopic(topic: Topic) {
         this.props.grapher.topics.push(topic)
@@ -227,7 +231,7 @@ class TopicsSection extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.topics.splice(topicIdx, 1)
     }
 
-    @action.bound onStartDrag(topic: TopicName) {
+    @action.bound onStartDrag(topic: Topic) {
         this.draggedTopic = topic
 
         const onDrag = action(() => {
@@ -238,7 +242,7 @@ class TopicsSection extends React.Component<{ grapher: Grapher }> {
         window.addEventListener("mouseup", onDrag)
     }
 
-    @action.bound onMouseEnter(topic: TopicName) {
+    @action.bound onMouseEnter(topic: Topic) {
         if (!this.draggedTopic || topic === this.draggedTopic) return
 
         const { topics } = this.props.grapher
@@ -252,7 +256,9 @@ class TopicsSection extends React.Component<{ grapher: Grapher }> {
     render() {
         const { grapher } = this.props
 
-        const allTopics = ["1", "2", "3"]
+        const availableTopics = this.props.allTopics.filter(
+            (topic) => !this.props.grapher.topics.includes(topic)
+        )
 
         return (
             <>
@@ -260,21 +266,21 @@ class TopicsSection extends React.Component<{ grapher: Grapher }> {
                 <SelectField
                     onValue={this.onAddTopic}
                     value="Select data"
-                    options={["Select data"].concat(allTopics)}
-                    optionLabels={["Select data"].concat(allTopics)}
+                    options={["Select data"].concat(availableTopics)}
+                    optionLabels={["Select data"].concat(availableTopics)}
                 />
                 <EditableList>
-                    {grapher.topics.map((topicName) => (
+                    {grapher.topics.map((topic) => (
                         <EditableListItem
-                            key={topicName}
-                            onMouseDown={() => this.onStartDrag(topicName)}
-                            onMouseEnter={() => this.onMouseEnter(topicName)}
+                            key={topic}
+                            onMouseDown={() => this.onStartDrag(topic)}
+                            onMouseEnter={() => this.onMouseEnter(topic)}
                             className="EditableListItem"
                         >
-                            <div>{topicName}</div>
+                            <div>{topic}</div>
                             <div
                                 className="clickable"
-                                onClick={() => this.onRemoveTopic(topicName)}
+                                onClick={() => this.onRemoveTopic(topic)}
                             >
                                 <FontAwesomeIcon icon={faTimes} />
                             </div>

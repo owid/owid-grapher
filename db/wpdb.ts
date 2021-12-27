@@ -36,6 +36,7 @@ import {
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
 import { Url } from "../clientUtils/urls/Url"
+import { Topic } from "../grapher/core/GrapherConstants"
 
 let _knexInstance: Knex
 
@@ -645,6 +646,34 @@ export const getMediaThumbnailUrl = async (
     )
 
     return thumbnail?.sourceUrl
+}
+
+export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
+    if (!isWordpressAPIEnabled) return []
+    const query = `query {
+        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                title
+            }
+        }
+      }`
+
+    const documents = await graphqlQuery(query, { cursor })
+    const pageInfo = documents.data.pages.pageInfo
+    const nodes = documents.data.pages.nodes
+    if (nodes.length === 0) return []
+
+    const topics = nodes.map((n: { title: string }) => n.title)
+
+    if (pageInfo.hasNextPage) {
+        return topics.concat(await getTopics(pageInfo.endCursor))
+    } else {
+        return topics
+    }
 }
 
 interface TablepressTable {
