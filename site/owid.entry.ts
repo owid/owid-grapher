@@ -56,6 +56,7 @@ window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
+window.registerSlideshowShortcut = registerSlideshowShortcut
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = () => {
@@ -108,7 +109,5 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     durationMin: 100,
     popstate: false,
 })
-
-registerSlideshowShortcut()
 
 analytics.startClickTracking()
