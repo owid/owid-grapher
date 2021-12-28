@@ -78,10 +78,17 @@ export interface HorizontalColorLegendManager {
     categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
+    numericBinSize?: number
+    numericBinStroke?: Color
+    numericBinStrokeWidth?: number
     equalSizeBins?: boolean
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
 }
+
+const DEFAULT_NUMERIC_BIN_SIZE = 10
+const DEFAULT_NUMERIC_BIN_STROKE = "#333"
+const DEFAULT_NUMERIC_BIN_STROKE_WIDTH = 0.3
 
 @observer
 class HorizontalColorLegend extends React.Component<{
@@ -134,7 +141,21 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             (bin): bin is NumericBin => bin instanceof NumericBin
         )
     }
-    rectHeight = 10
+
+    @computed private get numericBinSize(): number {
+        return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
+    }
+
+    @computed private get numericBinStroke(): Color {
+        return this.props.manager.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
+    }
+
+    @computed private get numericBinStrokeWidth(): number {
+        return (
+            this.props.manager.numericBinStrokeWidth ??
+            DEFAULT_NUMERIC_BIN_STROKE_WIDTH
+        )
+    }
 
     @computed get tickFontSize(): number {
         return 0.75 * this.fontSize
@@ -155,7 +176,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return Bounds.forText("No data", { fontSize: this.tickFontSize }).width
     }
     @computed get categoryBinMargin(): number {
-        return this.rectHeight * 1.5
+        return this.numericBinSize * 1.5
     }
     @computed get totalCategoricalWidth(): number {
         const { numericLegendData } = this
@@ -209,7 +230,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed get numericLabels(): NumericLabel[] {
-        const { rectHeight, positionedBins, tickFontSize } = this
+        const { numericBinSize, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
             bin: PositionedBin,
@@ -221,7 +242,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 bin.x +
                 (minOrMax === "min" ? 0 : bin.width) -
                 labelBounds.width / 2
-            const y = -rectHeight - labelBounds.height - 3
+            const y = -numericBinSize - labelBounds.height - 3
 
             return {
                 text: text,
@@ -236,7 +257,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 fontSize: tickFontSize,
             })
             const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -rectHeight - labelBounds.height - 3
+            const y = -numericBinSize - labelBounds.height - 3
 
             return {
                 text: bin.bin.text,
@@ -366,12 +387,17 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     render(): JSX.Element {
-        const { manager, numericLabels, rectHeight, positionedBins, height } =
-            this
+        const {
+            manager,
+            numericLabels,
+            numericBinSize,
+            positionedBins,
+            height,
+        } = this
         const { numericFocusBracket } = manager
-        //Bounds.debug([this.bounds])
 
-        const borderColor = "#333"
+        const stroke = this.numericBinStroke
+        const strokeWidth = this.numericBinStrokeWidth
         const bottomY = this.numericLegendY + height
 
         return (
@@ -384,15 +410,15 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                             label.bounds.x +
                             label.bounds.width / 2
                         }
-                        y1={bottomY - rectHeight}
+                        y1={bottomY - numericBinSize}
                         x2={
                             this.legendX +
                             label.bounds.x +
                             label.bounds.width / 2
                         }
                         y2={bottomY + label.bounds.y + label.bounds.height}
-                        stroke={borderColor}
-                        strokeWidth={0.3}
+                        stroke={stroke}
+                        strokeWidth={strokeWidth}
                     />
                 ))}
                 {sortBy(
@@ -405,15 +431,13 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                             <NumericBinRect
                                 key={index}
                                 x={this.legendX + positionedBin.x}
-                                y={bottomY - rectHeight}
+                                y={bottomY - numericBinSize}
                                 width={positionedBin.width}
-                                height={rectHeight}
+                                height={numericBinSize}
                                 fill={bin.color}
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                stroke={
-                                    isFocus ? FOCUS_BORDER_COLOR : borderColor
-                                }
-                                strokeWidth={isFocus ? 2 : 0.3}
+                                stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
+                                strokeWidth={isFocus ? 2 : strokeWidth}
                                 isOpenLeft={
                                     bin instanceof NumericBin
                                         ? bin.props.isOpenLeft
