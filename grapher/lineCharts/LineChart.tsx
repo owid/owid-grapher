@@ -64,7 +64,7 @@ import {
     CoreValueType,
     PrimitiveType,
 } from "../../coreTable/CoreTableConstants"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     ColorScaleConfig,
@@ -75,9 +75,12 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { EntityName } from "../../coreTable/OwidTableConstants"
-import { Color } from "../../clientUtils/owidTypes"
+import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
 import { darkenColorForLine } from "../color/ColorUtils"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import {
+    HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
+} from "../horizontalColorLegend/HorizontalColorLegends"
 
 // background
 const BACKGROUND_COLOR = "#fff"
@@ -91,8 +94,10 @@ const VARIABLE_COLOR_STROKE_WIDTH = 2.5
 const DEFAULT_MARKER_RADIUS = 1.8
 const VARIABLE_COLOR_MARKER_RADIUS = 2.2
 // line outline
-const DEFAULT_LINE_OUTLINE_WIDTH = 0.65
+const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
 const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
+// legend
+const LEGEND_PADDING = 25
 
 @observer
 class Lines extends React.Component<LinesProps> {
@@ -376,6 +381,12 @@ export class LineChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    @computed private get boundsWithoutColorLegend(): Bounds {
+        return this.bounds.padTop(
+            this.hasColorLegend ? this.legendHeight + LEGEND_PADDING : 0
+        )
+    }
+
     @computed get maxLineLegendWidth(): number {
         return this.bounds.width / 3
     }
@@ -606,12 +617,14 @@ export class LineChart
     }
 
     @computed get lineLegendX(): number {
-        return this.bounds.right - (this.legendDimensions?.width || 0)
+        return this.bounds.right - (this.lineLegendDimensions?.width || 0)
     }
 
     @computed get clipPathBounds(): Bounds {
-        const { dualAxis, bounds } = this
-        return bounds.set({ x: dualAxis.innerBounds.x }).expand(10)
+        const { dualAxis, boundsWithoutColorLegend } = this
+        return boundsWithoutColorLegend
+            .set({ x: dualAxis.innerBounds.x })
+            .expand(10)
     }
 
     @computed get clipPath(): { id: string; element: JSX.Element } {
@@ -630,7 +643,7 @@ export class LineChart
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
-    @computed private get legendDimensions(): LineLegend | undefined {
+    @computed private get lineLegendDimensions(): LineLegend | undefined {
         return this.manager.hideLegend
             ? undefined
             : new LineLegend({ manager: this })
@@ -657,6 +670,9 @@ export class LineChart
         return (
             <g ref={this.base} className="LineChart">
                 {clipPath.element}
+                {this.hasColorLegend && (
+                    <HorizontalNumericColorLegend manager={this} />
+                )}
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
@@ -787,6 +803,66 @@ export class LineChart
     }
 
     // End of color scale props
+
+    // Color legend props
+
+    @computed private get hasColorLegend(): boolean {
+        return this.hasColorScale && !this.manager.hideLegend
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.x
+    }
+
+    @computed get legendWidth(): number {
+        return this.lineLegendX - this.legendX
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.center
+    }
+
+    // TODO just pass colorScale to legend and let it figure it out?
+    @computed get numericLegendData(): ColorScaleBin[] {
+        // Move CategoricalBins in front
+        return sortBy(
+            this.colorScale.legendBins,
+            (bin) => bin instanceof NumericBin
+        )
+    }
+
+    // TODO just pass colorScale to legend and let it figure it out?
+    @computed get equalSizeBins(): boolean | undefined {
+        return this.colorScale.config.equalSizeBins
+    }
+
+    numericBinSize = 6
+    numericBinStroke = BACKGROUND_COLOR
+    numericBinStrokeWidth = 1
+    legendTextColor = "#555"
+    legendTickSize = 1
+
+    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+        return this.hasColorScale && !this.manager.hideLegend
+            ? new HorizontalNumericColorLegend({ manager: this })
+            : undefined
+    }
+
+    @computed get numericLegendY(): number {
+        return this.bounds.top
+    }
+
+    @computed get legendTitle(): string | undefined {
+        return this.hasColorScale
+            ? this.colorScale.legendDescription
+            : undefined
+    }
+
+    @computed get legendHeight(): number {
+        return this.numericLegend?.height ?? 0
+    }
+
+    // End of color legend props
 
     // todo: for now just works with 1 y column
     @computed private get annotationsMap(): Map<
@@ -1035,9 +1111,9 @@ export class LineChart
 
     @computed private get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.bounds.padRight(
-                this.legendDimensions
-                    ? this.legendDimensions.width
+            bounds: this.boundsWithoutColorLegend.padRight(
+                this.lineLegendDimensions
+                    ? this.lineLegendDimensions.width
                     : this.defaultRightPadding
             ),
             verticalAxis: this.verticalAxisPart,
