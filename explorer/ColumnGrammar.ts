@@ -151,7 +151,7 @@ export const ColumnGrammar: Grammar = {
     colorScaleLegendDescription: {
         ...StringCellDef,
         keyword: "colorScaleLegendDescription",
-        description: "Legend title for ScatterPlot",
+        description: "Legend title",
     },
     colorScaleEqualSizeBins: {
         ...BooleanCellDef,

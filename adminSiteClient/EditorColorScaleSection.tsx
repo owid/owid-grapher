@@ -82,7 +82,7 @@ class ColorLegendSection extends React.Component<{
                 {features.legendDescription && (
                     <FieldsRow>
                         <BindString
-                            label="Legend description"
+                            label="Legend title"
                             field="legendDescription"
                             store={scale.config}
                         />

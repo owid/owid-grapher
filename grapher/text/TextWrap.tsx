@@ -187,7 +187,11 @@ export class TextWrap {
         )
     }
 
-    render(x: number, y: number, options?: any): JSX.Element | null {
+    render(
+        x: number,
+        y: number,
+        options?: React.SVGProps<SVGTextElement>
+    ): JSX.Element | null {
         //React.SVGAttributes<SVGTextElement>) {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
