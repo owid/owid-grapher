@@ -10,7 +10,6 @@ import { Grapher } from "../grapher/core/Grapher"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import _ from "lodash"
 import { Topic } from "../grapher/core/GrapherConstants"
 
 type EditorTab = string

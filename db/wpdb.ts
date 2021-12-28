@@ -657,17 +657,16 @@ export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
                 endCursor
             }
             nodes {
-                title
+                id: databaseId
+                name: title
             }
         }
       }`
 
     const documents = await graphqlQuery(query, { cursor })
     const pageInfo = documents.data.pages.pageInfo
-    const nodes = documents.data.pages.nodes
-    if (nodes.length === 0) return []
-
-    const topics = nodes.map((n: { title: string }) => n.title)
+    const topics: Topic[] = documents.data.pages.nodes
+    if (topics.length === 0) return []
 
     if (pageInfo.hasNextPage) {
         return topics.concat(await getTopics(pageInfo.endCursor))

@@ -274,7 +274,7 @@ export class Grapher
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
-    @observable topics: Topic[] = []
+    @observable.ref topics: Topic[] = []
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined

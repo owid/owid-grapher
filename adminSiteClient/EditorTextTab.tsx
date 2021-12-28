@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action, observable } from "mobx"
+import { action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import {
@@ -11,9 +11,6 @@ import {
     RadioGroup,
     TextField,
     Button,
-    SelectField,
-    EditableList,
-    EditableListItem,
 } from "./Forms"
 import { LogoOption } from "../grapher/captionedChart/Logos"
 import slugify from "slugify"
@@ -25,7 +22,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import Select from "react-select"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -220,73 +217,25 @@ class TopicsSection extends React.Component<{
     allTopics: Topic[]
     grapher: Grapher
 }> {
-    @observable.ref draggedTopic?: Topic
-
-    @action.bound onAddTopic(topic: Topic) {
-        this.props.grapher.topics.push(topic)
-    }
-
-    @action.bound onRemoveTopic(topic: Topic) {
-        const topicIdx = this.props.grapher.topics.findIndex((t) => t === topic)
-        this.props.grapher.topics.splice(topicIdx, 1)
-    }
-
-    @action.bound onStartDrag(topic: Topic) {
-        this.draggedTopic = topic
-
-        const onDrag = action(() => {
-            this.draggedTopic = undefined
-            window.removeEventListener("mouseup", onDrag)
-        })
-
-        window.addEventListener("mouseup", onDrag)
-    }
-
-    @action.bound onMouseEnter(topic: Topic) {
-        if (!this.draggedTopic || topic === this.draggedTopic) return
-
-        const { topics } = this.props.grapher
-
-        const dragIndex = topics.indexOf(this.draggedTopic)
-        const targetIndex = topics.indexOf(topic)
-        topics.splice(dragIndex, 1)
-        topics.splice(targetIndex, 0, this.draggedTopic)
-    }
-
     render() {
         const { grapher } = this.props
-
-        const availableTopics = this.props.allTopics.filter(
-            (topic) => !this.props.grapher.topics.includes(topic)
-        )
 
         return (
             <>
                 <h5>Topics</h5>
-                <SelectField
-                    onValue={this.onAddTopic}
-                    value="Select data"
-                    options={["Select data"].concat(availableTopics)}
-                    optionLabels={["Select data"].concat(availableTopics)}
+                <Select
+                    options={this.props.allTopics}
+                    isMulti={true}
+                    value={grapher.topics}
+                    getOptionValue={(topic) => topic.id.toString()}
+                    getOptionLabel={(topic) => topic.name}
+                    onChange={(topics) =>
+                        runInAction(() => {
+                            grapher.topics = [...topics]
+                        })
+                    }
+                    menuPlacement="auto"
                 />
-                <EditableList>
-                    {grapher.topics.map((topic) => (
-                        <EditableListItem
-                            key={topic}
-                            onMouseDown={() => this.onStartDrag(topic)}
-                            onMouseEnter={() => this.onMouseEnter(topic)}
-                            className="EditableListItem"
-                        >
-                            <div>{topic}</div>
-                            <div
-                                className="clickable"
-                                onClick={() => this.onRemoveTopic(topic)}
-                            >
-                                <FontAwesomeIcon icon={faTimes} />
-                            </div>
-                        </EditableListItem>
-                    ))}
-                </EditableList>
             </>
         )
     }
