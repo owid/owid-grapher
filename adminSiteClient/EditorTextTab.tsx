@@ -124,10 +124,6 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
-                    <TopicsSection
-                        allTopics={this.props.editor.allTopics}
-                        grapher={grapher}
-                    />
                     {references && references.length > 0 && (
                         <div className="originSuggestions">
                             <p>Origin url suggestions</p>
@@ -138,6 +134,10 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             </ul>
                         </div>
                     )}
+                    <TopicsSection
+                        allTopics={this.props.editor.allTopics}
+                        grapher={grapher}
+                    />
                     <BindString
                         label="Footer note"
                         field="note"
