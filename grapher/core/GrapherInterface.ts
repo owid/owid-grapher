@@ -179,5 +179,5 @@ export const grapherKeysToSerialize = [
     "hideFacetControl",
     "comparisonLines",
     "relatedQuestions",
-    "topics",
+    "topicIds",
 ]

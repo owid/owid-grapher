@@ -47,7 +47,7 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
-    Topic,
+    TopicId,
 } from "../core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import * as Cookies from "js-cookie"
@@ -274,7 +274,7 @@ export class Grapher
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
-    @observable.ref topics: Topic[] = []
+    @observable.ref topicIds: TopicId[] = []
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined

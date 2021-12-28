@@ -225,13 +225,18 @@ class TopicsSection extends React.Component<{
                 <h5>Topics</h5>
                 <Select
                     options={this.props.allTopics}
-                    isMulti={true}
-                    value={grapher.topics}
                     getOptionValue={(topic) => topic.id.toString()}
                     getOptionLabel={(topic) => topic.name}
+                    isMulti={true}
+                    value={grapher.topicIds.map((topicId) => ({
+                        id: topicId,
+                        name:
+                            this.props.allTopics.find((t) => t.id === topicId)
+                                ?.name || "TOPIC NOT FOUND",
+                    }))}
                     onChange={(topics) =>
                         runInAction(() => {
-                            grapher.topics = [...topics]
+                            grapher.topicIds = topics.map((topic) => topic.id)
                         })
                     }
                     menuPlacement="auto"
