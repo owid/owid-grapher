@@ -25,6 +25,7 @@ import {
     VerticalAlign,
 } from "../../clientUtils/owidTypes"
 import { TextWrap } from "../text/TextWrap"
+import { darkenColorForLine } from "../color/ColorUtils"
 
 interface PositionedBin {
     x: number
@@ -39,6 +40,7 @@ interface NumericLabel {
     bounds: Bounds
     priority?: boolean
     hidden: boolean
+    raised: boolean
 }
 
 interface CategoricalMark {
@@ -292,6 +294,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 fontSize: tickFontSize,
                 bounds: labelBounds.set({ x: x, y: y }),
                 hidden: false,
+                raised: false,
             }
         }
 
@@ -308,6 +311,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 bounds: labelBounds.set({ x: x, y: y }),
                 priority: true,
                 hidden: false,
+                raised: false,
             }
         }
 
@@ -356,6 +360,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     label.bounds = label.bounds.set({
                         y: label.bounds.y - label.bounds.height - 1,
                     })
+                    label.raised = true
                 }
             }
         }
@@ -449,7 +454,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         y1={bottomY - numericBinSize}
                         x2={label.bounds.x + label.bounds.width / 2}
                         y2={bottomY + label.bounds.y + label.bounds.height}
-                        stroke={stroke}
+                        // if we use a light color for stroke (e.g. white), we want it to stay
+                        // "invisible", except for raised labels, where we want *some* contrast.
+                        stroke={
+                            label.raised ? darkenColorForLine(stroke) : stroke
+                        }
                         strokeWidth={strokeWidth}
                     />
                 ))}
