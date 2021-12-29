@@ -660,13 +660,7 @@ export class LineChart
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
-        const hasNormalAndProjectedSeries =
-            this.yColumns.some((col) => col.isProjection) &&
-            this.yColumns.some((col) => !col.isProjection)
-        return autoDetectSeriesStrategy(
-            this.manager,
-            hasNormalAndProjectedSeries
-        )
+        return autoDetectSeriesStrategy(this.manager, true)
     }
 
     @computed get isLogScale(): boolean {

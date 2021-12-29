@@ -32,7 +32,11 @@ import {
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectSeriesStrategy,
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
@@ -426,13 +430,16 @@ export class DiscreteBarChart
     }
 
     @computed private get seriesStrategy(): SeriesStrategy {
-        return (
-            this.manager.seriesStrategy ??
-            (this.yColumnSlugs.length > 1 &&
-            this.selectionArray.numSelectedEntities === 1
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
-        )
+        const autoStrategy = autoDetectSeriesStrategy(this.manager, true)
+        // TODO this is an inconsistency between LineChart and DiscreteBar.
+        // We should probably make it consistent at some point.
+        if (
+            autoStrategy === SeriesStrategy.column &&
+            this.selectionArray.numSelectedEntities > 1
+        ) {
+            return SeriesStrategy.entity
+        }
+        return autoStrategy
     }
 
     @computed protected get yColumns(): CoreColumn[] {
