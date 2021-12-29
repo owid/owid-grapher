@@ -73,3 +73,7 @@ export function darkenColorForLine(colorHex: Color): Color {
 export function darkenColorForText(colorHex: Color): Color {
     return darkenColorToTargetYiq(colorHex, 125)
 }
+
+export function darkenColorForHighContrastText(colorHex: Color): Color {
+    return darkenColorToTargetYiq(colorHex, 105)
+}

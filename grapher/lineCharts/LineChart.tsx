@@ -76,7 +76,10 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
-import { darkenColorForLine } from "../color/ColorUtils"
+import {
+    darkenColorForHighContrastText,
+    darkenColorForLine,
+} from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
@@ -421,7 +424,8 @@ export class LineChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { hoverX, dualAxis, inputTable, formatColumn } = this
+        const { hoverX, dualAxis, inputTable, formatColumn, hasColorScale } =
+            this
 
         if (hoverX === undefined) return undefined
 
@@ -450,12 +454,29 @@ export class LineChart
                         whiteSpace: "normal",
                     }}
                 >
-                    <tbody>
+                    <thead>
                         <tr>
                             <td colSpan={3}>
                                 <strong>{formatted}</strong>
                             </td>
+                            {hasColorScale && (
+                                <td
+                                    style={{
+                                        paddingLeft: "0.5em",
+                                        fontSize: "0.9em",
+                                        color: "#999",
+                                        whiteSpace: "normal",
+                                        maxWidth: "5em",
+                                        textAlign: "right",
+                                        lineHeight: "1.1em",
+                                    }}
+                                >
+                                    {this.colorScale.legendDescription}
+                                </td>
+                            )}
                         </tr>
+                    </thead>
+                    <tbody>
                         {sortedData.map((series) => {
                             const value = series.points.find(
                                 (point) => point.x === hoverX
@@ -487,13 +508,15 @@ export class LineChart
                             const isBlur =
                                 this.seriesIsBlurred(series) ||
                                 value === undefined
-                            const textColor = isBlur ? "#ddd" : "#333"
-                            const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
                                 ? BLUR_LINE_COLOR
                                 : this.hasColorScale
                                 ? this.getColorScaleColor(value.colorValue)
                                 : series.color
+                            const textColor = isBlur
+                                ? "#ddd"
+                                : darkenColorForHighContrastText(circleColor)
+                            const annotationColor = isBlur ? "#ddd" : "#999"
                             return (
                                 <tr
                                     key={getSeriesKey(series)}
@@ -514,7 +537,7 @@ export class LineChart
                                     <td
                                         style={{
                                             paddingRight: "0.8em",
-                                            fontSize: "0.9em",
+                                            fontWeight: 700,
                                         }}
                                     >
                                         {series.seriesName}
@@ -535,15 +558,36 @@ export class LineChart
                                         style={{
                                             textAlign: "right",
                                             whiteSpace: "nowrap",
+                                            fontWeight: 700,
                                         }}
                                     >
-                                        {!value
+                                        {value === undefined
                                             ? "No data"
                                             : formatColumn.formatValueShort(
                                                   value.y,
                                                   { noTrailingZeroes: false }
                                               )}
                                     </td>
+                                    {hasColorScale && (
+                                        <td
+                                            style={{
+                                                textAlign: "right",
+                                                whiteSpace: "nowrap",
+                                                fontSize: "0.95em",
+                                                paddingLeft: "0.5em",
+                                            }}
+                                        >
+                                            {value?.colorValue !== undefined
+                                                ? this.colorColumn.formatValueShort(
+                                                      value.colorValue,
+                                                      {
+                                                          noTrailingZeroes:
+                                                              false,
+                                                      }
+                                                  )
+                                                : undefined}
+                                        </td>
+                                    )}
                                 </tr>
                             )
                         })}
