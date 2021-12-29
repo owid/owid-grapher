@@ -212,14 +212,12 @@
         "webpack-manifest-plugin": "^2.2.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.14.3",
         "@storybook/addon-essentials": "^6.3.8",
         "@storybook/react": "^6.3.8",
         "@types/jest": "^27.0.2",
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^4.31.1",
         "@typescript-eslint/parser": "^4.31.1",
-        "babel-loader": "^8.2.2",
         "cypress": "7.0.1",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-react": "^7.25.2",
