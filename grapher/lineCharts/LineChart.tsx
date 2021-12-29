@@ -878,14 +878,12 @@ export class LineChart
         entityName: string,
         col: CoreColumn
     ): LineChartSeries {
-        const { hasColorScale, transformedTable } = this
+        const { hasColorScale, transformedTable, colorColumn } = this
 
         // Construct the points
         const timeValues = col.originalTimeColumn.valuesIncludingErrorValues
         const values = col.valuesIncludingErrorValues
-        const colorValues = transformedTable.get(
-            this.colorColumnSlug
-        ).valuesIncludingErrorValues
+        const colorValues = colorColumn.valuesIncludingErrorValues
         // If Y and Color are the same column, we need to get rid of any duplicate rows.
         // Duplicates occur because Y doesn't have tolerance applied, but Color does.
         const rowIndexes = sortedUniqBy(
