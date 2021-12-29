@@ -148,11 +148,11 @@ export abstract class HorizontalColorLegend extends React.Component<{
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         return this.manager.numericLegendData ?? []
     }
 
-    @computed get numericBins(): NumericBin[] {
+    @computed private get numericBins(): NumericBin[] {
         return this.numericLegendData.filter(
             (bin): bin is NumericBin => bin instanceof NumericBin
         )
@@ -173,19 +173,19 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @computed get tickFontSize(): number {
+    @computed private get tickFontSize(): number {
         return 0.75 * this.fontSize
     }
 
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue(): number {
+    @computed private get minValue(): number {
         return min(this.numericBins.map((bin) => bin.min)) as number
     }
-    @computed get maxValue(): number {
+    @computed private get maxValue(): number {
         return max(this.numericBins.map((bin) => bin.max)) as number
     }
-    @computed get rangeSize(): number {
+    @computed private get rangeSize(): number {
         return this.maxValue - this.minValue
     }
 
@@ -196,7 +196,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return Math.max(width, CATEGORICAL_BIN_MIN_WIDTH)
     }
 
-    @computed get totalCategoricalWidth(): number {
+    @computed private get totalCategoricalWidth(): number {
         const { numericLegendData } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
@@ -205,7 +205,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
         return sum(widths)
     }
-    @computed get availableNumericWidth(): number {
+    @computed private get availableNumericWidth(): number {
         return (
             this.legendWidth -
             this.totalCategoricalWidth -
@@ -213,7 +213,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @computed get positionedBins(): PositionedBin[] {
+    @computed private get positionedBins(): PositionedBin[] {
         const {
             manager,
             rangeSize,
@@ -266,13 +266,13 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             : undefined
     }
 
-    @computed get legendTitleWidth(): number {
+    @computed private get legendTitleWidth(): number {
         return this.legendTitle
             ? this.legendTitle.width + LEGEND_ITEM_PADDING
             : 0
     }
 
-    @computed get numericLabels(): NumericLabel[] {
+    @computed private get numericLabels(): NumericLabel[] {
         const { numericBinSize, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
@@ -369,7 +369,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @computed get bounds(): Bounds {
+    @computed private get bounds(): Bounds {
         return new Bounds(
             this.legendX,
             this.numericLegendY,
@@ -378,7 +378,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @action.bound onMouseMove(ev: MouseEvent | TouchEvent): void {
+    @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { manager, base, positionedBins } = this
         const { numericFocusBracket } = manager
         if (base.current) {
@@ -559,7 +559,7 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.manager.categoricalLegendData ?? []
     }
 
@@ -614,7 +614,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return lines
     }
 
-    @computed get contentWidth(): number {
+    @computed private get contentWidth(): number {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
@@ -622,7 +622,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return this.manager.legendWidth ?? this.contentWidth
     }
 
-    @computed get marks(): CategoricalMark[] {
+    @computed private get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
         const width = this.containerWidth
