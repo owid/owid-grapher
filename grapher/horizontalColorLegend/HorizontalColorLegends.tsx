@@ -27,10 +27,9 @@ import {
 import { TextWrap } from "../text/TextWrap"
 import { darkenColorForLine } from "../color/ColorUtils"
 
-interface PositionedBin {
+export interface PositionedBin {
     x: number
     width: number
-    margin: number
     bin: ColorScaleBin
 }
 
@@ -178,8 +177,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return 0.75 * this.fontSize
     }
 
-    @computed private get itemPadding(): number {
-        return this.fontSize
+    @computed private get itemMargin(): number {
+        return Math.round(this.fontSize * 1.125)
     }
 
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
@@ -202,10 +201,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get totalCategoricalWidth(): number {
-        const { numericLegendData, itemPadding } = this
+        const { numericLegendData, itemMargin } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
-                ? this.getCategoricalBinWidth(bin.text) + itemPadding
+                ? this.getCategoricalBinWidth(bin.text) + itemMargin
                 : 0
         )
         return sum(widths)
@@ -229,27 +228,34 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         } = this
 
         let xOffset = legendX + this.legendTitleWidth
+        let prevBin: ColorScaleBin | undefined
 
-        return numericLegendData.map((bin) => {
-            let width = this.getCategoricalBinWidth(bin.text)
-            let margin = this.itemPadding
+        return numericLegendData.map((bin, index) => {
+            const isFirst = index === 0
+            let width: number = this.getCategoricalBinWidth(bin.text)
+            let marginLeft: number = isFirst ? 0 : this.itemMargin
+
             if (bin instanceof NumericBin) {
-                if (manager.equalSizeBins)
+                if (manager.equalSizeBins) {
                     width = availableNumericWidth / numericBins.length
-                else
+                } else {
                     width =
                         ((bin.max - bin.min) / rangeSize) *
                         availableNumericWidth
-                margin = 0
+                }
+                // Don't add any margin between numeric bins
+                if (prevBin instanceof NumericBin) {
+                    marginLeft = 0
+                }
             }
 
-            const x = xOffset
-            xOffset += width + margin
+            const x = xOffset + marginLeft
+            xOffset = x + width
+            prevBin = bin
 
             return {
                 x,
                 width,
-                margin,
                 bin,
             }
         })
@@ -272,7 +278,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get legendTitleWidth(): number {
-        return this.legendTitle ? this.legendTitle.width + this.itemPadding : 0
+        return this.legendTitle ? this.legendTitle.width + this.itemMargin : 0
     }
 
     @computed private get numericLabels(): NumericLabel[] {
