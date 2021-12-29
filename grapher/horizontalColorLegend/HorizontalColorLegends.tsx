@@ -94,7 +94,6 @@ const DEFAULT_NUMERIC_BIN_STROKE_WIDTH = 0.3
 const DEFAULT_TEXT_COLOR = "#111"
 const DEFAULT_TICK_SIZE = 3
 
-const LEGEND_ITEM_PADDING = 15
 const CATEGORICAL_BIN_MIN_WIDTH = 20
 const FOCUS_BORDER_COLOR = "#111"
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
@@ -179,6 +178,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return 0.75 * this.fontSize
     }
 
+    @computed private get itemPadding(): number {
+        return this.fontSize
+    }
+
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
     @computed private get minValue(): number {
@@ -199,10 +202,10 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get totalCategoricalWidth(): number {
-        const { numericLegendData } = this
+        const { numericLegendData, itemPadding } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
-                ? this.getCategoricalBinWidth(bin.text) + LEGEND_ITEM_PADDING
+                ? this.getCategoricalBinWidth(bin.text) + itemPadding
                 : 0
         )
         return sum(widths)
@@ -229,7 +232,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
         return numericLegendData.map((bin) => {
             let width = this.getCategoricalBinWidth(bin.text)
-            let margin = LEGEND_ITEM_PADDING
+            let margin = this.itemPadding
             if (bin instanceof NumericBin) {
                 if (manager.equalSizeBins)
                     width = availableNumericWidth / numericBins.length
@@ -269,9 +272,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get legendTitleWidth(): number {
-        return this.legendTitle
-            ? this.legendTitle.width + LEGEND_ITEM_PADDING
-            : 0
+        return this.legendTitle ? this.legendTitle.width + this.itemPadding : 0
     }
 
     @computed private get numericLabels(): NumericLabel[] {
