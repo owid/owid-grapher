@@ -868,10 +868,10 @@ export class LineChart
 
     // TODO just pass colorScale to legend and let it figure it out?
     @computed get numericLegendData(): ColorScaleBin[] {
-        // Move CategoricalBins in front
+        // Move CategoricalBins to end
         return sortBy(
             this.colorScale.legendBins,
-            (bin) => bin instanceof NumericBin
+            (bin) => bin instanceof CategoricalBin
         )
     }
 
