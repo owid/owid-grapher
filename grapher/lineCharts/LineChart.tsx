@@ -698,7 +698,7 @@ export class LineChart
             return (
                 <NoDataModal
                     manager={this.manager}
-                    bounds={this.props.bounds}
+                    bounds={this.bounds}
                     message={this.failMessage}
                 />
             )
@@ -854,12 +854,15 @@ export class LineChart
         return this.hasColorScale && !this.manager.hideLegend
     }
 
-    @computed get legendX(): number {
-        return this.bounds.x
+    @computed get legendWidth(): number {
+        const maxWidth = this.bounds.width
+        const minWidth = 36 * this.fontSize
+        const width = this.bounds.width * 0.8
+        return Math.min(Math.max(width, minWidth), maxWidth)
     }
 
-    @computed get legendWidth(): number {
-        return this.lineLegendX - this.legendX
+    @computed get legendX(): number {
+        return this.bounds.centerX - this.legendWidth / 2
     }
 
     @computed get legendAlign(): HorizontalAlign {
