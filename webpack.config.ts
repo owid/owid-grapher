@@ -21,6 +21,12 @@ const config = (env: any, argv: any): webpack.Configuration => {
 
     const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
     return {
+        cache: {
+            type: "filesystem",
+            buildDependencies: {
+                config: [__filename],
+            },
+        },
         context: javascriptDir,
         entry: {
             admin: "./adminSiteClient/admin.entry.js",
@@ -61,6 +67,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
             extensions: [".js", ".css"],
             modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
             fallback: {
+                // don't polyfill these Node modules
                 fs: false,
                 path: false,
             },
