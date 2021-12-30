@@ -61,6 +61,9 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
+// TODO unify properties across categorical & numeric legend.
+// This would make multiple legends per chart less convenient (only used in Map), but we shouldn't
+// be using multiple anyway – instead the numeric should also handle categorical bins too.
 export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
