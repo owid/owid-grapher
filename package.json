@@ -98,7 +98,6 @@
         "@types/unidecode": "^0.1.1",
         "@types/url-join": "^4.0.0",
         "@types/url-parse": "^1.4.3",
-        "@types/webpack": "^4.41.25",
         "@types/webpack-dev-server": "^4.5.0",
         "algoliasearch": "^4.2.0",
         "bcrypt": "^5.0.1",
@@ -210,10 +209,10 @@
         "url-loader": "^4.1.0",
         "url-parse": "^1.5.2",
         "url-slug": "^3.0.2",
-        "webpack": "^4.44.1",
+        "webpack": "^5.65.0",
         "webpack-cli": "^4.9.1",
         "webpack-dev-server": "^4.7.2",
-        "webpack-manifest-plugin": "^2.2.0"
+        "webpack-manifest-plugin": "^4.0.2"
     },
     "devDependencies": {
         "@storybook/addon-essentials": "^6.3.8",
