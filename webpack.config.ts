@@ -6,8 +6,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 
-const TerserJSPlugin = require("terser-webpack-plugin")
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
 
 const config = (env: any, argv: any): webpack.Configuration => {
@@ -52,7 +51,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
                 },
             },
             minimize: isProduction,
-            minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
+            minimizer: ["...", new CssMinimizerPlugin()],
         },
         output: {
             path: path.join(javascriptDir, "webpack"),
@@ -78,7 +77,12 @@ const config = (env: any, argv: any): webpack.Configuration => {
                     test: /\.s?css$/,
                     use: [
                         MiniCssExtractPlugin.loader,
-                        "css-loader?url=false",
+                        {
+                            loader: "css-loader",
+                            options: {
+                                url: false,
+                            },
+                        },
                         "sass-loader",
                     ],
                 },
