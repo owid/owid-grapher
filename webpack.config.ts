@@ -1,4 +1,5 @@
 import webpack from "webpack"
+import webpackDevServer from "webpack-dev-server" // just imported for type magic
 import path from "path"
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
@@ -116,8 +117,7 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         devServer: {
             host: "localhost",
             port: 8090,
-            contentBase: "public",
-            disableHostCheck: true,
+            allowedHosts: "all",
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods":
