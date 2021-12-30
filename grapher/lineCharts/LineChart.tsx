@@ -1176,33 +1176,34 @@ export class LineChart
         return this.dualAxis.horizontalAxis
     }
 
-    // TODO: implement legends on line chart
-    // This is just for demo purposes
-    @computed get externalLegendBins(): CategoricalBin[] {
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.manager.hideLegend) {
-            if (this.hasColorScale) {
-                return this.colorScale.legendBins.map((bin, index) =>
-                    bin instanceof CategoricalBin
-                        ? bin
-                        : new CategoricalBin({
+            const numericLegendData = this.hasColorScale
+                ? this.numericLegendData
+                : []
+            const categoricalLegendData = this.hasColorScale
+                ? []
+                : this.series.map(
+                      (series, index) =>
+                          new CategoricalBin({
                               index,
-                              value: `${bin.minText}–${bin.maxText}`,
-                              label: `${bin.minText}–${bin.maxText}`,
-                              color: bin.color,
+                              value: series.seriesName,
+                              label: series.seriesName,
+                              color: series.color,
                           })
-                )
-            } else {
-                return this.series.map(
-                    (series, index) =>
-                        new CategoricalBin({
-                            index,
-                            value: series.seriesName,
-                            label: series.seriesName,
-                            color: series.color,
-                        })
-                )
+                  )
+            return {
+                legendTitle: this.legendTitle,
+                legendTextColor: this.legendTextColor,
+                legendTickSize: this.legendTickSize,
+                equalSizeBins: this.equalSizeBins,
+                numericBinSize: this.numericBinSize,
+                numericBinStroke: this.numericBinStroke,
+                numericBinStrokeWidth: this.numericBinStrokeWidth,
+                numericLegendData,
+                categoricalLegendData,
             }
         }
-        return []
+        return undefined
     }
 }

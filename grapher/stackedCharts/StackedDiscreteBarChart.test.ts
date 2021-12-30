@@ -294,21 +294,23 @@ describe("hideLegend", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
     }
 
-    it("renders internal legend when hideLegend is true", () => {
+    it("renders internal legend when hideLegend is false", () => {
         const chart = new StackedDiscreteBarChart({
             manager: { ...baseManager },
         })
         expect(chart["legend"].height).toBeGreaterThan(0)
         expect(chart["categoricalLegendData"].length).toBeGreaterThan(0)
-        expect(chart["externalLegendBins"].length).toEqual(0)
+        expect(chart["externalLegend"]).toBeUndefined()
     })
 
-    it("exposes externalLegendBins when hideLegend is false", () => {
+    it("exposes externalLegendBins when hideLegend is true", () => {
         const chart = new StackedDiscreteBarChart({
             manager: { ...baseManager, hideLegend: true },
         })
         expect(chart["legend"].height).toEqual(0)
         expect(chart["categoricalLegendData"].length).toEqual(0)
-        expect(chart["externalLegendBins"].length).toEqual(2)
+        expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
+            2
+        )
     })
 })
