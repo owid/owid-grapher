@@ -61,6 +61,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
         },
         output: {
             path: path.join(javascriptDir, "webpack"),
+            publicPath: "",
             filename: "[name].js",
         },
         resolve: {
