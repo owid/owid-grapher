@@ -7,8 +7,7 @@ import {
     sortBy,
     exposeInstanceOnWindow,
     uniq,
-    first,
-    excludeUndefined,
+    flatten,
 } from "../../clientUtils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -27,6 +26,7 @@ import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
+    BACKGROUND_COLOR,
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
@@ -46,17 +46,37 @@ import {
     SortOrder,
     SortBy,
     SortConfig,
+    Color,
+    HorizontalAlign,
 } from "../../clientUtils/owidTypes"
-import { OwidVariableRow } from "../../coreTable/OwidTableConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import {
+    ColorScaleConfig,
+    ColorScaleConfigInterface,
+} from "../color/ColorScaleConfig"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { darkenColorForLine } from "../color/ColorUtils"
+import { CoreValueType } from "../../coreTable/CoreTableConstants"
+import { isNotErrorValue } from "../../coreTable/ErrorValues"
+import {
+    CategoricalBin,
+    ColorScaleBin,
+    NumericBin,
+} from "../color/ColorScaleBin"
+import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
 
+const LEGEND_PADDING = 25
+
 interface DiscreteBarItem {
     seriesName: string
-    row: OwidVariableRow<any>
-    color?: string
+    value: number
+    time: number
+    colorValue?: CoreValueType
+    color?: Color
 }
 
 @observer
@@ -65,7 +85,7 @@ export class DiscreteBarChart
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>
-    implements ChartInterface, FontSizeManager
+    implements ChartInterface, FontSizeManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -87,6 +107,14 @@ export class DiscreteBarChart
         this.yColumnSlugs.forEach((slug) => {
             table = table.interpolateColumnWithTolerance(slug)
         })
+
+        if (this.colorColumnSlug) {
+            table = table
+                // TODO: remove this filter once we don't have mixed type columns in datasets
+                // Currently we set skipParsing=true on these columns to be backwards-compatible
+                .replaceNonNumericCellsWithErrorValues([this.colorColumnSlug])
+                .interpolateColumnWithTolerance(this.colorColumnSlug)
+        }
 
         return table
     }
@@ -118,6 +146,12 @@ export class DiscreteBarChart
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
+    @computed private get boundsWithoutColorLegend(): Bounds {
+        return this.bounds.padTop(
+            this.hasColorLegend ? this.legendHeight + LEGEND_PADDING : 0
+        )
+    }
+
     @computed get fontSize(): number {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
@@ -143,7 +177,7 @@ export class DiscreteBarChart
     }
 
     // Account for the width of the legend
-    @computed private get legendWidth(): number {
+    @computed private get seriesLegendWidth(): number {
         const labels = this.series.map((series) => series.seriesName)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -202,8 +236,10 @@ export class DiscreteBarChart
 
     @computed private get xRange(): [number, number] {
         return [
-            this.bounds.left + this.legendWidth + this.leftValueLabelWidth,
-            this.bounds.right - this.rightValueLabelWidth,
+            this.boundsWithoutColorLegend.left +
+                this.seriesLegendWidth +
+                this.leftValueLabelWidth,
+            this.boundsWithoutColorLegend.right - this.rightValueLabelWidth,
         ]
     }
 
@@ -223,8 +259,8 @@ export class DiscreteBarChart
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.bounds
-            .padLeft(this.legendWidth + this.leftValueLabelWidth)
+        return this.boundsWithoutColorLegend
+            .padLeft(this.seriesLegendWidth + this.leftValueLabelWidth)
             .padBottom(this.yAxis.height)
             .padRight(this.rightValueLabelWidth)
     }
@@ -298,23 +334,32 @@ export class DiscreteBarChart
                 />
             )
 
-        const { series, bounds, yAxis, innerBounds, barHeight, barSpacing } =
-            this
+        const {
+            series,
+            boundsWithoutColorLegend,
+            yAxis,
+            innerBounds,
+            barHeight,
+            barSpacing,
+        } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
-                    x={bounds.left}
-                    y={bounds.top}
-                    width={bounds.width}
-                    height={bounds.height}
+                    x={boundsWithoutColorLegend.left}
+                    y={boundsWithoutColorLegend.top}
+                    width={boundsWithoutColorLegend.width}
+                    height={boundsWithoutColorLegend.height}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
+                {this.hasColorLegend && (
+                    <HorizontalNumericColorLegend manager={this} />
+                )}
                 <HorizontalAxisComponent
-                    bounds={bounds}
+                    bounds={boundsWithoutColorLegend}
                     axis={yAxis}
                     preferredAxisPosition={innerBounds.bottom}
                 />
@@ -331,6 +376,7 @@ export class DiscreteBarChart
                     const barWidth = isNegative
                         ? yAxis.place(this.x0) - barX
                         : yAxis.place(series.value) - barX
+                    const barColor = series.color
                     const valueLabel = this.formatValue(series)
                     const labelX = isNegative
                         ? barX -
@@ -367,7 +413,7 @@ export class DiscreteBarChart
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={series.color}
+                                fill={barColor}
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
@@ -426,8 +472,16 @@ export class DiscreteBarChart
         )
     }
 
-    @computed protected get yColumnSlugs(): string[] {
+    @computed private get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
+    }
+
+    @computed private get colorColumnSlug(): string | undefined {
+        return this.manager.colorColumnSlug
+    }
+
+    @computed private get colorColumn(): CoreColumn {
+        return this.transformedTable.get(this.colorColumnSlug)
     }
 
     @computed private get seriesStrategy(): SeriesStrategy {
@@ -447,30 +501,50 @@ export class DiscreteBarChart
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
+    constructSeries(col: CoreColumn, indexes: number[]): DiscreteBarItem[] {
+        const { transformedTable, colorColumn, hasColorScale } = this
+        const values = col.valuesIncludingErrorValues
+        const originalTimes = col.originalTimeColumn.valuesIncludingErrorValues
+        const entityNames =
+            transformedTable.entityNameColumn.valuesIncludingErrorValues
+        const colorValues = colorColumn.valuesIncludingErrorValues
+        return indexes.map((index): DiscreteBarItem => {
+            const isColumnStrategy =
+                this.seriesStrategy === SeriesStrategy.column
+            const seriesName = isColumnStrategy
+                ? col.displayName
+                : (entityNames[index] as string)
+            const colorValue = isNotErrorValue(colorValues[index])
+                ? colorValues[index]
+                : undefined
+            const color = hasColorScale
+                ? this.colorScale.getColor(colorValue)
+                : isColumnStrategy
+                ? col.def.color
+                : transformedTable.getColorForEntityName(
+                      entityNames[index] as string
+                  )
+            return {
+                seriesName,
+                value: values[index] as number,
+                time: originalTimes[index] as number,
+                colorValue,
+                color,
+            }
+        })
+    }
+
     @computed private get columnsAsSeries(): DiscreteBarItem[] {
-        return excludeUndefined(
-            this.yColumns.map((col) => {
-                const row = first(col.owidRows)
-                // Do not plot a bar if column has no data for the selected time
-                if (!row) return undefined
-                return {
-                    row,
-                    seriesName: col.displayName,
-                    color: col.def.color,
-                }
-            })
+        return flatten(
+            this.yColumns.map((col) =>
+                this.constructSeries(col, col.validRowIndices.slice(0, 1))
+            )
         )
     }
 
     @computed private get entitiesAsSeries(): DiscreteBarItem[] {
-        const { transformedTable } = this
-        return this.yColumns[0].owidRows.map((row) => {
-            return {
-                seriesName: row.entityName,
-                color: transformedTable.getColorForEntityName(row.entityName),
-                row,
-            }
-        })
+        const col = this.yColumns[0]
+        return this.constructSeries(col, col.validRowIndices)
     }
 
     @computed get sortConfig(): SortConfig {
@@ -491,7 +565,7 @@ export class DiscreteBarChart
             default:
             case SortBy.total:
             case SortBy.column: // we only have one yColumn, so total and column are the same
-                sortByFunc = (item: DiscreteBarItem) => item.row.value
+                sortByFunc = (item: DiscreteBarItem) => item.value
                 break
         }
         const sortedSeries = sortBy(raw, sortByFunc)
@@ -518,7 +592,7 @@ export class DiscreteBarChart
         const { manager, colorScheme, sortedRawSeries } = this
 
         return colorScheme?.getUniqValueColorMap(
-            uniq(sortedRawSeries.map((series) => series.row.value)),
+            uniq(sortedRawSeries.map((series) => series.value)),
             !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
     }
@@ -539,23 +613,131 @@ export class DiscreteBarChart
         })
     }
 
+    @computed private get hasColorScale(): boolean {
+        return !this.colorColumn.isMissing
+    }
+
+    // Color scale props
+
+    @computed get colorScaleColumn(): CoreColumn {
+        return (
+            // For faceted charts, we have to get the values of inputTable before it's filtered by
+            // the faceting logic.
+            this.manager.colorScaleColumnOverride ??
+            // We need to use inputTable in order to get consistent coloring for a variable across
+            // charts, e.g. each continent being assigned to the same color.
+            // inputTable is unfiltered, so it contains every value that exists in the variable.
+            this.inputTable.get(this.colorColumnSlug)
+        )
+    }
+
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
+        return (
+            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
+            this.manager.colorScale
+        )
+    }
+
+    @computed get hasNoDataBin(): boolean {
+        if (!this.hasColorScale) return false
+        return this.colorColumn.valuesIncludingErrorValues.some(
+            (value) => !isNotErrorValue(value)
+        )
+    }
+
+    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultNoDataColor = "#959595"
+    transformColor = darkenColorForLine
+    colorScale = new ColorScale(this)
+
+    // End of color scale props
+
+    // Color legend props
+
+    @computed get hasColorLegend(): boolean {
+        return this.hasColorScale && !this.manager.hideLegend
+    }
+
+    @computed get legendWidth(): number {
+        const maxWidth = this.bounds.width
+        const minWidth = 36 * this.fontSize
+        const width = this.bounds.width * 0.8
+        return Math.min(Math.max(width, minWidth), maxWidth)
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.centerX - this.legendWidth / 2
+    }
+
+    @computed get legendAlign(): HorizontalAlign {
+        return HorizontalAlign.center
+    }
+
+    // TODO just pass colorScale to legend and let it figure it out?
+    @computed get numericLegendData(): ColorScaleBin[] {
+        // Move CategoricalBins to end
+        return sortBy(
+            this.colorScale.legendBins,
+            (bin) => bin instanceof CategoricalBin
+        )
+    }
+
+    // TODO just pass colorScale to legend and let it figure it out?
+    @computed get equalSizeBins(): boolean | undefined {
+        return this.colorScale.config.equalSizeBins
+    }
+
+    numericBinSize = 10
+    numericBinStroke = BACKGROUND_COLOR
+    numericBinStrokeWidth = 1
+    legendTextColor = "#555"
+    legendTickSize = 1
+
+    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+        return this.hasColorScale && !this.manager.hideLegend
+            ? new HorizontalNumericColorLegend({ manager: this })
+            : undefined
+    }
+
+    @computed get numericLegendY(): number {
+        return this.bounds.top
+    }
+
+    @computed get legendTitle(): string | undefined {
+        return this.hasColorScale
+            ? this.colorScale.legendDescription
+            : undefined
+    }
+
+    @computed get legendHeight(): number {
+        return this.numericLegend?.height ?? 0
+    }
+
+    // End of color legend props
+
     @computed get series(): DiscreteBarSeries[] {
         const { manager } = this
 
         const series = this.sortedRawSeries.map((rawSeries) => {
-            const { row, seriesName, color } = rawSeries
+            const { value, time, colorValue, seriesName, color } = rawSeries
             const series: DiscreteBarSeries = {
-                ...row,
+                value,
+                time,
+                colorValue,
                 seriesName,
                 color:
                     color ??
-                    this.valuesToColorsMap?.get(row.value) ??
+                    this.valuesToColorsMap?.get(value) ??
                     DEFAULT_BAR_COLOR,
             }
             return series
         })
 
-        if (manager.isLineChart && this.categoricalColorAssigner) {
+        if (
+            manager.isLineChart &&
+            !this.hasColorScale &&
+            this.categoricalColorAssigner
+        ) {
             // For LineChart-based bar charts, we want to assign colors from the color scheme.
             // This way we get consistent between the DiscreteBarChart and the LineChart (by using the same logic).
             series.forEach((s) => {
