@@ -235,6 +235,9 @@
         "tsc-watch": "^4.2.9",
         "xhr-mock": "^2.5.1"
     },
+    "resolutions": {
+        "**/webpack": "^5.0.0"
+    },
     "prettier": {
         "semi": false
     },
