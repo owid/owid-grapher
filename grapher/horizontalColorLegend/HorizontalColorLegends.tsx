@@ -97,8 +97,7 @@ const CATEGORICAL_BIN_MIN_WIDTH = 20
 const FOCUS_BORDER_COLOR = "#111"
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 
-@observer
-class HorizontalColorLegend extends React.Component<{
+export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
     @computed protected get manager(): HorizontalColorLegendManager {
@@ -141,6 +140,8 @@ class HorizontalColorLegend extends React.Component<{
     @computed protected get legendTickSize(): number {
         return this.manager.legendTickSize ?? DEFAULT_TICK_SIZE
     }
+
+    abstract get height(): number
 }
 
 @observer
@@ -398,7 +399,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             }
 
             // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-            let newFocusBracket = null
+            let newFocusBracket: ColorScaleBin | undefined
             positionedBins.forEach((bin) => {
                 if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
                     newFocusBracket = bin.bin
