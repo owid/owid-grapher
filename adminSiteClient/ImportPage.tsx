@@ -13,7 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
-import parse from "csv-parse"
+import Papa from "papaparse"
 import { BindString, NumericSelectField, FieldsRow } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -428,28 +428,24 @@ class CSVSelector extends React.Component<{
         const reader = new FileReader()
         reader.onload = (e) => {
             const csv = e?.target?.result
-            if (csv && typeof csv === "string")
-                parse(
-                    csv,
-                    {
-                        relax_column_count: true,
-                        skip_empty_lines: true,
-                        rtrim: true,
-                    },
-                    (_, rows) => {
-                        // TODO error handling
-                        //console.log("Error?", err)
-                        if (rows[0][0].toLowerCase() === "year")
-                            rows = CSV.transformSingleLayout(rows, file.name)
-                        this.csv = new CSV({
-                            filename: file.name,
-                            rows,
-                            existingEntities,
-                        } as any)
-                        this.props.onCSV(this.csv as any)
-                    }
-                )
-            else console.error("CSV was falsy")
+            if (csv && typeof csv === "string") {
+                const res = Papa.parse<string[]>(csv, {
+                    delimiter: ",",
+                    skipEmptyLines: true,
+                })
+
+                if (res.errors.length)
+                    console.error("CSV parse error", res.errors)
+                let rows = res.data
+                if (rows[0][0].toLowerCase() === "year")
+                    rows = CSV.transformSingleLayout(rows, file.name)
+                this.csv = new CSV({
+                    filename: file.name,
+                    rows,
+                    existingEntities,
+                } as any)
+                this.props.onCSV(this.csv as any)
+            } else console.error("CSV was falsy")
         }
         reader.readAsText(file)
     }

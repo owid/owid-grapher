@@ -40,7 +40,7 @@ import { DeployQueueServer } from "../baker/DeployQueueServer"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
-import { Parser } from "json2csv"
+import Papa from "papaparse"
 
 const apiRouter = new FunctionalRouter()
 
@@ -369,8 +369,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
     // await Chart.assignTagsForCharts(charts)
     res.setHeader("Content-disposition", "attachment; filename=charts.csv")
     res.setHeader("content-type", "text/csv")
-    const json2csvParser = new Parser()
-    const csv = json2csvParser.parse(charts)
+    const csv = Papa.unparse(charts)
     return csv
 })
 

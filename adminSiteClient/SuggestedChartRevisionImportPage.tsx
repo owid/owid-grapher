@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Link } from "react-router-dom"
-import parse from "csv-parse"
+import Papa from "papaparse"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { TextField } from "./Forms"
@@ -424,21 +424,16 @@ class CSVSelector extends React.Component<{
         reader.onload = (e) => {
             const csv = e?.target?.result
             if (csv && typeof csv === "string") {
-                parse(
-                    csv,
-                    {
-                        relax_column_count: true,
-                        skip_empty_lines: true,
-                        rtrim: true,
-                    },
-                    (_, rows) => {
-                        const csv: CSV = new CSV({
-                            filename: file.name,
-                            rows,
-                        } as any)
-                        this.props.onCSV(csv)
-                    }
-                )
+                const res = Papa.parse<string[]>(csv, {
+                    delimiter: ",",
+                    skipEmptyLines: true,
+                })
+
+                const csvObj: CSV = new CSV({
+                    filename: file.name,
+                    rows: res.data,
+                } as any)
+                this.props.onCSV(csvObj)
             } else {
                 console.error("CSV was falsy")
             }
