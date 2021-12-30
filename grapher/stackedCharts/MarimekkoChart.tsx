@@ -10,6 +10,7 @@ import {
     sortBy,
     sumBy,
     partition,
+    first,
 } from "../../clientUtils/Util"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -44,7 +45,7 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -852,8 +853,12 @@ export class MarimekkoChart
             })
     }
 
-    @action.bound onLegendMouseOver(bin: CategoricalBin): void {
-        this.focusSeriesName = bin.value
+    @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
+        this.focusSeriesName = first(
+            this.series
+                .map((s) => s.seriesName)
+                .filter((name) => bin.contains(name))
+        )
     }
 
     @action.bound onLegendMouseLeave(): void {

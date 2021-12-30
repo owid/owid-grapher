@@ -77,7 +77,7 @@ export interface HorizontalColorLegendManager {
     numericFocusBracket?: ColorScaleBin
     equalSizeBins?: boolean
     onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: CategoricalBin) => void
+    onLegendMouseOver?: (d: ColorScaleBin) => void
 }
 
 @observer

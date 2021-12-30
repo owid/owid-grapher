@@ -282,10 +282,19 @@ export class StackedAreaChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        return excludeUndefined([
-            this.manager.externalLegendFocusBin?.value,
+        const { externalLegendFocusBin } = this.manager
+        const focusedSeriesNames = excludeUndefined([
+            this.props.manager.annotation?.entityName,
             this.hoverSeriesName,
         ])
+        if (externalLegendFocusBin) {
+            focusedSeriesNames.push(
+                ...this.series
+                    .map((s) => s.seriesName)
+                    .filter((name) => externalLegendFocusBin.contains(name))
+            )
+        }
+        return focusedSeriesNames
     }
 
     @computed get isFocusMode(): boolean {

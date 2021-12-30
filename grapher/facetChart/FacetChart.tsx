@@ -51,7 +51,7 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { shortenForTargetWidth } from "../text/TextWrap"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
@@ -540,9 +540,9 @@ export class FacetChart
         return []
     }
 
-    @observable.ref legendFocusBin: CategoricalBin | undefined = undefined
+    @observable.ref legendFocusBin: ColorScaleBin | undefined = undefined
 
-    @action.bound onLegendMouseOver(bin: CategoricalBin): void {
+    @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.legendFocusBin = bin
     }
 
