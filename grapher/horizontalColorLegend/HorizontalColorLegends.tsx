@@ -70,6 +70,7 @@ export interface HorizontalColorLegendManager {
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
+    legendMaxWidth?: number
     legendHeight?: number
     legendOpacity?: number
     legendTextColor?: Color
@@ -96,6 +97,7 @@ const DEFAULT_TICK_SIZE = 3
 const CATEGORICAL_BIN_MIN_WIDTH = 20
 const FOCUS_BORDER_COLOR = "#111"
 const SPACE_BETWEEN_CATEGORICAL_BINS = 7
+const MINIMUM_LABEL_DISTANCE = 5
 
 export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
@@ -116,8 +118,8 @@ export abstract class HorizontalColorLegend extends React.Component<{
         return this.manager.numericLegendY ?? 0
     }
 
-    @computed protected get legendWidth(): number {
-        return this.manager.legendWidth ?? 200
+    @computed protected get legendMaxWidth(): number | undefined {
+        return this.manager.legendMaxWidth
     }
 
     @computed protected get legendHeight(): number {
@@ -142,6 +144,7 @@ export abstract class HorizontalColorLegend extends React.Component<{
     }
 
     abstract get height(): number
+    abstract get width(): number
 }
 
 @observer
@@ -193,28 +196,114 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return this.maxValue - this.minValue
     }
 
-    private getCategoricalBinWidth(label: string): number {
-        const width = Bounds.forText(label, {
+    @computed private get maxWidth(): number {
+        return this.manager.legendMaxWidth ?? this.manager.legendWidth ?? 200
+    }
+
+    private getTickLabelWidth(label: string): number {
+        return Bounds.forText(label, {
             fontSize: this.tickFontSize,
         }).width
-        return Math.max(width, CATEGORICAL_BIN_MIN_WIDTH)
+    }
+
+    private getCategoricalBinWidth(bin: ColorScaleBin): number {
+        return Math.max(
+            this.getTickLabelWidth(bin.text),
+            CATEGORICAL_BIN_MIN_WIDTH
+        )
     }
 
     @computed private get totalCategoricalWidth(): number {
         const { numericLegendData, itemMargin } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
-                ? this.getCategoricalBinWidth(bin.text) + itemMargin
+                ? this.getCategoricalBinWidth(bin) + itemMargin
                 : 0
         )
         return sum(widths)
     }
-    @computed private get availableNumericWidth(): number {
+
+    @computed private get isAutoWidth(): boolean {
         return (
-            this.legendWidth -
-            this.totalCategoricalWidth -
-            this.legendTitleWidth
+            this.manager.legendWidth === undefined &&
+            this.manager.legendMaxWidth !== undefined
         )
+    }
+
+    private getNumericLabelMinWidth(bin: NumericBin): number {
+        if (bin.text) {
+            return this.getTickLabelWidth(bin.text)
+        } else {
+            const combinedLabelWidths = sum(
+                [bin.minText, bin.maxText].map(
+                    (text) =>
+                        // because labels are center-aligned, only half the label space is required
+                        this.getTickLabelWidth(text) / 2
+                )
+            )
+            return combinedLabelWidths + MINIMUM_LABEL_DISTANCE * 2
+        }
+    }
+
+    // Overstretched legends don't look good.
+    // If the manager provides `legendMaxWidth`, then we calculate an _ideal_ width for the legend.
+    @computed private get idealNumericWidth(): number {
+        const binCount = this.numericBins.length
+        const spaceRequirements = this.numericBins.map((bin) => ({
+            labelSpace: this.getNumericLabelMinWidth(bin),
+            shareOfTotal: (bin.max - bin.min) / this.rangeSize,
+        }))
+        // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
+        if (this.manager.equalSizeBins) {
+            const minBinWidth = this.fontSize * 3.5
+            const maxBinWidth =
+                max(
+                    spaceRequirements.map(({ labelSpace }) =>
+                        Math.max(labelSpace, minBinWidth)
+                    )
+                ) ?? 0
+            return Math.round(maxBinWidth * binCount)
+        } else {
+            const minBinWidth = this.fontSize * 2
+            const maxTotalWidth =
+                max(
+                    spaceRequirements.map(({ labelSpace, shareOfTotal }) =>
+                        Math.max(labelSpace / shareOfTotal, minBinWidth)
+                    )
+                ) ?? 0
+            return Math.round(maxTotalWidth)
+        }
+    }
+
+    @computed get width(): number {
+        if (this.isAutoWidth) {
+            return Math.min(
+                this.maxWidth,
+                this.legendTitleWidth +
+                    this.totalCategoricalWidth +
+                    this.idealNumericWidth
+            )
+        } else {
+            return this.maxWidth
+        }
+    }
+
+    @computed private get availableNumericWidth(): number {
+        return this.width - this.totalCategoricalWidth - this.legendTitleWidth
+    }
+
+    // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
+    // we need to shift X to align the legend horizontally (`legendAlign`).
+    @computed private get x(): number {
+        const { width, maxWidth, legendAlign, legendX } = this
+        const widthDiff = maxWidth - width
+        if (legendAlign === HorizontalAlign.center) {
+            return legendX + widthDiff / 2
+        } else if (legendAlign === HorizontalAlign.right) {
+            return legendX + widthDiff
+        } else {
+            return legendX // left align
+        }
     }
 
     @computed private get positionedBins(): PositionedBin[] {
@@ -224,15 +313,16 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             availableNumericWidth,
             numericLegendData,
             numericBins,
-            legendX,
+            legendTitleWidth,
+            x,
         } = this
 
-        let xOffset = legendX + this.legendTitleWidth
+        let xOffset = x + legendTitleWidth
         let prevBin: ColorScaleBin | undefined
 
         return numericLegendData.map((bin, index) => {
             const isFirst = index === 0
-            let width: number = this.getCategoricalBinWidth(bin.text)
+            let width: number = this.getCategoricalBinWidth(bin)
             let marginLeft: number = isFirst ? 0 : this.itemMargin
 
             if (bin instanceof NumericBin) {
@@ -272,7 +362,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                   text: legendTitle,
                   fontSize: this.legendTitleFontSize,
                   fontWeight: 700,
-                  maxWidth: this.legendWidth / 3,
+                  maxWidth: this.maxWidth / 3,
               })
             : undefined
     }
@@ -340,8 +430,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             for (let j = index + 1; j < labels.length; j++) {
                 const l2 = labels[j]
                 if (
-                    l1.bounds.right + 5 >= l2.bounds.centerX ||
-                    (l2.bounds.left - 5 <= l1.bounds.centerX && !l2.priority)
+                    l1.bounds.right + MINIMUM_LABEL_DISTANCE >=
+                        l2.bounds.centerX ||
+                    (l2.bounds.left - MINIMUM_LABEL_DISTANCE <=
+                        l1.bounds.centerX &&
+                        !l2.priority)
                 )
                     l2.hidden = true
             }
@@ -354,7 +447,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         for (let index = 1; index < labels.length; index++) {
             const l1 = labels[index - 1],
                 l2 = labels[index]
-            if (l1.bounds.right + 5 >= l2.bounds.left) {
+            if (l1.bounds.right + MINIMUM_LABEL_DISTANCE >= l2.bounds.left) {
                 raisedMode = true
                 break
             }
@@ -382,12 +475,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get bounds(): Bounds {
-        return new Bounds(
-            this.legendX,
-            this.numericLegendY,
-            this.legendWidth,
-            this.legendHeight
-        )
+        return new Bounds(this.x, this.numericLegendY, this.width, this.height)
     }
 
     @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
@@ -517,7 +605,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     </text>
                 ))}
                 {this.legendTitle?.render(
-                    this.legendX,
+                    this.x,
                     // Align legend title baseline with bottom of color bins
                     this.numericLegendY +
                         height -
@@ -575,6 +663,10 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
+    @computed get width(): number {
+        return this.manager.legendWidth ?? this.manager.legendMaxWidth ?? 200
+    }
+
     @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.manager.categoricalLegendData ?? []
     }
@@ -594,7 +686,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
 
-            if (xOffset + markWidth > this.legendWidth && marks.length > 0) {
+            if (xOffset + markWidth > this.width && marks.length > 0) {
                 lines.push({ totalWidth: xOffset - markPadding, marks: marks })
                 marks = []
                 xOffset = 0
@@ -635,7 +727,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get containerWidth(): number {
-        return this.manager.legendWidth ?? this.contentWidth
+        return this.width ?? this.contentWidth
     }
 
     @computed private get marks(): CategoricalMark[] {
