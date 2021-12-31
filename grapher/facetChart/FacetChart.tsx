@@ -268,6 +268,10 @@ export class FacetChart
 
         const table = this.transformedTable
 
+        // In order to produce consistent color scales across facets, we need to pass
+        // all possible color values from `inputTable`.
+        const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
             const hideLegend = this.hideFacetLegends
@@ -288,6 +292,8 @@ export class FacetChart
                 isRelativeMode,
                 colorScale,
                 seriesColorMap,
+                colorScale,
+                colorScaleColumnOverride,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -424,9 +430,6 @@ export class FacetChart
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
-                // In order to produce consistent color scales across facets, we need to pass
-                // all possible color values, before they are filtered by faceting logic.
-                colorScaleOverride: chartInstance.colorScale,
             }
             const contentBounds = getContentBounds(
                 bounds,
