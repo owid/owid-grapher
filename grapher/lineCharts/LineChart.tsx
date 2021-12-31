@@ -854,15 +854,12 @@ export class LineChart
         return this.hasColorScale && !this.manager.hideLegend
     }
 
-    @computed get legendWidth(): number {
-        const maxWidth = this.bounds.width
-        const minWidth = 36 * this.fontSize
-        const width = this.bounds.width * 0.8
-        return Math.min(Math.max(width, minWidth), maxWidth)
+    @computed get legendX(): number {
+        return this.bounds.x
     }
 
-    @computed get legendX(): number {
-        return this.bounds.centerX - this.legendWidth / 2
+    @computed get legendMaxWidth(): number {
+        return this.bounds.width
     }
 
     @computed get legendAlign(): HorizontalAlign {

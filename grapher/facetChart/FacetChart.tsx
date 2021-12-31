@@ -290,7 +290,6 @@ export class FacetChart
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
-                colorScale,
                 seriesColorMap,
                 colorScale,
                 colorScaleColumnOverride,
@@ -590,7 +589,7 @@ export class FacetChart
         return this.bounds.top
     }
 
-    @computed get legendWidth(): number {
+    @computed get legendMaxWidth(): number {
         return this.bounds.width
     }
 
