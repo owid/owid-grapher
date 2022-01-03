@@ -16,6 +16,7 @@ import * as util from "util"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
 import _ from "lodash"
+import prettier from "prettier"
 
 const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -261,7 +262,8 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     )
 
     grapher.receiveOwidData(data as OwidVariablesAndEntityKey)
-    const svg = grapher.staticSVG
+    const minifiedSvg = grapher.staticSVG
+    const svg = prettier.format(minifiedSvg, { parser: "html" })
     const svgRecord = {
         chartId: config.id!,
         slug: config.slug!,
