@@ -47,7 +47,6 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
-    TopicId,
 } from "../core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
 import * as Cookies from "js-cookie"
@@ -161,6 +160,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    TopicId,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"

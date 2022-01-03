@@ -32,10 +32,10 @@ import {
     WP_MediaSizes,
     FilterFnPostRestApi,
     PostRestApi,
+    TopicId,
 } from "../clientUtils/owidTypes"
 import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
-import { Url } from "../clientUtils/urls/Url"
 import { Topic } from "../grapher/core/GrapherConstants"
 
 let _knexInstance: Knex
@@ -247,13 +247,25 @@ export const getDocumentsInfo = async (
                 title
                 slug
                 content
+                parentTopics {
+                    nodes {
+                        id: databaseId
+                    }
+                }
             }
         }
     }
     `
     const documents = await graphqlQuery(query, { cursor })
     const pageInfo = documents?.data[typePlural].pageInfo
-    const nodes = documents?.data[typePlural].nodes
+    const nodes = documents?.data[typePlural].nodes.map(
+        (
+            node: DocumentNode & { parentTopics: { nodes: { id: TopicId }[] } }
+        ) => ({
+            ...node,
+            parentTopics: node.parentTopics.nodes.map((topic) => topic.id),
+        })
+    )
     if (pageInfo.hasNextPage) {
         return nodes.concat(
             await getDocumentsInfo(type, pageInfo.endCursor, where)

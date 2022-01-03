@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Build content graph",
+            "request": "launch",
+            "command": "yarn buildContentGraph",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "node-terminal"
+        },
+        {
             "name": "Run SVGTester",
             "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",

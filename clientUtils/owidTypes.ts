@@ -184,11 +184,14 @@ export interface EntryNode {
     kpi: string
 }
 
+export type TopicId = number
+
 export interface DocumentNode {
     id: number
     title: string
     slug: string
     content: string | null // if content is empty
+    parentTopics: Array<TopicId>
 }
 
 export interface CategoryNode {
@@ -196,6 +199,12 @@ export interface CategoryNode {
     slug: string
     pages: any
     children: any
+}
+
+export interface ChartRecord {
+    slug: string
+    title: string
+    topics: Array<TopicId>
 }
 
 export interface PostReference {
