@@ -422,3 +422,39 @@ add_filter(
     10,
     2
 );
+
+add_action('mb_relationships_init', function () {
+    $sharedConfig = [
+        'object_type' => 'post',
+        'meta_box' => [
+            'title' => "Parent topics",
+        ],
+        'admin_column' => [
+            'position' => 'after title',
+            'link' => 'edit',
+        ],
+        'show_in_graphql' => true,
+        'graphql_name' => "parentTopics",
+    ];
+
+    \MB_Relationships_API::register([
+        'id' => 'posts_to_pages',
+        'from' => array_merge($sharedConfig, [
+            'post_type' => 'post',
+        ]),
+        'to' => 'page',
+    ]);
+    \MB_Relationships_API::register([
+        'id' => 'pages_to_pages',
+        'from' => array_merge($sharedConfig, [
+            'post_type' => 'page',
+        ]),
+        'to' => [
+            'object_type' => 'post',
+            'post_type' => 'page',
+            'meta_box' => [
+                'title' => 'Children topics',
+            ],
+        ],
+    ]);
+});
