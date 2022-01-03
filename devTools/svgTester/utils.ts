@@ -1,10 +1,7 @@
 import * as stream from "stream"
 import * as path from "path"
 import { getVariableData } from "../../db/model/Variable"
-import {
-    initGrapherForSvgExport,
-    buildSvgOutFilename,
-} from "../../baker/GrapherImageBaker"
+import { initGrapherForSvgExport } from "../../baker/GrapherImageBaker"
 import { createGunzip, createGzip } from "zlib"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
@@ -253,13 +250,7 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
     const grapher = initGrapherForSvgExport(config)
-    const { width, height } = grapher.idealBounds
-    const outFilename = buildSvgOutFilename(
-        config.slug!,
-        config.version,
-        width,
-        height
-    )
+    const outFilename = `${config.slug!}.svg`
 
     grapher.receiveOwidData(data as OwidVariablesAndEntityKey)
     const minifiedSvg = grapher.staticSVG
