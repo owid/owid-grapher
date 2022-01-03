@@ -47,6 +47,55 @@ const store = fortune(
     }
 )
 
+const getAncestorsPaths = async (
+    node: DocumentNode,
+    allDocumentNodes: DocumentNode[],
+    previousPath = ""
+): Promise<string[]> => {
+    const currentPath = `${previousPath ? previousPath + " > " : ""}${
+        node.title
+    }`
+    // if (!node.parentTopics || node.parentTopics.length === 0)
+    //     return [currentPath]
+
+    const parentTopicsPaths = await Promise.all(
+        node.parentTopics.map(async (parentTopic: number) => {
+            const parentNode = (
+                await store.find(GraphType.Document, parentTopic)
+            ).payload.records[0]
+
+            const ancestorsPaths = await getAncestorsPaths(
+                parentNode,
+                allDocumentNodes,
+                currentPath
+            )
+            return ancestorsPaths
+        })
+    )
+
+    return [currentPath, ...parentTopicsPaths.flat()]
+}
+
+export const getChartsRecords = async (): Promise<ChartRecord[]> => {
+    const allCharts = await queryMysql(`
+        SELECT config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.topicIds" as topics
+        FROM charts
+        WHERE publishedAt IS NOT NULL
+        AND is_indexable IS TRUE
+    `)
+
+    const records = []
+    for (const c of allCharts) {
+        records.push({
+            slug: c.slug,
+            title: c.title,
+            topics: JSON.parse(c.topics),
+        })
+    }
+
+    return records
+}
+
 export const getGrapherSlugs = (content: string | null): Set<string> => {
     const slugs = new Set<string>()
     if (!content) return slugs
@@ -162,35 +211,6 @@ export const getContentGraph = once(async () => {
         await store.find(GraphType.Document)
     ).payload.records
 
-    const getAncestorsPaths = async (
-        node: DocumentNode,
-        allDocumentNodes: DocumentNode[],
-        previousPath = ""
-    ): Promise<string[]> => {
-        const currentPath = `${previousPath ? previousPath + " > " : ""}${
-            node.title
-        }`
-        // if (!node.parentTopics || node.parentTopics.length === 0)
-        //     return [currentPath]
-
-        const parentTopicsPaths = await Promise.all(
-            node.parentTopics.map(async (parentTopic: number) => {
-                const parentNode = (
-                    await store.find(GraphType.Document, parentTopic)
-                ).payload.records[0]
-
-                const ancestorsPaths = await getAncestorsPaths(
-                    parentNode,
-                    allDocumentNodes,
-                    currentPath
-                )
-                return ancestorsPaths
-            })
-        )
-
-        return [currentPath, ...parentTopicsPaths.flat()]
-    }
-
     for (const documentNode of allDocumentNodes) {
         const ancestorsPaths = await getAncestorsPaths(
             documentNode,
@@ -207,26 +227,6 @@ export const getContentGraph = once(async () => {
 
     return store
 })
-
-export const getChartsRecords = async (): Promise<ChartRecord[]> => {
-    const allCharts = await queryMysql(`
-        SELECT config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.topicIds" as topics
-        FROM charts
-        WHERE publishedAt IS NOT NULL
-        AND is_indexable IS TRUE
-    `)
-
-    const records = []
-    for (const c of allCharts) {
-        records.push({
-            slug: c.slug,
-            title: c.title,
-            topics: JSON.parse(c.topics),
-        })
-    }
-
-    return records
-}
 
 const main = async (): Promise<void> => {
     await getContentGraph()
