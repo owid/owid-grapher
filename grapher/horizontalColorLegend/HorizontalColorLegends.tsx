@@ -155,8 +155,12 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         return this.manager.numericLegendData ?? []
     }
 
+    @computed private get visibleBins(): ColorScaleBin[] {
+        return this.numericLegendData.filter((bin) => !bin.isHidden)
+    }
+
     @computed private get numericBins(): NumericBin[] {
-        return this.numericLegendData.filter(
+        return this.visibleBins.filter(
             (bin): bin is NumericBin => bin instanceof NumericBin
         )
     }
@@ -214,9 +218,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get totalCategoricalWidth(): number {
-        const { numericLegendData, itemMargin } = this
-        const widths = numericLegendData.map((bin) =>
-            bin instanceof CategoricalBin
+        const { visibleBins, itemMargin } = this
+        const widths = visibleBins.map((bin) =>
+            bin instanceof CategoricalBin && !bin.isHidden
                 ? this.getCategoricalBinWidth(bin) + itemMargin
                 : 0
         )
@@ -311,7 +315,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             manager,
             rangeSize,
             availableNumericWidth,
-            numericLegendData,
+            visibleBins,
             numericBins,
             legendTitleWidth,
             x,
@@ -320,7 +324,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         let xOffset = x + legendTitleWidth
         let prevBin: ColorScaleBin | undefined
 
-        return numericLegendData.map((bin, index) => {
+        return visibleBins.map((bin, index) => {
             const isFirst = index === 0
             let width: number = this.getCategoricalBinWidth(bin)
             let marginLeft: number = isFirst ? 0 : this.itemMargin
