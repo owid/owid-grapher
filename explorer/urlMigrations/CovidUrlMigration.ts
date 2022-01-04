@@ -23,6 +23,9 @@ const transformMap: QueryParamTransformMap = {
             return value
         },
     },
+    "Align outbreaks": {
+        newName: "Color by test positivity",
+    },
 }
 
 export const covidUrlMigration: UrlMigration = (url: Url) => {
