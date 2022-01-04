@@ -47,33 +47,31 @@ const store = fortune(
     }
 )
 
-const getAncestorsPaths = async (
+const getParentTopicsTitle = async (
     node: DocumentNode,
     allDocumentNodes: DocumentNode[],
-    previousPath = ""
-): Promise<string[]> => {
-    const currentPath = `${previousPath ? previousPath + " > " : ""}${
-        node.title
-    }`
+    childrenTopicsTitle: string[] = []
+): Promise<string[][]> => {
+    const currentTopicsTitle = [node.title, ...childrenTopicsTitle]
     // if (!node.parentTopics || node.parentTopics.length === 0)
     //     return [currentPath]
 
-    const parentTopicsPaths = await Promise.all(
-        node.parentTopics.map(async (parentTopic: number) => {
+    const parentTopicsTitle = await Promise.all(
+        node.parentTopics.map(async (parentTopicId: TopicId) => {
             const parentNode = (
-                await store.find(GraphType.Document, parentTopic)
+                await store.find(GraphType.Document, parentTopicId)
             ).payload.records[0]
 
-            const ancestorsPaths = await getAncestorsPaths(
+            const ancestorsPaths = await getParentTopicsTitle(
                 parentNode,
                 allDocumentNodes,
-                currentPath
+                currentTopicsTitle
             )
             return ancestorsPaths
         })
     )
 
-    return [currentPath, ...parentTopicsPaths.flat()]
+    return [...parentTopicsTitle.flat(), currentTopicsTitle]
 }
 
 export const getChartsRecords = async (): Promise<ChartRecord[]> => {
@@ -212,7 +210,7 @@ export const getContentGraph = once(async () => {
     ).payload.records
 
     for (const documentNode of allDocumentNodes) {
-        const ancestorsPaths = await getAncestorsPaths(
+        const ancestorsPaths = await getParentTopicsTitle(
             documentNode,
             allDocumentNodes
         )
