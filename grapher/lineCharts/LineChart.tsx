@@ -186,6 +186,7 @@ class Lines extends React.Component<LinesProps> {
             const showMarkers =
                 (this.hasMarkers || series.placedPoints.length === 1) &&
                 !series.isProjection
+            const strokeDasharray = series.isProjection ? "2,3" : undefined
 
             return (
                 <g key={index}>
@@ -201,9 +202,7 @@ class Lines extends React.Component<LinesProps> {
                         strokeWidth={
                             this.strokeWidth + this.lineOutlineWidth * 2
                         }
-                        strokeDasharray={
-                            series.isProjection ? "1,4" : undefined
-                        }
+                        strokeDasharray={strokeDasharray}
                         d={pointsToPath(
                             series.placedPoints.map((value) => [
                                 value.x,
@@ -215,9 +214,7 @@ class Lines extends React.Component<LinesProps> {
                         points={series.placedPoints}
                         strokeLinejoin="round"
                         strokeWidth={this.strokeWidth}
-                        strokeDasharray={
-                            series.isProjection ? "1,4" : undefined
-                        }
+                        strokeDasharray={strokeDasharray}
                     />
                     {showMarkers && (
                         <g>
