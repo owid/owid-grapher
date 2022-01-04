@@ -1,6 +1,7 @@
 import {
     ChartRecord,
     DocumentNode,
+    TopicId,
     WP_PostType,
 } from "../clientUtils/owidTypes"
 import { once } from "../clientUtils/Util"
@@ -28,7 +29,6 @@ const store = fortune(
             childrenTopics: [Array(GraphType.Document), "parentTopics"],
             embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],
             charts: [Array(GraphType.Chart), "topics"],
-            ancestorsPaths: Array(String),
         },
         [GraphType.Chart]: {
             title: String,
@@ -205,29 +205,51 @@ export const getContentGraph = once(async () => {
         }
     }
 
+    return store
+})
+
+const formatParentTopicsTrails = (
+    parentTopicsTitle: string[][]
+): { [facetLevelKey: string]: string[] } => {
+    const facetPrefix = "topics.lvl"
+    const topicsFacets: any = {}
+    parentTopicsTitle.forEach((topicsTitle) => {
+        const key = `${facetPrefix}${topicsTitle.length - 1}`
+        const topicsTitleTrail = topicsTitle.join(" > ")
+        if (topicsFacets.hasOwnProperty(key)) {
+            topicsFacets[key] = [...topicsFacets[key], topicsTitleTrail]
+        } else {
+            topicsFacets[key] = [topicsTitleTrail]
+        }
+    })
+    return topicsFacets
+}
+
+const main = async (): Promise<void> => {
+    const store = await getContentGraph()
+
     const allDocumentNodes: DocumentNode[] = (
         await store.find(GraphType.Document)
     ).payload.records
 
+    const recordsToIndex = []
+
     for (const documentNode of allDocumentNodes) {
-        const ancestorsPaths = await getParentTopicsTitle(
+        const parentTopicsTitle = await getParentTopicsTitle(
             documentNode,
             allDocumentNodes
         )
 
-        await store.update(GraphType.Document, {
+        if (!parentTopicsTitle || parentTopicsTitle.length === 0) continue
+
+        const parentTopicsTrails = formatParentTopicsTrails(parentTopicsTitle)
+
+        recordsToIndex.push({
             id: documentNode.id,
-            replace: {
-                ancestorsPaths,
-            },
+            title: documentNode.title,
+            ...parentTopicsTrails,
         })
     }
-
-    return store
-})
-
-const main = async (): Promise<void> => {
-    await getContentGraph()
 }
 
 if (require.main === module) main()
