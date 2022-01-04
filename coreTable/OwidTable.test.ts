@@ -93,7 +93,7 @@ it("can group data by entity and time", () => {
     })
 
     const timeValues = Array.from(
-        table.get("Population").valueByEntityNameAndTime.values()
+        table.get("Population").valueByEntityNameAndOriginalTime.values()
     )
         .map((value) => Array.from(value.values()))
         .flat()

@@ -5,7 +5,6 @@ import { action, computed, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
-    EntitySelectionMode,
     FacetAxisDomain,
     FacetStrategy,
     SeriesColorMap,
@@ -34,7 +33,8 @@ import {
     max,
     maxBy,
     min,
-    uniqBy,
+    sortBy,
+    uniqWith,
     values,
 } from "../../clientUtils/Util"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
@@ -44,14 +44,21 @@ import {
     Position,
     PositionMap,
     HorizontalAlign,
+    Color,
 } from "../../clientUtils/owidTypes"
 import { AxisConfig } from "../axis/AxisConfig"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     HorizontalCategoricalColorLegend,
+    HorizontalColorLegend,
     HorizontalColorLegendManager,
+    HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import {
+    CategoricalBin,
+    ColorScaleBin,
+    NumericBin,
+} from "../color/ColorScaleBin"
 import { shortenForTargetWidth } from "../text/TextWrap"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
@@ -137,10 +144,17 @@ export class FacetChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
+    @computed private get legendPadding(): number {
+        const { isNumericLegend, fontSize } = this
+        return isNumericLegend ? 1.5 * fontSize : 0.875 * fontSize
+    }
+
     @computed private get facetsContainerBounds(): Bounds {
         const fontSize = this.facetFontSize
         const legendHeightWithPadding =
-            this.legend.height > 0 ? this.legend.height + fontSize * 0.875 : 0
+            this.showLegend && this.legend.height > 0
+                ? this.legend.height + this.legendPadding
+                : 0
         return this.bounds.padTop(legendHeightWithPadding + 1.8 * fontSize)
     }
 
@@ -230,6 +244,7 @@ export class FacetChart
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
+            colorScale,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -253,6 +268,10 @@ export class FacetChart
 
         const table = this.transformedTable
 
+        // In order to produce consistent color scales across facets, we need to pass
+        // all possible color values from `inputTable`.
+        const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
             const hideLegend = this.hideFacetLegends
@@ -272,6 +291,8 @@ export class FacetChart
                 sizeColumnSlug,
                 isRelativeMode,
                 seriesColorMap,
+                colorScale,
+                colorScaleColumnOverride,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -483,21 +504,92 @@ export class FacetChart
             : this.entityFacets
     }
 
-    // legend props
+    // legend utils
 
-    @computed get legendPaddingTop(): number {
-        return 0
+    @computed private get externalLegends(): HorizontalColorLegendManager[] {
+        return excludeUndefined(
+            this.intermediateChartInstances.map(
+                (instance) => instance.externalLegend
+            )
+        )
     }
+
+    @computed private get isNumericLegend(): boolean {
+        return this.externalLegends.some((legend) =>
+            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
+        )
+    }
+
+    @computed private get LegendClass():
+        | typeof HorizontalNumericColorLegend
+        | typeof HorizontalCategoricalColorLegend {
+        return this.isNumericLegend
+            ? HorizontalNumericColorLegend
+            : HorizontalCategoricalColorLegend
+    }
+
+    @computed private get showLegend(): boolean {
+        const { isNumericLegend, categoricalLegendData, numericLegendData } =
+            this
+        const hasBins =
+            categoricalLegendData.length > 0 || numericLegendData.length > 0
+        if (!hasBins) return false
+        if (isNumericLegend) return true
+        if (
+            categoricalLegendData.length > 1 ||
+            // If the facetStrategy is metric, then the legend (probably?) shows entity items.
+            // If the user happens to select only a single entity, we don't want to collapse the
+            // legend, because it's (probably?) the only information about what is selected.
+            // This is fragile and ideally we shouldn't be making assumptions about what type of
+            // items are shown on the legend, but it works for now...
+            // -@danielgavrilov, 2021-09-28
+            (this.facetStrategy === FacetStrategy.metric &&
+                this.props.manager.canSelectMultipleEntities)
+        ) {
+            return true
+        }
+        return false
+    }
+
+    private getExternalLegendProp<
+        Prop extends keyof HorizontalColorLegendManager
+    >(prop: Prop): HorizontalColorLegendManager[Prop] | undefined {
+        for (const externalLegend of this.externalLegends) {
+            if (externalLegend[prop] !== undefined) {
+                return externalLegend[prop]
+            }
+        }
+        return undefined
+    }
+
+    private getUniqBins<Bin extends ColorScaleBin>(bins: Bin[]): Bin[] {
+        return uniqWith(bins, (binA, binB): boolean => {
+            // For categorical bins, the `.equals()` method isn't good enough,
+            // because it only compares `.index`, which in this case can be
+            // identical even when the bins are not, because they are coming
+            // from different charts (facets).
+            if (binA instanceof CategoricalBin) {
+                return binA.text === binB.text
+            }
+            return binA.equals(binB)
+        })
+    }
+
+    // legend props
 
     @computed get legendX(): number {
         return this.bounds.x
+    }
+
+    @computed get numericLegendY(): number {
+        return this.bounds.top
     }
 
     @computed get categoryLegendY(): number {
         return this.bounds.top
     }
 
-    @computed get legendWidth(): number {
+    @computed get legendMaxWidth(): number {
         return this.bounds.width
     }
 
@@ -505,42 +597,84 @@ export class FacetChart
         return HorizontalAlign.center
     }
 
-    @computed get categoricalLegendData(): CategoricalBin[] {
-        if (this.hideFacetLegends) {
-            const bins = uniqBy(
-                flatten(
-                    excludeUndefined(
-                        this.intermediateChartInstances.map(
-                            (instance) => instance.externalLegendBins
-                        )
-                    )
-                ),
-                (bin) => bin.value
-            ).map(
-                // remap index to ensure it's unique (the above procedure can lead to duplicates)
-                (bin, index) =>
-                    new CategoricalBin({
-                        ...bin.props,
-                        index,
-                    })
-            )
-            if (
-                bins.length > 1 ||
-                // If the facetStrategy is metric, then the legend (probably?) shows entity items.
-                // If the user happens to select only a single entity, we don't want to collapse the
-                // legend, because it's (probably?) the only information about what is selected.
-                // This is fragile and ideally we shouldn't be making assumptions about what type of
-                // items are shown on the legend, but it works for now...
-                // -@danielgavrilov, 2021-09-28
-                (this.facetStrategy === FacetStrategy.metric &&
-                    this.props.manager.canSelectMultipleEntities)
-            )
-                return bins
-        }
-        return []
+    @computed get legendTitle(): string | undefined {
+        return this.getExternalLegendProp("legendTitle")
     }
 
-    @observable.ref legendFocusBin: ColorScaleBin | undefined = undefined
+    @computed get legendHeight(): number | undefined {
+        return this.getExternalLegendProp("legendHeight")
+    }
+
+    @computed get legendOpacity(): number | undefined {
+        return this.getExternalLegendProp("legendOpacity")
+    }
+
+    @computed get legendTextColor(): Color | undefined {
+        return this.getExternalLegendProp("legendTextColor")
+    }
+
+    @computed get legendTickSize(): number | undefined {
+        return this.getExternalLegendProp("legendTickSize")
+    }
+
+    @computed get categoricalBinStroke(): Color | undefined {
+        return this.getExternalLegendProp("categoricalBinStroke")
+    }
+
+    @computed get numericBinSize(): number | undefined {
+        return this.getExternalLegendProp("numericBinSize")
+    }
+
+    @computed get numericBinStroke(): Color | undefined {
+        return this.getExternalLegendProp("numericBinStroke")
+    }
+
+    @computed get numericBinStrokeWidth(): number | undefined {
+        return this.getExternalLegendProp("numericBinStrokeWidth")
+    }
+
+    @computed get equalSizeBins(): boolean | undefined {
+        return this.getExternalLegendProp("equalSizeBins")
+    }
+
+    @computed get numericLegendData(): ColorScaleBin[] {
+        if (!this.isNumericLegend || !this.hideFacetLegends) return []
+        const allBins: ColorScaleBin[] = flatten(
+            this.externalLegends.map((legend) => [
+                ...(legend.numericLegendData ?? []),
+                ...(legend.categoricalLegendData ?? []),
+            ])
+        )
+        const uniqBins = this.getUniqBins(allBins)
+        const sortedBins = sortBy(
+            uniqBins,
+            (bin) => bin instanceof CategoricalBin
+        )
+        return sortedBins
+    }
+
+    @computed get categoricalLegendData(): CategoricalBin[] {
+        if (this.isNumericLegend || !this.hideFacetLegends) return []
+        const allBins: CategoricalBin[] = flatten(
+            this.externalLegends.map((legend) => [
+                ...(legend.numericLegendData ?? []),
+                ...(legend.categoricalLegendData ?? []),
+            ])
+        ).filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
+        const uniqBins = this.getUniqBins(allBins)
+        const newBins = uniqBins.map(
+            // remap index to ensure it's unique (the above procedure can lead to duplicates)
+            (bin, index) =>
+                new CategoricalBin({
+                    ...bin.props,
+                    index,
+                })
+        )
+        return newBins
+    }
+
+    @observable.ref private legendFocusBin: ColorScaleBin | undefined =
+        undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.legendFocusBin = bin
@@ -550,8 +684,10 @@ export class FacetChart
         this.legendFocusBin = undefined
     }
 
-    @computed private get legend(): HorizontalCategoricalColorLegend {
-        return new HorizontalCategoricalColorLegend({ manager: this })
+    // end of legend props
+
+    @computed private get legend(): HorizontalColorLegend {
+        return new this.LegendClass({ manager: this })
     }
 
     /**
@@ -596,13 +732,10 @@ export class FacetChart
     }
 
     render(): JSX.Element {
-        const { facetFontSize } = this
-        const showLegend = this.categoricalLegendData.length > 0
+        const { facetFontSize, LegendClass, showLegend } = this
         return (
             <React.Fragment>
-                {showLegend && (
-                    <HorizontalCategoricalColorLegend manager={this} />
-                )}
+                {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const ChartClass =
                         ChartComponentClassMap.get(this.chartTypeName) ??

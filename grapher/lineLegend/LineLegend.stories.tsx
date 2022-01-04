@@ -49,7 +49,7 @@ const manager: LineLegendManager = {
             annotation: "Below",
         },
     ],
-    legendX: 200,
+    lineLegendX: 200,
     focusedSeriesNames: [],
     yAxis: dualAxis.verticalAxis,
 }

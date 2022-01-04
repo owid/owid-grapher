@@ -572,11 +572,8 @@ export class EditorCustomizeTab extends React.Component<{
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
                         features={{
-                            visualScaling: false,
-                            legendDescription:
-                                grapher.isScatter ||
-                                grapher.isSlopeChart ||
-                                grapher.isStackedBar,
+                            visualScaling: true,
+                            legendDescription: true,
                         }}
                     />
                 )}

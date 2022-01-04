@@ -3,7 +3,7 @@ import { OwidTable } from "../../coreTable/OwidTable"
 import { SeriesName } from "../core/GrapherConstants"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { CategoricalBin } from "../color/ColorScaleBin"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 // The idea of this interface is to try and start reusing more code across our Chart classes and make it easier
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
 // this interface.
@@ -32,8 +32,8 @@ export interface ChartInterface {
     xAxis?: HorizontalAxis | VerticalAxis
 
     /**
-     * The legend bins that have been hidden from the chart plot and should be shown externally.
+     * The legend that has been hidden from the chart plot (using `manager.hideLegend`).
      * Used to create a global legend for faceted charts.
      */
-    externalLegendBins?: CategoricalBin[] // TODO allow NumericBin in the future
+    externalLegend?: HorizontalColorLegendManager
 }

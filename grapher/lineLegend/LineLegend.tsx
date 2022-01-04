@@ -17,6 +17,7 @@ import { Bounds } from "../../clientUtils/Bounds"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
+import { darkenColorForText } from "../color/ColorUtils"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -24,6 +25,8 @@ const LEGEND_ITEM_MIN_SPACING = 2
 const MARKER_MARGIN = 4
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
+
+const DEFAULT_FONT_WEIGHT = 400
 
 export interface LineLabelSeries extends ChartSeries {
     label: string
@@ -95,7 +98,7 @@ class Label extends React.Component<{
         const step = (markerX2 - markerX1) / (series.totalLevels + 1)
         const markerXMid = markerX1 + step + series.level * step
         const lineColor = isFocus ? "#999" : "#eee"
-        const textColor = isFocus ? series.color : "#ddd"
+        const textColor = isFocus ? darkenColorForText(series.color) : "#ddd"
         const annotationColor = isFocus ? "#333" : "#ddd"
         return (
             <g
@@ -148,31 +151,37 @@ export interface LineLegendManager {
     isSelectingData?: boolean
     entityType?: string
     labelSeries: LineLabelSeries[]
-    maxLegendWidth?: number
+    maxLineLegendWidth?: number
     fontSize?: number
-    onLegendMouseOver?: (key: EntityName) => void
-    onLegendClick?: (key: EntityName) => void
-    onLegendMouseLeave?: () => void
+    fontWeight?: number
+    onLineLegendMouseOver?: (key: EntityName) => void
+    onLineLegendClick?: (key: EntityName) => void
+    onLineLegendMouseLeave?: () => void
     focusedSeriesNames: EntityName[]
     yAxis: VerticalAxis
-    legendX?: number
+    lineLegendX?: number
 }
 
 @observer
 export class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
+    leftPadding = 35
+
     @computed private get fontSize(): number {
         return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    leftPadding = 35
+
+    @computed private get fontWeight(): number {
+        return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
+    }
 
     @computed private get maxWidth(): number {
-        return this.manager.maxLegendWidth ?? 300
+        return this.manager.maxLineLegendWidth ?? 300
     }
 
     @computed.struct get sizedLabels(): SizedSeries[] {
-        const { fontSize, leftPadding, maxWidth } = this
+        const { fontSize, fontWeight, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
@@ -188,6 +197,7 @@ export class LineLegend extends React.Component<{
                 text: label.label,
                 maxWidth: maxTextWidth,
                 fontSize,
+                fontWeight,
             })
             return {
                 ...label,
@@ -212,13 +222,13 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get onMouseOver(): any {
-        return this.manager.onLegendMouseOver ?? noop
+        return this.manager.onLineLegendMouseOver ?? noop
     }
     @computed get onMouseLeave(): any {
-        return this.manager.onLegendMouseLeave ?? noop
+        return this.manager.onLineLegendMouseLeave ?? noop
     }
     @computed get onClick(): any {
-        return this.manager.onLegendClick ?? noop
+        return this.manager.onLineLegendClick ?? noop
     }
 
     @computed get isFocusMode(): boolean {
@@ -228,7 +238,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get legendX(): number {
-        return this.manager.legendX ?? 0
+        return this.manager.lineLegendX ?? 0
     }
 
     // Naive initial placement of each mark at the target height, before collision detection

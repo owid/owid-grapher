@@ -9,10 +9,17 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers"
 import { ChartManager } from "../chart/ChartManager"
-import { ScaleType, SeriesStrategy } from "../core/GrapherConstants"
+import {
+    FacetStrategy,
+    ScaleType,
+    SeriesStrategy,
+} from "../core/GrapherConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
+import { LineChartManager } from "./LineChartConstants"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues"
+import { BinningStrategy } from "../color/BinningStrategy"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -179,6 +186,69 @@ describe("colors", () => {
         expect(newSeries).toHaveLength(1)
         expect(newSeries[0].color).toEqual(series[1].color)
     })
+
+    it("uses variable colors when only one entity selected (even if multiple can be selected with controls)", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "canada"],
+                year: [2000, 2001, 2000],
+                gdp: [100, 200, 100],
+                pop: [100, 200, 100],
+            },
+            [
+                { slug: "gdp", color: "green", type: ColumnTypeNames.Numeric },
+                { slug: "pop", color: "orange", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const manager: LineChartManager = {
+            yColumnSlugs: ["gdp", "pop"],
+            table: table,
+            selection: ["usa"],
+            seriesStrategy: SeriesStrategy.column,
+            facetStrategy: FacetStrategy.entity,
+            canSelectMultipleEntities: true,
+        }
+        const chart = new LineChart({ manager })
+        const series = chart.series
+
+        expect(series).toHaveLength(2)
+        expect(series[0].color).toEqual("green")
+        expect(series[1].color).toEqual("orange")
+    })
+
+    it("doesn't use variable colors if 2 variables have single entities which are different", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "canada"],
+                year: [2000, 2001, 2000],
+                gdp: [100, 200, ErrorValueTypes.MissingValuePlaceholder],
+                pop: [
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    ErrorValueTypes.MissingValuePlaceholder,
+                    100,
+                ],
+            },
+            [
+                { slug: "gdp", color: "green", type: ColumnTypeNames.Numeric },
+                { slug: "pop", color: "orange", type: ColumnTypeNames.Numeric },
+            ]
+        )
+
+        const manager: LineChartManager = {
+            yColumnSlugs: ["gdp", "pop"],
+            table: table,
+            selection: ["usa", "canada"],
+            seriesStrategy: SeriesStrategy.column,
+            canSelectMultipleEntities: true,
+        }
+        const chart = new LineChart({ manager })
+        const series = chart.series
+
+        expect(series).toHaveLength(2)
+        expect(series[0].color).not.toEqual("green")
+        expect(series[1].color).not.toEqual("orange")
+    })
 })
 
 it("reverses order of plotted series to plot the first one over the others", () => {
@@ -222,13 +292,130 @@ describe("externalLegendBins", () => {
         const chart = new LineChart({
             manager: { ...baseManager },
         })
-        expect(chart["externalLegendBins"].length).toEqual(0)
+        expect(chart["externalLegend"]).toBeUndefined()
     })
 
     it("exposes externalLegendBins when legend is hidden", () => {
         const chart = new LineChart({
             manager: { ...baseManager, hideLegend: true },
         })
-        expect(chart["externalLegendBins"].length).toEqual(2)
+        expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
+            2
+        )
+    })
+})
+
+describe("color scale", () => {
+    it("correctly colors series, with tolerance", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa", "usa", "usa", "usa"],
+                entityColor: ["#fff", "#fff", "#fff", "#fff", "#fff", "#fff"],
+                time: [2000, 2001, 2002, 2003, 2004, 2005],
+                y: [100, 200, 300, 400, 500, 600],
+                color: [
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    1,
+                    2,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                ],
+            },
+            [
+                {
+                    slug: "y",
+                    color: "green",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 0,
+                },
+                {
+                    slug: "color",
+                    color: "red",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 1,
+                },
+            ]
+        )
+
+        const manager: LineChartManager = {
+            yColumnSlugs: ["y"],
+            colorColumnSlug: "color",
+            table: table,
+            selection: ["usa"],
+            seriesStrategy: SeriesStrategy.column,
+            colorScale: {
+                binningStrategy: BinningStrategy.manual,
+                customCategoryColors: {},
+                customCategoryLabels: {},
+                customHiddenCategories: {},
+                customNumericMinValue: 0,
+                customNumericColors: ["#111111", "#222222"],
+                customNumericColorsActive: true,
+                customNumericLabels: [],
+                customNumericValues: [1.5, 2.5],
+            },
+        }
+        const chart = new LineChart({ manager })
+        const noDataColor = "#959595"
+
+        expect(chart.series).toHaveLength(1)
+        expect(chart.series[0].color).toEqual(noDataColor)
+        expect(chart.series[0].points.map((p) => p.colorValue)).toEqual([
+            undefined,
+            1,
+            1,
+            2,
+            2,
+            undefined,
+        ])
+        expect(chart.placedSeries[0].placedPoints.map((p) => p.color)).toEqual([
+            noDataColor,
+            "#111111",
+            "#111111",
+            "#222222",
+            "#222222",
+            noDataColor,
+        ])
+    })
+
+    it("handles y and color being the same column", () => {
+        const table = new OwidTable(
+            {
+                entityName: ["usa", "usa", "usa", "usa", "usa", "usa"],
+                time: [2000, 2001, 2002, 2003, 2004, 2005],
+                y: [
+                    100,
+                    200,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    ErrorValueTypes.NaNButShouldBeNumber,
+                    500,
+                    600,
+                ],
+            },
+            [
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                    tolerance: 1,
+                },
+            ]
+        )
+        const manager: LineChartManager = {
+            yColumnSlugs: ["y"],
+            colorColumnSlug: "y",
+            table: table,
+            selection: ["usa"],
+            seriesStrategy: SeriesStrategy.column,
+        }
+        const chart = new LineChart({ manager })
+
+        expect(chart.series).toHaveLength(1)
+        expect(chart.series[0].points).toHaveLength(4)
+        expect(chart.series[0].points[2]).toEqual({
+            x: 2004,
+            y: 500,
+            colorValue: 500,
+        })
     })
 })

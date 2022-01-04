@@ -378,8 +378,13 @@ export class StackedDiscreteBarChart
         return this.showLegend ? this.legendBins : []
     }
 
-    @computed get externalLegendBins(): CategoricalBin[] {
-        return this.showLegend ? [] : this.legendBins
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (!this.showLegend) {
+            return {
+                categoricalLegendData: this.legendBins,
+            }
+        }
+        return undefined
     }
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {

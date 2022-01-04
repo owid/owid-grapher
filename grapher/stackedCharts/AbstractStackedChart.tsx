@@ -35,6 +35,7 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
 import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -324,9 +325,9 @@ export class AbstactStackedChart
         return this.unstackedSeries
     }
 
-    @computed get externalLegendBins(): CategoricalBin[] {
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
         if (this.manager.hideLegend) {
-            return this.series
+            const categoricalLegendData = this.series
                 .map(
                     (series, index) =>
                         new CategoricalBin({
@@ -337,7 +338,8 @@ export class AbstactStackedChart
                         })
                 )
                 .reverse()
+            return { categoricalLegendData }
         }
-        return []
+        return undefined
     }
 }
