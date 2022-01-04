@@ -24,6 +24,7 @@ import {
     HorizontalAlign,
     VerticalAlign,
 } from "../../clientUtils/owidTypes"
+import { TextWrap } from "../text/TextWrap"
 
 interface PositionedBin {
     x: number
@@ -39,10 +40,6 @@ interface NumericLabel {
     priority?: boolean
     hidden: boolean
 }
-
-const FOCUS_BORDER_COLOR = "#111"
-
-const SPACE_BETWEEN_CATEGORICAL_BINS = 7
 
 interface CategoricalMark {
     x: number
@@ -61,27 +58,46 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
+// TODO unify properties across categorical & numeric legend.
+// This would make multiple legends per chart less convenient (only used in Map), but we shouldn't
+// be using multiple anyway – instead the numeric should also handle categorical bins too.
 export interface HorizontalColorLegendManager {
     fontSize?: number
     legendX?: number
     legendAlign?: HorizontalAlign
+    legendTitle?: string
     categoryLegendY?: number
     numericLegendY?: number
     legendWidth?: number
     legendHeight?: number
     legendOpacity?: number
+    legendTextColor?: Color
+    legendTickSize?: number
     categoricalLegendData?: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     categoricalBinStroke?: Color
     numericLegendData?: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
+    numericBinSize?: number
+    numericBinStroke?: Color
+    numericBinStrokeWidth?: number
     equalSizeBins?: boolean
     onLegendMouseLeave?: () => void
-    onLegendMouseOver?: (d: CategoricalBin) => void
+    onLegendMouseOver?: (d: ColorScaleBin) => void
 }
 
-@observer
-class HorizontalColorLegend extends React.Component<{
+const DEFAULT_NUMERIC_BIN_SIZE = 10
+const DEFAULT_NUMERIC_BIN_STROKE = "#333"
+const DEFAULT_NUMERIC_BIN_STROKE_WIDTH = 0.3
+const DEFAULT_TEXT_COLOR = "#111"
+const DEFAULT_TICK_SIZE = 3
+
+const LEGEND_ITEM_PADDING = 15
+const CATEGORICAL_BIN_MIN_WIDTH = 20
+const FOCUS_BORDER_COLOR = "#111"
+const SPACE_BETWEEN_CATEGORICAL_BINS = 7
+
+export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
     @computed protected get manager(): HorizontalColorLegendManager {
@@ -116,73 +132,102 @@ class HorizontalColorLegend extends React.Component<{
     @computed protected get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
+
+    @computed protected get legendTextColor(): Color {
+        return this.manager.legendTextColor ?? DEFAULT_TEXT_COLOR
+    }
+
+    @computed protected get legendTickSize(): number {
+        return this.manager.legendTickSize ?? DEFAULT_TICK_SIZE
+    }
+
+    abstract get height(): number
 }
 
 @observer
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed private get numericLegendData(): ColorScaleBin[] {
         return this.manager.numericLegendData ?? []
     }
 
-    @computed get numericBins(): NumericBin[] {
+    @computed private get numericBins(): NumericBin[] {
         return this.numericLegendData.filter(
             (bin): bin is NumericBin => bin instanceof NumericBin
         )
     }
-    rectHeight = 10
 
-    @computed get tickFontSize(): number {
+    @computed private get numericBinSize(): number {
+        return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
+    }
+
+    @computed private get numericBinStroke(): Color {
+        return this.props.manager.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
+    }
+
+    @computed private get numericBinStrokeWidth(): number {
+        return (
+            this.props.manager.numericBinStrokeWidth ??
+            DEFAULT_NUMERIC_BIN_STROKE_WIDTH
+        )
+    }
+
+    @computed private get tickFontSize(): number {
         return 0.75 * this.fontSize
     }
 
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    @computed get minValue(): number {
+    @computed private get minValue(): number {
         return min(this.numericBins.map((bin) => bin.min)) as number
     }
-    @computed get maxValue(): number {
+    @computed private get maxValue(): number {
         return max(this.numericBins.map((bin) => bin.max)) as number
     }
-    @computed get rangeSize(): number {
+    @computed private get rangeSize(): number {
         return this.maxValue - this.minValue
     }
-    @computed get categoryBinWidth(): number {
-        return Bounds.forText("No data", { fontSize: this.tickFontSize }).width
+
+    private getCategoricalBinWidth(label: string): number {
+        const width = Bounds.forText(label, {
+            fontSize: this.tickFontSize,
+        }).width
+        return Math.max(width, CATEGORICAL_BIN_MIN_WIDTH)
     }
-    @computed get categoryBinMargin(): number {
-        return this.rectHeight * 1.5
-    }
-    @computed get totalCategoricalWidth(): number {
+
+    @computed private get totalCategoricalWidth(): number {
         const { numericLegendData } = this
-        const { categoryBinWidth, categoryBinMargin } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
-                ? categoryBinWidth + categoryBinMargin
+                ? this.getCategoricalBinWidth(bin.text) + LEGEND_ITEM_PADDING
                 : 0
         )
         return sum(widths)
     }
-    @computed get availableNumericWidth(): number {
-        return this.legendWidth - this.totalCategoricalWidth
+    @computed private get availableNumericWidth(): number {
+        return (
+            this.legendWidth -
+            this.totalCategoricalWidth -
+            this.legendTitleWidth
+        )
     }
 
-    @computed get positionedBins(): PositionedBin[] {
+    @computed private get positionedBins(): PositionedBin[] {
         const {
             manager,
             rangeSize,
-            categoryBinWidth,
-            categoryBinMargin,
             availableNumericWidth,
             numericLegendData,
             numericBins,
+            legendX,
         } = this
-        let xOffset = 0
+
+        let xOffset = legendX + this.legendTitleWidth
 
         return numericLegendData.map((bin) => {
-            let width = categoryBinWidth
-            let margin = categoryBinMargin
+            let width = this.getCategoricalBinWidth(bin.text)
+            let margin = LEGEND_ITEM_PADDING
             if (bin instanceof NumericBin) {
                 if (manager.equalSizeBins)
                     width = availableNumericWidth / numericBins.length
@@ -200,13 +245,35 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 x,
                 width,
                 margin,
-                bin: bin,
+                bin,
             }
         })
     }
 
-    @computed get numericLabels(): NumericLabel[] {
-        const { rectHeight, positionedBins, tickFontSize } = this
+    @computed private get legendTitleFontSize(): number {
+        return this.fontSize * 0.85
+    }
+
+    @computed private get legendTitle(): TextWrap | undefined {
+        const { legendTitle } = this.manager
+        return legendTitle
+            ? new TextWrap({
+                  text: legendTitle,
+                  fontSize: this.legendTitleFontSize,
+                  fontWeight: 700,
+                  maxWidth: this.legendWidth / 3,
+              })
+            : undefined
+    }
+
+    @computed private get legendTitleWidth(): number {
+        return this.legendTitle
+            ? this.legendTitle.width + LEGEND_ITEM_PADDING
+            : 0
+    }
+
+    @computed private get numericLabels(): NumericLabel[] {
+        const { numericBinSize, positionedBins, tickFontSize } = this
 
         const makeBoundaryLabel = (
             bin: PositionedBin,
@@ -218,7 +285,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 bin.x +
                 (minOrMax === "min" ? 0 : bin.width) -
                 labelBounds.width / 2
-            const y = -rectHeight - labelBounds.height - 3
+            const y = -numericBinSize - labelBounds.height - this.legendTickSize
 
             return {
                 text: text,
@@ -233,7 +300,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 fontSize: tickFontSize,
             })
             const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -rectHeight - labelBounds.height - 3
+            const y = -numericBinSize - labelBounds.height - this.legendTickSize
 
             return {
                 text: bin.bin.text,
@@ -302,7 +369,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @computed get bounds(): Bounds {
+    @computed private get bounds(): Bounds {
         return new Bounds(
             this.legendX,
             this.numericLegendY,
@@ -311,7 +378,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    @action.bound onMouseMove(ev: MouseEvent | TouchEvent): void {
+    @action.bound private onMouseMove(ev: MouseEvent | TouchEvent): void {
         const { manager, base, positionedBins } = this
         const { numericFocusBracket } = manager
         if (base.current) {
@@ -332,12 +399,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             }
 
             // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-            let newFocusBracket = null
+            let newFocusBracket: ColorScaleBin | undefined
             positionedBins.forEach((bin) => {
-                if (
-                    mouse.x >= this.legendX + bin.x &&
-                    mouse.x <= this.legendX + bin.x + bin.width
-                )
+                if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
                     newFocusBracket = bin.bin
             })
 
@@ -363,12 +427,17 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 
     render(): JSX.Element {
-        const { manager, numericLabels, rectHeight, positionedBins, height } =
-            this
+        const {
+            manager,
+            numericLabels,
+            numericBinSize,
+            positionedBins,
+            height,
+        } = this
         const { numericFocusBracket } = manager
-        //Bounds.debug([this.bounds])
 
-        const borderColor = "#333"
+        const stroke = this.numericBinStroke
+        const strokeWidth = this.numericBinStrokeWidth
         const bottomY = this.numericLegendY + height
 
         return (
@@ -376,20 +445,12 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 {numericLabels.map((label, index) => (
                     <line
                         key={index}
-                        x1={
-                            this.legendX +
-                            label.bounds.x +
-                            label.bounds.width / 2
-                        }
-                        y1={bottomY - rectHeight}
-                        x2={
-                            this.legendX +
-                            label.bounds.x +
-                            label.bounds.width / 2
-                        }
+                        x1={label.bounds.x + label.bounds.width / 2}
+                        y1={bottomY - numericBinSize}
+                        x2={label.bounds.x + label.bounds.width / 2}
                         y2={bottomY + label.bounds.y + label.bounds.height}
-                        stroke={borderColor}
-                        strokeWidth={0.3}
+                        stroke={stroke}
+                        strokeWidth={strokeWidth}
                     />
                 ))}
                 {sortBy(
@@ -401,16 +462,14 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                         return (
                             <NumericBinRect
                                 key={index}
-                                x={this.legendX + positionedBin.x}
-                                y={bottomY - rectHeight}
+                                x={positionedBin.x}
+                                y={bottomY - numericBinSize}
                                 width={positionedBin.width}
-                                height={rectHeight}
+                                height={numericBinSize}
                                 fill={bin.color}
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                stroke={
-                                    isFocus ? FOCUS_BORDER_COLOR : borderColor
-                                }
-                                strokeWidth={isFocus ? 2 : 0.3}
+                                stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
+                                strokeWidth={isFocus ? 2 : strokeWidth}
                                 isOpenLeft={
                                     bin instanceof NumericBin
                                         ? bin.props.isOpenLeft
@@ -429,17 +488,27 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 {numericLabels.map((label, index) => (
                     <text
                         key={index}
-                        x={this.legendX + label.bounds.x}
+                        x={label.bounds.x}
                         y={bottomY + label.bounds.y}
                         // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
                         // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
                         // do with some rough positioning.
                         dy={dyFromAlign(VerticalAlign.bottom)}
                         fontSize={label.fontSize}
+                        fill={this.legendTextColor}
                     >
                         {label.text}
                     </text>
                 ))}
+                {this.legendTitle?.render(
+                    this.legendX,
+                    // Align legend title baseline with bottom of color bins
+                    this.numericLegendY +
+                        height -
+                        this.legendTitle.height +
+                        this.legendTitleFontSize * 0.2,
+                    { fill: this.legendTextColor }
+                )}
             </g>
         )
     }
@@ -490,7 +559,7 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 
 @observer
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed private get categoricalLegendData(): CategoricalBin[] {
         return this.manager.categoricalLegendData ?? []
     }
 
@@ -545,7 +614,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return lines
     }
 
-    @computed get contentWidth(): number {
+    @computed private get contentWidth(): number {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
@@ -553,7 +622,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return this.manager.legendWidth ?? this.contentWidth
     }
 
-    @computed get marks(): CategoricalMark[] {
+    @computed private get marks(): CategoricalMark[] {
         const lines = this.markLines
         const align = this.legendAlign
         const width = this.containerWidth

@@ -4,10 +4,12 @@ import {
     findIndexFast,
     first,
     flatten,
+    max,
     range,
     sampleFrom,
     slugifySameCase,
     toString,
+    values,
 } from "../clientUtils/Util"
 import {
     CoreColumnStore,
@@ -17,7 +19,11 @@ import {
     CoreValueType,
 } from "./CoreTableConstants"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
+import {
+    ErrorValue,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+} from "./ErrorValues"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
@@ -180,12 +186,6 @@ export const makeRowFromColumnStore = (
         row[slug] = columns[colIndex][rowIndex]
     })
     return row
-}
-
-function isNotErrorValueOrEmptyCell<K>(
-    value: K
-): value is Exclude<K, ErrorValue | undefined> {
-    return value !== undefined && !(value instanceof ErrorValue)
 }
 
 export interface InterpolationContext {}
@@ -402,10 +402,7 @@ export const appendRowsToColumnStore = (
 }
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
-    for (const slug in store) {
-        return store[slug].length
-    }
-    return 0
+    return max(values(store).map((v) => v.length)) ?? 0
 }
 
 export const concatColumnStores = (
@@ -420,13 +417,19 @@ export const concatColumnStores = (
     const newColumnStore: CoreColumnStore = {}
     slugs.forEach((slug) => {
         newColumnStore[slug] = flatten(
-            stores.map(
-                (store, i) =>
-                    store[slug] ??
-                    new Array(lengths[i]).fill(
-                        ErrorValueTypes.MissingValuePlaceholder
+            stores.map((store, i) => {
+                const values = store[slug] ?? []
+                const toFill = Math.max(0, lengths[i] - values.length)
+                if (toFill === 0) {
+                    return values
+                } else {
+                    return values.concat(
+                        new Array(lengths[i] - values.length).fill(
+                            ErrorValueTypes.MissingValuePlaceholder
+                        )
                     )
-            )
+                }
+            })
         )
     })
     return newColumnStore

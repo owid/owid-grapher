@@ -33,11 +33,25 @@ export const getSeriesKey = (series: LineChartSeries, suffix?: string) => {
 
 export const autoDetectSeriesStrategy = (
     manager: ChartManager,
-    hasNormalAndProjectedSeries?: boolean
+    handleProjections: boolean = false
 ): SeriesStrategy => {
     if (manager.seriesStrategy) return manager.seriesStrategy
 
-    const columnThreshold = hasNormalAndProjectedSeries ? 2 : 1
+    let columnThreshold: number = 1
+
+    if (handleProjections && manager.transformedTable) {
+        const yColumnSlugs = autoDetectYColumnSlugs(manager)
+        const yColumns = yColumnSlugs.map((slug) =>
+            manager.transformedTable!.get(slug)
+        )
+        const hasNormalAndProjectedSeries =
+            yColumns.some((col) => col.isProjection) &&
+            yColumns.some((col) => !col.isProjection)
+        if (hasNormalAndProjectedSeries) {
+            columnThreshold = 2
+        }
+    }
+
     return autoDetectYColumnSlugs(manager).length > columnThreshold
         ? SeriesStrategy.column
         : SeriesStrategy.entity

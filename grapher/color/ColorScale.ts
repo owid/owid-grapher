@@ -12,6 +12,9 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
+    isString,
+    mapValues,
+    identity,
 } from "../../clientUtils/Util"
 import { Color } from "../../coreTable/CoreTableConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -30,6 +33,7 @@ export interface ColorScaleManager {
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
+    transformColor?: (color: Color) => Color
 }
 
 export class ColorScale {
@@ -53,9 +57,10 @@ export class ColorScale {
     }
 
     @computed get customNumericColors(): (Color | undefined)[] {
-        return this.customNumericColorsActive
+        const colors = this.customNumericColorsActive
             ? mapNullToUndefined(this.config.customNumericColors)
             : []
+        return colors.map(this.transformColor)
     }
 
     @computed get customHiddenCategories(): {
@@ -95,8 +100,8 @@ export class ColorScale {
         return ColorSchemes[ColorSchemeName.BuGn]
     }
 
-    @computed private get defaultNoDataColor(): string {
-        return this.manager.defaultNoDataColor ?? "#eee"
+    @computed private get defaultNoDataColor(): Color {
+        return this.transformColor(this.manager.defaultNoDataColor ?? "#eee")
     }
 
     @computed get colorScaleColumn(): CoreColumn | undefined {
@@ -105,6 +110,22 @@ export class ColorScale {
 
     @computed get legendDescription(): string | undefined {
         return this.config.legendDescription
+    }
+
+    @computed private get transformColor(): <
+        MaybeColor extends Color | undefined
+    >(
+        color: MaybeColor
+    ) => MaybeColor {
+        const transform = this.manager.transformColor
+        if (!transform) return identity
+        return <MaybeColor extends Color | undefined>(
+            color: MaybeColor
+        ): MaybeColor => {
+            return isString(color) && transform
+                ? (transform(color) as MaybeColor)
+                : color
+        }
     }
 
     // Transforms
@@ -180,14 +201,17 @@ export class ColorScale {
 
     // Ensure there's always a custom color for "No data"
     @computed private get customCategoryColors(): { [key: string]: Color } {
-        return {
-            [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
-            ...this.config.customCategoryColors,
-        }
+        return mapValues(
+            {
+                [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
+                ...this.config.customCategoryColors,
+            },
+            this.transformColor
+        )
     }
 
     @computed get noDataColor(): Color {
-        return this.customCategoryColors[NO_DATA_LABEL]
+        return this.transformColor(this.customCategoryColors[NO_DATA_LABEL])
     }
 
     @computed get baseColors(): Color[] {
@@ -196,13 +220,14 @@ export class ColorScale {
             colorScheme,
             bucketMaximums,
             isColorSchemeInverted,
+            transformColor,
         } = this
         const numColors = bucketMaximums.length + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) reverse(colors)
 
-        return colors
+        return colors.map(transformColor)
     }
 
     @computed get numAutoBins(): number {

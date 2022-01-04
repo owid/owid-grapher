@@ -1,6 +1,7 @@
 #! /usr/bin/env jest
 
 import { CoreTable } from "../../coreTable/CoreTable"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues"
 import { BinningStrategy } from "./BinningStrategy"
 import { ColorScale } from "./ColorScale"
 import { ColorScaleConfigInterface } from "./ColorScaleConfig"
@@ -125,5 +126,41 @@ describe(ColorScale, () => {
                 expect(scale.sortedNumericValuesWithoutOutliers).toEqual([1])
             })
         })
+    })
+
+    it("transforms all colors", () => {
+        const colorScaleConfig: ColorScaleConfigInterface = {
+            binningStrategy: BinningStrategy.manual,
+            customNumericValues: [1, 2, 3],
+            customNumericLabels: [],
+            customNumericColorsActive: true,
+            customNumericColors: ["#111", "#222", "#333"],
+            customCategoryColors: { test: "#eee" },
+            customCategoryLabels: {},
+            customHiddenCategories: {},
+        }
+        const table = new CoreTable(
+            {
+                color: [1, "test", ErrorValueTypes.MissingValuePlaceholder],
+            },
+            [{ slug: "color", skipParsing: true }]
+        )
+        const scale = new ColorScale({
+            colorScaleConfig,
+            colorScaleColumn: table.get("color"),
+            hasNoDataBin: true,
+            defaultNoDataColor: "#fff",
+            transformColor: (): string => "#ccc",
+        })
+        expect(scale.getColor(0.5)).toEqual("#ccc")
+        expect(scale.getColor(undefined)).toEqual("#ccc")
+        expect(scale.getColor("test")).toEqual("#ccc")
+        expect(scale.noDataColor).toEqual("#ccc")
+        expect(scale.customNumericColors).toEqual(["#ccc", "#ccc", "#ccc"])
+        expect(scale["customCategoryColors"]).toEqual({
+            test: "#ccc",
+            "No data": "#ccc",
+        })
+        expect(scale["defaultNoDataColor"]).toEqual("#ccc")
     })
 })

@@ -1,4 +1,6 @@
+import { OwidVariableRow } from "../../coreTable/OwidTableConstants"
 import { ChartSeries } from "../chart/ChartInterface"
+import { SeriesName } from "../core/GrapherConstants"
 
 export type StackedPointPositionType = string | number
 
@@ -14,6 +16,14 @@ export interface StackedPoint<PositionType extends StackedPointPositionType> {
 export interface StackedSeries<PositionType extends StackedPointPositionType>
     extends ChartSeries {
     points: StackedPoint<PositionType>[]
-    columnSlug: string
+    columnSlug?: string
     isProjection?: boolean
+}
+
+export interface StackedRawSeries<
+    PositionType extends StackedPointPositionType
+> {
+    seriesName: SeriesName
+    isProjection?: boolean
+    rows: OwidVariableRow<PositionType>[]
 }

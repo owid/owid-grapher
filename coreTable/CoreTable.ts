@@ -73,7 +73,6 @@ interface AdvancedOptions {
     parent?: CoreTable
     filterMask?: FilterMask
     tableSlug?: TableSlug
-    skipParsing?: boolean
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -270,6 +269,9 @@ export class CoreTable<
 
     private get colsToParse(): CoreColumn[] {
         const { inputType, columnsAsArray, inputColumnStore } = this
+        const columnsToMaybeParse = columnsAsArray.filter(
+            (col) => !col.def.skipParsing
+        )
         const firstInputRow = makeRowFromColumnStore(0, inputColumnStore)
         if (inputType === InputType.Delimited) {
             const missingTypes = new Set(
@@ -279,15 +281,14 @@ export class CoreTable<
                     )
                 )
             ) // Our autotyping is poor if the first value in a column is empty
-            return columnsAsArray.filter(
+            return columnsToMaybeParse.filter(
                 (col) =>
                     col.needsParsing(firstInputRow[col.slug]) ||
                     missingTypes.has(col)
             )
         }
 
-        if (this.advancedOptions.skipParsing || this.parent || !firstInputRow)
-            return []
+        if (this.parent || !firstInputRow) return []
 
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of columns that have values passed directly.
@@ -296,12 +297,12 @@ export class CoreTable<
             Object.keys(this.valuesFromColumnDefs)
         )
         if (this.isRoot) {
-            return this.columnsAsArray.filter(
+            return columnsToMaybeParse.filter(
                 (col) => !alreadyTypedSlugs.has(col.slug)
             )
         }
 
-        return columnsAsArray.filter(
+        return columnsToMaybeParse.filter(
             (col) =>
                 !alreadyTypedSlugs.has(col.slug) ||
                 col.needsParsing(firstInputRow[col.slug])

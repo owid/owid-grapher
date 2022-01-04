@@ -51,6 +51,7 @@ export interface CoreColumnDef extends ColumnColorScale {
     // Computational
     transform?: string // Code that maps to a CoreTable transform
     tolerance?: number // If set, some charts can use this for an interpolation strategy.
+    skipParsing?: boolean // If set, the values will never run through the type parser
 
     // Column information used for display only
     name?: string // The display name for the column

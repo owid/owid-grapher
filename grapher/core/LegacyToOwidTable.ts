@@ -56,15 +56,15 @@ export const legacyToOwidTableAndDimensions = (
         baseColumnDefs.set(def.slug, def)
     })
 
-    const colorColumnSlug =
+    const entityColorColumnSlug =
         entityColorMap.size > 0 || grapherConfig.selectedEntityColors
             ? OwidTableSlugs.entityColor
             : undefined
-    if (colorColumnSlug) {
-        baseColumnDefs.set(colorColumnSlug, {
-            slug: colorColumnSlug,
+    if (entityColorColumnSlug) {
+        baseColumnDefs.set(entityColorColumnSlug, {
+            slug: entityColorColumnSlug,
             type: ColumnTypeNames.Color,
-            name: colorColumnSlug,
+            name: entityColorColumnSlug,
         })
     }
 
@@ -95,6 +95,9 @@ export const legacyToOwidTableAndDimensions = (
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
         valueColumnDef.slug = dimension.slug
+        // Because database columns can contain mixed types, we want to avoid
+        // parsing for Grapher data until we fix that.
+        valueColumnDef.skipParsing = true
         if (valueColumnColor) {
             valueColumnDef.color = valueColumnColor
         }
@@ -140,8 +143,8 @@ export const legacyToOwidTableAndDimensions = (
             )
         }
 
-        if (colorColumnSlug) {
-            columnStore[colorColumnSlug] = entityIds.map(
+        if (entityColorColumnSlug) {
+            columnStore[entityColorColumnSlug] = entityIds.map(
                 (entityId) =>
                     grapherConfig.selectedEntityColors?.[
                         entityMetaById[entityId].name
@@ -153,10 +156,7 @@ export const legacyToOwidTableAndDimensions = (
 
         let variableTable = new OwidTable(
             columnStore,
-            Array.from(columnDefs.values()),
-            // Because database columns can contain mixed types, we want to avoid
-            // parsing for Grapher data until we fix that.
-            { skipParsing: true }
+            Array.from(columnDefs.values())
         )
 
         // If there is a targetTime set on the dimension, we need to perform the join on the

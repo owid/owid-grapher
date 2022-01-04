@@ -473,11 +473,19 @@ export class LineChart
     }
 
     @computed get focusedSeriesNames(): string[] {
-        return excludeUndefined([
-            this.manager.externalLegendFocusBin?.value,
+        const { externalLegendFocusBin } = this.manager
+        const focusedSeriesNames = excludeUndefined([
             this.props.manager.annotation?.entityName,
             this.hoveredSeriesName,
         ])
+        if (externalLegendFocusBin) {
+            focusedSeriesNames.push(
+                ...this.series
+                    .map((s) => s.seriesName)
+                    .filter((name) => externalLegendFocusBin.contains(name))
+            )
+        }
+        return focusedSeriesNames
     }
 
     @computed get isFocusMode(): boolean {
@@ -660,13 +668,7 @@ export class LineChart
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
-        const hasNormalAndProjectedSeries =
-            this.yColumns.some((col) => col.isProjection) &&
-            this.yColumns.some((col) => !col.isProjection)
-        return autoDetectSeriesStrategy(
-            this.manager,
-            hasNormalAndProjectedSeries
-        )
+        return autoDetectSeriesStrategy(this.manager, true)
     }
 
     @computed get isLogScale(): boolean {

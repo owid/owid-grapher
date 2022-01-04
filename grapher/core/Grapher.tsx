@@ -1440,16 +1440,6 @@ export class Grapher
         return this.isLineChart && this.areHandlesOnSameTime
     }
 
-    @computed get activeColorScale(): ColorScale | undefined {
-        const chart = this.chartInstance
-        return chart.colorScale
-    }
-
-    @computed get activeColorScaleExceptMap(): ColorScale | undefined {
-        const chart = this.chartInstanceExceptMap
-        return chart.colorScale
-    }
-
     @computed get supportsMultipleYColumns(): boolean {
         return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
     }

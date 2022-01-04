@@ -38,6 +38,7 @@ export interface OwidColumnDef extends CoreColumnDef {
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
     nonRedistributable?: boolean
+    skipParsing?: boolean
 }
 
 export const OwidEntityNameColumnDef = {

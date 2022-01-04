@@ -152,6 +152,25 @@ popChange,Pop change,percentChange time country population 2`
         expect(table.get("gdp").maxValue).toEqual(123)
     })
 
+    it("doesn't parse values if skipParsing=true", () => {
+        const table = new CoreTable(
+            { gdp: ["abc", 123, undefined, null] as any },
+            [
+                {
+                    slug: "gdp",
+                    type: ColumnTypeNames.Numeric,
+                    skipParsing: true,
+                },
+            ]
+        )
+        expect(table.get("gdp").valuesIncludingErrorValues).toEqual([
+            "abc",
+            123,
+            undefined,
+            null,
+        ])
+    })
+
     describe("loading from matrix", () => {
         const sampleRows = [
             {

@@ -39,8 +39,8 @@ export function getSegmentsFromPoints(
 ): Segment[] {
     const segments: Segment[] = []
     points.forEach((currentPoint) => {
-        const currentSegment = segments[segments.length - 1]
-        if (!currentSegment) {
+        const currentSegment = last(segments)
+        if (currentSegment === undefined) {
             segments.push({
                 points: [toPoint(currentPoint)],
                 color: currentPoint.color,
@@ -63,6 +63,7 @@ export function getSegmentsFromPoints(
 }
 
 function toSvgPoints(points: Point[]): string {
+    // TODO round to 1 decimal place to decrease SVG size?
     return points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
 }
 
@@ -73,6 +74,23 @@ type MultiColorPolylineProps = Omit<
     points: MultiColorPolylinePoint[]
 }
 
+// The current approach constructs multiple polylines and joins them together at midpoints.
+// Joining at midpoints allows clean miter joints, since we're joining two lines at an identical
+// angle.
+//
+// The benefit of this approach is that it generalises to work in most cases. Where it breaks:
+// - When a color transition happening at a midpoint is misleading.
+// - stroke-dasharray isn't handled well because the pattern restarts on every new line. This could
+//   be improved by specifying a `stroke-dashoffset` automatically.
+//   We can approximate the line length pretty well without rendering:
+//   https://observablehq.com/@danielgavrilov/does-gettotallength-of-polyline-path-equal-the-sum-of-coord
+//
+// Alternative approaches considered:
+// - Single line, color by gradient: this works if the line is monotonically increasing in one axis
+//   (X or Y), but otherwise doesn't (a spiral for example doesn't work).
+// - Compute meter joints ourselves (https://bl.ocks.org/mbostock/4163057): this results in the most
+//   accurate output, but is most complex & slow.
+//
 @observer
 export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
     @computed get segments(): Segment[] {
