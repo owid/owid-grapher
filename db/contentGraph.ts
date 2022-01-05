@@ -24,7 +24,6 @@ const store = fortune(
         [GraphType.Document]: {
             title: String,
             slug: String,
-            content: String,
             parentTopics: [Array(GraphType.Document), "childrenTopics"],
             childrenTopics: [Array(GraphType.Document), "parentTopics"],
             embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],
