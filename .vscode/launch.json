@@ -6,10 +6,15 @@
     "configurations": [
         {
             "name": "Build content graph",
+            "program": "${workspaceFolder}/itsJustJavascript/db/contentGraph.js",
             "request": "launch",
-            "command": "yarn buildContentGraph",
-            "skipFiles": ["<node_internals>/**"],
-            "type": "node-terminal"
+            "type": "pwa-node"
+        },
+        {
+            "name": "Index content graph",
+            "program": "${workspaceFolder}/itsJustJavascript/baker/algolia/indexContentGraphToAlgolia.js",
+            "request": "launch",
+            "type": "pwa-node"
         },
         {
             "name": "Run SVGTester",
