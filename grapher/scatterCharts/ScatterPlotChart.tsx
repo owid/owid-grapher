@@ -669,7 +669,7 @@ export class ScatterPlotChart
 
     @computed private get xColumnSlug(): string {
         const { xColumnSlug } = this.manager
-        return xColumnSlug ?? this.manager.table.numericColumnSlugs[1]
+        return xColumnSlug ?? this.manager.table.timeColumn.slug
     }
 
     @computed private get xColumn(): CoreColumn {
