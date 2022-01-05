@@ -58,6 +58,8 @@ it("doesn't show 'No data' bin when there is no color column", () => {
 it("can remove points outside domain", () => {
     const manager: ScatterPlotManager = {
         table: SynthesizeFruitTable(undefined, 2),
+        yColumnSlug: SampleColumnSlugs.Fruit,
+        xColumnSlug: SampleColumnSlugs.Vegetables,
     }
     const chart = new ScatterPlotChart({ manager })
     const initialCount = chart.allPoints.length
