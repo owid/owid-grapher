@@ -53,8 +53,8 @@ const getParentTopicsTitle = async (
     childrenTopicsTitle: string[] = []
 ): Promise<string[][]> => {
     const currentTopicsTitle = [node.title, ...childrenTopicsTitle]
-    // if (!node.parentTopics || node.parentTopics.length === 0)
-    //     return [currentPath]
+    if (!node.parentTopics || node.parentTopics.length === 0)
+        return [currentTopicsTitle]
 
     const parentTopicsTitle = await Promise.all(
         node.parentTopics.map(async (parentTopicId: TopicId) => {
@@ -71,7 +71,7 @@ const getParentTopicsTitle = async (
         })
     )
 
-    return [...parentTopicsTitle.flat(), currentTopicsTitle]
+    return parentTopicsTitle.flat()
 }
 
 export const getChartsRecords = async (): Promise<ChartRecord[]> => {
