@@ -7,6 +7,8 @@ import {
 } from "../../settings/serverSettings"
 import { countries } from "../../clientUtils/countries"
 
+export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
+
 export const getAlgoliaClient = (): SearchClient | undefined => {
     if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {
         console.error(`Missing ALGOLIA_ID or ALGOLIA_SECRET_KEY`)
@@ -134,6 +136,14 @@ export const configureAlgolia = async () => {
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
+    })
+
+    const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
+
+    await graphIndex.setSettings({
+        attributesForFaceting: [
+            ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
+        ],
     })
 }
 

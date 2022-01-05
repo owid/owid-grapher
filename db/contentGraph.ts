@@ -47,7 +47,7 @@ const store = fortune(
     }
 )
 
-const getParentTopicsTitle = async (
+export const getParentTopicsTitle = async (
     node: DocumentNode,
     allDocumentNodes: DocumentNode[],
     childrenTopicsTitle: string[] = []
@@ -208,48 +208,12 @@ export const getContentGraph = once(async () => {
     return store
 })
 
-const formatParentTopicsTrails = (
-    parentTopicsTitle: string[][]
-): { [facetLevelKey: string]: string[] } => {
-    const facetPrefix = "topics.lvl"
-    const topicsFacets: any = {}
-    parentTopicsTitle.forEach((topicsTitle) => {
-        const key = `${facetPrefix}${topicsTitle.length - 1}`
-        const topicsTitleTrail = topicsTitle.join(" > ")
-        if (topicsFacets.hasOwnProperty(key)) {
-            topicsFacets[key] = [...topicsFacets[key], topicsTitleTrail]
-        } else {
-            topicsFacets[key] = [topicsTitleTrail]
-        }
-    })
-    return topicsFacets
-}
-
 const main = async (): Promise<void> => {
     const store = await getContentGraph()
 
-    const allDocumentNodes: DocumentNode[] = (
-        await store.find(GraphType.Document)
-    ).payload.records
-
-    const recordsToIndex = []
-
-    for (const documentNode of allDocumentNodes) {
-        const parentTopicsTitle = await getParentTopicsTitle(
-            documentNode,
-            allDocumentNodes
-        )
-
-        if (!parentTopicsTitle || parentTopicsTitle.length === 0) continue
-
-        const parentTopicsTrails = formatParentTopicsTrails(parentTopicsTitle)
-
-        recordsToIndex.push({
-            id: documentNode.id,
-            title: documentNode.title,
-            ...parentTopicsTrails,
-        })
-    }
+    // const allDocumentNodes: DocumentNode[] = (
+    //     await store.find(GraphType.Document)
+    // ).payload.records
 }
 
 if (require.main === module) main()
