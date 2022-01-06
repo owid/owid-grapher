@@ -35,12 +35,12 @@ const store = fortune(
             parentTopics: [Array(GraphType.Document), "childrenTopics"],
             childrenTopics: [Array(GraphType.Document), "parentTopics"],
             embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],
-            charts: [Array(GraphType.Chart), "topics"],
+            charts: [Array(GraphType.Chart), "parentTopics"],
         },
         [GraphType.Chart]: {
             title: String,
             embeddedIn: [Array(GraphType.Document), "embeddedCharts"],
-            topics: [Array(GraphType.Document), "charts"],
+            parentTopics: [Array(GraphType.Document), "charts"],
         },
     },
     {
@@ -98,7 +98,7 @@ export const getParentTopicsTitle = async (
 
 export const getChartsRecords = async (): Promise<ChartRecord[]> => {
     const allCharts = await queryMysql(`
-        SELECT config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.topicIds" as topics
+        SELECT config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.topicIds" as parentTopics
         FROM charts
         WHERE publishedAt IS NOT NULL
         AND is_indexable IS TRUE
@@ -109,7 +109,7 @@ export const getChartsRecords = async (): Promise<ChartRecord[]> => {
         records.push({
             slug: c.slug,
             title: c.title,
-            topics: JSON.parse(c.topics),
+            parentTopics: JSON.parse(c.parentTopics),
         })
     }
 
@@ -211,12 +211,12 @@ export const getContentGraph = once(async () => {
     const allCharts = await getChartsRecords()
 
     for (const chart of allCharts) {
-        const { slug, title, topics } = chart
+        const { slug, title, parentTopics } = chart
         try {
             await store.create(GraphType.Chart, {
                 id: slug,
                 title,
-                topics: topics ?? [],
+                parentTopics: parentTopics ?? [],
             })
         } catch (err) {
             // ConflictErrors occur when a chart has already been added from an
@@ -224,7 +224,7 @@ export const getContentGraph = once(async () => {
             throwAllButConflictError(err)
             await store.update(GraphType.Chart, {
                 id: slug,
-                replace: { title, topics: topics ?? [] },
+                replace: { title, parentTopics: parentTopics ?? [] },
             })
         }
     }

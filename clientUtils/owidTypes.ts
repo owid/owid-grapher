@@ -209,7 +209,7 @@ export interface CategoryNode {
 export interface ChartRecord {
     slug: string
     title: string
-    topics: Array<TopicId>
+    parentTopics: Array<TopicId>
 }
 
 export interface PostReference {
