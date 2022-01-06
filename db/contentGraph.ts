@@ -31,6 +31,7 @@ const store = fortune(
             title: String,
             slug: String,
             type: String,
+            content: String,
             parentTopics: [Array(GraphType.Document), "childrenTopics"],
             childrenTopics: [Array(GraphType.Document), "parentTopics"],
             embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],
@@ -168,6 +169,8 @@ export const getContentGraph = once(async () => {
 
         // Add posts and entries to the content graph
         try {
+            // Warning: this mutates document (removes keys that are not listed
+            // in the graph / store schema)
             await store.create(GraphType.Document, document)
         } catch (err) {
             // If the document has already been added as a parent, a
