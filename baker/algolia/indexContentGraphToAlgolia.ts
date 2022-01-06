@@ -1,9 +1,9 @@
-import { DocumentNode } from "../../clientUtils/owidTypes"
 import {
-    getContentGraph,
-    getParentTopicsTitle,
+    ChartRecord,
+    DocumentNode,
     GraphType,
-} from "../../db/contentGraph"
+} from "../../clientUtils/owidTypes"
+import { getContentGraph, getParentTopicsTitle } from "../../db/contentGraph"
 import * as wpdb from "../../db/wpdb"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import {
@@ -35,18 +35,22 @@ export const formatParentTopicsTrails = (
 }
 
 const getContentGraphRecords = async () => {
-    const store = await getContentGraph()
-
-    const allDocumentNodes: DocumentNode[] = (
-        await store.find(GraphType.Document)
-    ).payload.records
-
     const records = []
 
-    for (const documentNode of allDocumentNodes) {
-        if (!documentNode.title) continue
+    const graph = await getContentGraph()
 
-        const allParentTopicsTitle = await getParentTopicsTitle(documentNode)
+    const allDocumentNodes: DocumentNode[] = (
+        await graph.find(GraphType.Document)
+    ).payload.records
+
+    const allChartRecords: ChartRecord[] = (await graph.find(GraphType.Chart))
+        .payload.records
+
+    for (const graphNode of [...allDocumentNodes, ...allChartRecords]) {
+        const allParentTopicsTitle = await getParentTopicsTitle(
+            graphNode,
+            graph
+        )
 
         let parentTopicsTrails = {}
         if (allParentTopicsTitle && allParentTopicsTitle.length !== 0) {
@@ -54,9 +58,10 @@ const getContentGraphRecords = async () => {
         }
 
         records.push({
-            objectID: documentNode.id,
-            title: documentNode.title,
-            type: documentNode.type,
+            // objectID: graphNode.id, // ID collision between documents and charts, do not use as-is
+            id: graphNode.id,
+            title: graphNode.title,
+            type: graphNode.type,
             ...parentTopicsTrails,
         })
     }

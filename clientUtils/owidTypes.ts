@@ -206,9 +206,16 @@ export interface CategoryNode {
     children: any
 }
 
+export enum GraphType {
+    Document = "document",
+    Chart = "chart",
+}
+
 export interface ChartRecord {
+    id: number
     slug: string
     title: string
+    type: GraphType // probably a better way to do this, should only be GraphType.chart
     parentTopics: Array<TopicId>
 }
 

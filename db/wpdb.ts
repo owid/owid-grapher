@@ -33,12 +33,9 @@ import {
     FilterFnPostRestApi,
     PostRestApi,
     TopicId,
-} from "../clientUtils/owidTypes"
-import {
-    getContentGraph,
     GraphType,
-    WPPostTypeToGraphDocumentType,
-} from "./contentGraph"
+} from "../clientUtils/owidTypes"
+import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
 import { Topic } from "../grapher/core/GrapherConstants"
 
