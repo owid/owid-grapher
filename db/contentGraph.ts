@@ -46,11 +46,11 @@ const store = fortune(
     }
 )
 
-export const getParentTopicsTitle = async (
+const getParentTopicsTitleWithNull = async (
     node: DocumentNode,
     allDocumentNodes: DocumentNode[],
-    childrenTopicsTitle: string[] = []
-): Promise<string[][]> => {
+    childrenTopicsTitle: (string | null)[] = []
+): Promise<(string | null)[][]> => {
     const currentTopicsTitle = [node.title, ...childrenTopicsTitle]
     if (!node.parentTopics || node.parentTopics.length === 0)
         return [currentTopicsTitle]
@@ -61,16 +61,34 @@ export const getParentTopicsTitle = async (
                 await store.find(GraphType.Document, parentTopicId)
             ).payload.records[0]
 
-            const ancestorsPaths = await getParentTopicsTitle(
+            const grandParentTopicsTitle = await getParentTopicsTitleWithNull(
                 parentNode,
                 allDocumentNodes,
                 currentTopicsTitle
             )
-            return ancestorsPaths
+            return grandParentTopicsTitle
         })
     )
 
     return parentTopicsTitle.flat()
+}
+
+export const excludeNullParentTopics = (
+    parentTopicsTitle: Array<string | null>
+): boolean => !parentTopicsTitle.includes(null)
+
+export const getParentTopicsTitle = async (
+    node: DocumentNode,
+    allDocumentNodes: DocumentNode[],
+    childrenTopicsTitle: string[] = []
+): Promise<string[][]> => {
+    return (
+        await getParentTopicsTitleWithNull(
+            node,
+            allDocumentNodes,
+            childrenTopicsTitle
+        )
+    )?.filter(excludeNullParentTopics) as string[][]
 }
 
 export const getChartsRecords = async (): Promise<ChartRecord[]> => {

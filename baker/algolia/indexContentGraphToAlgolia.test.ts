@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { formatParentTopicsTrails } from "./indexContentGraphToAlgolia"
+import { excludeNullParentTopics } from "../../db/contentGraph"
 
 it("formats parent topics trails", () => {
     const parentTopicsTitle = [
@@ -17,4 +18,22 @@ it("formats parent topics trails", () => {
             "Coronavirus Pandemic (COVID-19) > Farm Size > Climate Change",
         ],
     })
+})
+
+// Very narrow test, mostly for documentation purposes
+it("excludes null parent topics", () => {
+    const parentTopicsTitleWithNull = [null, "Climate Change"]
+    const parentTopicsTitleWithoutNull = [
+        "Coronavirus Pandemic (COVID-19)",
+        "Farm Size",
+        "Climate Change",
+    ]
+    const allParentTopicsTitle = [
+        parentTopicsTitleWithNull,
+        parentTopicsTitleWithoutNull,
+    ]
+
+    expect(allParentTopicsTitle.filter(excludeNullParentTopics)).toEqual([
+        parentTopicsTitleWithoutNull,
+    ])
 })

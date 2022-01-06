@@ -44,15 +44,18 @@ const getContentGraphRecords = async () => {
     const records = []
 
     for (const documentNode of allDocumentNodes) {
-        const parentTopicsTitle = await getParentTopicsTitle(
+        if (!documentNode.title) continue
+
+        const allParentTopicsTitle = await getParentTopicsTitle(
             documentNode,
             allDocumentNodes
         )
 
-        if (!parentTopicsTitle || parentTopicsTitle.length === 0) continue
-        if (!documentNode.title) continue
+        let parentTopicsTrails = {}
+        if (allParentTopicsTitle && allParentTopicsTitle.length !== 0) {
+            parentTopicsTrails = formatParentTopicsTrails(allParentTopicsTitle)
+        }
 
-        const parentTopicsTrails = formatParentTopicsTrails(parentTopicsTitle)
         records.push({
             objectID: documentNode.id,
             title: documentNode.title,
