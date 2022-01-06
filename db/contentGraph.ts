@@ -58,7 +58,11 @@ const getParentTopicsTitleWithNull = async (
     allDocumentNodes: DocumentNode[],
     childrenTopicsTitle: (string | null)[] = []
 ): Promise<(string | null)[][]> => {
-    const currentTopicsTitle = [node.title, ...childrenTopicsTitle]
+    const currentTopicsTitle = [...childrenTopicsTitle]
+
+    if (node.type === GraphDocumentType.Topic)
+        currentTopicsTitle.unshift(node.title)
+
     if (!node.parentTopics || node.parentTopics.length === 0)
         return [currentTopicsTitle]
 
