@@ -123,7 +123,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         },
         {
             label: "By country",
-            href: "/energy#energy-country-profiles",
+            href: "/energy#country-profiles",
             id: "by-country",
         },
         {
