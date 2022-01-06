@@ -34,7 +34,11 @@ import {
     PostRestApi,
     TopicId,
 } from "../clientUtils/owidTypes"
-import { getContentGraph, GraphType } from "./contentGraph"
+import {
+    getContentGraph,
+    GraphType,
+    WPPostTypeToGraphDocumentType,
+} from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
 import { Topic } from "../grapher/core/GrapherConstants"
 
@@ -264,6 +268,9 @@ export const getDocumentsInfo = async (
             node: DocumentNode & { parentTopics: { nodes: { id: TopicId }[] } }
         ) => ({
             ...node,
+            type: WPPostTypeToGraphDocumentType[
+                type.toLowerCase() as WP_PostType
+            ],
             parentTopics: node.parentTopics.nodes.map((topic) => topic.id),
         })
     )
