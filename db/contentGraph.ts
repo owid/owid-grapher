@@ -56,7 +56,6 @@ const store = fortune(
 
 const getParentTopicsTitleWithNull = async (
     node: DocumentNode,
-    allDocumentNodes: DocumentNode[],
     childrenTopicsTitle: (string | null)[] = []
 ): Promise<(string | null)[][]> => {
     const currentTopicsTitle = [...childrenTopicsTitle]
@@ -91,15 +90,10 @@ export const excludeNullParentTopics = (
 
 export const getParentTopicsTitle = async (
     node: DocumentNode,
-    allDocumentNodes: DocumentNode[],
     childrenTopicsTitle: string[] = []
 ): Promise<string[][]> => {
     return (
-        await getParentTopicsTitleWithNull(
-            node,
-            allDocumentNodes,
-            childrenTopicsTitle
-        )
+        await getParentTopicsTitleWithNull(node, childrenTopicsTitle)
     )?.filter(excludeNullParentTopics) as string[][]
 }
 

@@ -46,10 +46,7 @@ const getContentGraphRecords = async () => {
     for (const documentNode of allDocumentNodes) {
         if (!documentNode.title) continue
 
-        const allParentTopicsTitle = await getParentTopicsTitle(
-            documentNode,
-            allDocumentNodes
-        )
+        const allParentTopicsTitle = await getParentTopicsTitle(documentNode)
 
         let parentTopicsTrails = {}
         if (allParentTopicsTitle && allParentTopicsTitle.length !== 0) {
