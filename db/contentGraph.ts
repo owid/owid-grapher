@@ -74,7 +74,6 @@ const getParentTopicsTitleWithNull = async (
 
             const grandParentTopicsTitle = await getParentTopicsTitleWithNull(
                 parentNode,
-                allDocumentNodes,
                 currentTopicsTitle
             )
             return grandParentTopicsTitle
