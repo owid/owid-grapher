@@ -186,11 +186,16 @@ export interface EntryNode {
 
 export type TopicId = number
 
+export enum GraphDocumentType {
+    Topic = "topic",
+    Article = "article",
+}
 export interface DocumentNode {
     id: number
     title: string
     slug: string
     content: string | null // if content is empty
+    type: GraphDocumentType
     parentTopics: Array<TopicId>
 }
 

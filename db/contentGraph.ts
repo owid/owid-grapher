@@ -1,6 +1,7 @@
 import {
     ChartRecord,
     DocumentNode,
+    GraphDocumentType,
     TopicId,
     WP_PostType,
 } from "../clientUtils/owidTypes"
@@ -19,11 +20,17 @@ export enum GraphType {
     Chart = "chart",
 }
 
+export const WPPostTypeToGraphDocumentType = {
+    [WP_PostType.Page]: GraphDocumentType.Topic,
+    [WP_PostType.Post]: GraphDocumentType.Article,
+}
+
 const store = fortune(
     {
         [GraphType.Document]: {
             title: String,
             slug: String,
+            type: String,
             parentTopics: [Array(GraphType.Document), "childrenTopics"],
             childrenTopics: [Array(GraphType.Document), "parentTopics"],
             embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],

@@ -59,6 +59,7 @@ const getContentGraphRecords = async () => {
         records.push({
             objectID: documentNode.id,
             title: documentNode.title,
+            type: documentNode.type,
             ...parentTopicsTrails,
         })
     }

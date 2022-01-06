@@ -246,6 +246,7 @@ export const getDocumentsInfo = async (
                 id: databaseId
                 title
                 slug
+                type: __typename
                 content
                 parentTopics {
                     nodes {
