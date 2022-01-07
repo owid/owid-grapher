@@ -1,4 +1,5 @@
 import {
+    AlgoliaRecord,
     ChartRecord,
     DocumentNode,
     GraphDocumentType,
@@ -67,7 +68,7 @@ export const getParentTopicsTitle = async (
     return parentTopicsTitle.flat()
 }
 
-const getContentGraphRecords = async () => {
+const getContentGraphRecords = async (): Promise<AlgoliaRecord[]> => {
     const records = []
 
     const graph = await getContentGraph()
