@@ -1,9 +1,11 @@
 import {
     ChartRecord,
     DocumentNode,
+    GraphDocumentType,
     GraphType,
+    TopicId,
 } from "../../clientUtils/owidTypes"
-import { getContentGraph, getParentTopicsTitle } from "../../db/contentGraph"
+import { getContentGraph } from "../../db/contentGraph"
 import * as wpdb from "../../db/wpdb"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import {
@@ -32,6 +34,37 @@ export const formatParentTopicsTrails = (
         })
     })
     return topicsFacets
+}
+
+export const getParentTopicsTitle = async (
+    node: DocumentNode | ChartRecord,
+    graph: any,
+    childrenTopicsTitle: string[] = []
+): Promise<string[][]> => {
+    const currentTopicsTitle = [...childrenTopicsTitle]
+
+    if (node.type === GraphDocumentType.Topic)
+        currentTopicsTitle.unshift(node.title)
+
+    if (!node.parentTopics || node.parentTopics.length === 0)
+        return [currentTopicsTitle]
+
+    const parentTopicsTitle = await Promise.all(
+        node.parentTopics.map(async (parentTopicId: TopicId) => {
+            const parentNode = (
+                await graph.find(GraphType.Document, parentTopicId)
+            ).payload.records[0]
+
+            const grandParentTopicsTitle = await getParentTopicsTitle(
+                parentNode,
+                graph,
+                currentTopicsTitle
+            )
+            return grandParentTopicsTitle
+        })
+    )
+
+    return parentTopicsTitle.flat()
 }
 
 const getContentGraphRecords = async () => {

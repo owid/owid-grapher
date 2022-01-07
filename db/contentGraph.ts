@@ -3,7 +3,6 @@ import {
     DocumentNode,
     GraphDocumentType,
     GraphType,
-    TopicId,
     WP_PostType,
 } from "../clientUtils/owidTypes"
 import { once } from "../clientUtils/Util"
@@ -19,37 +18,6 @@ const {
 export const WPPostTypeToGraphDocumentType = {
     [WP_PostType.Page]: GraphDocumentType.Topic,
     [WP_PostType.Post]: GraphDocumentType.Article,
-}
-
-export const getParentTopicsTitle = async (
-    node: DocumentNode | ChartRecord,
-    graph: any,
-    childrenTopicsTitle: string[] = []
-): Promise<string[][]> => {
-    const currentTopicsTitle = [...childrenTopicsTitle]
-
-    if (node.type === GraphDocumentType.Topic)
-        currentTopicsTitle.unshift(node.title)
-
-    if (!node.parentTopics || node.parentTopics.length === 0)
-        return [currentTopicsTitle]
-
-    const parentTopicsTitle = await Promise.all(
-        node.parentTopics.map(async (parentTopicId: TopicId) => {
-            const parentNode = (
-                await graph.find(GraphType.Document, parentTopicId)
-            ).payload.records[0]
-
-            const grandParentTopicsTitle = await getParentTopicsTitle(
-                parentNode,
-                graph,
-                currentTopicsTitle
-            )
-            return grandParentTopicsTitle
-        })
-    )
-
-    return parentTopicsTitle.flat()
 }
 
 export const getChartsRecords = async (): Promise<ChartRecord[]> => {
