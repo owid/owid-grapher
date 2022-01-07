@@ -112,25 +112,6 @@ const addChartsToGraph = async (
             throw err
         }
     }
-    // for (const chart of allCharts) {
-    //     const { parentTopics } = chart
-    //     try {
-    //         await graph.create(GraphType.Chart, {
-    //             id: slug,
-    //             title,
-    //             parentTopics: parentTopics ?? [],
-    //         })
-    //     } catch (err) {
-    //         // NOT NECESSARY ANYMORE
-    //         // ConflictErrors occur when a chart has already been added from an
-    //         // embedding document
-    //         throwAllButConflictError(err)
-    //         await graph.update(GraphType.Chart, {
-    //             id: slug,
-    //             replace: { title, parentTopics: parentTopics ?? [] },
-    //         })
-    //     }
-    // }
 }
 
 const addEmbeddedChartsToGraph = async (
@@ -234,9 +215,6 @@ export const getContentGraph = once(async () => {
 
 const main = async (): Promise<void> => {
     const graph = await getContentGraph()
-    // const allDocumentNodes: DocumentNode[] = (
-    //     await graph.find(GraphType.Document)
-    // ).payload.records
 }
 
 if (require.main === module) main()
