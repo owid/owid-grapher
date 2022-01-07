@@ -14,7 +14,7 @@ import { Url } from "../../clientUtils/urls/Url"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { BAKED_BASE_URL } from "../../settings/clientSettings"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -158,7 +158,7 @@ export const renderAuthoredProminentLinks = ($: CheerioStatic) => {
         const image =
             $block.find("figure").html() ||
             (url.isGrapher
-                ? `<img src="${BAKED_BASE_URL}/grapher/exports/${url.pathname
+                ? `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${url.pathname
                       ?.split("/")
                       .pop()}.svg" />`
                 : null)
