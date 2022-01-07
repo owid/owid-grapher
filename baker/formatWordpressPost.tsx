@@ -28,7 +28,6 @@ import {
     DEEP_LINK_CLASS,
     extractDataValuesConfiguration,
     formatDataValue,
-    formatLinks,
     parseKeyValueArgs,
 } from "./formatting"
 import { mathjax } from "mathjax-full/js/mathjax"
@@ -47,6 +46,7 @@ import {
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
 import { renderAutomaticProminentLinks } from "./siteRenderers"
 import {
+    formatUrls,
     getBodyHtml,
     GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
@@ -119,10 +119,14 @@ const formatLatex = async (
 
 export const formatWordpressPost = async (
     post: FullPost,
-    html: string,
     formattingOptions: FormattingOptions,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
+    let html = post.content
+
+    // Standardize urls
+    html = formatUrls(html)
+
     // Strip comments
     html = html.replace(/<!--[^>]+-->/g, "")
 
@@ -244,9 +248,6 @@ export const formatWordpressPost = async (
             )
         return "UNKNOWN TABLE"
     })
-
-    // No need for wordpress urls
-    html = html.replace(new RegExp("/app/uploads", "g"), "/uploads")
 
     // Give "Add country" text (and variations) the appearance of "+ Add Country" chart control
     html = html.replace(
@@ -585,13 +586,11 @@ export const formatPost = async (
     formattingOptions: FormattingOptions,
     grapherExports?: GrapherExports
 ): Promise<FormattedPost> => {
-    const html = formatLinks(post.content)
-
     // No formatting applied, plain source HTML returned
     if (formattingOptions.raw)
         return {
             ...post,
-            html,
+            html: formatUrls(post.content),
             footnotes: [],
             references: [],
             tocHeadings: [],
@@ -605,5 +604,5 @@ export const formatPost = async (
         ...formattingOptions,
     }
 
-    return formatWordpressPost(post, html, options, grapherExports)
+    return formatWordpressPost(post, options, grapherExports)
 }
