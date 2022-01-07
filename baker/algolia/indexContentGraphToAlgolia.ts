@@ -8,17 +8,21 @@ import {
 } from "../../clientUtils/owidTypes"
 import { getContentGraph } from "../../db/contentGraph"
 import * as wpdb from "../../db/wpdb"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
+import { formatUrls } from "../../site/formatting"
 import {
     CONTENT_GRAPH_ALGOLIA_INDEX,
     getAlgoliaClient,
 } from "./configureAlgolia"
-
+interface TopicsTrailsByLevel {
+    [facetLevelKey: string]: string[]
+}
 export const formatParentTopicsTrails = (
     parentTopicsTitle: string[][]
-): { [facetLevelKey: string]: string[] } => {
+): TopicsTrailsByLevel => {
     const facetPrefix = "topics.lvl"
-    const topicsFacets: any = {}
+    const topicsFacets: TopicsTrailsByLevel = {}
     parentTopicsTitle.forEach((topicsTitle) => {
         const allTopicsTitleFromRoot = topicsTitle.map((_, i) => {
             return topicsTitle.slice(0, i + 1)
@@ -68,37 +72,65 @@ export const getParentTopicsTitle = async (
     return parentTopicsTitle.flat()
 }
 
+const getParentTopicsTrails = async (
+    graphNode: DocumentNode | ChartRecord,
+    graph: any
+): Promise<TopicsTrailsByLevel> => {
+    const allParentTopicsTitle = await getParentTopicsTitle(graphNode, graph)
+
+    let parentTopicsTrails = {}
+    if (allParentTopicsTitle && allParentTopicsTitle.length !== 0) {
+        parentTopicsTrails = formatParentTopicsTrails(allParentTopicsTitle)
+    }
+
+    return parentTopicsTrails
+}
+
 const getContentGraphRecords = async (): Promise<AlgoliaRecord[]> => {
     const records = []
 
     const graph = await getContentGraph()
 
+    // Add document nodes
     const allDocumentNodes: DocumentNode[] = (
         await graph.find(GraphType.Document)
     ).payload.records
-
-    const allChartRecords: ChartRecord[] = (await graph.find(GraphType.Chart))
-        .payload.records
-
-    for (const graphNode of [...allDocumentNodes, ...allChartRecords]) {
-        const allParentTopicsTitle = await getParentTopicsTitle(
-            graphNode,
+    for (const documentNode of allDocumentNodes) {
+        const parentTopicsTrails = await getParentTopicsTrails(
+            documentNode,
             graph
         )
 
-        let parentTopicsTrails = {}
-        if (allParentTopicsTitle && allParentTopicsTitle.length !== 0) {
-            parentTopicsTrails = formatParentTopicsTrails(allParentTopicsTitle)
-        }
-
         records.push({
             // objectID: graphNode.id, // ID collision between documents and charts, do not use as-is
-            id: graphNode.id,
-            title: graphNode.title,
-            type: graphNode.type,
+            id: documentNode.id,
+            title: documentNode.title,
+            type: documentNode.type,
+            ...(documentNode.image && {
+                image: formatUrls(documentNode.image),
+            }),
             ...parentTopicsTrails,
         })
     }
+
+    // Add chart records
+    const allChartRecords: ChartRecord[] = (await graph.find(GraphType.Chart))
+        .payload.records
+    for (const chartRecord of allChartRecords) {
+        const parentTopicsTrails = await getParentTopicsTrails(
+            chartRecord,
+            graph
+        )
+        records.push({
+            // objectID: graphNode.id, // ID collision between documents and charts, do not use as-is
+            id: chartRecord.id,
+            title: chartRecord.title,
+            type: chartRecord.type,
+            image: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartRecord.slug}.svg`,
+            ...parentTopicsTrails,
+        })
+    }
+
     return records
 }
 

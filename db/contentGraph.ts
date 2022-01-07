@@ -162,6 +162,7 @@ const fortuneRecordTypes = {
         slug: String,
         type: String,
         content: String,
+        image: String,
         parentTopics: [Array(GraphType.Document), "childrenTopics"],
         childrenTopics: [Array(GraphType.Document), "parentTopics"],
         embeddedCharts: [Array(GraphType.Chart), "embeddedIn"],
@@ -211,7 +212,6 @@ export const getContentGraph = once(async () => {
 
     return graph
 })
-
 
 const main = async (): Promise<void> => {
     const graph = await getContentGraph()

@@ -195,12 +195,16 @@ export interface AlgoliaRecord {
     id: number
     title: string
     type: GraphType | GraphDocumentType
+    image?: string
 }
 
-export interface DocumentNode extends AlgoliaRecord {
+export interface DocumentNode {
+    id: number
+    title: string
     slug: string
     content: string | null // if content is empty
     type: GraphDocumentType
+    image: string | null
     parentTopics: Array<TopicId>
 }
 
@@ -216,7 +220,9 @@ export enum GraphType {
     Chart = "chart",
 }
 
-export interface ChartRecord extends AlgoliaRecord {
+export interface ChartRecord {
+    id: number
+    title: string
     slug: string
     type: GraphType // probably a better way to do this, should only be GraphType.chart
     parentTopics: Array<TopicId>

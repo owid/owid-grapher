@@ -35,9 +35,9 @@ import {
     TopicId,
     GraphType,
 } from "../clientUtils/owidTypes"
-import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
 import { Topic } from "../grapher/core/GrapherConstants"
+import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
 
 let _knexInstance: Knex
 
@@ -249,6 +249,11 @@ export const getDocumentsInfo = async (
                 slug
                 type: __typename
                 content
+                image: featuredImage {
+                    node {
+                        sourceUrl
+                    }
+                }
                 parentTopics {
                     nodes {
                         id: databaseId
@@ -262,12 +267,16 @@ export const getDocumentsInfo = async (
     const pageInfo = documents?.data[typePlural].pageInfo
     const nodes = documents?.data[typePlural].nodes.map(
         (
-            node: DocumentNode & { parentTopics: { nodes: { id: TopicId }[] } }
+            node: DocumentNode & {
+                image: { node: { sourceUrl: string } }
+                parentTopics: { nodes: { id: TopicId }[] }
+            }
         ) => ({
             ...node,
             type: WPPostTypeToGraphDocumentType[
                 type.toLowerCase() as WP_PostType
             ],
+            image: node.image?.node.sourceUrl ?? null,
             parentTopics: node.parentTopics.nodes.map((topic) => topic.id),
         })
     )
