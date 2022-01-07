@@ -84,7 +84,9 @@ const indexContentGraphToAlgolia = async () => {
         }
 
         const index = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
-        index.replaceAllObjects(records)
+        index.replaceAllObjects(records, {
+            autoGenerateObjectIDIfNotExist: true,
+        })
     }
 
     await wpdb.singleton.end()
