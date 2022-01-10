@@ -35,7 +35,7 @@ const ONETIME_DEFAULT_INDEX = 1
 const MONTHLY_DEFAULT_INDEX = 1
 
 const MIN_DONATION = 1
-const MAX_DONATION = 100000
+const MAX_DONATION = 10_000
 
 const SUPPORTED_CURRENCY_CODES = [
     CurrencyCode.USD,
@@ -126,7 +126,7 @@ export class DonateForm extends React.Component {
             this.amount < MIN_DONATION
         ) {
             throw new Error(
-                "You can only donate between $1 and $100,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
+                "You can only donate between $1 and $10,000 USD. For other amounts, please get in touch with us at donate@ourworldindata.org."
             )
         }
 
