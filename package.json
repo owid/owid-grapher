@@ -127,7 +127,6 @@
         "express-error-slack": "^2.0.0",
         "express-rate-limit": "^5.1.3",
         "fast-cartesian": "^5.1.0",
-        "fibers": "^5.0.0",
         "file-loader": "^6.1.0",
         "filenamify": "^4.1.0",
         "fortune": "^5.5.17",
