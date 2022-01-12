@@ -77,6 +77,7 @@ window.runSiteFooterScripts = () => {
 }
 
 runMonkeyPatchForGoogleTranslate()
+window.registerSlideshowShortcut()
 
 if (BUGSNAG_API_KEY) {
     try {

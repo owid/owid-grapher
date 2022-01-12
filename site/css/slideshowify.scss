@@ -2,9 +2,38 @@
     display: none;
 }
 
-.slideshow-container {
-    display: flex;
+.slideshow-text-column p {
+    font-size: 1.5rem;
 }
-.slideshow-column {
-    flex: 1;
+
+.slides {
+    > section {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: min-content 1fr;
+        grid-template-areas:
+            "header header"
+            "chart text";
+        max-height: 100%;
+
+        > h2,
+        h3 {
+            grid-area: header;
+        }
+
+        > .slideshow-chart-column {
+            grid-area: chart;
+            display: flex;
+            flex-direction: column;
+
+            > iframe {
+                flex: 1 1 content;
+            }
+        }
+
+        > .slideshow-text-column {
+            grid-area: text;
+            overflow-y: auto;
+        }
+    }
 }
