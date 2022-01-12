@@ -226,7 +226,7 @@ const addTocToSections = (
 
 const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     const publishedDate = formatDate(post.date)
-    const modifiedDate = formatDate(post.modifiedDate)
+    // const modifiedDate = formatDate(post.modifiedDate)
 
     cheerioEl("body").prepend(
         ReactDOMServer.renderToStaticMarkup(
@@ -240,12 +240,13 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
 
                 <div className="published-updated">
                     <time>{publishedDate}</time>
-                    {modifiedDate !== publishedDate && (
+                    {/* See https://www.notion.so/owid/Revert-last-updated-mention-in-articles-a917e8cf6ad846138bd650bfc1b7395b */}
+                    {/* {modifiedDate !== publishedDate && (
                         <>
                             <span> - Last updated on </span>
                             <time>{modifiedDate}</time>
                         </>
-                    )}
+                    )} */}
                 </div>
             </div>
         )
