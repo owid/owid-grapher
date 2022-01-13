@@ -24,6 +24,7 @@ function* recursivelyYieldRelevantContentNodes(parent: Node): Generator<Node> {
         if (
             node.nodeName === "H3" ||
             node.nodeName === "H2" ||
+            node.nodeName === "H4" ||
             node.nodeName === "P" ||
             node.nodeName === "FIGURE"
         ) {
@@ -57,7 +58,11 @@ function createSlides() {
         graphs: [],
     }
     for (const node of recursivelyYieldRelevantContentNodes(article)) {
-        if (node.nodeName === "H3" || node.nodeName === "H2") {
+        if (
+            node.nodeName === "H3" ||
+            node.nodeName === "H2" ||
+            node.nodeName === "H4"
+        ) {
             if (
                 currentSlide !== undefined &&
                 !slideFragmentIsEmpty(currentSlide)
@@ -68,12 +73,22 @@ function createSlides() {
             const newtag = node.cloneNode(true)
             currentSlide.text.push(newtag)
         } else if (node.nodeName === "FIGURE") {
-            const newtag = document.createElement("iframe")
-            newtag.src = (node as HTMLElement).dataset.grapherSrc ?? ""
-            ;(newtag as any).loading = "lazy"
-            newtag.style.width = "100%"
-            newtag.style.height = "600px"
-            newtag.style.border = "0px none"
+            const grapherSrc = (node as HTMLElement).dataset.grapherSrc
+            let newtag: Node
+            if (grapherSrc) {
+                // If we have a grapherSrc set, create an iframe and set the src so that
+                // the grapher is re-initialized at the new size correctly
+                const iframe = document.createElement("iframe")
+                iframe.src = grapherSrc
+                ;(iframe as any).loading = "lazy"
+                iframe.style.width = "100%"
+                iframe.style.height = "600px"
+                iframe.style.border = "0px none"
+                newtag = iframe
+            } else {
+                // If we have a static image just clone the content
+                newtag = node.cloneNode(true)
+            }
             //node.cloneNode(true)
             currentSlide.graphs.push(newtag)
         }
