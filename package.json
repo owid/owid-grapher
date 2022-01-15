@@ -182,7 +182,7 @@
         "sass-loader": "^10.0.2",
         "sharp": "^0.29.0",
         "shell-quote": "^1.6.1",
-        "shelljs": "^0.8.3",
+        "shelljs": "^0.8.5",
         "simple-git": "^2.38.0",
         "simple-statistics": "^7.3.2",
         "slack-node": "^0.1.8",
