@@ -36,8 +36,8 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
             ? await getRelatedCharts(post.id)
             : undefined
     const relatedArticles =
-        grapher.slug && isWordpressAPIEnabled
-            ? await getRelatedArticles(grapher.slug)
+        grapher.id && isWordpressAPIEnabled
+            ? await getRelatedArticles(grapher.id)
             : undefined
 
     return renderToHtmlPage(

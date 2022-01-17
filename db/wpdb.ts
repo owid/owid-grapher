@@ -577,17 +577,17 @@ export const getRelatedCharts = async (
     `)
 
 export const getRelatedArticles = async (
-    chartSlug: string
+    chartId: number
 ): Promise<PostReference[] | undefined> => {
     const graph = await getContentGraph()
 
-    const chartRecord = await graph.find(GraphType.Chart, chartSlug)
+    const chartRecord = await graph.find(GraphType.Chart, chartId)
 
     if (!chartRecord.payload.count) return
 
     const chart = chartRecord.payload.records[0]
     const relatedArticles: PostReference[] = await Promise.all(
-        chart.research.map(async (postId: any) => {
+        chart.embeddedIn.map(async (postId: any) => {
             const postRecord = await graph.find(GraphType.Document, postId)
             const post = postRecord.payload.records[0]
             return {
