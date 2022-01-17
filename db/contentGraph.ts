@@ -5,7 +5,7 @@ import {
     GraphType,
     WP_PostType,
 } from "../clientUtils/owidTypes"
-import { once } from "../clientUtils/Util"
+import { once, isEmpty } from "../clientUtils/Util"
 import { queryMysql } from "./db"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb"
 
@@ -67,16 +67,18 @@ const addDocumentsToGraph = async (
         // Create the parent topics first (add records with the only available
         // referential information - id - then update the records when going
         // through the parent topic as a document)
-        for (const parentTopic of document.parentTopics) {
-            try {
-                await graph.create(GraphType.Document, {
-                    id: parentTopic,
-                })
-            } catch (err) {
-                // If the document has already being added as a parent topic of
-                // another document, a ConflictError will be raised. Any other
-                // error will be thrown.
-                throwAllButConflictError(err)
+        if (document.parentTopics) {
+            for (const parentTopic of document.parentTopics) {
+                try {
+                    await graph.create(GraphType.Document, {
+                        id: parentTopic,
+                    })
+                } catch (err) {
+                    // If the document has already being added as a parent topic of
+                    // another document, a ConflictError will be raised. Any other
+                    // error will be thrown.
+                    throwAllButConflictError(err)
+                }
             }
         }
 
@@ -153,6 +155,7 @@ export const removeUnpublishedDocuments = async (graph: any): Promise<void> => {
         })
     ).payload.records?.map((record: { id: number }) => record.id)
 
+    if (isEmpty(ids)) return
     await graph.delete(GraphType.Document, ids)
 }
 

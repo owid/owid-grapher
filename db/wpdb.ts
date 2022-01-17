@@ -38,6 +38,7 @@ import {
 import { memoize } from "../clientUtils/Util"
 import { Topic } from "../grapher/core/GrapherConstants"
 import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
+import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings"
 
 let _knexInstance: Knex
 
@@ -254,38 +255,45 @@ export const getDocumentsInfo = async (
                         sourceUrl
                     }
                 }
+                ${
+                    TOPICS_CONTENT_GRAPH
+                        ? `
                 parentTopics {
                     nodes {
                         id: databaseId
                     }
                 }
+
+                `
+                        : ""
+                }
             }
         }
     }
     `
-    const documents = await graphqlQuery(query, { cursor })
-    const pageInfo = documents?.data[typePlural].pageInfo
-    const nodes = documents?.data[typePlural].nodes.map(
-        (
-            node: DocumentNode & {
-                image: { node: { sourceUrl: string } }
-                parentTopics: { nodes: { id: TopicId }[] }
-            }
-        ) => ({
-            ...node,
-            type: WPPostTypeToGraphDocumentType[
-                type.toLowerCase() as WP_PostType
-            ],
-            image: node.image?.node.sourceUrl ?? null,
-            parentTopics: node.parentTopics.nodes.map((topic) => topic.id),
-        })
-    )
+
+    const result = await graphqlQuery(query, { cursor })
+    if (!result.data) return []
+
+    const pageInfo = result.data[typePlural].pageInfo
+    const nodes: Array<
+        Omit<DocumentNode, "image" | "parentTopics"> & {
+            image: { node: { sourceUrl: string } } | null
+            parentTopics?: { nodes: { id: TopicId }[] }
+        }
+    > = result.data[typePlural].nodes
+    const documents = nodes.map((node) => ({
+        ...node,
+        type: WPPostTypeToGraphDocumentType[type.toLowerCase() as WP_PostType],
+        image: node.image?.node.sourceUrl ?? null,
+        parentTopics: node.parentTopics?.nodes.map((topic) => topic.id) ?? [],
+    }))
     if (pageInfo.hasNextPage) {
-        return nodes.concat(
+        return documents.concat(
             await getDocumentsInfo(type, pageInfo.endCursor, where)
         )
     } else {
-        return nodes
+        return documents
     }
 }
 
