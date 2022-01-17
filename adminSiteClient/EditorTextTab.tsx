@@ -226,6 +226,7 @@ class TopicsSection extends React.Component<{
         return (
             <Section name="Topics">
                 <Select
+                    isDisabled={true}
                     options={this.props.allTopics}
                     getOptionValue={(topic) => topic.id.toString()}
                     getOptionLabel={(topic) => topic.name}
