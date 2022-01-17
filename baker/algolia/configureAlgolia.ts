@@ -1,6 +1,7 @@
 import algoliasearch, { SearchClient } from "algoliasearch"
 import { Synonym, Settings } from "@algolia/client-search"
-import { ALGOLIA_ID } from "../../settings/clientSettings"
+import { ALGOLIA_ID, TOPICS_CONTENT_GRAPH } from "../../settings/clientSettings"
+
 import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
@@ -138,14 +139,16 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
 
-    const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
+    if (TOPICS_CONTENT_GRAPH) {
+        const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
 
-    await graphIndex.setSettings({
-        attributesForFaceting: [
-            ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
-            "searchable(type)",
-        ],
-    })
+        await graphIndex.setSettings({
+            attributesForFaceting: [
+                ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
+                "searchable(type)",
+            ],
+        })
+    }
 }
 
 if (require.main === module) configureAlgolia()

@@ -23,6 +23,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import Select from "react-select"
+import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -226,7 +227,7 @@ class TopicsSection extends React.Component<{
         return (
             <Section name="Topics">
                 <Select
-                    isDisabled={true}
+                    isDisabled={!TOPICS_CONTENT_GRAPH}
                     options={this.props.allTopics}
                     getOptionValue={(topic) => topic.id.toString()}
                     getOptionLabel={(topic) => topic.name}
