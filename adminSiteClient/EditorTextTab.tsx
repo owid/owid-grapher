@@ -134,10 +134,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             </ul>
                         </div>
                     )}
-                    <TopicsSection
-                        allTopics={this.props.editor.allTopics}
-                        grapher={grapher}
-                    />
+
                     <BindString
                         label="Footer note"
                         field="note"
@@ -146,6 +143,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         softCharacterLimit={140}
                     />
                 </Section>
+
+                <TopicsSection
+                    allTopics={this.props.editor.allTopics}
+                    grapher={grapher}
+                />
+
                 <Section name="Related">
                     {relatedQuestions.map(
                         (question: RelatedQuestionsConfig, idx: number) => (
@@ -221,8 +224,7 @@ class TopicsSection extends React.Component<{
         const { grapher } = this.props
 
         return (
-            <>
-                <h5>Topics</h5>
+            <Section name="Topics">
                 <Select
                     options={this.props.allTopics}
                     getOptionValue={(topic) => topic.id.toString()}
@@ -241,7 +243,7 @@ class TopicsSection extends React.Component<{
                     }
                     menuPlacement="auto"
                 />
-            </>
+            </Section>
         )
     }
 }
