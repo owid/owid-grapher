@@ -67,12 +67,7 @@ export class EditorFeatures {
     }
 
     @computed get entityType() {
-        return (
-            (!this.grapher.isScatter &&
-                this.grapher.addCountryMode ===
-                    EntitySelectionMode.MultipleEntities) ||
-            this.grapher.addCountryMode === EntitySelectionMode.SingleEntity
-        )
+        return this.grapher.addCountryMode !== EntitySelectionMode.Disabled
     }
 
     @computed get relativeModeToggle() {

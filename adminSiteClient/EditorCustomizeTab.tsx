@@ -592,12 +592,18 @@ export class EditorCustomizeTab extends React.Component<{
                             )}
                         </FieldsRow>
                         {features.entityType && (
-                            <BindAutoString
-                                label="Entity name"
-                                field="entityType"
-                                store={grapher}
-                                auto="country"
-                            />
+                            <FieldsRow>
+                                <BindString
+                                    label="Entity name (singular)"
+                                    field="entityType"
+                                    store={grapher}
+                                />
+                                <BindString
+                                    label="Entity name (plural)"
+                                    field="entityTypePlural"
+                                    store={grapher}
+                                />
+                            </FieldsRow>
                         )}
                     </Section>
                 )}

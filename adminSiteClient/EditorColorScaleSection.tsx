@@ -69,7 +69,7 @@ class ColorLegendSection extends React.Component<{
     render() {
         const { scale, features } = this.props
         return (
-            <Section name="Legend">
+            <Section name="Color legend">
                 {features.visualScaling && (
                     <FieldsRow>
                         <Toggle
