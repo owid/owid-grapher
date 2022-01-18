@@ -13,6 +13,26 @@ const blockStyle = {
     padding: "1rem",
 }
 
+const isInternalLink = (link) => {
+    const BAKED_BASE_URL = "https://ourworldindata.org"
+    return link.startsWith(BAKED_BASE_URL)
+}
+
+const isAnchorNode = (node) => {
+    return node.nodeName === "A"
+}
+
+const isTextNode = (node) => {
+    return node.nodeName === "#text"
+}
+
+const isInternalLinkNode = (node) => {
+    return (
+        (isAnchorNode(node) && isInternalLink(node.getAttribute("href"))) ||
+        (isTextNode(node) && isInternalLink(node.textContent))
+    )
+}
+
 const ProminentLink = {
     title: "Prominent link",
     icon: "admin-links",
@@ -46,6 +66,32 @@ const ProminentLink = {
                     return createBlock("owid/prominent-link", {}, [
                         createBlock("core/paragraph", { content }),
                     ])
+                },
+            },
+            {
+                type: "raw",
+                isMatch: (node) => {
+                    return (
+                        node?.nodeName === "P" &&
+                        node.hasChildNodes() &&
+                        node.childNodes.length === 1 &&
+                        isInternalLinkNode(node.firstChild)
+                    )
+                },
+                transform: (paragraphNode) => {
+                    const linkNode = paragraphNode.firstChild
+                    return createBlock("owid/prominent-link", {
+                        title:
+                            (isAnchorNode(linkNode) &&
+                                linkNode.textContent !==
+                                    linkNode.getAttribute("href") &&
+                                linkNode.textContent) ||
+                            "",
+                        linkUrl:
+                            (isAnchorNode(linkNode) &&
+                                linkNode.getAttribute("href")) ||
+                            linkNode.textContent,
+                    })
                 },
             },
         ],
