@@ -305,8 +305,15 @@ export class Explorer
         const grapher = this.grapher
         if (!grapher) return
         const grapherConfigFromExplorer = this.explorerProgram.grapherConfig
-        const { grapherId, tableSlug, yScaleToggle, yAxisMin, facetYDomain } =
-            grapherConfigFromExplorer
+        const {
+            grapherId,
+            tableSlug,
+            yScaleToggle,
+            yAxisMin,
+            facetYDomain,
+            relatedQuestionText,
+            relatedQuestionUrl,
+        } = grapherConfigFromExplorer
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
@@ -327,6 +334,11 @@ export class Explorer
         grapher.yAxis.min = yAxisMin
         if (facetYDomain) {
             grapher.yAxis.facetDomain = facetYDomain
+        }
+        if (relatedQuestionText && relatedQuestionUrl) {
+            grapher.relatedQuestions = [
+                { text: relatedQuestionText, url: relatedQuestionUrl },
+            ]
         }
         grapher.updateFromObject(config)
 

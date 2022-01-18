@@ -2286,6 +2286,7 @@ export class Grapher
         this.hideTitleAnnotation = grapher.hideTitleAnnotation
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
+        this.relatedQuestions = grapher.relatedQuestions
     }
 
     debounceMode = false

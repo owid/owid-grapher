@@ -48,6 +48,8 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     yScaleToggle?: boolean
     yAxisMin?: number
     facetYDomain?: FacetAxisDomain
+    relatedQuestionText?: string
+    relatedQuestionUrl?: string
 }
 
 const ExplorerRootDef: CellDef = {
