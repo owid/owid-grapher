@@ -59,7 +59,7 @@ const throwAllButConflictError = (err: unknown): void => {
     }
 }
 
-const addDocumentsToGraph = async (
+export const addDocumentsToGraph = async (
     documents: DocumentNode[],
     graph: any
 ): Promise<void> => {
@@ -159,7 +159,7 @@ export const removeUnpublishedDocuments = async (graph: any): Promise<void> => {
     await graph.delete(GraphType.Document, ids)
 }
 
-const fortuneRecordTypes = {
+export const fortuneRecordTypes = {
     [GraphType.Document]: {
         title: String,
         slug: String,
