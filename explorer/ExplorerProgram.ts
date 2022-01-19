@@ -1,4 +1,4 @@
-import { trimObject } from "../clientUtils/Util"
+import { fetchWithRetries, trimObject } from "../clientUtils/Util"
 import { GitCommit, SubNavId } from "../clientUtils/owidTypes"
 import {
     DefaultNewExplorerSlug,
@@ -363,7 +363,7 @@ export class ExplorerProgram extends GridProgram {
      */
     private static tableDataLoader = new PromiseCache(
         async (url: string): Promise<CoreTableInputOption> => {
-            const response = await fetch(url)
+            const response = await fetchWithRetries(url)
             if (!response.ok) throw new Error(response.statusText)
             const tableInput: CoreTableInputOption = url.endsWith(".json")
                 ? await response.json()

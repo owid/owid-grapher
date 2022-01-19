@@ -511,23 +511,20 @@ export const trimObject = <Obj>(
     return clone
 }
 
-// TODO use fetchText() in fetchJSON()
-// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export const fetchText = async (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", function () {
-            resolve(this.responseText)
-        })
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200) {
-                    reject(new Error(`${req.status} ${req.statusText}`))
-                }
-            }
-        })
-        req.open("GET", url)
-        req.send()
+    const response = await fetchWithRetries(url)
+    if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`)
+    }
+    return await response.text()
+}
+
+export const fetchWithRetries = async (
+    ...params: Parameters<typeof fetch>
+): ReturnType<typeof fetch> => {
+    return await retryPromise(() => fetch(...params), {
+        maxRetries: 3,
+        withDelay: true,
     })
 }
 
@@ -728,20 +725,41 @@ export const addDays = (date: Date, days: number): Date => {
     return newDate
 }
 
+export async function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+interface RetryParams {
+    maxRetries: number
+    withDelay: boolean
+}
+const defaultRetryParams: RetryParams = {
+    maxRetries: 2,
+    withDelay: false,
+}
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    maxRetries: number = 3
+    params?: Partial<RetryParams>
 ): Promise<T> {
     let retried = 0
-    let lastError
-    while (retried++ < maxRetries) {
+    const { maxRetries, withDelay } = {
+        ...defaultRetryParams,
+        ...params,
+    }
+    while (true) {
         try {
             return await promiseGetter()
         } catch (error) {
-            lastError = error
+            if (retried >= maxRetries) {
+                throw error
+            }
+            if (withDelay) {
+                // Wait 100ms on first retry, 200ms on 2nd, 400ms on 3rd...
+                await wait(100 * 2 ** retried)
+            }
+            retried++
         }
     }
-    throw lastError
 }
 
 export function parseIntOrUndefined(s: string | undefined): number | undefined {

@@ -11,7 +11,7 @@ import { Grapher } from "../grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers"
 import { Url } from "../clientUtils/urls/Url"
-import { excludeUndefined } from "../clientUtils/Util"
+import { fetchWithRetries } from "../clientUtils/Util"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
@@ -29,7 +29,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
     private async loadConfig() {
         const { configUrl } = this
         if (configUrl === undefined) return
-        const resp = await fetch(configUrl)
+        const resp = await fetchWithRetries(configUrl)
         if (this.configUrl !== configUrl) {
             // Changed while we were fetching
             return
