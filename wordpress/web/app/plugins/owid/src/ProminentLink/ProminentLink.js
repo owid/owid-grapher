@@ -10,7 +10,7 @@ import MediaContainer from "../MediaContainer/MediaContainer"
 
 const blockStyle = {
     border: "1px dashed lightgrey",
-    padding: "1rem",
+    padding: "0.5rem",
 }
 
 const isInternalLink = (link) => {
@@ -113,19 +113,7 @@ const ProminentLink = {
                                 }
                             />
                         </PanelRow>
-                    </PanelBody>
-                </InspectorControls>
-                <div style={blockStyle}>
-                    <RichText
-                        tagName="h3"
-                        value={title}
-                        onChange={(newTitle) => {
-                            setAttributes({ title: newTitle })
-                        }}
-                        placeholder="Write heading..."
-                    />
-                    <div style={{ display: "flex" }}>
-                        <div style={{ flex: "1 0 40%", marginRight: "1rem" }}>
+                        <PanelRow>
                             <MediaContainer
                                 onSelectMedia={(media) => {
                                     // Try the "large" size URL, falling back to the "full" size URL below.
@@ -141,10 +129,21 @@ const ProminentLink = {
                                 mediaUrl={mediaUrl}
                                 mediaAlt={mediaAlt}
                             />
-                        </div>
-                        <div style={{ flex: "1 0 60%" }}>
-                            <InnerBlocks />
-                        </div>
+                        </PanelRow>
+                    </PanelBody>
+                </InspectorControls>
+                <div style={blockStyle}>
+                    <RichText
+                        tagName="h5"
+                        value={title}
+                        onChange={(newTitle) => {
+                            setAttributes({ title: newTitle })
+                        }}
+                        placeholder={`Override title for ${linkUrl}`}
+                        style={{ marginTop: 0, marginBottom: 0 }}
+                    />
+                    <div>
+                        <InnerBlocks />
                     </div>
                 </div>
             </>
