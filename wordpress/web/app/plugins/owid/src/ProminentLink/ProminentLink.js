@@ -14,8 +14,8 @@ const blockStyle = {
 }
 
 const isInternalLink = (link) => {
-    const BAKED_BASE_URL = "https://ourworldindata.org"
-    return link.startsWith(BAKED_BASE_URL)
+    const BAKED_BASE_URL_REGEX = /^https?:\/\/ourworldindata\.org/
+    return BAKED_BASE_URL_REGEX.test(link)
 }
 
 const isAnchorNode = (node) => {
