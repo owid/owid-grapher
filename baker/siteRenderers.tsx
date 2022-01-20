@@ -522,7 +522,7 @@ const renderExplorerPage = async (
                 grapherConfigs={grapherConfigs}
                 program={program}
                 wpContent={wpContent}
-                baseUrl={this.baseUrl}
+                baseUrl={BAKED_BASE_URL}
                 urlMigrationSpec={urlMigrationSpec}
             />
         )
