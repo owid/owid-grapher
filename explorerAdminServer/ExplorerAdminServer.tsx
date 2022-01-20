@@ -1,14 +1,10 @@
-import React from "react"
 import { existsSync, readdir, writeFile, mkdirp, readFile } from "fs-extra"
 import path from "path"
-import { queryMysql } from "../db/db"
-import { getBlockContent } from "../db/wpdb"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "../explorer/ExplorerProgram"
 import { Router } from "express"
-import { ExplorerPage } from "../site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     EXPLORERS_PREVIEW_ROUTE,
@@ -20,10 +16,7 @@ import {
 import simpleGit, { SimpleGit } from "simple-git"
 import { slugify } from "../clientUtils/Util"
 import { GitCommit, JsonError } from "../clientUtils/owidTypes"
-import {
-    explorerRedirectTable,
-    getExplorerRedirectForPath,
-} from "./ExplorerRedirects"
+import { getExplorerRedirectForPath } from "./ExplorerRedirects"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
 
 export class ExplorerAdminServer {
@@ -155,11 +148,6 @@ export class ExplorerAdminServer {
         return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
     }
 
-    async bakeAllPublishedExplorers(outputFolder: string) {
-        const published = await this.getAllPublishedExplorers()
-        await this.bakeExplorersToDir(outputFolder, published)
-    }
-
     private async getAllPublishedExplorers() {
         const explorers = await this.getAllExplorers()
         return explorers.filter((exp) => exp.isPublished)
@@ -179,54 +167,5 @@ export class ExplorerAdminServer {
             explorers.push(explorer)
         }
         return explorers
-    }
-
-    private async write(outPath: string, content: string) {
-        await mkdirp(path.dirname(outPath))
-        await writeFile(outPath, content)
-        console.log(outPath)
-    }
-
-    private async bakeExplorersToDir(
-        directory: string,
-        explorers: ExplorerProgram[] = []
-    ) {
-        for (const explorer of explorers) {
-            await this.write(
-                `${directory}/${explorer.slug}.html`,
-                await this.renderExplorerPage(explorer)
-            )
-        }
-    }
-
-    async bakeAllExplorerRedirects(outputFolder: string) {
-        const explorers = await this.getAllExplorers()
-        const redirects = explorerRedirectTable.rows
-        for (const redirect of redirects) {
-            const { migrationId, path: redirectPath, baseQueryStr } = redirect
-            const transform = explorerUrlMigrationsById[migrationId]
-            if (!transform) {
-                throw new Error(
-                    `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
-                )
-            }
-            const { explorerSlug } = transform
-            const program = explorers.find(
-                (program) => program.slug === explorerSlug
-            )
-            if (!program) {
-                throw new Error(
-                    `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
-                )
-            }
-            const html = await this.renderExplorerPage(program, {
-                explorerUrlMigrationId: migrationId,
-                baseQueryStr,
-            })
-            await this.write(
-                path.join(outputFolder, `${redirectPath}.html`),
-                html
-            )
-        }
     }
 }
