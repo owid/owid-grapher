@@ -8,8 +8,9 @@ import { createBlock } from "@wordpress/blocks"
 import { Panel, PanelBody, PanelRow } from "@wordpress/components"
 import MediaContainer from "../MediaContainer/MediaContainer"
 
+const linkColor = "#2271b1"
 const blockStyle = {
-    border: "1px dashed lightgrey",
+    border: `1px dashed ${linkColor}`,
     padding: "0.5rem",
 }
 
@@ -140,7 +141,12 @@ const ProminentLink = {
                             setAttributes({ title: newTitle })
                         }}
                         placeholder={`Override title for ${linkUrl}`}
-                        style={{ marginTop: 0, marginBottom: 0 }}
+                        style={{
+                            marginTop: 0,
+                            marginBottom: 0,
+                            color: linkColor,
+                            fontWeight: "normal",
+                        }}
                     />
                     <div>
                         <InnerBlocks />
