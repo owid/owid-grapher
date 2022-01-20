@@ -98,7 +98,7 @@ mockSiteRouter.get("/grapher/latest", async (req, res) => {
     else throw new JsonError("No latest chart", 404)
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*")

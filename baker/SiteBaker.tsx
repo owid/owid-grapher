@@ -227,10 +227,7 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        const explorerAdminServer = new ExplorerAdminServer(
-            GIT_CMS_DIR,
-            this.baseUrl
-        )
+        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
         await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
 

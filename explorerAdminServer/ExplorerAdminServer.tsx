@@ -11,12 +11,10 @@ import simpleGit, { SimpleGit } from "simple-git"
 import { GitCommit } from "../clientUtils/owidTypes"
 
 export class ExplorerAdminServer {
-    constructor(gitDir: string, baseUrl: string) {
+    constructor(gitDir: string) {
         this.gitDir = gitDir
-        this.baseUrl = baseUrl
     }
 
-    private baseUrl: string
     private gitDir: string
 
     private _simpleGit?: SimpleGit
