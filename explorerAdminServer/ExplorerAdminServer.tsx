@@ -1,5 +1,4 @@
-import { existsSync, readdir, writeFile, mkdirp, readFile } from "fs-extra"
-import path from "path"
+import { existsSync, readdir, readFile } from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
@@ -7,14 +6,10 @@ import {
 import { Router } from "express"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
-    EXPLORERS_PREVIEW_ROUTE,
-    GetAllExplorersRoute,
     ExplorersRouteResponse,
-    DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants"
 import simpleGit, { SimpleGit } from "simple-git"
-import { slugify } from "../clientUtils/Util"
 import { GitCommit, JsonError } from "../clientUtils/owidTypes"
 import { getExplorerRedirectForPath } from "./ExplorerRedirects"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
@@ -96,39 +91,6 @@ export class ExplorerAdminServer {
                     baseQueryStr,
                 })
             )
-        })
-    }
-
-    addAdminRoutes(app: Router) {
-        app.get("/errorTest.csv", async (req, res) => {
-            // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
-            const code =
-                req.query.code && !isNaN(parseInt(req.query.code))
-                    ? req.query.code
-                    : 400
-
-            res.status(code)
-
-            return `Simulating code ${code}`
-        })
-
-        app.get(`/${GetAllExplorersRoute}`, async (req, res) => {
-            res.send(await this.getAllExplorersCommand())
-        })
-
-        app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
-            const slug = slugify(req.params.slug)
-            const filename = slug + EXPLORER_FILE_SUFFIX
-            if (slug === DefaultNewExplorerSlug)
-                return res.send(
-                    await this.renderExplorerPage(
-                        new ExplorerProgram(DefaultNewExplorerSlug, "")
-                    )
-                )
-            if (!slug || !existsSync(this.absoluteFolderPath + filename))
-                return res.send(`File not found`)
-            const explorer = await this.getExplorerFromFile(filename)
-            return res.send(await this.renderExplorerPage(explorer))
         })
     }
 

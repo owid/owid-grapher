@@ -19,7 +19,17 @@ import { renderPreview } from "../baker/siteRenderers"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GitCmsServer } from "../gitCms/GitCmsServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
-import { stringifyUnkownError } from "../clientUtils/Util"
+import { slugify, stringifyUnkownError } from "../clientUtils/Util"
+import {
+    DefaultNewExplorerSlug,
+    EXPLORERS_PREVIEW_ROUTE,
+    GetAllExplorersRoute,
+} from "../explorer/ExplorerConstants"
+import {
+    ExplorerProgram,
+    EXPLORER_FILE_SUFFIX,
+} from "../explorer/ExplorerProgram"
+import { existsSync } from "fs-extra"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -233,8 +243,39 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
     res.send(await renderPreview(postId))
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
-explorerAdminServer.addAdminRoutes(adminRouter)
+adminRouter.get("/errorTest.csv", async (req, res) => {
+    // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
+    const code =
+        req.query.code && !isNaN(parseInt(req.query.code))
+            ? req.query.code
+            : 400
+
+    res.status(code)
+
+    return `Simulating code ${code}`
+})
+
+adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
+    res.send(await this.getAllExplorersCommand())
+})
+
+adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
+    const slug = slugify(req.params.slug)
+    const filename = slug + EXPLORER_FILE_SUFFIX
+    if (slug === DefaultNewExplorerSlug)
+        return res.send(
+            await this.renderExplorerPage(
+                new ExplorerProgram(DefaultNewExplorerSlug, "")
+            )
+        )
+    if (!slug || !existsSync(this.absoluteFolderPath + filename))
+        return res.send(`File not found`)
+    const explorer = await this.getExplorerFromFile(filename)
+    return res.send(await this.renderExplorerPage(explorer))
+})
+
+// const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+// explorerAdminServer.addAdminRoutes(adminRouter)
 
 const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,
