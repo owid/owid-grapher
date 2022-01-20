@@ -15,6 +15,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
+    renderExplorerPage,
 } from "../baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
 import {
@@ -97,14 +98,15 @@ mockSiteRouter.get("/grapher/latest", async (req, res) => {
     else throw new JsonError("No latest chart", 404)
 })
 
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+
 mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*")
-    const explorers = await this.getAllPublishedExplorers()
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
     const explorerProgram = explorers.find(
         (program) => program.slug === req.params.slug
     )
-    if (explorerProgram)
-        res.send(await this.renderExplorerPage(explorerProgram))
+    if (explorerProgram) res.send(await renderExplorerPage(explorerProgram))
     else
         throw new JsonError(
             "A published explorer with that slug was not found",
@@ -118,17 +120,14 @@ mockSiteRouter.get("/*", async (req, res, next) => {
 
     const { migrationId, baseQueryStr } = explorerRedirect
     const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-    const program = await this.getExplorerFromSlug(explorerSlug)
+    const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
     res.send(
-        await this.renderExplorerPage(program, {
+        await renderExplorerPage(program, {
             explorerUrlMigrationId: migrationId,
             baseQueryStr,
         })
     )
 })
-
-// const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
-// explorerAdminServer.addMockBakedSiteRoutes(mockSiteRouter)
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this

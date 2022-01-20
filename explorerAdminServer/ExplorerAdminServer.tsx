@@ -74,7 +74,7 @@ export class ExplorerAdminServer {
         return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
     }
 
-    private async getAllPublishedExplorers() {
+    async getAllPublishedExplorers() {
         const explorers = await this.getAllExplorers()
         return explorers.filter((exp) => exp.isPublished)
     }
