@@ -492,7 +492,7 @@ export const renderAutomaticProminentLinks = async (
     )
 }
 
-const renderExplorerPage = async (
+export const renderExplorerPage = async (
     program: ExplorerProgram,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
 ) => {
