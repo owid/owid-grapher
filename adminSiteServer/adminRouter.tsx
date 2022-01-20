@@ -15,7 +15,7 @@ import { User } from "../db/model/User"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { BAKED_BASE_URL, ENV } from "../settings/serverSettings"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
-import { renderPreview } from "../baker/siteRenderers"
+import { renderExplorerPage, renderPreview } from "../baker/siteRenderers"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GitCmsServer } from "../gitCms/GitCmsServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
@@ -255,8 +255,10 @@ adminRouter.get("/errorTest.csv", async (req, res) => {
     return `Simulating code ${code}`
 })
 
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
+
 adminRouter.get(`/${GetAllExplorersRoute}`, async (req, res) => {
-    res.send(await this.getAllExplorersCommand())
+    res.send(await explorerAdminServer.getAllExplorersCommand())
 })
 
 adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
@@ -264,18 +266,15 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
     const filename = slug + EXPLORER_FILE_SUFFIX
     if (slug === DefaultNewExplorerSlug)
         return res.send(
-            await this.renderExplorerPage(
+            await renderExplorerPage(
                 new ExplorerProgram(DefaultNewExplorerSlug, "")
             )
         )
-    if (!slug || !existsSync(this.absoluteFolderPath + filename))
+    if (!slug || !existsSync(explorerAdminServer.absoluteFolderPath + filename))
         return res.send(`File not found`)
-    const explorer = await this.getExplorerFromFile(filename)
-    return res.send(await this.renderExplorerPage(explorer))
+    const explorer = await explorerAdminServer.getExplorerFromFile(filename)
+    return res.send(await renderExplorerPage(explorer))
 })
-
-// const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
-// explorerAdminServer.addAdminRoutes(adminRouter)
 
 const gitCmsServer = new GitCmsServer({
     baseDir: GIT_CMS_DIR,

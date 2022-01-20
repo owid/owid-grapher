@@ -19,11 +19,6 @@ export class ExplorerAdminServer {
     private baseUrl: string
     private gitDir: string
 
-    // we store explorers in a subdir of the gitcms for now. idea is we may store other things in there later.
-    private get absoluteFolderPath() {
-        return this.gitDir + "/" + EXPLORERS_GIT_CMS_FOLDER + "/"
-    }
-
     private _simpleGit?: SimpleGit
     private get simpleGit() {
         if (!this._simpleGit)
@@ -33,6 +28,11 @@ export class ExplorerAdminServer {
                 maxConcurrentProcesses: 1,
             })
         return this._simpleGit
+    }
+
+    // we store explorers in a subdir of the gitcms for now. idea is we may store other things in there later.
+    get absoluteFolderPath() {
+        return this.gitDir + "/" + EXPLORERS_GIT_CMS_FOLDER + "/"
     }
 
     async getAllExplorersCommand() {
