@@ -8,6 +8,7 @@ import {
     EnumCellDef,
     NumericCellDef,
     CellDef,
+    UrlCellDef,
 } from "../gridLang/GridLangConstants"
 import {
     ChartTypeName,
@@ -202,5 +203,16 @@ export const GrapherGrammar: Grammar = {
         ...BooleanCellDef,
         keyword: "defaultView",
         description: "Whether this view is used as the default view.",
+    },
+    relatedQuestionText: {
+        ...StringCellDef,
+        keyword: "relatedQuestionText",
+        description:
+            "The text used for the related question (at the very bottom of the chart)",
+    },
+    relatedQuestionUrl: {
+        ...UrlCellDef,
+        keyword: "relatedQuestionUrl",
+        description: "The link of the related question text",
     },
 } as const
