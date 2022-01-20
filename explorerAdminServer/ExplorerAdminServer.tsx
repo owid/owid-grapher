@@ -3,16 +3,12 @@ import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "../explorer/ExplorerProgram"
-import { Router } from "express"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
-    EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants"
 import simpleGit, { SimpleGit } from "simple-git"
-import { GitCommit, JsonError } from "../clientUtils/owidTypes"
-import { getExplorerRedirectForPath } from "./ExplorerRedirects"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
+import { GitCommit } from "../clientUtils/owidTypes"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string, baseUrl: string) {
@@ -60,38 +56,6 @@ export class ExplorerAdminServer {
                 errorMessage: err,
             } as ExplorersRouteResponse
         }
-    }
-
-    addMockBakedSiteRoutes(app: Router) {
-        app.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
-            res.set("Access-Control-Allow-Origin", "*")
-            const explorers = await this.getAllPublishedExplorers()
-            const explorerProgram = explorers.find(
-                (program) => program.slug === req.params.slug
-            )
-            if (explorerProgram)
-                res.send(await this.renderExplorerPage(explorerProgram))
-            else
-                throw new JsonError(
-                    "A published explorer with that slug was not found",
-                    404
-                )
-        })
-        app.get("/*", async (req, res, next) => {
-            const explorerRedirect = getExplorerRedirectForPath(req.path)
-            // If no explorer redirect exists, continue to next express handler
-            if (!explorerRedirect) return next()
-
-            const { migrationId, baseQueryStr } = explorerRedirect
-            const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-            const program = await this.getExplorerFromSlug(explorerSlug)
-            res.send(
-                await this.renderExplorerPage(program, {
-                    explorerUrlMigrationId: migrationId,
-                    baseQueryStr,
-                })
-            )
-        })
     }
 
     // todo: make private? once we remove covid legacy stuff?
