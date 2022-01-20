@@ -79,7 +79,7 @@ export class ExplorerAdminServer {
         return explorers.filter((exp) => exp.isPublished)
     }
 
-    private async getAllExplorers() {
+    async getAllExplorers() {
         if (!existsSync(this.absoluteFolderPath)) return []
         const files = await readdir(this.absoluteFolderPath)
         const explorerFiles = files.filter((filename) =>

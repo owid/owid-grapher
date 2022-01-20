@@ -2,11 +2,15 @@ import { mkdirp, writeFile } from "fs-extra"
 import path from "path"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects"
 import { renderExplorerPage } from "./siteRenderers"
 
-const bakeAllPublishedExplorers = async (outputFolder: string) => {
-    const published = await getAllPublishedExplorers()
+export const bakeAllPublishedExplorers = async (
+    outputFolder: string,
+    explorerAdminServer: ExplorerAdminServer
+) => {
+    const published = await explorerAdminServer.getAllPublishedExplorers()
     await bakeExplorersToDir(outputFolder, published)
 }
 
@@ -22,8 +26,11 @@ const bakeExplorersToDir = async (
     }
 }
 
-const bakeAllExplorerRedirects = async (outputFolder: string) => {
-    const explorers = await getAllExplorers()
+export const bakeAllExplorerRedirects = async (
+    outputFolder: string,
+    explorerAdminServer: ExplorerAdminServer
+) => {
+    const explorers = await explorerAdminServer.getAllExplorers()
     const redirects = explorerRedirectTable.rows
     for (const redirect of redirects) {
         const { migrationId, path: redirectPath, baseQueryStr } = redirect
