@@ -19,16 +19,12 @@ import {
 } from "../explorer/ExplorerConstants"
 import simpleGit, { SimpleGit } from "simple-git"
 import { slugify } from "../clientUtils/Util"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { GitCommit, JsonError } from "../clientUtils/owidTypes"
-import ReactDOMServer from "react-dom/server"
 import {
     explorerRedirectTable,
     getExplorerRedirectForPath,
 } from "./ExplorerRedirects"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string, baseUrl: string) {
@@ -157,47 +153,6 @@ export class ExplorerAdminServer {
 
     async getExplorerFromSlug(slug: string) {
         return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
-    }
-
-    async renderExplorerPage(
-        program: ExplorerProgram,
-        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
-    ) {
-        const { requiredGrapherIds } = program.decisionMatrix
-        let grapherConfigRows: any[] = []
-        if (requiredGrapherIds.length)
-            grapherConfigRows = await queryMysql(
-                `SELECT id, config FROM charts WHERE id IN (?)`,
-                [requiredGrapherIds]
-            )
-
-        const wpContent = program.wpBlockId
-            ? await getBlockContent(program.wpBlockId)
-            : undefined
-
-        const grapherConfigs: GrapherInterface[] = grapherConfigRows.map(
-            (row) => {
-                const config: GrapherProgrammaticInterface = JSON.parse(
-                    row.config
-                )
-                config.id = row.id // Ensure each grapher has an id
-                config.manuallyProvideData = true
-                return new Grapher(config).toObject()
-            }
-        )
-
-        return (
-            `<!doctype html>` +
-            ReactDOMServer.renderToStaticMarkup(
-                <ExplorerPage
-                    grapherConfigs={grapherConfigs}
-                    program={program}
-                    wpContent={wpContent}
-                    baseUrl={this.baseUrl}
-                    urlMigrationSpec={urlMigrationSpec}
-                />
-            )
-        )
     }
 
     async bakeAllPublishedExplorers(outputFolder: string) {
