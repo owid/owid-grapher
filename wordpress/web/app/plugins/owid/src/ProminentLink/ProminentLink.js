@@ -40,7 +40,7 @@ const isInternalLinkNode = (node) => {
     )
 }
 
-export const getProminentLinkInfo = (node) => {
+export const getProminentLinkTitleAndUrl = (node) => {
     if (!node) return {}
 
     const textContent = node.textContent
@@ -56,8 +56,8 @@ export const getProminentLinkInfo = (node) => {
     return { title, url }
 }
 
-const getProminentLinkBlock = (node) => {
-    const { title, url: linkUrl, content } = getProminentLinkInfo(node)
+const getProminentLinkBlock = (node, content) => {
+    const { title, url: linkUrl } = getProminentLinkTitleAndUrl(node)
     const blockContent = []
 
     if (content)
@@ -107,11 +107,20 @@ const ProminentLink = {
                 type: "block",
                 blocks: ["core/paragraph"],
                 transform: ({ content }) => {
-                    const node = parser
-                        .parseFromString(content, "text/html")
-                        .querySelector("body").childNodes[0]
+                    const parsed = parser.parseFromString(content, "text/html")
 
-                    return getProminentLinkBlock(node)
+                    const body = parsed.querySelector("body")
+                    const anchorNode = parsed.querySelector("body > a")
+
+                    let node, blockContent
+                    if (anchorNode) {
+                        node = anchorNode.parentNode.removeChild(anchorNode)
+                        blockContent = body.textContent
+                    } else {
+                        node = body
+                    }
+
+                    return getProminentLinkBlock(node, blockContent)
                 },
             },
             {
