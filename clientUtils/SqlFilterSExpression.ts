@@ -1,7 +1,6 @@
 import parse = require("s-expression")
 import pointer from "json8-pointer"
-import { isArray, subtract, tail, without } from "lodash"
-import { string } from "prop-types"
+import { isArray, tail, without } from "lodash"
 export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/ban-types
 
 export enum Arity {
@@ -145,6 +144,11 @@ export const SQL_COLUMN_NAME_DATASET_NAME = "datasets.name"
 export const SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name"
 
 export class SqlColumnName implements Operation {
+    // NOTE: this is a temporary solution for the beginning of using S Expressions for filtering.
+    //       Once we start using this in more places, declaring the whitelist of columns that are
+    //       valid to query needs to come from the piece of code that wants to use the expression.
+    //       I think we should not start allowing expressions that traverse foreign keys and instead
+    //       create views and whitelist column names in those if we need more complex filters
     static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
         [SQL_COLUMN_NAME_VARIABLE_NAME, ExpressionType.string],
         [SQL_COLUMN_NAME_DATASET_NAME, ExpressionType.string],
@@ -263,15 +267,15 @@ export class StringContainsOperation extends BooleanOperation {
 export enum ComparisonOperator {
     less = "<",
     lessOrEqual = "<=",
-    more = ">",
-    moreOrEqual = ">=",
+    greater = ">",
+    greaterOrEqual = ">=",
 }
 
 export const allComparisionOperators = [
     ComparisonOperator.less,
     ComparisonOperator.lessOrEqual,
-    ComparisonOperator.more,
-    ComparisonOperator.moreOrEqual,
+    ComparisonOperator.greater,
+    ComparisonOperator.greaterOrEqual,
 ]
 
 export class NumericComparision extends BooleanOperation {

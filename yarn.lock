@@ -12023,10 +12023,6 @@ jest@^27.3.1:
     import-local "^3.0.2"
     jest-cli "^27.3.1"
 
-jiff@cujojs/jiff:
-  version "0.7.3"
-  resolved "https://codeload.github.com/cujojs/jiff/tar.gz/3f8230f204baeaeaeca98ae6fa57f2156dd22613"
-
 js-base64@^3.4.5:
   version "3.4.5"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.4.5.tgz#6d1921e65a172cfd924604e1416dfaff45752c3e"

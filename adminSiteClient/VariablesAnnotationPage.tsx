@@ -50,16 +50,17 @@ import {
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream, IStreamListener } from "mobx-utils"
-import { stringifyUnkownError, differenceOfSets } from "../clientUtils/Util"
+import {
+    stringifyUnkownError,
+    differenceOfSets,
+    excludeUndefined,
+} from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
 function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
 ): VariableAnnotationsRow {
-    return {
-        ...row,
-        grapherConfig: JSON.parse(row.grapherConfig),
-    }
+    return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
 }
 
 interface VariableAnnotationsRow {
@@ -75,12 +76,12 @@ interface UndoStep {
 }
 
 const PAGEING_SIZE: number = 50
-const enum Tabs {
+enum Tabs {
     EditorTab = "EditorTab",
     FilterTab = "FilterTab",
 }
 
-const ALL_TABS = [Tabs.FilterTab, Tabs.EditorTab]
+const ALL_TABS = Object.values(Tabs)
 
 const HIDDEN_COLUMNS = [
     "/$schema",
@@ -194,7 +195,7 @@ class VariablesAnnotationComponent extends React.Component {
             sortByAscending,
             sortByColumn,
         } = this
-        const filterOperations = [
+        const filterOperations = excludeUndefined([
             searchFieldStringToFilterOperations(
                 variableNameFilter ?? "",
                 new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME)
@@ -203,7 +204,7 @@ class VariablesAnnotationComponent extends React.Component {
                 datasetNameFilter ?? "",
                 new SqlColumnName(SQL_COLUMN_NAME_DATASET_NAME)
             ),
-        ].filter((item): item is Operation => item !== undefined)
+        ])
         const filterQuery =
             filterOperations.length === 0
                 ? new BooleanAtom(true)
@@ -293,12 +294,10 @@ class VariablesAnnotationComponent extends React.Component {
             },
         }
         if (this.grapherElement) {
-            {
-                this.grapher.setAuthoredVersion(newConfig)
-                this.grapher.reset()
-                this.grapher.updateFromObject(newConfig)
-                this.grapher.downloadData()
-            }
+            this.grapher.setAuthoredVersion(newConfig)
+            this.grapher.reset()
+            this.grapher.updateFromObject(newConfig)
+            this.grapher.downloadData()
         } else this.grapherElement = <Grapher {...newConfig} />
     }
 

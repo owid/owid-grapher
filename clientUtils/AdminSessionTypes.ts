@@ -7,7 +7,7 @@ export interface VariableAnnotationPatch {
 export interface VariableAnnotationsResponseRow {
     id: number
     name: string
-    grapherConfig: string
+    grapherConfig: Record<string, any> // TODO: when we have GrapherInterface or better GrapherConfig as a type available in clientUtils, use it here
     datasetname: string
     namespacename: string
 }

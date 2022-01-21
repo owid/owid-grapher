@@ -9,7 +9,6 @@ import {
     isBoolean,
     isNumber,
 } from "./Util"
-import jsonpointer from "json8-pointer"
 import { compileGetValueFunction } from "./patchHelper"
 
 export enum EditorOption {
@@ -273,5 +272,5 @@ export function extractFieldDescriptionsFromSchema(
         const fieldDescriptions: FieldDescription[] = []
         extractSchemaRecursive(dereferenced, "", fieldDescriptions)
         return fieldDescriptions
-    } else throw "Schema was not an object!"
+    } else throw new Error("Schema was not an object!")
 }

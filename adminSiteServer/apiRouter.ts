@@ -47,15 +47,16 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-import {
-    BinaryLogicOperation,
-    BinaryLogicOperators,
-    EqualityComparision,
-    EqualityOperator,
-    parseToOperation,
-    SqlColumnName,
-    StringAtom,
-} from "../clientUtils/SqlFilterSExpression"
+// import {
+//     BinaryLogicOperation,
+//     BinaryLogicOperators,
+//     EqualityComparision,
+//     EqualityOperator,
+//     parseToOperation,
+//     SqlColumnName,
+//     StringAtom,
+// } from "../clientUtils/SqlFilterSExpression"
+import { parseToOperation } from "../clientUtils/SqlFilterSExpression"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -1364,7 +1365,7 @@ apiRouter.get(
         // careful there to only allow carefully guarded vocabularies from being used, not
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
-        const results =
+        const resultsWithStringGrapherConfigs =
             await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
@@ -1373,6 +1374,13 @@ WHERE ${whereClause}
 ORDER BY variables.id DESC
 LIMIT 50
 OFFSET ${offset.toString()}`)
+
+        const results = resultsWithStringGrapherConfigs.map((row: any) => ({
+            ...row,
+            grapherConfig: lodash.isNil(row.grapherConfig)
+                ? null
+                : JSON.parse(row.grapherConfig),
+        }))
         const resultCount = await db.execute(`SELECT count(*) as count
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id

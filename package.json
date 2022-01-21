@@ -137,7 +137,6 @@
         "glob": "^7.1.4",
         "handsontable": "^11.0.1",
         "html-to-text": "^5.1.1",
-        "jiff": "cujojs/jiff",
         "js-base64": "^3.4.5",
         "js-cookie": "^2.2.1",
         "json2csv": "^5.0.6",
