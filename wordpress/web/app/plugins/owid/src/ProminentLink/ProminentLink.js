@@ -14,23 +14,66 @@ const blockStyle = {
     padding: "0.5rem",
 }
 
-const isInternalLink = (link) => {
+const parser = new DOMParser()
+
+const isLink = (text) => {
+    return /^https?:\/\/[\S]+$/.test(text)
+}
+
+const isInternalLink = (text) => {
     const BAKED_BASE_URL_REGEX = /^https?:\/\/ourworldindata\.org/
-    return BAKED_BASE_URL_REGEX.test(link)
+    return BAKED_BASE_URL_REGEX.test(text)
 }
 
 const isAnchorNode = (node) => {
-    return node.nodeName === "A"
+    return node?.nodeName === "A"
 }
 
 const isTextNode = (node) => {
-    return node.nodeName === "#text"
+    return node?.nodeName === "#text"
 }
 
 const isInternalLinkNode = (node) => {
     return (
         (isAnchorNode(node) && isInternalLink(node.getAttribute("href"))) ||
         (isTextNode(node) && isInternalLink(node.textContent))
+    )
+}
+
+export const getProminentLinkInfo = (node) => {
+    if (!node) return {}
+
+    const textContent = node.textContent
+
+    const url = isAnchorNode(node)
+        ? node.getAttribute("href")
+        : isLink(textContent)
+        ? textContent
+        : ""
+
+    const title = textContent !== url ? textContent : ""
+
+    return { title, url }
+}
+
+const getProminentLinkBlock = (node) => {
+    const { title, url: linkUrl, content } = getProminentLinkInfo(node)
+    const blockContent = []
+
+    if (content)
+        blockContent.push(
+            createBlock("core/paragraph", {
+                content,
+            })
+        )
+
+    return createBlock(
+        "owid/prominent-link",
+        {
+            title,
+            linkUrl,
+        },
+        blockContent
     )
 }
 
@@ -64,9 +107,11 @@ const ProminentLink = {
                 type: "block",
                 blocks: ["core/paragraph"],
                 transform: ({ content }) => {
-                    return createBlock("owid/prominent-link", {}, [
-                        createBlock("core/paragraph", { content }),
-                    ])
+                    const node = parser
+                        .parseFromString(content, "text/html")
+                        .querySelector("body").childNodes[0]
+
+                    return getProminentLinkBlock(node)
                 },
             },
             {
@@ -80,19 +125,7 @@ const ProminentLink = {
                     )
                 },
                 transform: (paragraphNode) => {
-                    const linkNode = paragraphNode.firstChild
-                    return createBlock("owid/prominent-link", {
-                        title:
-                            (isAnchorNode(linkNode) &&
-                                linkNode.textContent !==
-                                    linkNode.getAttribute("href") &&
-                                linkNode.textContent) ||
-                            "",
-                        linkUrl:
-                            (isAnchorNode(linkNode) &&
-                                linkNode.getAttribute("href")) ||
-                            linkNode.textContent,
-                    })
+                    return getProminentLinkBlock(paragraphNode.firstChild)
                 },
             },
         ],
