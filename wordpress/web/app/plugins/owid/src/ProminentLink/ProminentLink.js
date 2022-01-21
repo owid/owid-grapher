@@ -177,7 +177,7 @@ const ProminentLink = {
                         style={{
                             marginTop: 0,
                             marginBottom: 0,
-                            color: linkColor,
+                            color: isLink(linkUrl) ? linkColor : "red",
                             fontWeight: "normal",
                         }}
                     />
