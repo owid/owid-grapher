@@ -26,6 +26,7 @@ function* recursivelyYieldRelevantContentNodes(parent: Node): Generator<Node> {
             node.nodeName === "H2" ||
             node.nodeName === "H4" ||
             node.nodeName === "P" ||
+            node.nodeName === "UL" ||
             node.nodeName === "FIGURE"
         ) {
             yield node.cloneNode(true)
@@ -69,17 +70,20 @@ function createSlides() {
             )
                 slides.push(currentSlide)
             currentSlide = { title: node.cloneNode(true), text: [], graphs: [] }
-        } else if (node.nodeName === "P") {
+        } else if (node.nodeName === "P" || node.nodeName === "UL") {
             const newtag = node.cloneNode(true)
             currentSlide.text.push(newtag)
         } else if (node.nodeName === "FIGURE") {
             const grapherSrc = (node as HTMLElement).dataset.grapherSrc
+            const dataExplorerSrc = (node as HTMLElement).dataset
+                .dataExplorerSrc
             let newtag: Node
-            if (grapherSrc) {
+            if (grapherSrc || dataExplorerSrc) {
+                const src = grapherSrc ?? dataExplorerSrc
                 // If we have a grapherSrc set, create an iframe and set the src so that
                 // the grapher is re-initialized at the new size correctly
                 const iframe = document.createElement("iframe")
-                iframe.src = grapherSrc
+                iframe.src = src!
                 ;(iframe as any).loading = "lazy"
                 iframe.style.width = "100%"
                 iframe.style.height = "600px"
@@ -100,18 +104,66 @@ function createSlides() {
     revealDiv.classList.add("reveal")
     const sectionsParent = revealDiv.appendChild(document.createElement("div"))
     sectionsParent.classList.add("slides")
-    for (const section of slides) {
+
+    const addColumn = (parent: Node, nodes: Node[], classes: string[]) => {
+        const column = document.createElement("div")
+        column.classList.add(...classes)
+        for (const node of nodes) column.appendChild(node.cloneNode(true))
+        parent.appendChild(column)
+    }
+
+    const addSlide = (
+        section: SlideFragments,
+        parent: Node,
+        graph: Node | undefined
+    ) => {
         const newsection = document.createElement("section")
-        if (section.title !== undefined) newsection.appendChild(section.title)
-        const chartColumn = document.createElement("div")
-        chartColumn.classList.add("slideshow-column", "slideshow-chart-column")
-        for (const chart of section.graphs) chartColumn.appendChild(chart)
-        newsection.appendChild(chartColumn)
-        const textColumn = document.createElement("div")
-        textColumn.classList.add("slideshow-column", "slideshow-text-column")
-        for (const text of section.text) textColumn.appendChild(text)
-        newsection.appendChild(textColumn)
-        sectionsParent.appendChild(newsection)
+        if (section.title !== undefined) {
+            const title = section.title.cloneNode(true)
+            newsection.appendChild(title)
+            if (graph === undefined && section.text.length === 0)
+                (title as HTMLElement).classList.add("title-only")
+        }
+        if (graph !== undefined && section.text.length > 0) {
+            addColumn(
+                newsection,
+                [graph],
+                ["slideshow-column", "slideshow-chart-column"]
+            )
+            addColumn(newsection, section.text, [
+                "slideshow-column",
+                "slideshow-text-column",
+            ])
+        } else if (graph !== undefined) {
+            addColumn(
+                newsection,
+                [graph],
+                [
+                    "slideshow-column",
+                    "slideshow-chart-column",
+                    "slideshow-single-column",
+                ]
+            )
+        } else if (section.text.length > 0) {
+            addColumn(newsection, section.text, [
+                "slideshow-column",
+                "slideshow-text-column",
+                "slideshow-single-column",
+            ])
+        }
+        parent.appendChild(newsection)
+    }
+
+    // If we have no graph for a section, just render that directly
+    // If we do have (multiple) graphs, render one slide with the same title
+    // and text multiple times for each graph
+    for (const section of slides) {
+        if (section.graphs.length === 0)
+            addSlide(section, sectionsParent, undefined)
+        else
+            for (const graph of section.graphs) {
+                addSlide(section, sectionsParent, graph)
+            }
     }
 }
 

@@ -9,7 +9,7 @@
 .slides {
     > section {
         display: grid !important;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 3fr 1fr;
         grid-template-rows: min-content 1fr;
         grid-template-areas:
             "header header"
@@ -18,7 +18,8 @@
         max-height: 100%;
 
         > h2,
-        h3 {
+        h3,
+        h4 {
             grid-area: header;
         }
 
@@ -35,6 +36,17 @@
         > .slideshow-text-column {
             grid-area: text;
             overflow-y: auto;
+        }
+
+        > .slideshow-single-column {
+            // Take the entire 2nd row (row borders 2, 3) (column borders 1, 4)
+            grid-area: 2 / 1 / 3 / 4;
+        }
+
+        .title-only {
+            // Take the entire grid (row borders 1, 3) (column borders 1, 4)
+            grid-area: 1 / 1 / 3 / 4;
+            align-self: center;
         }
     }
 }
