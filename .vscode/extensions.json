@@ -2,6 +2,6 @@
     "recommendations": [
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "felixfbecker.php-debug"
+        "xdebug.php-debug"
     ]
 }
