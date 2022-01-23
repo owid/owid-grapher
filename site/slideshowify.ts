@@ -66,16 +66,16 @@ function createSlides() {
             node.nodeName === "H2" ||
             node.nodeName === "H4"
         ) {
-            if (
-                currentSlide !== undefined &&
-                !slideFragmentIsEmpty(currentSlide)
-            )
+            if (slideFragmentIsEmpty(currentSlide)) {
+                currentSlide.title = node.cloneNode(true)
+            } else {
                 slides.push(currentSlide)
-            currentSlide = {
-                title: node.cloneNode(true),
-                isTitleSlide: false,
-                text: [],
-                graphs: [],
+                currentSlide = {
+                    title: node.cloneNode(true),
+                    isTitleSlide: false,
+                    text: [],
+                    graphs: [],
+                }
             }
         } else if (node.nodeName === "P" || node.nodeName === "UL") {
             const newtag = node.cloneNode(true)
