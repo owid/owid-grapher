@@ -49,4 +49,9 @@
             align-self: center;
         }
     }
+    > section.title-slide {
+        background-color: #001936;
+        background-image: url(https://ourworldindata.org/images/WorldMapDark2.png);
+        color: #e0e0e0;
+    }
 }

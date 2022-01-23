@@ -431,6 +431,13 @@ export const LongFormPage = (props: {
                         `,
                     }}
                 />
+                {/* TODO: check if this is run in dev mode, then run the slideshow start */}
+                {formattingOptions.slideshowEnabled ? (
+                    <script>
+                        window.registerSlideshowShortcut();
+                        window.toggleSlideshow();
+                    </script>
+                ) : null}
             </body>
         </html>
     )

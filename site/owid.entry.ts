@@ -40,7 +40,7 @@ import { hydrateProminentLink } from "./blocks/ProminentLink"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks"
-import { registerSlideshowShortcut } from "./slideshowify"
+import { registerSlideshowShortcut, toggleSlideshow } from "./slideshowify"
 
 declare let window: any
 window.Grapher = Grapher
@@ -57,6 +57,7 @@ window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
 window.MultiEmbedderSingleton = MultiEmbedderSingleton
 window.registerSlideshowShortcut = registerSlideshowShortcut
+window.toggleSlideshow = toggleSlideshow
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = () => {
@@ -77,7 +78,6 @@ window.runSiteFooterScripts = () => {
 }
 
 runMonkeyPatchForGoogleTranslate()
-window.registerSlideshowShortcut()
 
 if (BUGSNAG_API_KEY) {
     try {

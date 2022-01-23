@@ -37,6 +37,7 @@ function* recursivelyYieldRelevantContentNodes(parent: Node): Generator<Node> {
 
 interface SlideFragments {
     title: Node | undefined
+    isTitleSlide: boolean
 
     text: Node[]
     graphs: Node[]
@@ -55,6 +56,7 @@ function createSlides() {
     const slides: SlideFragments[] = []
     let currentSlide: SlideFragments = {
         title: undefined,
+        isTitleSlide: true,
         text: [],
         graphs: [],
     }
@@ -69,7 +71,12 @@ function createSlides() {
                 !slideFragmentIsEmpty(currentSlide)
             )
                 slides.push(currentSlide)
-            currentSlide = { title: node.cloneNode(true), text: [], graphs: [] }
+            currentSlide = {
+                title: node.cloneNode(true),
+                isTitleSlide: false,
+                text: [],
+                graphs: [],
+            }
         } else if (node.nodeName === "P" || node.nodeName === "UL") {
             const newtag = node.cloneNode(true)
             currentSlide.text.push(newtag)
@@ -118,6 +125,9 @@ function createSlides() {
         graph: Node | undefined
     ) => {
         const newsection = document.createElement("section")
+
+        if (section.isTitleSlide) newsection.classList.add("title-slide")
+
         if (section.title !== undefined) {
             const title = section.title.cloneNode(true)
             newsection.appendChild(title)
@@ -184,7 +194,9 @@ async function initReveal() {
         if (notRevealElem.nodeName !== "SCRIPT")
             notRevealElem.classList.add("slideshow-hidden")
     }
-    ;(window as any).Reveal.initialize()
+    ;(window as any).Reveal.initialize({
+        disableLayout: true,
+    })
 }
 
 function removeReveal() {

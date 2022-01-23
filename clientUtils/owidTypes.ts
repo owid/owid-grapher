@@ -88,6 +88,7 @@ export interface FormattingOptions {
     raw?: boolean
     hideDonateFooter?: boolean
     footnotes?: boolean
+    slideshowEnabled?: boolean
 }
 
 export interface KeyValueProps {
