@@ -216,8 +216,12 @@ export const getContentGraph = once(async () => {
     return graph
 })
 
-const main = async (): Promise<void> => {
-    const graph = await getContentGraph()
-}
+// Uncomment the following lines to use the "Build content graph" debug task
+// (see launch.json). This will let you inspect the graph without running the
+// risk of mistakenly sending thousands of records to Algolia.
 
-if (require.main === module) main()
+// const main = async (): Promise<void> => {
+//     const graph = await getContentGraph()
+// }
+
+// if (require.main === module) main()
