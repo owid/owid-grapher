@@ -28,7 +28,7 @@ export const getChartsRecords = async (): Promise<ChartRecord[]> => {
         AND is_indexable IS TRUE
     `)
 
-    const records = []
+    const records: ChartRecord[] = []
     for (const c of allCharts) {
         records.push({
             id: c.id,

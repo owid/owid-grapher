@@ -224,7 +224,7 @@ export interface ChartRecord {
     id: number
     title: string
     slug: string
-    type: GraphType // probably a better way to do this, should only be GraphType.chart
+    type: GraphType.Chart
     parentTopics: Array<TopicId>
 }
 
