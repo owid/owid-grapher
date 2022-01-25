@@ -1,4 +1,4 @@
-import algoliasearch, { SearchClient } from "algoliasearch"
+import algoliasearch, { SearchClient, SearchIndex } from "algoliasearch"
 import { Synonym } from "@algolia/client-search"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
 import {
@@ -28,9 +28,22 @@ export const configureAlgolia = async () => {
         // throwing here to halt deploy process
         throw new Error("Algolia configuration failed (client not initialized)")
 
+    const baseSettings: Parameters<SearchIndex["setSettings"]>[0] = {
+        queryLanguages: ["en"],
+        ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
+        alternativesAsExact: [
+            "ignorePlurals",
+            "singleWordSynonym",
+            "multiWordsSynonym",
+        ],
+        exactOnSingleWordQuery: "none",
+        removeStopWords: ["en"],
+    }
+
     const chartsIndex = client.initIndex("charts")
 
     await chartsIndex.setSettings({
+        ...baseSettings,
         searchableAttributes: [
             "title",
             "unordered(variantName)",
@@ -38,43 +51,28 @@ export const configureAlgolia = async () => {
             "unordered(_tags)",
             "unordered(availableEntities)",
         ],
-        ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         customRanking: ["asc(numDimensions)", "asc(titleLength)"],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        alternativesAsExact: [
-            "ignorePlurals",
-            "singleWordSynonym",
-            "multiWordsSynonym",
-        ],
-        exactOnSingleWordQuery: "none",
         disableExactOnAttributes: ["_tags"],
         optionalWords: ["vs"],
-        removeStopWords: ["en"],
     })
 
     const pagesIndex = client.initIndex("pages")
 
     await pagesIndex.setSettings({
+        ...baseSettings,
         searchableAttributes: [
             "unordered(title)",
             "unordered(content)",
             "unordered(_tags)",
             "unordered(authors)",
         ],
-        ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         customRanking: ["desc(importance)"],
         attributesToSnippet: ["content:24"],
         attributeForDistinct: "slug",
-        alternativesAsExact: [
-            "ignorePlurals",
-            "singleWordSynonym",
-            "multiWordsSynonym",
-        ],
         attributesForFaceting: ["searchable(_tags)", "searchable(authors)"],
-        exactOnSingleWordQuery: "none",
         disableExactOnAttributes: ["_tags"],
-        removeStopWords: ["en"],
     })
 
     const synonyms = [
