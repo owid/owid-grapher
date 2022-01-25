@@ -160,7 +160,7 @@ Or alternatively, you can also start all 3 processes in one terminal window with
 
 ```sh
 # for the command below to work you need to install tmex globally:
-# yarn global add tmex 
+# yarn global add tmex
 yarn startTmuxServer
 ```
 
