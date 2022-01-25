@@ -35,6 +35,12 @@ const testCases: PatchHelperTestCase[] = [
         jsonValueAfter: { a: { b: [2] } },
     },
     {
+        pointer: ["a", "b", "1"],
+        newValue: 2,
+        jsonValueBefore: {},
+        jsonValueAfter: { a: { b: [2] } },
+    },
+    {
         pointer: ["a", "b"],
         newValue: [1, 2],
         jsonValueBefore: {},
