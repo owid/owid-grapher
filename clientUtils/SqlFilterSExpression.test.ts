@@ -12,7 +12,7 @@ import {
     ComparisonOperator,
     NumericComparision,
     allBinaryLogicOperators,
-    allComparisionOperators,
+    allComparisonOperators,
     BinaryLogicOperators,
     EqualityComparision,
     EqualityOperator,
@@ -85,7 +85,7 @@ describe("parse simple filters expressions", () => {
     it("should round trip comparision operations correctly", async () => {
         const compCreator = (op: ComparisonOperator): NumericComparision =>
             new NumericComparision(op, [new NumberAtom(5), new NumberAtom(42)])
-        allComparisionOperators.forEach((op) =>
+        allComparisonOperators.forEach((op) =>
             checkIsomorphism(compCreator(op))
         )
     })

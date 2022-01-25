@@ -1,6 +1,10 @@
 import parse = require("s-expression")
 import pointer from "json8-pointer"
 import { isArray, tail, without } from "lodash"
+// This type models what we get from the s-expression library. This library
+// transforms lists in S-Expressions into array, strings inside double quotes
+// as String (note the uppercase! It really uses the rarely used String object) and
+// all other tokes like numbers or symbols as normal string.
 export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/ban-types
 
 export enum Arity {
@@ -49,11 +53,9 @@ export enum ExpressionType {
 }
 
 export class BooleanAtom extends BooleanOperation {
-    constructor(v: boolean) {
+    constructor(public value: boolean) {
         super()
-        this.value = v
     }
-    value: boolean
     toSql(): string {
         return this.value.toString()
     }
@@ -64,11 +66,9 @@ export class BooleanAtom extends BooleanOperation {
 }
 
 export class NumberAtom extends NumericOperation {
-    constructor(v: number) {
+    constructor(public value: number) {
         super()
-        this.value = v
     }
-    value: number
     toSql(): string {
         return this.value.toString()
     }
@@ -79,14 +79,12 @@ export class NumberAtom extends NumericOperation {
 }
 
 export class StringAtom extends StringOperation {
-    constructor(v: string) {
+    constructor(public value: string) {
         super()
-        this.value = v
     }
     expressionType = ExpressionType.string
-    value: string
     escapedValue(): string {
-        return this.value.toString().replace("'", "''")
+        return this.value.toString().replace("'", "''").replace("\\", "\\\\")
     }
     toSql(): string {
         return `'${this.escapedValue()}'` // escape single quotes to avoid SQL injection attacks :)
@@ -112,22 +110,20 @@ export class JsonPointerSymbol implements Operation {
     // Json pointer is actually less restrictive and allows pretty much all unicode
     // code points but for the foreseeable future we will only have \w and \d, _ and -
     // characters in actual use. Tilde is from json pointer to escape / inside field names
-    // We also disallow empty jsonPointer for now even though they are legal (if you)
+    // We also disallow empty jsonPointer for now even though they are legal (if you
     // want to enable them then make sure that the parsing decisions outside of here
     // all correctly allow this)
-    static jsonPointerRegex: RegExp = /^\/[\w\d/-~]+$/
+    static jsonPointerRegex: RegExp = /^\/[\w\d/\-~_]+$/
     static columnName: string = "grapherConfig" // TODO: this should come from context
     static isValidJsonPointer(str: string): boolean {
         return JsonPointerSymbol.jsonPointerRegex.test(str)
     }
-    constructor(v: string) {
-        if (!JsonPointerSymbol.isValidJsonPointer(v))
-            throw Error(`Invalid Json Pointer: ${v} - did not match regex`)
-        this.value = v
+    constructor(public value: string) {
+        if (!JsonPointerSymbol.isValidJsonPointer(value))
+            throw Error(`Invalid Json Pointer: ${value} - did not match regex`)
     }
     arity = Arity.nullary
     expressionType = ExpressionType.any
-    value: string
     toSql(): string {
         return `JSON_EXTRACT(${
             JsonPointerSymbol.columnName
@@ -157,19 +153,17 @@ export class SqlColumnName implements Operation {
     static isValidSqlColumnName(str: string): boolean {
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
     }
-    constructor(v: string) {
-        if (!SqlColumnName.isValidSqlColumnName(v))
+    constructor(public value: string) {
+        if (!SqlColumnName.isValidSqlColumnName(value))
             throw Error(
-                `Invalid column name: ${v} - did not match the set of allowed columns`
+                `Invalid column name: ${value} - did not match the set of allowed columns`
             )
-        this.value = v
         this.expressionType = SqlColumnName.allowedColumnNamesAndTypes.get(
             this.value
         )!
     }
     arity = Arity.nullary
     expressionType: ExpressionType
-    value: string
     toSql(): string {
         return `${this.value}`
     }
@@ -194,14 +188,13 @@ export const allArithmeticOperators = [
 ]
 
 export class ArithmeticOperation extends NumericOperation {
-    constructor(operator: ArithmeticOperator, operands: NumericOperation[]) {
+    constructor(
+        public operator: ArithmeticOperator,
+        public operands: NumericOperation[]
+    ) {
         super()
-        this.operator = operator
-        this.operands = operands
     }
 
-    operator: ArithmeticOperator
-    operands: NumericOperation[]
     toSql(): string {
         return `(${this.operands
             .map((operand) => operand.toSql())
@@ -225,14 +218,13 @@ export const allEqualityOperators = [
 ]
 
 export class EqualityComparision extends BooleanOperation {
-    constructor(operator: EqualityOperator, operands: Operation[]) {
+    constructor(
+        public operator: EqualityOperator,
+        public operands: Operation[]
+    ) {
         super()
-        this.operator = operator
-        this.operands = operands
     }
 
-    operator: EqualityOperator
-    operands: Operation[]
     toSql(): string {
         return `(${this.operands
             .map((operand) => operand.toSql())
@@ -246,14 +238,12 @@ export class EqualityComparision extends BooleanOperation {
 }
 
 export class StringContainsOperation extends BooleanOperation {
-    constructor(container: StringOperation, searchString: StringAtom) {
+    constructor(
+        public container: StringOperation,
+        public searchString: StringAtom
+    ) {
         super()
-        this.container = container
-        this.searchString = searchString
     }
-
-    container: StringOperation
-    searchString: StringAtom
 
     toSql(): string {
         return `(${this.container.toSql()} LIKE '%${this.searchString.escapedValue()}%')`
@@ -271,7 +261,7 @@ export enum ComparisonOperator {
     greaterOrEqual = ">=",
 }
 
-export const allComparisionOperators = [
+export const allComparisonOperators = [
     ComparisonOperator.less,
     ComparisonOperator.lessOrEqual,
     ComparisonOperator.greater,
@@ -280,16 +270,12 @@ export const allComparisionOperators = [
 
 export class NumericComparision extends BooleanOperation {
     constructor(
-        operator: ComparisonOperator,
-        operands: [NumericOperation, NumericOperation]
+        public operator: ComparisonOperator,
+        public operands: [NumericOperation, NumericOperation]
     ) {
         super()
-        this.operator = operator
-        this.operands = operands
     }
 
-    operator: ComparisonOperator
-    operands: [NumericOperation, NumericOperation]
     toSql(): string {
         return `(${this.operands[0].toSql()} ${
             this.operator
@@ -313,14 +299,13 @@ export const allBinaryLogicOperators = [
 ]
 
 export class BinaryLogicOperation extends BooleanOperation {
-    constructor(operator: BinaryLogicOperators, operands: BooleanOperation[]) {
+    constructor(
+        public operator: BinaryLogicOperators,
+        public operands: BooleanOperation[]
+    ) {
         super()
-        this.operator = operator
-        this.operands = operands
     }
 
-    operator: BinaryLogicOperators
-    operands: BooleanOperation[]
     toSql(): string {
         return `(${this.operands
             .map((operand) => operand.toSql())
@@ -334,12 +319,10 @@ export class BinaryLogicOperation extends BooleanOperation {
 }
 
 export class Negation extends BooleanOperation {
-    constructor(operand: BooleanOperation) {
+    constructor(public operand: BooleanOperation) {
         super()
-        this.operand = operand
     }
 
-    operand: BooleanOperation
     toSql(): string {
         return `(NOT ${this.operand.toSql()})` // we emit too many parenthesis here but don't want to deal with precedence rn
     }
@@ -372,14 +355,14 @@ const equalityOperatorInfos = allEqualityOperators.map(
         [
             op.toString(),
             {
-                arity: Arity.nary,
+                arity: Arity.binary,
                 operandsType: ExpressionType.any,
                 ctor: (args: Operation[]): Operation =>
                     new EqualityComparision(op, args),
             },
         ] as const
 )
-const comparisionOperatorInfos = allComparisionOperators.map(
+const comparisionOperatorInfos = allComparisonOperators.map(
     (op) =>
         [
             op.toString(),
@@ -448,7 +431,7 @@ export function parseOperationRecursive(
                 )
             const op = operationFactoryMap.get(firstElement)
             if (op === undefined)
-                throw Error(`Unkown function ${firstElement}!`)
+                throw Error(`Unknown function ${firstElement}!`)
 
             // Check if the arity matches the number of arguments
             const expectedArgs = arityToNumberMap.get(op.arity)

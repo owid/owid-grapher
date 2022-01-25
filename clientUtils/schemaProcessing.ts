@@ -120,9 +120,10 @@ function extractSchemaRecursive(
         if (
             schema.hasOwnProperty("type") &&
             schema.type === "object" &&
-            schema.hasOwnProperty("properties")
+            schema.hasOwnProperty("properties") &&
+            isPlainObjectWithGuard(schema.properties)
         ) {
-            for (const key of keys(schema.properties)) {
+            for (const key of Object.keys(schema.properties)) {
                 const newPath = `${pointer}/${key}`
                 extractSchemaRecursive(
                     (schema.properties as Record<string, unknown>)[key],

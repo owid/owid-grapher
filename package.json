@@ -139,7 +139,6 @@
         "html-to-text": "^5.1.1",
         "js-base64": "^3.4.5",
         "js-cookie": "^2.2.1",
-        "json2csv": "^5.0.6",
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^8.5.1",
         "knex": "^0.95.14",
