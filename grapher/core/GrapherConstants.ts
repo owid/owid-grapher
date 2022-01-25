@@ -71,11 +71,6 @@ export enum ScaleType {
     log = "log",
 }
 
-export interface HighlightToggleConfig {
-    description: string
-    paramStr: string
-}
-
 export interface RelatedQuestionsConfig {
     text: string
     url: string

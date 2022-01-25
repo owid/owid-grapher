@@ -27,7 +27,6 @@ const manager: CaptionedChartManager = {
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
     note: "Here are some footer notes",
-    populateFromQueryParams: (): void => {},
     isReady: true,
     availableFacetStrategies: [FacetStrategy.none],
 }

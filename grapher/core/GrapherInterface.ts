@@ -2,7 +2,6 @@ import {
     StackMode,
     GrapherTabOption,
     ScatterPointLabelStrategy,
-    HighlightToggleConfig,
     RelatedQuestionsConfig,
     EntitySelectionMode,
     EntitySelection,
@@ -42,7 +41,6 @@ export interface GrapherInterface extends SortConfig {
     dimensions?: OwidChartDimensionInterface[]
     addCountryMode?: EntitySelectionMode
     comparisonLines?: ComparisonLineConfig[]
-    highlightToggle?: HighlightToggleConfig
     stackMode?: StackMode
 
     showNoDataArea?: boolean
@@ -135,7 +133,6 @@ export const grapherKeysToSerialize = [
     "timelineMinTime",
     "timelineMaxTime",
     "addCountryMode",
-    "highlightToggle",
     "stackMode",
     "showNoDataArea",
     "hideLegend",
