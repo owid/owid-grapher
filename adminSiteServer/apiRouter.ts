@@ -1357,8 +1357,7 @@ apiRouter.get(
                 ? parseToOperation(req.query.filter)
                 : undefined
 
-        let offset = req.query.offset ? Number.parseInt(req.query.offset) : 0
-        if (Number.isNaN(offset) || offset === undefined) offset = 0
+        let offset = parseIntOrUndefined(req.query.offset) ?? 0
 
         // Note that our DSL generates sql here that we splice directly into the SQL as text
         // This is a potential for a SQL injection attack but we control the DSL and are
