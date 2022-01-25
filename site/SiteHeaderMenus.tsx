@@ -559,7 +559,7 @@ class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
 
     private async getEntries() {
         const json = await (
-            await fetchWithRetries("/headerMenu.json", {
+            await fetch("/headerMenu.json", {
                 method: "GET",
                 credentials: "same-origin",
                 headers: {
