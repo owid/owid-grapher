@@ -715,19 +715,6 @@
                 "type": "number"
             }
         },
-        "highlightToggle": {
-            "type": "object",
-            "description": "Enable highlight toggle on scatter plots",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "paramString": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false
-        },
         "entityTypePlural": {
             "description": "Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')",
             "default": "countries",
