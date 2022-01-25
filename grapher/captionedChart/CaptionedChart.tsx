@@ -24,11 +24,9 @@ import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
     AbsRelToggle,
-    HighlightToggle,
     FilterSmallCountriesToggle,
     SmallCountriesFilterManager,
     AbsRelToggleManager,
-    HighlightToggleManager,
     FacetYDomainToggle,
     FacetYDomainToggleManager,
     FacetStrategyDropdown,
@@ -49,7 +47,6 @@ export interface CaptionedChartManager
     extends ChartManager,
         MapChartManager,
         SmallCountriesFilterManager,
-        HighlightToggleManager,
         AbsRelToggleManager,
         FooterManager,
         HeaderManager,
@@ -74,7 +71,6 @@ export interface CaptionedChartManager
     showAbsRelToggle?: boolean
     showNoDataAreaToggle?: boolean
     showFacetYDomainToggle?: boolean
-    showHighlightToggle?: boolean
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
@@ -289,11 +285,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     key="FacetYDomainToggle"
                     manager={manager}
                 />
-            )
-
-        if (manager.showHighlightToggle)
-            controls.push(
-                <HighlightToggle key="highlight-toggle" manager={manager} />
             )
 
         if (manager.showSmallCountriesFilterToggle)

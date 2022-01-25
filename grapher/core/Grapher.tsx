@@ -10,7 +10,6 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { bind } from "decko"
-import { ColorScale } from "../color/ColorScale"
 import {
     uniqWith,
     isEqual,
@@ -40,7 +39,6 @@ import {
     ScaleType,
     StackMode,
     EntitySelectionMode,
-    HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
     BASE_FONT_SIZE,
@@ -106,7 +104,6 @@ import {
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
-    HighlightToggleManager,
     SmallCountriesFilterManager,
 } from "../controls/Controls"
 import { TooltipView } from "../tooltip/Tooltip"
@@ -233,7 +230,6 @@ export class Grapher
         LegacyDimensionsManager,
         ShareMenuManager,
         SmallCountriesFilterManager,
-        HighlightToggleManager,
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
@@ -258,7 +254,6 @@ export class Grapher
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
-    @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode = StackMode.absolute
     @observable.ref showNoDataArea: boolean = true
     @observable.ref hideLegend?: boolean = false
@@ -2485,10 +2480,6 @@ export class Grapher
 
     @computed get showNoDataAreaToggle(): boolean {
         return this.isMarimekko
-    }
-
-    @computed get showHighlightToggle(): boolean {
-        return this.isScatter && !!this.highlightToggle
     }
 
     @computed get showChangeEntityButton(): boolean {

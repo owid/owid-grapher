@@ -1,36 +1,21 @@
 import * as React from "react"
 import { debounce, excludeUndefined } from "../clientUtils/Util"
-import { observable, computed, action, toJS } from "mobx"
+import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher"
 import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine"
-import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
+import { Toggle, NumberField, SelectField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    ScatterPointLabelStrategy,
-    HighlightToggleConfig,
-} from "../grapher/core/GrapherConstants"
+import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants"
 import { EntityName } from "../coreTable/OwidTableConstants"
 
 @observer
 export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
-    @observable highlightToggle: HighlightToggleConfig = {
-        description: "",
-        paramStr: "",
-    }
-
-    @computed get hasHighlightToggle() {
-        return !!this.props.grapher.highlightToggle
-    }
 
     constructor(props: { grapher: Grapher }) {
         super(props)
-        this.highlightToggle = {
-            ...this.highlightToggle,
-            ...props.grapher.highlightToggle,
-        }
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
@@ -43,16 +28,6 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
 
     @action.bound onXOverrideYear(value: number | undefined) {
         this.props.grapher.xOverrideTime = value
-    }
-
-    @action.bound onToggleHighlightToggle(value: boolean) {
-        if (value) this.props.grapher.highlightToggle = this.highlightToggle
-        else this.props.grapher.highlightToggle = undefined
-    }
-
-    save() {
-        if (this.hasHighlightToggle)
-            this.props.grapher.highlightToggle = toJS(this.highlightToggle)
     }
 
     @computed private get excludedEntityNames(): EntityName[] {
@@ -105,8 +80,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { hasHighlightToggle, highlightToggle, excludedEntityChoices } =
-            this
+        const { excludedEntityChoices } = this
         const { grapher } = this.props
 
         return (
@@ -181,32 +155,6 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         Allow users to toggle a particular chart selection state
                         to highlight certain entities.
                     </p>
-                    <Toggle
-                        label="Enable highlight toggle"
-                        value={!!hasHighlightToggle}
-                        onValue={this.onToggleHighlightToggle}
-                    />
-                    {hasHighlightToggle && (
-                        <div>
-                            <TextField
-                                label="Description"
-                                value={highlightToggle.description}
-                                onValue={action((value: string) => {
-                                    this.highlightToggle.description = value
-                                    this.save()
-                                })}
-                            />
-                            <TextField
-                                label="URL Params"
-                                placeholder="e.g. ?country=AFG"
-                                value={highlightToggle.paramStr}
-                                onValue={action((value: string) => {
-                                    this.highlightToggle.paramStr = value
-                                    this.save()
-                                })}
-                            />
-                        </div>
-                    )}
                 </Section>
             </div>
         )

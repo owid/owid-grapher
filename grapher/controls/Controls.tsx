@@ -1,11 +1,6 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import {
-    getQueryParams,
-    getWindowQueryParams,
-    QueryParams,
-} from "../../clientUtils/urls/UrlUtils"
 import { TimelineComponent } from "../timeline/TimelineComponent"
 import { formatValue } from "../../clientUtils/formatValue"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -18,78 +13,15 @@ import {
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
-    HighlightToggleConfig,
     RelatedQuestionsConfig,
     StackMode,
 } from "../core/GrapherConstants"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
-import { SelectionArray } from "../selection/SelectionArray"
 import { AxisConfig } from "../axis/AxisConfig"
 import { Tippy } from "../chart/Tippy"
 import { Bounds } from "../../clientUtils/Bounds"
 import classnames from "classnames"
-
-export interface HighlightToggleManager {
-    highlightToggle?: HighlightToggleConfig
-    selectionArray?: SelectionArray
-    populateFromQueryParams: (obj: QueryParams) => void
-}
-
-// Todo: Add tests and stories
-@observer
-export class HighlightToggle extends React.Component<{
-    manager: HighlightToggleManager
-}> {
-    @computed private get manager(): HighlightToggleManager {
-        return this.props.manager
-    }
-    @computed private get highlight(): HighlightToggleConfig | undefined {
-        return this.props.manager.highlightToggle
-    }
-
-    @computed private get highlightParams(): QueryParams {
-        return getQueryParams((this.highlight?.paramStr || "").substring(1))
-    }
-
-    @action.bound private onHighlightToggle(
-        event: React.FormEvent<HTMLInputElement>
-    ): void {
-        if (!event.currentTarget.checked) {
-            this.manager.selectionArray?.clearSelection()
-            return
-        }
-
-        const params = {
-            ...getWindowQueryParams(),
-            ...this.highlightParams,
-        }
-        this.manager.populateFromQueryParams(params)
-    }
-
-    private get isHighlightActive(): boolean {
-        const params = getWindowQueryParams()
-        let isActive = true
-        Object.keys(this.highlightParams).forEach((key): void => {
-            if (params[key] !== this.highlightParams[key]) isActive = false
-        })
-        return isActive
-    }
-
-    render(): JSX.Element {
-        const { highlight, isHighlightActive } = this
-        return (
-            <label className="clickable HighlightToggle">
-                <input
-                    type="checkbox"
-                    checked={isHighlightActive}
-                    onChange={this.onHighlightToggle}
-                />{" "}
-                &nbsp;{highlight?.description}
-            </label>
-        )
-    }
-}
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
