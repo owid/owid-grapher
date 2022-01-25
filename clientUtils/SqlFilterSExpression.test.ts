@@ -89,7 +89,7 @@ describe("parse simple filters expressions", () => {
             checkIsomorphism(compCreator(op))
         )
     })
-    it("shoud round trip binary logic operations correctly", async () => {
+    it("should round trip binary logic operations correctly", async () => {
         checkIsomorphism(
             new StringContainsOperation(
                 new JsonPointerSymbol("/map/projection"),
@@ -97,7 +97,7 @@ describe("parse simple filters expressions", () => {
             )
         )
     })
-    it("should round trip string contains operations correclty", async () => {
+    it("should round trip string contains operations correctly", async () => {
         const compCreator = (op: BinaryLogicOperators): BinaryLogicOperation =>
             new BinaryLogicOperation(op, [
                 new BooleanAtom(true),
