@@ -106,7 +106,7 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
             .delete()
 
         // Insert new ones
-        await t.table("country_latest_data").insert(rows)
+        if (rows.length) await t.table("country_latest_data").insert(rows)
     })
 }
 
