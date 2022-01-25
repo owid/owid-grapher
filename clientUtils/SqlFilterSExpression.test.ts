@@ -25,6 +25,7 @@ function checkIsomorphism(operation: Operation): void {
 function checkSql(sExpr: string, expectedSql: string | undefined): void {
     return expect(parseToOperation(sExpr)?.toSql()).toEqual(expectedSql)
 }
+
 describe("parse simple filters expressions", () => {
     it("should parse atoms correctly", async () => {
         expect(parseToOperation("")).toEqual(undefined)
@@ -138,6 +139,18 @@ describe("transpile to expected SQL", () => {
             '(CONTAINS /map/projection "Europe")',
             "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") LIKE '%Europe%')"
         )
+    })
+
+    it("Should error on invalid s-expressions", async () => {
+        expect(() => parseToOperation("(")).toThrow() // unbalanced parens
+        expect(() => parseToOperation(")")).toThrow() // unbalanced parens
+        expect(() => parseToOperation("((( ))")).toThrow() // unbalanced parens
+        expect(() => parseToOperation('((( ")"))')).toThrow() // unbalanced parens
+        expect(() => parseToOperation('(")')).toThrow() // unbalanced double quotes
+        expect(() => parseToOperation("(= 1 2 3)")).toThrow() // binary arity exceeded
+        expect(() => parseToOperation("(1 2)")).toThrow() // non-function in prime position
+        expect(() => parseToOperation("(= 1)")).toThrow() // arity too low
+        expect(() => parseToOperation("(+ 1 2) (+ 1 2)")).toThrow() // multiple top level expressions
     })
 
     it("should transpile some more complicated expressions correctly to SQL", async () => {
