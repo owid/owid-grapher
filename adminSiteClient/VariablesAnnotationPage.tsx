@@ -823,7 +823,7 @@ class VariablesAnnotationComponent extends React.Component {
 
     renderPagination(): JSX.Element {
         const { numTotalRows, currentPagingOffset } = this
-        const currentStartLabe = currentPagingOffset + 1
+        const currentStartLabel = currentPagingOffset + 1
         const currentEndLabel = Math.min(
             currentPagingOffset + PAGEING_SIZE,
             numTotalRows ?? 0
