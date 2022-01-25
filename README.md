@@ -156,9 +156,11 @@ yarn startAdminServer
 yarn startWebpackServer
 ```
 
-Or alternatively, you can also start all 3 processes in one terminal window with tmux:
+Or alternatively, you can also start all 3 processes in one terminal window with tmux if you have it set up:
 
 ```sh
+# for the command below to work you need to install tmex globally:
+# yarn global add tmex 
 yarn startTmuxServer
 ```
 
