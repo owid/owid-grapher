@@ -403,8 +403,7 @@ body {
     }
 }
 
-.EditorDataTab .EditableListItem,
-.EditorTextTab .EditableListItem {
+.EditorDataTab .EditableListItem {
     @extend .draggable;
     display: flex;
     justify-content: space-between;
