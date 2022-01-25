@@ -151,6 +151,7 @@ describe("transpile to expected SQL", () => {
         expect(() => parseToOperation("(1 2)")).toThrow() // non-function in prime position
         expect(() => parseToOperation("(= 1)")).toThrow() // arity too low
         expect(() => parseToOperation("(+ 1 2) (+ 1 2)")).toThrow() // multiple top level expressions
+        expect(() => parseToOperation('(+ "hello" "world")')).toThrow() // type mismatch
     })
 
     it("should transpile some more complicated expressions correctly to SQL", async () => {
