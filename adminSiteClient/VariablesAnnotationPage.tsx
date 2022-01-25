@@ -71,7 +71,7 @@ interface VariableAnnotationsRow {
     namespacename: string
 }
 
-interface UndoStep {
+interface Action {
     patches: VariableAnnotationPatch[]
 }
 
@@ -166,10 +166,10 @@ class VariablesAnnotationComponent extends React.Component {
     @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
         undefined
 
-    /** Undo step stack - not yet used - TODO: implement Undo/redo */
-    @observable undoSteps: UndoStep[] = []
-    /** Redo step stack - not yet used */
-    @observable redoSteps: UndoStep[] = []
+    /** Undo stack - not yet used - TODO: implement Undo/redo */
+    @observable undoStack: Action[] = []
+    /** Redo stack - not yet used */
+    @observable redoStack: Action[] = []
     // Filter fields and paging offset
     @observable variableNameFilter: string | undefined = undefined
     @observable datasetNameFilter: string = ""
@@ -185,7 +185,7 @@ class VariablesAnnotationComponent extends React.Component {
     @observable sortByAscending: boolean = false
     disposers: Disposer[] = []
     /** Computed property that combines all relevant filter, paging and offset
-        properties into a FetcHVariablesParameter object that is used to construct
+        properties into a FetchVariablesParameter object that is used to construct
         the query */
     @computed get dataFetchParameters(): FetchVariablesParameters {
         const {
@@ -280,8 +280,8 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     @action.bound private resetViewStateAfterFetch(): void {
-        this.undoSteps = []
-        this.redoSteps = []
+        this.undoStack = []
+        this.redoStack = []
         this.selectedRow = undefined
         this.grapherElement = undefined
     }
@@ -338,16 +338,16 @@ class VariablesAnnotationComponent extends React.Component {
         await this.sendPatches(reversedPatches)
     }
 
-    /** Performs an undo step - i.e. applies it to the richDataRows object,
+    /** Performs an action - i.e. applies it to the richDataRows object,
         sends an HTTP patch request and puts the step onto the undo stack */
     @action
-    async do(step: UndoStep): Promise<void> {
+    async doAction(action: Action): Promise<void> {
         const { richDataRows } = this
         if (richDataRows === undefined) return
 
-        this.undoSteps.push(step)
+        this.undoStack.push(action)
 
-        for (const patch of step.patches) {
+        for (const patch of action.patches) {
             const rowId = richDataRows.findIndex(
                 (row) => row.id === patch.variableId
             )
@@ -363,28 +363,28 @@ class VariablesAnnotationComponent extends React.Component {
             }
         }
         if (this.selectedRow) this.updatePreviewToRow(this.selectedRow)
-        await this.sendPatches(step.patches)
+        await this.sendPatches(action.patches)
     }
 
     @action
-    async undo(): Promise<void> {
-        const { undoSteps, redoSteps } = this
-        if (undoSteps.length == 0) return
+    async undoAction(): Promise<void> {
+        const { undoStack, redoStack } = this
+        if (undoStack.length == 0) return
         // TODO: not yet properly implemented - figure out how to update the flat data rows and
         // set them here. Also change the rich data row entries
-        const lastStep = undoSteps.pop()
-        redoSteps.push(lastStep!)
+        const lastStep = undoStack.pop()
+        redoStack.push(lastStep!)
         await this.sendReversedPatches(lastStep!.patches)
     }
 
     @action
-    async redo(): Promise<void> {
-        const { redoSteps } = this
-        if (redoSteps.length == 0) return
+    async redoAction(): Promise<void> {
+        const { redoStack } = this
+        if (redoStack.length == 0) return
         // TODO: not yet properly implemented - figure out how to update the flat data rows and
         // set them here. Also change the rich data row entries
-        const lastStep = redoSteps.pop()
-        this.undoSteps.push(lastStep!)
+        const lastStep = redoStack.pop()
+        this.undoStack.push(lastStep!)
         await this.sendPatches(lastStep!.patches)
     }
 
@@ -532,13 +532,8 @@ class VariablesAnnotationComponent extends React.Component {
             // then all the others coming from the fieldDescriptions
             // for these we want to suppress the HIDDEN_COLUMNS and
             // move the IMPORTANT_COLUMNS to the front
-            const fieldDescsFiltered = fieldDescriptions.filter(
-                (desc) =>
-                    HIDDEN_COLUMNS.find((item) => item === desc.pointer) ===
-                    undefined
-            )
             const fieldDescsMap = new Map(
-                fieldDescsFiltered.map((desc) => [desc.pointer, desc])
+                fieldDescriptions.map((desc) => [desc.pointer, desc])
             )
             const importantDescs = IMPORTANT_COLUMNS.map((pointer) =>
                 fieldDescsMap.get(pointer)
@@ -546,10 +541,11 @@ class VariablesAnnotationComponent extends React.Component {
             const remainingDescs = differenceOfSets([
                 new Set(fieldDescsMap.keys()),
                 new Set(IMPORTANT_COLUMNS),
+                new Set(HIDDEN_COLUMNS),
             ])
             const fieldDescsFilteredAndPrioritized = [
                 ...importantDescs,
-                ...fieldDescsFiltered.filter((item) =>
+                ...fieldDescriptions.filter((item) =>
                     remainingDescs.has(item.pointer)
                 ),
             ]
@@ -616,12 +612,20 @@ class VariablesAnnotationComponent extends React.Component {
         source: Handsontable.ChangeSource
     ): boolean | void {
         const { fieldDescriptionsMap } = this
+        // The Handsontable.CellChange is an array of 4 elements: [row, column, oldValue, newValue]. Below
+        // we have the indices, only a few of them which are used now
+        const rowIndex = 0
+        const columnIndex = 1
+        const oldValueIndex = 2
+        const newValueIndex = 3
         // Changes due to loading are always ok (return flags all as ok)
         if (source === "loadData" || changes === null) return
 
         // cancel editing if multiple columns are changed at the same time - we
         // currently only support changes to a single column at a time
-        const differentColumns = new Set(changes.map((change) => change[1]))
+        const differentColumns = new Set(
+            changes.map((change) => change[columnIndex])
+        )
         if (differentColumns.size > 1) return false
         const targetColumn = [...differentColumns][0] as string
 
@@ -637,7 +641,9 @@ class VariablesAnnotationComponent extends React.Component {
         // that all values are of the same type (actually supposed to be the same value)
         // -> verify this
         const allChangesSameType = changes.every(
-            (change) => typeof change[3] === typeof changes[0][3]
+            (change) =>
+                typeof change[newValueIndex] ===
+                typeof changes[0][newValueIndex]
         )
         if (!allChangesSameType) {
             console.error("Not all changes were of the same type?")
@@ -646,8 +652,8 @@ class VariablesAnnotationComponent extends React.Component {
 
         // Check if the type matches the target (e.g. to avoid a string value ending
         // up in a text field). This is hard to nail down fully but we try to avoid
-        // such mistakes where possible
-        const firstNewValue = changes[0][3]
+        // such mistakes where possible.
+        const firstNewValue = changes[0][newValueIndex]
         const invalidTypeAssignment = match<
             [FieldType | FieldType[], string],
             boolean
@@ -657,7 +663,7 @@ class VariablesAnnotationComponent extends React.Component {
                 Number.isNaN(Number.parseFloat(firstNewValue))
             )
             .with([FieldType.integer, "string"], (_) =>
-                Number.isNaN(Number.parseFloat(firstNewValue))
+                Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], (_) => false)
             .with([[__], "string"], (_) => false)
@@ -731,7 +737,7 @@ class VariablesAnnotationComponent extends React.Component {
         }
         // Perform a do operation that will add this to the undo stack and immediately
         // post this as a PATCH request to the server
-        this.do({ patches })
+        this.doAction({ patches })
     }
 
     async getFieldDefinitions() {

@@ -1365,7 +1365,7 @@ apiRouter.get(
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
         const resultsWithStringGrapherConfigs =
-            await db.execute(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+            await db.queryMysql(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
@@ -1380,7 +1380,7 @@ OFFSET ${offset.toString()}`)
                 ? null
                 : JSON.parse(row.grapherConfig),
         }))
-        const resultCount = await db.execute(`SELECT count(*) as count
+        const resultCount = await db.queryMysql(`SELECT count(*) as count
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
