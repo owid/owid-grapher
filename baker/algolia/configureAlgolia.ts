@@ -95,6 +95,7 @@ export const configureAlgolia = async () => {
         ["vaccine", "vaccination", "vacuna"],
         ["ghg", "greenhouse gas"],
         ["rate", "share"],
+        ["hospital admission", "hospitalization", "in hospital"],
     ]
 
     // Send all our country variant names to algolia as synonyms
