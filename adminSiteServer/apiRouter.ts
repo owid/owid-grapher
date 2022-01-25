@@ -57,6 +57,7 @@ import Papa from "papaparse"
 //     StringAtom,
 // } from "../clientUtils/SqlFilterSExpression"
 import { parseToOperation } from "../clientUtils/SqlFilterSExpression"
+import { parseIntOrUndefined } from "../clientUtils/Util"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -1357,7 +1358,7 @@ apiRouter.get(
                 ? parseToOperation(req.query.filter)
                 : undefined
 
-        let offset = parseIntOrUndefined(req.query.offset) ?? 0
+        const offset = parseIntOrUndefined(req.query.offset) ?? 0
 
         // Note that our DSL generates sql here that we splice directly into the SQL as text
         // This is a potential for a SQL injection attack but we control the DSL and are

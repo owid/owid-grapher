@@ -8,6 +8,7 @@ import {
     isString,
     isBoolean,
     isNumber,
+    mapValues,
 } from "./Util"
 import { compileGetValueFunction } from "./patchHelper"
 
@@ -224,13 +225,6 @@ function extractSchemaRecursive(
     }
 }
 
-function objectMap(object: any, mapFn: (result: any) => any): any {
-    return Object.keys(object).reduce(function (result: any, key) {
-        result[key] = mapFn(object[key])
-        return result
-    }, {})
-}
-
 function recursiveDereference(
     schema: unknown,
     defs: Record<string, unknown>
@@ -251,7 +245,7 @@ function recursiveDereference(
                 return schema
             } else return defs[refName] // Note: we are not using recursive dereferencing, i.e. if there are refs in the $defs section we don't resolve them here
         } else {
-            return objectMap(schema, (val) => recursiveDereference(val, defs))
+            return mapValues(schema, (val) => recursiveDereference(val, defs))
         }
     } else return schema
 }

@@ -100,8 +100,8 @@ const IMPORTANT_COLUMNS = [
     "/title",
     "/subtitle",
     "/note",
-    "/dimensions/0/unit",
-    "/dimensions/0/shortUnit",
+    "/dimensions/0/display/unit",
+    "/dimensions/0/display/shortUnit",
 ]
 
 /** All the parameters we need for making a fully specified request to the /variable-annotations
@@ -538,16 +538,16 @@ class VariablesAnnotationComponent extends React.Component {
             const importantDescs = IMPORTANT_COLUMNS.map((pointer) =>
                 fieldDescsMap.get(pointer)
             )
-            const remainingDescs = differenceOfSets([
-                new Set(fieldDescsMap.keys()),
-                new Set(IMPORTANT_COLUMNS),
-                new Set(HIDDEN_COLUMNS),
-            ])
+            const remainingDescs = [
+                ...differenceOfSets([
+                    new Set(fieldDescsMap.keys()),
+                    new Set(IMPORTANT_COLUMNS),
+                    new Set(HIDDEN_COLUMNS),
+                ]),
+            ].map((pointer) => fieldDescsMap.get(pointer))
             const fieldDescsFilteredAndPrioritized = [
                 ...importantDescs,
-                ...fieldDescriptions.filter((item) =>
-                    remainingDescs.has(item.pointer)
-                ),
+                ...remainingDescs,
             ]
             if (
                 fieldDescsFilteredAndPrioritized.some(
