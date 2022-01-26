@@ -9,10 +9,7 @@ import {
 import { last } from "../clientUtils/Util"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
-import {
-    PROMINENT_LINK_CLASSNAME,
-    renderAuthoredProminentLinks,
-} from "./blocks/ProminentLink"
+import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink"
 import { Byline } from "./Byline"
 import { formatGlossaryTerms } from "./formatGlossary"
 import { getMutableGlossary, glossary } from "./glossary"
@@ -27,16 +24,6 @@ export const formatUrls = (html: string) =>
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
         .replace(new RegExp("/app/uploads", "g"), "/uploads")
-
-export const formatReusableBlock = (html: string): string => {
-    const cheerioEl = cheerio.load(html)
-    renderAuthoredProminentLinks(cheerioEl)
-    const rendered = cheerioEl("body").html()
-    if (!rendered) return ""
-
-    const formatted = formatUrls(rendered)
-    return formatted
-}
 
 export const formatAuthors = (authors: string[], requireMax?: boolean) => {
     if (requireMax && authors.indexOf("Max Roser") === -1)

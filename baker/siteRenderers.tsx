@@ -66,6 +66,9 @@ import {
     ProminentLinkStyles,
 } from "../site/blocks/ProminentLink"
 import { formatUrls } from "../site/formatting"
+import { renderHelp } from "../site/blocks/Help"
+import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation"
+
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
@@ -414,6 +417,41 @@ export const countryProfileCountryPage = async (
 
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
+export const renderProminentLinks = ($: CheerioStatic) => {
+    $("block[type='prominent-link']").each((_, el: CheerioElement) => {
+        const $block = $(el)
+        const href = $block.find("link-url").text()
+        const url = Url.fromURL(href)
+
+        const style = $block.attr("style")
+        const title = $block.find("title").text()
+        const content = $block.find("content").html()
+        const image =
+            $block.find("figure").html() ||
+            (url.isGrapher
+                ? `<img src="${BAKED_BASE_URL}/grapher/exports/${url.pathname
+                      ?.split("/")
+                      .pop()}.svg" />`
+                : null)
+
+        const rendered = ReactDOMServer.renderToStaticMarkup(
+            <div className="block-wrapper">
+                <ProminentLink
+                    href={href}
+                    style={style}
+                    title={title}
+                    content={content}
+                    image={image}
+                />
+            </div>
+        )
+
+        $block.after(rendered)
+        $block.remove()
+    })
+}
+
+// DEPRECATED / todo: remove
 export const renderAutomaticProminentLinks = async (
     cheerioEl: CheerioStatic,
     currentPost: FullPost
@@ -492,6 +530,23 @@ export const renderAutomaticProminentLinks = async (
     )
 }
 
+export const renderReusableBlock = (html?: string): string | undefined => {
+    if (!html) return
+    const cheerioEl = cheerio.load(html)
+    renderProminentLinks(cheerioEl)
+    const rendered = cheerioEl("body").html()
+    if (!rendered) return
+
+    const formatted = formatLinks(rendered)
+    return formatted
+}
+
+export const renderBlocks = (cheerioEl: CheerioStatic) => {
+    renderAdditionalInformation(cheerioEl)
+    renderHelp(cheerioEl)
+    renderProminentLinks(cheerioEl)
+}
+
 export const renderExplorerPage = async (
     program: ExplorerProgram,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
@@ -505,7 +560,7 @@ export const renderExplorerPage = async (
         )
 
     const wpContent = program.wpBlockId
-        ? await getBlockContent(program.wpBlockId)
+        ? renderReusableBlock(await getBlockContent(program.wpBlockId))
         : undefined
 
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {

@@ -122,7 +122,7 @@ const AdditionalInformation = ({
 
 export default AdditionalInformation
 
-export const render = ($: CheerioStatic) => {
+export const renderAdditionalInformation = ($: CheerioStatic) => {
     $("block[type='additional-information']").each(function (
         this: CheerioElement
     ) {

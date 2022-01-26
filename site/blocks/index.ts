@@ -1,19 +1,8 @@
-import {
-    hydrate as hydrateAdditionalInformation,
-    render as renderAdditionalInformation,
-} from "./AdditionalInformation"
-import { renderHelp } from "./Help"
-import { renderAuthoredProminentLinks } from "./ProminentLink"
+import { hydrate as hydrateAdditionalInformation } from "./AdditionalInformation"
 import { runSearchCountry } from "../../site/SearchCountry"
 import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock"
 import { runDataTokens } from "../../site/runDataTokens"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder"
-
-export const renderBlocks = (cheerioEl: CheerioStatic) => {
-    renderAdditionalInformation(cheerioEl)
-    renderHelp(cheerioEl)
-    renderAuthoredProminentLinks(cheerioEl)
-}
 
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {

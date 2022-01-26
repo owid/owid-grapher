@@ -5,7 +5,6 @@ import { SiteFooter } from "../site/SiteFooter"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
 import { IFrameDetector } from "../site/IframeDetector"
 import { SiteSubnavigation } from "../site/SiteSubnavigation"
-import { formatReusableBlock } from "../site/formatting"
 import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,
@@ -35,7 +34,7 @@ const ExplorerContent = ({ content }: { content: string }) => {
                         <div
                             className="wp-block-column"
                             dangerouslySetInnerHTML={{
-                                __html: formatReusableBlock(content),
+                                __html: content,
                             }}
                         ></div>
                         <div className="wp-block-column"></div>
