@@ -98,6 +98,7 @@ export class StringAtom extends StringOperation {
     toSExpr(): string {
         return `"${this.value
             .toString()
+            .replace(backslashReplaceRegex, "\\\\")
             .replace(doubleQuoteReplaceRegex, '\\"')}"`
     }
 }

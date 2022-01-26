@@ -52,6 +52,11 @@ describe("parse simple filters expressions", () => {
         checkIsomorphism(new NumberAtom(Number.NEGATIVE_INFINITY))
         checkIsomorphism(new StringAtom(""))
         checkIsomorphism(new StringAtom("🔥"))
+        checkIsomorphism(new StringAtom('"'))
+        checkIsomorphism(new StringAtom("'"))
+        checkIsomorphism(new StringAtom("\\ hello \\"))
+        checkIsomorphism(new StringAtom('\\" hello'))
+        checkIsomorphism(new StringAtom("\\' hello"))
     })
     it("should round trip arithmetic operations correctly", async () => {
         checkIsomorphism(
@@ -138,6 +143,12 @@ describe("transpile to expected SQL", () => {
         checkSql(
             '(CONTAINS /map/projection "Europe")',
             "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") LIKE '%Europe%')"
+        )
+        checkSql('(= "hello" "hello")', "('hello' = 'hello')")
+        checkSql('(= "hello\\\\" "hello")', "('hello\\\\' = 'hello')")
+        checkSql(
+            '(= "hello\'; DROP TABLE USER" "hello")',
+            "('hello''; DROP TABLE USER' = 'hello')"
         )
     })
 
