@@ -76,7 +76,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
-if (parsedArgs["h"]) {
+if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`verify-graphs.js - utility to check if grapher svg renderings have changed vs the reference export
 
 Usage:
@@ -89,6 +89,7 @@ Options:
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -v             Verbose mode
     `)
+    process.exit(0)
 } else {
     main(parsedArgs)
 }

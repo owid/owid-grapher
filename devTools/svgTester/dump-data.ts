@@ -54,7 +54,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
 const parsedArgs = parseArgs(process.argv.slice(2))
 
-if (parsedArgs["h"]) {
+if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`dump-data.js - utility to export configs and data for all graphers.
 
 Usage:
@@ -63,6 +63,7 @@ Usage:
 Options:
     -o DIR   Output directory. Inside it one dir per grapher will be created. [default: grapherData]
     `)
+    process.exit(0)
 } else {
     main(parsedArgs)
 }

@@ -17,11 +17,16 @@ import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
 import { UserInvitation } from "../db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData } from "../db/model/Variable"
+import { applyPatch } from "../clientUtils/patchHelper"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface"
 import { SuggestedChartRevisionStatus } from "../adminSiteClient/SuggestedChartRevision"
+import {
+    VariableAnnotationsResponse,
+    VariableAnnotationPatch,
+} from "../clientUtils/AdminSessionTypes"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -42,6 +47,18 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
+// import {
+//     BinaryLogicOperation,
+//     BinaryLogicOperators,
+//     EqualityComparision,
+//     EqualityOperator,
+//     parseToOperation,
+//     SqlColumnName,
+//     StringAtom,
+// } from "../clientUtils/SqlFilterSExpression"
+import { parseToOperation } from "../clientUtils/SqlFilterSExpression"
+import { parseIntOrUndefined } from "../clientUtils/Util"
+//import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -352,7 +369,7 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
         FROM charts
         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        ORDER BY charts.lastEditedAt DESC 
+        ORDER BY charts.lastEditedAt DESC
         LIMIT ?
     `,
         [limit]
@@ -880,11 +897,11 @@ apiRouter.post(
             let rows: any[] = await t.query(
                 `
                 SELECT id, config, 1 as priority
-                FROM charts 
+                FROM charts
                 WHERE ${whereCond1}
-                
+
                 UNION
-                
+
                 SELECT chartId as id, config, 2 as priority
                 FROM chart_revisions
                 WHERE ${whereCond2}
@@ -1331,6 +1348,78 @@ apiRouter.get("/variables.json", async (req) => {
     )[0].count
 
     return { variables: rows, numTotalRows: numTotalRows }
+})
+
+apiRouter.get(
+    "/variable-annotations",
+    async (req): Promise<VariableAnnotationsResponse> => {
+        const filterSExpr =
+            req.query.filter !== undefined
+                ? parseToOperation(req.query.filter)
+                : undefined
+
+        const offset = parseIntOrUndefined(req.query.offset) ?? 0
+
+        // Note that our DSL generates sql here that we splice directly into the SQL as text
+        // This is a potential for a SQL injection attack but we control the DSL and are
+        // careful there to only allow carefully guarded vocabularies from being used, not
+        // arbitrary user input
+        const whereClause = filterSExpr?.toSql() ?? "true"
+        const resultsWithStringGrapherConfigs =
+            await db.queryMysql(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+FROM variables
+LEFT JOIN datasets on variables.datasetId = datasets.id
+LEFT JOIN namespaces on datasets.namespace = namespaces.name
+WHERE ${whereClause}
+ORDER BY variables.id DESC
+LIMIT 50
+OFFSET ${offset.toString()}`)
+
+        const results = resultsWithStringGrapherConfigs.map((row: any) => ({
+            ...row,
+            grapherConfig: lodash.isNil(row.grapherConfig)
+                ? null
+                : JSON.parse(row.grapherConfig),
+        }))
+        const resultCount = await db.queryMysql(`SELECT count(*) as count
+FROM variables
+LEFT JOIN datasets on variables.datasetId = datasets.id
+LEFT JOIN namespaces on datasets.namespace = namespaces.name
+WHERE ${whereClause}`)
+        return { variables: results, numTotalRows: resultCount[0].count }
+    }
+)
+
+apiRouter.patch("/variable-annotations", async (req) => {
+    const patchesList = req.body as VariableAnnotationPatch[]
+    const variableIds = new Set(patchesList.map((patch) => patch.variableId))
+
+    await db.transaction(async (manager) => {
+        const configsAndIds = await manager.query(
+            `SELECT id, grapherConfig FROM variables where id IN (?)`,
+            [[...variableIds.values()]]
+        )
+        const configMap = new Map(
+            configsAndIds.map((item: any) => [
+                item.id,
+                item.grapherConfig ? JSON.parse(item.grapherConfig) : {},
+            ])
+        )
+        // console.log("ids", configsAndIds.map((item : any) => item.id))
+        for (const patchSet of patchesList) {
+            const config = configMap.get(patchSet.variableId)
+            configMap.set(patchSet.variableId, applyPatch(patchSet, config))
+        }
+
+        for (const [variableId, newConfig] of configMap.entries()) {
+            await manager.execute(
+                `UPDATE variables SET grapherConfig = ? where id = ?`,
+                [JSON.stringify(newConfig), variableId]
+            )
+        }
+    })
+
+    return { success: true }
 })
 
 apiRouter.get("/variables.usages.json", async (req) => {

@@ -51,7 +51,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 }
 
 const parsedArgs = parseArgs(process.argv.slice(2))
-if (parsedArgs["h"]) {
+if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
 
 Usage:
@@ -61,6 +61,7 @@ Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
     `)
+    process.exit(0)
 } else {
     main(parsedArgs)
 }

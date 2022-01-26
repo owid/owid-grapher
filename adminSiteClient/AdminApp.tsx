@@ -11,6 +11,7 @@ import { UserEditPage } from "./UserEditPage"
 import { VariableEditPage } from "./VariableEditPage"
 import { VariablesIndexPage } from "./VariablesIndexPage"
 import { DatasetEditPage } from "./DatasetEditPage"
+import { VariablesAnnotationPage } from "./VariablesAnnotationPage"
 import { SourceEditPage } from "./SourceEditPage"
 import { RedirectsIndexPage } from "./RedirectsIndexPage"
 import { TagEditPage } from "./TagEditPage"
@@ -172,6 +173,13 @@ export class AdminApp extends React.Component<{
                                     <AdminLayout title="Explorers">
                                         <ExplorersIndexPage />
                                     </AdminLayout>
+                                )}
+                            />
+                            <Route
+                                exact
+                                path={`/variable-annotations`}
+                                render={({ match }) => (
+                                    <VariablesAnnotationPage />
                                 )}
                             />
                             <Route
