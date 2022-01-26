@@ -83,7 +83,12 @@ export const configureAlgolia = async () => {
         ["atomic", "nuclear"],
         ["pop", "population"],
         ["cheese", "dairy"],
-        ["gdp", "economic growth"],
+        [
+            "gdp",
+            "economic growth",
+            "pib" /* spanish, french */,
+            "pil" /* italian */,
+        ],
         ["overpopulation", "population growth"],
         ["covid", "covid-19", "coronavirus", "corona"],
         ["flu", "influenza"],
@@ -92,10 +97,17 @@ export const configureAlgolia = async () => {
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
         ["price", "cost"],
-        ["vaccine", "vaccination", "vacuna"],
+        ["vaccine", "vaccination", "vacuna" /* spanish */],
         ["ghg", "greenhouse gas"],
         ["rate", "share"],
-        ["hospital admission", "hospitalization", "in hospital"],
+        [
+            "hospital admission",
+            "hospitalization",
+            "hospitalisation",
+            "in hospital",
+        ],
+        ["incidence", "daily new confirmed cases"],
+        ["homosexual", "gay", "lesbian"],
     ]
 
     // Send all our country variant names to algolia as synonyms
