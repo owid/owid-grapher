@@ -10,7 +10,7 @@ import {
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import classnames from "classnames"
-import { fetchWithRetries, flatten } from "../clientUtils/Util"
+import { flatten } from "../clientUtils/Util"
 import { bind } from "decko"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -558,15 +558,13 @@ class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
     }
 
     private async getEntries() {
-        const json = await (
-            await fetch("/headerMenu.json", {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json",
-                },
-            })
-        ).json()
+        const json = await fetch("/headerMenu.json", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        }).then((res) => res.json())
 
         runInAction(() => (this.categories = json.categories))
     }
