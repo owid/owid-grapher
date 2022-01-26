@@ -33,6 +33,13 @@ export class FunctionalRouter {
         this.router.post(targetPath, this.wrap(callback))
     }
 
+    patch(
+        targetPath: string,
+        callback: (req: Request, res: Response) => Promise<any>
+    ) {
+        this.router.patch(targetPath, this.wrap(callback))
+    }
+
     put(
         targetPath: string,
         callback: (req: Request, res: Response) => Promise<any>

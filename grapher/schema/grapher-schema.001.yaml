@@ -632,15 +632,6 @@ properties:
         description: Entities to include. Opposite of excludedEntities. If this is set then all entities not specified here are excluded.
         items:
             type: number
-    highlightToggle:
-        type: object
-        description: Enable highlight toggle on scatter plots
-        properties:
-            description:
-                type: string
-            paramString:
-                type: string
-        additionalProperties: false
     entityTypePlural:
         description: Plural of the entity type (i.e. when entityType is 'country' this would be 'countries')
         default: countries

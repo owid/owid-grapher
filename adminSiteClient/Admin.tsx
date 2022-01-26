@@ -8,7 +8,7 @@ import { AdminApp } from "./AdminApp"
 import { Json, stringifyUnkownError } from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 
-type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE"
+type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
 interface ClientSettings {
     ENV: "development" | "production"
@@ -141,7 +141,7 @@ export class Admin {
         return json
     }
 
-    @action.bound private setErrorMessage(message: ErrorMessage): void {
+    @action.bound setErrorMessage(message: ErrorMessage): void {
         this.errorMessage = message
     }
 

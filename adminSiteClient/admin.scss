@@ -175,6 +175,38 @@ body {
     }
 }
 
+.VariablesAnnotationPage {
+    display: flex;
+    flex-grow: 1;
+
+    > .sidebar {
+        min-width: 500px;
+        width: 500px;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        > .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            height: 100%;
+            > .preview {
+                flex: 0 0 400px;
+                min-height: 400px;
+            }
+            > section {
+                flex: 1 1 auto;
+            }
+        }
+    }
+
+    > .editor-view {
+        width: 100%;
+    }
+}
+
 .ChartEditorPage {
     display: flex;
     flex-grow: 1;

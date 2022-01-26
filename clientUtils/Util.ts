@@ -15,12 +15,18 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import identity from "lodash/identity"
 import invert from "lodash/invert"
+import isArray from "lodash/isArray"
+import isBoolean from "lodash/isBoolean"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 import isNumber from "lodash/isNumber"
+import isNull from "lodash/isNull"
 import isObject from "lodash/isObject"
+import isPlainObject from "lodash/isPlainObject"
 import isString from "lodash/isString"
+import isUndefined from "lodash/isUndefined"
 import keyBy from "lodash/keyBy"
+import keys from "lodash/keys"
 import mapValues from "lodash/mapValues"
 import max from "lodash/max"
 import maxBy from "lodash/maxBy"
@@ -69,11 +75,16 @@ export {
     groupBy,
     identity,
     invert,
+    isArray,
+    isBoolean,
     isEmpty,
     isEqual,
+    isNull,
     isNumber,
     isString,
+    isUndefined,
     keyBy,
+    keys,
     mapValues,
     max,
     maxBy,
@@ -871,6 +882,18 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
     return intersection
 }
 
+export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const diff = new Set<T>(sets[0])
+
+    sets.slice(1).forEach((set) => {
+        for (const elem of set) {
+            diff.delete(elem)
+        }
+    })
+    return diff
+}
+
 // ES6 is now significantly faster than lodash's intersection
 export const intersection = <T>(...arrs: T[][]): T[] => {
     if (arrs.length === 0) return []
@@ -1173,6 +1196,12 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
             return [...row, ...Array(width - row.length).fill(fill)]
         else return row
     })
+}
+
+export function isPlainObjectWithGuard(
+    x: unknown
+): x is Record<string, unknown> {
+    return isPlainObject(x)
 }
 
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
