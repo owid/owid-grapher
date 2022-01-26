@@ -1,5 +1,5 @@
-import algoliasearch, { SearchClient, SearchIndex } from "algoliasearch"
-import { Synonym } from "@algolia/client-search"
+import algoliasearch, { SearchClient } from "algoliasearch"
+import { Synonym, Settings } from "@algolia/client-search"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
 import {
     ALGOLIA_INDEXING,
@@ -28,14 +28,16 @@ export const configureAlgolia = async () => {
         // throwing here to halt deploy process
         throw new Error("Algolia configuration failed (client not initialized)")
 
-    const baseSettings: Parameters<SearchIndex["setSettings"]>[0] = {
+    const baseSettings: Settings = {
         queryLanguages: ["en"],
+        indexLanguages: ["en"],
         ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
             "multiWordsSynonym",
         ],
+        ignorePlurals: true,
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
     }
@@ -81,7 +83,12 @@ export const configureAlgolia = async () => {
         ["atomic", "nuclear"],
         ["pop", "population"],
         ["cheese", "dairy"],
-        ["gdp", "economic growth"],
+        [
+            "gdp",
+            "economic growth",
+            "pib" /* spanish, french */,
+            "pil" /* italian */,
+        ],
         ["overpopulation", "population growth"],
         ["covid", "covid-19", "coronavirus", "corona"],
         ["flu", "influenza"],
@@ -90,10 +97,17 @@ export const configureAlgolia = async () => {
         ["n2o", "N₂O", "nitrous oxide"],
         ["NOx", "NOₓ", "nitrogen dioxide"],
         ["price", "cost"],
-        ["vaccine", "vaccination", "vacuna"],
+        ["vaccine", "vaccination", "vacuna" /* spanish */],
         ["ghg", "greenhouse gas"],
         ["rate", "share"],
-        ["hospital admission", "hospitalization", "in hospital"],
+        [
+            "hospital admission",
+            "hospitalization",
+            "hospitalisation",
+            "in hospital",
+        ],
+        ["incidence", "daily new confirmed cases"],
+        ["homosexual", "gay", "lesbian"],
     ]
 
     // Send all our country variant names to algolia as synonyms
