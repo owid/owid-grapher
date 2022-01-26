@@ -1,6 +1,7 @@
 import * as lodash from "lodash"
 
 import * as db from "../../db/db"
+import { getRelatedArticles } from "../../db/wpdb"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import { getAlgoliaClient } from "./configureAlgolia"
 
@@ -37,6 +38,8 @@ const getChartsRecords = async () => {
     for (const c of chartsToIndex) {
         if (!c.tags) continue
 
+        const relatedArticles = (await getRelatedArticles(c.slug)) ?? []
+
         records.push({
             objectID: c.id,
             chartId: c.id,
@@ -50,6 +53,8 @@ const getChartsRecords = async () => {
             updatedAt: c.updatedAt,
             numDimensions: parseInt(c.numDimensions),
             titleLength: c.title.length,
+            // Number of references to this chart in all our posts and pages
+            numRelatedArticles: relatedArticles.length,
         })
     }
 
