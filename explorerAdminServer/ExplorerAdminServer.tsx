@@ -1,48 +1,21 @@
-import React from "react"
-import { existsSync, readdir, writeFile, mkdirp, readFile } from "fs-extra"
-import path from "path"
-import { queryMysql } from "../db/db"
-import { getBlockContent } from "../db/wpdb"
+import { existsSync, readdir, readFile } from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
 } from "../explorer/ExplorerProgram"
-import { Router } from "express"
-import { ExplorerPage } from "../site/ExplorerPage"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
-    EXPLORERS_PREVIEW_ROUTE,
-    GetAllExplorersRoute,
     ExplorersRouteResponse,
-    DefaultNewExplorerSlug,
-    EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants"
 import simpleGit, { SimpleGit } from "simple-git"
-import { slugify } from "../clientUtils/Util"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { GitCommit, JsonError } from "../clientUtils/owidTypes"
-import ReactDOMServer from "react-dom/server"
-import {
-    explorerRedirectTable,
-    getExplorerRedirectForPath,
-} from "./ExplorerRedirects"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
+import { GitCommit } from "../clientUtils/owidTypes"
 
 export class ExplorerAdminServer {
-    constructor(gitDir: string, baseUrl: string) {
+    constructor(gitDir: string) {
         this.gitDir = gitDir
-        this.baseUrl = baseUrl
     }
 
-    private baseUrl: string
     private gitDir: string
-
-    // we store explorers in a subdir of the gitcms for now. idea is we may store other things in there later.
-    private get absoluteFolderPath() {
-        return this.gitDir + "/" + EXPLORERS_GIT_CMS_FOLDER + "/"
-    }
 
     private _simpleGit?: SimpleGit
     private get simpleGit() {
@@ -53,6 +26,11 @@ export class ExplorerAdminServer {
                 maxConcurrentProcesses: 1,
             })
         return this._simpleGit
+    }
+
+    // we store explorers in a subdir of the gitcms for now. idea is we may store other things in there later.
+    get absoluteFolderPath() {
+        return this.gitDir + "/" + EXPLORERS_GIT_CMS_FOLDER + "/"
     }
 
     async getAllExplorersCommand() {
@@ -78,71 +56,6 @@ export class ExplorerAdminServer {
         }
     }
 
-    addMockBakedSiteRoutes(app: Router) {
-        app.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
-            res.set("Access-Control-Allow-Origin", "*")
-            const explorers = await this.getAllPublishedExplorers()
-            const explorerProgram = explorers.find(
-                (program) => program.slug === req.params.slug
-            )
-            if (explorerProgram)
-                res.send(await this.renderExplorerPage(explorerProgram))
-            else
-                throw new JsonError(
-                    "A published explorer with that slug was not found",
-                    404
-                )
-        })
-        app.get("/*", async (req, res, next) => {
-            const explorerRedirect = getExplorerRedirectForPath(req.path)
-            // If no explorer redirect exists, continue to next express handler
-            if (!explorerRedirect) return next()
-
-            const { migrationId, baseQueryStr } = explorerRedirect
-            const { explorerSlug } = explorerUrlMigrationsById[migrationId]
-            const program = await this.getExplorerFromSlug(explorerSlug)
-            res.send(
-                await this.renderExplorerPage(program, {
-                    explorerUrlMigrationId: migrationId,
-                    baseQueryStr,
-                })
-            )
-        })
-    }
-
-    addAdminRoutes(app: Router) {
-        app.get("/errorTest.csv", async (req, res) => {
-            // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
-            const code =
-                req.query.code && !isNaN(parseInt(req.query.code))
-                    ? req.query.code
-                    : 400
-
-            res.status(code)
-
-            return `Simulating code ${code}`
-        })
-
-        app.get(`/${GetAllExplorersRoute}`, async (req, res) => {
-            res.send(await this.getAllExplorersCommand())
-        })
-
-        app.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
-            const slug = slugify(req.params.slug)
-            const filename = slug + EXPLORER_FILE_SUFFIX
-            if (slug === DefaultNewExplorerSlug)
-                return res.send(
-                    await this.renderExplorerPage(
-                        new ExplorerProgram(DefaultNewExplorerSlug, "")
-                    )
-                )
-            if (!slug || !existsSync(this.absoluteFolderPath + filename))
-                return res.send(`File not found`)
-            const explorer = await this.getExplorerFromFile(filename)
-            return res.send(await this.renderExplorerPage(explorer))
-        })
-    }
-
     // todo: make private? once we remove covid legacy stuff?
     async getExplorerFromFile(filename: string) {
         const fullPath = this.absoluteFolderPath + filename
@@ -159,58 +72,12 @@ export class ExplorerAdminServer {
         return this.getExplorerFromFile(`${slug}${EXPLORER_FILE_SUFFIX}`)
     }
 
-    async renderExplorerPage(
-        program: ExplorerProgram,
-        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
-    ) {
-        const { requiredGrapherIds } = program.decisionMatrix
-        let grapherConfigRows: any[] = []
-        if (requiredGrapherIds.length)
-            grapherConfigRows = await queryMysql(
-                `SELECT id, config FROM charts WHERE id IN (?)`,
-                [requiredGrapherIds]
-            )
-
-        const wpContent = program.wpBlockId
-            ? await getBlockContent(program.wpBlockId)
-            : undefined
-
-        const grapherConfigs: GrapherInterface[] = grapherConfigRows.map(
-            (row) => {
-                const config: GrapherProgrammaticInterface = JSON.parse(
-                    row.config
-                )
-                config.id = row.id // Ensure each grapher has an id
-                config.manuallyProvideData = true
-                return new Grapher(config).toObject()
-            }
-        )
-
-        return (
-            `<!doctype html>` +
-            ReactDOMServer.renderToStaticMarkup(
-                <ExplorerPage
-                    grapherConfigs={grapherConfigs}
-                    program={program}
-                    wpContent={wpContent}
-                    baseUrl={this.baseUrl}
-                    urlMigrationSpec={urlMigrationSpec}
-                />
-            )
-        )
-    }
-
-    async bakeAllPublishedExplorers(outputFolder: string) {
-        const published = await this.getAllPublishedExplorers()
-        await this.bakeExplorersToDir(outputFolder, published)
-    }
-
-    private async getAllPublishedExplorers() {
+    async getAllPublishedExplorers() {
         const explorers = await this.getAllExplorers()
         return explorers.filter((exp) => exp.isPublished)
     }
 
-    private async getAllExplorers() {
+    async getAllExplorers() {
         if (!existsSync(this.absoluteFolderPath)) return []
         const files = await readdir(this.absoluteFolderPath)
         const explorerFiles = files.filter((filename) =>
@@ -224,54 +91,5 @@ export class ExplorerAdminServer {
             explorers.push(explorer)
         }
         return explorers
-    }
-
-    private async write(outPath: string, content: string) {
-        await mkdirp(path.dirname(outPath))
-        await writeFile(outPath, content)
-        console.log(outPath)
-    }
-
-    private async bakeExplorersToDir(
-        directory: string,
-        explorers: ExplorerProgram[] = []
-    ) {
-        for (const explorer of explorers) {
-            await this.write(
-                `${directory}/${explorer.slug}.html`,
-                await this.renderExplorerPage(explorer)
-            )
-        }
-    }
-
-    async bakeAllExplorerRedirects(outputFolder: string) {
-        const explorers = await this.getAllExplorers()
-        const redirects = explorerRedirectTable.rows
-        for (const redirect of redirects) {
-            const { migrationId, path: redirectPath, baseQueryStr } = redirect
-            const transform = explorerUrlMigrationsById[migrationId]
-            if (!transform) {
-                throw new Error(
-                    `No explorer URL migration with id '${migrationId}'. Fix the list of explorer redirects and retry.`
-                )
-            }
-            const { explorerSlug } = transform
-            const program = explorers.find(
-                (program) => program.slug === explorerSlug
-            )
-            if (!program) {
-                throw new Error(
-                    `No explorer with slug '${explorerSlug}'. Fix the list of explorer redirects and retry.`
-                )
-            }
-            const html = await this.renderExplorerPage(program, {
-                explorerUrlMigrationId: migrationId,
-                baseQueryStr,
-            })
-            await this.write(
-                path.join(outputFolder, `${redirectPath}.html`),
-                html
-            )
-        }
     }
 }

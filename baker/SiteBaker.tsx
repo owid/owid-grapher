@@ -40,13 +40,17 @@ import { countries } from "../clientUtils/countries"
 import { execWrapper } from "../db/execWrapper"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { getRedirects } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { FullPost } from "../clientUtils/owidTypes"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import {
+    bakeAllExplorerRedirects,
+    bakeAllPublishedExplorers,
+} from "./ExplorerBaker"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -223,15 +227,13 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        const explorerAdminServer = new ExplorerAdminServer(
-            GIT_CMS_DIR,
-            this.baseUrl
-        )
+        const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
-        await explorerAdminServer.bakeAllExplorerRedirects(this.bakedSiteDir)
+        await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
 
-        await explorerAdminServer.bakeAllPublishedExplorers(
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`
+        await bakeAllPublishedExplorers(
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+            explorerAdminServer
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }

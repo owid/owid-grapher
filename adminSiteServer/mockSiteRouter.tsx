@@ -15,6 +15,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
+    renderExplorerPage,
 } from "../baker/siteRenderers"
 import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
 import {
@@ -42,6 +43,9 @@ import { bakeEmbedSnippet } from "../site/webpackUtils"
 import { JsonError } from "../clientUtils/owidTypes"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 import { isWordpressAPIEnabled } from "../db/wpdb"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects"
+import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
 
 require("express-async-errors")
 
@@ -94,8 +98,36 @@ mockSiteRouter.get("/grapher/latest", async (req, res) => {
     else throw new JsonError("No latest chart", 404)
 })
 
-const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR, BAKED_BASE_URL)
-explorerAdminServer.addMockBakedSiteRoutes(mockSiteRouter)
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+
+mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*")
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
+    const explorerProgram = explorers.find(
+        (program) => program.slug === req.params.slug
+    )
+    if (explorerProgram) res.send(await renderExplorerPage(explorerProgram))
+    else
+        throw new JsonError(
+            "A published explorer with that slug was not found",
+            404
+        )
+})
+mockSiteRouter.get("/*", async (req, res, next) => {
+    const explorerRedirect = getExplorerRedirectForPath(req.path)
+    // If no explorer redirect exists, continue to next express handler
+    if (!explorerRedirect) return next()
+
+    const { migrationId, baseQueryStr } = explorerRedirect
+    const { explorerSlug } = explorerUrlMigrationsById[migrationId]
+    const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+    res.send(
+        await renderExplorerPage(program, {
+            explorerUrlMigrationId: migrationId,
+            baseQueryStr,
+        })
+    )
+})
 
 mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this

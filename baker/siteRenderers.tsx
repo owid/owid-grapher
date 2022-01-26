@@ -56,6 +56,7 @@ import {
     getPosts,
     selectHomepagePosts,
     isPostCitable,
+    getBlockContent,
 } from "../db/wpdb"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
@@ -65,6 +66,11 @@ import {
     ProminentLink,
     ProminentLinkStyles,
 } from "../site/blocks/ProminentLink"
+import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
+import { ExplorerProgram } from "../explorer/ExplorerProgram"
+import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
+import { ExplorerPage } from "../site/ExplorerPage"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -483,5 +489,42 @@ export const renderAutomaticProminentLinks = async (
             $anchorParent.after(rendered)
             $anchorParent.remove()
         })
+    )
+}
+
+export const renderExplorerPage = async (
+    program: ExplorerProgram,
+    urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+) => {
+    const { requiredGrapherIds } = program.decisionMatrix
+    let grapherConfigRows: any[] = []
+    if (requiredGrapherIds.length)
+        grapherConfigRows = await queryMysql(
+            `SELECT id, config FROM charts WHERE id IN (?)`,
+            [requiredGrapherIds]
+        )
+
+    const wpContent = program.wpBlockId
+        ? await getBlockContent(program.wpBlockId)
+        : undefined
+
+    const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
+        const config: GrapherProgrammaticInterface = JSON.parse(row.config)
+        config.id = row.id // Ensure each grapher has an id
+        config.manuallyProvideData = true
+        return new Grapher(config).toObject()
+    })
+
+    return (
+        `<!doctype html>` +
+        ReactDOMServer.renderToStaticMarkup(
+            <ExplorerPage
+                grapherConfigs={grapherConfigs}
+                program={program}
+                wpContent={wpContent}
+                baseUrl={BAKED_BASE_URL}
+                urlMigrationSpec={urlMigrationSpec}
+            />
+        )
     )
 }

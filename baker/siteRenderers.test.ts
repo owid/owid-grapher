@@ -9,8 +9,12 @@ import {
 import * as cheerio from "cheerio"
 import { FullPost, WP_PostType } from "../clientUtils/owidTypes"
 import * as wpdb from "../db/wpdb"
-import { renderAutomaticProminentLinks } from "./siteRenderers"
+import {
+    renderAutomaticProminentLinks,
+    renderExplorerPage,
+} from "./siteRenderers"
 import { BAKED_BASE_URL } from "../settings/clientSettings"
+import { ExplorerProgram } from "../explorer/ExplorerProgram"
 
 // There are many possible dimensions to test:
 // - style: default / thin
@@ -229,4 +233,12 @@ describe("does not render automatic prominent link", () => {
         expect(cheerioEl(`.${PROMINENT_LINK_CLASSNAME}`).length).toEqual(0)
         expect(console.error).toHaveBeenCalledTimes(0)
     })
+})
+
+it("renders an explorer page with title", async () => {
+    expect(
+        await renderExplorerPage(
+            new ExplorerProgram("foo", "explorerTitle helloWorld")
+        )
+    ).toContain("helloWorld")
 })
