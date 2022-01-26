@@ -67,6 +67,21 @@ export const addDocumentsToGraph = async (
         // Create the parent topics first (add records with the only available
         // referential information - id - then update the records when going
         // through the parent topic as a document)
+        //
+        // e.g. Document "One" (id: 1) has "ParentTwo" (id: 2) and "ParentThree"
+        // (id: 3) as parent topics. When document "One" is processed,
+        // "ParentTwo" and "ParentThree" need to be added first to the graph, so
+        // they can then be referenced by document "One" as parents and satisfy
+        // the referential integrity constraint. At this stage, the only
+        // information available for these parent nodes is their "id", hence the
+        // presence of that single field ("id") during their initial creation.
+        // It is possible for these nodes to already exist however: maybe
+        // "ParentTwo" and "ParentThree" were referenced as parents of other
+        // nodes, or maybe they were already processed and added in full by the
+        // main loop. In that sense, the "ConflictErrors" raised when trying to
+        // add existing nodes (or at least sharing the same "id") are a natural
+        // and expected part of the building process of the graph, which is why
+        // they are discarded.
         if (document.parentTopics) {
             for (const parentTopic of document.parentTopics) {
                 try {
