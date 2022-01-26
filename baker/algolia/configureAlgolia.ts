@@ -1,5 +1,5 @@
-import algoliasearch, { SearchClient, SearchIndex } from "algoliasearch"
-import { Synonym } from "@algolia/client-search"
+import algoliasearch, { SearchClient } from "algoliasearch"
+import { Synonym, Settings } from "@algolia/client-search"
 import { ALGOLIA_ID } from "../../settings/clientSettings"
 import {
     ALGOLIA_INDEXING,
@@ -28,14 +28,16 @@ export const configureAlgolia = async () => {
         // throwing here to halt deploy process
         throw new Error("Algolia configuration failed (client not initialized)")
 
-    const baseSettings: Parameters<SearchIndex["setSettings"]>[0] = {
+    const baseSettings: Settings = {
         queryLanguages: ["en"],
+        indexLanguages: ["en"],
         ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
             "multiWordsSynonym",
         ],
+        ignorePlurals: true,
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
     }
