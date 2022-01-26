@@ -4,6 +4,7 @@ import * as db from "../../db/db"
 import { getRelatedArticles } from "../../db/wpdb"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import { getAlgoliaClient } from "./configureAlgolia"
+import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
@@ -37,6 +38,9 @@ const getChartsRecords = async () => {
     const records = []
     for (const c of chartsToIndex) {
         if (!c.tags) continue
+        // Our search currently cannot render explorers, so don't index them because
+        // otherwise they will fail when rendered in the search results
+        if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(c.slug)) ?? []
 
