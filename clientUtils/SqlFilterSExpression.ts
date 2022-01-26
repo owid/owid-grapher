@@ -77,21 +77,28 @@ export class NumberAtom extends NumericOperation {
         return this.value.toString()
     }
 }
-
+const quoteReplaceRegex = /'/g
+const backslashReplaceRegex = /\\/g
+const doubleQuoteReplaceRegex = /"/g
 export class StringAtom extends StringOperation {
     constructor(public value: string) {
         super()
     }
     expressionType = ExpressionType.string
     escapedValue(): string {
-        return this.value.toString().replace("'", "''").replace("\\", "\\\\")
+        return this.value
+            .toString()
+            .replace(quoteReplaceRegex, "''")
+            .replace(backslashReplaceRegex, "\\\\")
     }
     toSql(): string {
         return `'${this.escapedValue()}'` // escape single quotes to avoid SQL injection attacks :)
     }
 
     toSExpr(): string {
-        return `"${this.value.toString()}"`
+        return `"${this.value
+            .toString()
+            .replace(doubleQuoteReplaceRegex, '\\"')}"`
     }
 }
 
