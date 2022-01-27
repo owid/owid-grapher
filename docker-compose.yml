@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+    db:
+        image: mysql:5.7
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        volumes:
+            - mysql_data:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+
+    # web:
+    #     image: nginx:1.21
+    #     ports:
+    #         - 8080:80
+    #     volumes:
+    #         - ./wordpress/.lando/config/vhosts.conf:/etc/nginx/conf.d/vhosts.conf
+    #     depends_on:
+    #         - php
+
+    # php:
+    #     image: php:7.2-fpm
+    #     ports:
+    #         - 9000:9000
+    #     volumes:
+    #         - wordpress:/var/www/myapp
+    #         - ./wordpress/.lando/config/php.ini:/usr/local/etc/php/php.ini
+    #     depends_on:
+    #         - db
+
+    # composer:
+    #     image: composer:1.9
+    #     command: ["composer", "install"]
+    #     volumes:
+    #         - wordpress:/app
+
+volumes:
+    mysql_data:
+    wordpress:
