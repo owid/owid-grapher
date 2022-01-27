@@ -1,0 +1,45 @@
+image: gitpod/workspace-mysql
+
+ports:
+    # express server
+    - port: 3030
+      onOpen: open-browser
+    # mysql server
+    - port: 3306
+      onOpen: ignore
+    - port: 33060
+      onOpen: ignore
+    # webpack server
+    - port: 8090
+      onOpen: ignore
+
+tasks:
+    # set everything up
+    - init: |
+          gp await-port 3306 && ./db/downloadAndCreateDatabase.sh
+          mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';"
+          nvm install
+          npm install -g yarn
+          git clone https://github.com/owid/owid-content
+          yarn install
+          cp .env.example .env && echo $'\n' >> .env
+          tsc -b
+          gp sync-done initial-setup
+      # setting env variables required for Gitpod, because it doesn't run on localhost
+      command: |
+          echo WEBPACK_DEV_URL=$(gp url 8090) >> .env
+          echo BAKED_BASE_URL=$(gp url 3030) >> .env
+          echo ADMIN_BASE_URL=$(gp url 3030) >> .env
+          yarn startTscServer
+    # wait for initial-setup (above) to finish and then start webpack server
+    - init: gp sync-await initial-setup
+      command: yarn startWebpackServer
+    # wait for initial-setup (above) to finish and then start admin server
+    - init: gp sync-await initial-setup
+      command: yarn startAdminServer
+
+github:
+    prebuilds:
+        branches: true
+        pullRequests: true
+        addCheck: false
