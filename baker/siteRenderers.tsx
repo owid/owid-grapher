@@ -474,8 +474,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 $block.find("figure").html() ||
                 (!isCanonicalInternalUrl(rawUrl)
                     ? null
-                    : url.isGrapher
-                    ? renderGrapherImageBySlug(url.slug)
+                    : url.grapherSlug
+                    ? await renderGrapherImageByChartSlug(url.grapherSlug)
                     : url.isExplorer
                     ? renderExplorerImageBySlug(url.slug)
                     : await renderPostThumbnailBySlug(url.slug))
@@ -637,8 +637,16 @@ function getExplorerTitleBySlug() {
     return "Explorer title"
 }
 
-function renderGrapherImageBySlug(slug: string): string | null {
-    return ReactDOMServer.renderToStaticMarkup(<img src="" />)
+const renderGrapherImageByChartSlug = async (
+    chartSlug: string
+): Promise<string | null> => {
+    const chart = await Chart.getBySlug(chartSlug)
+    if (!chart) return null
+
+    const canonicalSlug = chart?.config?.slug
+    if (!canonicalSlug) return null
+
+    return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
 }
 
 function renderExplorerImageBySlug(slug: string): string | null {
