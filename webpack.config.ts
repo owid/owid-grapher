@@ -96,12 +96,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
                 },
                 {
                     test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
-                    loader: "url-loader",
-                    options: {
-                        limit: 10000,
-                        useRelativePaths: true,
-                        publicPath: "../",
-                    },
+                    use: "asset",
                 },
             ],
         },
