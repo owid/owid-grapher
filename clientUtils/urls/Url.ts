@@ -132,8 +132,16 @@ export class Url {
     }
 
     get grapherSlug(): string | null {
+        return this.#prefixedSlug("grapher")
+    }
+
+    get explorerSlug(): string | null {
+        return this.#prefixedSlug("explorers")
+    }
+
+    #prefixedSlug(prefix: string): string | null {
         const match = this.pathname
-            ? this.pathname.match(/^\/grapher\/(.+)/)
+            ? this.pathname.match(new RegExp(`^\/${prefix}\/(.+)`))
             : null
         if (!match) return null
         return match[1]

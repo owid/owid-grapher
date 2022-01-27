@@ -76,6 +76,8 @@ import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 import { ExplorerPage } from "../site/ExplorerPage"
 import { Chart } from "../db/model/Chart"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -451,14 +453,15 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const content = $block.find("content").html()
 
             // optim: memo or content graph?
+            // todo: try {}
             const title =
                 $block.find("title").text() ||
                 (!isCanonicalInternalUrl(rawUrl)
                     ? null // attempt fallback for internal urls only
                     : url.grapherSlug
                     ? (await Chart.getBySlug(url.grapherSlug))?.config?.title // optim?
-                    : url.isExplorer
-                    ? getExplorerTitleBySlug()
+                    : url.explorerSlug
+                    ? await getExplorerTitleByExplorerSlug(url.explorerSlug)
                     : (await getPostBySlug(url.slug))?.title)
 
             if (!title) {
@@ -470,6 +473,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 return
             }
 
+            // todo: try{}
             const image =
                 $block.find("figure").html() ||
                 (!isCanonicalInternalUrl(rawUrl)
@@ -633,8 +637,14 @@ export const renderExplorerPage = async (
     )
 }
 
-function getExplorerTitleBySlug() {
-    return "Explorer title"
+const getExplorerTitleByExplorerSlug = async (
+    explorerSlug: string
+): Promise<string | undefined> => {
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const explorer = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+    if (!explorer) return
+
+    return explorer.explorerTitle
 }
 
 const renderGrapherImageByChartSlug = async (
