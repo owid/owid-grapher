@@ -47,13 +47,18 @@ export const configureAlgolia = async () => {
     await chartsIndex.setSettings({
         ...baseSettings,
         searchableAttributes: [
-            "title",
+            "unordered(title)",
+            "unordered(slug)",
             "unordered(variantName)",
             "unordered(subtitle)",
             "unordered(_tags)",
             "unordered(availableEntities)",
         ],
-        customRanking: ["asc(numDimensions)", "asc(titleLength)"],
+        customRanking: [
+            "desc(numRelatedArticles)",
+            "asc(numDimensions)",
+            "asc(titleLength)",
+        ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
         disableExactOnAttributes: ["_tags"],

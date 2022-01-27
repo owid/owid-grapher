@@ -1,8 +1,10 @@
 import * as lodash from "lodash"
 
 import * as db from "../../db/db"
+import { getRelatedArticles } from "../../db/wpdb"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
 import { getAlgoliaClient } from "./configureAlgolia"
+import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
@@ -36,6 +38,11 @@ const getChartsRecords = async () => {
     const records = []
     for (const c of chartsToIndex) {
         if (!c.tags) continue
+        // Our search currently cannot render explorers, so don't index them because
+        // otherwise they will fail when rendered in the search results
+        if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
+
+        const relatedArticles = (await getRelatedArticles(c.slug)) ?? []
 
         records.push({
             objectID: c.id,
@@ -50,6 +57,8 @@ const getChartsRecords = async () => {
             updatedAt: c.updatedAt,
             numDimensions: parseInt(c.numDimensions),
             titleLength: c.title.length,
+            // Number of references to this chart in all our posts and pages
+            numRelatedArticles: relatedArticles.length,
         })
     }
 
