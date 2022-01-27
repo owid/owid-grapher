@@ -293,7 +293,7 @@ export const formatWordpressPost = async (
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
-    renderBlocks(cheerioEl)
+    await renderBlocks(cheerioEl)
     // DEPRECATED / todo: remove
     await renderAutomaticProminentLinks(cheerioEl, post)
 

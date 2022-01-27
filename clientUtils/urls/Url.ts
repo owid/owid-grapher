@@ -127,6 +127,10 @@ export class Url {
         return this.pathname ? /^\/uploads\//.test(this.pathname) : false
     }
 
+    get isExplorer(): boolean {
+        return this.pathname ? /^\/explorers\//.test(this.pathname) : false
+    }
+
     update(props: UrlProps) {
         return new Url({
             ...this.props,

@@ -16,7 +16,8 @@ import * as lodash from "lodash"
 import {
     extractFormattingOptions,
     formatCountryProfile,
-    isStandaloneInternalLink,
+    isCanonicalInternalUrl,
+    isStandaloneCanonicalInternalLink,
 } from "./formatting"
 import {
     bakeGrapherUrls,
@@ -417,38 +418,83 @@ export const countryProfileCountryPage = async (
 
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
-export const renderProminentLinks = ($: CheerioStatic) => {
-    $("block[type='prominent-link']").each((_, el: CheerioElement) => {
-        const $block = $(el)
-        const href = $block.find("link-url").text()
-        const url = Url.fromURL(href)
+const renderPostThumbnailBySlug = async (
+    slug: string
+): Promise<string | undefined> => {
+    let post
+    try {
+        post = await getPostBySlug(slug)
+    } catch (err) {
+        // if not post is found, then we return early instead of throwing
+    }
 
-        const style = $block.attr("style")
-        const title = $block.find("title").text()
-        const content = $block.find("content").html()
-        const image =
-            $block.find("figure").html() ||
-            (url.isGrapher
-                ? `<img src="${BAKED_BASE_URL}/grapher/exports/${url.pathname
-                      ?.split("/")
-                      .pop()}.svg" />`
-                : null)
+    if (!post?.imageId) return
+    const mediaThumbnailUrl = await getMediaThumbnailUrl(post.imageId)
+    if (!mediaThumbnailUrl) return
+    return ReactDOMServer.renderToStaticMarkup(
+        <img src={formatUrls(mediaThumbnailUrl)} />
+    )
+}
 
-        const rendered = ReactDOMServer.renderToStaticMarkup(
-            <div className="block-wrapper">
-                <ProminentLink
-                    href={href}
-                    style={style}
-                    title={title}
-                    content={content}
-                    image={image}
-                />
-            </div>
-        )
+export const renderProminentLinks = async ($: CheerioStatic) => {
+    const blocks = $("block[type='prominent-link']").toArray()
+    await Promise.all(
+        blocks.map(async (block) => {
+            const $block = $(block)
+            const rawUrl = $block.find("link-url").text()
+            if (!rawUrl) return
+            const url = Url.fromURL(rawUrl)
+            if (!url.slug) return
 
-        $block.after(rendered)
-        $block.remove()
-    })
+            const style = $block.attr("style")
+            const content = $block.find("content").html()
+
+            // optim: memo or content graph?
+            const title =
+                $block.find("title").text() ||
+                (!isCanonicalInternalUrl(rawUrl)
+                    ? null // attempt fallback for internal urls only
+                    : url.isGrapher
+                    ? getGrapherTitleBySlug()
+                    : url.isExplorer
+                    ? getExplorerTitleBySlug()
+                    : (await getPostBySlug(url.slug))?.title)
+
+            if (!title) {
+                logErrorAndMaybeSendToSlack(
+                    new Error(
+                        `No fallback title found for prominent link ${rawUrl}`
+                    )
+                )
+                return
+            }
+
+            const image =
+                $block.find("figure").html() ||
+                (!isCanonicalInternalUrl(rawUrl)
+                    ? null
+                    : url.isGrapher
+                    ? renderGrapherImageBySlug(url.slug)
+                    : url.isExplorer
+                    ? renderExplorerImageBySlug(url.slug)
+                    : await renderPostThumbnailBySlug(url.slug))
+
+            const rendered = ReactDOMServer.renderToStaticMarkup(
+                <div className="block-wrapper">
+                    <ProminentLink
+                        href={rawUrl}
+                        style={style}
+                        title={title}
+                        content={content}
+                        image={image}
+                    />
+                </div>
+            )
+
+            $block.after(rendered)
+            $block.remove()
+        })
+    )
 }
 
 // DEPRECATED / todo: remove
@@ -459,7 +505,7 @@ export const renderAutomaticProminentLinks = async (
     const anchorElements = cheerioEl("a").toArray()
     await Promise.all(
         anchorElements.map(async (anchor) => {
-            if (!isStandaloneInternalLink(anchor, cheerioEl)) return
+            if (!isStandaloneCanonicalInternalLink(anchor, cheerioEl)) return
             const url = Url.fromURL(anchor.attribs.href)
             if (!url.slug) return
 
@@ -530,21 +576,23 @@ export const renderAutomaticProminentLinks = async (
     )
 }
 
-export const renderReusableBlock = (html?: string): string | undefined => {
+export const renderReusableBlock = async (
+    html?: string
+): Promise<string | undefined> => {
     if (!html) return
     const cheerioEl = cheerio.load(html)
-    renderProminentLinks(cheerioEl)
+    await renderProminentLinks(cheerioEl)
     const rendered = cheerioEl("body").html()
     if (!rendered) return
 
-    const formatted = formatLinks(rendered)
+    const formatted = formatUrls(rendered)
     return formatted
 }
 
-export const renderBlocks = (cheerioEl: CheerioStatic) => {
+export const renderBlocks = async (cheerioEl: CheerioStatic) => {
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
-    renderProminentLinks(cheerioEl)
+    await renderProminentLinks(cheerioEl)
 }
 
 export const renderExplorerPage = async (
@@ -560,7 +608,7 @@ export const renderExplorerPage = async (
         )
 
     const wpContent = program.wpBlockId
-        ? renderReusableBlock(await getBlockContent(program.wpBlockId))
+        ? await renderReusableBlock(await getBlockContent(program.wpBlockId))
         : undefined
 
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
@@ -582,4 +630,20 @@ export const renderExplorerPage = async (
             />
         )
     )
+}
+
+function getGrapherTitleBySlug() {
+    return "Grapher title"
+}
+
+function getExplorerTitleBySlug() {
+    return "Explorer title"
+}
+
+function renderGrapherImageBySlug(slug: string): string | null {
+    return ReactDOMServer.renderToStaticMarkup(<img src="" />)
+}
+
+function renderExplorerImageBySlug(slug: string): string | null {
+    return ReactDOMServer.renderToStaticMarkup(<img src="" />)
 }
