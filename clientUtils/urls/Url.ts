@@ -131,6 +131,14 @@ export class Url {
         return this.pathname ? /^\/explorers\//.test(this.pathname) : false
     }
 
+    get grapherSlug(): string | null {
+        const match = this.pathname
+            ? this.pathname.match(/^\/grapher\/(.+)/)
+            : null
+        if (!match) return null
+        return match[1]
+    }
+
     update(props: UrlProps) {
         return new Url({
             ...this.props,

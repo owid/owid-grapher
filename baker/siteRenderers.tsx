@@ -75,6 +75,7 @@ import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 import { ExplorerPage } from "../site/ExplorerPage"
+import { Chart } from "../db/model/Chart"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -454,8 +455,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 $block.find("title").text() ||
                 (!isCanonicalInternalUrl(rawUrl)
                     ? null // attempt fallback for internal urls only
-                    : url.isGrapher
-                    ? getGrapherTitleBySlug()
+                    : url.grapherSlug
+                    ? (await Chart.getBySlug(url.grapherSlug))?.config?.title // optim?
                     : url.isExplorer
                     ? getExplorerTitleBySlug()
                     : (await getPostBySlug(url.slug))?.title)
@@ -630,10 +631,6 @@ export const renderExplorerPage = async (
             />
         )
     )
-}
-
-function getGrapherTitleBySlug() {
-    return "Grapher title"
 }
 
 function getExplorerTitleBySlug() {
