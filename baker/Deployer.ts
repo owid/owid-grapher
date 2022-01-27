@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
 import * as prompts from "prompts"
-import ProgressBar = require("progress")
+import ProgressBar from "progress"
 import { execWrapper } from "../db/execWrapper"
 import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"

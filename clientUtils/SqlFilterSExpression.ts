@@ -1,4 +1,4 @@
-import parse = require("s-expression")
+import parse from "s-expression"
 import pointer from "json8-pointer"
 import { isArray, tail, without } from "lodash"
 // This type models what we get from the s-expression library. This library

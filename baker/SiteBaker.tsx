@@ -4,7 +4,7 @@ import * as glob from "glob"
 import { without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
-import ProgressBar = require("progress")
+import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb"
 import * as db from "../db/db"
 import {

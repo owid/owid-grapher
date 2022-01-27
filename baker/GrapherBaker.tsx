@@ -22,7 +22,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings"
-import ProgressBar = require("progress")
+import ProgressBar from "progress"
 import * as db from "../db/db"
 import * as glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes"
