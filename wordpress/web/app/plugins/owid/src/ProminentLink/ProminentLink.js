@@ -106,21 +106,27 @@ const ProminentLink = {
             {
                 type: "block",
                 blocks: ["core/paragraph"],
-                transform: ({ content }) => {
-                    const parsed = parser.parseFromString(content, "text/html")
+                isMultiBlock: true,
+                transform: (blocks) => {
+                    return blocks.map(({ content }) => {
+                        const parsed = parser.parseFromString(
+                            content,
+                            "text/html"
+                        )
 
-                    const body = parsed.querySelector("body")
-                    const anchorNode = parsed.querySelector("body > a")
+                        const body = parsed.querySelector("body")
+                        const anchorNode = parsed.querySelector("body > a")
 
-                    let node, blockContent
-                    if (anchorNode) {
-                        node = anchorNode.parentNode.removeChild(anchorNode)
-                        blockContent = body.textContent
-                    } else {
-                        node = body
-                    }
+                        let node, blockContent
+                        if (anchorNode) {
+                            node = anchorNode.parentNode.removeChild(anchorNode)
+                            blockContent = body.textContent
+                        } else {
+                            node = body
+                        }
 
-                    return getProminentLinkBlock(node, blockContent)
+                        return getProminentLinkBlock(node, blockContent)
+                    })
                 },
             },
             {
