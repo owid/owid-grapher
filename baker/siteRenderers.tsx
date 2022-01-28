@@ -456,28 +456,30 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const content = $block.find("content").html()
 
             // optim: memo or content graph?
-            // todo: try {}
-            const title =
-                $block.find("title").text() ||
-                (!isCanonicalInternalUrl(rawUrl)
-                    ? null // attempt fallback for internal urls only
-                    : url.grapherSlug
-                    ? (await Chart.getBySlug(url.grapherSlug))?.config?.title // optim?
-                    : url.isExplorer
-                    ? await getExplorerTitleByUrl(url)
-                    : (await getPostBySlug(url.slug))?.title)
-
-            if (!title) {
-                logErrorAndMaybeSendToSlack(
-                    new Error(
-                        `No fallback title found for prominent link ${rawUrl}`
+            let title
+            try {
+                title =
+                    $block.find("title").text() ||
+                    (!isCanonicalInternalUrl(rawUrl)
+                        ? null // attempt fallback for internal urls only
+                        : url.grapherSlug
+                        ? (await Chart.getBySlug(url.grapherSlug))?.config
+                              ?.title // optim?
+                        : url.isExplorer
+                        ? await getExplorerTitleByUrl(url)
+                        : (await getPostBySlug(url.slug))?.title)
+            } finally {
+                if (!title) {
+                    logErrorAndMaybeSendToSlack(
+                        new Error(
+                            `No fallback title found for prominent link ${rawUrl}. Block removed.`
+                        )
                     )
-                )
-                $block.remove()
-                return
+                    $block.remove()
+                    return
+                }
             }
 
-            // todo: try{}
             const image =
                 $block.find("figure").html() ||
                 (!isCanonicalInternalUrl(rawUrl)
