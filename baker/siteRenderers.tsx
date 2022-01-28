@@ -588,13 +588,11 @@ export const renderReusableBlock = async (
     html?: string
 ): Promise<string | undefined> => {
     if (!html) return
-    const cheerioEl = cheerio.load(html)
-    await renderProminentLinks(cheerioEl)
-    const rendered = cheerioEl("body").html()
-    if (!rendered) return
 
-    const formatted = formatUrls(rendered)
-    return formatted
+    const cheerioEl = cheerio.load(formatUrls(html))
+    await renderProminentLinks(cheerioEl)
+
+    return cheerioEl("body").html() ?? undefined
 }
 
 export const renderBlocks = async (cheerioEl: CheerioStatic) => {
