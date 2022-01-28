@@ -223,7 +223,7 @@
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^4.31.1",
         "@typescript-eslint/parser": "^4.31.1",
-        "cypress": "7.0.1",
+        "cypress": "9.3.1",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-react": "^7.25.2",
         "http-server": "^14.0.0",
