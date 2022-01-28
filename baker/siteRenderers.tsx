@@ -78,6 +78,7 @@ import { ExplorerPage } from "../site/ExplorerPage"
 import { Chart } from "../db/model/Chart"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -462,8 +463,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                     ? null // attempt fallback for internal urls only
                     : url.grapherSlug
                     ? (await Chart.getBySlug(url.grapherSlug))?.config?.title // optim?
-                    : url.explorerSlug
-                    ? await getExplorerTitleByExplorerSlug(url.explorerSlug)
+                    : url.isExplorer
+                    ? await getExplorerTitleByUrl(url)
                     : (await getPostBySlug(url.slug))?.title)
 
             if (!title) {
@@ -639,13 +640,19 @@ export const renderExplorerPage = async (
     )
 }
 
-const getExplorerTitleByExplorerSlug = async (
-    explorerSlug: string
-): Promise<string | undefined> => {
+const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
+    if (!url.explorerSlug) return
+    // todo / optim: ok to instanciate multiple simple-git instances?
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const explorer = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
+    const explorer = await explorerAdminServer.getExplorerFromSlug(
+        url.explorerSlug
+    )
     if (!explorer) return
 
+    if (url.queryStr) {
+        explorer.initDecisionMatrix(url.queryParams as ExplorerFullQueryParams)
+        return explorer.grapherConfig.title
+    }
     return explorer.explorerTitle
 }
 
