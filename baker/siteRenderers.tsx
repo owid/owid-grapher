@@ -485,7 +485,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                     : url.grapherSlug
                     ? await renderGrapherImageByChartSlug(url.grapherSlug)
                     : url.isExplorer
-                    ? renderExplorerImageBySlug(url.slug)
+                    ? renderExplorerDefaultThumbnail()
                     : await renderPostThumbnailBySlug(url.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
@@ -642,7 +642,7 @@ export const renderExplorerPage = async (
 
 const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
     if (!url.explorerSlug) return
-    // todo / optim: ok to instanciate multiple simple-git instances?
+    // todo / optim: ok to instanciate multiple simple-git?
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
     const explorer = await explorerAdminServer.getExplorerFromSlug(
         url.explorerSlug
@@ -668,6 +668,8 @@ const renderGrapherImageByChartSlug = async (
     return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
 }
 
-function renderExplorerImageBySlug(slug: string): string | null {
-    return ReactDOMServer.renderToStaticMarkup(<img src="" />)
+const renderExplorerDefaultThumbnail = (): string => {
+    return ReactDOMServer.renderToStaticMarkup(
+        <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
+    )
 }
