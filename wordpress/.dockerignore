@@ -1,0 +1,6 @@
+vendor
+web/app/uploads
+web/wp
+**/*.sql.gz
+web/app/plugins
+!web/app/plugins/owid

@@ -12,31 +12,28 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
 
-    # web:
-    #     image: nginx:1.21
-    #     ports:
-    #         - 8080:80
-    #     volumes:
-    #         - ./wordpress/.lando/config/vhosts.conf:/etc/nginx/conf.d/vhosts.conf
-    #     depends_on:
-    #         - php
+    web:
+        image: nginx:1.21
+        ports:
+            - 8080:80
+        volumes:
+            - ./wordpress/.lando/config/vhosts.conf:/etc/nginx/conf.d/default.conf
+            - ./wordpress/web/.user.ini:/app/web/.user.ini
+            - ./wordpress/web/uploads:/app/web/app/uploads # TODO: move this local folder out of the wordpress subdir?
 
-    # php:
-    #     image: php:7.2-fpm
-    #     ports:
-    #         - 9000:9000
-    #     volumes:
-    #         - wordpress:/var/www/myapp
-    #         - ./wordpress/.lando/config/php.ini:/usr/local/etc/php/php.ini
-    #     depends_on:
-    #         - db
+        depends_on:
+            - fpm
 
-    # composer:
-    #     image: composer:1.9
-    #     command: ["composer", "install"]
-    #     volumes:
-    #         - wordpress:/app
+    fpm:
+        build:
+            context: ./wordpress
+        ports:
+            - 9000:9000
+        volumes:
+            - ./wordpress/.lando/config/php.ini:/usr/local/etc/php/php.ini
+            - ./wordpress/web/uploads:/app/web/app/uploads # TODO: move this local folder out of the wordpress subdir?
+        depends_on:
+            - db
 
 volumes:
     mysql_data:
-    wordpress:
