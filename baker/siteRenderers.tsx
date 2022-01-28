@@ -444,10 +444,12 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
     await Promise.all(
         blocks.map(async (block) => {
             const $block = $(block)
-            const rawUrl = $block.find("link-url").text()
-            if (!rawUrl) return
+            const rawUrl = $block.find("link-url").text() // never empty, see prominent-link.php
             const url = Url.fromURL(rawUrl)
-            if (!url.slug) return
+            if (!url.slug) {
+                $block.remove()
+                return
+            }
 
             const style = $block.attr("style")
             const content = $block.find("content").html()
@@ -470,6 +472,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                         `No fallback title found for prominent link ${rawUrl}`
                     )
                 )
+                $block.remove()
                 return
             }
 
@@ -496,8 +499,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 </div>
             )
 
-            $block.after(rendered)
-            $block.remove()
+            $block.replaceWith(rendered)
         })
     )
 }
