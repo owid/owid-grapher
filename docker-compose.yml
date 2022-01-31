@@ -1,6 +1,7 @@
 version: "3.7"
 
 services:
+    # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         image: mysql:5.7
         command: --default-authentication-plugin=mysql_native_password
@@ -14,7 +15,7 @@ services:
 
     db-load-data:
         build:
-          context: ./devTools/docker/mysql-init-docker
+            context: ./devTools/docker/mysql-init-docker
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
@@ -32,7 +33,7 @@ services:
         ports:
             - 8080:80
         volumes:
-            - ./wordpress/.lando/config/vhosts.conf:/etc/nginx/conf.d/default.conf
+            - ./devTools/docker/vhosts.conf:/etc/nginx/conf.d/default.conf
             - ./wordpress:/app
         depends_on:
             - fpm
