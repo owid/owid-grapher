@@ -13,13 +13,17 @@ services:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
 
     db-load-data:
-        image: mysql:5.7
-        command: "bash /app/create-and-fill-grapher-db.sh && bash /app/create-and-fill-wordpress-db.sh"
+        build:
+          context: ./devTools/docker/mysql-init-docker
+        command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
+            - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
+            - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
             DB_HOST: db
+            SSH_AUTH_SOCK: "/ssh-agent"
         depends_on:
             - db
 

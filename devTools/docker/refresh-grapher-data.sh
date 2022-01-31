@@ -12,9 +12,6 @@ set -o nounset
 MYSQL="mysql --default-character-set=utf8mb4"
 DL_FOLDER="."
 
-# Default options
-WITH_CHARTDATA=false
-SKIP_DB_DL=false
 
 usage()
 {
@@ -24,33 +21,11 @@ usage()
   echo ""
   echo "Options:"
   echo -e "\t-h, --help"
-  echo -e "\t-s, --skip-db-dl\tImports all databases from existing dumps. Run once without option to retrieve them."
-  echo -e "\t-c, --with-chartdata\tDownloads additional Grapher chart data (owid_chartdata)"
+  echo "Set SKIP_DB_DL to true to skip downloading and try to use local files"
+  echo "Set WITH_CHARTDATA to true to include downloading data for used charts"
+#   echo -e "\t-s, --skip-db-dl\tImports all databases from existing dumps. Run once without option to retrieve them."
+#   echo -e "\t-c, --with-chartdata\tDownloads additional Grapher chart data (owid_chartdata)"
 }
-
-# Arguments parsing inspired by https://gist.github.com/jehiah/855086
-while [ "$1" != "" ]; do
-  PARAM=`echo $1 | awk -F= '{print $1}'`
-  # VALUE=`echo $1 | awk -F= '{print $2}'`
-  case $PARAM in
-    -h | --help)
-      usage
-      exit
-      ;;
-    -s | --skip-db-dl)
-      SKIP_DB_DL=true
-      ;;
-    -c | --with-chartdata)
-      WITH_CHARTDATA=true
-      ;;
-    *)
-      echo "ERROR: unknown parameter \"$PARAM\""
-      usage
-      exit 1
-      ;;
-    esac
-    shift
-done
 
 
 purge_db(){
@@ -61,21 +36,24 @@ import_db(){
   pv $1 | gunzip | $MYSQL -h $2 --port 3306 -u$4 -p$5 $3
 }
 
-# Grapher database (owid_metadata)
-if [ "${SKIP_DB_DL}" = false ]; then
-  echo "Downloading live Grapher metadata database (owid_metadata)"
-  curl -Lo $DL_FOLDER/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
-fi
-echo "Importing live Grapher metadata database (owid_metadata)"
-purge_db $DB_HOST $DB_NAME $DB_USER
-import_db $DL_FOLDER/owid_metadata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
+fillGrapherDb() {
+    # Grapher database (owid_metadata)
+    if [ "${SKIP_DB_DL:-false}" = false ]; then
+    echo "Downloading live Grapher metadata database (owid_metadata)"
+    curl -Lo $DL_FOLDER/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
+    fi
+    echo "Importing live Grapher metadata database (owid_metadata)"
+    purge_db $DB_HOST $DB_NAME $DB_USER
+    import_db $DL_FOLDER/owid_metadata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
 
-# Grapher database (owid_chartdata)
-if [ "${WITH_CHARTDATA}" = true ]; then
-  if [ "${SKIP_DB_DL}" = false ]; then
-    echo "Downloading live Grapher chartdata database (owid_chartdata)"
-    curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-  fi
-  echo "Importing live Grapher chartdata database (owid_chartdata)"
-  import_db $DL_FOLDER/owid_chartdata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
-fi
+    # Grapher database (owid_chartdata)
+    if [ "${WITH_CHARTDATA:-false}" = true ]; then
+    if [ "${SKIP_DB_DL:-false}" = false ]; then
+        echo "Downloading live Grapher chartdata database (owid_chartdata)"
+        curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
+    fi
+    echo "Importing live Grapher chartdata database (owid_chartdata)"
+    import_db $DL_FOLDER/owid_chartdata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
+    fi
+}
+fillGrapherDb

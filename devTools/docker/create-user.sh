@@ -11,5 +11,5 @@ set -o nounset
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
 
 echo "Creating user"
-mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_HOST}" --batch -e "CREATE USER '${DB_USER}' IDENTIFIED BY '${DB_PASS}'; GRANT SELECT ON * . * TO '${DB_USER}'; FLUSH PRIVILEGES;"
+mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_HOST}" --batch -e "CREATE USER IF NOT EXISTS '${DB_USER}' IDENTIFIED BY '${DB_PASS}'; GRANT SELECT ON * . * TO '${DB_USER}'; FLUSH PRIVILEGES;"
 echo "Database '${DB_NAME}' created"
