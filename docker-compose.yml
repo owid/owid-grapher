@@ -14,7 +14,7 @@ services:
 
     db-load-data:
         build:
-          context: ./devTools/docker/mysql-init-docker
+            context: ./devTools/docker/mysql-init-docker
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
