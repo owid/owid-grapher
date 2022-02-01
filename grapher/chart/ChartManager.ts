@@ -15,6 +15,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { Annotation, ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import { CoreColumn } from "../../coreTable/CoreTableColumns"
+import { TimeBound } from "../../clientUtils/TimeBounds"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -61,13 +62,13 @@ export interface ChartManager {
     seriesColorMap?: SeriesColorMap
 
     hidePoints?: boolean // for line options
+    startHandleTimeBound?: TimeBound // for relative-to-first-year line chart
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
+    seriesStrategy?: SeriesStrategy
 
     sortConfig?: SortConfig
     showNoDataArea?: boolean
-
-    seriesStrategy?: SeriesStrategy
 
     annotation?: Annotation
     resetAnnotation?: () => void

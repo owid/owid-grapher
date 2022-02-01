@@ -39,8 +39,6 @@ export interface LinesProps {
 }
 
 export interface LineChartManager extends ChartManager {
-    hidePoints?: boolean
     lineStrokeWidth?: number
-    startHandleTimeBound?: TimeBound
     canSelectMultipleEntities?: boolean
 }
