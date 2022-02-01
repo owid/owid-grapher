@@ -533,10 +533,7 @@ export const fetchText = async (url: string): Promise<string> => {
 export const fetchWithRetries = async (
     ...params: Parameters<typeof fetch>
 ): ReturnType<typeof fetch> => {
-    return await retryPromise(() => fetch(...params), {
-        maxRetries: 3,
-        withDelay: true,
-    })
+    return await retryPromise(() => fetch(...params))
 }
 
 // todo: can we ditch this in favor of a simple fetch?
@@ -736,41 +733,20 @@ export const addDays = (date: Date, days: number): Date => {
     return newDate
 }
 
-export async function wait(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-interface RetryParams {
-    maxRetries: number
-    withDelay: boolean
-}
-const defaultRetryParams: RetryParams = {
-    maxRetries: 2,
-    withDelay: false,
-}
 export async function retryPromise<T>(
     promiseGetter: () => Promise<T>,
-    params?: Partial<RetryParams>
+    maxRetries: number = 3
 ): Promise<T> {
     let retried = 0
-    const { maxRetries, withDelay } = {
-        ...defaultRetryParams,
-        ...params,
-    }
-    while (true) {
+    let lastError
+    while (retried++ < maxRetries) {
         try {
             return await promiseGetter()
         } catch (error) {
-            if (retried >= maxRetries) {
-                throw error
-            }
-            if (withDelay) {
-                // Wait 100ms on first retry, 200ms on 2nd, 400ms on 3rd...
-                await wait(100 * 2 ** retried)
-            }
-            retried++
+            lastError = error
         }
     }
+    throw lastError
 }
 
 export function parseIntOrUndefined(s: string | undefined): number | undefined {
