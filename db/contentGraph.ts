@@ -97,17 +97,24 @@ export const addDocumentsToGraph = async (
             }
         }
 
-        // Add posts and entries to the content graph
+        // Add posts and entries to the content graph.
+
+        // graph.create() removes keys that are not listed in the graph schema.
+        // In particular, document.content is needed to compute backlinks but is
+        // not needed in the graph at this stage. This shallow clone makes sure that
+        // `content` remains available on `document` (while it is being removed from
+        // `graphDocument`).
+        const graphDocument = { ...document }
         try {
             // Warning: this mutates document (removes keys that are not listed
             // in the graph / graph schema)
-            await graph.create(GraphType.Document, document)
+            await graph.create(GraphType.Document, graphDocument)
         } catch (err) {
             // If the document has already been added as a parent, a
             // ConflictError will be raised.
             throwAllButConflictError(err)
 
-            const { id, ...rest } = document
+            const { id, ...rest } = graphDocument
             await graph.update(GraphType.Document, {
                 id,
                 replace: {
@@ -179,7 +186,7 @@ export const fortuneRecordTypes = {
         title: String,
         slug: String,
         type: String,
-        content: String,
+        // content: String, // see comment on graphDocument before uncommenting
         image: String,
         parentTopics: [Array(GraphType.Document), "childrenTopics"],
         childrenTopics: [Array(GraphType.Document), "parentTopics"],
