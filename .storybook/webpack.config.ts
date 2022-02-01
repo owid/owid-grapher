@@ -35,7 +35,7 @@ const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
 
     config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
 
-    config.resolve!.fallback = { fs: false, path: false }
+    config.resolve!.fallback = { assert: false, fs: false, path: false }
 
     return config
 }
