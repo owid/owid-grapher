@@ -67,7 +67,6 @@ abstract class AbstractAxis {
     @observable.ref domain: ValueRange
     @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
-    @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
@@ -90,6 +89,10 @@ abstract class AbstractAxis {
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
+    }
+
+    @computed get hideGridlines(): boolean {
+        return this.config.hideGridlines ?? false
     }
 
     @computed get labelPadding(): number {
@@ -151,7 +154,6 @@ abstract class AbstractAxis {
         this.formatColumn = parentAxis.formatColumn
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
-        this.hideGridlines = parentAxis.hideGridlines
         this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
         this._label = parentAxis._label

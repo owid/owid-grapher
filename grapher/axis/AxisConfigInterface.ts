@@ -11,6 +11,9 @@ export interface AxisConfigInterface {
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
 
+    /** Hide the faint lines that are shown inside the plot (axis ticks may still be visible). */
+    hideGridlines?: boolean
+
     /**
      * The *preferred* orientation of the axis.
      * If the orientation is not supported by the axis, this parameter will be ignored.

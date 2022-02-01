@@ -177,7 +177,13 @@ export class AbstactStackedChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -187,7 +193,6 @@ export class AbstactStackedChart
         )
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
-        axis.hideGridlines = true
         return axis
     }
 
