@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Build content graph",
+            "program": "${workspaceFolder}/itsJustJavascript/db/contentGraph.js",
+            "request": "launch",
+            "type": "pwa-node"
+        },
+        {
+            "name": "Index content graph",
+            "program": "${workspaceFolder}/itsJustJavascript/baker/algolia/indexContentGraphToAlgolia.js",
+            "request": "launch",
+            "type": "pwa-node"
+        },
+        {
             "name": "Run SVGTester",
             "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",

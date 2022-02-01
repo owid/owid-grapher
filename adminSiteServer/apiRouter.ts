@@ -439,6 +439,10 @@ apiRouter.get(
     })
 )
 
+apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
+    topics: await wpdb.getTopics(),
+}))
+
 apiRouter.get("/countries.json", async (req: Request, res: Response) => {
     let rows = []
 

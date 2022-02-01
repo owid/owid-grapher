@@ -1,6 +1,18 @@
 #! /usr/bin/env yarn jest
 
-import { getGrapherSlugs } from "./contentGraph"
+import {
+    DocumentNode,
+    GraphDocumentType,
+    GraphType,
+    TopicId,
+} from "../clientUtils/owidTypes"
+import { slugify } from "../clientUtils/Util"
+import {
+    addDocumentsToGraph,
+    fortuneRecordTypes,
+    getGrapherSlugs,
+} from "./contentGraph"
+const fortune = require("fortune") // Works in web browsers, too.
 
 const slugs = [
     "share-of-deaths-by-cause",
@@ -38,6 +50,23 @@ const getContent = (slugs: string[]): string => {
     `
 }
 
+const getTopicTitle = (id: TopicId) => {
+    return `topic ${id}`
+}
+
+const getTopic = (
+    id: TopicId,
+    parentTopics?: Array<TopicId>
+): DocumentNode => ({
+    id,
+    title: getTopicTitle(id),
+    slug: slugify(getTopicTitle(id)),
+    content: null,
+    type: GraphDocumentType.Topic,
+    image: null,
+    parentTopics: parentTopics ?? [],
+})
+
 it("extracts unique grapher slugs", () => {
     const matchedSlugsSet = getGrapherSlugs(getContent(slugs))
     const matchedSlugs = Array.from(matchedSlugsSet)
@@ -46,4 +75,42 @@ it("extracts unique grapher slugs", () => {
     matchedSlugs.forEach((slug, idx) => {
         expect(slug).toEqual(slugs[idx])
     })
+})
+
+// Not really a test - kept for documentation purposes
+it("demos basic fortune bi-directional capabilities", async () => {
+    const graph = fortune(fortuneRecordTypes)
+
+    await graph.create(GraphType.Document, { id: 1, title: "topic 1" })
+    await graph.create(GraphType.Document, {
+        id: 11,
+        title: "topic 1.1",
+        parentTopics: [1],
+    })
+    await graph.create(GraphType.Document, {
+        id: 12,
+        title: "topic 1.2",
+        parentTopics: [1],
+    })
+
+    const childrenTopics = (await graph.find(GraphType.Document, 1)).payload
+        .records[0].childrenTopics
+
+    expect(childrenTopics).toEqual([11, 12])
+})
+
+it("updates topic referenced and created as parent first", async () => {
+    const graph = fortune(fortuneRecordTypes)
+
+    const topic11 = getTopic(11, [1])
+    const topic12 = getTopic(12, [1])
+    const topic1 = getTopic(1)
+
+    await addDocumentsToGraph([topic11, topic12, topic1], graph)
+
+    const topic1FromGraph = (await graph.find(GraphType.Document, 1)).payload
+        .records[0]
+
+    expect(topic1FromGraph.childrenTopics).toEqual([11, 12])
+    expect(topic1FromGraph.title).toEqual(getTopicTitle(1))
 })

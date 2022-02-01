@@ -32,10 +32,13 @@ import {
     WP_MediaSizes,
     FilterFnPostRestApi,
     PostRestApi,
+    TopicId,
+    GraphType,
 } from "../clientUtils/owidTypes"
-import { getContentGraph, GraphType } from "./contentGraph"
 import { memoize } from "../clientUtils/Util"
-import { Url } from "../clientUtils/urls/Url"
+import { Topic } from "../grapher/core/GrapherConstants"
+import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
+import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings"
 
 let _knexInstance: Knex
 
@@ -245,20 +248,52 @@ export const getDocumentsInfo = async (
                 id: databaseId
                 title
                 slug
+                type: __typename
                 content
+                image: featuredImage {
+                    node {
+                        sourceUrl
+                    }
+                }
+                ${
+                    TOPICS_CONTENT_GRAPH
+                        ? `
+                parentTopics {
+                    nodes {
+                        id: databaseId
+                    }
+                }
+
+                `
+                        : ""
+                }
             }
         }
     }
     `
-    const documents = await graphqlQuery(query, { cursor })
-    const pageInfo = documents?.data[typePlural].pageInfo
-    const nodes = documents?.data[typePlural].nodes
+
+    const result = await graphqlQuery(query, { cursor })
+    if (!result.data) return []
+
+    const pageInfo = result.data[typePlural].pageInfo
+    const nodes: Array<
+        Omit<DocumentNode, "image" | "parentTopics"> & {
+            image: { node: { sourceUrl: string } } | null
+            parentTopics?: { nodes: { id: TopicId }[] }
+        }
+    > = result.data[typePlural].nodes
+    const documents = nodes.map((node) => ({
+        ...node,
+        type: WPPostTypeToGraphDocumentType[type.toLowerCase() as WP_PostType],
+        image: node.image?.node.sourceUrl ?? null,
+        parentTopics: node.parentTopics?.nodes.map((topic) => topic.id) ?? [],
+    }))
     if (pageInfo.hasNextPage) {
-        return nodes.concat(
+        return documents.concat(
             await getDocumentsInfo(type, pageInfo.endCursor, where)
         )
     } else {
-        return nodes
+        return documents
     }
 }
 
@@ -550,17 +585,17 @@ export const getRelatedCharts = async (
     `)
 
 export const getRelatedArticles = async (
-    chartSlug: string
+    chartId: number
 ): Promise<PostReference[] | undefined> => {
     const graph = await getContentGraph()
 
-    const chartRecord = await graph.find(GraphType.Chart, chartSlug)
+    const chartRecord = await graph.find(GraphType.Chart, chartId)
 
     if (!chartRecord.payload.count) return
 
     const chart = chartRecord.payload.records[0]
     const relatedArticles: PostReference[] = await Promise.all(
-        chart.research.map(async (postId: any) => {
+        chart.embeddedIn.map(async (postId: any) => {
             const postRecord = await graph.find(GraphType.Document, postId)
             const post = postRecord.payload.records[0]
             return {
@@ -645,6 +680,33 @@ export const getMediaThumbnailUrl = async (
     )
 
     return thumbnail?.sourceUrl
+}
+
+export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
+    if (!isWordpressAPIEnabled) return []
+    const query = `query {
+        pages (first: 100, after:"${cursor}", where: {categoryId:${ENTRIES_CATEGORY_ID}} ) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                id: databaseId
+                name: title
+            }
+        }
+      }`
+
+    const documents = await graphqlQuery(query, { cursor })
+    const pageInfo = documents.data.pages.pageInfo
+    const topics: Topic[] = documents.data.pages.nodes
+    if (topics.length === 0) return []
+
+    if (pageInfo.hasNextPage) {
+        return topics.concat(await getTopics(pageInfo.endCursor))
+    } else {
+        return topics
+    }
 }
 
 interface TablepressTable {

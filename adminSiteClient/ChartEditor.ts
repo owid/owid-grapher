@@ -10,7 +10,7 @@ import { Grapher } from "../grapher/core/Grapher"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import _ from "lodash"
+import { Topic } from "../grapher/core/GrapherConstants"
 
 type EditorTab = string
 
@@ -77,6 +77,7 @@ export interface ChartEditorManager {
     logs: Log[]
     references: PostReference[]
     redirects: ChartRedirect[]
+    allTopics: Topic[]
 }
 
 interface VariableIdUsageRecord {
@@ -131,6 +132,10 @@ export class ChartEditor {
 
     @computed get redirects() {
         return this.manager.redirects
+    }
+
+    @computed get allTopics() {
+        return this.manager.allTopics
     }
 
     @computed get availableTabs(): EditorTab[] {

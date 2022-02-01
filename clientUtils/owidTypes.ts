@@ -184,11 +184,28 @@ export interface EntryNode {
     kpi: string
 }
 
+export type TopicId = number
+
+export enum GraphDocumentType {
+    Topic = "topic",
+    Article = "article",
+}
+
+export interface AlgoliaRecord {
+    id: number
+    title: string
+    type: GraphType | GraphDocumentType
+    image?: string
+}
+
 export interface DocumentNode {
     id: number
     title: string
     slug: string
     content: string | null // if content is empty
+    type: GraphDocumentType
+    image: string | null
+    parentTopics: Array<TopicId>
 }
 
 export interface CategoryNode {
@@ -196,6 +213,19 @@ export interface CategoryNode {
     slug: string
     pages: any
     children: any
+}
+
+export enum GraphType {
+    Document = "document",
+    Chart = "chart",
+}
+
+export interface ChartRecord {
+    id: number
+    title: string
+    slug: string
+    type: GraphType.Chart
+    parentTopics: Array<TopicId>
 }
 
 export interface PostReference {

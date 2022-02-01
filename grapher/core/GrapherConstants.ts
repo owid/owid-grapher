@@ -1,3 +1,4 @@
+import { TopicId } from "../../clientUtils/owidTypes"
 import { Color } from "../../coreTable/CoreTableConstants"
 
 export enum ChartTypeName {
@@ -74,6 +75,11 @@ export enum ScaleType {
 export interface RelatedQuestionsConfig {
     text: string
     url: string
+}
+
+export interface Topic {
+    id: TopicId
+    name: string
 }
 
 export const WorldEntityName = "World"

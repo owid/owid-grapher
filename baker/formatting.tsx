@@ -9,7 +9,7 @@ import {
 } from "../clientUtils/owidTypes"
 import { Country } from "../clientUtils/countries"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects"
-import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
+import { BAKED_BASE_URL } from "../settings/serverSettings"
 import { DATA_VALUE } from "../site/DataValue"
 import { OwidVariablesAndEntityKey } from "../clientUtils/OwidVariable"
 import {
@@ -20,13 +20,6 @@ import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTabl
 import { getBodyHtml } from "../site/formatting"
 
 export const DEEP_LINK_CLASS = "deep-link"
-
-// Standardize urls
-export const formatLinks = (html: string) =>
-    html
-        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
-        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
-        .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
 
 export const extractFormattingOptions = (html: string): FormattingOptions => {
     const formattingOptionsMatch = html.match(

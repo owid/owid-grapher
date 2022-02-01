@@ -16,7 +16,6 @@ import * as lodash from "lodash"
 import {
     extractFormattingOptions,
     formatCountryProfile,
-    formatLinks,
     isStandaloneInternalLink,
 } from "./formatting"
 import {
@@ -66,6 +65,7 @@ import {
     ProminentLink,
     ProminentLinkStyles,
 } from "../site/blocks/ProminentLink"
+import { formatUrls } from "../site/formatting"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
@@ -469,7 +469,7 @@ export const renderAutomaticProminentLinks = async (
                 )
                 if (mediaThumbnailUrl) {
                     image = ReactDOMServer.renderToStaticMarkup(
-                        <img src={formatLinks(mediaThumbnailUrl)} />
+                        <img src={formatUrls(mediaThumbnailUrl)} />
                     )
                 }
             }

@@ -21,12 +21,12 @@ import { SectionHeading } from "./SectionHeading"
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 
-// Standardize urls
-const formatLinks = (html: string) =>
+export const formatUrls = (html: string) =>
     html
         .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
+        .replace(new RegExp("/app/uploads", "g"), "/uploads")
 
 export const formatReusableBlock = (html: string): string => {
     const cheerioEl = cheerio.load(html)
@@ -34,7 +34,7 @@ export const formatReusableBlock = (html: string): string => {
     const rendered = cheerioEl("body").html()
     if (!rendered) return ""
 
-    const formatted = formatLinks(rendered)
+    const formatted = formatUrls(rendered)
     return formatted
 }
 

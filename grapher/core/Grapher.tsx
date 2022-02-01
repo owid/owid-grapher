@@ -160,6 +160,7 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
+    TopicId,
 } from "../../clientUtils/owidTypes"
 import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -273,6 +274,7 @@ export class Grapher
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
+    @observable.ref topicIds: TopicId[] = []
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined

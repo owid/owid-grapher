@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
 import {
@@ -14,11 +14,16 @@ import {
 } from "./Forms"
 import { LogoOption } from "../grapher/captionedChart/Logos"
 import slugify from "slugify"
-import { RelatedQuestionsConfig } from "../grapher/core/GrapherConstants"
-import { getErrorMessageRelatedQuestionUrl } from "../grapher/core/Grapher" // fix.
+import { RelatedQuestionsConfig, Topic } from "../grapher/core/GrapherConstants"
+import {
+    getErrorMessageRelatedQuestionUrl,
+    Grapher,
+} from "../grapher/core/Grapher" // fix.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import Select from "react-select"
+import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -53,7 +58,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         const { relatedQuestions } = grapher
 
         return (
-            <div>
+            <div className="EditorTextTab">
                 <Section name="Header">
                     <BindAutoString
                         field="title"
@@ -130,6 +135,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             </ul>
                         </div>
                     )}
+
                     <BindString
                         label="Footer note"
                         field="note"
@@ -138,6 +144,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         softCharacterLimit={140}
                     />
                 </Section>
+
+                <TopicsSection
+                    allTopics={this.props.editor.allTopics}
+                    grapher={grapher}
+                />
+
                 <Section name="Related">
                     {relatedQuestions.map(
                         (question: RelatedQuestionsConfig, idx: number) => (
@@ -201,6 +213,39 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
             </div>
+        )
+    }
+}
+@observer
+class TopicsSection extends React.Component<{
+    allTopics: Topic[]
+    grapher: Grapher
+}> {
+    render() {
+        const { grapher } = this.props
+
+        return (
+            <Section name="Topics">
+                <Select
+                    isDisabled={!TOPICS_CONTENT_GRAPH}
+                    options={this.props.allTopics}
+                    getOptionValue={(topic) => topic.id.toString()}
+                    getOptionLabel={(topic) => topic.name}
+                    isMulti={true}
+                    value={grapher.topicIds.map((topicId) => ({
+                        id: topicId,
+                        name:
+                            this.props.allTopics.find((t) => t.id === topicId)
+                                ?.name || "TOPIC NOT FOUND",
+                    }))}
+                    onChange={(topics) =>
+                        runInAction(() => {
+                            grapher.topicIds = topics.map((topic) => topic.id)
+                        })
+                    }
+                    menuPlacement="auto"
+                />
+            </Section>
         )
     }
 }

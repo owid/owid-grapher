@@ -1,11 +1,14 @@
 import algoliasearch, { SearchClient } from "algoliasearch"
 import { Synonym, Settings } from "@algolia/client-search"
-import { ALGOLIA_ID } from "../../settings/clientSettings"
+import { ALGOLIA_ID, TOPICS_CONTENT_GRAPH } from "../../settings/clientSettings"
+
 import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings"
 import { countries } from "../../clientUtils/countries"
+
+export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 
 export const getAlgoliaClient = (): SearchClient | undefined => {
     if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {
@@ -135,6 +138,17 @@ export const configureAlgolia = async () => {
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
+
+    if (TOPICS_CONTENT_GRAPH) {
+        const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
+
+        await graphIndex.setSettings({
+            attributesForFaceting: [
+                ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
+                "searchable(type)",
+            ],
+        })
+    }
 }
 
 if (require.main === module) configureAlgolia()

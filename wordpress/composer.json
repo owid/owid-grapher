@@ -69,7 +69,10 @@
         "wpackagist-plugin/simple-history": "2.42.0",
         "wpackagist-plugin/tablepress": "1.14",
         "wpackagist-plugin/enable-media-replace": "3.5.0",
-        "lcobucci/jwt": "4.1.4"
+        "lcobucci/jwt": "4.1.4",
+        "wpackagist-plugin/meta-box": "^5.4",
+        "wpackagist-plugin/mb-relationships": "^1.10",
+        "hsimah-services/wp-graphql-mb-relationships": "^0.4.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.6.0",

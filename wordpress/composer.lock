@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c19dada37e35b297be71e06d53c2cec6",
+    "content-hash": "855f529a78d3da45d3c3505e95d5d48b",
     "packages": [
         {
             "name": "composer/installers",
@@ -216,6 +216,41 @@
                 }
             ],
             "time": "2021-08-28T21:34:50+00:00"
+        },
+        {
+            "name": "hsimah-services/wp-graphql-mb-relationships",
+            "version": "0.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hsimah-services/wp-graphql-mb-relationships.git",
+                "reference": "137a890716e7d813b6239cce7dc1804c462a6c00"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hsimah-services/wp-graphql-mb-relationships/zipball/137a890716e7d813b6239cce7dc1804c462a6c00",
+                "reference": "137a890716e7d813b6239cce7dc1804c462a6c00",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1||^8.0"
+            },
+            "type": "wordpress-plugin",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Hamish Blake",
+                    "email": "hsimah.services@gmail.com"
+                }
+            ],
+            "description": "WPGraphQL integration for MB Relationships",
+            "support": {
+                "issues": "https://github.com/hsimah-services/wp-graphql-mb-relationships/issues",
+                "source": "https://github.com/hsimah-services/wp-graphql-mb-relationships"
+            },
+            "time": "2020-07-25T23:12:54+00:00"
         },
         {
             "name": "ivome/graphql-relay-php",
@@ -1484,6 +1519,42 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/mailgun/"
+        },
+        {
+            "name": "wpackagist-plugin/mb-relationships",
+            "version": "1.10.9",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/mb-relationships/",
+                "reference": "tags/1.10.9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/mb-relationships.1.10.9.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/mb-relationships/"
+        },
+        {
+            "name": "wpackagist-plugin/meta-box",
+            "version": "5.5.1",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/meta-box/",
+                "reference": "tags/5.5.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/meta-box.5.5.1.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/meta-box/"
         },
         {
             "name": "wpackagist-plugin/my-default-post-content",
