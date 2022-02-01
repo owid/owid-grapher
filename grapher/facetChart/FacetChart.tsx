@@ -21,6 +21,7 @@ import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
+    FacetChartManager,
 } from "./FacetChartConstants"
 import { OwidTable } from "../../coreTable/OwidTable"
 import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
@@ -128,7 +129,7 @@ export class FacetChart
         )
     }
 
-    @computed private get manager(): ChartManager {
+    @computed private get manager(): FacetChartManager {
         return this.props.manager
     }
 
@@ -246,6 +247,7 @@ export class FacetChart
             isRelativeMode,
             colorScale,
             sortConfig,
+            startHandleTimeBound,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -295,6 +297,7 @@ export class FacetChart
                 colorScale,
                 colorScaleColumnOverride,
                 sortConfig,
+                startHandleTimeBound,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
