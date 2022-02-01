@@ -12,7 +12,7 @@ import {
 } from "../../settings/clientSettings"
 
 import stripe from "./stripe"
-import { fetchWithRetries, stringifyUnkownError } from "../../clientUtils/Util"
+import { stringifyUnkownError } from "../../clientUtils/Util"
 
 type Interval = "once" | "monthly"
 
@@ -131,7 +131,7 @@ export class DonateForm extends React.Component {
         }
 
         const captchaToken = await this.getCaptchaToken()
-        const response = await fetchWithRetries(DONATE_API_URL, {
+        const response = await fetch(DONATE_API_URL, {
             method: "POST",
             credentials: "same-origin",
             headers: {

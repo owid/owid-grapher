@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import dayjs, { Dayjs } from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
-import { fetchWithRetries } from "../../clientUtils/Util"
 dayjs.extend(relativeTime)
 
 export interface LastUpdatedTokenProps {
@@ -13,7 +12,7 @@ export const LastUpdated = ({ timestampUrl }: LastUpdatedTokenProps) => {
     useEffect(() => {
         const fetchTimeStamp = async () => {
             if (!timestampUrl) return
-            const response = await fetchWithRetries(timestampUrl)
+            const response = await fetch(timestampUrl)
             if (!response.ok) return
             const timestampRaw = await response.text()
             const timestamp = timestampRaw.trim()

@@ -30,7 +30,6 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
-    fetchWithRetries,
 } from "../../clientUtils/Util"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils"
 import {
@@ -721,7 +720,7 @@ export class Grapher
                 )
                 this._receiveOwidDataAndApplySelection(json)
             } else {
-                const response = await fetchWithRetries(this.dataUrl)
+                const response = await fetch(this.dataUrl)
                 if (!response.ok) throw new Error(response.statusText)
                 const json = await response.json()
                 this._receiveOwidDataAndApplySelection(json)

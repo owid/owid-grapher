@@ -522,18 +522,24 @@ export const trimObject = <Obj>(
     return clone
 }
 
+// TODO use fetchText() in fetchJSON()
+// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export const fetchText = async (url: string): Promise<string> => {
-    const response = await fetchWithRetries(url)
-    if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`)
-    }
-    return await response.text()
-}
-
-export const fetchWithRetries = async (
-    ...params: Parameters<typeof fetch>
-): ReturnType<typeof fetch> => {
-    return await retryPromise(() => fetch(...params))
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest()
+        req.addEventListener("load", function () {
+            resolve(this.responseText)
+        })
+        req.addEventListener("readystatechange", () => {
+            if (req.readyState === 4) {
+                if (req.status !== 200) {
+                    reject(new Error(`${req.status} ${req.statusText}`))
+                }
+            }
+        })
+        req.open("GET", url)
+        req.send()
+    })
 }
 
 // todo: can we ditch this in favor of a simple fetch?
