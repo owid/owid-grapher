@@ -28,11 +28,19 @@ export const GrapherPage = (props: {
         grapher.subtitle ||
         "An interactive visualization from Our World in Data."
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
-    const imageUrl = urljoin(
-        baseGrapherUrl,
-        "exports",
-        `${grapher.slug}.png?v=${grapher.version}`
-    )
+
+    // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
+    // social media. We decided to remove them and use a single thumbnail for all charts.
+    // See https://github.com/owid/owid-grapher/issues/1086
+    //
+    // const imageUrl = urljoin(
+    //     baseGrapherUrl,
+    //     "exports",
+    //     `${grapher.slug}.png?v=${grapher.version}`
+    // )
+    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageWidth: string = "1200"
+    const imageHeight: string = "628"
 
     const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
@@ -48,8 +56,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
             >
-                <meta property="og:image:width" content="850" />
-                <meta property="og:image:height" content="600" />
+                <meta property="og:image:width" content={imageWidth} />
+                <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
                 <noscript>
                     <style>{`
