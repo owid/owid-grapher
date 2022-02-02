@@ -445,8 +445,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
     await Promise.all(
         blocks.map(async (block) => {
             const $block = $(block)
-            const rawUrl = $block.find("link-url").text() // never empty, see prominent-link.php
-            const url = Url.fromURL(rawUrl)
+            const formattedUrl = $block.find("link-url").text() // never empty, see prominent-link.php
+            const url = Url.fromURL(formattedUrl)
             if (!url.slug) {
                 $block.remove()
                 return
@@ -460,7 +460,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             try {
                 title =
                     $block.find("title").text() ||
-                    (!isCanonicalInternalUrl(rawUrl)
+                    (!isCanonicalInternalUrl(formattedUrl)
                         ? null // attempt fallback for internal urls only
                         : url.grapherSlug
                         ? (await Chart.getBySlug(url.grapherSlug))?.config
@@ -472,7 +472,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 if (!title) {
                     logErrorAndMaybeSendToSlack(
                         new Error(
-                            `No fallback title found for prominent link ${rawUrl}. Block removed.`
+                            `No fallback title found for prominent link ${formattedUrl}. Block removed.`
                         )
                     )
                     $block.remove()
@@ -482,7 +482,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
 
             const image =
                 $block.find("figure").html() ||
-                (!isCanonicalInternalUrl(rawUrl)
+                (!isCanonicalInternalUrl(formattedUrl)
                     ? null
                     : url.grapherSlug
                     ? await renderGrapherImageByChartSlug(url.grapherSlug)
@@ -493,7 +493,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">
                     <ProminentLink
-                        href={rawUrl}
+                        href={formattedUrl}
                         style={style}
                         title={title}
                         content={content}
