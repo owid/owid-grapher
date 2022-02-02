@@ -487,11 +487,11 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                     $block.find("title").text() ||
                     (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
+                        : resolvedUrl.isExplorer
+                        ? await getExplorerTitleByUrl(resolvedUrl)
                         : resolvedUrl.grapherSlug
                         ? (await Chart.getBySlug(resolvedUrl.grapherSlug))
                               ?.config?.title // optim?
-                        : resolvedUrl.isExplorer
-                        ? await getExplorerTitleByUrl(resolvedUrl)
                         : resolvedUrl.slug &&
                           (await getPostBySlug(resolvedUrl.slug))?.title)
             } finally {
@@ -510,12 +510,12 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 $block.find("figure").html() ||
                 (!isCanonicalInternalUrl(resolvedUrl)
                     ? null
+                    : resolvedUrl.isExplorer
+                    ? renderExplorerDefaultThumbnail()
                     : resolvedUrl.grapherSlug
                     ? await renderGrapherImageByChartSlug(
                           resolvedUrl.grapherSlug
                       )
-                    : resolvedUrl.isExplorer
-                    ? renderExplorerDefaultThumbnail()
                     : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
