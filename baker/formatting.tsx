@@ -173,6 +173,7 @@ export const isStandaloneCanonicalInternalLink = (
 
 // Assumes formatUrls URL standardisation
 export const isCanonicalInternalUrl = (url: Url): boolean => {
-    return !!url.origin?.startsWith(BAKED_BASE_URL)
-}
+    if (!url.originAndPath) return false
+    // no origin === links without e.g. https://ourworldindata.org
+    return !url.origin || url.origin.startsWith(BAKED_BASE_URL)
 }
