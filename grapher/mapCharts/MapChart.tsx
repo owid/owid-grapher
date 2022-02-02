@@ -209,15 +209,20 @@ export class MapChart
         return ""
     }
 
-    @computed get mapColumn(): CoreColumn {
-        return this.transformedTable.get(this.mapColumnSlug)
-    }
-
     @computed get mapColumnSlug(): string {
         return (
             this.manager.mapColumnSlug ??
             autoDetectYColumnSlugs(this.manager)[0]!
         )
+    }
+
+    @computed private get mapColumn(): CoreColumn {
+        return this.transformedTable.get(this.mapColumnSlug)
+    }
+
+    // The map column without tolerance and timeline filtering applied
+    @computed private get mapColumnUntransformed(): CoreColumn {
+        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
     }
 
     @computed private get targetTime(): number | undefined {
@@ -361,9 +366,9 @@ export class MapChart
     }
 
     @computed get colorScaleColumn(): CoreColumn {
-        // Use the table before transform to build the legend.
-        // Otherwise the legend jumps around as you slide the timeline handle.
-        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
+        // Use the table before any transforms to collect all possible values over time.
+        // Otherwise the legend changes as you slide the timeline handle.
+        return this.mapColumnUntransformed
     }
 
     colorScale = new ColorScale(this)
