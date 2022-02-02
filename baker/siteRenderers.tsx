@@ -440,14 +440,43 @@ const renderPostThumbnailBySlug = async (
     )
 }
 
+const resolveGrapherRedirect = (url: Url): Url => {
+    return url
+}
+
+const resolveExplorerRedirect = (url: Url): Url => {
+    return url
+}
+
+const resolveWordpressRedirect = (url: Url): Url => {
+    return url
+}
+
+const resolveInternalRedirect = (url: Url): Url => {
+    if (!url.slug) return url
+
+    return !isCanonicalInternalUrl(url)
+        ? url
+        : url.isExplorer
+        ? resolveExplorerRedirect(url)
+        : url.isGrapher
+        ? resolveGrapherRedirect(url)
+        : resolveWordpressRedirect(url)
+}
+
 export const renderProminentLinks = async ($: CheerioStatic) => {
     const blocks = $("block[type='prominent-link']").toArray()
     await Promise.all(
         blocks.map(async (block) => {
             const $block = $(block)
-            const formattedUrl = $block.find("link-url").text() // never empty, see prominent-link.php
-            const url = Url.fromURL(formattedUrl)
-            if (!url.slug) {
+            const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
+            const resolvedUrl = resolveInternalRedirect(
+                Url.fromURL(formattedUrlString)
+            )
+            const resolvedUrlString = resolvedUrl.fullUrl
+
+            // todo: check for homepage links
+            if (!resolvedUrl.slug) {
                 $block.remove()
                 return
             }
@@ -460,19 +489,19 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             try {
                 title =
                     $block.find("title").text() ||
-                    (!isCanonicalInternalUrl(formattedUrl)
+                    (!isCanonicalInternalUrl(resolvedUrl)
                         ? null // attempt fallback for internal urls only
-                        : url.grapherSlug
-                        ? (await Chart.getBySlug(url.grapherSlug))?.config
-                              ?.title // optim?
-                        : url.isExplorer
-                        ? await getExplorerTitleByUrl(url)
-                        : (await getPostBySlug(url.slug))?.title)
+                        : resolvedUrl.grapherSlug
+                        ? (await Chart.getBySlug(resolvedUrl.grapherSlug))
+                              ?.config?.title // optim?
+                        : resolvedUrl.isExplorer
+                        ? await getExplorerTitleByUrl(resolvedUrl)
+                        : (await getPostBySlug(resolvedUrl.slug))?.title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToSlack(
                         new Error(
-                            `No fallback title found for prominent link ${formattedUrl}. Block removed.`
+                            `No fallback title found for prominent link ${resolvedUrlString}. Block removed.`
                         )
                     )
                     $block.remove()
@@ -482,18 +511,20 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
 
             const image =
                 $block.find("figure").html() ||
-                (!isCanonicalInternalUrl(formattedUrl)
+                (!isCanonicalInternalUrl(resolvedUrl)
                     ? null
-                    : url.grapherSlug
-                    ? await renderGrapherImageByChartSlug(url.grapherSlug)
-                    : url.isExplorer
+                    : resolvedUrl.grapherSlug
+                    ? await renderGrapherImageByChartSlug(
+                          resolvedUrl.grapherSlug
+                      )
+                    : resolvedUrl.isExplorer
                     ? renderExplorerDefaultThumbnail()
-                    : await renderPostThumbnailBySlug(url.slug))
+                    : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
                 <div className="block-wrapper">
                     <ProminentLink
-                        href={formattedUrl}
+                        href={resolvedUrlString}
                         style={style}
                         title={title}
                         content={content}
