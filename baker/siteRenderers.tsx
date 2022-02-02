@@ -423,8 +423,10 @@ export const countryProfileCountryPage = async (
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
 const renderPostThumbnailBySlug = async (
-    slug: string
+    slug: string | undefined
 ): Promise<string | undefined> => {
+    if (!slug) return
+
     let post
     try {
         post = await getPostBySlug(slug)
@@ -475,12 +477,6 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             )
             const resolvedUrlString = resolvedUrl.fullUrl
 
-            // todo: check for homepage links
-            if (!resolvedUrl.slug) {
-                $block.remove()
-                return
-            }
-
             const style = $block.attr("style")
             const content = $block.find("content").html()
 
@@ -496,7 +492,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                               ?.config?.title // optim?
                         : resolvedUrl.isExplorer
                         ? await getExplorerTitleByUrl(resolvedUrl)
-                        : (await getPostBySlug(resolvedUrl.slug))?.title)
+                        : resolvedUrl.slug &&
+                          (await getPostBySlug(resolvedUrl.slug))?.title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToSlack(
