@@ -651,7 +651,13 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
 
     if (url.queryStr) {
         explorer.initDecisionMatrix(url.queryParams as ExplorerFullQueryParams)
-        return explorer.grapherConfig.title
+        return (
+            explorer.grapherConfig.title ??
+            (explorer.grapherConfig.grapherId
+                ? (await Chart.getById(explorer.grapherConfig.grapherId))
+                      ?.config?.title
+                : undefined)
+        )
     }
     return explorer.explorerTitle
 }
