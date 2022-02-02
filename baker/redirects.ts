@@ -84,3 +84,36 @@ export const getRedirects = async () => {
 
     return redirects
 }
+
+export const getRedirectsMap = async (): Promise<Map<string, string>> => {
+    // source: pathnames only (e.g. /transport)
+    // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
+    const redirects = new Map()
+
+    // todo: export as function to reuse in getRedirects?
+    const chartRedirectRows = await db.queryMysql(`
+        SELECT chart_slug_redirects.slug, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
+        FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
+    `)
+
+    // todo: export as function to reuse in getRedirects?
+    const wordpressRedirectRows = await wpdb.singleton.query(
+        `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
+    )
+
+    // The order the redirects are added to the map is important. Adding the
+    // Wordpress redirects last means that Wordpress redirects can overwrite
+    // grapher redirects.
+    for (const row of chartRedirectRows) {
+        const trueSlug = JSON.parse(row.trueSlug)
+        if (row.slug !== trueSlug) {
+            redirects.set(`/grapher/${row.slug}`, `/grapher/${trueSlug}`)
+        }
+    }
+
+    for (const row of wordpressRedirectRows) {
+        redirects.set(row.url, row.action_data)
+    }
+
+    return redirects
+}

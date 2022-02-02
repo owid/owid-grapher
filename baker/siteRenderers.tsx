@@ -79,6 +79,7 @@ import { Chart } from "../db/model/Chart"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
+import { getRedirectsMap } from "./redirects"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -442,35 +443,17 @@ const renderPostThumbnailBySlug = async (
     )
 }
 
-// Caveat: will only resolve grapher redirects entered in the admin. Grapher ->
-// Grapher and grapher -> explorer redirects entered in Wordpress will be
-// ignored.
-const resolveGrapherRedirect = async (url: Url): Promise<Url> => {
-    if (!url.grapherSlug) return url
-    const chart = await Chart.getBySlug(url.grapherSlug)
-    if (!chart) return url
-
-    return url.update({ pathname: `/grapher/${chart.config.slug}` })
-}
-
-const resolveExplorerRedirect = (url: Url): Url => {
-    return url
-}
-
-const resolveWordpressRedirect = (url: Url): Url => {
-    return url
-}
-
 const resolveInternalRedirect = async (url: Url): Promise<Url> => {
-    if (!url.slug) return url
+    if (!url.pathname) return url
 
-    return !isCanonicalInternalUrl(url)
-        ? url
-        : url.isExplorer
-        ? resolveExplorerRedirect(url)
-        : url.isGrapher
-        ? await resolveGrapherRedirect(url)
-        : resolveWordpressRedirect(url)
+    const redirects = await getRedirectsMap() // todo: optim
+    const target = redirects.get(url.pathname)
+
+    if (!target) return url
+    const targetUrl = Url.fromURL(target)
+    if (!targetUrl.origin) targetUrl.update({ origin: BAKED_BASE_URL })
+
+    return resolveInternalRedirect(targetUrl)
 }
 
 export const renderProminentLinks = async ($: CheerioStatic) => {
@@ -479,9 +462,12 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
         blocks.map(async (block) => {
             const $block = $(block)
             const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
-            const resolvedUrl = await resolveInternalRedirect(
-                Url.fromURL(formattedUrlString)
-            )
+            const formattedUrl = Url.fromURL(formattedUrlString)
+
+            const resolvedUrl = isCanonicalInternalUrl(formattedUrl)
+                ? await resolveInternalRedirect(formattedUrl)
+                : formattedUrl
+
             const resolvedUrlString = resolvedUrl.fullUrl
 
             const style = $block.attr("style")
