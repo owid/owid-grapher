@@ -442,8 +442,15 @@ const renderPostThumbnailBySlug = async (
     )
 }
 
-const resolveGrapherRedirect = (url: Url): Url => {
-    return url
+// Caveat: will only resolve grapher redirects entered in the admin. Grapher ->
+// Grapher and grapher -> explorer redirects entered in Wordpress will be
+// ignored.
+const resolveGrapherRedirect = async (url: Url): Promise<Url> => {
+    if (!url.grapherSlug) return url
+    const chart = await Chart.getBySlug(url.grapherSlug)
+    if (!chart) return url
+
+    return url.update({ pathname: `/grapher/${chart.config.slug}` })
 }
 
 const resolveExplorerRedirect = (url: Url): Url => {
@@ -454,7 +461,7 @@ const resolveWordpressRedirect = (url: Url): Url => {
     return url
 }
 
-const resolveInternalRedirect = (url: Url): Url => {
+const resolveInternalRedirect = async (url: Url): Promise<Url> => {
     if (!url.slug) return url
 
     return !isCanonicalInternalUrl(url)
@@ -462,7 +469,7 @@ const resolveInternalRedirect = (url: Url): Url => {
         : url.isExplorer
         ? resolveExplorerRedirect(url)
         : url.isGrapher
-        ? resolveGrapherRedirect(url)
+        ? await resolveGrapherRedirect(url)
         : resolveWordpressRedirect(url)
 }
 
@@ -472,7 +479,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
         blocks.map(async (block) => {
             const $block = $(block)
             const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
-            const resolvedUrl = resolveInternalRedirect(
+            const resolvedUrl = await resolveInternalRedirect(
                 Url.fromURL(formattedUrlString)
             )
             const resolvedUrlString = resolvedUrl.fullUrl
