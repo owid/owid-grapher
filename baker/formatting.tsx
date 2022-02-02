@@ -18,6 +18,7 @@ import {
 } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable"
 import { getBodyHtml } from "../site/formatting"
+import { Url } from "../clientUtils/urls/Url"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
@@ -164,13 +165,14 @@ export const isStandaloneCanonicalInternalLink = (
     $: CheerioStatic
 ) => {
     return (
-        isCanonicalInternalUrl(el.attribs.href) &&
+        isCanonicalInternalUrl(Url.fromURL(el.attribs.href)) &&
         el.parent.tagName === "p" &&
         $(el.parent).contents().length === 1
     )
 }
 
-// Assumes formatLinks URL standardisation
-export const isCanonicalInternalUrl = (url: string): boolean => {
-    return url.startsWith(BAKED_BASE_URL)
+// Assumes formatUrls URL standardisation
+export const isCanonicalInternalUrl = (url: Url): boolean => {
+    return !!url.origin?.startsWith(BAKED_BASE_URL)
+}
 }
