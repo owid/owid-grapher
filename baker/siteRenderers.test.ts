@@ -109,7 +109,7 @@ getMediaThumbnailUrl.mockImplementation((id) =>
     Promise.resolve(getMockThumbnailUrl(id))
 )
 
-it("renders authored prominent link (grapher, image override, default style)", () => {
+it.skip("renders authored prominent link (grapher, image override, default style)", () => {
     const block = getMockBlock(grapherUrl, title, imageSrc, content)
     const cheerioEl = cheerio.load(block)
     renderProminentLinks(cheerioEl)
@@ -124,7 +124,7 @@ it("renders authored prominent link (grapher, image override, default style)", (
     expect(cheerioEl(".content").html()).toEqual(content)
 })
 
-it("renders authored prominent link (grapher, thin, no image override)", () => {
+it.skip("renders authored prominent link (grapher, thin, no image override)", () => {
     const block = getMockBlock(
         grapherUrl,
         title,
@@ -145,7 +145,7 @@ it("renders authored prominent link (grapher, thin, no image override)", () => {
     expect(cheerioEl(".content").html()).toEqual(content)
 })
 
-it("renders authored prominent link (post, thin, with html title)", () => {
+it.skip("renders authored prominent link (post, thin, with html title)", async () => {
     const block = getMockBlock(
         `${BAKED_BASE_URL}/${postSlug}`,
         titleWithHtml,
