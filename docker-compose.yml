@@ -1,0 +1,87 @@
+version: "3.7"
+
+# This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
+# OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
+# publicly available.
+# A similar setup for external contributors is planned.
+
+# This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
+# container included in this setup. The idea is that grapher development (as well as running webpack and the
+# admin server) happens on the host, and that only the mysql, php and nginx dependencies run as containers.
+
+# The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
+# utilities on the host working against localhost:3306
+
+# Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
+# to build the containers and initialize and fill the database, afterwards it should be up in seconds.
+# On the host, make sure you have a .env file with the correct settings, then start `yarn startTmuxServer` or similar
+# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews
+services:
+    # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
+    db:
+        image: mysql:5.7
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        volumes:
+            - mysql_data:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+
+    # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
+    # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
+    # mounts the SSH agent and ~/.ssh directory into the container
+    db-load-data:
+        build:
+            context: ./devTools/docker/mysql-init-docker
+        command: "/app/full-mysql-init.sh"
+        volumes:
+            - ./devTools/docker:/app
+            - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
+            - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
+        environment:
+            DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+            DB_HOST: db
+            SSH_AUTH_SOCK: "/ssh-agent"
+        depends_on:
+            - db
+
+    # Nginx that is used together with wordpress for the CSM part and top level routing.
+    web:
+        image: nginx:1.21
+        ports:
+            - 8080:80
+        volumes:
+            - ./devTools/docker/vhosts.conf:/etc/nginx/conf.d/default.conf
+            - ./wordpress:/app
+        depends_on:
+            - fpm
+
+    # PHP cgi server that executes wordpress
+    fpm:
+        build:
+            context: ./devTools/docker/wordpress-php-docker
+        ports:
+            - 9000:9000
+        volumes:
+            - ./wordpress/.lando/config/php.ini:/usr/local/etc/php/php.ini
+            - ./wordpress:/app
+        depends_on:
+            - db
+
+    # Init container for the PHP codebase. This mounts the ./wordpress directory that is also
+    # used by the nginx and php container and executes the PHP package manager composer to
+    # make sure that all dependencies and plugins are installed that are not part of our source
+    # (i.e. ./wordpress/web/app/plugins/owid is already there because it is part of this git repo
+    # but all the other plugins will only be downloaded by running composer)
+    wordpress-install:
+        build:
+            context: ./devTools/docker/wordpress-php-docker
+        command: "composer install --no-interaction"
+        volumes:
+            - ./wordpress:/app
+
+volumes:
+    mysql_data:
