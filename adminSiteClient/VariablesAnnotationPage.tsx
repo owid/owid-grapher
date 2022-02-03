@@ -157,6 +157,21 @@ const columnSets: ColumnSet[] = [
         ],
     },
     { label: "All columns", kind: "allColumns" },
+    {
+        label: "Axis",
+        kind: "specificColumns",
+        columns: [
+            "name",
+            "datasetname",
+            "/yAxis/removePointsOutsideDomain",
+            "/yAxis/label",
+            "/yAxis/min",
+            "/yAxis/scaleType",
+            "/yAxis/max",
+            "/yAxis/canChangeScaleType",
+            "/yAxis/facetDomain",
+        ],
+    },
 ]
 
 /** All the parameters we need for making a fully specified request to the /variable-annotations
@@ -185,7 +200,10 @@ interface IconToggleProps {
 }
 
 const IconToggleComponent = (props: IconToggleProps) => (
-    <button onClick={() => props.onClick(!props.isOn)}>
+    <button
+        className="btn btn-light"
+        onClick={() => props.onClick(!props.isOn)}
+    >
         <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
     </button>
 )
@@ -226,11 +244,69 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any): any => ({
     ...draggableStyle,
 })
 
-const getListStyle = (isDraggingOver: boolean) => ({
-    //background: isDraggingOver ? "lightblue" : "inherit",
-    //padding: grid,
-    //width: 250
-})
+const getListStyle = (isDraggingOver: boolean) =>
+    ({
+        //background: isDraggingOver ? "lightblue" : "inherit",
+        //padding: grid,
+        //width: 250
+    } as const)
+interface SelectColumnSetItem {
+    key: string
+    label: string
+}
+
+interface SelectColumnSetProps {
+    label: string
+    value: string | undefined
+    onValue: (value: string) => void
+    options: SelectColumnSetItem[]
+    helpText?: string
+    placeholder?: string
+}
+
+export class SelectColumnSet extends React.Component<SelectColumnSetProps> {
+    render() {
+        const { props } = this
+
+        const options = props.options.map((opt, i) => {
+            return {
+                key: opt.key,
+                value: opt.key,
+                text: opt.label,
+            }
+        })
+
+        return (
+            <div className="form-group">
+                <label>{props.label}</label>
+                <select
+                    className="form-control"
+                    onChange={(e) =>
+                        props.onValue(e.currentTarget.value as string)
+                    }
+                    value={props.value}
+                    defaultValue={undefined}
+                >
+                    {props.placeholder ? (
+                        <option key={undefined} value={undefined} hidden={true}>
+                            {props.placeholder}
+                        </option>
+                    ) : null}
+                    {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.text}
+                        </option>
+                    ))}
+                </select>
+                {props.helpText && (
+                    <small className="form-text text-muted">
+                        {props.helpText}
+                    </small>
+                )}
+            </div>
+        )
+    }
+}
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -242,6 +318,7 @@ class VariablesAnnotationComponent extends React.Component {
     selectedRow: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
     @observable currentColumnSet: ColumnSet = columnSets[0]
+    @observable columnFilter: string = ""
 
     @observable.ref columnSelection: ColumnReorderItem[] = []
 
@@ -842,61 +919,76 @@ class VariablesAnnotationComponent extends React.Component {
             this.fieldDescriptions = fieldDescriptions
             console.log("fielddescription set", this.fieldDescriptions)
 
-            // Now we need to construct the initial order and visibility state of all ColumnReorderItems
-            // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
-            const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
-                .filter((fieldDesc) => !HIDDEN_COLUMNS.has(fieldDesc.pointer))
-                .map((item) => ({
-                    key: item.pointer,
-                    visible: false,
-                    description: item.description,
-                }))
-            const readonlyReorderItems: ColumnReorderItem[] =
-                VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
-                    ([label, id]) => ({
-                        key: id,
-                        visible: false,
-                        description: label,
-                    })
-                )
-            // Construct a few helpers
-            const allReorderItems = readonlyReorderItems.concat(
-                fieldDescReorderItems
-            )
-            const reorderItemsMap = new Map(
-                allReorderItems.map((item) => [item.key, item])
-            )
-            // Now check what is selected in currentColumnSet. If we should just show all then create that sequence,
-            // otherwise use the list of column ids that we are supposed to show in this order with visible true
-            const columnFieldIdsToMakeVisibleAndShowFirst = match(
+            this.initializeColumnSelection(
+                fieldDescriptions,
                 this.currentColumnSet
             )
-                .with({ kind: "allColumns" }, (_) =>
-                    allReorderItems.map((item) => item.key)
-                )
-                .with(
-                    { kind: "specificColumns" },
-                    (specificColumns) => specificColumns.columns
-                )
-                .exhaustive()
-
-            // Now construct the final reorderItems array that is in the right order and has visible set
-            // to true where appropriate
-            const reorderItems = []
-
-            for (const fieldId of columnFieldIdsToMakeVisibleAndShowFirst) {
-                const item = reorderItemsMap.get(fieldId)!
-                item.visible = true
-                reorderItems.push(item)
-            }
-            for (const field of allReorderItems) {
-                if (!reorderItemsMap.has(field.key)) {
-                    reorderItems.push(field)
-                }
-            }
-
-            this.columnSelection = reorderItems
         })
+    }
+
+    @action
+    initializeColumnSelection(
+        fieldDescriptions: FieldDescription[] | undefined,
+        currentColumnSet: ColumnSet
+    ) {
+        if (fieldDescriptions === undefined) return
+        // Now we need to construct the initial order and visibility state of all ColumnReorderItems
+        // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
+        const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
+            .filter((fieldDesc) => !HIDDEN_COLUMNS.has(fieldDesc.pointer))
+            .map((item) => ({
+                key: item.pointer,
+                visible: false,
+                description: item.description,
+            }))
+        const readonlyReorderItems: ColumnReorderItem[] =
+            VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
+                ([label, id]) => ({
+                    key: id,
+                    visible: false,
+                    description: label,
+                })
+            )
+        // Construct a few helpers
+        const allReorderItems = readonlyReorderItems.concat(
+            fieldDescReorderItems
+        )
+        const reorderItemsMap = new Map(
+            allReorderItems.map((item) => [item.key, item])
+        )
+        // Now check what is selected in currentColumnSet. If we should just show all then create that sequence,
+        // otherwise use the list of column ids that we are supposed to show in this order with visible true
+        const columnFieldIdsToMakeVisibleAndShowFirst = match(currentColumnSet)
+            .with({ kind: "allColumns" }, (_) =>
+                allReorderItems.map((item) => item.key)
+            )
+            .with(
+                { kind: "specificColumns" },
+                (specificColumns) => specificColumns.columns
+            )
+            .exhaustive()
+
+        // Now construct the final reorderItems array that is in the right order and has visible set
+        // to true where appropriate
+        const reorderItems = []
+
+        for (const fieldId of columnFieldIdsToMakeVisibleAndShowFirst) {
+            const item = reorderItemsMap.get(fieldId)!
+            item.visible = true
+            reorderItems.push(item)
+        }
+        const itemsAlreadyInserted = new Set(
+            reorderItems.map((item) => item.key)
+        )
+        console.log("allreorderitems length", allReorderItems.length)
+        for (const field of allReorderItems) {
+            if (!itemsAlreadyInserted.has(field.key)) {
+                reorderItems.push(field)
+            }
+        }
+        console.log("reorderItems length", reorderItems.length)
+
+        this.columnSelection = reorderItems
     }
 
     render() {
@@ -1063,12 +1155,49 @@ class VariablesAnnotationComponent extends React.Component {
         })
     }
 
+    @action.bound
+    setCurrentColumnSet(label: string) {
+        this.currentColumnSet =
+            columnSets.find((item) => item.label === label) ?? columnSets[0]
+        this.initializeColumnSelection(
+            this.fieldDescriptions,
+            this.currentColumnSet
+        )
+    }
+
+    @action.bound
+    clearColumnFilter() {
+        this.columnFilter = ""
+    }
+
     renderColumnsTab(): JSX.Element {
-        const { columnSelection } = this
+        const { columnSelection, currentColumnSet, columnFilter } = this
+        const filteredColumnSelection = columnFilter
+            ? columnSelection.filter((column) =>
+                  column.key.toLowerCase().includes(columnFilter.toLowerCase())
+              )
+            : columnSelection
         return (
-            <section>
+            <section className="column-section">
                 <div className="container">
                     <h3>Columns</h3>
+                    <SelectColumnSet
+                        label="Column set"
+                        value={currentColumnSet.label}
+                        onValue={this.setCurrentColumnSet}
+                        options={columnSets.map((item) => ({
+                            key: item.label,
+                            label: item.label,
+                        }))}
+                    />
+                    <BindString
+                        field="columnFilter"
+                        store={this}
+                        label="Filter columns"
+                        buttonText="Clear"
+                        onButtonClick={this.clearColumnFilter}
+                    />
+
                     <DragDropContext
                         onDragEnd={(result) => this.onDragEnd(result)}
                     >
@@ -1081,47 +1210,56 @@ class VariablesAnnotationComponent extends React.Component {
                                         snapshot.isDraggingOver
                                     )}
                                 >
-                                    {columnSelection.map((item, index) => (
-                                        <Draggable
-                                            key={item.key}
-                                            draggableId={item.key}
-                                            index={index}
-                                        >
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    style={getItemStyle(
-                                                        snapshot.isDragging,
-                                                        provided.draggableProps
-                                                            .style
-                                                    )}
-                                                    className="column-list-item"
-                                                >
+                                    {filteredColumnSelection.map(
+                                        (item, index) => (
+                                            <Draggable
+                                                key={item.key}
+                                                draggableId={item.key}
+                                                index={index}
+                                            >
+                                                {(provided, snapshot) => (
                                                     <div
-                                                        title={item.description}
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                        {...provided.dragHandleProps}
+                                                        style={getItemStyle(
+                                                            snapshot.isDragging,
+                                                            provided
+                                                                .draggableProps
+                                                                .style
+                                                        )}
+                                                        className="column-list-item"
                                                     >
-                                                        <IconToggleComponent
-                                                            isOn={item.visible}
-                                                            onIcon={faEye}
-                                                            offIcon={faEyeSlash}
-                                                            onClick={(
-                                                                newState
-                                                            ) =>
-                                                                this.columnListEyeIconClicked(
-                                                                    columnSelection,
-                                                                    item.key,
-                                                                    newState
-                                                                )
+                                                        <div
+                                                            title={
+                                                                item.description
                                                             }
-                                                        />
-                                                        {item.key}
+                                                        >
+                                                            <IconToggleComponent
+                                                                isOn={
+                                                                    item.visible
+                                                                }
+                                                                onIcon={faEye}
+                                                                offIcon={
+                                                                    faEyeSlash
+                                                                }
+                                                                onClick={(
+                                                                    newState
+                                                                ) =>
+                                                                    this.columnListEyeIconClicked(
+                                                                        columnSelection,
+                                                                        item.key,
+                                                                        newState
+                                                                    )
+                                                                }
+                                                            />
+                                                            {item.key}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
+                                                )}
+                                            </Draggable>
+                                        )
+                                    )}
                                     {provided.placeholder}
                                 </div>
                             )}

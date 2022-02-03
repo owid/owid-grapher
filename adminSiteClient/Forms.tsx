@@ -31,6 +31,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     onValue: (value: string) => void
     onEnter?: () => void
     onEscape?: () => void
+    onButtonClick?: () => void
     placeholder?: string
     title?: string
     disabled?: boolean
@@ -40,6 +41,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     rows?: number
     softCharacterLimit?: number
     errorMessage?: string
+    buttonText?: string
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -79,14 +81,29 @@ export class TextField extends React.Component<TextFieldProps> {
         return (
             <div className="form-group" ref={this.base}>
                 {props.label && <label>{props.label}</label>}
-                <input
-                    className="form-control"
-                    type="text"
-                    value={props.value || ""}
-                    onChange={(e) => this.props.onValue(e.currentTarget.value)}
-                    onKeyDown={this.onKeyDown}
-                    {...passthroughProps}
-                />
+                <div className="input-group">
+                    <input
+                        className="form-control"
+                        type="text"
+                        value={props.value || ""}
+                        onChange={(e) =>
+                            this.props.onValue(e.currentTarget.value)
+                        }
+                        onKeyDown={this.onKeyDown}
+                        {...passthroughProps}
+                    />
+                    {props.buttonText && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            onClick={() =>
+                                props.onButtonClick && props.onButtonClick()
+                            }
+                        >
+                            {props.buttonText}
+                        </button>
+                    )}
+                </div>
                 {props.helpText && (
                     <small className="form-text text-muted">
                         {props.helpText}
@@ -632,6 +649,8 @@ export class BindString<
     disabled?: boolean
     rows?: number
     errorMessage?: string
+    buttonText?: string
+    onButtonClick?: () => void
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = (value || undefined) as any
