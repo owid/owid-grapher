@@ -85,18 +85,20 @@ export const getRedirects = async () => {
     return redirects
 }
 
-export const getRedirectsMap = async (): Promise<Map<string, string>> => {
+export const getGrapherAndWordpressRedirectsMap = async (): Promise<
+    Map<string, string>
+> => {
     // source: pathnames only (e.g. /transport)
     // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
     const redirects = new Map()
 
-    // todo: export as function to reuse in getRedirects?
+    // todo(refactor): export as function to reuse in getRedirects?
     const chartRedirectRows = await db.queryMysql(`
         SELECT chart_slug_redirects.slug, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
         FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
     `)
 
-    // todo: export as function to reuse in getRedirects?
+    // todo(refactor) : export as function to reuse in getRedirects?
     const wordpressRedirectRows = await wpdb.singleton.query(
         `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
     )

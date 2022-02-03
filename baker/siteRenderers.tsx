@@ -79,7 +79,8 @@ import { Chart } from "../db/model/Chart"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
-import { getRedirectsMap } from "./redirects"
+import { resolveExplorerRedirect } from "./replaceExplorerRedirects"
+import { getGrapherAndWordpressRedirectsMap } from "./redirects"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -444,16 +445,26 @@ const renderPostThumbnailBySlug = async (
 }
 
 const resolveInternalRedirect = async (url: Url): Promise<Url> => {
+    if (!isCanonicalInternalUrl(url)) return url
+
+    // This assumes unidirectional grapher -> explorer redirects. Explorer ->
+    // grapher redirects are not supported.
+    return resolveExplorerRedirect(
+        await resolveGrapherAndWordpressRedirect(url)
+    )
+}
+
+const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
     if (!url.pathname) return url
 
-    const redirects = await getRedirectsMap() // todo: optim
+    const redirects = await getGrapherAndWordpressRedirectsMap() // todo(optim)
     const target = redirects.get(url.pathname)
 
     if (!target) return url
     const targetUrl = Url.fromURL(target)
     if (!targetUrl.origin) targetUrl.update({ origin: BAKED_BASE_URL })
 
-    return resolveInternalRedirect(targetUrl)
+    return resolveGrapherAndWordpressRedirect(targetUrl)
 }
 
 export const renderProminentLinks = async ($: CheerioStatic) => {
@@ -464,9 +475,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
             const formattedUrl = Url.fromURL(formattedUrlString)
 
-            const resolvedUrl = isCanonicalInternalUrl(formattedUrl)
-                ? await resolveInternalRedirect(formattedUrl)
-                : formattedUrl
+            const resolvedUrl = await resolveInternalRedirect(formattedUrl)
 
             const resolvedUrlString = resolvedUrl.fullUrl
 

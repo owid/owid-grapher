@@ -34,6 +34,7 @@ export const transformQueryParams = (
     return newQueryParams
 }
 
+// todo(refactor): merge with Url's get explorerSlug()
 export const getExplorerSlugFromUrl = (url: Url): string | undefined => {
     if (!url.pathname) return undefined
     const match = url.pathname.match(
