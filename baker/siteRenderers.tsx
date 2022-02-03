@@ -455,14 +455,13 @@ const resolveInternalRedirect = async (url: Url): Promise<Url> => {
 }
 
 const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
-    if (!url.pathname) return url
+    if (!url.pathname || !isCanonicalInternalUrl(url)) return url
 
     const redirects = await getGrapherAndWordpressRedirectsMap() // todo(optim)
     const target = redirects.get(url.pathname)
 
     if (!target) return url
     const targetUrl = Url.fromURL(target)
-    if (!targetUrl.origin) targetUrl.update({ origin: BAKED_BASE_URL })
 
     return resolveGrapherAndWordpressRedirect(targetUrl)
 }
@@ -476,7 +475,6 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const formattedUrl = Url.fromURL(formattedUrlString)
 
             const resolvedUrl = await resolveInternalRedirect(formattedUrl)
-
             const resolvedUrlString = resolvedUrl.fullUrl
 
             const style = $block.attr("style")
