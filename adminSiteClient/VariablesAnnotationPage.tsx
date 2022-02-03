@@ -430,7 +430,6 @@ class VariablesAnnotationComponent extends React.Component {
 
             if (currentData !== undefined) {
                 runInAction(() => {
-                    console.log("Data fetched", currentData)
                     this.resetViewStateAfterFetch()
                     this.currentPagingOffset = this.desiredPagingOffset
                     this.richDataRows = currentData.variables.map(
@@ -470,7 +469,6 @@ class VariablesAnnotationComponent extends React.Component {
 
     @action private updatePreviewToRow(row: number): void {
         const { richDataRows } = this
-        console.log("updating preview to row", row)
         if (richDataRows === undefined) return
 
         // Get the grapherConfig of the currently selected row and then
@@ -756,10 +754,12 @@ class VariablesAnnotationComponent extends React.Component {
             autoColumnSize: false,
             // cells,
             colHeaders: true,
-            comments: true,
+            comments: false,
+            contextMenu: true,
             data: flattenedDataRows as Handsontable.RowObject[],
             height: "100%",
             manualColumnResize: true,
+            manualColumnFreeze: true,
             manualRowMove: false,
             minCols: 1,
             minSpareCols: 0,
@@ -917,7 +917,6 @@ class VariablesAnnotationComponent extends React.Component {
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             this.fieldDescriptions = fieldDescriptions
-            console.log("fielddescription set", this.fieldDescriptions)
 
             this.initializeColumnSelection(
                 fieldDescriptions,
@@ -980,13 +979,11 @@ class VariablesAnnotationComponent extends React.Component {
         const itemsAlreadyInserted = new Set(
             reorderItems.map((item) => item.key)
         )
-        console.log("allreorderitems length", allReorderItems.length)
         for (const field of allReorderItems) {
             if (!itemsAlreadyInserted.has(field.key)) {
                 reorderItems.push(field)
             }
         }
-        console.log("reorderItems length", reorderItems.length)
 
         this.columnSelection = reorderItems
     }
@@ -1059,7 +1056,6 @@ class VariablesAnnotationComponent extends React.Component {
             (this.numTotalRows ?? 0) > PAGEING_SIZE &&
             this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
         ) {
-            console.log("increasing desired paging offset")
             this.desiredPagingOffset = this.desiredPagingOffset + PAGEING_SIZE
         }
     }
@@ -1142,11 +1138,8 @@ class VariablesAnnotationComponent extends React.Component {
         itemKey: string,
         newState: boolean
     ) {
-        console.log("Clicked", newState)
-
         this.columnSelection = columnSelection.map((reorderItem) => {
             if (reorderItem.key === itemKey) {
-                console.log("This item is now toggled", reorderItem.key)
                 return {
                     ...reorderItem,
                     visible: newState,
@@ -1247,7 +1240,8 @@ class VariablesAnnotationComponent extends React.Component {
                                                                     newState
                                                                 ) =>
                                                                     this.columnListEyeIconClicked(
-                                                                        columnSelection,
+                                                                        this
+                                                                            .columnSelection,
                                                                         item.key,
                                                                         newState
                                                                     )
