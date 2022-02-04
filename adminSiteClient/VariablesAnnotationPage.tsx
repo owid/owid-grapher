@@ -1,4 +1,5 @@
 import * as React from "react"
+import { VariableAnnotationPatch } from "../clientUtils/AdminSessionTypes"
 import {
     DragDropContext,
     Droppable,
@@ -17,9 +18,7 @@ import _, {
     isEmpty,
     isEqual,
     isNil,
-    lastIndexOf,
     merge,
-    partition,
 } from "lodash"
 
 import jsonpointer from "json8-pointer"
@@ -28,19 +27,6 @@ import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { applyPatch } from "../clientUtils/patchHelper"
 import {
-    BinaryLogicOperation,
-    BinaryLogicOperators,
-    BooleanAtom,
-    BooleanOperation,
-    Operation,
-    SqlColumnName,
-    SQL_COLUMN_NAME_DATASET_NAME,
-    SQL_COLUMN_NAME_VARIABLE_NAME,
-    StringAtom,
-    StringContainsOperation,
-    StringOperation,
-} from "../clientUtils/SqlFilterSExpression"
-import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
     FieldType,
@@ -48,268 +34,51 @@ import {
 } from "../clientUtils/schemaProcessing"
 
 import Handsontable from "handsontable"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Bounds } from "../clientUtils/Bounds"
-import {
-    VariableAnnotationsResponseRow,
-    VariableAnnotationsResponse,
-    VariableAnnotationPatch,
-} from "../clientUtils/AdminSessionTypes"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { BindString } from "./Forms"
-import { from, Observable, ObservableInput } from "rxjs"
+import { from, Observable } from "rxjs"
 import {
     catchError,
-    combineAll,
     debounceTime,
     distinctUntilChanged,
     switchMap,
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
-import { toStream, fromStream, IStreamListener } from "mobx-utils"
+import { toStream, fromStream } from "mobx-utils"
 import {
     stringifyUnkownError,
-    differenceOfSets,
     excludeUndefined,
     moveArrayItemToIndex,
 } from "../clientUtils/Util"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
-import { IconDefinition } from "@fortawesome/fontawesome-common-types"
-
-function parseVariableAnnotationsRow(
-    row: VariableAnnotationsResponseRow
-): VariableAnnotationsRow {
-    return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
-}
-
-interface VariableAnnotationsRow {
-    id: number
-    name: string
-    grapherConfig: GrapherInterface
-    datasetname: string
-    namespacename: string
-}
-
-interface ColumnReorderItem {
-    key: string
-    visible: boolean
-    description: string
-}
-
-interface Action {
-    patches: VariableAnnotationPatch[]
-}
-
-const PAGEING_SIZE: number = 50
-enum Tabs {
-    EditorTab = "EditorTab",
-    FilterTab = "FilterTab",
-    ColumnsTab = "ColumnsTab",
-}
-
-const ALL_TABS = Object.values(Tabs)
-
-const HIDDEN_COLUMNS = new Set([
-    "/$schema",
-    "/id",
-    "/map/variableId",
-    "/version",
-    "/dimensions/0/variableId",
-    "/dimensions/0/property",
-    "/slug",
-    "/data",
-    "/xAxis/removePointsOutsideDomain",
-    "/xAxis/label",
-    "/xAxis/min",
-    "/xAxis/scaleType",
-    "/xAxis/max",
-    "/xAxis/canChangeScaleType",
-    "/xAxis/facetDomain",
-])
-
-interface FullColumnSet {
-    label: "All columns"
-    kind: "allColumns"
-}
-
-interface SpecificColumnSet {
-    label: string
-    kind: "specificColumns"
-    columns: string[]
-}
-
-type ColumnSet = FullColumnSet | SpecificColumnSet
-
-const columnSets: ColumnSet[] = [
-    {
-        label: "Common",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/type",
-            "/hasMapTab",
-            "/title",
-            "/subtitle",
-            "/note",
-            "/dimensions/0/display/unit",
-            "/dimensions/0/display/shortUnit",
-        ],
-    },
-    { label: "All columns", kind: "allColumns" },
-    {
-        label: "Axis",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/yAxis/removePointsOutsideDomain",
-            "/yAxis/label",
-            "/yAxis/min",
-            "/yAxis/scaleType",
-            "/yAxis/max",
-            "/yAxis/canChangeScaleType",
-            "/yAxis/facetDomain",
-        ],
-    },
-]
-
-/** All the parameters we need for making a fully specified request to the /variable-annotations
-    endpoint. When any of these fields change we need to trigger a new request */
-interface FetchVariablesParameters {
-    pagingOffset: number
-    filterQuery: Operation
-    sortByColumn: string // sort is currently ignored but here for future use
-    sortByAscending: boolean // sort is currently ignored but here for future use
-}
-
-function fetchVariablesParametersToQueryParametersString(
-    params: FetchVariablesParameters
-): string {
-    return queryParamsToStr({
-        filter: params.filterQuery.toSExpr(),
-        offset: params.pagingOffset.toString(),
-    })
-}
-
-interface IconToggleProps {
-    isOn: boolean
-    onIcon: IconDefinition
-    offIcon: IconDefinition
-    onClick: (newState: boolean) => void
-}
-
-const IconToggleComponent = (props: IconToggleProps) => (
-    <button
-        className="btn btn-light btn-sm"
-        onClick={() => props.onClick(!props.isOn)}
-    >
-        <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
-    </button>
-)
-
-/** Turns a search string like "nuclear share" into a BooleanOperation
-    that AND connects a CONTAINS query for every word - i.e. it would result in
-    (AND (CONTAINS target "nuclear") (CONTAINS target "share"))  */
-function searchFieldStringToFilterOperations(
-    searchString: string,
-    target: StringOperation
-): BooleanOperation | undefined {
-    const fragments = searchString
-        .split(" ")
-        .map((item) => item.trim())
-        .filter((item) => item !== "")
-    const wordContainsParts = fragments.map(
-        (fragment) =>
-            new StringContainsOperation(target, new StringAtom(fragment))
-    )
-    if (fragments.length > 0)
-        return new BinaryLogicOperation(
-            BinaryLogicOperators.and,
-            wordContainsParts
-        )
-    else return undefined
-}
-
-const getItemStyle = (isDragging: boolean, draggableStyle: any): any => ({
-    // some basic styles to make the items look a bit nicer
-    userSelect: "none",
-    //padding: grid * 2,
-    //margin: `0 0 ${grid}px 0`,
-
-    // change background colour if dragging
-    background: isDragging ? "lightgreen" : "inherit",
-
-    // styles we need to apply on draggables
-    ...draggableStyle,
-})
-
-const getListStyle = (isDraggingOver: boolean) =>
-    ({
-        //background: isDraggingOver ? "lightblue" : "inherit",
-        //padding: grid,
-        //width: 250
-    } as const)
-interface SelectColumnSetItem {
-    key: string
-    label: string
-}
-
-interface SelectColumnSetProps {
-    label: string
-    value: string | undefined
-    onValue: (value: string) => void
-    options: SelectColumnSetItem[]
-    helpText?: string
-    placeholder?: string
-}
-
-export class SelectColumnSet extends React.Component<SelectColumnSetProps> {
-    render() {
-        const { props } = this
-
-        const options = props.options.map((opt, i) => {
-            return {
-                key: opt.key,
-                value: opt.key,
-                text: opt.label,
-            }
-        })
-
-        return (
-            <div className="form-group">
-                <label>{props.label}</label>
-                <select
-                    className="form-control"
-                    onChange={(e) =>
-                        props.onValue(e.currentTarget.value as string)
-                    }
-                    value={props.value}
-                    defaultValue={undefined}
-                >
-                    {props.placeholder ? (
-                        <option key={undefined} value={undefined} hidden={true}>
-                            {props.placeholder}
-                        </option>
-                    ) : null}
-                    {options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                            {opt.text}
-                        </option>
-                    ))}
-                </select>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-            </div>
-        )
-    }
-}
+import {
+    BinaryLogicOperation,
+    BinaryLogicOperators,
+    BooleanAtom,
+    SqlColumnName,
+    SQL_COLUMN_NAME_DATASET_NAME,
+    SQL_COLUMN_NAME_VARIABLE_NAME,
+} from "../clientUtils/SqlFilterSExpression"
+import {
+    parseVariableAnnotationsRow,
+    VariableAnnotationsRow,
+    ColumnReorderItem,
+    Action,
+    PAGEING_SIZE,
+    Tabs,
+    ALL_TABS,
+    HIDDEN_COLUMNS,
+    ColumnSet,
+    FetchVariablesParameters,
+    fetchVariablesParametersToQueryParametersString,
+    IconToggleComponent,
+    searchFieldStringToFilterOperations,
+    getItemStyle,
+    columnSets,
+    SelectColumnSet,
+} from "./VariablesAnnotationTypesAndUtils"
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -1219,9 +988,6 @@ class VariablesAnnotationComponent extends React.Component {
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
-                                    style={getListStyle(
-                                        snapshot.isDraggingOver
-                                    )}
                                 >
                                     {filteredColumnSelection.map(
                                         (item, index) => (
