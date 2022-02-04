@@ -4,6 +4,8 @@ const OVERRIDE_THUMBNAIL_URL =
 
 describe("Kitchen sink", function () {
     beforeEach(() => {
+        // The content of that page is backed up in kitchenSink.wordpress.html,
+        // but isn't read from there. The master copy lives in the wordpress database.
         cy.visit("/kitchen-sink")
     })
 
