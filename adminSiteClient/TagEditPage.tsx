@@ -144,13 +144,13 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                 <NumericSelectField
                                     label="Parent Category"
                                     value={newtag.parentId || -1}
-                                    options={[-1].concat(
-                                        tag.possibleParents.map(
-                                            (p) => p.id as number
-                                        )
-                                    )}
-                                    optionLabels={["None"].concat(
-                                        tag.possibleParents.map((p) => p.name)
+                                    options={[
+                                        { value: -1, label: "None" },
+                                    ].concat(
+                                        tag.possibleParents.map((p) => ({
+                                            value: p.id as number,
+                                            label: p.name,
+                                        }))
                                     )}
                                     onValue={this.onChooseParent}
                                 />

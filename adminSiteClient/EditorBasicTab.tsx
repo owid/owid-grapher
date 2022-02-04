@@ -329,8 +329,10 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                     <SelectField
                         value={grapher.type}
                         onValue={this.onChartTypeChange}
-                        options={chartTypes}
-                        optionLabels={chartTypes.map((key) => startCase(key))}
+                        options={chartTypes.map((key) => ({
+                            value: key,
+                            label: startCase(key),
+                        }))}
                     />
                     <FieldsRow>
                         <Toggle

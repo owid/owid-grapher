@@ -213,8 +213,7 @@ interface SelectFieldProps {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
-    options: string[]
-    optionLabels?: string[]
+    options: Option[]
     helpText?: string
     placeholder?: string
 }
@@ -222,14 +221,6 @@ interface SelectFieldProps {
 export class SelectField extends React.Component<SelectFieldProps> {
     render() {
         const { props } = this
-
-        const options = props.options.map((opt, i) => {
-            return {
-                key: opt,
-                value: opt,
-                text: (props.optionLabels && props.optionLabels[i]) || opt,
-            }
-        })
 
         return (
             <div className="form-group">
@@ -247,9 +238,9 @@ export class SelectField extends React.Component<SelectFieldProps> {
                             {props.placeholder}
                         </option>
                     ) : null}
-                    {options.map((opt) => (
+                    {props.options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                            {opt.text}
+                            {opt.label || opt.value}
                         </option>
                     ))}
                 </select>
@@ -369,12 +360,16 @@ export class RadioGroup extends React.Component<RadioGroupProps> {
     }
 }
 
+interface NumberOption {
+    value: number
+    label?: string
+}
+
 interface NumericSelectFieldProps {
     label?: string
     value: number | undefined
     onValue: (value: number) => void
-    options: number[]
-    optionLabels?: string[]
+    options: NumberOption[]
     helpText?: string
 }
 
@@ -386,7 +381,10 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
                 this.props.value !== undefined
                     ? this.props.value.toString()
                     : "",
-            options: this.props.options.map((opt) => opt.toString()),
+            options: this.props.options.map((opt) => ({
+                value: opt.value.toString(),
+                label: opt.label?.toString(),
+            })),
             onValue: (value: string | undefined) => {
                 const asNumber = parseFloat(value as string)
                 this.props.onValue(asNumber)

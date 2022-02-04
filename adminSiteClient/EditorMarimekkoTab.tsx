@@ -143,7 +143,9 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                         placeholder={"Select an entity to include"}
                         value={undefined}
                         onValue={(v) => v && this.onIncludeEntity(v)}
-                        options={includedEntityChoices}
+                        options={includedEntityChoices.map((entry) => ({
+                            value: entry,
+                        }))}
                     />
                     {this.includedEntityNames && (
                         <ul className="includedEntities">
@@ -176,7 +178,9 @@ export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {
                         placeholder={"Select an entity to exclude"}
                         value={undefined}
                         onValue={(v) => v && this.onExcludeEntity(v)}
-                        options={excludedEntityChoices}
+                        options={excludedEntityChoices.map((entry) => ({
+                            value: entry,
+                        }))}
                     />
                     {this.excludedEntityNames && (
                         <ul className="excludedEntities">

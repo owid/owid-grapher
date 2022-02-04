@@ -615,10 +615,10 @@ export class CountryStandardizerPage extends React.Component {
                             label="Input Format"
                             value={this.inputFormat}
                             onValue={this.onInputFormat}
-                            options={allowedInputFormats.map((def) => def.key)}
-                            optionLabels={allowedInputFormats.map(
-                                (def) => def.label
-                            )}
+                            options={allowedInputFormats.map((def) => ({
+                                value: def.key,
+                                label: def.label,
+                            }))}
                             helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match."
                             data-step="1"
                         />
@@ -626,10 +626,10 @@ export class CountryStandardizerPage extends React.Component {
                             label="Output Format"
                             value={this.outputFormat}
                             onValue={this.onOutputFormat}
-                            options={allowedOutputFormats.map((def) => def.key)}
-                            optionLabels={allowedOutputFormats.map(
-                                (def) => def.label
-                            )}
+                            options={allowedOutputFormats.map((def) => ({
+                                value: def.key,
+                                label: def.label,
+                            }))}
                             helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match."
                         />
                         <div className="topbar">
