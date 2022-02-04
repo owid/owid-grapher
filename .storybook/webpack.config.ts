@@ -14,17 +14,12 @@ const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
 
     const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
 
-    config.module!.rules = config!.module!.rules!.concat([
+    config.module!.rules = config.module!.rules.concat([
         {
             test: /\.scss$/,
             use: [
                 MiniCssExtractPlugin.loader,
-                {
-                    loader: "css-loader",
-                    options: {
-                        url: false,
-                    },
-                },
+                "css-loader?url=false",
                 "sass-loader",
             ],
         },
@@ -33,9 +28,12 @@ const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
         new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
 
-    config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
+    config.node = {
+        // This is needed so Webpack ignores "dotenv" imports in bundled code
+        fs: "empty",
+    }
 
-    config.resolve!.fallback = { assert: false, fs: false, path: false }
+    config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
 
     return config
 }

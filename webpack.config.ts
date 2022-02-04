@@ -1,15 +1,15 @@
 import webpack from "webpack"
-import "webpack-dev-server" // just imported for type magic
 import path from "path"
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
+const ManifestPlugin = require("webpack-manifest-plugin")
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
+const TerserJSPlugin = require("terser-webpack-plugin")
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
 
-const config = (env: any, argv: any): webpack.Configuration => {
+const config: webpack.ConfigurationFactory = async (env, argv) => {
     const isProduction = argv.mode === "production"
 
     // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
@@ -21,12 +21,6 @@ const config = (env: any, argv: any): webpack.Configuration => {
 
     const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
     return {
-        cache: {
-            type: "filesystem",
-            buildDependencies: {
-                config: [__filename],
-            },
-        },
         context: javascriptDir,
         entry: {
             admin: "./adminSiteClient/admin.entry.js",
@@ -38,7 +32,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
                     // The bundle created through this cache group contains all the dependencies
                     // that are _both_ used by owid.entry.js and admin.entry.js.
                     vendors: {
-                        test: (module: webpack.NormalModule) =>
+                        test: (module) =>
                             !module.type?.startsWith("css") && // no need to split CSS, since there's very little vendor css anyway
                             /[\\/]node_modules[\\/]/.test(module.resource),
                         name: "vendors",
@@ -57,21 +51,19 @@ const config = (env: any, argv: any): webpack.Configuration => {
                 },
             },
             minimize: isProduction,
-            minimizer: ["...", new CssMinimizerPlugin()],
+            minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
         },
         output: {
             path: path.join(javascriptDir, "webpack"),
-            publicPath: "",
             filename: "[name].js",
         },
         resolve: {
             extensions: [".js", ".css"],
             modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
-            fallback: {
-                // don't polyfill these Node modules
-                fs: false,
-                path: false,
-            },
+        },
+        node: {
+            // This is needed so Webpack ignores "dotenv" imports in bundled code
+            fs: "empty",
         },
         module: {
             rules: [
@@ -85,18 +77,18 @@ const config = (env: any, argv: any): webpack.Configuration => {
                     test: /\.s?css$/,
                     use: [
                         MiniCssExtractPlugin.loader,
-                        {
-                            loader: "css-loader",
-                            options: {
-                                url: false,
-                            },
-                        },
+                        "css-loader?url=false",
                         "sass-loader",
                     ],
                 },
                 {
                     test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
-                    use: "asset",
+                    loader: "url-loader",
+                    options: {
+                        limit: 10000,
+                        useRelativePaths: true,
+                        publicPath: "../",
+                    },
                 },
             ],
         },
@@ -107,15 +99,15 @@ const config = (env: any, argv: any): webpack.Configuration => {
             new MiniCssExtractPlugin({ filename: "[name].css" }),
 
             // Writes manifest.json which production code reads to know paths to asset files
-            new WebpackManifestPlugin(),
+            new ManifestPlugin(),
 
             // Provide client-side settings from .env
             new DotenvWebpackPlugin(),
 
-            // Ensure serverSettings.ts never end up in a webpack build by accident
-            new webpack.IgnorePlugin({
-                resourceRegExp: /settings\/serverSettings/,
-            }),
+            // Ensure serverSettings.ts and clientSettingsReader.ts never end up in a webpack build by accident
+            new webpack.IgnorePlugin(
+                /settings\/(serverSettings|clientSettingsReader)/
+            ),
 
             // Remove all moment locales except for "en"
             // This way of doing so is recommended by Moment itself: https://momentjs.com/docs/#/use-it/webpack/
@@ -124,7 +116,8 @@ const config = (env: any, argv: any): webpack.Configuration => {
         devServer: {
             host: "localhost",
             port: 8090,
-            allowedHosts: "all",
+            contentBase: "public",
+            disableHostCheck: true,
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods":
