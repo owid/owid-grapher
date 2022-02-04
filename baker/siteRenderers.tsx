@@ -447,8 +447,12 @@ const renderPostThumbnailBySlug = async (
 const resolveInternalRedirect = async (url: Url): Promise<Url> => {
     if (!isCanonicalInternalUrl(url)) return url
 
-    // This assumes unidirectional grapher -> explorer redirects. Explorer ->
-    // grapher redirects are not supported.
+    // For performance reasons, this assumes that explorer redirects (in
+    // explorer code) are final.
+
+    // In other words, in the following redirect chain:
+    // grapher -- A --> explorer -- B --> grapher
+    // only (A) is resolved.
     return resolveExplorerRedirect(
         await resolveGrapherAndWordpressRedirect(url)
     )
