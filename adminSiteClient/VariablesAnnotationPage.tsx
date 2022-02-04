@@ -201,7 +201,7 @@ interface IconToggleProps {
 
 const IconToggleComponent = (props: IconToggleProps) => (
     <button
-        className="btn btn-light"
+        className="btn btn-light btn-sm"
         onClick={() => props.onClick(!props.isOn)}
     >
         <FontAwesomeIcon icon={props.isOn ? props.onIcon : props.offIcon} />
@@ -671,7 +671,6 @@ class VariablesAnnotationComponent extends React.Component {
         ["Namespace", "namespacename"],
     ] as const
     @computed get hotColumns(): JSX.Element[] {
-        // TODO: then create the reorderable panel on the side with the columnSelection
         const { fieldDescriptions, columnSelection } = this
 
         if (fieldDescriptions === undefined || columnSelection.length === 0)
@@ -687,11 +686,10 @@ class VariablesAnnotationComponent extends React.Component {
             const columns = columnSelection.map((reorderItem) => {
                 if (reorderItem.key.startsWith("/")) {
                     const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
-                    if (fieldDesc === undefined)
+                    if (fieldDesc === undefined) {
                         undefinedColumns.push(reorderItem)
-                    if (fieldDesc === undefined || !reorderItem.visible)
                         return undefined
-                    else
+                    } else
                         return VariablesAnnotationComponent.fieldDescriptionToColumn(
                             fieldDesc
                         )
@@ -700,11 +698,10 @@ class VariablesAnnotationComponent extends React.Component {
                         VariablesAnnotationComponent.readOnlyColumnNamesFields.find(
                             ([_, key]) => key === reorderItem.key
                         )
-                    if (readonlyField === undefined)
+                    if (readonlyField === undefined) {
                         undefinedColumns.push(reorderItem)
-                    if (readonlyField === undefined || !reorderItem.visible)
                         return undefined
-                    else
+                    } else
                         return (
                             <HotColumn
                                 key={readonlyField[0]}
@@ -734,7 +731,10 @@ class VariablesAnnotationComponent extends React.Component {
 
     @computed
     private get hotSettings() {
-        const { flattenedDataRows } = this
+        const { flattenedDataRows, columnSelection } = this
+        const hiddenColumnIndices = columnSelection.flatMap(
+            (reorderItem, index) => (reorderItem.visible ? [] : [index])
+        )
         if (flattenedDataRows === undefined) return undefined
 
         const hotSettings: Handsontable.GridSettings = {
@@ -758,6 +758,10 @@ class VariablesAnnotationComponent extends React.Component {
             contextMenu: true,
             data: flattenedDataRows as Handsontable.RowObject[],
             height: "100%",
+            hiddenColumns: {
+                columns: hiddenColumnIndices,
+                copyPasteEnabled: false,
+            } as any,
             manualColumnResize: true,
             manualColumnFreeze: true,
             manualRowMove: false,
