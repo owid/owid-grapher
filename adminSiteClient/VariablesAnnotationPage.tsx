@@ -36,7 +36,7 @@ import {
 import Handsontable from "handsontable"
 import { Bounds } from "../clientUtils/Bounds"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { BindString } from "./Forms"
+import { BindString, SelectField } from "./Forms"
 import { from, Observable } from "rxjs"
 import {
     catchError,
@@ -77,7 +77,6 @@ import {
     searchFieldStringToFilterOperations,
     getItemStyle,
     columnSets,
-    SelectColumnSet,
 } from "./VariablesAnnotationTypesAndUtils"
 
 @observer
@@ -963,12 +962,12 @@ class VariablesAnnotationComponent extends React.Component {
             <section className="column-section">
                 <div className="container">
                     <h3>Columns</h3>
-                    <SelectColumnSet
+                    <SelectField
                         label="Column set"
                         value={currentColumnSet.label}
                         onValue={this.setCurrentColumnSet}
                         options={columnSets.map((item) => ({
-                            key: item.label,
+                            value: item.label,
                             label: item.label,
                         }))}
                     />
