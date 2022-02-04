@@ -11,11 +11,13 @@ import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import _, {
     cloneDeep,
+    findLastIndex,
     fromPairs,
     isArray,
     isEmpty,
     isEqual,
     isNil,
+    lastIndexOf,
     merge,
     partition,
 } from "lodash"
@@ -69,6 +71,7 @@ import {
     stringifyUnkownError,
     differenceOfSets,
     excludeUndefined,
+    moveArrayItemToIndex,
 } from "../clientUtils/Util"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -1130,9 +1133,11 @@ class VariablesAnnotationComponent extends React.Component {
     @action
     onDragEnd(result: DropResult) {
         if (!result.destination) return
-        const newColumnSelection = Array.from(this.columnSelection)
-        const [removed] = newColumnSelection.splice(result.source.index, 1)
-        newColumnSelection.splice(result.destination.index, 0, removed)
+        const newColumnSelection = moveArrayItemToIndex(
+            this.columnSelection,
+            result.source.index,
+            result.destination.index
+        )
         this.columnSelection = newColumnSelection
     }
 
@@ -1142,14 +1147,25 @@ class VariablesAnnotationComponent extends React.Component {
         itemKey: string,
         newState: boolean
     ) {
-        this.columnSelection = columnSelection.map((reorderItem) => {
-            if (reorderItem.key === itemKey) {
-                return {
-                    ...reorderItem,
-                    visible: newState,
-                }
-            } else return reorderItem
-        })
+        // Set the state of the targeted item and if it becomes visible move it to after the last currently visible item
+        const itemIndex = columnSelection.findIndex(
+            (item) => item.key === itemKey
+        )
+        if (itemIndex !== -1) {
+            const lastVisibleIndex = findLastIndex(
+                columnSelection,
+                (item) => item.visible
+            )
+
+            let copy = [...columnSelection]
+            copy[itemIndex].visible = newState
+            if (newState) {
+                const targetIndex = lastVisibleIndex + 1
+                copy = moveArrayItemToIndex(copy, itemIndex, targetIndex)
+            }
+
+            this.columnSelection = copy
+        }
     }
 
     @action.bound
