@@ -6,6 +6,9 @@
 @import "~tippy.js/dist/tippy.css";
 @import "~tippy.js/themes/light.css";
 
+@import "node_modules/react-awesome-query-builder/lib/css/styles";
+@import "node_modules/react-awesome-query-builder/lib/css/compact_styles";
+
 html {
     font-size: 14px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
@@ -191,6 +194,7 @@ body {
             flex-direction: column;
             justify-content: space-between;
             align-items: stretch;
+            overflow-y: auto;
             height: 100%;
             > .preview {
                 flex: 0 0 400px;
@@ -222,6 +226,14 @@ body {
 
     .column-section {
         overflow-y: auto;
+    }
+
+    .query-builder {
+        margin: 0;
+        label {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
     }
 }
 

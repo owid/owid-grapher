@@ -80,6 +80,23 @@ import {
     getItemStyle,
     columnSets,
 } from "./VariablesAnnotationTypesAndUtils.js"
+import { BasicConfig } from "react-awesome-query-builder"
+import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
+// types
+import {
+    JsonGroup,
+    SimpleField,
+    Config,
+    ImmutableTree,
+    BuilderProps,
+} from "react-awesome-query-builder"
+
+const FilterPanelInitialConfig = BasicConfig
+const initialFilterQueryValue: JsonGroup = { id: QbUtils.uuid(), type: "group" }
+type FilterPanelState = {
+    tree: ImmutableTree
+    config: Config
+}
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -696,6 +713,13 @@ class VariablesAnnotationComponent extends React.Component {
                 fieldDescriptions,
                 this.currentColumnSet
             )
+            this.filterState = {
+                tree: QbUtils.checkTree(
+                    QbUtils.loadTree(initialFilterQueryValue),
+                    this.FilterPanelConfig ?? FilterPanelInitialConfig
+                ),
+                config: this.FilterPanelConfig ?? FilterPanelInitialConfig,
+            }
         })
     }
 
@@ -892,6 +916,14 @@ class VariablesAnnotationComponent extends React.Component {
                         store={this}
                         label="Dataset name"
                     />
+                    {this.FilterPanelConfig && this.filterState && (
+                        <Query
+                            {...this.FilterPanelConfig}
+                            value={this.filterState.tree}
+                            onChange={this.updateFilterState}
+                            renderBuilder={this.renderBuilder}
+                        />
+                    )}
                 </div>
             </section>
         )
@@ -1073,6 +1105,122 @@ class VariablesAnnotationComponent extends React.Component {
         }
         this.disposers = []
     }
+    @observable.ref filterState: FilterPanelState | undefined = undefined
+
+    @action.bound
+    updateFilterState(immutableTree: ImmutableTree, config: Config) {
+        const { filterState } = this
+
+        const updateFilterState = !(
+            isEqual(filterState?.tree, immutableTree) &&
+            isEqual(filterState?.config, config)
+        )
+
+        if (updateFilterState)
+            this.filterState = {
+                ...filterState,
+                tree: immutableTree,
+                config: config,
+            }
+
+        const jsonTree = QbUtils.getTree(immutableTree)
+        console.log("jsonTree", jsonTree)
+    }
+    // @observable.ref filterRenderBuilderProps: BuilderProps | undefined =
+    //     undefined
+
+    // @action.bound
+    // updateFilterRenderBuilderProps(props: BuilderProps) {
+    //     const { filterRenderBuilderProps } = this
+
+    //     if (!isEqual(filterRenderBuilderProps, props))
+    //         this.filterRenderBuilderProps = props
+    // }
+
+    // @computed get filterRenderBuilder() {
+    //     const { filterRenderBuilderProps } = this
+    //     if (filterRenderBuilderProps)
+    //         return (
+    //             <div
+    //                 className="query-builder-container"
+    //                 style={{ padding: "10px" }}
+    //             >
+    //                 <div className="query-builder qb-lite">
+    //                     <Builder {...filterRenderBuilderProps} />
+    //                 </div>
+    //             </div>
+    //         )
+    //     return undefined
+    // }
+
+    renderBuilder = (props: BuilderProps) => (
+        <div className="query-builder-container" style={{ padding: "0" }}>
+            <div className="query-builder qb-lite">
+                <Builder {...props} />
+            </div>
+        </div>
+    )
+
+    @computed get FilterPanelConfig(): Config | undefined {
+        const { fieldDescriptions } = this
+
+        if (!fieldDescriptions) return undefined
+
+        const fieldsObject = Object.fromEntries(
+            excludeUndefined(
+                fieldDescriptions.map(fieldDescriptionToFilterPanelFieldConfig)
+            )
+        )
+        console.log("Config is", fieldsObject)
+        return {
+            ...FilterPanelInitialConfig,
+            fields: fieldsObject,
+        }
+        // return {
+        //     ...FilterPanelInitialConfig,
+        //     fields: fieldsObject
+
+        // {
+        //     qty: {
+        //         label: "Qty",
+        //         type: "number",
+        //         fieldSettings: {
+        //             min: 0,
+        //         },
+        //         valueSources: ["value"],
+        //         preferWidgets: ["number"],
+        //     },
+        //     price: {
+        //         label: "Price",
+        //         type: "number",
+        //         valueSources: ["value"],
+        //         fieldSettings: {
+        //             min: 10,
+        //             max: 100,
+        //         },
+        //         preferWidgets: ["slider", "rangeslider"],
+        //     },
+        //     color: {
+        //         label: "Color",
+        //         type: "select",
+        //         valueSources: ["value"],
+        //         fieldSettings: {
+        //             listValues: [
+        //                 { value: "yellow", title: "Yellow" },
+        //                 { value: "green", title: "Green" },
+        //                 { value: "orange", title: "Orange" },
+        //             ],
+        //         },
+        //     },
+        //     is_promotion: {
+        //         label: "Promo?",
+        //         type: "boolean",
+        //         operators: ["equal"],
+        //         valueSources: ["value"],
+        //     },
+        // },
+        //}
+    }
 }
 
 export class VariablesAnnotationPage extends React.Component {
@@ -1096,4 +1244,43 @@ function getFinalConfigLayerForVariable(id: number) {
             variableId: id,
         },
     }
+}
+function fieldDescriptionToFilterPanelFieldConfig(
+    description: FieldDescription
+): [string, SimpleField] | undefined {
+    // The schema of some fields is an anyOf which is used to model fields like maxTime that are usually numeric but can also
+    // have the value "latest". These are then transformed into a type entry that is a string of the involved types (in this case
+    // number and string). For now we just select the first type here but we might have to be more clever in the future and build
+    // a custom field type for such cases that allows both numeric and string equals queries
+    const fieldType = match(description.type)
+        .when(
+            (item) => isArray(item),
+            (item) => item[0]
+        )
+        .otherwise((item) => item) as string
+    const widget = match(description.editor)
+        .with(EditorOption.checkbox, () => "boolean")
+        .with(EditorOption.colorEditor, () => undefined)
+        .with(EditorOption.dropdown, () => "select")
+        .with(EditorOption.mappingEditor, () => undefined)
+        .with(EditorOption.numeric, () => "number")
+        .with(EditorOption.primitiveListEditor, () => undefined)
+        .with(EditorOption.textarea, () => "text")
+        .with(EditorOption.textfield, () => "text")
+        .exhaustive()
+
+    if (widget !== undefined)
+        return [
+            description.pointer,
+            {
+                label: description.pointer,
+                type: widget,
+                valueSources: ["value"],
+                //preferWidgets: widget [widget],
+                fieldSettings: {
+                    listValues: description.enumOptions,
+                },
+            },
+        ]
+    else return undefined
 }
