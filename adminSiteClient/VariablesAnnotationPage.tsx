@@ -915,7 +915,9 @@ class VariablesAnnotationComponent extends React.Component {
         itemKey: string,
         newState: boolean
     ) {
-        // Set the state of the targeted item and if it becomes visible move it to after the last currently visible item
+        // Set the state of the targeted item and if it becomes visible and it is after
+        // what was previously the last visible item then move it to after the last currently visible item
+        // so that it is easier to find in the list
         const itemIndex = columnSelection.findIndex(
             (item) => item.key === itemKey
         )
@@ -927,7 +929,7 @@ class VariablesAnnotationComponent extends React.Component {
 
             let copy = [...columnSelection]
             copy[itemIndex].visible = newState
-            if (newState) {
+            if (newState && itemIndex > lastVisibleIndex) {
                 const targetIndex = lastVisibleIndex + 1
                 copy = moveArrayItemToIndex(copy, itemIndex, targetIndex)
             }
