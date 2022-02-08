@@ -11,9 +11,14 @@ import {
     uniqBy,
     intersectionOfSets,
     isNumber,
-} from "../clientUtils/Util.js"
+} from "../clientUtils/Util"
 import { isPresent } from "../clientUtils/isPresent.js"
-import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns.js"
+import {
+    CoreColumn,
+    ColumnTypeMap,
+    MissingColumn,
+    TimeColumn,
+} from "./CoreTableColumns"
 import {
     CoreColumnStore,
     CoreRow,
@@ -422,7 +427,7 @@ export class CoreTable<
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
-    @imemo get timeColumn(): CoreColumn {
+    @imemo get timeColumn(): TimeColumn | MissingColumn {
         // "time" is the canonical time column slug.
         // See LegacyToOwidTable where this column is injected for all Graphers.
         const maybeTimeColumn = this.get(OwidTableSlugs.time)
@@ -431,10 +436,9 @@ export class CoreTable<
         // If a valid "time" column doesn't exist, find _some_ time column to use.
         // This is somewhat unreliable and currently only used to infer the time
         // column on explorers.
-        return (
-            this.columnsAsArray.find(
-                (col) => col instanceof ColumnTypeMap.Day
-            ) ??
+        return (this.columnsAsArray.find(
+            (col) => col instanceof ColumnTypeMap.Day
+        ) ??
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Date
             ) ??
@@ -444,8 +448,7 @@ export class CoreTable<
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Quarter
             ) ??
-            maybeTimeColumn
-        )
+            maybeTimeColumn) as TimeColumn | MissingColumn
     }
 
     // todo: should be on owidtable
