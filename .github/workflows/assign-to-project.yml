@@ -25,7 +25,7 @@ jobs:
       - name: Move issue to ${{ env.todo }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
-          gh_token: ${{ secrets.GITHUBPAT }}
+          gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
           organization: owid
           project_id: 4
           resource_node_id: ${{ github.event.issue.node_id }}
@@ -38,7 +38,7 @@ jobs:
       - name: Moved issue to ${{ env.done }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
-          gh_token: ${{ secrets.GITHUBPAT }}
+          gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
           organization: owid
           project_id: 4
           resource_node_id: ${{ github.event.issue.node_id }}
@@ -51,7 +51,7 @@ jobs:
       - name: Move PR to ${{ env.in_progress }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
-          gh_token: ${{ secrets.GITHUBPAT }}
+          gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
           organization: owid
           project_id: 4
           resource_node_id: ${{ github.event.pull_request.node_id }}
@@ -64,7 +64,7 @@ jobs:
       - name: Move PR to ${{ env.done }}
         uses: leonsteinhaeuser/project-beta-automations@v1.1.1
         with:
-          gh_token: ${{ secrets.GITHUBPAT }}
+          gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
           organization: owid
           project_id: 4
           resource_node_id: ${{ github.event.pull_request.node_id }}
