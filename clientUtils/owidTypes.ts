@@ -77,6 +77,7 @@ export enum SubNavId {
     energy = "energy",
     forests = "forests",
     water = "water",
+    explorers = "explorers",
 }
 
 export interface FormattingOptions {
