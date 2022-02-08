@@ -172,6 +172,35 @@ export function searchFieldStringToFilterOperations(
     else return undefined
 }
 
+// TODO: create a type and add the correct column names for the query
+
+export interface ReadOnlyColumn {
+    label: string
+    key: string
+    sExpressionColumnTarget: string
+}
+
+export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
+    [
+        { key: "id", label: "Id", sExpressionColumnTarget: "id" },
+        {
+            key: "name",
+            label: "Variable name",
+            sExpressionColumnTarget: "variables.name",
+        },
+        {
+            key: "datasetname",
+            label: "Dataset name",
+            sExpressionColumnTarget: "datasets.name",
+        },
+        {
+            key: "namespacename",
+            label: "Namespace name",
+            sExpressionColumnTarget: "namespaces.name",
+        },
+    ].map((item) => [item.key, item])
+)
+
 export const getItemStyle = (
     isDragging: boolean,
     draggableStyle: any
@@ -183,3 +212,7 @@ export const getItemStyle = (
     // styles we need to apply on draggables
     ...draggableStyle,
 })
+
+export function isConfigColumn(columnName: string): boolean {
+    return columnName.startsWith("/")
+}
