@@ -392,9 +392,12 @@ export class LineChart
     }
 
     @computed private get lineStrokeWidth(): number {
-        return this.manager.lineStrokeWidth ?? this.hasColorScale
-            ? VARIABLE_COLOR_STROKE_WIDTH
-            : DEFAULT_STROKE_WIDTH
+        return (
+            this.manager.lineStrokeWidth ??
+            (this.hasColorScale
+                ? VARIABLE_COLOR_STROKE_WIDTH
+                : DEFAULT_STROKE_WIDTH)
+        )
     }
 
     @computed private get lineOutlineWidth(): number {
