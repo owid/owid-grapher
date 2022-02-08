@@ -279,6 +279,39 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "hygiene",
         },
     ],
+    explorers: [
+        {
+            label: "Global Food",
+            href: "/explorers/global-food",
+            id: "global-food",
+            highlight: true,
+        },
+        {
+            label: "Environmental Impacts of Food",
+            href: "/explorers/food-footprints",
+            id: "food-footprints",
+        },
+        {
+            label: "Crop Yields",
+            href: "/explorers/crop-yields",
+            id: "crop-yields",
+        },
+        {
+            label: "Fertilizers",
+            href: "/explorers/fertilizers",
+            id: "fertilizers",
+        },
+        {
+            label: "Habitat Loss",
+            href: "/explorers/habitat-loss",
+            id: "habitat-loss",
+        },
+        {
+            label: "Food Prices",
+            href: "/explorers/food-prices",
+            id: "food-prices",
+        },
+    ],
 }
 
 export const getSubnavItem = (
