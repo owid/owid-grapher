@@ -18,6 +18,7 @@ import {
     isEmpty,
     isEqual,
     isNil,
+    isPlainObject,
     merge,
 } from "lodash"
 
@@ -56,12 +57,23 @@ import {
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye.js"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash.js"
 import {
+    allComparisonOperators,
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
+    ComparisonOperator,
+    EqualityComparision,
+    EqualityOperator,
+    JsonPointerSymbol,
+    Negation,
+    NumberAtom,
+    NumericComparision,
+    Operation,
     SqlColumnName,
     SQL_COLUMN_NAME_DATASET_NAME,
     SQL_COLUMN_NAME_VARIABLE_NAME,
+    StringAtom,
+    StringContainsOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
@@ -85,6 +97,8 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import {
     JsonGroup,
+    JsonTree,
+    JsonItem,
     SimpleField,
     Config,
     ImmutableTree,
@@ -96,6 +110,104 @@ const initialFilterQueryValue: JsonGroup = { id: QbUtils.uuid(), type: "group" }
 type FilterPanelState = {
     tree: ImmutableTree
     config: Config
+}
+
+function getLogicOperator(str: string): BinaryLogicOperators {
+    if (str === "AND") return BinaryLogicOperators.and
+    else if (str === "OR") return BinaryLogicOperators.or
+    else throw Error(`unknown logic operator: ${str}`)
+}
+
+function getComparisonOperator(str: string): ComparisonOperator | undefined {
+    return match(str)
+        .with("less", () => ComparisonOperator.less)
+        .with("less_or_equal", () => ComparisonOperator.lessOrEqual)
+        .with("greater", () => ComparisonOperator.greater)
+        .with("greater_or_equal", () => ComparisonOperator.greaterOrEqual)
+        .otherwise(() => undefined)
+}
+
+function getFieldSymbol(fieldName: string): Operation {
+    if (fieldName.startsWith("/")) return new JsonPointerSymbol(fieldName)
+    else return new SqlColumnName(fieldName)
+}
+
+function getValueAtom(val: any): Operation | undefined {
+    if (typeof val === "string") return new StringAtom(val)
+    else if (typeof val === "number") return new NumberAtom(val)
+    else if (typeof val === "boolean") return new BooleanAtom(val)
+    else return undefined
+}
+
+function getEqualityOperator(str: string): EqualityOperator | undefined {
+    if (str === "equal") return EqualityOperator.equal
+    else if (str === "not_equal") return EqualityOperator.unequal
+    else return undefined
+}
+
+function filterTreeToSExpression(filterTree: JsonItem): Operation | undefined {
+    if (filterTree.type === "group") {
+        const logicOperator = getLogicOperator(
+            filterTree.properties?.conjunction ?? "AND"
+        )
+        let children: Operation[] = []
+        if (isArray(filterTree.children1))
+            children = excludeUndefined(
+                filterTree.children1?.map(filterTreeToSExpression)
+            )
+        else if (isPlainObject(filterTree.children1))
+            children = excludeUndefined(
+                Object.values(
+                    filterTree.children1 as Record<string, JsonItem>
+                ).map(filterTreeToSExpression)
+            )
+        else if (filterTree.children1 !== undefined)
+            console.warn("unexpected content of children1")
+        const operation = new BinaryLogicOperation(logicOperator, children)
+        if (filterTree.properties?.not) return new Negation(operation)
+        else return operation
+    } else if (filterTree.type === "rule") {
+        return match(filterTree.properties.operator)
+            .when(
+                (op) => op && getComparisonOperator(op),
+                (op) => {
+                    const operator = getComparisonOperator(op as string)
+                    const field = getFieldSymbol(filterTree.properties.field!)
+                    if (
+                        filterTree.properties.value.length === 0 ||
+                        filterTree.properties.value[0] === undefined
+                    )
+                        return undefined
+                    const val = new NumberAtom(filterTree.properties.value[0])
+                    return new NumericComparision(operator!, [field, val])
+                }
+            )
+            .when(
+                (op) => op && getEqualityOperator(op),
+                (op) => {
+                    const operator = getEqualityOperator(op as string)
+                    const field = getFieldSymbol(filterTree.properties.field!)
+                    const val = getValueAtom(filterTree.properties.value[0])
+                    if (val === undefined) return undefined
+                    return new EqualityComparision(operator!, [field, val])
+                }
+            )
+            .when(
+                (op) => op && op === "like",
+                (op) => {
+                    const field = getFieldSymbol(filterTree.properties.field!)
+                    if (
+                        filterTree.properties.value.length === 0 ||
+                        filterTree.properties.value[0] === undefined
+                    )
+                        return undefined
+                    const val = new StringAtom(filterTree.properties.value[0])
+                    return new StringContainsOperation(field, val)
+                }
+            )
+            .otherwise(() => undefined)
+    }
+    return undefined
 }
 
 @observer
@@ -901,6 +1013,7 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     renderFilterTab(): JSX.Element {
+        const { filterSExpression, FilterPanelConfig, filterState } = this
         return (
             <section>
                 <div className="container">
@@ -916,14 +1029,15 @@ class VariablesAnnotationComponent extends React.Component {
                         store={this}
                         label="Dataset name"
                     />
-                    {this.FilterPanelConfig && this.filterState && (
+                    {FilterPanelConfig && filterState && (
                         <Query
-                            {...this.FilterPanelConfig}
-                            value={this.filterState.tree}
+                            {...FilterPanelConfig}
+                            value={filterState.tree}
                             onChange={this.updateFilterState}
                             renderBuilder={this.renderBuilder}
                         />
                     )}
+                    <div>{filterSExpression?.toSExpr()}</div>
                 </div>
             </section>
         )
@@ -1126,32 +1240,18 @@ class VariablesAnnotationComponent extends React.Component {
         const jsonTree = QbUtils.getTree(immutableTree)
         console.log("jsonTree", jsonTree)
     }
-    // @observable.ref filterRenderBuilderProps: BuilderProps | undefined =
-    //     undefined
 
-    // @action.bound
-    // updateFilterRenderBuilderProps(props: BuilderProps) {
-    //     const { filterRenderBuilderProps } = this
+    @computed get filterSExpression(): Operation | undefined {
+        const { filterState } = this
+        if (filterState) {
+            const tree = QbUtils.getTree(filterState.tree)
+            const sExpression = filterTreeToSExpression(tree)
+            console.log("Recomputing filterSExpression", sExpression)
 
-    //     if (!isEqual(filterRenderBuilderProps, props))
-    //         this.filterRenderBuilderProps = props
-    // }
-
-    // @computed get filterRenderBuilder() {
-    //     const { filterRenderBuilderProps } = this
-    //     if (filterRenderBuilderProps)
-    //         return (
-    //             <div
-    //                 className="query-builder-container"
-    //                 style={{ padding: "10px" }}
-    //             >
-    //                 <div className="query-builder qb-lite">
-    //                     <Builder {...filterRenderBuilderProps} />
-    //                 </div>
-    //             </div>
-    //         )
-    //     return undefined
-    // }
+            return sExpression
+        }
+        return undefined
+    }
 
     renderBuilder = (props: BuilderProps) => (
         <div className="query-builder-container" style={{ padding: "0" }}>
@@ -1176,50 +1276,6 @@ class VariablesAnnotationComponent extends React.Component {
             ...FilterPanelInitialConfig,
             fields: fieldsObject,
         }
-        // return {
-        //     ...FilterPanelInitialConfig,
-        //     fields: fieldsObject
-
-        // {
-        //     qty: {
-        //         label: "Qty",
-        //         type: "number",
-        //         fieldSettings: {
-        //             min: 0,
-        //         },
-        //         valueSources: ["value"],
-        //         preferWidgets: ["number"],
-        //     },
-        //     price: {
-        //         label: "Price",
-        //         type: "number",
-        //         valueSources: ["value"],
-        //         fieldSettings: {
-        //             min: 10,
-        //             max: 100,
-        //         },
-        //         preferWidgets: ["slider", "rangeslider"],
-        //     },
-        //     color: {
-        //         label: "Color",
-        //         type: "select",
-        //         valueSources: ["value"],
-        //         fieldSettings: {
-        //             listValues: [
-        //                 { value: "yellow", title: "Yellow" },
-        //                 { value: "green", title: "Green" },
-        //                 { value: "orange", title: "Orange" },
-        //             ],
-        //         },
-        //     },
-        //     is_promotion: {
-        //         label: "Promo?",
-        //         type: "boolean",
-        //         operators: ["equal"],
-        //         valueSources: ["value"],
-        //     },
-        // },
-        //}
     }
 }
 
