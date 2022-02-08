@@ -91,6 +91,9 @@ import {
     searchFieldStringToFilterOperations,
     getItemStyle,
     columnSets,
+    isConfigColumn,
+    readOnlyColumnNamesFields,
+    ReadOnlyColumn,
 } from "./VariablesAnnotationTypesAndUtils.js"
 import { BasicConfig } from "react-awesome-query-builder"
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
@@ -128,8 +131,11 @@ function getComparisonOperator(str: string): ComparisonOperator | undefined {
 }
 
 function getFieldSymbol(fieldName: string): Operation {
-    if (fieldName.startsWith("/")) return new JsonPointerSymbol(fieldName)
-    else return new SqlColumnName(fieldName)
+    if (isConfigColumn(fieldName)) return new JsonPointerSymbol(fieldName)
+    else
+        return new SqlColumnName(
+            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget
+        )
 }
 
 function getValueAtom(val: any): Operation | undefined {
@@ -570,12 +576,7 @@ class VariablesAnnotationComponent extends React.Component {
             />
         )
     }
-    static readOnlyColumnNamesFields = [
-        ["Id", "id"],
-        ["Variable name", "name"],
-        ["Dataset name", "datasetname"],
-        ["Namespace", "namespacename"],
-    ] as const
+
     @computed get hotColumns(): JSX.Element[] {
         const { fieldDescriptions, columnSelection } = this
 
@@ -590,7 +591,7 @@ class VariablesAnnotationComponent extends React.Component {
             )
             const undefinedColumns: ColumnReorderItem[] = []
             const columns = columnSelection.map((reorderItem) => {
-                if (reorderItem.key.startsWith("/")) {
+                if (isConfigColumn(reorderItem.key)) {
                     const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
                     if (fieldDesc === undefined) {
                         undefinedColumns.push(reorderItem)
@@ -600,23 +601,23 @@ class VariablesAnnotationComponent extends React.Component {
                             fieldDesc
                         )
                 } else {
-                    const readonlyField =
-                        VariablesAnnotationComponent.readOnlyColumnNamesFields.find(
-                            ([, key]) => key === reorderItem.key
-                        )
+                    const readonlyField = readOnlyColumnNamesFields.get(
+                        reorderItem.key
+                    )
                     if (readonlyField === undefined) {
                         undefinedColumns.push(reorderItem)
                         return undefined
                     } else
                         return (
                             <HotColumn
-                                key={readonlyField[0]}
+                                key={readonlyField.label}
                                 settings={{
-                                    title: readonlyField[0],
+                                    title: readonlyField.label,
                                     readOnly: true,
-                                    data: readonlyField[1],
+                                    data: readonlyField.key,
                                     width: Math.max(
-                                        Bounds.forText(readonlyField[0]).width,
+                                        Bounds.forText(readonlyField.label)
+                                            .width,
                                         50
                                     ),
                                 }}
@@ -854,14 +855,13 @@ class VariablesAnnotationComponent extends React.Component {
                 visible: false,
                 description: item.description,
             }))
-        const readonlyReorderItems: ColumnReorderItem[] =
-            VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
-                ([label, id]) => ({
-                    key: id,
-                    visible: false,
-                    description: label,
-                })
-            )
+        const readonlyReorderItems: ColumnReorderItem[] = [
+            ...readOnlyColumnNamesFields.values(),
+        ].map(({ label, key }) => ({
+            key: key,
+            visible: false,
+            description: label,
+        }))
         // Construct a few helpers
         const allReorderItems = readonlyReorderItems.concat(
             fieldDescReorderItems
@@ -1265,17 +1265,39 @@ class VariablesAnnotationComponent extends React.Component {
         </div>
     )
 
-    @computed get FilterPanelConfig(): Config | undefined {
-        const { fieldDescriptions } = this
+    @computed get filterPanelConfigFields(): [string, SimpleField][] {
+        const { columnSelection, fieldDescriptions } = this
+        // The schema of some fields is an anyOf which is used to model fields like maxTime that are usually numeric but can also
+        // have the value "latest". These are then transformed into a type entry that is a string of the involved types (in this case
+        // number and string). For now we just select the first type here but we might have to be more clever in the future and build
+        // a custom field type for such cases that allows both numeric and string equals queries
 
-        if (!fieldDescriptions) return undefined
-
-        const fieldsObject = Object.fromEntries(
-            excludeUndefined(
-                fieldDescriptions.map(fieldDescriptionToFilterPanelFieldConfig)
-            )
+        if (fieldDescriptions === undefined) return []
+        const fieldDescriptionMap = new Map(
+            fieldDescriptions.map((fd) => [fd.pointer, fd])
         )
-        console.log("Config is", fieldsObject)
+        const fields = excludeUndefined(
+            columnSelection.map((column) => {
+                if (isConfigColumn(column.key)) {
+                    return fieldDescriptionToFilterPanelFieldConfig(
+                        fieldDescriptionMap.get(column.key)!
+                    )
+                } else {
+                    return simpleColumnToFilterPanelFieldConfig(
+                        readOnlyColumnNamesFields.get(column.key)!
+                    )
+                }
+            })
+        )
+        return fields
+    }
+
+    @computed get FilterPanelConfig(): Config | undefined {
+        const { filterPanelConfigFields } = this
+
+        if (isEmpty(filterPanelConfigFields)) return undefined
+
+        const fieldsObject = Object.fromEntries(filterPanelConfigFields)
         return {
             ...FilterPanelInitialConfig,
             fields: fieldsObject,
@@ -1283,41 +1305,23 @@ class VariablesAnnotationComponent extends React.Component {
     }
 }
 
-export class VariablesAnnotationPage extends React.Component {
-    render() {
-        return (
-            <AdminLayout title="Variables">
-                <main className="VariablesAnnotationPage">
-                    <VariablesAnnotationComponent />
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    //dispose!: IReactionDisposer
-}
-function getFinalConfigLayerForVariable(id: number) {
-    return {
-        version: 1,
-        dimensions: [{ property: "y", variableId: id }],
-        map: {
-            variableId: id,
+function simpleColumnToFilterPanelFieldConfig(
+    column: ReadOnlyColumn
+): [string, SimpleField] {
+    return [
+        column.key,
+        {
+            label: column.key,
+            type: "text",
+            valueSources: ["value"],
+            //preferWidgets: widget [widget],
         },
-    }
+    ]
 }
+
 function fieldDescriptionToFilterPanelFieldConfig(
     description: FieldDescription
 ): [string, SimpleField] | undefined {
-    // The schema of some fields is an anyOf which is used to model fields like maxTime that are usually numeric but can also
-    // have the value "latest". These are then transformed into a type entry that is a string of the involved types (in this case
-    // number and string). For now we just select the first type here but we might have to be more clever in the future and build
-    // a custom field type for such cases that allows both numeric and string equals queries
-    const fieldType = match(description.type)
-        .when(
-            (item) => isArray(item),
-            (item) => item[0]
-        )
-        .otherwise((item) => item) as string
     const widget = match(description.editor)
         .with(EditorOption.checkbox, () => "boolean")
         .with(EditorOption.colorEditor, () => undefined)
@@ -1343,4 +1347,27 @@ function fieldDescriptionToFilterPanelFieldConfig(
             },
         ]
     else return undefined
+}
+
+export class VariablesAnnotationPage extends React.Component {
+    render() {
+        return (
+            <AdminLayout title="Variables">
+                <main className="VariablesAnnotationPage">
+                    <VariablesAnnotationComponent />
+                </main>
+            </AdminLayout>
+        )
+    }
+
+    //dispose!: IReactionDisposer
+}
+function getFinalConfigLayerForVariable(id: number) {
+    return {
+        version: 1,
+        dimensions: [{ property: "y", variableId: id }],
+        map: {
+            variableId: id,
+        },
+    }
 }
