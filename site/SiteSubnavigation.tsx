@@ -281,10 +281,15 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     ],
     explorers: [
         {
+            label: "Data Explorers",
+            href: "/food-explorers",
+            id: "food-explorers",
+            highlight: true,
+        },
+        {
             label: "Global Food",
             href: "/explorers/global-food",
             id: "global-food",
-            highlight: true,
         },
         {
             label: "Environmental Impacts of Food",
