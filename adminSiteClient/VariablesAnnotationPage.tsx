@@ -160,6 +160,8 @@ function filterTreeToSExpression(filterTree: JsonItem): Operation | undefined {
             )
         else if (filterTree.children1 !== undefined)
             console.warn("unexpected content of children1")
+        if (filterTree.children1 === undefined || children.length === 0)
+            return undefined
         const operation = new BinaryLogicOperation(logicOperator, children)
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
@@ -260,6 +262,7 @@ class VariablesAnnotationComponent extends React.Component {
             desiredPagingOffset,
             sortByAscending,
             sortByColumn,
+            filterSExpression,
         } = this
         const filterOperations = excludeUndefined([
             searchFieldStringToFilterOperations(
@@ -270,6 +273,7 @@ class VariablesAnnotationComponent extends React.Component {
                 datasetNameFilter ?? "",
                 new SqlColumnName(SQL_COLUMN_NAME_DATASET_NAME)
             ),
+            filterSExpression,
         ])
         const filterQuery =
             filterOperations.length === 0
