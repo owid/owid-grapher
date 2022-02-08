@@ -1,22 +1,71 @@
-name: Auto Assign to Project
-
+name: Project automations
 on:
   issues:
-    types: [opened, labeled]
+    types:
+      - opened
+      - reopened
   pull_request:
-    types: [opened, labeled]
-  issue_comment:
-    types: [created]
+    types:
+      - opened
+      - reopened
+      - review_requested
+      - closed
+
 env:
-  MY_GITHUB_TOKEN: ${{ secrets.GITHUBPAT }}
+  todo: Todo
+  done: Done
+  in_progress: In Progress
 
 jobs:
-  assign_one_project:
+  issue_opened_or_reopened:
+    name: issue_opened_or_reopened
     runs-on: ubuntu-latest
-    name: Assign to One Project
+    if: github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'reopened')
     steps:
-    - name: Assign NEW issues and NEW pull requests to project
-      uses: srggrs/assign-one-project-github-action@1.2.1
-      if: github.event.action == 'opened'
-      with:
-        project: 'https://github.com/orgs/owid/projects/4'
+      - name: Move issue to ${{ env.todo }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.1.1
+        with:
+          gh_token: ${{ secrets.GITHUBPAT }}
+          organization: owid
+          project_id: 4
+          resource_node_id: ${{ github.event.issue.node_id }}
+          status_value: ${{ env.todo }} # Target status
+  issue_closed:
+    name: issue_closed
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'closed'
+    steps:
+      - name: Moved issue to ${{ env.done }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.1.1
+        with:
+          gh_token: ${{ secrets.GITHUBPAT }}
+          organization: owid
+          project_id: 4
+          resource_node_id: ${{ github.event.issue.node_id }}
+          status_value: ${{ env.done }} # Target status
+  pr_opened_or_reopened_or_reviewrequested:
+    name: pr_opened_or_reopened_or_reviewrequested
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'review_requested')
+    steps:
+      - name: Move PR to ${{ env.in_progress }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.1.1
+        with:
+          gh_token: ${{ secrets.GITHUBPAT }}
+          organization: owid
+          project_id: 4
+          resource_node_id: ${{ github.event.pull_request.node_id }}
+          status_value: ${{ env.in_progress }} # Target status
+  pr_closed:
+    name: pr_closed
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    steps:
+      - name: Move PR to ${{ env.done }}
+        uses: leonsteinhaeuser/project-beta-automations@v1.1.1
+        with:
+          gh_token: ${{ secrets.GITHUBPAT }}
+          organization: owid
+          project_id: 4
+          resource_node_id: ${{ github.event.pull_request.node_id }}
+          status_value: ${{ env.done }} # Target status
