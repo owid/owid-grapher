@@ -143,22 +143,28 @@ export class JsonPointerSymbol implements Operation {
     }
 }
 
-export const SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name"
-export const SQL_COLUMN_NAME_DATASET_NAME = "datasets.name"
-export const SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name"
-
+export enum WHITELISTED_SQL_COLUM_NAMES {
+    SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name",
+    SQL_COLUMN_NAME_DATASET_NAME = "datasets.name",
+    SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name",
+    SQL_COLUMN_NAME_VARIABLE_DESCRIPTION = "variables.description",
+    SQL_COLUMN_NAME_VARIABLE_CREATED_AT = "variables.createdAt",
+    SQL_COLUMN_NAME_VARIABLE_UPDATED_AT = "variables.updatedAt",
+}
 export class SqlColumnName implements Operation {
     // NOTE: this is a temporary solution for the beginning of using S Expressions for filtering.
     //       Once we start using this in more places, declaring the whitelist of columns that are
     //       valid to query needs to come from the piece of code that wants to use the expression.
     //       I think we should not start allowing expressions that traverse foreign keys and instead
     //       create views and whitelist column names in those if we need more complex filters
-    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
-        [SQL_COLUMN_NAME_VARIABLE_NAME, ExpressionType.string],
-        [SQL_COLUMN_NAME_DATASET_NAME, ExpressionType.string],
-        [SQL_COLUMN_NAME_NAMESPACE_NAME, ExpressionType.string],
-    ])
+    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map(
+        Object.values(WHITELISTED_SQL_COLUM_NAMES).map((val) => [
+            val,
+            ExpressionType.string, // For now all columns we care about can be treated as string
+        ])
+    )
     static isValidSqlColumnName(str: string): boolean {
+        console.log(SqlColumnName.allowedColumnNamesAndTypes)
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
     }
     constructor(public value: string) {
