@@ -29,6 +29,9 @@ export interface VariableAnnotationsRow {
     grapherConfig: GrapherInterface
     datasetname: string
     namespacename: string
+    description: string
+    createdAt: string
+    updatedAt: string
 }
 
 export interface ColumnReorderItem {
@@ -197,6 +200,21 @@ export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
             key: "namespacename",
             label: "Namespace name",
             sExpressionColumnTarget: "namespaces.name",
+        },
+        {
+            key: "description",
+            label: "Description",
+            sExpressionColumnTarget: "variables.description",
+        },
+        {
+            key: "createdAt",
+            label: "Created at",
+            sExpressionColumnTarget: "variables.createdAt",
+        },
+        {
+            key: "updatedAt",
+            label: "Updated at",
+            sExpressionColumnTarget: "variables.updatedAt",
         },
     ].map((item) => [item.key, item])
 )
