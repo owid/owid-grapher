@@ -70,8 +70,7 @@ import {
     NumericComparision,
     Operation,
     SqlColumnName,
-    SQL_COLUMN_NAME_DATASET_NAME,
-    SQL_COLUMN_NAME_VARIABLE_NAME,
+    WHITELISTED_SQL_COLUM_NAMES,
     StringAtom,
     StringContainsOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
@@ -276,11 +275,15 @@ class VariablesAnnotationComponent extends React.Component {
         const filterOperations = excludeUndefined([
             searchFieldStringToFilterOperations(
                 variableNameFilter ?? "",
-                new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME)
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME
+                )
             ),
             searchFieldStringToFilterOperations(
                 datasetNameFilter ?? "",
-                new SqlColumnName(SQL_COLUMN_NAME_DATASET_NAME)
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME
+                )
             ),
             filterSExpression,
         ])
