@@ -116,4 +116,5 @@ export interface ScatterPointsWithLabelsProps {
     onClick: () => void
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
+    disableIntroAnimation?: boolean
 }

@@ -78,4 +78,5 @@ export interface ChartManager {
     resetAnnotation?: () => void
 
     externalLegendFocusBin?: ColorScaleBin | undefined
+    disableIntroAnimation?: boolean
 }

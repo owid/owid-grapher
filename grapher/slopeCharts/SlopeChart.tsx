@@ -1014,7 +1014,9 @@ class LabelledSlopes
     }
 
     componentDidMount() {
-        this.playIntroAnimation()
+        if (!this.manager.disableIntroAnimation) {
+            this.playIntroAnimation()
+        }
     }
 
     private playIntroAnimation() {

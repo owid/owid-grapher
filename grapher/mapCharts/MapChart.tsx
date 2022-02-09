@@ -384,21 +384,23 @@ export class MapChart
     hasNoDataBin = true
 
     componentDidMount(): void {
-        select(this.base.current)
-            .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
-            .attr("data-fill", function () {
-                return (this as SVGPathElement).getAttribute("fill")
-            })
-            .attr("fill", this.colorScale.noDataColor)
-            .transition()
-            .duration(500)
-            .ease(easeCubic)
-            .attr("fill", function () {
-                return (this as SVGPathElement).getAttribute("data-fill")
-            })
-            .attr("data-fill", function () {
-                return (this as SVGPathElement).getAttribute("fill")
-            })
+        if (!this.manager.disableIntroAnimation) {
+            select(this.base.current)
+                .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
+                .attr("data-fill", function () {
+                    return (this as SVGPathElement).getAttribute("fill")
+                })
+                .attr("fill", this.colorScale.noDataColor)
+                .transition()
+                .duration(500)
+                .ease(easeCubic)
+                .attr("fill", function () {
+                    return (this as SVGPathElement).getAttribute("data-fill")
+                })
+                .attr("data-fill", function () {
+                    return (this as SVGPathElement).getAttribute("fill")
+                })
+        }
         exposeInstanceOnWindow(this)
     }
 

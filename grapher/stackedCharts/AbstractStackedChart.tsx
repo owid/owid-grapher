@@ -131,18 +131,19 @@ export class AbstactStackedChart
 
     base: React.RefObject<SVGGElement> = React.createRef()
     componentDidMount(): void {
-        // Fancy intro animation
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
+        if (!this.manager.disableIntroAnimation) {
+            // Fancy intro animation
+            this.animSelection = select(this.base.current)
+                .selectAll("clipPath > rect")
+                .attr("width", 0)
 
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-
+            this.animSelection
+                .transition()
+                .duration(800)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+        }
         exposeInstanceOnWindow(this)
     }
 

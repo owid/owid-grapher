@@ -521,6 +521,7 @@ export class ScatterPlotChart
                 sizeDomain={sizeDomain}
                 focusedSeriesNames={focusedEntityNames}
                 hoveredSeriesNames={hoveredSeriesNames}
+                disableIntroAnimation={this.manager.disableIntroAnimation}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
