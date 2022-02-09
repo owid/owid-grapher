@@ -240,11 +240,11 @@
                     "default": "latest",
                     "oneOf": [
                         {
-                            "type": "string",
-                            "enum": ["latest"]
+                            "type": "number"
                         },
                         {
-                            "type": "number"
+                            "type": "string",
+                            "enum": ["latest"]
                         }
                     ]
                 },
@@ -262,11 +262,11 @@
             "default": "latest",
             "oneOf": [
                 {
-                    "type": "string",
-                    "enum": ["latest", "earliest"]
+                    "type": "number"
                 },
                 {
-                    "type": "number"
+                    "type": "string",
+                    "enum": ["latest", "earliest"]
                 }
             ]
         },
@@ -623,11 +623,11 @@
         "minTime": {
             "oneOf": [
                 {
-                    "type": "string",
-                    "enum": ["latest", "earliest"]
+                    "type": "number"
                 },
                 {
-                    "type": "number"
+                    "type": "string",
+                    "enum": ["latest", "earliest"]
                 }
             ],
             "description": "Start point of the initially selected time span."
