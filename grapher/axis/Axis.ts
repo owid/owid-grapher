@@ -18,15 +18,9 @@ import {
     Position,
     ScaleType,
     VerticalAlign,
-} from "../../clientUtils/owidTypes.js"
+} from "../../clientUtils/owidTypes"
 import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
-
-interface Tickmark {
-    value: number
-    priority: number
-    faint?: boolean
-    gridLineOnly?: boolean
-}
+import { Tickmark } from "./AxisConfigInterface.js"
 
 interface TickLabelPlacement {
     value: number
@@ -196,7 +190,19 @@ abstract class AbstractAxis {
         const { scaleType, d3_scale } = this
 
         let ticks: Tickmark[]
-        if (scaleType === ScaleType.log) {
+
+        if (this.config.ticks) {
+            // If custom ticks are supplied, use them without any transformations or additions.
+            const [minValue, maxValue] = d3_scale.domain()
+            return (
+                this.config.ticks
+                    // filter out custom ticks outside the plottable area
+                    .filter(
+                        (tick) =>
+                            tick.value >= minValue && tick.value <= maxValue
+                    )
+            )
+        } else if (scaleType === ScaleType.log) {
             // Show a bit more ticks for log axes
             const maxLabelledTicks = Math.round(this.totalTicksTarget * 1.25)
             const maxTicks = Math.round(this.totalTicksTarget * 3)

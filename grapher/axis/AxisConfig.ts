@@ -9,8 +9,8 @@ import { HorizontalAxis, VerticalAxis } from "./Axis.js"
 import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
-} from "../../clientUtils/persistable/Persistable.js"
-import { AxisConfigInterface } from "./AxisConfigInterface.js"
+} from "../../clientUtils/persistable/Persistable"
+import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
 import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
 import { Position } from "../../clientUtils/owidTypes.js"
 
@@ -33,6 +33,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref compactLabels?: boolean = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref facetDomain?: FacetAxisDomain = undefined
+    @observable.ref ticks?: Tickmark[] = undefined
     @observable.ref label: string = ""
 }
 
@@ -73,6 +74,7 @@ export class AxisConfig
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
             facetDomain: this.facetDomain,
+            ticks: this.ticks,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

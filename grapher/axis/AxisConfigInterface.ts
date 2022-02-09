@@ -1,6 +1,13 @@
 import { Position } from "../../clientUtils/owidTypes.js"
 import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
 
+export interface Tickmark {
+    value: number
+    priority: number
+    faint?: boolean
+    gridLineOnly?: boolean
+}
+
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
     scaleType?: ScaleType
@@ -54,4 +61,9 @@ export interface AxisConfigInterface {
      * Whether to use short labels, e.g. "5k" instead of "5,000".
      */
     compactLabels?: boolean
+
+    /**
+     * Custom ticks to use. Any automatic ticks are omitted.
+     */
+    ticks?: Tickmark[]
 }
