@@ -40,7 +40,7 @@ import { countries } from "../clientUtils/countries"
 import { execWrapper } from "../db/execWrapper"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { getRedirects } from "./redirects"
+import { getRedirects, flushCache as redirectsFlushCache } from "./redirects"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { bakeEmbedSnippet } from "../site/webpackUtils"
@@ -445,6 +445,7 @@ export class SiteBaker {
         // Clear caches to allow garbage collection while waiting for next run
         wpdb.flushCache()
         siteBakingFlushCache()
+        redirectsFlushCache()
         this.progressBar.tick({ name: "✅ cache flushed" })
     }
 }

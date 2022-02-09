@@ -460,8 +460,7 @@ const resolveInternalRedirect = async (url: Url): Promise<Url> => {
 
 const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
     if (!url.pathname || !isCanonicalInternalUrl(url)) return url
-
-    const redirects = await getGrapherAndWordpressRedirectsMap() // todo(optim)
+    const redirects = await getGrapherAndWordpressRedirectsMap()
     const target = redirects.get(url.pathname)
 
     if (!target) return url

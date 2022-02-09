@@ -1,6 +1,7 @@
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { getCountryDetectionRedirects } from "../clientUtils/countries"
+import { memoize } from "../clientUtils/Util"
 
 export const getRedirects = async () => {
     const redirects = [
@@ -85,37 +86,41 @@ export const getRedirects = async () => {
     return redirects
 }
 
-export const getGrapherAndWordpressRedirectsMap = async (): Promise<
-    Map<string, string>
-> => {
-    // source: pathnames only (e.g. /transport)
-    // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
-    const redirects = new Map()
+export const getGrapherAndWordpressRedirectsMap = memoize(
+    async (): Promise<Map<string, string>> => {
+        // source: pathnames only (e.g. /transport)
+        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
+        const redirects = new Map()
 
-    // todo(refactor): export as function to reuse in getRedirects?
-    const chartRedirectRows = await db.queryMysql(`
+        // todo(refactor): export as function to reuse in getRedirects?
+        const chartRedirectRows = await db.queryMysql(`
         SELECT chart_slug_redirects.slug, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
         FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
     `)
 
-    // todo(refactor) : export as function to reuse in getRedirects?
-    const wordpressRedirectRows = await wpdb.singleton.query(
-        `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
-    )
+        // todo(refactor) : export as function to reuse in getRedirects?
+        const wordpressRedirectRows = await wpdb.singleton.query(
+            `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
+        )
 
-    // The order the redirects are added to the map is important. Adding the
-    // Wordpress redirects last means that Wordpress redirects can overwrite
-    // grapher redirects.
-    for (const row of chartRedirectRows) {
-        const trueSlug = JSON.parse(row.trueSlug)
-        if (row.slug !== trueSlug) {
-            redirects.set(`/grapher/${row.slug}`, `/grapher/${trueSlug}`)
+        // The order the redirects are added to the map is important. Adding the
+        // Wordpress redirects last means that Wordpress redirects can overwrite
+        // grapher redirects.
+        for (const row of chartRedirectRows) {
+            const trueSlug = JSON.parse(row.trueSlug)
+            if (row.slug !== trueSlug) {
+                redirects.set(`/grapher/${row.slug}`, `/grapher/${trueSlug}`)
+            }
         }
-    }
 
-    for (const row of wordpressRedirectRows) {
-        redirects.set(row.url, row.action_data)
-    }
+        for (const row of wordpressRedirectRows) {
+            redirects.set(row.url, row.action_data)
+        }
 
-    return redirects
+        return redirects
+    }
+)
+
+export const flushCache = () => {
+    getGrapherAndWordpressRedirectsMap.cache.clear?.()
 }
