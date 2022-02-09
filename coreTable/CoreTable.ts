@@ -11,14 +11,14 @@ import {
     uniqBy,
     intersectionOfSets,
     isNumber,
-} from "../clientUtils/Util"
+} from "../clientUtils/Util.js"
 import { isPresent } from "../clientUtils/isPresent.js"
 import {
     CoreColumn,
     ColumnTypeMap,
     MissingColumn,
     TimeColumn,
-} from "./CoreTableColumns"
+} from "./CoreTableColumns.js"
 import {
     CoreColumnStore,
     CoreRow,

@@ -18,7 +18,7 @@ import {
     Position,
     ScaleType,
     VerticalAlign,
-} from "../../clientUtils/owidTypes"
+} from "../../clientUtils/owidTypes.js"
 import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
 import { Tickmark } from "./AxisConfigInterface.js"
 

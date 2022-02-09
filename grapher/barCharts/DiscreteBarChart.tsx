@@ -650,7 +650,7 @@ export class DiscreteBarChart
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     // End of color scale props
 

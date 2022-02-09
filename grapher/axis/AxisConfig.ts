@@ -9,7 +9,7 @@ import { HorizontalAxis, VerticalAxis } from "./Axis.js"
 import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
-} from "../../clientUtils/persistable/Persistable"
+} from "../../clientUtils/persistable/Persistable.js"
 import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
 import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
 import { Position } from "../../clientUtils/owidTypes.js"

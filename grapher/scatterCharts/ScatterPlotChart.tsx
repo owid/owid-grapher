@@ -629,7 +629,7 @@ export class ScatterPlotChart
         return this.bounds.right - this.sidebarWidth
     }
 
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     @computed get colorScaleColumn(): CoreColumn {
         return (

@@ -29,7 +29,7 @@ import {
     OwidEntityIdColumnDef,
     OwidEntityNameColumnDef,
     OwidTableSlugs,
-} from "./OwidTableConstants"
+} from "./OwidTableConstants.js"
 import { ColumnSlug } from "../clientUtils/owidTypes.js"
 import { CoreColumn, TimeColumn } from "./CoreTableColumns.js"
 

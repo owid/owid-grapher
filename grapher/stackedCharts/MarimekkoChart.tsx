@@ -538,7 +538,8 @@ export class MarimekkoChart
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
+
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
         return (
             ColorScaleConfig.fromDSL(this.colorColumn.def) ??

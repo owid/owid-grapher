@@ -310,7 +310,7 @@ export class SlopeChart
         return ""
     }
 
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     @computed get colorScaleConfig() {
         return this.manager.colorScale

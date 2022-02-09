@@ -844,7 +844,7 @@ export class LineChart
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {
         return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR

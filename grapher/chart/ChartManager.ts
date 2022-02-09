@@ -20,6 +20,7 @@ import {
 import { ColorScaleBin } from "../color/ColorScaleBin.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { TimeBound } from "../../clientUtils/TimeBounds.js"
+import { ColorScale } from "../color/ColorScale.js"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -46,6 +47,8 @@ export interface ChartManager {
     colorScale?: Readonly<ColorScaleConfigInterface>
     // for consistent automatic color scales across facets
     colorScaleColumnOverride?: CoreColumn
+    // for passing colorScale to sparkline in map charts
+    colorScaleOverride?: ColorScale
 
     yAxisConfig?: Readonly<AxisConfigInterface>
     xAxisConfig?: Readonly<AxisConfigInterface>
