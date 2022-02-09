@@ -1481,6 +1481,10 @@ export class Grapher
         return staticSvg
     }
 
+    @computed get disableIntroAnimation(): boolean {
+        return this.isExportingtoSvgOrPng
+    }
+
     @computed get mapConfig(): MapConfig {
         return this.map
     }
