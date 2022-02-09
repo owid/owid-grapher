@@ -317,7 +317,11 @@ export class SlopeChart
     }
 
     @computed get colorScaleColumn() {
-        return this.colorColumn
+        return (
+            // For faceted charts, we have to get the values of inputTable before it's filtered by
+            // the faceting logic.
+            this.manager.colorScaleColumnOverride ?? this.colorColumn
+        )
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
