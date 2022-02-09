@@ -164,7 +164,6 @@ export class SqlColumnName implements Operation {
         ])
     )
     static isValidSqlColumnName(str: string): boolean {
-        console.log(SqlColumnName.allowedColumnNamesAndTypes)
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
     }
     constructor(public value: string) {
