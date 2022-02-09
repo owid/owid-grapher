@@ -1370,7 +1370,14 @@ apiRouter.get(
         // arbitrary user input
         const whereClause = filterSExpr?.toSql() ?? "true"
         const resultsWithStringGrapherConfigs =
-            await db.queryMysql(`SELECT variables.id as id, variables.name as name, variables.grapherConfig as grapherConfig, datasets.name as datasetname, namespaces.name as namespace
+            await db.queryMysql(`SELECT variables.id as id,
+            variables.name as name,
+            variables.grapherConfig as grapherConfig,
+            datasets.name as datasetname,
+            namespaces.name as namespacename,
+            variables.createdAt as createdAt,
+            variables.updatedAt as updatedAt,
+            variables.description as description
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name

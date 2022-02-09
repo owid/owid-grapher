@@ -528,11 +528,13 @@ class VariablesAnnotationComponent extends React.Component {
                 )
                 .filter(([, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
+            const readOnlyColumnValues = [
+                ...readOnlyColumnNamesFields.values(),
+            ].map((field) => [field.key, (row as any)[field.key]])
+            const readOnlyValuesObject =
+                Object.fromEntries(readOnlyColumnValues)
             return {
-                id: row.id,
-                name: row.name,
-                datasetname: row.datasetname,
-                namespacename: row.namespacename,
+                ...readOnlyValuesObject,
                 ...defaultValues,
                 ...fields,
             }
