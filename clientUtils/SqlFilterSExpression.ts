@@ -220,6 +220,32 @@ export class ArithmeticOperation extends NumericOperation {
     }
 }
 
+export enum NullCheckOperator {
+    isNull = "ISNULL",
+    isNotNull = "ISNOTNULL",
+}
+
+export const allNullCheckOperators = [
+    NullCheckOperator.isNull,
+    NullCheckOperator.isNotNull,
+]
+
+export class NullCheckOperation extends BooleanOperation {
+    constructor(public operator: NullCheckOperator, public operand: Operation) {
+        super()
+    }
+
+    toSql(): string {
+        if (this.operator === NullCheckOperator.isNull)
+            return `${this.operand.toSql()} IS NULL`
+        else return `${this.operand.toSql()} IS NOT NULL`
+    }
+
+    toSExpr(): string {
+        return `(${this.operator} ${this.operand.toSExpr()})`
+    }
+}
+
 export enum EqualityOperator {
     equal = "=",
     unequal = "<>",
@@ -402,12 +428,25 @@ const binaryLogicOperatorInfos = allBinaryLogicOperators.map(
             },
         ] as const
 )
+const nullCheckOperatorInfos = allNullCheckOperators.map(
+    (op) =>
+        [
+            op.toString(),
+            {
+                arity: Arity.unary,
+                operandsType: ExpressionType.any,
+                ctor: (args: Operation[]): Operation =>
+                    new NullCheckOperation(op, args[0]),
+            },
+        ] as const
+)
 const operationFactoryMap = new Map<string, OperationInfo>([
     //...(allArithmeticOperators.map(op => [op, {arity: Arity.nary, operandsType: ExpressionType.numeric, ctor: arithMeticCtor}])
     ...arithmeticOperatorInfos,
     ...equalityOperatorInfos,
     ...comparisionOperatorInfos,
     ...binaryLogicOperatorInfos,
+    ...nullCheckOperatorInfos,
     [
         "NOT",
         {
