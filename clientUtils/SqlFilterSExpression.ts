@@ -157,12 +157,32 @@ export class SqlColumnName implements Operation {
     //       valid to query needs to come from the piece of code that wants to use the expression.
     //       I think we should not start allowing expressions that traverse foreign keys and instead
     //       create views and whitelist column names in those if we need more complex filters
-    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map(
-        Object.values(WHITELISTED_SQL_COLUM_NAMES).map((val) => [
-            val,
-            ExpressionType.string, // For now all columns we care about can be treated as string
-        ])
-    )
+    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+            ExpressionType.numeric,
+        ],
+        [
+            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
+            ExpressionType.numeric,
+        ],
+    ])
     static isValidSqlColumnName(str: string): boolean {
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
     }
@@ -310,7 +330,7 @@ export const allComparisonOperators = [
 export class NumericComparision extends BooleanOperation {
     constructor(
         public operator: ComparisonOperator,
-        public operands: [NumericOperation, NumericOperation]
+        public operands: [Operation, Operation]
     ) {
         super()
     }
@@ -407,12 +427,9 @@ const comparisionOperatorInfos = allComparisonOperators.map(
             op.toString(),
             {
                 arity: Arity.binary,
-                operandsType: ExpressionType.numeric,
+                operandsType: ExpressionType.any,
                 ctor: (args: Operation[]): Operation =>
-                    new NumericComparision(
-                        op,
-                        args as [NumericOperation, NumericOperation]
-                    ),
+                    new NumericComparision(op, args as [Operation, Operation]),
             },
         ] as const
 )
