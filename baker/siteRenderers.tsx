@@ -481,7 +481,6 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             const style = $block.attr("style")
             const content = $block.find("content").html()
 
-            // optim: memo or content graph?
             let title
             try {
                 title =

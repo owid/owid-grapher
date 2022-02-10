@@ -44,12 +44,20 @@ describe("Kitchen sink", function () {
         // Standard prominent links
         // With automatic fallback
         testProminentLink({
-            testTitle: "Article link (with fallbacks, with domain)",
+            testTitle:
+                "Article link (with fallbacks, with domain, with protocol)",
             title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
             src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
         })
         testProminentLink({
-            testTitle: "Article link (with fallbacks, without domain)",
+            testTitle:
+                "Article link (with fallbacks, with domain, without protocol)",
+            title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
+            src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
+        })
+        testProminentLink({
+            testTitle:
+                "Article link (with fallbacks, without domain, without protocol)",
             title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
             src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
         })

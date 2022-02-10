@@ -17,11 +17,15 @@ const blockStyle = {
 const parser = new DOMParser()
 
 const isLink = (text) => {
-    return /^https?:\/\/[\S]+$/.test(text)
+    return /^(https?:\/\/|\/)[\S]+$/.test(text)
 }
 
 const isInternalLink = (text) => {
-    const BAKED_BASE_URL_REGEX = /^https?:\/\/ourworldindata\.org/
+    // Discouraging the use of protocol-less urls, e.g.
+    // ourworldindata.org/child-mortality (not necessary, adds complexity). They
+    // render fine fine however thanks to esc_url() on link url (see
+    // prominent-link.php), which adds a protocol when missing.
+    const BAKED_BASE_URL_REGEX = /^(https?:\/\/|\/)ourworldindata.org[\S]+$/
     return BAKED_BASE_URL_REGEX.test(text)
 }
 
