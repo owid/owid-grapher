@@ -80,7 +80,7 @@ export class Url {
     }
 
     get slug(): string | undefined {
-        return this.props.pathname?.replace(/^\/+/, "")
+        return this.props.pathname?.split("/").pop()
     }
 
     get originAndPath(): string | undefined {
