@@ -120,37 +120,17 @@ export class Url {
     }
 
     get isGrapher(): boolean {
-        return this.pathname ? /^\/grapher\//.test(this.pathname) : false
+        return !!this.pathname?.startsWith("/grapher")
     }
 
     get isUpload(): boolean {
-        return this.pathname ? /^\/uploads\//.test(this.pathname) : false
+        return !!this.pathname?.startsWith("/uploads")
     }
 
     // todo(refactor): move outisde of generic Url class
     // see EXPLORERS_ROUTE_FOLDER
     get isExplorer(): boolean {
-        return this.pathname ? /^\/explorers\//.test(this.pathname) : false
-    }
-
-    // todo(refactor): move outisde of generic Url class
-    get grapherSlug(): string | null {
-        return this.#prefixedSlug("grapher")
-    }
-
-    // todo(refactor): move outisde of generic Url class
-    // see EXPLORERS_ROUTE_FOLDER
-    // todo(refactor): merge with ExplorerUrlMigrationUtils's getExplorerSlugFromUrl
-    get explorerSlug(): string | null {
-        return this.#prefixedSlug("explorers")
-    }
-
-    #prefixedSlug(prefix: string): string | null {
-        const match = this.pathname
-            ? this.pathname.match(new RegExp(`^\/${prefix}\/(.+)`))
-            : null
-        if (!match) return null
-        return match[1]
+        return !!this.pathname?.startsWith("/explorers")
     }
 
     update(props: UrlProps) {

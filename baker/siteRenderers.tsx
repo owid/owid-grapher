@@ -496,9 +496,9 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                         ? null // attempt fallback for internal urls only
                         : resolvedUrl.isExplorer
                         ? await getExplorerTitleByUrl(resolvedUrl)
-                        : resolvedUrl.grapherSlug
-                        ? (await Chart.getBySlug(resolvedUrl.grapherSlug))
-                              ?.config?.title // optim?
+                        : resolvedUrl.isGrapher && resolvedUrl.slug
+                        ? (await Chart.getBySlug(resolvedUrl.slug))?.config
+                              ?.title // optim?
                         : resolvedUrl.slug &&
                           (await getPostBySlug(resolvedUrl.slug)).title)
             } finally {
@@ -519,10 +519,8 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                     ? null
                     : resolvedUrl.isExplorer
                     ? renderExplorerDefaultThumbnail()
-                    : resolvedUrl.grapherSlug
-                    ? await renderGrapherImageByChartSlug(
-                          resolvedUrl.grapherSlug
-                      )
+                    : resolvedUrl.isGrapher && resolvedUrl.slug
+                    ? await renderGrapherImageByChartSlug(resolvedUrl.slug)
                     : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
@@ -676,12 +674,10 @@ export const renderExplorerPage = async (
 }
 
 const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
-    if (!url.explorerSlug) return
+    if (!url.isExplorer || !url.slug) return
     // todo / optim: ok to instanciate multiple simple-git?
     const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
-    const explorer = await explorerAdminServer.getExplorerFromSlug(
-        url.explorerSlug
-    )
+    const explorer = await explorerAdminServer.getExplorerFromSlug(url.slug)
     if (!explorer) return
 
     if (url.queryStr) {
