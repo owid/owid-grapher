@@ -740,6 +740,13 @@ export class LineChart
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
+                        <line
+                            x1={horizontalAxis.place(hoverX)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(hoverX)}
+                            y2={verticalAxis.range[1]}
+                            stroke="rgba(180,180,180,.4)"
+                        />
                         {this.series.map((series) => {
                             const value = series.points.find(
                                 (point) => point.x === hoverX
@@ -763,13 +770,6 @@ export class LineChart
                                 />
                             )
                         })}
-                        <line
-                            x1={horizontalAxis.place(hoverX)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(hoverX)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
                     </g>
                 )}
 
