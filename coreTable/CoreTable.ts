@@ -56,7 +56,6 @@ import {
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     truncate,
-    replaceCells,
 } from "./CoreTableUtils.js"
 import {
     ErrorValueTypes,
@@ -1108,29 +1107,31 @@ export class CoreTable<
         )
     }
 
-    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
+    replaceCells(
+        columnSlugs: ColumnSlug[],
+        replaceFn: (val: CoreValueType) => CoreValueType
+    ): this {
+        const newStore: CoreColumnStore = { ...this.columnStore }
+        columnSlugs.forEach((slug) => {
+            newStore[slug] = newStore[slug].map(replaceFn)
+        })
         return this.transform(
-            replaceCells(this.columnStore, columnSlugs, (val) =>
-                val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
-            ),
+            newStore,
             this.defs,
-            `Replaced negative or zero cells across columns ${columnSlugs.join(
-                " and "
-            )}`,
+            `Replaced all cells across columns ${columnSlugs.join(" and ")}`,
             TransformType.UpdateRows
         )
     }
 
+    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
+        return this.replaceCells(columnSlugs, (val) =>
+            val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
+        )
+    }
+
     replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]): this {
-        return this.transform(
-            replaceCells(this.columnStore, columnSlugs, (val) =>
-                !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
-            ),
-            this.defs,
-            `Replaced non-numeric cells across columns ${columnSlugs.join(
-                ", "
-            )}`,
-            TransformType.UpdateRows
+        return this.replaceCells(columnSlugs, (val) =>
+            !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
         )
     }
 
