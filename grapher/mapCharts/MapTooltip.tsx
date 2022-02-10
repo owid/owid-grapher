@@ -140,25 +140,29 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 year: this.datum?.time,
             },
             yAxisConfig: {
-                hideAxis: true,
+                hideAxis: false,
                 hideGridlines: false,
                 compactLabels: true,
                 ticks: [
                     { value: 0, priority: 1 },
-                    // { value: -Infinity, priority: 2 },
-                    // { value: Infinity, priority: 2 },
+                    // Show minimum and maximum
+                    { value: -Infinity, priority: 2 },
+                    { value: Infinity, priority: 2 },
                 ],
             },
             xAxisConfig: {
                 hideAxis: false,
                 hideGridlines: true,
                 compactLabels: true,
-                // Always show up to the target time on the X axis
+                // Always show up to the target time on the X axis,
+                // even if there is no data for it.
                 min: this.props.targetTime,
                 max: this.props.targetTime,
-                // Horizontal axes by default add the start & end ticks,
-                // and we don't need any further ticks.
-                maxTicks: 0,
+                ticks: [
+                    // Show minimum and maximum
+                    { value: -Infinity, priority: 1 },
+                    { value: Infinity, priority: 1 },
+                ],
             },
         }
     }
