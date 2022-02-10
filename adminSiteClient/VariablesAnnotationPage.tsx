@@ -70,6 +70,8 @@ import {
     WHITELISTED_SQL_COLUM_NAMES,
     StringAtom,
     StringContainsOperation,
+    NullCheckOperation,
+    NullCheckOperator,
 } from "../clientUtils/SqlFilterSExpression"
 import {
     parseVariableAnnotationsRow,
@@ -126,6 +128,13 @@ function getComparisonOperator(str: string): ComparisonOperator | undefined {
         .otherwise(() => undefined)
 }
 
+function getNullCheckOperator(str: string): NullCheckOperator | undefined {
+    return match(str)
+        .with("is_null", () => NullCheckOperator.isNull)
+        .with("is_not_null", () => NullCheckOperator.isNotNull)
+        .otherwise(() => undefined)
+}
+
 function getFieldSymbol(fieldName: string): Operation {
     if (isConfigColumn(fieldName)) return new JsonPointerSymbol(fieldName)
     else
@@ -142,8 +151,10 @@ function getValueAtom(val: any): Operation | undefined {
 }
 
 function getEqualityOperator(str: string): EqualityOperator | undefined {
-    if (str === "equal") return EqualityOperator.equal
-    else if (str === "not_equal") return EqualityOperator.unequal
+    if (str === "equal" || str === "select_equals")
+        return EqualityOperator.equal
+    else if (str === "not_equal" || str === "select_not_equals")
+        return EqualityOperator.unequal
     else return undefined
 }
 
@@ -207,6 +218,14 @@ function filterTreeToSExpression(filterTree: JsonItem): Operation | undefined {
                         return undefined
                     const val = new StringAtom(filterTree.properties.value[0])
                     return new StringContainsOperation(field, val)
+                }
+            )
+            .when(
+                (op) => op && getNullCheckOperator(op as string),
+                (op) => {
+                    const operator = getNullCheckOperator(op as string)!
+                    const field = getFieldSymbol(filterTree.properties.field!)
+                    return new NullCheckOperation(operator!, field)
                 }
             )
             .otherwise(() => undefined)
