@@ -143,6 +143,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 hideAxis: false,
                 hideGridlines: false,
                 compactLabels: true,
+                // Copy min/max from top-level Grapher config
+                min: this.props.manager.yAxisConfig?.min,
+                max: this.props.manager.yAxisConfig?.max,
                 ticks: [
                     { value: 0, priority: 1 },
                     // Show minimum and maximum
