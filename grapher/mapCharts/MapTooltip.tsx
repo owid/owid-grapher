@@ -205,9 +205,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 offsetY={10}
                 offsetYDirection={"upward"}
             >
-                <h3
+                <div
                     style={{
-                        padding: "0.3em 0.3em",
+                        padding: "0.3em",
                         margin: 0,
                         fontWeight: "normal",
                         fontSize: "1em",
@@ -215,7 +215,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 >
                     {tooltipTarget.featureId ||
                         tooltipTarget.featureId.replace(/_/g, " ")}
-                </h3>
+                </div>
                 <div
                     className="map-tooltip"
                     style={{
