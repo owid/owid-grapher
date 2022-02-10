@@ -43,7 +43,7 @@ export class TooltipView extends React.Component<{
             left: `${x}px`,
             top: `${y}px`,
             whiteSpace: "nowrap",
-            backgroundColor: "rgba(255,255,255,0.92)",
+            backgroundColor: "rgba(255,255,255,0.95)",
             boxShadow: "0 2px 2px rgba(0,0,0,.12), 0 0 1px rgba(0,0,0,.35)",
             borderRadius: "2px",
             textAlign: "left",
