@@ -180,40 +180,52 @@ export function searchFieldStringToFilterOperations(
 export interface ReadOnlyColumn {
     label: string
     key: string
+    type: "string" | "datetime" | "number"
     sExpressionColumnTarget: string
 }
 
 export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
     [
-        { key: "id", label: "Id", sExpressionColumnTarget: "id" },
+        {
+            key: "id",
+            label: "Id",
+            type: "number" as const,
+            sExpressionColumnTarget: "id",
+        },
         {
             key: "name",
             label: "Variable name",
+            type: "string" as const,
             sExpressionColumnTarget: "variables.name",
         },
         {
             key: "datasetname",
             label: "Dataset name",
+            type: "string" as const,
             sExpressionColumnTarget: "datasets.name",
         },
         {
             key: "namespacename",
             label: "Namespace name",
+            type: "string" as const,
             sExpressionColumnTarget: "namespaces.name",
         },
         {
             key: "description",
             label: "Description",
+            type: "string" as const,
             sExpressionColumnTarget: "variables.description",
         },
         {
             key: "createdAt",
             label: "Created at",
+            type: "datetime" as const,
             sExpressionColumnTarget: "variables.createdAt",
         },
         {
             key: "updatedAt",
             label: "Updated at",
+            type: "datetime" as const,
             sExpressionColumnTarget: "variables.updatedAt",
         },
     ].map((item) => [item.key, item])

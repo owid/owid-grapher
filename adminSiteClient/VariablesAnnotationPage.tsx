@@ -75,6 +75,7 @@ import {
     StringContainsOperation,
     NullCheckOperation,
     NullCheckOperator,
+    NumericOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
@@ -196,8 +197,8 @@ function filterTreeToSExpression(filterTree: JsonItem): Operation | undefined {
                         filterTree.properties.value[0] === undefined
                     )
                         return undefined
-                    const val = new NumberAtom(filterTree.properties.value[0])
-                    return new NumericComparision(operator!, [field, val])
+                    const val = getValueAtom(filterTree.properties.value[0])
+                    return new NumericComparision(operator!, [field, val!])
                 }
             )
             .when(
@@ -1332,11 +1333,17 @@ class VariablesAnnotationComponent extends React.Component {
 function simpleColumnToFilterPanelFieldConfig(
     column: ReadOnlyColumn
 ): [string, SimpleField] {
+    const fieldType = match(column.type)
+        .with("string", () => "text")
+        .with("number", () => "number")
+        .with("datetime", () => "datetime")
+        .exhaustive()
+
     return [
         column.key,
         {
             label: column.key,
-            type: "text",
+            type: fieldType,
             valueSources: ["value"],
             //preferWidgets: widget [widget],
         },
