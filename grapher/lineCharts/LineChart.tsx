@@ -759,7 +759,7 @@ export class LineChart
                                     key={getSeriesKey(series)}
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
-                                    r={4}
+                                    r={this.lineStrokeWidth / 2 + 3.5}
                                     fill={
                                         this.hasColorScale
                                             ? this.getColorScaleColor(
@@ -767,6 +767,8 @@ export class LineChart
                                               )
                                             : series.color
                                     }
+                                    stroke="#fff"
+                                    strokeWidth={0.5}
                                 />
                             )
                         })}
