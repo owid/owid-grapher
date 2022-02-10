@@ -196,6 +196,14 @@ abstract class AbstractAxis {
             const [minValue, maxValue] = d3_scale.domain()
             return (
                 this.config.ticks
+                    // replace ±Infinity with minimum/maximum
+                    .map((tick) => {
+                        if (tick.value === -Infinity)
+                            return { ...tick, value: minValue }
+                        if (tick.value === Infinity)
+                            return { ...tick, value: maxValue }
+                        return tick
+                    })
                     // filter out custom ticks outside the plottable area
                     .filter(
                         (tick) =>
