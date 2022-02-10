@@ -500,7 +500,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                         ? (await Chart.getBySlug(resolvedUrl.grapherSlug))
                               ?.config?.title // optim?
                         : resolvedUrl.slug &&
-                          (await getPostBySlug(resolvedUrl.slug))?.title)
+                          (await getPostBySlug(resolvedUrl.slug)).title)
             } finally {
                 if (!title) {
                     logErrorAndMaybeSendToSlack(

@@ -331,17 +331,20 @@ function getAuthorsName(array $post)
     return $authorNames;
 }
 
-function getFeaturedMediaPath(array $post)
+function getFeaturedMediaPaths(array $post)
 {
-    $featured_media_url = wp_get_attachment_image_url(
-        $post['featured_media'],
-        'medium_large'
-    );
-    if ($featured_media_url) {
-        return wp_make_link_relative($featured_media_url);
-    } else {
-        return null;
+    $media = ["thumbnail" => null, "medium_large" => null];
+
+    foreach ($media as $size => $v) {
+        $featured_media_url = wp_get_attachment_image_url(
+            $post['featured_media'],
+            $size
+        );
+        $media[$size] = $featured_media_url
+            ? wp_make_link_relative($featured_media_url)
+            : null;
     }
+    return $media;
 }
 
 // TODO: restrict 'private' to authenticated users
@@ -382,8 +385,8 @@ add_action('rest_api_init', function () {
     register_rest_field(['post', 'page'], 'authors_name', [
         'get_callback' => __NAMESPACE__ . '\getAuthorsName',
     ]);
-    register_rest_field(['post', 'page'], 'featured_media_path', [
-        'get_callback' => __NAMESPACE__ . '\getFeaturedMediaPath',
+    register_rest_field(['post', 'page'], 'featured_media_paths', [
+        'get_callback' => __NAMESPACE__ . '\getFeaturedMediaPaths',
     ]);
 });
 

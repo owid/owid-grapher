@@ -671,7 +671,10 @@ export const getFullPost = async (
     content: excludeContent ? "" : postApi.content.rendered,
     excerpt: decodeHTML(postApi.excerpt.rendered),
     imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_path ?? "/default-thumbnail.jpg"
+        postApi.featured_media_paths ?? "/default-thumbnail.jpg"
+    }`,
+    thumbnailUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
     }`,
     imageId: postApi.featured_media,
     relatedCharts:
