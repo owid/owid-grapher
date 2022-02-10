@@ -97,6 +97,7 @@ import {
     readOnlyColumnNamesFields,
     ReadOnlyColumn,
 } from "./VariablesAnnotationTypesAndUtils.js"
+import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import { BasicConfig } from "react-awesome-query-builder"
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
 // types
@@ -110,7 +111,7 @@ import {
     BuilderProps,
 } from "react-awesome-query-builder"
 
-const FilterPanelInitialConfig = BasicConfig
+const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
 const initialFilterQueryValue: JsonGroup = { id: QbUtils.uuid(), type: "group" }
 type FilterPanelState = {
     tree: ImmutableTree
@@ -858,9 +859,9 @@ class VariablesAnnotationComponent extends React.Component {
             this.filterState = {
                 tree: QbUtils.checkTree(
                     QbUtils.loadTree(initialFilterQueryValue),
-                    this.FilterPanelConfig ?? FilterPanelInitialConfig
+                    this.FilterPanelConfig ?? filterPanelInitialConfig
                 ),
-                config: this.FilterPanelConfig ?? FilterPanelInitialConfig,
+                config: this.FilterPanelConfig ?? filterPanelInitialConfig,
             }
         })
     }
@@ -1324,7 +1325,7 @@ class VariablesAnnotationComponent extends React.Component {
 
         const fieldsObject = Object.fromEntries(filterPanelConfigFields)
         return {
-            ...FilterPanelInitialConfig,
+            ...filterPanelInitialConfig,
             fields: fieldsObject,
         }
     }
