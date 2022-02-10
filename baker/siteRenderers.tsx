@@ -125,15 +125,11 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderPageBySlug = async (slug: string) => {
-    getPostBySlug.cache.clear?.()
     const post = await getPostBySlug(slug)
     return renderPost(post)
 }
 
 export const renderPreview = async (postId: number): Promise<string> => {
-    // clearing prominent links fallbacks (in case a title or a featured image
-    // has changed)
-    getPostBySlug.cache.clear?.()
     const postApi = await getLatestPostRevision(postId)
     return renderPost(postApi)
 }

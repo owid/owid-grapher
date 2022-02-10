@@ -549,25 +549,25 @@ export const getPostIdAndTypeBySlug = async (
     return { id: rows[0].ID, type: rows[0].post_type }
 }
 
-export const getPostBySlug = memoize(
-    async (slug: string): Promise<FullPost> => {
-        if (!isWordpressAPIEnabled) {
-            throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
-        }
-
-        const postIdAndType = await getPostIdAndTypeBySlug(slug)
-        if (!postIdAndType)
-            throw new JsonError(`No page found by slug ${slug}`, 404)
-
-        const { id, type } = postIdAndType
-
-        const postArr = await apiQuery(
-            `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
-        )
-
-        return getFullPost(postArr)
+// We might want to cache this as the network of prominent links densifies and
+// multiple requests to the same posts are happening.
+export const getPostBySlug = async (slug: string): Promise<FullPost> => {
+    if (!isWordpressAPIEnabled) {
+        throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
-)
+
+    const postIdAndType = await getPostIdAndTypeBySlug(slug)
+    if (!postIdAndType)
+        throw new JsonError(`No page found by slug ${slug}`, 404)
+
+    const { id, type } = postIdAndType
+
+    const postArr = await apiQuery(
+        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
+    )
+
+    return getFullPost(postArr)
+}
 
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
@@ -787,5 +787,4 @@ export const flushCache = (): void => {
     cachedFeaturedImages = undefined
     getBlogIndex.cache.clear?.()
     cachedTables = undefined
-    getPostBySlug.cache.clear?.()
 }
