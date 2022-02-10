@@ -437,14 +437,12 @@ const renderPostThumbnailBySlug = async (
     try {
         post = await getPostBySlug(slug)
     } catch (err) {
-        // if not post is found, then we return early instead of throwing
+        // if no post is found, then we return early instead of throwing
     }
 
-    if (!post?.imageId) return
-    const mediaThumbnailUrl = await getMediaThumbnailUrl(post.imageId)
-    if (!mediaThumbnailUrl) return
+    if (!post?.thumbnailUrl) return
     return ReactDOMServer.renderToStaticMarkup(
-        <img src={formatUrls(mediaThumbnailUrl)} />
+        <img src={formatUrls(post.thumbnailUrl)} />
     )
 }
 
