@@ -144,12 +144,28 @@ const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
 export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
     if (!isCanonicalInternalUrl(url)) return url
 
-    // For performance reasons, this assumes that explorer redirects (in
-    // explorer code) are final.
+    // Assumes that redirects in explorer code are final (in line with the
+    // current expectation). This helps keeping complexity at bay, while
+    // avoiding unnecessary processing.
 
-    // In other words, in the following redirect chain:
-    // grapher -- A --> explorer -- B --> grapher
-    // only (A) is resolved.
+    // In other words, in the following hypothetical redirect chain:
+    // (1) wordpress redirect: /omicron --> /explorers/omicron
+    // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
+    // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
+    // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
+    // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
+    // --- END OF REDIRECTS ---
+    // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
+
+    // - The last redirect (6) is not executed because is comes after a redirect
+    //   stored in explorer code.
+    // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
+    //   wordpress (or grapher admin), it would be resolved before (5), and (5)
+    //   would never execute.
+    // - (2) does not block the redirects chain. Even though an explorer URL is
+    //   redirected, what matters here is where the redirect is stored
+    //   (wordpress), not what is redirected.
+
     return resolveExplorerRedirect(
         await resolveGrapherAndWordpressRedirect(url)
     )
