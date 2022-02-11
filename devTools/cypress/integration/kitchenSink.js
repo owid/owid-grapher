@@ -10,12 +10,13 @@ describe("Kitchen sink", function () {
     })
 
     it("Tests prominent links", function () {
-        const testProminentLink = ({ testTitle, title, src }) => {
+        const testProminentLink = ({ testTitle, title, src, href }) => {
             cy.contains(testTitle)
                 .next()
                 .contains(title)
-                .within(() => {
+                .within(($a) => {
                     src && cy.get("img").should("have.attr", "src", src)
+                    href && $a.attr("href") === href
                 })
         }
 
@@ -155,6 +156,20 @@ describe("Kitchen sink", function () {
             src: "http://localhost:3030/grapher/exports/co-emissions-per-capita.svg",
         })
         testProminentLink({
+            testTitle:
+                "Grapher link redirected to grapher (in admin, with query string in source)",
+            title: "Per capita CO₂ emissions",
+            src: "http://localhost:3030/grapher/exports/co-emissions-per-capita.svg",
+            href: "http://localhost:3030/grapher/co-emissions-per-capita?country=FRA~USA",
+        })
+        testProminentLink({
+            testTitle:
+                "Article link redirected to explorer (in wordpress, with query string in source and target)",
+            title: "Share of SARS-CoV-2 sequences that are the omicron variant",
+            src: DEFAULT_THUMBNAIL_URL,
+            href: "http://localhost:3030/explorers/coronavirus-data-explorer?facet=none&Metric=Omicron+variant+%28share%29&Interval=7-day+rolling+average&Relative+to+Population=true&Color+by+test+positivity=false&country=USA~ITA~CAN~DEU~GBR~FRA~JPN",
+        })
+        testProminentLink({
             testTitle: "Grapher link redirected to explorer (in explorer code)",
             title: "Cumulative confirmed COVID-19 cases",
             src: DEFAULT_THUMBNAIL_URL,
@@ -164,10 +179,6 @@ describe("Kitchen sink", function () {
                 "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",
             title: "Adjusted net savings per capita",
             src: "http://localhost:3030/grapher/exports/adjusted-net-savings-per-person.svg",
-        })
-        testProminentLinkRemoved({
-            testTitle:
-                "[NOT SUPPORTED] Grapher link redirected to grapher (with query string parameters, in wordpress)",
         })
     })
 })
