@@ -744,7 +744,7 @@ class VariablesAnnotationComponent extends React.Component {
         // TODO: this should switch to files.ourwordindata.org but if I do this I get a CORS error -
         // areh HEAD requests not forwarded?
         const json = await fetch(
-            "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.001.json"
+            "https://files.ourworldindata.org/schemas/grapher-schema.001.json"
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {

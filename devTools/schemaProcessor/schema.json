@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json",
+    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
     "$defs": {
         "axis": {
             "type": "object",
@@ -191,7 +191,7 @@
             "type": "string",
             "description": "Url of the concrete schema version to use to validate this document",
             "format": "uri",
-            "default": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json"
+            "default": "https://files.ourworldindata.org/schemas/grapher-schema.001.json"
         },
         "id": {
             "type": "integer",
