@@ -1324,10 +1324,75 @@ class VariablesAnnotationComponent extends React.Component {
         if (isEmpty(filterPanelConfigFields)) return undefined
 
         const fieldsObject = Object.fromEntries(filterPanelConfigFields)
-        return {
+        const config = {
             ...filterPanelInitialConfig,
             fields: fieldsObject,
         }
+        const operatorsToDrop = new Set([
+            "not_like",
+            "proximity",
+            "starts_with",
+            "ends_with",
+            "between",
+            "not_between",
+            "select_any_in",
+            "select_not_any_in",
+            "multiselect_equals",
+            "mutliselect_not_equals",
+        ])
+        config.types.text.widgets.field.operators =
+            config.types.text.widgets.field.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.text.widgets.text.operators =
+            config.types.text.widgets.text.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.text.widgets.textarea.operators =
+            config.types.text.widgets.textarea.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.number.widgets.number.operators =
+            config.types.number.widgets.number.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.number.widgets.slider.operators =
+            config.types.number.widgets.slider.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.number.widgets.rangeslider.operators =
+            config.types.number.widgets.rangeslider.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.date.widgets.date.operators =
+            config.types.date.widgets.date.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.time.widgets.time.operators =
+            config.types.time.widgets.time.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.datetime.widgets.datetime.operators =
+            config.types.datetime.widgets.datetime.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.select.widgets.select.operators =
+            config.types.select.widgets.select.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.select.widgets.multiselect.operators =
+            config.types.select.widgets.multiselect.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.multiselect.widgets.multiselect.operators =
+            config.types.multiselect.widgets.multiselect.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        config.types.boolean.widgets.boolean.operators =
+            config.types.boolean.widgets.boolean.operators?.filter(
+                (item) => !operatorsToDrop.has(item)
+            )
+        return config
     }
 }
 

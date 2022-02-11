@@ -79,7 +79,14 @@ function getEditorOptionForType(
     else if (typeIsGivenOrNull(type, "string")) return EditorOption.textfield
     else if (typeIsGivenOrNull(type, "boolean")) return EditorOption.checkbox
     else if (typeIsGivenOrNull(type, "integer")) return EditorOption.numeric
-    else return EditorOption.textfield
+    else if (isArray(type)) {
+        // the following line is aspecial case hack for fields that are usually numeric but can have a
+        // special string like "latest"
+        console.log("field type is array", type)
+        if (type[0] === "number" && type[1] === "string")
+            return EditorOption.numeric
+        else return EditorOption.textfield
+    } else return EditorOption.textfield
 }
 
 /** This function takes a json schema that has been read and converted from json to a
@@ -220,7 +227,7 @@ function extractSchemaRecursive(
                 getter: compileGetValueFunction(pointer),
                 pointer: pointer,
                 default: schema.default as string | undefined,
-                editor: EditorOption.textfield,
+                editor: getEditorOptionForType(types, undefined),
                 description: (schema.description as string | undefined) ?? "",
             })
         } else {
