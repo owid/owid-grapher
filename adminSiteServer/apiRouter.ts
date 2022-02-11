@@ -22,7 +22,7 @@ import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface"
-import { SuggestedChartRevisionStatus } from "../adminSiteClient/SuggestedChartRevision"
+import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes"
 import {
     VariableAnnotationsResponse,
     VariableAnnotationPatch,
