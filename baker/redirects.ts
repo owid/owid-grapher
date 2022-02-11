@@ -132,7 +132,13 @@ const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
     if (!target) return url
     const targetUrl = Url.fromURL(target)
 
-    return resolveGrapherAndWordpressRedirect(targetUrl)
+    return resolveGrapherAndWordpressRedirect(
+        // Pass query params through only if none present on the target (cf.
+        // netlify behaviour)
+        url.queryStr && !targetUrl.queryStr
+            ? targetUrl.setQueryParams(url.queryParams)
+            : targetUrl
+    )
 }
 
 export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
