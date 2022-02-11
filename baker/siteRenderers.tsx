@@ -79,8 +79,7 @@ import { Chart } from "../db/model/Chart"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
-import { resolveExplorerRedirect } from "./replaceExplorerRedirects"
-import { getGrapherAndWordpressRedirectsMap } from "./redirects"
+import { resolveInternalRedirect } from "./redirects"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -440,31 +439,6 @@ const renderPostThumbnailBySlug = async (
     return ReactDOMServer.renderToStaticMarkup(
         <img src={formatUrls(post.thumbnailUrl)} />
     )
-}
-
-const resolveInternalRedirect = async (url: Url): Promise<Url> => {
-    if (!isCanonicalInternalUrl(url)) return url
-
-    // For performance reasons, this assumes that explorer redirects (in
-    // explorer code) are final.
-
-    // In other words, in the following redirect chain:
-    // grapher -- A --> explorer -- B --> grapher
-    // only (A) is resolved.
-    return resolveExplorerRedirect(
-        await resolveGrapherAndWordpressRedirect(url)
-    )
-}
-
-const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
-    if (!url.pathname || !isCanonicalInternalUrl(url)) return url
-    const redirects = await getGrapherAndWordpressRedirectsMap()
-    const target = redirects.get(url.pathname)
-
-    if (!target) return url
-    const targetUrl = Url.fromURL(target)
-
-    return resolveGrapherAndWordpressRedirect(targetUrl)
 }
 
 export const renderProminentLinks = async ($: CheerioStatic) => {

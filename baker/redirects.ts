@@ -2,6 +2,9 @@ import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { getCountryDetectionRedirects } from "../clientUtils/countries"
 import { memoize } from "../clientUtils/Util"
+import { isCanonicalInternalUrl } from "./formatting"
+import { resolveExplorerRedirect } from "./replaceExplorerRedirects"
+import { Url } from "../clientUtils/urls/Url"
 
 export const getRedirects = async () => {
     const redirects = [
@@ -120,6 +123,31 @@ export const getGrapherAndWordpressRedirectsMap = memoize(
         return redirects
     }
 )
+
+const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
+    if (!url.pathname || !isCanonicalInternalUrl(url)) return url
+    const redirects = await getGrapherAndWordpressRedirectsMap()
+    const target = redirects.get(url.pathname)
+
+    if (!target) return url
+    const targetUrl = Url.fromURL(target)
+
+    return resolveGrapherAndWordpressRedirect(targetUrl)
+}
+
+export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
+    if (!isCanonicalInternalUrl(url)) return url
+
+    // For performance reasons, this assumes that explorer redirects (in
+    // explorer code) are final.
+
+    // In other words, in the following redirect chain:
+    // grapher -- A --> explorer -- B --> grapher
+    // only (A) is resolved.
+    return resolveExplorerRedirect(
+        await resolveGrapherAndWordpressRedirect(url)
+    )
+}
 
 export const flushCache = () => {
     getGrapherAndWordpressRedirectsMap.cache.clear?.()
