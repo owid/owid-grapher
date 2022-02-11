@@ -18,7 +18,6 @@ import {
     isEmpty,
     isEqual,
     isNil,
-    isPlainObject,
     merge,
 } from "lodash"
 
@@ -54,25 +53,12 @@ import {
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
 import {
-    allComparisonOperators,
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
-    ComparisonOperator,
-    EqualityComparision,
-    EqualityOperator,
-    JsonPointerSymbol,
-    Negation,
-    NumberAtom,
-    NumericComparision,
     Operation,
     SqlColumnName,
     WHITELISTED_SQL_COLUM_NAMES,
-    StringAtom,
-    StringContainsOperation,
-    NullCheckOperation,
-    NullCheckOperator,
-    NumericOperation,
 } from "../clientUtils/SqlFilterSExpression"
 import {
     parseVariableAnnotationsRow,
@@ -93,147 +79,22 @@ import {
     isConfigColumn,
     readOnlyColumnNamesFields,
     ReadOnlyColumn,
+    filterTreeToSExpression,
+    FilterPanelState,
+    filterPanelInitialConfig,
+    initialFilterQueryValue,
+    fieldDescriptionToFilterPanelFieldConfig,
+    simpleColumnToFilterPanelFieldConfig,
+    getFinalConfigLayerForVariable,
 } from "./VariablesAnnotationTypesAndUtils"
-import AntdConfig from "react-awesome-query-builder/lib/config/antd"
-import { BasicConfig } from "react-awesome-query-builder"
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import {
-    JsonGroup,
-    JsonTree,
-    JsonItem,
     SimpleField,
     Config,
     ImmutableTree,
     BuilderProps,
 } from "react-awesome-query-builder"
-
-const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
-const initialFilterQueryValue: JsonGroup = { id: QbUtils.uuid(), type: "group" }
-type FilterPanelState = {
-    tree: ImmutableTree
-    config: Config
-}
-
-function getLogicOperator(str: string): BinaryLogicOperators {
-    if (str === "AND") return BinaryLogicOperators.and
-    else if (str === "OR") return BinaryLogicOperators.or
-    else throw Error(`unknown logic operator: ${str}`)
-}
-
-function getComparisonOperator(str: string): ComparisonOperator | undefined {
-    return match(str)
-        .with("less", () => ComparisonOperator.less)
-        .with("less_or_equal", () => ComparisonOperator.lessOrEqual)
-        .with("greater", () => ComparisonOperator.greater)
-        .with("greater_or_equal", () => ComparisonOperator.greaterOrEqual)
-        .otherwise(() => undefined)
-}
-
-function getNullCheckOperator(str: string): NullCheckOperator | undefined {
-    return match(str)
-        .with("is_null", () => NullCheckOperator.isNull)
-        .with("is_not_null", () => NullCheckOperator.isNotNull)
-        .otherwise(() => undefined)
-}
-
-function getFieldSymbol(fieldName: string): Operation {
-    if (isConfigColumn(fieldName)) return new JsonPointerSymbol(fieldName)
-    else
-        return new SqlColumnName(
-            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget
-        )
-}
-
-function getValueAtom(val: any): Operation | undefined {
-    if (typeof val === "string") return new StringAtom(val)
-    else if (typeof val === "number") return new NumberAtom(val)
-    else if (typeof val === "boolean") return new BooleanAtom(val)
-    else return undefined
-}
-
-function getEqualityOperator(str: string): EqualityOperator | undefined {
-    if (str === "equal" || str === "select_equals")
-        return EqualityOperator.equal
-    else if (str === "not_equal" || str === "select_not_equals")
-        return EqualityOperator.unequal
-    else return undefined
-}
-
-function filterTreeToSExpression(filterTree: JsonItem): Operation | undefined {
-    if (filterTree.type === "group") {
-        const logicOperator = getLogicOperator(
-            filterTree.properties?.conjunction ?? "AND"
-        )
-        let children: Operation[] = []
-        if (isArray(filterTree.children1))
-            children = excludeUndefined(
-                filterTree.children1?.map(filterTreeToSExpression)
-            )
-        else if (isPlainObject(filterTree.children1))
-            children = excludeUndefined(
-                Object.values(
-                    filterTree.children1 as Record<string, JsonItem>
-                ).map(filterTreeToSExpression)
-            )
-        else if (filterTree.children1 !== undefined)
-            console.warn("unexpected content of children1")
-        if (filterTree.children1 === undefined || children.length === 0)
-            return undefined
-        const operation = new BinaryLogicOperation(logicOperator, children)
-        if (filterTree.properties?.not) return new Negation(operation)
-        else return operation
-    } else if (filterTree.type === "rule") {
-        return match(filterTree.properties.operator)
-            .when(
-                (op) => op && getComparisonOperator(op),
-                (op) => {
-                    const operator = getComparisonOperator(op as string)
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    if (
-                        filterTree.properties.value.length === 0 ||
-                        filterTree.properties.value[0] === undefined
-                    )
-                        return undefined
-                    const val = getValueAtom(filterTree.properties.value[0])
-                    return new NumericComparision(operator!, [field, val!])
-                }
-            )
-            .when(
-                (op) => op && getEqualityOperator(op),
-                (op) => {
-                    const operator = getEqualityOperator(op as string)
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    const val = getValueAtom(filterTree.properties.value[0])
-                    if (val === undefined) return undefined
-                    return new EqualityComparision(operator!, [field, val])
-                }
-            )
-            .when(
-                (op) => op && op === "like",
-                (op) => {
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    if (
-                        filterTree.properties.value.length === 0 ||
-                        filterTree.properties.value[0] === undefined
-                    )
-                        return undefined
-                    const val = new StringAtom(filterTree.properties.value[0])
-                    return new StringContainsOperation(field, val)
-                }
-            )
-            .when(
-                (op) => op && getNullCheckOperator(op as string),
-                (op) => {
-                    const operator = getNullCheckOperator(op as string)!
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    return new NullCheckOperation(operator!, field)
-                }
-            )
-            .otherwise(() => undefined)
-    }
-    return undefined
-}
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -248,6 +109,7 @@ class VariablesAnnotationComponent extends React.Component {
     @observable columnFilter: string = ""
 
     @observable.ref columnSelection: ColumnReorderItem[] = []
+    @observable.ref filterState: FilterPanelState | undefined = undefined
 
     context!: AdminAppContextType
     /** This array contains a description for every column, information like which field
@@ -1246,7 +1108,6 @@ class VariablesAnnotationComponent extends React.Component {
         }
         this.disposers = []
     }
-    @observable.ref filterState: FilterPanelState | undefined = undefined
 
     @action.bound
     updateFilterState(immutableTree: ImmutableTree, config: Config) {
@@ -1265,7 +1126,6 @@ class VariablesAnnotationComponent extends React.Component {
             }
 
         const jsonTree = QbUtils.getTree(immutableTree)
-        console.log("jsonTree", jsonTree)
     }
 
     @computed get filterSExpression(): Operation | undefined {
@@ -1273,7 +1133,6 @@ class VariablesAnnotationComponent extends React.Component {
         if (filterState) {
             const tree = QbUtils.getTree(filterState.tree)
             const sExpression = filterTreeToSExpression(tree)
-            console.log("Recomputing filterSExpression", sExpression)
 
             return sExpression
         }
@@ -1393,56 +1252,6 @@ class VariablesAnnotationComponent extends React.Component {
     }
 }
 
-function simpleColumnToFilterPanelFieldConfig(
-    column: ReadOnlyColumn
-): [string, SimpleField] {
-    const fieldType = match(column.type)
-        .with("string", () => "text")
-        .with("number", () => "number")
-        .with("datetime", () => "datetime")
-        .exhaustive()
-
-    return [
-        column.key,
-        {
-            label: column.key,
-            type: fieldType,
-            valueSources: ["value"],
-            //preferWidgets: widget [widget],
-        },
-    ]
-}
-
-function fieldDescriptionToFilterPanelFieldConfig(
-    description: FieldDescription
-): [string, SimpleField] | undefined {
-    const widget = match(description.editor)
-        .with(EditorOption.checkbox, () => "boolean")
-        .with(EditorOption.colorEditor, () => undefined)
-        .with(EditorOption.dropdown, () => "select")
-        .with(EditorOption.mappingEditor, () => undefined)
-        .with(EditorOption.numeric, () => "number")
-        .with(EditorOption.primitiveListEditor, () => undefined)
-        .with(EditorOption.textarea, () => "text")
-        .with(EditorOption.textfield, () => "text")
-        .exhaustive()
-
-    if (widget !== undefined)
-        return [
-            description.pointer,
-            {
-                label: description.pointer,
-                type: widget,
-                valueSources: ["value"],
-                //preferWidgets: widget [widget],
-                fieldSettings: {
-                    listValues: description.enumOptions,
-                },
-            },
-        ]
-    else return undefined
-}
-
 export class VariablesAnnotationPage extends React.Component {
     render() {
         return (
@@ -1455,13 +1264,4 @@ export class VariablesAnnotationPage extends React.Component {
     }
 
     //dispose!: IReactionDisposer
-}
-function getFinalConfigLayerForVariable(id: number) {
-    return {
-        version: 1,
-        dimensions: [{ property: "y", variableId: id }],
-        map: {
-            variableId: id,
-        },
-    }
 }
