@@ -1,6 +1,5 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import * as ReactDOMServer from "react-dom/server"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import { union } from "../../clientUtils/Util"
@@ -14,7 +13,6 @@ import { Url } from "../../clientUtils/urls/Url"
 import { EntityName } from "../../coreTable/OwidTableConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -51,6 +49,8 @@ export class ProminentLink extends React.Component<{
             this.originalSelectedEntities,
             this.entitiesInGlobalEntitySelection
         )
+        if (newEntityList.length === 0) return this.originalUrl
+
         return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
     }
 
