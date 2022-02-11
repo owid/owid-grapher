@@ -19,9 +19,10 @@ const ensureStartsWith = (str: string, start: string): string => {
     return `${start}${str}`
 }
 
-const ensureQueryStrFormat = (queryStr: string) =>
+const ensureQueryStrFormat = (queryStr: string): string =>
     ensureStartsWith(queryStr, "?")
-const ensureHashFormat = (queryStr: string) => ensureStartsWith(queryStr, "#")
+const ensureHashFormat = (queryStr: string): string =>
+    ensureStartsWith(queryStr, "#")
 
 interface UrlProps {
     readonly origin?: string // https://ourworldindata.org
@@ -36,7 +37,7 @@ export class Url {
     /**
      * @param url Absolute or relative URL
      */
-    static fromURL(url: string) {
+    static fromURL(url: string): Url {
         const { origin, pathname, query, hash } = parseUrl(url)
         return new Url({
             origin:
@@ -47,13 +48,13 @@ export class Url {
         })
     }
 
-    static fromQueryStr(queryStr: string) {
+    static fromQueryStr(queryStr: string): Url {
         return new Url({
             queryStr: ensureQueryStrFormat(queryStr),
         })
     }
 
-    static fromQueryParams(queryParams: QueryParams) {
+    static fromQueryParams(queryParams: QueryParams): Url {
         return new Url({
             queryStr: queryParamsToStr(queryParams),
         })
@@ -133,21 +134,21 @@ export class Url {
         return !!this.pathname?.startsWith("/explorers")
     }
 
-    update(props: UrlProps) {
+    update(props: UrlProps): Url {
         return new Url({
             ...this.props,
             ...props,
         })
     }
 
-    setQueryParams(queryParams: QueryParams) {
+    setQueryParams(queryParams: QueryParams): Url {
         return new Url({
             ...this.props,
             queryStr: queryParamsToStr(queryParams),
         })
     }
 
-    updateQueryParams(queryParams: QueryParams) {
+    updateQueryParams(queryParams: QueryParams): Url {
         return this.update({
             queryStr: queryParamsToStr(
                 omitUndefinedValues({
