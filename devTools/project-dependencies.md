@@ -39,14 +39,15 @@ graph TD;
     baker --> clientUtils;
     baker --> db;
     baker --> explorerAdminServer;
+    baker --> gitCms;
     baker --> serverUtils;
     baker --> settings;
     baker --> site;
 
     coreTable --> clientUtils;
 
-    db --> adminSiteClient;
     db --> clientUtils;
+    db --> grapher;
     db --> settings;
 
     explorer --> clientUtils;

@@ -7,7 +7,7 @@
     },
     "references": [
         { "path": "../clientUtils" },
-        { "path": "../adminSiteClient" },
-        { "path": "../settings" }
+        { "path": "../settings" },
+        { "path": "../grapher" }
     ]
 }

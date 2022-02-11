@@ -10,6 +10,7 @@
         { "path": "../db" },
         { "path": "../settings" },
         { "path": "../clientUtils" },
-        { "path": "../serverUtils" }
+        { "path": "../serverUtils" },
+        { "path": "../gitCms" }
     ]
 }
